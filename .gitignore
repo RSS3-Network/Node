@@ -1,0 +1,32 @@
+### Visual Studio Code
+.vscode/*
+
+
+### JetBrains
+.idea/*
+
+!.idea/icon.svg
+
+### Linux
+
+### Go template
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Go workspace file
+go.work
+
+### macOS
+.DS_Store
+
+### Project
+/build/*

@@ -1,0 +1,19 @@
+package schema
+
+import "github.com/naturalselectionlabs/rss3-node/schema/filter"
+
+type Feed struct {
+	ID        string           `json:"id"`
+	Network   filter.Network   `json:"network"`
+	Chain     filter.Chain     `json:"chain"`
+	Index     uint             `json:"index"`
+	From      string           `json:"from"`
+	To        string           `json:"to"`
+	Tag       filter.Tag       `json:"tag"`
+	Type      filter.Type      `json:"type"`
+	Platform  *filter.Platform `json:"platform,omitempty"`
+	Fee       Fee              `json:"fee"`
+	Actions   []Action         `json:"actions"`
+	Status    bool             `json:"status"`
+	Timestamp uint64           `json:"timestamp"`
+}

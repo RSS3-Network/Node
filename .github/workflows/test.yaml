@@ -1,0 +1,18 @@
+name: Test
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Test
+    runs-on: self-hosted
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.21"
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Test
+        run: make test
