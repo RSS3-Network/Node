@@ -27,12 +27,12 @@ var command = cobra.Command{
 			return fmt.Errorf("setup config file: %w", err)
 		}
 
-		server, err := node.NewServer(config.Node)
+		server, err := node.NewServer(config.Config.Node)
 		if err != nil {
 			return fmt.Errorf("build node server: %w", err)
 		}
 
-		return server.Run(cmd.Context())
+		return server.Run(cmd.Context(), *config)
 	},
 }
 

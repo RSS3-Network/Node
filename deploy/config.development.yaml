@@ -1,5 +1,125 @@
-environment: development
-node:
-  network: arweave
-  chain: mainnet
-  endpoint: https://ethereum.blockpi.network/v1/rpc/public
+discovery:
+  version: "1.0.0" # version of your RSS3 node
+  maintainer:
+    owner_evm_address: "0x123" # address to receive network incentivization and ownership verification
+    signature: "hello_world" # signature of the above address
+    website: "https://abc.com/rss3-node" # link to your website
+  # public_endpoint is how the Global Indexer reaches your RSS3 node
+  # a domain name is recommended but not required, you can use an IP address+port as well
+  node:
+    endpoint: "https://rss3.abc.com/"
+    access_key: "access_key"
+
+config:
+  hub:
+    endpoint: "https://hub.abc.com/"
+  environment: "development" # set to "production" when you are ready to go live
+  node:
+    network: arweave
+    chain: mainnet
+    endpoint: https://ethereum.blockpi.network/v1/rpc/public
+  # the following config is for your RSS3 node to operate on data
+  data:
+    database:
+      type: "CockroachDB"
+      external: true # if set to true, the automated deployment process will not sprint up a database container.
+      host: "pg.abc.com"
+      port: 5432
+      username: "username"
+      password: "password"
+      database_name: "abc"
+
+    redis:
+      external: true
+      host: "redis.abc.com"
+      port: 6379
+      password: "password"
+      database_name: 1 # redis database index
+
+    object_storage:
+      external: true
+      type: "s3"
+      endpoint:
+        private:
+        public:
+      bucket:
+      credential:
+        id:
+        secret:
+  # the following config is for your RSS3 node to spring up components
+  component:
+    data:
+      indexer_module: # leave it empty to disable individual module here
+        decentralized:
+          network: # list all the supported networks here, see: https://docs.rss3.io/docs/supported-networks
+            indexer:
+              # fallback is a special indexer that stores all on-chain transctions
+              # that are not handled by other indexersinto database.
+              # when enabled, a CockroachDB is required.
+              - type: fallback
+                args:
+                  - chain_id: "0x01,0x137" # 或者用下面的格式
+
+              - type: app_uniswap
+                args:
+                  - chain_id: ["0x01","0x137"]
+
+              - type: app_snapshot
+                args:
+                  - api_key: "12345678"
+                  - upstream_endpoint: "https://snapshot.app/graphql"
+
+              - type: app_mirror
+                args:
+                  - upstream_endpoint: "https://arweave-gateway.abc.com/"
+                depends_on:
+                  storage:
+                    - "arweave_storage_1"
+
+              - type: app_farcaster
+                args:
+                  - upstream_endpoint: "https://farcaster-hub.abc.com/"
+
+          storage: # storage used by applications, indexers may require read-only access to retrieve data
+            - id: "ipfs_storage_1"
+              upstream_endpoint: "https://ipfs-gateway.abc.com/" # your IPFS gateway endpoint
+
+            - id: "arweave_storage_1"
+              upstream_endpoint: "https://arweave-gateway.abc.com/" # your Arweave gateway endpoint
+
+        RSS:
+          # RSSHub is the only supported RSS module for now
+          # as RSSHub is an external dependency, you need to make sure:
+          # 1. the instance must be accessible by your RSS3 node itself
+          # 2. certain APIs must be accessible by the Global Indexer:
+          #    2.1 /api/routes # TBD
+          #    2.2 /api/config # TBD
+          RSSHub:
+            # instance_url stands for the RSSHub instance you are running
+            instance_url: "https://rsshub.abc.com/"
+            # proper authentication is highly recommended to protect your RSSHub instance
+            # choose an authentication method: basic auth using username/password
+            # or query string auth using access_key
+            # make sure it's always accessible by your RSS3 node
+            # see: https://docs.rsshub.app/install/#user-authentication-configurations
+            authentication:
+              username: "username"
+              password: "password"
+              access_key: "access_key"
+
+        federated: # leave blank for now
+
+    search: # leave blank for now
+
+observability:
+  opentelemetry:
+    # leave blank to disable individual signal here
+    # see: https://opentelemetry.io/
+    metrics:
+      endpoint: "https://opentelemetry.abc.com/metrics"
+
+    logs:
+      endpoint: "https://opentelemetry.abc.com/logs"
+
+    traces:
+      endpoint: "https://opentelemetry.abc.com/traces"
