@@ -13,7 +13,7 @@ lint: generate
 	go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2 run
 
 test:
-	go test -cover -v ./...
+	go test -cover -race -v ./...
 
 .PHONY: build
 build: generate
