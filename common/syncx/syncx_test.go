@@ -10,6 +10,8 @@ import (
 )
 
 func TestQuickGroup(t *testing.T) {
+	t.Parallel()
+
 	task := func(ctx context.Context, i time.Duration) (time.Duration, string) {
 		ticker := time.NewTicker(i)
 

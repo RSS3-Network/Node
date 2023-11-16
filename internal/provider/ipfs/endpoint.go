@@ -26,11 +26,17 @@ const (
 )
 
 // GetIPFSPublicGateways gets a list of public IPFS gateways.
-func GetIPFSPublicGateways(_ context.Context) ([]string, error) {
+func GetIPFSPublicGateways(ctx context.Context) ([]string, error) {
 	DefaultGateways := []string{DefaultIPFSGateway, DefaultIPFSIO, DefaultCloudflare, Default4EVERLAND}
 
 	// get public gateways from GitHub
-	response, err := http.Get(publicGatewaysURL)
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, publicGatewaysURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("new request error: %w", err)
+	}
+
+	// nolint:bodyclose // False positive
+	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("get public gateways error: %w", err)
 	}
@@ -69,6 +75,7 @@ func CheckIPFSEndpoints(ctx context.Context, client http.Client, endpoints []str
 		endpoint := endpoint
 
 		wg.Add(1)
+
 		go func() {
 			defer wg.Done()
 
@@ -90,6 +97,7 @@ func CheckIPFSEndpoints(ctx context.Context, client http.Client, endpoints []str
 				return
 			}
 
+			// nolint:bodyclose // False positive
 			response, err := client.Do(request)
 			if err != nil {
 				invalidEndpoint(endpoint)
@@ -114,7 +122,7 @@ func CheckIPFSEndpoints(ctx context.Context, client http.Client, endpoints []str
 		close(recordChan)
 	}()
 
-	var results []record
+	results := make([]record, 0)
 
 	for record := range recordChan {
 		results = append(results, record)

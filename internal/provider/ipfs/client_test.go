@@ -116,6 +116,8 @@ func TestStableFetch(t *testing.T) {
 			t.Parallel()
 
 			body, err := ipfsHTTPClient.Fetch(context.TODO(), testcase.arguments.path, ipfs.StableMode)
+			require.NoError(t, err)
+
 			defer lo.Try(body.Close)
 
 			data, err := io.ReadAll(body)
