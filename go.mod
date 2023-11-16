@@ -3,6 +3,7 @@ module github.com/naturalselectionlabs/rss3-node
 go 1.21
 
 require (
+	github.com/avast/retry-go/v4 v4.5.1
 	github.com/ethereum/go-ethereum v1.13.5
 	github.com/samber/lo v1.38.1
 	github.com/shopspring/decimal v1.3.1
