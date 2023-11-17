@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/constant"
@@ -137,33 +136,6 @@ func (s *Server) registerNode(c config.File) error {
 		AccessKey: c.Discovery.Node.AccessKey,
 	}
 
-	//nolint:prealloc
-	var decentralized []schema.Decentralized
-
-	for _, indexerConfig := range c.Config.Component.Data.IndexerModule.Decentralized.Network.Indexer {
-		var networks []string
-
-		for _, arg := range indexerConfig.Args {
-			if chainID, ok := arg["chain_id"]; ok {
-				switch v := chainID.(type) {
-				case string:
-					networks = append(networks, strings.Split(v, ",")...)
-				case []interface{}:
-					for _, id := range v {
-						if idStr, ok := id.(string); ok {
-							networks = append(networks, idStr)
-						}
-					}
-				}
-			}
-		}
-
-		decentralized = append(decentralized, schema.Decentralized{
-			Type:    indexerConfig.Type,
-			Network: networks,
-		})
-	}
-
 	var rss schema.RSS
 
 	if c.Config.Component.Data.IndexerModule.RSS.RSSHub.InstanceURL != "" {
@@ -175,15 +147,12 @@ func (s *Server) registerNode(c config.File) error {
 	}
 
 	indexerModule := schema.IndexerModule{
-		Decentralized: decentralized,
-		RSS:           rss,
-		Federated:     struct{}{},
+		RSS: rss,
 	}
 
 	component := schema.Component{
 		Data: schema.Data{
 			IndexerModule: indexerModule,
-			Search:        struct{}{},
 		},
 	}
 

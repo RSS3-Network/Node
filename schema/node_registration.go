@@ -21,9 +21,7 @@ type RSSHub struct {
 }
 
 type IndexerModule struct {
-	Decentralized []Decentralized `json:"decentralized"`
-	RSS           RSS             `json:"rss"`
-	Federated     struct{}        `json:"federated"`
+	RSS RSS `json:"rss"`
 }
 
 type RSS struct {
@@ -36,7 +34,6 @@ type Component struct {
 
 type Data struct {
 	IndexerModule IndexerModule `json:"indexer_module"`
-	Search        struct{}      `json:"search"`
 }
 
 type RegistrationData struct {
