@@ -26,7 +26,7 @@ func (Index) Fields() []ent.Field {
 		field.String("type").NotEmpty(),
 		field.String("status").NotEmpty(),
 		field.String("direction").NotEmpty(),
-		field.Int("index").Default(0),
+		field.Uint("index").Default(0),
 		field.Time("timestamp"),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),

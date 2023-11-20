@@ -130,44 +130,44 @@ func (fu *FeedUpdate) SetNillableStatus(s *string) *FeedUpdate {
 }
 
 // SetIndex sets the "index" field.
-func (fu *FeedUpdate) SetIndex(i int) *FeedUpdate {
+func (fu *FeedUpdate) SetIndex(u uint) *FeedUpdate {
 	fu.mutation.ResetIndex()
-	fu.mutation.SetIndex(i)
+	fu.mutation.SetIndex(u)
 	return fu
 }
 
 // SetNillableIndex sets the "index" field if the given value is not nil.
-func (fu *FeedUpdate) SetNillableIndex(i *int) *FeedUpdate {
-	if i != nil {
-		fu.SetIndex(*i)
+func (fu *FeedUpdate) SetNillableIndex(u *uint) *FeedUpdate {
+	if u != nil {
+		fu.SetIndex(*u)
 	}
 	return fu
 }
 
-// AddIndex adds i to the "index" field.
-func (fu *FeedUpdate) AddIndex(i int) *FeedUpdate {
-	fu.mutation.AddIndex(i)
+// AddIndex adds u to the "index" field.
+func (fu *FeedUpdate) AddIndex(u int) *FeedUpdate {
+	fu.mutation.AddIndex(u)
 	return fu
 }
 
 // SetTotalActions sets the "total_actions" field.
-func (fu *FeedUpdate) SetTotalActions(i int) *FeedUpdate {
+func (fu *FeedUpdate) SetTotalActions(u uint) *FeedUpdate {
 	fu.mutation.ResetTotalActions()
-	fu.mutation.SetTotalActions(i)
+	fu.mutation.SetTotalActions(u)
 	return fu
 }
 
 // SetNillableTotalActions sets the "total_actions" field if the given value is not nil.
-func (fu *FeedUpdate) SetNillableTotalActions(i *int) *FeedUpdate {
-	if i != nil {
-		fu.SetTotalActions(*i)
+func (fu *FeedUpdate) SetNillableTotalActions(u *uint) *FeedUpdate {
+	if u != nil {
+		fu.SetTotalActions(*u)
 	}
 	return fu
 }
 
-// AddTotalActions adds i to the "total_actions" field.
-func (fu *FeedUpdate) AddTotalActions(i int) *FeedUpdate {
-	fu.mutation.AddTotalActions(i)
+// AddTotalActions adds u to the "total_actions" field.
+func (fu *FeedUpdate) AddTotalActions(u int) *FeedUpdate {
+	fu.mutation.AddTotalActions(u)
 	return fu
 }
 
@@ -185,7 +185,6 @@ func (fu *FeedUpdate) AppendActions(s []schema.Action) *FeedUpdate {
 
 // SetFeeValue sets the "fee_value" field.
 func (fu *FeedUpdate) SetFeeValue(d decimal.Decimal) *FeedUpdate {
-	fu.mutation.ResetFeeValue()
 	fu.mutation.SetFeeValue(d)
 	return fu
 }
@@ -195,12 +194,6 @@ func (fu *FeedUpdate) SetNillableFeeValue(d *decimal.Decimal) *FeedUpdate {
 	if d != nil {
 		fu.SetFeeValue(*d)
 	}
-	return fu
-}
-
-// AddFeeValue adds d to the "fee_value" field.
-func (fu *FeedUpdate) AddFeeValue(d decimal.Decimal) *FeedUpdate {
-	fu.mutation.AddFeeValue(d)
 	return fu
 }
 
@@ -362,16 +355,16 @@ func (fu *FeedUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(feed.FieldStatus, field.TypeString, value)
 	}
 	if value, ok := fu.mutation.Index(); ok {
-		_spec.SetField(feed.FieldIndex, field.TypeInt, value)
+		_spec.SetField(feed.FieldIndex, field.TypeUint, value)
 	}
 	if value, ok := fu.mutation.AddedIndex(); ok {
-		_spec.AddField(feed.FieldIndex, field.TypeInt, value)
+		_spec.AddField(feed.FieldIndex, field.TypeUint, value)
 	}
 	if value, ok := fu.mutation.TotalActions(); ok {
-		_spec.SetField(feed.FieldTotalActions, field.TypeInt, value)
+		_spec.SetField(feed.FieldTotalActions, field.TypeUint, value)
 	}
 	if value, ok := fu.mutation.AddedTotalActions(); ok {
-		_spec.AddField(feed.FieldTotalActions, field.TypeInt, value)
+		_spec.AddField(feed.FieldTotalActions, field.TypeUint, value)
 	}
 	if value, ok := fu.mutation.Actions(); ok {
 		_spec.SetField(feed.FieldActions, field.TypeJSON, value)
@@ -382,10 +375,7 @@ func (fu *FeedUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		})
 	}
 	if value, ok := fu.mutation.FeeValue(); ok {
-		_spec.SetField(feed.FieldFeeValue, field.TypeFloat64, value)
-	}
-	if value, ok := fu.mutation.AddedFeeValue(); ok {
-		_spec.AddField(feed.FieldFeeValue, field.TypeFloat64, value)
+		_spec.SetField(feed.FieldFeeValue, field.TypeOther, value)
 	}
 	if value, ok := fu.mutation.FeeToken(); ok {
 		_spec.SetField(feed.FieldFeeToken, field.TypeString, value)
@@ -518,44 +508,44 @@ func (fuo *FeedUpdateOne) SetNillableStatus(s *string) *FeedUpdateOne {
 }
 
 // SetIndex sets the "index" field.
-func (fuo *FeedUpdateOne) SetIndex(i int) *FeedUpdateOne {
+func (fuo *FeedUpdateOne) SetIndex(u uint) *FeedUpdateOne {
 	fuo.mutation.ResetIndex()
-	fuo.mutation.SetIndex(i)
+	fuo.mutation.SetIndex(u)
 	return fuo
 }
 
 // SetNillableIndex sets the "index" field if the given value is not nil.
-func (fuo *FeedUpdateOne) SetNillableIndex(i *int) *FeedUpdateOne {
-	if i != nil {
-		fuo.SetIndex(*i)
+func (fuo *FeedUpdateOne) SetNillableIndex(u *uint) *FeedUpdateOne {
+	if u != nil {
+		fuo.SetIndex(*u)
 	}
 	return fuo
 }
 
-// AddIndex adds i to the "index" field.
-func (fuo *FeedUpdateOne) AddIndex(i int) *FeedUpdateOne {
-	fuo.mutation.AddIndex(i)
+// AddIndex adds u to the "index" field.
+func (fuo *FeedUpdateOne) AddIndex(u int) *FeedUpdateOne {
+	fuo.mutation.AddIndex(u)
 	return fuo
 }
 
 // SetTotalActions sets the "total_actions" field.
-func (fuo *FeedUpdateOne) SetTotalActions(i int) *FeedUpdateOne {
+func (fuo *FeedUpdateOne) SetTotalActions(u uint) *FeedUpdateOne {
 	fuo.mutation.ResetTotalActions()
-	fuo.mutation.SetTotalActions(i)
+	fuo.mutation.SetTotalActions(u)
 	return fuo
 }
 
 // SetNillableTotalActions sets the "total_actions" field if the given value is not nil.
-func (fuo *FeedUpdateOne) SetNillableTotalActions(i *int) *FeedUpdateOne {
-	if i != nil {
-		fuo.SetTotalActions(*i)
+func (fuo *FeedUpdateOne) SetNillableTotalActions(u *uint) *FeedUpdateOne {
+	if u != nil {
+		fuo.SetTotalActions(*u)
 	}
 	return fuo
 }
 
-// AddTotalActions adds i to the "total_actions" field.
-func (fuo *FeedUpdateOne) AddTotalActions(i int) *FeedUpdateOne {
-	fuo.mutation.AddTotalActions(i)
+// AddTotalActions adds u to the "total_actions" field.
+func (fuo *FeedUpdateOne) AddTotalActions(u int) *FeedUpdateOne {
+	fuo.mutation.AddTotalActions(u)
 	return fuo
 }
 
@@ -573,7 +563,6 @@ func (fuo *FeedUpdateOne) AppendActions(s []schema.Action) *FeedUpdateOne {
 
 // SetFeeValue sets the "fee_value" field.
 func (fuo *FeedUpdateOne) SetFeeValue(d decimal.Decimal) *FeedUpdateOne {
-	fuo.mutation.ResetFeeValue()
 	fuo.mutation.SetFeeValue(d)
 	return fuo
 }
@@ -583,12 +572,6 @@ func (fuo *FeedUpdateOne) SetNillableFeeValue(d *decimal.Decimal) *FeedUpdateOne
 	if d != nil {
 		fuo.SetFeeValue(*d)
 	}
-	return fuo
-}
-
-// AddFeeValue adds d to the "fee_value" field.
-func (fuo *FeedUpdateOne) AddFeeValue(d decimal.Decimal) *FeedUpdateOne {
-	fuo.mutation.AddFeeValue(d)
 	return fuo
 }
 
@@ -780,16 +763,16 @@ func (fuo *FeedUpdateOne) sqlSave(ctx context.Context) (_node *Feed, err error) 
 		_spec.SetField(feed.FieldStatus, field.TypeString, value)
 	}
 	if value, ok := fuo.mutation.Index(); ok {
-		_spec.SetField(feed.FieldIndex, field.TypeInt, value)
+		_spec.SetField(feed.FieldIndex, field.TypeUint, value)
 	}
 	if value, ok := fuo.mutation.AddedIndex(); ok {
-		_spec.AddField(feed.FieldIndex, field.TypeInt, value)
+		_spec.AddField(feed.FieldIndex, field.TypeUint, value)
 	}
 	if value, ok := fuo.mutation.TotalActions(); ok {
-		_spec.SetField(feed.FieldTotalActions, field.TypeInt, value)
+		_spec.SetField(feed.FieldTotalActions, field.TypeUint, value)
 	}
 	if value, ok := fuo.mutation.AddedTotalActions(); ok {
-		_spec.AddField(feed.FieldTotalActions, field.TypeInt, value)
+		_spec.AddField(feed.FieldTotalActions, field.TypeUint, value)
 	}
 	if value, ok := fuo.mutation.Actions(); ok {
 		_spec.SetField(feed.FieldActions, field.TypeJSON, value)
@@ -800,10 +783,7 @@ func (fuo *FeedUpdateOne) sqlSave(ctx context.Context) (_node *Feed, err error) 
 		})
 	}
 	if value, ok := fuo.mutation.FeeValue(); ok {
-		_spec.SetField(feed.FieldFeeValue, field.TypeFloat64, value)
-	}
-	if value, ok := fuo.mutation.AddedFeeValue(); ok {
-		_spec.AddField(feed.FieldFeeValue, field.TypeFloat64, value)
+		_spec.SetField(feed.FieldFeeValue, field.TypeOther, value)
 	}
 	if value, ok := fuo.mutation.FeeToken(); ok {
 		_spec.SetField(feed.FieldFeeToken, field.TypeString, value)

@@ -101,12 +101,12 @@ func Status(v string) predicate.Feed {
 }
 
 // Index applies equality check predicate on the "index" field. It's identical to IndexEQ.
-func Index(v int) predicate.Feed {
+func Index(v uint) predicate.Feed {
 	return predicate.Feed(sql.FieldEQ(FieldIndex, v))
 }
 
 // TotalActions applies equality check predicate on the "total_actions" field. It's identical to TotalActionsEQ.
-func TotalActions(v int) predicate.Feed {
+func TotalActions(v uint) predicate.Feed {
 	return predicate.Feed(sql.FieldEQ(FieldTotalActions, v))
 }
 
@@ -591,82 +591,82 @@ func StatusContainsFold(v string) predicate.Feed {
 }
 
 // IndexEQ applies the EQ predicate on the "index" field.
-func IndexEQ(v int) predicate.Feed {
+func IndexEQ(v uint) predicate.Feed {
 	return predicate.Feed(sql.FieldEQ(FieldIndex, v))
 }
 
 // IndexNEQ applies the NEQ predicate on the "index" field.
-func IndexNEQ(v int) predicate.Feed {
+func IndexNEQ(v uint) predicate.Feed {
 	return predicate.Feed(sql.FieldNEQ(FieldIndex, v))
 }
 
 // IndexIn applies the In predicate on the "index" field.
-func IndexIn(vs ...int) predicate.Feed {
+func IndexIn(vs ...uint) predicate.Feed {
 	return predicate.Feed(sql.FieldIn(FieldIndex, vs...))
 }
 
 // IndexNotIn applies the NotIn predicate on the "index" field.
-func IndexNotIn(vs ...int) predicate.Feed {
+func IndexNotIn(vs ...uint) predicate.Feed {
 	return predicate.Feed(sql.FieldNotIn(FieldIndex, vs...))
 }
 
 // IndexGT applies the GT predicate on the "index" field.
-func IndexGT(v int) predicate.Feed {
+func IndexGT(v uint) predicate.Feed {
 	return predicate.Feed(sql.FieldGT(FieldIndex, v))
 }
 
 // IndexGTE applies the GTE predicate on the "index" field.
-func IndexGTE(v int) predicate.Feed {
+func IndexGTE(v uint) predicate.Feed {
 	return predicate.Feed(sql.FieldGTE(FieldIndex, v))
 }
 
 // IndexLT applies the LT predicate on the "index" field.
-func IndexLT(v int) predicate.Feed {
+func IndexLT(v uint) predicate.Feed {
 	return predicate.Feed(sql.FieldLT(FieldIndex, v))
 }
 
 // IndexLTE applies the LTE predicate on the "index" field.
-func IndexLTE(v int) predicate.Feed {
+func IndexLTE(v uint) predicate.Feed {
 	return predicate.Feed(sql.FieldLTE(FieldIndex, v))
 }
 
 // TotalActionsEQ applies the EQ predicate on the "total_actions" field.
-func TotalActionsEQ(v int) predicate.Feed {
+func TotalActionsEQ(v uint) predicate.Feed {
 	return predicate.Feed(sql.FieldEQ(FieldTotalActions, v))
 }
 
 // TotalActionsNEQ applies the NEQ predicate on the "total_actions" field.
-func TotalActionsNEQ(v int) predicate.Feed {
+func TotalActionsNEQ(v uint) predicate.Feed {
 	return predicate.Feed(sql.FieldNEQ(FieldTotalActions, v))
 }
 
 // TotalActionsIn applies the In predicate on the "total_actions" field.
-func TotalActionsIn(vs ...int) predicate.Feed {
+func TotalActionsIn(vs ...uint) predicate.Feed {
 	return predicate.Feed(sql.FieldIn(FieldTotalActions, vs...))
 }
 
 // TotalActionsNotIn applies the NotIn predicate on the "total_actions" field.
-func TotalActionsNotIn(vs ...int) predicate.Feed {
+func TotalActionsNotIn(vs ...uint) predicate.Feed {
 	return predicate.Feed(sql.FieldNotIn(FieldTotalActions, vs...))
 }
 
 // TotalActionsGT applies the GT predicate on the "total_actions" field.
-func TotalActionsGT(v int) predicate.Feed {
+func TotalActionsGT(v uint) predicate.Feed {
 	return predicate.Feed(sql.FieldGT(FieldTotalActions, v))
 }
 
 // TotalActionsGTE applies the GTE predicate on the "total_actions" field.
-func TotalActionsGTE(v int) predicate.Feed {
+func TotalActionsGTE(v uint) predicate.Feed {
 	return predicate.Feed(sql.FieldGTE(FieldTotalActions, v))
 }
 
 // TotalActionsLT applies the LT predicate on the "total_actions" field.
-func TotalActionsLT(v int) predicate.Feed {
+func TotalActionsLT(v uint) predicate.Feed {
 	return predicate.Feed(sql.FieldLT(FieldTotalActions, v))
 }
 
 // TotalActionsLTE applies the LTE predicate on the "total_actions" field.
-func TotalActionsLTE(v int) predicate.Feed {
+func TotalActionsLTE(v uint) predicate.Feed {
 	return predicate.Feed(sql.FieldLTE(FieldTotalActions, v))
 }
 

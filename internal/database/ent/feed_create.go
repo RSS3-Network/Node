@@ -65,29 +65,29 @@ func (fc *FeedCreate) SetStatus(s string) *FeedCreate {
 }
 
 // SetIndex sets the "index" field.
-func (fc *FeedCreate) SetIndex(i int) *FeedCreate {
-	fc.mutation.SetIndex(i)
+func (fc *FeedCreate) SetIndex(u uint) *FeedCreate {
+	fc.mutation.SetIndex(u)
 	return fc
 }
 
 // SetNillableIndex sets the "index" field if the given value is not nil.
-func (fc *FeedCreate) SetNillableIndex(i *int) *FeedCreate {
-	if i != nil {
-		fc.SetIndex(*i)
+func (fc *FeedCreate) SetNillableIndex(u *uint) *FeedCreate {
+	if u != nil {
+		fc.SetIndex(*u)
 	}
 	return fc
 }
 
 // SetTotalActions sets the "total_actions" field.
-func (fc *FeedCreate) SetTotalActions(i int) *FeedCreate {
-	fc.mutation.SetTotalActions(i)
+func (fc *FeedCreate) SetTotalActions(u uint) *FeedCreate {
+	fc.mutation.SetTotalActions(u)
 	return fc
 }
 
 // SetNillableTotalActions sets the "total_actions" field if the given value is not nil.
-func (fc *FeedCreate) SetNillableTotalActions(i *int) *FeedCreate {
-	if i != nil {
-		fc.SetTotalActions(*i)
+func (fc *FeedCreate) SetNillableTotalActions(u *uint) *FeedCreate {
+	if u != nil {
+		fc.SetTotalActions(*u)
 	}
 	return fc
 }
@@ -349,11 +349,11 @@ func (fc *FeedCreate) createSpec() (*Feed, *sqlgraph.CreateSpec) {
 		_node.Status = value
 	}
 	if value, ok := fc.mutation.Index(); ok {
-		_spec.SetField(feed.FieldIndex, field.TypeInt, value)
+		_spec.SetField(feed.FieldIndex, field.TypeUint, value)
 		_node.Index = value
 	}
 	if value, ok := fc.mutation.TotalActions(); ok {
-		_spec.SetField(feed.FieldTotalActions, field.TypeInt, value)
+		_spec.SetField(feed.FieldTotalActions, field.TypeUint, value)
 		_node.TotalActions = value
 	}
 	if value, ok := fc.mutation.Actions(); ok {
@@ -361,7 +361,7 @@ func (fc *FeedCreate) createSpec() (*Feed, *sqlgraph.CreateSpec) {
 		_node.Actions = value
 	}
 	if value, ok := fc.mutation.FeeValue(); ok {
-		_spec.SetField(feed.FieldFeeValue, field.TypeFloat64, value)
+		_spec.SetField(feed.FieldFeeValue, field.TypeOther, value)
 		_node.FeeValue = value
 	}
 	if value, ok := fc.mutation.FeeToken(); ok {

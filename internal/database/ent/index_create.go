@@ -70,15 +70,15 @@ func (ic *IndexCreate) SetDirection(s string) *IndexCreate {
 }
 
 // SetIndex sets the "index" field.
-func (ic *IndexCreate) SetIndex(i int) *IndexCreate {
-	ic.mutation.SetIndex(i)
+func (ic *IndexCreate) SetIndex(u uint) *IndexCreate {
+	ic.mutation.SetIndex(u)
 	return ic
 }
 
 // SetNillableIndex sets the "index" field if the given value is not nil.
-func (ic *IndexCreate) SetNillableIndex(i *int) *IndexCreate {
-	if i != nil {
-		ic.SetIndex(*i)
+func (ic *IndexCreate) SetNillableIndex(u *uint) *IndexCreate {
+	if u != nil {
+		ic.SetIndex(*u)
 	}
 	return ic
 }
@@ -320,7 +320,7 @@ func (ic *IndexCreate) createSpec() (*Index, *sqlgraph.CreateSpec) {
 		_node.Direction = value
 	}
 	if value, ok := ic.mutation.Index(); ok {
-		_spec.SetField(index.FieldIndex, field.TypeInt, value)
+		_spec.SetField(index.FieldIndex, field.TypeUint, value)
 		_node.Index = value
 	}
 	if value, ok := ic.mutation.Timestamp(); ok {

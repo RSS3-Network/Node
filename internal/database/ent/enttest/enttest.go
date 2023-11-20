@@ -5,11 +5,12 @@ package enttest
 import (
 	"context"
 
-	"entgo.io/ent/dialect/sql/schema"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/ent"
-	"github.com/naturalselectionlabs/rss3-node/internal/database/ent/migrate"
 	// required by schema hooks.
 	_ "github.com/naturalselectionlabs/rss3-node/internal/database/ent/runtime"
+
+	"entgo.io/ent/dialect/sql/schema"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/ent/migrate"
 )
 
 type (

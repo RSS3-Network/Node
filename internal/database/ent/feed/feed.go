@@ -91,9 +91,9 @@ var (
 	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
 	StatusValidator func(string) error
 	// DefaultIndex holds the default value on creation for the "index" field.
-	DefaultIndex int
+	DefaultIndex uint
 	// DefaultTotalActions holds the default value on creation for the "total_actions" field.
-	DefaultTotalActions int
+	DefaultTotalActions uint
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

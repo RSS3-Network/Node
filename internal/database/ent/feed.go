@@ -35,9 +35,9 @@ type Feed struct {
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
 	// Index holds the value of the "index" field.
-	Index int `json:"index,omitempty"`
+	Index uint `json:"index,omitempty"`
 	// TotalActions holds the value of the "total_actions" field.
-	TotalActions int `json:"total_actions,omitempty"`
+	TotalActions uint `json:"total_actions,omitempty"`
 	// Actions holds the value of the "actions" field.
 	Actions []schema.Action `json:"actions,omitempty"`
 	// FeeValue holds the value of the "fee_value" field.
@@ -135,13 +135,13 @@ func (f *Feed) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field index", values[i])
 			} else if value.Valid {
-				f.Index = int(value.Int64)
+				f.Index = uint(value.Int64)
 			}
 		case feed.FieldTotalActions:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field total_actions", values[i])
 			} else if value.Valid {
-				f.TotalActions = int(value.Int64)
+				f.TotalActions = uint(value.Int64)
 			}
 		case feed.FieldActions:
 			if value, ok := values[i].(*[]byte); !ok {

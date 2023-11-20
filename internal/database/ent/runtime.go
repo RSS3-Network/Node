@@ -9,6 +9,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/database/ent/feed"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/ent/index"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/ent/schema"
+	"github.com/naturalselectionlabs/rss3-node/schema"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -44,11 +45,11 @@ func init() {
 	// feedDescIndex is the schema descriptor for index field.
 	feedDescIndex := feedFields[8].Descriptor()
 	// feed.DefaultIndex holds the default value on creation for the index field.
-	feed.DefaultIndex = feedDescIndex.Default.(int)
+	feed.DefaultIndex = feedDescIndex.Default.(uint)
 	// feedDescTotalActions is the schema descriptor for total_actions field.
 	feedDescTotalActions := feedFields[9].Descriptor()
 	// feed.DefaultTotalActions holds the default value on creation for the total_actions field.
-	feed.DefaultTotalActions = feedDescTotalActions.Default.(int)
+	feed.DefaultTotalActions = feedDescTotalActions.Default.(uint)
 	// feedDescCreatedAt is the schema descriptor for created_at field.
 	feedDescCreatedAt := feedFields[14].Descriptor()
 	// feed.DefaultCreatedAt holds the default value on creation for the created_at field.
@@ -92,7 +93,7 @@ func init() {
 	// indexDescIndex is the schema descriptor for index field.
 	indexDescIndex := indexFields[9].Descriptor()
 	// index.DefaultIndex holds the default value on creation for the index field.
-	index.DefaultIndex = indexDescIndex.Default.(int)
+	index.DefaultIndex = indexDescIndex.Default.(uint)
 	// indexDescCreatedAt is the schema descriptor for created_at field.
 	indexDescCreatedAt := indexFields[11].Descriptor()
 	// index.DefaultCreatedAt holds the default value on creation for the created_at field.

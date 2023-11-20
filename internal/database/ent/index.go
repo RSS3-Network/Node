@@ -35,7 +35,7 @@ type Index struct {
 	// Direction holds the value of the "direction" field.
 	Direction string `json:"direction,omitempty"`
 	// Index holds the value of the "index" field.
-	Index int `json:"index,omitempty"`
+	Index uint `json:"index,omitempty"`
 	// Timestamp holds the value of the "timestamp" field.
 	Timestamp time.Time `json:"timestamp,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -131,7 +131,7 @@ func (i *Index) assignValues(columns []string, values []any) error {
 			if value, ok := values[j].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field index", values[j])
 			} else if value.Valid {
-				i.Index = int(value.Int64)
+				i.Index = uint(value.Int64)
 			}
 		case index.FieldTimestamp:
 			if value, ok := values[j].(*sql.NullTime); !ok {

@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"entgo.io/ent/dialect"
 	"time"
 
 	"entgo.io/ent"
@@ -26,10 +27,13 @@ func (Feed) Fields() []ent.Field {
 		field.String("tag").NotEmpty(),
 		field.String("type").NotEmpty(),
 		field.String("status").NotEmpty(),
-		field.Int("index").Default(0),
-		field.Int("total_actions").Default(0),
+		field.Uint("index").Default(0),
+		field.Uint("total_actions").Default(0),
 		field.JSON("actions", []schema.Action{}),
-		field.Float("fee_value").GoType(decimal.Decimal{}),
+		field.Other("fee_value", decimal.Decimal{}).SchemaType(map[string]string{
+			dialect.Postgres: "bigint",
+			dialect.MySQL:    "bigint",
+		}),
 		field.String("fee_token"),
 		field.Time("timestamp"),
 		field.Time("created_at").Default(time.Now),

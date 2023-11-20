@@ -45,14 +45,13 @@ type FeedMutation struct {
 	tag              *string
 	_type            *string
 	status           *string
-	index            *int
+	index            *uint
 	addindex         *int
-	total_actions    *int
+	total_actions    *uint
 	addtotal_actions *int
 	actions          *[]schema.Action
 	appendactions    []schema.Action
 	fee_value        *decimal.Decimal
-	addfee_value     *decimal.Decimal
 	fee_token        *string
 	timestamp        *time.Time
 	created_at       *time.Time
@@ -420,13 +419,13 @@ func (m *FeedMutation) ResetStatus() {
 }
 
 // SetIndex sets the "index" field.
-func (m *FeedMutation) SetIndex(i int) {
-	m.index = &i
+func (m *FeedMutation) SetIndex(u uint) {
+	m.index = &u
 	m.addindex = nil
 }
 
 // Index returns the value of the "index" field in the mutation.
-func (m *FeedMutation) Index() (r int, exists bool) {
+func (m *FeedMutation) Index() (r uint, exists bool) {
 	v := m.index
 	if v == nil {
 		return
@@ -437,7 +436,7 @@ func (m *FeedMutation) Index() (r int, exists bool) {
 // OldIndex returns the old "index" field's value of the Feed entity.
 // If the Feed object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FeedMutation) OldIndex(ctx context.Context) (v int, err error) {
+func (m *FeedMutation) OldIndex(ctx context.Context) (v uint, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldIndex is only allowed on UpdateOne operations")
 	}
@@ -451,12 +450,12 @@ func (m *FeedMutation) OldIndex(ctx context.Context) (v int, err error) {
 	return oldValue.Index, nil
 }
 
-// AddIndex adds i to the "index" field.
-func (m *FeedMutation) AddIndex(i int) {
+// AddIndex adds u to the "index" field.
+func (m *FeedMutation) AddIndex(u int) {
 	if m.addindex != nil {
-		*m.addindex += i
+		*m.addindex += u
 	} else {
-		m.addindex = &i
+		m.addindex = &u
 	}
 }
 
@@ -476,13 +475,13 @@ func (m *FeedMutation) ResetIndex() {
 }
 
 // SetTotalActions sets the "total_actions" field.
-func (m *FeedMutation) SetTotalActions(i int) {
-	m.total_actions = &i
+func (m *FeedMutation) SetTotalActions(u uint) {
+	m.total_actions = &u
 	m.addtotal_actions = nil
 }
 
 // TotalActions returns the value of the "total_actions" field in the mutation.
-func (m *FeedMutation) TotalActions() (r int, exists bool) {
+func (m *FeedMutation) TotalActions() (r uint, exists bool) {
 	v := m.total_actions
 	if v == nil {
 		return
@@ -493,7 +492,7 @@ func (m *FeedMutation) TotalActions() (r int, exists bool) {
 // OldTotalActions returns the old "total_actions" field's value of the Feed entity.
 // If the Feed object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FeedMutation) OldTotalActions(ctx context.Context) (v int, err error) {
+func (m *FeedMutation) OldTotalActions(ctx context.Context) (v uint, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldTotalActions is only allowed on UpdateOne operations")
 	}
@@ -507,12 +506,12 @@ func (m *FeedMutation) OldTotalActions(ctx context.Context) (v int, err error) {
 	return oldValue.TotalActions, nil
 }
 
-// AddTotalActions adds i to the "total_actions" field.
-func (m *FeedMutation) AddTotalActions(i int) {
+// AddTotalActions adds u to the "total_actions" field.
+func (m *FeedMutation) AddTotalActions(u int) {
 	if m.addtotal_actions != nil {
-		*m.addtotal_actions += i
+		*m.addtotal_actions += u
 	} else {
-		m.addtotal_actions = &i
+		m.addtotal_actions = &u
 	}
 }
 
@@ -585,7 +584,6 @@ func (m *FeedMutation) ResetActions() {
 // SetFeeValue sets the "fee_value" field.
 func (m *FeedMutation) SetFeeValue(d decimal.Decimal) {
 	m.fee_value = &d
-	m.addfee_value = nil
 }
 
 // FeeValue returns the value of the "fee_value" field in the mutation.
@@ -614,28 +612,9 @@ func (m *FeedMutation) OldFeeValue(ctx context.Context) (v decimal.Decimal, err 
 	return oldValue.FeeValue, nil
 }
 
-// AddFeeValue adds d to the "fee_value" field.
-func (m *FeedMutation) AddFeeValue(d decimal.Decimal) {
-	if m.addfee_value != nil {
-		*m.addfee_value = m.addfee_value.Add(d)
-	} else {
-		m.addfee_value = &d
-	}
-}
-
-// AddedFeeValue returns the value that was added to the "fee_value" field in this mutation.
-func (m *FeedMutation) AddedFeeValue() (r decimal.Decimal, exists bool) {
-	v := m.addfee_value
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetFeeValue resets all changes to the "fee_value" field.
 func (m *FeedMutation) ResetFeeValue() {
 	m.fee_value = nil
-	m.addfee_value = nil
 }
 
 // SetFeeToken sets the "fee_token" field.
@@ -998,14 +977,14 @@ func (m *FeedMutation) SetField(name string, value ent.Value) error {
 		m.SetStatus(v)
 		return nil
 	case feed.FieldIndex:
-		v, ok := value.(int)
+		v, ok := value.(uint)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIndex(v)
 		return nil
 	case feed.FieldTotalActions:
-		v, ok := value.(int)
+		v, ok := value.(uint)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1067,9 +1046,6 @@ func (m *FeedMutation) AddedFields() []string {
 	if m.addtotal_actions != nil {
 		fields = append(fields, feed.FieldTotalActions)
 	}
-	if m.addfee_value != nil {
-		fields = append(fields, feed.FieldFeeValue)
-	}
 	return fields
 }
 
@@ -1082,8 +1058,6 @@ func (m *FeedMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedIndex()
 	case feed.FieldTotalActions:
 		return m.AddedTotalActions()
-	case feed.FieldFeeValue:
-		return m.AddedFeeValue()
 	}
 	return nil, false
 }
@@ -1106,13 +1080,6 @@ func (m *FeedMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddTotalActions(v)
-		return nil
-	case feed.FieldFeeValue:
-		v, ok := value.(decimal.Decimal)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddFeeValue(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Feed numeric field %s", name)
@@ -1252,7 +1219,7 @@ type IndexMutation struct {
 	_type         *string
 	status        *string
 	direction     *string
-	index         *int
+	index         *uint
 	addindex      *int
 	timestamp     *time.Time
 	created_at    *time.Time
@@ -1656,13 +1623,13 @@ func (m *IndexMutation) ResetDirection() {
 }
 
 // SetIndex sets the "index" field.
-func (m *IndexMutation) SetIndex(i int) {
-	m.index = &i
+func (m *IndexMutation) SetIndex(u uint) {
+	m.index = &u
 	m.addindex = nil
 }
 
 // Index returns the value of the "index" field in the mutation.
-func (m *IndexMutation) Index() (r int, exists bool) {
+func (m *IndexMutation) Index() (r uint, exists bool) {
 	v := m.index
 	if v == nil {
 		return
@@ -1673,7 +1640,7 @@ func (m *IndexMutation) Index() (r int, exists bool) {
 // OldIndex returns the old "index" field's value of the Index entity.
 // If the Index object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *IndexMutation) OldIndex(ctx context.Context) (v int, err error) {
+func (m *IndexMutation) OldIndex(ctx context.Context) (v uint, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldIndex is only allowed on UpdateOne operations")
 	}
@@ -1687,12 +1654,12 @@ func (m *IndexMutation) OldIndex(ctx context.Context) (v int, err error) {
 	return oldValue.Index, nil
 }
 
-// AddIndex adds i to the "index" field.
-func (m *IndexMutation) AddIndex(i int) {
+// AddIndex adds u to the "index" field.
+func (m *IndexMutation) AddIndex(u int) {
 	if m.addindex != nil {
-		*m.addindex += i
+		*m.addindex += u
 	} else {
-		m.addindex = &i
+		m.addindex = &u
 	}
 }
 
@@ -2021,7 +1988,7 @@ func (m *IndexMutation) SetField(name string, value ent.Value) error {
 		m.SetDirection(v)
 		return nil
 	case index.FieldIndex:
-		v, ok := value.(int)
+		v, ok := value.(uint)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

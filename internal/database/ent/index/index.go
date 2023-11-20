@@ -83,7 +83,7 @@ var (
 	// DirectionValidator is a validator for the "direction" field. It is called by the builders before save.
 	DirectionValidator func(string) error
 	// DefaultIndex holds the default value on creation for the "index" field.
-	DefaultIndex int
+	DefaultIndex uint
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

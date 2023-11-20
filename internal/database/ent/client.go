@@ -9,13 +9,14 @@ import (
 	"log"
 	"reflect"
 
+	"github.com/google/uuid"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/ent/migrate"
+
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/ent/feed"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/ent/index"
-	"github.com/naturalselectionlabs/rss3-node/internal/database/ent/migrate"
 )
 
 // Client is the client that holds all ent builders.

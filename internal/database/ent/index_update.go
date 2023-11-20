@@ -141,23 +141,23 @@ func (iu *IndexUpdate) SetNillableDirection(s *string) *IndexUpdate {
 }
 
 // SetIndex sets the "index" field.
-func (iu *IndexUpdate) SetIndex(i int) *IndexUpdate {
+func (iu *IndexUpdate) SetIndex(u uint) *IndexUpdate {
 	iu.mutation.ResetIndex()
-	iu.mutation.SetIndex(i)
+	iu.mutation.SetIndex(u)
 	return iu
 }
 
 // SetNillableIndex sets the "index" field if the given value is not nil.
-func (iu *IndexUpdate) SetNillableIndex(i *int) *IndexUpdate {
-	if i != nil {
-		iu.SetIndex(*i)
+func (iu *IndexUpdate) SetNillableIndex(u *uint) *IndexUpdate {
+	if u != nil {
+		iu.SetIndex(*u)
 	}
 	return iu
 }
 
-// AddIndex adds i to the "index" field.
-func (iu *IndexUpdate) AddIndex(i int) *IndexUpdate {
-	iu.mutation.AddIndex(i)
+// AddIndex adds u to the "index" field.
+func (iu *IndexUpdate) AddIndex(u int) *IndexUpdate {
+	iu.mutation.AddIndex(u)
 	return iu
 }
 
@@ -308,10 +308,10 @@ func (iu *IndexUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(index.FieldDirection, field.TypeString, value)
 	}
 	if value, ok := iu.mutation.Index(); ok {
-		_spec.SetField(index.FieldIndex, field.TypeInt, value)
+		_spec.SetField(index.FieldIndex, field.TypeUint, value)
 	}
 	if value, ok := iu.mutation.AddedIndex(); ok {
-		_spec.AddField(index.FieldIndex, field.TypeInt, value)
+		_spec.AddField(index.FieldIndex, field.TypeUint, value)
 	}
 	if value, ok := iu.mutation.Timestamp(); ok {
 		_spec.SetField(index.FieldTimestamp, field.TypeTime, value)
@@ -455,23 +455,23 @@ func (iuo *IndexUpdateOne) SetNillableDirection(s *string) *IndexUpdateOne {
 }
 
 // SetIndex sets the "index" field.
-func (iuo *IndexUpdateOne) SetIndex(i int) *IndexUpdateOne {
+func (iuo *IndexUpdateOne) SetIndex(u uint) *IndexUpdateOne {
 	iuo.mutation.ResetIndex()
-	iuo.mutation.SetIndex(i)
+	iuo.mutation.SetIndex(u)
 	return iuo
 }
 
 // SetNillableIndex sets the "index" field if the given value is not nil.
-func (iuo *IndexUpdateOne) SetNillableIndex(i *int) *IndexUpdateOne {
-	if i != nil {
-		iuo.SetIndex(*i)
+func (iuo *IndexUpdateOne) SetNillableIndex(u *uint) *IndexUpdateOne {
+	if u != nil {
+		iuo.SetIndex(*u)
 	}
 	return iuo
 }
 
-// AddIndex adds i to the "index" field.
-func (iuo *IndexUpdateOne) AddIndex(i int) *IndexUpdateOne {
-	iuo.mutation.AddIndex(i)
+// AddIndex adds u to the "index" field.
+func (iuo *IndexUpdateOne) AddIndex(u int) *IndexUpdateOne {
+	iuo.mutation.AddIndex(u)
 	return iuo
 }
 
@@ -652,10 +652,10 @@ func (iuo *IndexUpdateOne) sqlSave(ctx context.Context) (_node *Index, err error
 		_spec.SetField(index.FieldDirection, field.TypeString, value)
 	}
 	if value, ok := iuo.mutation.Index(); ok {
-		_spec.SetField(index.FieldIndex, field.TypeInt, value)
+		_spec.SetField(index.FieldIndex, field.TypeUint, value)
 	}
 	if value, ok := iuo.mutation.AddedIndex(); ok {
-		_spec.AddField(index.FieldIndex, field.TypeInt, value)
+		_spec.AddField(index.FieldIndex, field.TypeUint, value)
 	}
 	if value, ok := iuo.mutation.Timestamp(); ok {
 		_spec.SetField(index.FieldTimestamp, field.TypeTime, value)
