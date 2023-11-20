@@ -1,0 +1,9 @@
+schema: schema.graphql
+documents: "**/*.graphql"
+extensions:
+  endpoints:
+    default:
+      url: https://api.thegraph.com/subgraphs/name/rara-social/rara-social-curation-protocol
+      headers:
+        user-agent: JS GraphQL
+      introspect: false

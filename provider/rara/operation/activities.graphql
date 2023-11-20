@@ -1,0 +1,8 @@
+query GetIpfs($ipfsHash: String!) {
+    userSpends(where: { ipfsHash: $ipfsHash }) {
+        user
+        comment
+        tags
+        ipfsHash
+    }
+}
