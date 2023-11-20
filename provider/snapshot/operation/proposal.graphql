@@ -1,0 +1,19 @@
+query Proposal($id: String) {
+    proposals(where: {id: $id}) {
+        id
+        link
+        title
+        body
+        choices
+        start
+        end
+        state
+        author
+        created
+        space {
+            id
+            name
+            about
+        }
+    }
+}

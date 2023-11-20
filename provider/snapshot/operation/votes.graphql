@@ -1,0 +1,10 @@
+query Votes($proposal: String, $created: Int) {
+    votes(first: 1000, where: { proposal: $proposal, created_gte: $created }, orderBy: "created", orderDirection: asc) {
+        id
+        voter
+        created
+        choice
+        vp
+        reason
+    }
+}

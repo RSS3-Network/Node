@@ -1,0 +1,12 @@
+# Default genqlient config; for full documentation see:
+# https://github.com/Khan/genqlient/blob/main/docs/genqlient.yaml
+schema: schema.graphql
+operations:
+  - ./operation/proposal.graphql
+  - ./operation/proposals.graphql
+  - ./operation/vote.graphql
+  - ./operation/votes.graphql
+bindings:
+  Any:
+    type: any
+generated: operation.go

@@ -1,0 +1,10 @@
+query Vote($id: String) {
+    votes(where: {id: $id}) {
+        id
+        voter
+        created
+        choice
+        vp
+        reason
+    }
+}

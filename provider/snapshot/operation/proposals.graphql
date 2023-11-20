@@ -1,0 +1,19 @@
+query Proposals($created: Int) {
+    proposals(first: 1000, where: { created_gte: $created} orderBy: "created", orderDirection: asc) {
+        id
+        link
+        title
+        body
+        choices
+        start
+        end
+        state
+        author
+        created
+        space {
+            id
+            name
+            about
+        }
+    }
+}
