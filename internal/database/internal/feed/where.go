@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/naturalselectionlabs/rss3-node/internal/database/ent/predicate"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/internal/predicate"
 	"github.com/shopspring/decimal"
 )
 

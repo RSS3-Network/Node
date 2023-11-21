@@ -7,7 +7,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/naturalselectionlabs/rss3-node/internal/database/ent/predicate"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/internal/predicate"
 )
 
 // ID filters vertices based on their ID field.

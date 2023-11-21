@@ -2,7 +2,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/naturalselectionlabs/rss3-node/internal/database/ent/runtime.go
+// The schema-stitching logic is generated in github.com/naturalselectionlabs/rss3-node/internal/database/internal/runtime.go
 
 const (
 	Version = "v0.12.5"                                         // Version of ent codegen.

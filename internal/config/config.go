@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 
+	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/spf13/viper"
 )
@@ -15,8 +16,9 @@ const (
 )
 
 type File struct {
-	Environment string         `mapstructure:"environment"`
-	Node        *engine.Config `mapstructure:"node"`
+	Environment string           `mapstructure:"environment"`
+	Node        *engine.Config   `mapstructure:"node"`
+	Database    *database.Config `mapstructure:"database"`
 }
 
 func Setup(configFilePath string) (*File, error) {

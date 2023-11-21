@@ -1,10 +1,10 @@
 package schema
 
 import (
-	"entgo.io/ent/dialect"
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"github.com/naturalselectionlabs/rss3-node/schema"
