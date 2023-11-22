@@ -8,8 +8,10 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
+	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/fallback/ethereum"
+	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
+	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/endpoint"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
@@ -22,7 +24,7 @@ func TestWorker_Ethereum(t *testing.T) {
 	t.Parallel()
 
 	type arguments struct {
-		task   *ethereum.Task
+		task   *source.Task
 		config *engine.Config
 	}
 
@@ -35,37 +37,44 @@ func TestWorker_Ethereum(t *testing.T) {
 		{
 			name: "Ethereum native transfer",
 			arguments: arguments{
-				task: &ethereum.Task{
+				task: &source.Task{
 					Chain: filter.ChainEthereumMainnet,
-					Header: &types.Header{
+					Header: &ethereum.Header{
 						// TODO Provide all fields.
-						Time: 1647774927,
+						Timestamp: 1647774927,
 					},
-					Transaction: types.NewTx(&types.DynamicFeeTx{
-						ChainID:   lo.Must(hexutil.DecodeBig("0x1")),
-						Nonce:     0xa,
-						GasTipCap: lo.Must(hexutil.DecodeBig("0x59682f00")),
-						GasFeeCap: lo.Must(hexutil.DecodeBig("0x3b8c8f46b")),
-						Gas:       0x5208,
-						To:        lo.ToPtr(common.HexToAddress("0xa1b2dcac834117f38fb0356b5176b5693e165c90")),
-						Value:     lo.Must(hexutil.DecodeBig("0xd48ed9972b634")),
-						V:         lo.Must(hexutil.DecodeBig("0x0")),
-						R:         lo.Must(hexutil.DecodeBig("0x66f2c1c5fbde05362a8d944ee884ba05777150c5dbe5bd414834b567a73f7765")),
-						S:         lo.Must(hexutil.DecodeBig("0x4b91fdf20d7d85572836d5c4849949d4d96b6cff36e6a53f2b1dce6a3144ef4")),
-					}),
+					Transaction: &ethereum.Transaction{
+						BlockHash:   common.HexToHash("0xea9d0ecd7a085aa998789e8e9c017a7d45f199873380ecb568218525171165b0"),
+						BlockNumber: lo.Must(hexutil.DecodeBig("0xdc1390")),
+						From:        common.HexToAddress("0x000000A52a03835517E9d193B3c27626e1Bc96b1"),
+						Gas:         0x5208,
+						GasPrice:    nil,
+						Hash:        common.HexToHash("0x0c2f413efbc243f3bb8edac7e70bdc21936e01401a21b0d63e97732aa80f5d99"),
+						Input:       nil,
+						To:          lo.ToPtr(common.HexToAddress("0xa1b2dcac834117f38fb0356b5176b5693e165c90")),
+						Index:       0xf4,
+						Value:       lo.Must(hexutil.DecodeBig("0xd48ed9972b634")),
+						Type:        types.DynamicFeeTxType,
+						ChainID:     lo.Must(hexutil.DecodeBig("0x1")),
+					},
 					TransactionIndex: 0xf4,
-					Receipt: &types.Receipt{
-						Type:              0x2,
-						PostState:         common.Hex2Bytes("0x1"),
-						Status:            types.ReceiptStatusSuccessful,
-						CumulativeGasUsed: 0x18b21de,
-						TxHash:            common.HexToHash("0x0c2f413efbc243f3bb8edac7e70bdc21936e01401a21b0d63e97732aa80f5d99"),
-						GasUsed:           0x5208,
-						EffectiveGasPrice: lo.Must(hexutil.DecodeBig("0x3b8c8f46b")),
+					Receipt: &ethereum.Receipt{
 						BlockHash:         common.HexToHash("0xea9d0ecd7a085aa998789e8e9c017a7d45f199873380ecb568218525171165b0"),
 						BlockNumber:       lo.Must(hexutil.DecodeBig("0xdc1390")),
+						ContractAddress:   nil,
+						CumulativeGasUsed: 0x18b21de,
+						EffectiveGasPrice: lo.Must(hexutil.DecodeBig("0x3b8c8f46b")),
+						GasUsed:           0x5208,
+						Logs:              nil,
+						Status:            types.ReceiptStatusSuccessful,
+						TransactionHash:   common.HexToHash("0x0c2f413efbc243f3bb8edac7e70bdc21936e01401a21b0d63e97732aa80f5d99"),
 						TransactionIndex:  0xf4,
 					},
+				},
+				config: &engine.Config{
+					Network:  filter.NetworkEthereum.String(),
+					Chain:    filter.ChainEthereumMainnet.String(),
+					Endpoint: endpoint.MustGet(filter.ChainEthereumMainnet),
 				},
 			},
 			want: &schema.Feed{
@@ -79,13 +88,16 @@ func TestWorker_Ethereum(t *testing.T) {
 					Amount:  decimal.NewFromInt(0),
 					Decimal: 18,
 				},
-				Actions: []schema.Action{
+				Actions: []*schema.Action{
 					{
 						Type: filter.TypeTransactionTransfer,
 						From: "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
 						To:   "0xA1b2DCAC834117F38FB0356b5176B5693E165c90",
 						Metadata: metadata.TransactionTransfer{
-							Value: lo.ToPtr(lo.Must(decimal.NewFromString("3739360016119348"))),
+							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("3739360016119348"))),
+							Name:     "Ethereum",
+							Symbol:   "ETH",
+							Decimals: 18,
 						},
 					},
 				},

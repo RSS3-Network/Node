@@ -6,9 +6,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
@@ -25,7 +22,7 @@ var _ engine.Source = (*source)(nil)
 
 type source struct {
 	config         *engine.Config
-	ethereumClient *ethclient.Client
+	ethereumClient ethereum.Client
 	state          *State
 }
 
@@ -53,12 +50,8 @@ func (s *source) initialize(ctx context.Context) (err error) {
 		BlockNumber: 0,
 	}
 
-	if s.ethereumClient, err = ethclient.Dial(s.config.Endpoint); err != nil {
-		return fmt.Errorf("dial rpc endpoint: %w", err)
-	}
-
-	if s.ethereumClient, err = ethclient.Dial(s.config.Endpoint); err != nil {
-		return fmt.Errorf("dial ethereum endpoint: %w", err)
+	if s.ethereumClient, err = ethereum.Dial(ctx, s.config.Endpoint); err != nil {
+		return fmt.Errorf("dial to an ethereum rpc node: %w", err)
 	}
 
 	chainID, err := s.ethereumClient.ChainID(ctx)
@@ -87,13 +80,13 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 			}
 
 			// RPC providers may incorrectly shunt the request to a lagging node.
-			if blockNumberLatestRemote <= blockNumberLatestLocal {
+			if blockNumberLatestRemote.Uint64() <= blockNumberLatestLocal {
 				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestLocal), zap.Duration("block.time", defaultBlockTime))
 
 				time.Sleep(defaultBlockTime)
 			} else {
 				// TODO Need to handle block reorganization.
-				blockNumberLatestLocal = blockNumberLatestRemote
+				blockNumberLatestLocal = blockNumberLatestRemote.Uint64()
 			}
 
 			continue
@@ -105,14 +98,14 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 		}
 
 		// Before being able to handle block reorganization, correctly handle canonical.
-		receipts, err := s.ethereumClient.BlockReceipts(ctx, rpc.BlockNumberOrHashWithHash(block.Hash(), true))
+		receipts, err := s.ethereumClient.BlockReceipts(ctx, block.Number)
 		if err != nil {
-			return fmt.Errorf("get receipts by block hash %s: %w", block.Hash(), err)
+			return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
 		}
 
 		tasks, err := s.buildTasks(block, receipts)
 		if err != nil {
-			return fmt.Errorf("build tasks for block hash: %s: %w", block.Hash(), err)
+			return fmt.Errorf("build tasks for block hash: %s: %w", block.Hash, err)
 		}
 
 		// TODO It might be possible to use generics to avoid manual type assertions.
@@ -123,20 +116,20 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 	}
 }
 
-func (s *source) buildTasks(block *types.Block, receipts types.Receipts) ([]*Task, error) {
-	tasks := make([]*Task, len(block.Transactions()))
+func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt) ([]*Task, error) {
+	tasks := make([]*Task, len(block.Transactions))
 
-	for index, transaction := range block.Transactions() {
+	for index, transaction := range block.Transactions {
 		// There is no guarantee that the receipts provided by RPC will be in the same order as the transactions,
 		// so instead of using a transaction index, we can match the hash.
-		receipt, exists := lo.Find(receipts, func(receipt *types.Receipt) bool {
-			return receipt.TxHash == transaction.Hash()
+		receipt, exists := lo.Find(receipts, func(receipt *ethereum.Receipt) bool {
+			return receipt.TransactionHash == transaction.Hash
 		})
 
 		// TODO Often this is also caused by a lagging RPC node failing to get the latest data,
 		// and it's best to fix this before the build task.
 		if !exists {
-			return nil, fmt.Errorf("no receipt matched to transaction hash %s", transaction.Hash())
+			return nil, fmt.Errorf("no receipt matched to transaction hash %s", transaction.Hash)
 		}
 
 		task := Task{
