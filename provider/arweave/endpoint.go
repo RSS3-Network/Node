@@ -9,9 +9,19 @@ const (
 	EndpointARIO                               // https://ar-io.dev/
 	EndpointPermagate                          // https://permagate.io/
 	EndpointLove4Src                           // https://love4src.com/
-	EndpointBobInstein                         // https://bobinstein.com
-	EndpointPie                                // https://gatewaypie.com
-	EndpointAleko0o                            //https://aleko0o.store
-	EndpointVevivo                             //https://vevivo.xyz
-	EndpointFllstck                            //https://arweave.fllstck.dev
+	EndpointBobInstein                         // https://bobinstein.com/
+	EndpointPie                                // https://gatewaypie.com/
+	EndpointAleko0o                            //https://aleko0o.store/
+	EndpointVevivo                             //https://vevivo.xyz/
+	EndpointSulapan                            //https://sulapan.com/
+	EndpointBicem                              //https://bicem.xyz/
+	EndpointDilsinay                           //https://dilsinay.online/
+	EndpointLostgame                           //https://lostgame.online/
+	EndpointKhaldrogo                          //https://khaldrogo.site/
+	EndpointDasamuka                           //https://dasamuka.cloud/
+	EndpointArendor                            //https://arendor.xyz/
+	EndpointVelaryon                           //https://velaryon.xyz/
+	EndpointKingsharald                        //https://kingsharald.xyz/
+	EndpointMoruehoca                          //https://moruehoca.online/
+	EndpointKazazel                            //https://kazazel.xyz/
 )

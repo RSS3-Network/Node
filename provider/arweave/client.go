@@ -29,7 +29,7 @@ type client struct {
 
 // Fetch fetches the data of the given hash from arweave network.
 func (c *client) Fetch(ctx context.Context, id string) (io.ReadCloser, error) {
-	// We try to fetch from all endpoints until we get a response (arweave gateways).
+	// try to fetch from all endpoints until we get a response (arweave gateways).
 	for _, endpoint := range c.endpointURLs {
 		response, err := c.fetch(ctx, endpoint, id)
 		if err == nil {

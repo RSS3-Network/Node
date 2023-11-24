@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-const _EndpointName = "https://arweave.net/https://arweave.fllstck.dev/https://ar-io.dev/https://permagate.io/https://love4src.com/https://bobinstein.comhttps://gatewaypie.comhttps://aleko0o.storehttps://vevivo.xyzhttps://arweave.fllstck.dev"
+const _EndpointName = "https://arweave.net/https://arweave.fllstck.dev/https://ar-io.dev/https://permagate.io/https://love4src.com/https://bobinstein.com/https://gatewaypie.com/https://aleko0o.store/https://vevivo.xyz/https://sulapan.com/https://bicem.xyz/https://dilsinay.online/https://lostgame.online/https://khaldrogo.site/https://dasamuka.cloud/https://arendor.xyz/https://velaryon.xyz/https://kingsharald.xyz/https://moruehoca.online/https://kazazel.xyz/"
 
-var _EndpointIndex = [...]uint8{0, 20, 48, 66, 87, 108, 130, 152, 173, 191, 218}
+var _EndpointIndex = [...]uint16{0, 20, 48, 66, 87, 108, 131, 154, 176, 195, 215, 233, 257, 281, 304, 327, 347, 368, 392, 417, 437}
 
-const _EndpointLowerName = "https://arweave.net/https://arweave.fllstck.dev/https://ar-io.dev/https://permagate.io/https://love4src.com/https://bobinstein.comhttps://gatewaypie.comhttps://aleko0o.storehttps://vevivo.xyzhttps://arweave.fllstck.dev"
+const _EndpointLowerName = "https://arweave.net/https://arweave.fllstck.dev/https://ar-io.dev/https://permagate.io/https://love4src.com/https://bobinstein.com/https://gatewaypie.com/https://aleko0o.store/https://vevivo.xyz/https://sulapan.com/https://bicem.xyz/https://dilsinay.online/https://lostgame.online/https://khaldrogo.site/https://dasamuka.cloud/https://arendor.xyz/https://velaryon.xyz/https://kingsharald.xyz/https://moruehoca.online/https://kazazel.xyz/"
 
 func (i Endpoint) String() string {
 	i -= 1
@@ -38,10 +38,20 @@ func _EndpointNoOp() {
 	_ = x[EndpointPie-(7)]
 	_ = x[EndpointAleko0o-(8)]
 	_ = x[EndpointVevivo-(9)]
-	_ = x[EndpointFllstck-(10)]
+	_ = x[EndpointSulapan-(10)]
+	_ = x[EndpointBicem-(11)]
+	_ = x[EndpointDilsinay-(12)]
+	_ = x[EndpointLostgame-(13)]
+	_ = x[EndpointKhaldrogo-(14)]
+	_ = x[EndpointDasamuka-(15)]
+	_ = x[EndpointArendor-(16)]
+	_ = x[EndpointVelaryon-(17)]
+	_ = x[EndpointKingsharald-(18)]
+	_ = x[EndpointMoruehoca-(19)]
+	_ = x[EndpointKazazel-(20)]
 }
 
-var _EndpointValues = []Endpoint{EndpointArweave, EndpointArweaveFllstck, EndpointARIO, EndpointPermagate, EndpointLove4Src, EndpointBobInstein, EndpointPie, EndpointAleko0o, EndpointVevivo, EndpointFllstck}
+var _EndpointValues = []Endpoint{EndpointArweave, EndpointArweaveFllstck, EndpointARIO, EndpointPermagate, EndpointLove4Src, EndpointBobInstein, EndpointPie, EndpointAleko0o, EndpointVevivo, EndpointSulapan, EndpointBicem, EndpointDilsinay, EndpointLostgame, EndpointKhaldrogo, EndpointDasamuka, EndpointArendor, EndpointVelaryon, EndpointKingsharald, EndpointMoruehoca, EndpointKazazel}
 
 var _EndpointNameToValueMap = map[string]Endpoint{
 	_EndpointName[0:20]:         EndpointArweave,
@@ -54,16 +64,36 @@ var _EndpointNameToValueMap = map[string]Endpoint{
 	_EndpointLowerName[66:87]:   EndpointPermagate,
 	_EndpointName[87:108]:       EndpointLove4Src,
 	_EndpointLowerName[87:108]:  EndpointLove4Src,
-	_EndpointName[108:130]:      EndpointBobInstein,
-	_EndpointLowerName[108:130]: EndpointBobInstein,
-	_EndpointName[130:152]:      EndpointPie,
-	_EndpointLowerName[130:152]: EndpointPie,
-	_EndpointName[152:173]:      EndpointAleko0o,
-	_EndpointLowerName[152:173]: EndpointAleko0o,
-	_EndpointName[173:191]:      EndpointVevivo,
-	_EndpointLowerName[173:191]: EndpointVevivo,
-	_EndpointName[191:218]:      EndpointFllstck,
-	_EndpointLowerName[191:218]: EndpointFllstck,
+	_EndpointName[108:131]:      EndpointBobInstein,
+	_EndpointLowerName[108:131]: EndpointBobInstein,
+	_EndpointName[131:154]:      EndpointPie,
+	_EndpointLowerName[131:154]: EndpointPie,
+	_EndpointName[154:176]:      EndpointAleko0o,
+	_EndpointLowerName[154:176]: EndpointAleko0o,
+	_EndpointName[176:195]:      EndpointVevivo,
+	_EndpointLowerName[176:195]: EndpointVevivo,
+	_EndpointName[195:215]:      EndpointSulapan,
+	_EndpointLowerName[195:215]: EndpointSulapan,
+	_EndpointName[215:233]:      EndpointBicem,
+	_EndpointLowerName[215:233]: EndpointBicem,
+	_EndpointName[233:257]:      EndpointDilsinay,
+	_EndpointLowerName[233:257]: EndpointDilsinay,
+	_EndpointName[257:281]:      EndpointLostgame,
+	_EndpointLowerName[257:281]: EndpointLostgame,
+	_EndpointName[281:304]:      EndpointKhaldrogo,
+	_EndpointLowerName[281:304]: EndpointKhaldrogo,
+	_EndpointName[304:327]:      EndpointDasamuka,
+	_EndpointLowerName[304:327]: EndpointDasamuka,
+	_EndpointName[327:347]:      EndpointArendor,
+	_EndpointLowerName[327:347]: EndpointArendor,
+	_EndpointName[347:368]:      EndpointVelaryon,
+	_EndpointLowerName[347:368]: EndpointVelaryon,
+	_EndpointName[368:392]:      EndpointKingsharald,
+	_EndpointLowerName[368:392]: EndpointKingsharald,
+	_EndpointName[392:417]:      EndpointMoruehoca,
+	_EndpointLowerName[392:417]: EndpointMoruehoca,
+	_EndpointName[417:437]:      EndpointKazazel,
+	_EndpointLowerName[417:437]: EndpointKazazel,
 }
 
 var _EndpointNames = []string{
@@ -72,11 +102,21 @@ var _EndpointNames = []string{
 	_EndpointName[48:66],
 	_EndpointName[66:87],
 	_EndpointName[87:108],
-	_EndpointName[108:130],
-	_EndpointName[130:152],
-	_EndpointName[152:173],
-	_EndpointName[173:191],
-	_EndpointName[191:218],
+	_EndpointName[108:131],
+	_EndpointName[131:154],
+	_EndpointName[154:176],
+	_EndpointName[176:195],
+	_EndpointName[195:215],
+	_EndpointName[215:233],
+	_EndpointName[233:257],
+	_EndpointName[257:281],
+	_EndpointName[281:304],
+	_EndpointName[304:327],
+	_EndpointName[327:347],
+	_EndpointName[347:368],
+	_EndpointName[368:392],
+	_EndpointName[392:417],
+	_EndpointName[417:437],
 }
 
 // EndpointString retrieves an enum value from the enum constants string name.

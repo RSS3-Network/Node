@@ -2,12 +2,12 @@ package arweave_test
 
 import (
 	"context"
-	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
 	"io"
 	"sync"
 	"testing"
 
 	"github.com/labstack/gommon/log"
+	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )
