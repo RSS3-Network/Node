@@ -1,0 +1,61 @@
+-- +goose Up
+-- +goose StatementBegin
+CREATE TABLE IF NOT EXISTS "indexes"
+(
+    "id"         text        NOT NULL,
+    "owner"      text        NOT NULL,
+    "chain"      text        NOT NULL,
+    "index"      int         NOT NULL,
+    "platform"   text,
+    "tag"        text        NOT NULL,
+    "type"       text        NOT NULL,
+    "status"     bool        NOT NULL,
+    "direction"  int         NOT NULL,
+    "timestamp"  timestamptz NOT NULL,
+    "version"    text        NOT NULL,
+    "created_at" timestamptz NOT NULL DEFAULT now(),
+    "updated_at" timestamptz NOT NULL DEFAULT now(),
+
+    CONSTRAINT "pk_indexes" PRIMARY KEY ("id", "chain", "owner")
+);
+
+CREATE INDEX IF NOT EXISTS "idx_indexes_platform" ON "indexes" ("platform", "timestamp" DESC, "index" DESC, "version");
+CREATE INDEX IF NOT EXISTS "idx_indexes_filter" ON "indexes" ("tag", "timestamp" DESC, "index" DESC, "type", "version");
+CREATE INDEX IF NOT EXISTS "idx_indexes_network_chain" ON "indexes" ("chain", "timestamp" DESC, "index" DESC, "version");
+CREATE INDEX IF NOT EXISTS "idx_indexes_owner" ON "indexes" ("owner", "timestamp" DESC, "index" DESC, "direction", "version");
+CREATE INDEX IF NOT EXISTS "idx_indexes_timestamp" ON "indexes" ("timestamp" DESC, "index" DESC, "version");
+
+CREATE TABLE IF NOT EXISTS "feeds"
+(
+    "id"            text        NOT NULL,
+    "chain"         text        NOT NULL,
+    "platform"      text,
+    "index"         int         NOT NULL,
+    "from"          text        NOT NULL,
+    "to"            text        NOT NULL,
+    "tag"           text        NOT NULL,
+    "type"          text        NOT NULL,
+    "status"        text        NOT NULL,
+    "actions"       json        NOT NULL,
+    "total_actions" bigint      NOT NULL,
+    "fee"           json,
+    "timestamp"     timestamptz NOT NULL,
+    "version"       text        NOT NULL,
+    "created_at"    timestamptz NOT NULL DEFAULT now(),
+    "updated_at"    timestamptz NOT NULL DEFAULT now(),
+
+    CONSTRAINT "pk_feeds" PRIMARY KEY ("id")
+);
+
+CREATE INDEX IF NOT EXISTS "idx_feeds_platform" ON "feeds" ("platform");
+CREATE INDEX IF NOT EXISTS "idx_feeds_timestamp" ON "feeds" ("timestamp" DESC, "version");
+CREATE INDEX IF NOT EXISTS "idx_feeds_tag_type" ON "feeds" ("tag", "type");
+CREATE INDEX IF NOT EXISTS "idx_feeds_total_actions" ON "feeds" ("total_actions");
+
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS "indexes";
+DROP TABLE IF EXISTS "feeds";
+-- +goose StatementEnd
