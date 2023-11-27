@@ -1,6 +1,0 @@
-version: "1.0.0"
-
-database:
-  driver: "cockroachdb"
-  partition: true
-  uri: "postgres://root@localhost:26257/defaultdb"

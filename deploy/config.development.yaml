@@ -3,3 +3,8 @@ node:
   network: arweave
   chain: mainnet
   endpoint: https://ethereum.blockpi.network/v1/rpc/public
+
+database:
+  driver: cockroachdb
+  partition: true
+  uri: postgres://root@localhost:26257/defaultdb
