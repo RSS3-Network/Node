@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	syncx "github.com/naturalselectionlabs/rss3-node/common/sync"
 	"github.com/samber/lo"
@@ -14,6 +15,10 @@ import (
 
 // DefaultClient is the default HTTP client.
 var DefaultClient = lo.Must(NewClient())
+
+const (
+	DefaultTimeout = 3 * time.Second
+)
 
 // Client is the interface that wraps the Fetch method.
 type HTTPClient interface {
