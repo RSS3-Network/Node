@@ -8,7 +8,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroach"
 )
 
-func Dial(ctx context.Context, config database.Config) (database.Client, error) {
+func Dial(ctx context.Context, config *database.Config) (database.Client, error) {
 	switch config.Driver {
 	case database.DriverCockroach:
 		return cockroach.Dial(ctx, config.URI, config.Partition)

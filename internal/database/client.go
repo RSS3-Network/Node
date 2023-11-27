@@ -13,7 +13,7 @@ type Client interface {
 	Session
 	Transaction
 
-	SaveFeeds(ctx context.Context, feeds []schema.Feed) error
+	SaveFeeds(ctx context.Context, feeds []*schema.Feed) error
 }
 
 type Session interface {

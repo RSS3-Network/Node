@@ -27,7 +27,7 @@ type Feed struct {
 	Type         string           `gorm:"column:type"`
 	Status       bool             `gorm:"column:status"`
 	Fee          Fee              `gorm:"column:fee;jsonb"`
-	TotalActions int              `gorm:"column:total_actions"`
+	TotalActions uint             `gorm:"column:total_actions"`
 	Actions      FeedActions      `gorm:"column:actions;type:jsonb"`
 	Timestamp    time.Time        `gorm:"column:timestamp"`
 	Version      string           `gorm:"column:version"`
@@ -48,7 +48,7 @@ func (f *Feed) PartitionName(feed *schema.Feed) string {
 		f.Timestamp.Year(), int(math.Ceil(float64(f.Timestamp.Month())/3)))
 }
 
-func (f *Feed) Import(feed schema.Feed) error {
+func (f *Feed) Import(feed *schema.Feed) error {
 	f.ID = feed.ID
 	f.Chain = feed.Chain.FullName()
 	f.Platform = feed.Platform
@@ -70,7 +70,8 @@ func (f *Feed) Import(feed schema.Feed) error {
 	}
 
 	for _, action := range feed.Actions {
-		var item FeedAction
+		item := new(FeedAction)
+
 		if err := item.Import(action); err != nil {
 			return fmt.Errorf("invalid action: %w", err)
 		}
@@ -83,11 +84,12 @@ func (f *Feed) Import(feed schema.Feed) error {
 
 var _ schema.FeedsTransformer = (*Feeds)(nil)
 
-type Feeds []Feed
+type Feeds []*Feed
 
-func (f *Feeds) Import(feeds []schema.Feed) error {
+func (f *Feeds) Import(feeds []*schema.Feed) error {
 	for _, feed := range feeds {
-		var item Feed
+		item := new(Feed)
+
 		if err := item.Import(feed); err != nil {
 			return err
 		}
@@ -145,7 +147,7 @@ type FeedAction struct {
 	Metadata json.RawMessage `json:"metadata"`
 }
 
-func (f *FeedAction) Import(action schema.Action) (err error) {
+func (f *FeedAction) Import(action *schema.Action) (err error) {
 	f.Tag = action.Type.Tag().String()
 	f.Type = action.Type.Name()
 	f.From = action.From
@@ -164,7 +166,7 @@ var (
 	_ driver.Valuer = (*FeedActions)(nil)
 )
 
-type FeedActions []FeedAction
+type FeedActions []*FeedAction
 
 //goland:noinspection ALL
 func (f *FeedActions) Scan(value any) error {

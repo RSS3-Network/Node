@@ -13,17 +13,17 @@ import (
 )
 
 // saveFeedsPartitioned saves feeds in partitioned tables.
-func (c *client) saveFeedsPartitioned(ctx context.Context, feeds []schema.Feed) error {
-	partitions := make(map[string][]schema.Feed)
+func (c *client) saveFeedsPartitioned(ctx context.Context, feeds []*schema.Feed) error {
+	partitions := make(map[string][]*schema.Feed)
 
 	// Group feeds by partition name.
 	for _, feed := range feeds {
 		var feedTable table.Feed
 
-		name := feedTable.PartitionName(lo.ToPtr(feed))
+		name := feedTable.PartitionName(feed)
 
 		if _, exists := partitions[name]; !exists {
-			partitions[name] = make([]schema.Feed, 0)
+			partitions[name] = make([]*schema.Feed, 0)
 		}
 
 		partitions[name] = append(partitions[name], feed)
@@ -67,7 +67,7 @@ func (c *client) saveFeedsPartitioned(ctx context.Context, feeds []schema.Feed) 
 }
 
 // saveIndexesPartitioned saves indexes in partitioned tables.
-func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []schema.Feed) error {
+func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Feed) error {
 	indexes := make(table.Indexes, 0)
 
 	if err := indexes.Import(feeds); err != nil {

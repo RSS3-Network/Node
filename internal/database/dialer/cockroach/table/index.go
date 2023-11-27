@@ -36,7 +36,7 @@ func (i *Index) PartitionName() string {
 
 var _ schema.FeedTransformer = (*Index)(nil)
 
-func (i *Index) Import(feed schema.Feed) error {
+func (i *Index) Import(feed *schema.Feed) error {
 	i.ID = feed.ID
 	i.Chain = feed.Chain.FullName()
 	i.Platform = feed.Platform
@@ -52,10 +52,10 @@ func (i *Index) Import(feed schema.Feed) error {
 
 var _ schema.FeedsTransformer = (*Indexes)(nil)
 
-type Indexes []Index
+type Indexes []*Index
 
-func (i *Indexes) Import(feed []schema.Feed) error {
-	*i = make([]Index, 0, len(feed))
+func (i *Indexes) Import(feed []*schema.Feed) error {
+	*i = make([]*Index, 0, len(feed))
 
 	for _, feed := range feed {
 		var index Index
@@ -91,10 +91,11 @@ func (i *Indexes) Import(feed []schema.Feed) error {
 				continue
 			}
 
-			index.Owner = address
-			index.Direction = direction
+			data := index
+			data.Owner = address
+			data.Direction = direction
 
-			*i = append(*i, index)
+			*i = append(*i, &data)
 		}
 	}
 

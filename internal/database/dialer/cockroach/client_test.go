@@ -24,21 +24,21 @@ func TestClient(t *testing.T) {
 		name        string
 		driver      database.Driver
 		partition   bool
-		feedCreated []schema.Feed
-		feedUpdated []schema.Feed
+		feedCreated []*schema.Feed
+		feedUpdated []*schema.Feed
 	}{
 		{
 			name:      "cockroach",
 			driver:    database.DriverCockroach,
 			partition: true,
-			feedCreated: []schema.Feed{
+			feedCreated: []*schema.Feed{
 				{
 					ID:    "0xddc42d4de320638dda200a59938514f7230bf6022355c6a8a7c39b9903598ced",
 					Chain: lo.ToPtr(filter.ChainEthereumMainnet),
 					From:  "0x566b8087067638b0cb16311e0f05bee58186e787",
 					To:    "0x9e05155e5d924c179b39a8b9b427c1bea06face3",
 					Type:  filter.TypeTransactionTransfer,
-					Actions: []schema.Action{
+					Actions: []*schema.Action{
 						{
 							Type: filter.TypeTransactionTransfer,
 							From: "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
@@ -53,14 +53,14 @@ func TestClient(t *testing.T) {
 					Timestamp: uint64(time.Now().Unix()),
 				},
 			},
-			feedUpdated: []schema.Feed{
+			feedUpdated: []*schema.Feed{
 				{
 					ID:    "0xddc42d4de320638dda200a59938514f7230bf6022355c6a8a7c39b9903598ced",
 					Chain: lo.ToPtr(filter.ChainEthereumMainnet),
 					From:  "0x566b8087067638b0cb16311e0f05bee58186e787",
 					To:    "0x9e05155e5d924c179b39a8b9b427c1bea06face3",
 					Type:  filter.TypeTransactionTransfer,
-					Actions: []schema.Action{
+					Actions: []*schema.Action{
 						{
 							Type: filter.TypeTransactionTransfer,
 							From: "0x566b8087067638b0cb16311e0f05bee58186e787",
@@ -87,7 +87,7 @@ func TestClient(t *testing.T) {
 			})
 
 			// Dial the database
-			client, err := dialer.Dial(context.Background(), database.Config{
+			client, err := dialer.Dial(context.Background(), &database.Config{
 				Driver:    testcase.driver,
 				URI:       dataSourceName,
 				Partition: testcase.partition,

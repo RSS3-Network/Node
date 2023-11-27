@@ -94,7 +94,7 @@ func (c *client) createPartitionTable(ctx context.Context, name, template string
 }
 
 // SaveFeeds saves feeds and indexes to the database.
-func (c *client) SaveFeeds(ctx context.Context, feeds []schema.Feed) error {
+func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
 	if c.partition {
 		return c.saveFeedsPartitioned(ctx, feeds)
 	}
