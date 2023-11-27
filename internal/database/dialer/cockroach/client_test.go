@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
 	"github.com/naturalselectionlabs/rss3-node/schema"
@@ -115,20 +116,30 @@ func TestClient(t *testing.T) {
 }
 
 func createContainer(ctx context.Context, driver database.Driver) (container *gnomock.Container, dataSourceName string, err error) {
-	switch driver {
-	case database.DriverCockroach:
-		preset := cockroachdb.Preset(
-			cockroachdb.WithDatabase("test"),
-			cockroachdb.WithVersion("v23.1.8"),
-		)
+	initFunc := func() error {
+		switch driver {
+		case database.DriverCockroach:
+			preset := cockroachdb.Preset(
+				cockroachdb.WithDatabase("test"),
+				cockroachdb.WithVersion("v23.1.8"),
+			)
 
-		container, err = gnomock.Start(preset, gnomock.WithContext(ctx))
-		if err != nil {
-			return nil, "", err
+			container, err = gnomock.Start(preset, gnomock.WithContext(ctx))
+			if err != nil {
+				return err
+			}
+
+			dataSourceName = fmt.Sprintf("postgres://root@%s:%d/%s?sslmode=disable", container.Host, container.DefaultPort(), "test")
+
+			return nil
 		}
 
-		return container, fmt.Sprintf("postgres://root@%s:%d/%s?sslmode=disable", container.Host, container.DefaultPort(), "test"), nil
-	default:
-		return nil, "", fmt.Errorf("unsupported driver: %s", driver)
+		return fmt.Errorf("unsupported driver: %s", driver)
 	}
+
+	if err := retry.Do(initFunc, retry.Attempts(3)); err != nil {
+		return nil, "", err
+	}
+
+	return container, dataSourceName, nil
 }
