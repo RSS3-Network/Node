@@ -14,7 +14,7 @@ import (
 
 var (
 	setupOnce     sync.Once
-	arweaveClient arweave.Client
+	arweaveClient arweave.HTTPClient
 )
 
 func setup(t *testing.T) {
