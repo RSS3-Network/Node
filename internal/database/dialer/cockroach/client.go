@@ -26,7 +26,7 @@ type client struct {
 }
 
 // Migrate migrates the database.
-func (c *client) Migrate(_ context.Context) error {
+func (c *client) Migrate(ctx context.Context) error {
 	goose.SetBaseFS(migrationFS)
 	goose.SetTableName("versions")
 	goose.SetLogger(&database.SugaredLogger{Logger: zap.L().Sugar()})
@@ -40,7 +40,7 @@ func (c *client) Migrate(_ context.Context) error {
 		return fmt.Errorf("get database connector: %w", err)
 	}
 
-	return goose.Up(connector, "migration")
+	return goose.UpContext(ctx, connector, "migration")
 }
 
 // WithTransaction executes a transaction.
