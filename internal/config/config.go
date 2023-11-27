@@ -16,9 +16,9 @@ const (
 )
 
 type File struct {
-	Environment string          `mapstructure:"environment"`
-	Node        *engine.Config  `mapstructure:"node"`
-	Database    database.Config `mapstructure:"database"`
+	Environment string           `mapstructure:"environment"`
+	Node        *engine.Config   `mapstructure:"node"`
+	Database    *database.Config `mapstructure:"database"`
 }
 
 func Setup(configFilePath string) (*File, error) {
