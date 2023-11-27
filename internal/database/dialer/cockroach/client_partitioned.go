@@ -5,35 +5,35 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/naturalselectionlabs/rss3-node/internal/database/table"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroach/table"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/samber/lo"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm/clause"
 )
 
-// saveFeedsSharded saves feeds to the database in sharded tables.
-func (c *client) saveFeedsSharded(ctx context.Context, feeds []schema.Feed) error {
-	shards := make(map[string][]schema.Feed)
+// saveFeedsPartitioned saves feeds in partitioned tables.
+func (c *client) saveFeedsPartitioned(ctx context.Context, feeds []schema.Feed) error {
+	partitions := make(map[string][]schema.Feed)
 
-	// Group feeds by sharded name.
+	// Group feeds by partition name.
 	for _, feed := range feeds {
-		var feedSharded table.Feed
+		var feedTable table.Feed
 
-		shardedName := feedSharded.ShardedName(lo.ToPtr(feed))
+		name := feedTable.PartitionName(lo.ToPtr(feed))
 
-		if _, exists := shards[shardedName]; !exists {
-			shards[shardedName] = make([]schema.Feed, 0)
+		if _, exists := partitions[name]; !exists {
+			partitions[name] = make([]schema.Feed, 0)
 		}
 
-		shards[shardedName] = append(shards[shardedName], feed)
+		partitions[name] = append(partitions[name], feed)
 	}
 
 	errorGroup, ctx := errgroup.WithContext(ctx)
 
 	// Save feeds and indexes in parallel.
-	for shardedName, feeds := range shards {
-		shardedName, feeds := shardedName, feeds
+	for name, feeds := range partitions {
+		name, feeds := name, feeds
 
 		errorGroup.Go(func() error {
 			tableFeeds := make(table.Feeds, 0)
@@ -42,7 +42,7 @@ func (c *client) saveFeedsSharded(ctx context.Context, feeds []schema.Feed) erro
 				return err
 			}
 
-			if err := c.createShardedTable(ctx, shardedName, tableFeeds[0].TableName()); err != nil {
+			if err := c.createPartitionTable(ctx, name, tableFeeds[0].TableName()); err != nil {
 				return err
 			}
 
@@ -55,27 +55,27 @@ func (c *client) saveFeedsSharded(ctx context.Context, feeds []schema.Feed) erro
 				UpdateAll: true,
 			}
 
-			if err := c.database.WithContext(ctx).Table(shardedName).Clauses(onConflict).CreateInBatches(tableFeeds, math.MaxUint8).Error; err != nil {
+			if err := c.database.WithContext(ctx).Table(name).Clauses(onConflict).CreateInBatches(tableFeeds, math.MaxUint8).Error; err != nil {
 				return err
 			}
 
-			return c.saveIndexesSharded(ctx, feeds)
+			return c.saveIndexesPartitioned(ctx, feeds)
 		})
 	}
 
 	return errorGroup.Wait()
 }
 
-// saveIndexesSharded saves indexes to the database in a same sharded table.
-func (c *client) saveIndexesSharded(ctx context.Context, feeds []schema.Feed) error {
+// saveIndexesPartitioned saves indexes in partitioned tables.
+func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []schema.Feed) error {
 	indexes := make(table.Indexes, 0)
 
 	if err := indexes.Import(feeds); err != nil {
 		return err
 	}
 
-	if err := c.createShardedTable(ctx, indexes[0].ShardedName(), indexes[0].TableName()); err != nil {
-		return fmt.Errorf("create sharded table: %w", err)
+	if err := c.createPartitionTable(ctx, indexes[0].PartitionName(), indexes[0].TableName()); err != nil {
+		return fmt.Errorf("create partition table: %w", err)
 	}
 
 	// Delete indexes with the same feed id and chain.
@@ -92,7 +92,7 @@ func (c *client) saveIndexesSharded(ctx context.Context, feeds []schema.Feed) er
 		}
 	}
 
-	err := c.database.WithContext(ctx).Table(indexes[0].ShardedName()).
+	err := c.database.WithContext(ctx).Table(indexes[0].PartitionName()).
 		Where("(id, chain) IN (?)", lo.MapToSlice(pkIndexes, func(_ string, value []string) []string {
 			return value
 		})).Delete(&table.Indexes{}).Error
@@ -116,5 +116,5 @@ func (c *client) saveIndexesSharded(ctx context.Context, feeds []schema.Feed) er
 		UpdateAll: true,
 	}
 
-	return c.database.WithContext(ctx).Table(indexes[0].ShardedName()).Clauses(onConflict).CreateInBatches(indexes, math.MaxUint8).Error
+	return c.database.WithContext(ctx).Table(indexes[0].PartitionName()).Clauses(onConflict).CreateInBatches(indexes, math.MaxUint8).Error
 }

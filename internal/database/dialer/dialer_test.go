@@ -39,9 +39,9 @@ func TestClient(t *testing.T) {
 			})
 
 			client, err := dialer.Dial(context.Background(), database.Config{
-				Driver: testcase.driver,
-				URI:    dataSourceName,
-				Mode:   database.ModeSingle,
+				Driver:    testcase.driver,
+				URI:       dataSourceName,
+				Partition: false,
 			})
 
 			require.NoError(t, err)

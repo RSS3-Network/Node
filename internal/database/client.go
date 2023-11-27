@@ -3,30 +3,11 @@ package database
 import (
 	"context"
 	"database/sql"
-	"embed"
 
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/pressly/goose/v3"
 	"go.uber.org/zap"
-	gorm "gorm.io/gorm/schema"
 )
-
-//go:embed migration/*.sql
-var MigrationFS embed.FS
-
-// Mode is the type of storage mode, which can be either "sharded" or "single".
-type Mode string
-
-const (
-	ModeSharded Mode = "sharded"
-	ModeSingle  Mode = "single"
-)
-
-type Table interface {
-	gorm.Tabler
-
-	ShardedName() string
-}
 
 type Client interface {
 	Session

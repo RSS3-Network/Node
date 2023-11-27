@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS "feeds"
     "to"            text        NOT NULL,
     "tag"           text        NOT NULL,
     "type"          text        NOT NULL,
-    "status"        text        NOT NULL,
+    "status"        bool        NOT NULL,
     "actions"       json        NOT NULL,
     "total_actions" bigint      NOT NULL,
     "fee"           json,

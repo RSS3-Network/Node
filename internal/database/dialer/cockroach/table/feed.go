@@ -26,7 +26,7 @@ type Feed struct {
 	Tag          filter.Tag       `gorm:"column:tag"`
 	Type         string           `gorm:"column:type"`
 	Status       bool             `gorm:"column:status"`
-	Fee          Fee              `gorm:"column:fee"`
+	Fee          Fee              `gorm:"column:fee;jsonb"`
 	TotalActions int              `gorm:"column:total_actions"`
 	Actions      FeedActions      `gorm:"column:actions;type:jsonb"`
 	Timestamp    time.Time        `gorm:"column:timestamp"`
@@ -39,7 +39,7 @@ func (f *Feed) TableName() string {
 	return "feeds"
 }
 
-func (f *Feed) ShardedName(feed *schema.Feed) string {
+func (f *Feed) PartitionName(feed *schema.Feed) string {
 	if feed != nil {
 		f.Timestamp = time.Unix(int64(feed.Timestamp), 0)
 	}
@@ -50,7 +50,7 @@ func (f *Feed) ShardedName(feed *schema.Feed) string {
 
 func (f *Feed) Import(feed schema.Feed) error {
 	f.ID = feed.ID
-	f.Chain = fmt.Sprintf("%s.%s", feed.Chain.Network(), feed.Chain.String())
+	f.Chain = feed.Chain.FullName()
 	f.Platform = feed.Platform
 	f.Index = feed.Index
 	f.From = feed.From
@@ -112,6 +112,26 @@ func (f *Fee) Import(fee schema.Fee) error {
 	f.Decimal = fee.Decimal
 
 	return nil
+}
+
+var (
+	_ sql.Scanner   = (*Fee)(nil)
+	_ driver.Valuer = (*Fee)(nil)
+)
+
+//goland:noinspection ALL
+func (f *Fee) Scan(value any) error {
+	data, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("invalid type: %T", value)
+	}
+
+	return json.Unmarshal(data, &f)
+}
+
+//goland:noinspection ALL
+func (f Fee) Value() (driver.Value, error) {
+	return json.Marshal(f)
 }
 
 var _ schema.ActionTransformer = (*FeedAction)(nil)

@@ -11,7 +11,7 @@ import (
 func Dial(ctx context.Context, config database.Config) (database.Client, error) {
 	switch config.Driver {
 	case database.DriverCockroach:
-		return cockroach.Dial(ctx, config.URI, config.Mode)
+		return cockroach.Dial(ctx, config.URI, config.Partition)
 	default:
 		return nil, fmt.Errorf("unsupported driver: %s", config.Driver)
 	}

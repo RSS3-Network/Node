@@ -5,13 +5,10 @@ import (
 	"math"
 	"time"
 
-	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
-
-var _ database.Table = (*Index)(nil)
 
 type Index struct {
 	ID        string           `gorm:"column:id"`
@@ -33,15 +30,15 @@ func (i *Index) TableName() string {
 	return "indexes"
 }
 
-func (i *Index) ShardedName() string {
-	return fmt.Sprintf("%s_%d_Q%d", i.TableName(), i.Timestamp.Year(), int(math.Ceil(float64(i.Timestamp.Month())/3)))
+func (i *Index) PartitionName() string {
+	return fmt.Sprintf("%s_%d_q%d", i.TableName(), i.Timestamp.Year(), int(math.Ceil(float64(i.Timestamp.Month())/3)))
 }
 
 var _ schema.FeedTransformer = (*Index)(nil)
 
 func (i *Index) Import(feed schema.Feed) error {
 	i.ID = feed.ID
-	i.Chain = fmt.Sprintf("%s.%s", feed.Chain.Network(), feed.Chain.String())
+	i.Chain = feed.Chain.FullName()
 	i.Platform = feed.Platform
 	i.Index = feed.Index
 	i.Tag = feed.Type.Tag()

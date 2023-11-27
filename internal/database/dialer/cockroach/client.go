@@ -3,6 +3,7 @@ package cockroach
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"fmt"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
@@ -16,14 +17,17 @@ import (
 
 var _ database.Client = (*client)(nil)
 
+//go:embed migration/*.sql
+var migrationFS embed.FS
+
 type client struct {
-	mode     database.Mode
-	database *gorm.DB
+	partition bool
+	database  *gorm.DB
 }
 
 // Migrate migrates the database.
 func (c *client) Migrate(_ context.Context) error {
-	goose.SetBaseFS(database.MigrationFS)
+	goose.SetBaseFS(migrationFS)
 	goose.SetTableName("versions")
 	goose.SetLogger(&database.SugaredLogger{Logger: zap.L().Sugar()})
 
@@ -67,7 +71,8 @@ func (c *client) Begin(ctx context.Context, transactionOptions ...*sql.TxOptions
 	}
 
 	return &client{
-		database: transaction,
+		partition: c.partition,
+		database:  transaction,
 	}, nil
 }
 
@@ -81,8 +86,8 @@ func (c *client) Commit() error {
 	return c.database.Commit().Error
 }
 
-// createShardedTable creates a sharded table.
-func (c *client) createShardedTable(ctx context.Context, name, template string) error {
+// createPartitionTable creates a partition table.
+func (c *client) createPartitionTable(ctx context.Context, name, template string) error {
 	statement := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS "%s" (LIKE "%s" INCLUDING ALL);`, name, template)
 
 	return c.database.WithContext(ctx).Exec(statement).Error
@@ -90,23 +95,19 @@ func (c *client) createShardedTable(ctx context.Context, name, template string) 
 
 // SaveFeeds saves feeds and indexes to the database.
 func (c *client) SaveFeeds(ctx context.Context, feeds []schema.Feed) error {
-	switch c.mode {
-	case database.ModeSharded:
-		return c.saveFeedsSharded(ctx, feeds)
-	case database.ModeSingle:
-		// TODO
-		return fmt.Errorf("not implemented")
+	if c.partition {
+		return c.saveFeedsPartitioned(ctx, feeds)
 	}
 
-	return nil
+	return fmt.Errorf("not implemented")
 }
 
 // Dial dials a database.
-func Dial(_ context.Context, dataSourceName string, mode database.Mode) (database.Client, error) {
+func Dial(_ context.Context, dataSourceName string, partition bool) (database.Client, error) {
 	var err error
 
 	instance := client{
-		mode: mode,
+		partition: partition,
 	}
 
 	logger := zapgorm2.New(zap.L())
