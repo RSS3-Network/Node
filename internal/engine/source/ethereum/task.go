@@ -78,7 +78,7 @@ func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error
 			Amount:  decimal.NewFromBigInt(feeAmount, 0),
 			Decimal: defaultFeeDecimal,
 		},
-		Actions:   make([]schema.Action, 0),
+		Actions:   make([]*schema.Action, 0),
 		Status:    t.Receipt.Status == types.ReceiptStatusSuccessful,
 		Timestamp: t.Header.Time,
 	}

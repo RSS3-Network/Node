@@ -13,7 +13,7 @@ type Feed struct {
 	Type      filter.Type      `json:"type"`
 	Platform  *filter.Platform `json:"platform,omitempty"`
 	Fee       Fee              `json:"fee"`
-	Actions   []Action         `json:"actions"`
+	Actions   []*Action        `json:"actions"`
 	Status    bool             `json:"status"`
 	Timestamp uint64           `json:"timestamp"`
 }

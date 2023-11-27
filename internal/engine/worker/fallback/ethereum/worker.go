@@ -49,7 +49,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		}
 
 		feed.Type = action.Type
-		feed.Actions = append(feed.Actions, *action)
+		feed.Actions = append(feed.Actions, action)
 	}
 
 	return feed, nil
