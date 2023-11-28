@@ -55,7 +55,11 @@ func (c *client) saveFeedsPartitioned(ctx context.Context, feeds []*schema.Feed)
 				UpdateAll: true,
 			}
 
-			if err := c.database.WithContext(ctx).Table(name).Clauses(onConflict).CreateInBatches(tableFeeds, math.MaxUint8).Error; err != nil {
+			if err := c.database.WithContext(ctx).
+				Table(name).
+				Clauses(onConflict).
+				CreateInBatches(tableFeeds, math.MaxUint8).
+				Error; err != nil {
 				return err
 			}
 
@@ -92,11 +96,15 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 		}
 	}
 
-	err := c.database.WithContext(ctx).Table(indexes[0].PartitionName()).
-		Where("(id, chain) IN (?)", lo.MapToSlice(pkIndexes, func(_ string, value []string) []string {
-			return value
-		})).Delete(&table.Indexes{}).Error
-	if err != nil {
+	conditions := lo.MapToSlice(pkIndexes, func(_ string, value []string) []string {
+		return value
+	})
+
+	if err := c.database.WithContext(ctx).
+		Table(indexes[0].PartitionName()).
+		Where("(id, chain) IN (?)", conditions).
+		Delete(&table.Indexes{}).
+		Error; err != nil {
 		return fmt.Errorf("delete indexes: %w", err)
 	}
 
@@ -116,5 +124,9 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 		UpdateAll: true,
 	}
 
-	return c.database.WithContext(ctx).Table(indexes[0].PartitionName()).Clauses(onConflict).CreateInBatches(indexes, math.MaxUint8).Error
+	return c.database.WithContext(ctx).
+		Table(indexes[0].PartitionName()).
+		Clauses(onConflict).
+		CreateInBatches(indexes, math.MaxUint8).
+		Error
 }

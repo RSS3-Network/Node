@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/avast/retry-go/v4"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
 	"github.com/naturalselectionlabs/rss3-node/schema"
@@ -104,7 +103,7 @@ func TestClient(t *testing.T) {
 			require.NoError(t, err)
 
 			// Insert feeds.
-			require.NoError(t, transaction.SaveFeeds(context.TODO(), testcase.feedCreated))
+			require.NoError(t, transaction.SaveFeeds(context.Background(), testcase.feedCreated))
 
 			// Update feeds.
 			require.NoError(t, transaction.SaveFeeds(context.Background(), testcase.feedUpdated))
@@ -116,30 +115,26 @@ func TestClient(t *testing.T) {
 }
 
 func createContainer(ctx context.Context, driver database.Driver) (container *gnomock.Container, dataSourceName string, err error) {
-	initFunc := func() error {
-		switch driver {
-		case database.DriverCockroachDB:
-			preset := cockroachdb.Preset(
-				cockroachdb.WithDatabase("test"),
-				cockroachdb.WithVersion("v23.1.8"),
-			)
+	switch driver {
+	case database.DriverCockroachDB:
+		preset := cockroachdb.Preset(
+			cockroachdb.WithDatabase("test"),
+			cockroachdb.WithVersion("v23.1.8"),
+		)
 
-			container, err = gnomock.Start(preset, gnomock.WithContext(ctx))
-			if err != nil {
-				return err
-			}
-
-			dataSourceName = fmt.Sprintf("postgres://root@%s:%d/%s?sslmode=disable", container.Host, container.DefaultPort(), "test")
-
-			return nil
+		container, err = gnomock.Start(preset, gnomock.WithContext(ctx))
+		if err != nil {
+			return nil, "", err
 		}
 
-		return fmt.Errorf("unsupported driver: %s", driver)
-	}
+		dataSourceName = fmt.Sprintf(
+			"postgres://root@%s:%d/%s?sslmode=disable",
+			container.Host, container.DefaultPort(),
+			"test",
+		)
 
-	if err := retry.Do(initFunc, retry.Attempts(3)); err != nil {
-		return nil, "", err
+		return container, dataSourceName, nil
+	default:
+		return nil, "", fmt.Errorf("unsupported driver: %s", driver)
 	}
-
-	return container, dataSourceName, nil
 }

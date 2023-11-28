@@ -31,7 +31,7 @@ func (c *client) Migrate(ctx context.Context) error {
 	goose.SetTableName("versions")
 	goose.SetLogger(&database.SugaredLogger{Logger: zap.L().Sugar()})
 
-	if err := goose.SetDialect("postgres"); err != nil {
+	if err := goose.SetDialect(new(postgres.Dialector).Name()); err != nil {
 		return fmt.Errorf("set migration dialect: %w", err)
 	}
 
