@@ -3,7 +3,7 @@ package database
 type Driver string
 
 const (
-	DriverCockroach Driver = "cockroach"
-	DriverPostgres  Driver = "postgres"
-	DriverMysql     Driver = "mysql"
+	DriverCockroachDB Driver = "cockroachdb"
+	DriverPostgreSQL  Driver = "postgresql"
+	DriverMySQL       Driver = "mysql"
 )

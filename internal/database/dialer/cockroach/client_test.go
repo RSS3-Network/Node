@@ -29,7 +29,7 @@ func TestClient(t *testing.T) {
 	}{
 		{
 			name:      "cockroach",
-			driver:    database.DriverCockroach,
+			driver:    database.DriverCockroachDB,
 			partition: true,
 			feedCreated: []*schema.Feed{
 				{
@@ -118,7 +118,7 @@ func TestClient(t *testing.T) {
 func createContainer(ctx context.Context, driver database.Driver) (container *gnomock.Container, dataSourceName string, err error) {
 	initFunc := func() error {
 		switch driver {
-		case database.DriverCockroach:
+		case database.DriverCockroachDB:
 			preset := cockroachdb.Preset(
 				cockroachdb.WithDatabase("test"),
 				cockroachdb.WithVersion("v23.1.8"),
