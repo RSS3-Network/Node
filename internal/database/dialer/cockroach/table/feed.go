@@ -63,7 +63,7 @@ func (f *Feed) Import(feed *schema.Feed) error {
 	f.Timestamp = time.Unix(int64(feed.Timestamp), 0)
 	f.Version = feed.Version
 
-	// TODO: spam
+	// TODO Need to filter spam actions.
 
 	if err := f.Fee.Import(feed.Fee); err != nil {
 		return fmt.Errorf("invalid fee: %w", err)

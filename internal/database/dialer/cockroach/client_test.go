@@ -86,7 +86,7 @@ func TestClient(t *testing.T) {
 				require.NoError(t, gnomock.Stop(container))
 			})
 
-			// Dial the database
+			// Dial the database.
 			client, err := dialer.Dial(context.Background(), &database.Config{
 				Driver:    testcase.driver,
 				URI:       dataSourceName,
@@ -96,20 +96,20 @@ func TestClient(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, client)
 
-			// Migrate the database
+			// Migrate the database.
 			require.NoError(t, client.Migrate(context.Background()))
 
-			// Begin a transaction
+			// Begin a transaction.
 			transaction, err := client.Begin(context.Background())
 			require.NoError(t, err)
 
-			// Insert feeds
+			// Insert feeds.
 			require.NoError(t, transaction.SaveFeeds(context.TODO(), testcase.feedCreated))
 
-			// Update feeds
+			// Update feeds.
 			require.NoError(t, transaction.SaveFeeds(context.Background(), testcase.feedUpdated))
 
-			// commit
+			// Commit the transaction.
 			require.NoError(t, transaction.Commit())
 		})
 	}

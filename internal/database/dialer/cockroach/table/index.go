@@ -66,7 +66,7 @@ func (i *Indexes) Import(feed []*schema.Feed) error {
 
 		addresses := make(map[string]filter.Direction)
 
-		// judge the direction of the action.
+		// Judge the direction of the action.
 		for _, action := range feed.Actions {
 			if action.From == action.To {
 				addresses[action.To] = filter.DirectionSelf
