@@ -7,6 +7,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/config/flag"
 	"github.com/naturalselectionlabs/rss3-node/internal/constant"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
 	"github.com/naturalselectionlabs/rss3-node/internal/node"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -27,7 +28,17 @@ var command = cobra.Command{
 			return fmt.Errorf("setup config file: %w", err)
 		}
 
-		server, err := node.NewServer(config.Node)
+		// Dial and migrate database.
+		databaseClient, err := dialer.Dial(cmd.Context(), config.Database)
+		if err != nil {
+			return fmt.Errorf("dial database: %w", err)
+		}
+
+		if err := databaseClient.Migrate(cmd.Context()); err != nil {
+			return fmt.Errorf("migrate database: %w", err)
+		}
+
+		server, err := node.NewServer(config.Node, databaseClient)
 		if err != nil {
 			return fmt.Errorf("build node server: %w", err)
 		}
