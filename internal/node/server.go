@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/constant"
+	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/source"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker"
@@ -15,9 +16,10 @@ import (
 )
 
 type Server struct {
-	config *engine.Config
-	source engine.Source
-	worker engine.Worker
+	config         *engine.Config
+	source         engine.Source
+	worker         engine.Worker
+	databaseClient database.Client
 }
 
 func (s *Server) Run(ctx context.Context) error {
@@ -88,16 +90,17 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 	})
 
 	// Save feeds to database.
-	for _, feed := range feeds {
-		zap.L().Debug("feed", zap.Any("feed", feed))
+	if err := s.databaseClient.SaveFeeds(ctx, feeds); err != nil {
+		return fmt.Errorf("save %d feeds: %w", len(feeds), err)
 	}
 
 	return nil
 }
 
-func NewServer(config *engine.Config) (server *Server, err error) {
+func NewServer(config *engine.Config, databaseClient database.Client) (server *Server, err error) {
 	instance := Server{
-		config: config,
+		config:         config,
+		databaseClient: databaseClient,
 	}
 
 	// TODO Implement support for sources and workers from non Ethereum networks.
