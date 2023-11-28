@@ -18,11 +18,10 @@ const defaultFeeDecimal = 18
 var _ engine.Task = (*Task)(nil)
 
 type Task struct {
-	Chain            filter.ChainEthereum
-	Header           *types.Header
-	Transaction      *types.Transaction
-	TransactionIndex uint
-	Receipt          *types.Receipt
+	Chain       filter.ChainEthereum
+	Header      *types.Header
+	Transaction *types.Transaction
+	Receipt     *types.Receipt
 }
 
 func (t Task) ID() string {
@@ -70,7 +69,7 @@ func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error
 	feed := schema.Feed{
 		ID:    t.Transaction.Hash().String(),
 		Chain: t.Chain,
-		Index: t.TransactionIndex,
+		Index: t.Receipt.TransactionIndex,
 		From:  from.String(),
 		To:    to.String(),
 		Type:  filter.TypeUnknown,
