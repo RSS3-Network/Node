@@ -25,5 +25,4 @@ type Feed struct {
 	Actions      []*Action        `json:"actions"`
 	Status       bool             `json:"status"`
 	Timestamp    uint64           `json:"timestamp"`
-	Version      string           `json:"version"`
 }

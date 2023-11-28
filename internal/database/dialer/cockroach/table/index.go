@@ -21,7 +21,6 @@ type Index struct {
 	Status    bool             `gorm:"column:status"`
 	Direction filter.Direction `gorm:"column:direction"`
 	Timestamp time.Time        `gorm:"column:timestamp"`
-	Version   string           `gorm:"column:version"`
 	CreatedAt time.Time        `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt time.Time        `gorm:"column:updated_at;autoUpdateTime"`
 }
@@ -45,7 +44,6 @@ func (i *Index) Import(feed *schema.Feed) error {
 	i.Type = feed.Type.Name()
 	i.Status = feed.Status
 	i.Timestamp = time.Unix(int64(feed.Timestamp), 0)
-	i.Version = feed.Version
 
 	return nil
 }

@@ -12,18 +12,17 @@ CREATE TABLE IF NOT EXISTS "indexes"
     "status"     bool        NOT NULL,
     "direction"  int         NOT NULL,
     "timestamp"  timestamptz NOT NULL,
-    "version"    text        NOT NULL,
     "created_at" timestamptz NOT NULL DEFAULT now(),
     "updated_at" timestamptz NOT NULL DEFAULT now(),
 
     CONSTRAINT "pk_indexes" PRIMARY KEY ("id", "chain", "owner")
 );
 
-CREATE INDEX IF NOT EXISTS "idx_indexes_platform" ON "indexes" ("platform", "timestamp" DESC, "index" DESC, "version");
-CREATE INDEX IF NOT EXISTS "idx_indexes_filter" ON "indexes" ("tag", "timestamp" DESC, "index" DESC, "type", "version");
-CREATE INDEX IF NOT EXISTS "idx_indexes_network_chain" ON "indexes" ("chain", "timestamp" DESC, "index" DESC, "version");
-CREATE INDEX IF NOT EXISTS "idx_indexes_owner" ON "indexes" ("owner", "timestamp" DESC, "index" DESC, "direction", "version");
-CREATE INDEX IF NOT EXISTS "idx_indexes_timestamp" ON "indexes" ("timestamp" DESC, "index" DESC, "version");
+CREATE INDEX IF NOT EXISTS "idx_indexes_platform" ON "indexes" ("platform", "timestamp" DESC, "index" DESC);
+CREATE INDEX IF NOT EXISTS "idx_indexes_filter" ON "indexes" ("tag", "timestamp" DESC, "index" DESC, "type");
+CREATE INDEX IF NOT EXISTS "idx_indexes_network_chain" ON "indexes" ("chain", "timestamp" DESC, "index" DESC);
+CREATE INDEX IF NOT EXISTS "idx_indexes_owner" ON "indexes" ("owner", "timestamp" DESC, "index" DESC, "direction");
+CREATE INDEX IF NOT EXISTS "idx_indexes_timestamp" ON "indexes" ("timestamp" DESC, "index" DESC);
 
 CREATE TABLE IF NOT EXISTS "feeds"
 (
@@ -40,7 +39,6 @@ CREATE TABLE IF NOT EXISTS "feeds"
     "total_actions" bigint      NOT NULL,
     "fee"           json,
     "timestamp"     timestamptz NOT NULL,
-    "version"       text        NOT NULL,
     "created_at"    timestamptz NOT NULL DEFAULT now(),
     "updated_at"    timestamptz NOT NULL DEFAULT now(),
 
@@ -48,7 +46,7 @@ CREATE TABLE IF NOT EXISTS "feeds"
 );
 
 CREATE INDEX IF NOT EXISTS "idx_feeds_platform" ON "feeds" ("platform");
-CREATE INDEX IF NOT EXISTS "idx_feeds_timestamp" ON "feeds" ("timestamp" DESC, "version");
+CREATE INDEX IF NOT EXISTS "idx_feeds_timestamp" ON "feeds" ("timestamp" DESC);
 CREATE INDEX IF NOT EXISTS "idx_feeds_tag_type" ON "feeds" ("tag", "type");
 CREATE INDEX IF NOT EXISTS "idx_feeds_total_actions" ON "feeds" ("total_actions");
 

@@ -30,7 +30,6 @@ type Feed struct {
 	TotalActions uint             `gorm:"column:total_actions"`
 	Actions      FeedActions      `gorm:"column:actions;type:jsonb"`
 	Timestamp    time.Time        `gorm:"column:timestamp"`
-	Version      string           `gorm:"column:version"`
 	CreatedAt    time.Time        `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt    time.Time        `gorm:"column:updated_at;autoUpdateTime"`
 }
@@ -42,6 +41,7 @@ func (f *Feed) TableName() string {
 func (f *Feed) PartitionName(feed *schema.Feed) string {
 	if feed != nil {
 		f.Timestamp = time.Unix(int64(feed.Timestamp), 0)
+		f.Chain = feed.Chain.FullName()
 	}
 
 	return fmt.Sprintf("%s_%s_%d_q%d", f.TableName(), strings.Replace(f.Chain, ".", "_", -1),
@@ -58,10 +58,9 @@ func (f *Feed) Import(feed *schema.Feed) error {
 	f.Tag = feed.Type.Tag()
 	f.Type = feed.Type.Name()
 	f.Status = feed.Status
-	f.TotalActions = feed.TotalActions
+	f.TotalActions = uint(len(feed.Actions))
 	f.Actions = make(FeedActions, 0)
 	f.Timestamp = time.Unix(int64(feed.Timestamp), 0)
-	f.Version = feed.Version
 
 	// TODO Need to filter spam actions.
 
