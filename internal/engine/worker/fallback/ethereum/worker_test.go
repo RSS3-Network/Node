@@ -53,7 +53,6 @@ func TestWorker_Ethereum(t *testing.T) {
 						R:         lo.Must(hexutil.DecodeBig("0x66f2c1c5fbde05362a8d944ee884ba05777150c5dbe5bd414834b567a73f7765")),
 						S:         lo.Must(hexutil.DecodeBig("0x4b91fdf20d7d85572836d5c4849949d4d96b6cff36e6a53f2b1dce6a3144ef4")),
 					}),
-					TransactionIndex: 0xf4,
 					Receipt: &types.Receipt{
 						Type:              0x2,
 						PostState:         common.Hex2Bytes("0x1"),
