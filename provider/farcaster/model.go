@@ -1,0 +1,150 @@
+package farcaster
+
+const (
+	// FarcasterEpoch https://github.com/farcasterxyz/hub-monorepo/blob/77ff79ed804104956eb153247c22c00099c7b122/packages/core/src/time.ts#L4
+	FarcasterEpoch = 1609459200000 // January 1, 2021 UTC
+	SequenceBits   = 12
+)
+
+type MessageResponse struct {
+	Messages      []Message `json:"messages"`
+	NextPageToken string    `json:"nextPageToken"`
+}
+
+type ProofResponse struct {
+	Proofs []UserNameProof `json:"proofs"`
+}
+
+type EventResponse struct {
+	NextPageEventID uint64     `json:"nextPageEventId"`
+	Events          []HubEvent `json:"events"`
+}
+
+type FidResponse struct {
+	Fids          []uint64 `json:"fids"`
+	NextPageToken string   `json:"nextPageToken"`
+}
+
+// Message https://github.com/farcasterxyz/hub-monorepo/blob/main/apps/hubble/www/docs/docs/messages.md
+type Message struct {
+	Data            MessageData `json:"data"`
+	Hash            string      `json:"hash"`
+	HashScheme      string      `json:"hashScheme"`
+	Signature       string      `json:"signature"`
+	SignatureScheme string      `json:"signatureScheme"`
+	Signer          string      `json:"signer"`
+}
+
+type MessageData struct {
+	Type                          string                         `json:"type"`
+	Fid                           uint64                         `json:"fid"`
+	Timestamp                     uint32                         `json:"timestamp"`
+	Network                       string                         `json:"network"`
+	CastAddBody                   *CastAddBody                   `json:"castAddBody,omitempty"`
+	CastRemoveBody                *CastRemoveBody                `json:"castRemoveBody,omitempty"`
+	UserDataBody                  *UserDataBody                  `json:"userDataBody,omitempty"`
+	ReactionBody                  *ReactionBody                  `json:"reactionBody,omitempty"`
+	LinkBody                      *LinkBody                      `json:"linkBody,omitempty"`
+	VerificationAddEthAddressBody *VerificationAddEthAddressBody `json:"verificationAddEthAddressBody,omitempty"`
+	VerificationRemoveBody        *VerificationRemoveBody        `json:"verificationRemoveBody,omitempty"`
+	UserNameProof                 *UserNameProof                 `json:"userNameProof,omitempty"`
+}
+
+type CastAddBody struct {
+	EmbedsDeprecated  []string `json:"embedsDeprecated"`
+	Mentions          []uint64 `json:"mentions"`
+	ParentCastID      *CastID  `json:"parentCastId,omitempty"`
+	ParentURL         string   `json:"parentUrl,omitempty"`
+	Text              string   `json:"text"`
+	MentionsPositions []int32  `json:"mentionsPositions"`
+	Embeds            []Embed  `json:"embeds"`
+}
+
+type CastID struct {
+	Fid  uint64 `json:"fid"`
+	Hash string `json:"hash"`
+}
+
+type Embed struct {
+	URL string `json:"url"`
+}
+
+type CastRemoveBody struct {
+	TargetHash string `json:"targeHash"`
+}
+
+type UserDataBody struct {
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+
+type ReactionBody struct {
+	Type         string `json:"type"`
+	TargetCastID CastID `json:"targetCastId"`
+	TaergetURL   string `json:"targetUrl"`
+}
+
+type LinkBody struct {
+	Type             string `json:"type"`
+	DisplayTimestamp uint32 `json:"displayTimestamp"`
+	TargetFid        uint64 `json:"targetFid"`
+}
+
+type VerificationAddEthAddressBody struct {
+	Address      string `json:"address"`
+	EthSignature string `json:"ethSignature"`
+	BlockHash    string `json:"blockHash"`
+}
+
+type VerificationRemoveBody struct {
+	Address string `json:"address"`
+}
+
+type UserNameProof struct {
+	Timestamp uint32 `json:"timestamp"`
+	Name      string `json:"name"`
+	Owner     string `json:"owner"`
+	Signature string `json:"signature"`
+	Fid       uint64 `json:"fid"`
+	Type      string `json:"type"`
+}
+
+// HubEvent https://github.com/farcasterxyz/hub-monorepo/blob/main/apps/hubble/www/docs/docs/events.md
+type HubEvent struct {
+	Type                   string                  `json:"type"`
+	ID                     uint64                  `json:"id"`
+	MergeMessageBody       *MergeMessageBody       `json:"mergeMessageBody,omitempty"`
+	PruneMessageBody       *PruneMessageBody       `json:"pruneMessageBody,omitempty"`
+	RevokeMessageBody      *RevokeMessageBody      `json:"revokeMessageBody,omitempty"`
+	MergeUserNameProofBody *MergeUserNameProofBody `json:"mergeUserNameProofBody,omitempty"`
+	MergeOnChainEventBody  *MergeOnChainEventBody  `json:"mergeOnChainEventBody,omitempty"`
+}
+
+type MergeMessageBody struct {
+	Message         Message   `json:"message"`
+	DeletedMessages []Message `json:"deletedMessages"`
+}
+
+type PruneMessageBody struct {
+	Message Message `json:"message"`
+}
+
+type RevokeMessageBody struct {
+	Message Message `json:"message"`
+}
+
+type MergeUserNameProofBody struct {
+	UserNameProof               UserNameProof `json:"usernameProof"`
+	DeletedUserNameProof        UserNameProof `json:"deletedUsernameProof"`
+	UsernameProofMessage        Message       `json:"usernameProofMessage"`
+	DeletedUsernameProofMessage Message       `json:"deletedUsernameProofMessage"`
+}
+
+type MergeOnChainEventBody struct{}
+
+// Profile redis profile
+type Profile struct {
+	Username       string
+	CustodyAddress string
+	EthAddresses   []string
+}
