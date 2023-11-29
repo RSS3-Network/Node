@@ -4,14 +4,21 @@ import (
 	"context"
 	"database/sql"
 	"embed"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroachdb/table"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/schema"
+	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/pressly/goose/v3"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"moul.io/zapgorm2"
 )
 
@@ -86,11 +93,45 @@ func (c *client) Commit() error {
 	return c.database.Commit().Error
 }
 
-// createPartitionTable creates a partition table.
-func (c *client) createPartitionTable(ctx context.Context, name, template string) error {
-	statement := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS "%s" (LIKE "%s" INCLUDING ALL);`, name, template)
+func (c *client) LoadCheckpoint(ctx context.Context, id string, chain filter.Chain, worker string) (*engine.Checkpoint, error) {
+	var value table.Checkpoint
 
-	return c.database.WithContext(ctx).Exec(statement).Error
+	if err := c.database.WithContext(ctx).
+		Where("id = ? AND chain = ? AND worker = ?", id, chain.FullName(), worker).
+		First(&value).
+		Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+
+		// Initialize a default checkpoint.
+		value = table.Checkpoint{
+			ID:        id,
+			Chain:     chain.FullName(),
+			Worker:    worker,
+			State:     json.RawMessage("{}"),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+	}
+
+	return value.Export()
+}
+
+func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error {
+	clauses := []clause.Expression{
+		clause.OnConflict{
+			Columns:   []clause.Column{{Name: "id"}},
+			DoUpdates: clause.AssignmentColumns([]string{"state", "updated_at"}),
+		},
+	}
+
+	var value table.Checkpoint
+	if err := value.Import(checkpoint); err != nil {
+		return err
+	}
+
+	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
 // SaveFeeds saves feeds and indexes to the database.
@@ -100,6 +141,13 @@ func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
 	}
 
 	return fmt.Errorf("not implemented")
+}
+
+// createPartitionTable creates a partition table.
+func (c *client) createPartitionTable(ctx context.Context, name, template string) error {
+	statement := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS "%s" (LIKE "%s" INCLUDING ALL);`, name, template)
+
+	return c.database.WithContext(ctx).Exec(statement).Error
 }
 
 // Dial dials a database.

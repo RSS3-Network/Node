@@ -38,7 +38,7 @@ var command = cobra.Command{
 			return fmt.Errorf("migrate database: %w", err)
 		}
 
-		server, err := node.NewServer(config.Node, databaseClient)
+		server, err := node.NewServer(cmd.Context(), config.Node, databaseClient)
 		if err != nil {
 			return fmt.Errorf("build node server: %w", err)
 		}

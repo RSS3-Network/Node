@@ -23,6 +23,10 @@ type worker struct {
 	config *engine.Config
 }
 
+func (w *worker) Name() string {
+	return fmt.Sprintf("fallback.%s", filter.NetworkEthereum)
+}
+
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.Network() == filter.NetworkEthereum, nil
 }

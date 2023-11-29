@@ -11,10 +11,10 @@ const (
 	NameEthereum = "ethereum"
 )
 
-func New(name string, config *engine.Config) (engine.Source, error) {
+func New(name string, config *engine.Config, checkpoint *engine.Checkpoint) (engine.Source, error) {
 	switch name {
 	case NameEthereum:
-		return ethereum.NewSource(config)
+		return ethereum.NewSource(config, checkpoint)
 	default:
 		return nil, fmt.Errorf("unsupported source %s", name)
 	}

@@ -2,6 +2,7 @@ package node
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/constant"
@@ -10,12 +11,14 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/source"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker"
 	"github.com/naturalselectionlabs/rss3-node/schema"
+	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.uber.org/zap"
 )
 
 type Server struct {
+	id             string
 	config         *engine.Config
 	source         engine.Source
 	worker         engine.Worker
@@ -89,22 +92,56 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		return feed != nil
 	})
 
-	// Save feeds to database.
-	if err := s.databaseClient.SaveFeeds(ctx, feeds); err != nil {
-		return fmt.Errorf("save %d feeds: %w", len(feeds), err)
-	}
+	// Save feeds and checkpoint to the database.
+	return s.databaseClient.WithTransaction(ctx, func(ctx context.Context, client database.Client) error {
+		if err := client.SaveFeeds(ctx, feeds); err != nil {
+			return fmt.Errorf("save %d feeds: %w", len(feeds), err)
+		}
 
-	return nil
+		checkpoint := engine.Checkpoint{
+			ID:      s.id,
+			Network: s.source.Chain().Network(),
+			Chain:   s.source.Chain(),
+			Worker:  s.worker.Name(),
+			State:   s.source.State(),
+		}
+
+		zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
+
+		if err := client.SaveCheckpoint(ctx, &checkpoint); err != nil {
+			return fmt.Errorf("save checkpoint: %w", err)
+		}
+
+		return nil
+	})
 }
 
-func NewServer(config *engine.Config, databaseClient database.Client) (server *Server, err error) {
+func NewServer(ctx context.Context, config *engine.Config, databaseClient database.Client) (server *Server, err error) {
 	instance := Server{
+		id:             fmt.Sprintf("%s.%s", source.NameEthereum, worker.NameFallbackEthereum),
 		config:         config,
 		databaseClient: databaseClient,
 	}
 
+	chain, err := filter.ChainEthereumString(config.Chain)
+	if err != nil {
+		return nil, err
+	}
+
+	checkpoint, err := instance.databaseClient.LoadCheckpoint(ctx, instance.id, chain, worker.NameFallbackEthereum)
+	if err != nil {
+		return nil, fmt.Errorf("loca checkpoint: %w", err)
+	}
+
+	var state map[string]any
+	if err := json.Unmarshal(checkpoint.State, &state); err != nil {
+		return nil, fmt.Errorf("unmarshal checkpoint state: %w", err)
+	}
+
+	zap.L().Info("load checkpoint", zap.String("checkpoint.id", checkpoint.ID), zap.String("checkpoint.chain", checkpoint.Chain.FullName()), zap.String("checkpoint.worker", checkpoint.Worker), zap.Any("checkpoint.state", state))
+
 	// TODO Implement support for sources and workers from non Ethereum networks.
-	if instance.source, err = source.New(source.NameEthereum, instance.config); err != nil {
+	if instance.source, err = source.New(source.NameEthereum, config, checkpoint); err != nil {
 		return nil, fmt.Errorf("new source: %w", err)
 	}
 
