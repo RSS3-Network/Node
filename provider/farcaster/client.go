@@ -15,8 +15,7 @@ import (
 const (
 	EndpointMainnet = "https://nemes.farcaster.xyz:2281" // Public Instances https://www.thehubble.xyz/intro/hubble.html
 
-	DefaultTimeout  = 5 * time.Second
-	DefaultAttempts = 3
+	DefaultTimeout = 5 * time.Second
 )
 
 var _ Client = (*client)(nil)
@@ -198,7 +197,7 @@ func (c *client) call(ctx context.Context, path string, query farcasterQuery, re
 		return fmt.Errorf("build params %w", err)
 	}
 
-	if err := c.fetch(ctx, fmt.Sprintf("%s?%s", path, values.Encode()), &response); err != nil {
+	if err = c.fetch(ctx, fmt.Sprintf("%s?%s", path, values.Encode()), &response); err != nil {
 		return fmt.Errorf("call: %w", err)
 	}
 
@@ -260,8 +259,7 @@ func NewClient(endpoint string, options ...ClientOption) (Client, error) {
 			httpClient: &http.Client{
 				Timeout: DefaultTimeout,
 			},
-			encoder:  form.NewEncoder(),
-			attempts: DefaultAttempts,
+			encoder: form.NewEncoder(),
 		}
 
 		err error
