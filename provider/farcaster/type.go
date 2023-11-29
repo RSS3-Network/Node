@@ -42,10 +42,10 @@ const (
 type HubEventType int
 
 const (
-	HubEventTypeNone               HubEventType = 0
-	HubEventTypeMergeMessage       HubEventType = 1
-	HubEventTypePruneMessage       HubEventType = 2
-	HubEventTypeRevokeMessage      HubEventType = 3
+	HubEventTypeNone               HubEventType = 0 // Invalid default value
+	HubEventTypeMergeMessage       HubEventType = 1 // A message was merged into the Hub
+	HubEventTypePruneMessage       HubEventType = 2 // A message was pruned because a limit was exceeded
+	HubEventTypeRevokeMessage      HubEventType = 3 // A message was revoked by a user
 	HubEventTypeMergeUsernameProof HubEventType = 6
 	HubEventTypeMergeOnChainEvent  HubEventType = 9
 )

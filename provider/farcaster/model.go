@@ -1,10 +1,22 @@
 package farcaster
 
 const (
-	// FarcasterEpoch https://github.com/farcasterxyz/hub-monorepo/blob/77ff79ed804104956eb153247c22c00099c7b122/packages/core/src/time.ts#L4
-	FarcasterEpoch = 1609459200000 // January 1, 2021 UTC
+	FarcasterEpoch = 1609459200000 // January 1, 2021 UTC https://github.com/farcasterxyz/hub-monorepo/blob/77ff79ed804104956eb153247c22c00099c7b122/packages/core/src/time.ts#L4
 	SequenceBits   = 12
 )
+
+type farcasterQuery struct {
+	Fid          *int64 `form:"fid,omitempty"`
+	TargetFid    *int64 `form:"target_fid,omitempty"`
+	Hash         string `form:"hash,omitempty"`
+	TargetHash   string `form:"target_hash,omitempty"`
+	FromEventID  string `form:"from_event_id,omitempty"`
+	Reverse      bool   `form:"reverse,omitempty"`
+	PageSize     *int   `form:"pageSize,omitempty"`
+	PageToken    string `form:"pageToken,omitempty"`
+	UserDataType string `form:"user_data_type,omitempty"`
+	ReactionType string `form:"reaction_type,omitempty"`
+}
 
 type MessageResponse struct {
 	Messages      []Message `json:"messages"`
@@ -25,7 +37,6 @@ type FidResponse struct {
 	NextPageToken string   `json:"nextPageToken"`
 }
 
-// Message https://github.com/farcasterxyz/hub-monorepo/blob/main/apps/hubble/www/docs/docs/messages.md
 type Message struct {
 	Data            MessageData `json:"data"`
 	Hash            string      `json:"hash"`
@@ -109,7 +120,6 @@ type UserNameProof struct {
 	Type      string `json:"type"`
 }
 
-// HubEvent https://github.com/farcasterxyz/hub-monorepo/blob/main/apps/hubble/www/docs/docs/events.md
 type HubEvent struct {
 	Type                   string                  `json:"type"`
 	ID                     uint64                  `json:"id"`

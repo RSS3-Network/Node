@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	// EndpointMainnet https://www.thehubble.xyz/intro/hubble.html
-	EndpointMainnet = "https://nemes.farcaster.xyz:2281"
+	EndpointMainnet = "https://nemes.farcaster.xyz:2281" // Public Instances https://www.thehubble.xyz/intro/hubble.html
 
 	DefaultTimeout  = 5 * time.Second
 	DefaultAttempts = 3
@@ -23,21 +22,14 @@ const (
 var _ Client = (*client)(nil)
 
 type Client interface {
-	// GetCastsByFid https://github.com/farcasterxyz/hub-monorepo/blob/main/apps/hubble/www/docs/docs/httpapi/casts.md
 	GetCastsByFid(ctx context.Context, fid *int64, reverse bool, pageSize *int, pageToken string) (*MessageResponse, error)
 	GetCastByFidAndHash(ctx context.Context, fid *int64, hash string) (*Message, error)
-	// GetVerificationsByFid https://github.com/farcasterxyz/hub-monorepo/blob/main/apps/hubble/www/docs/docs/httpapi/verification.md
 	GetVerificationsByFid(ctx context.Context, fid *int64, pageToken string) (*MessageResponse, error)
-	// GetUserNameProofsByFid https://github.com/farcasterxyz/hub-monorepo/blob/main/apps/hubble/www/docs/docs/httpapi/usernameproof.md
 	GetUserNameProofsByFid(ctx context.Context, fid *int64) (*ProofResponse, error)
-	// GetUserDataByFid https://github.com/farcasterxyz/hub-monorepo/blob/main/apps/hubble/www/docs/docs/httpapi/userdata.md
 	GetUserDataByFid(ctx context.Context, fid *int64, pageToken string) (*MessageResponse, error)
 	GetUserDataByFidAndType(ctx context.Context, fid *int64, userDataType string) (*Message, error)
-	// GetEvents https://github.com/farcasterxyz/hub-monorepo/blob/main/apps/hubble/www/docs/docs/httpapi/events.md
 	GetEvents(ctx context.Context, fromEventID *int64) (*EventResponse, error)
-	// GetFids https://github.com/farcasterxyz/hub-monorepo/blob/main/apps/hubble/www/docs/docs/httpapi/fids.md
 	GetFids(ctx context.Context, reverse bool, pageSize *int) (*FidResponse, error)
-	// GetReactionsByFid https://github.com/farcasterxyz/hub-monorepo/blob/main/apps/hubble/www/docs/docs/httpapi/reactions.md
 	GetReactionsByFid(ctx context.Context, fid *int64, reverse bool, pageSize *int, pageToken, reactionType string) (*MessageResponse, error)
 	GetReaction(ctx context.Context, fid, targetFid *int64, targetHash, reactionType string) (*Message, error)
 }
@@ -49,19 +41,7 @@ type client struct {
 	attempts    uint
 }
 
-type farcasterQuery struct {
-	Fid          *int64 `form:"fid,omitempty"`
-	TargetFid    *int64 `form:"target_fid,omitempty"`
-	Hash         string `form:"hash,omitempty"`
-	TargetHash   string `form:"target_hash,omitempty"`
-	FromEventID  string `form:"from_event_id,omitempty"`
-	Reverse      bool   `form:"reverse,omitempty"`
-	PageSize     *int   `form:"pageSize,omitempty"`
-	PageToken    string `form:"pageToken,omitempty"`
-	UserDataType string `form:"user_data_type,omitempty"`
-	ReactionType string `form:"reaction_type,omitempty"`
-}
-
+// GetCastsByFid Fetch all casts for authored by an fid.
 func (c *client) GetCastsByFid(ctx context.Context, fid *int64, reverse bool, pageSize *int, pageToken string) (*MessageResponse, error) {
 	var response MessageResponse
 
@@ -77,6 +57,7 @@ func (c *client) GetCastsByFid(ctx context.Context, fid *int64, reverse bool, pa
 	return &response, nil
 }
 
+// GetCastByFidAndHash Get a cast by its fid and hash.
 func (c *client) GetCastByFidAndHash(ctx context.Context, fid *int64, hash string) (*Message, error) {
 	var response Message
 
@@ -90,6 +71,7 @@ func (c *client) GetCastByFidAndHash(ctx context.Context, fid *int64, hash strin
 	return &response, nil
 }
 
+// GetVerificationsByFid Get a list of verifications provided by an fid.
 func (c *client) GetVerificationsByFid(ctx context.Context, fid *int64, pageToken string) (*MessageResponse, error) {
 	var response MessageResponse
 
@@ -103,6 +85,7 @@ func (c *client) GetVerificationsByFid(ctx context.Context, fid *int64, pageToke
 	return &response, nil
 }
 
+// GetUserNameProofsByFid Get a list of proofs provided by an fid.
 func (c *client) GetUserNameProofsByFid(ctx context.Context, fid *int64) (*ProofResponse, error) {
 	var response ProofResponse
 
@@ -115,6 +98,7 @@ func (c *client) GetUserNameProofsByFid(ctx context.Context, fid *int64) (*Proof
 	return &response, nil
 }
 
+// GetUserDataByFid Get UserData for an fid.
 func (c *client) GetUserDataByFid(ctx context.Context, fid *int64, pageToken string) (*MessageResponse, error) {
 	var response MessageResponse
 
@@ -128,6 +112,7 @@ func (c *client) GetUserDataByFid(ctx context.Context, fid *int64, pageToken str
 	return &response, nil
 }
 
+// GetUserDataByFidAndType Get UserData by an fid and user data type.
 func (c *client) GetUserDataByFidAndType(ctx context.Context, fid *int64, userDataType string) (*Message, error) {
 	var response Message
 
@@ -141,6 +126,7 @@ func (c *client) GetUserDataByFidAndType(ctx context.Context, fid *int64, userDa
 	return &response, nil
 }
 
+// GetEvents Get a page of Hub events.
 func (c *client) GetEvents(ctx context.Context, fromEventID *int64) (*EventResponse, error) {
 	var (
 		response EventResponse
@@ -158,6 +144,7 @@ func (c *client) GetEvents(ctx context.Context, fromEventID *int64) (*EventRespo
 	return &response, nil
 }
 
+// GetFids Get a list of all the fids.
 func (c *client) GetFids(ctx context.Context, reverse bool, pageSize *int) (*FidResponse, error) {
 	var response FidResponse
 
@@ -171,6 +158,7 @@ func (c *client) GetFids(ctx context.Context, reverse bool, pageSize *int) (*Fid
 	return &response, nil
 }
 
+// GetReactionsByFid Get all reactions by an fid.
 func (c *client) GetReactionsByFid(ctx context.Context, fid *int64, reverse bool, pageSize *int, pageToken, reactionType string) (*MessageResponse, error) {
 	var response MessageResponse
 
@@ -187,6 +175,7 @@ func (c *client) GetReactionsByFid(ctx context.Context, fid *int64, reverse bool
 	return &response, nil
 }
 
+// GetReaction Get a reaction by its created fid and target Cast.
 func (c *client) GetReaction(ctx context.Context, fid, targetFid *int64, targetHash, reactionType string) (*Message, error) {
 	var response Message
 
@@ -240,20 +229,6 @@ func (c *client) fetch(ctx context.Context, path string, result any) error {
 	}
 
 	return nil
-}
-
-func ExtractEventIDToTimestamp(eventID int64) int64 {
-	binaryEventID := fmt.Sprintf("%b", eventID)
-	binaryTimestamp := binaryEventID[:len(binaryEventID)-SequenceBits]
-
-	decimalTimestamp := 0
-	for _, digit := range binaryTimestamp {
-		decimalTimestamp = decimalTimestamp*2 + int(digit-'0')
-	}
-
-	timestampWithEpoch := int64(decimalTimestamp) + FarcasterEpoch
-
-	return timestampWithEpoch
 }
 
 func ConvertTimestampToEventID(timestamp int64) uint64 {
