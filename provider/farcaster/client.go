@@ -37,7 +37,6 @@ type client struct {
 	endpointURL *url.URL
 	httpClient  *http.Client
 	encoder     *form.Encoder
-	attempts    uint
 }
 
 // GetCastsByFid Fetch all casts for authored by an fid.
