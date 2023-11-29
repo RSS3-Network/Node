@@ -718,3 +718,13 @@ func TestClient_GetReaction(t *testing.T) {
 		})
 	}
 }
+
+func TestClient_Func(t *testing.T) {
+	t.Parallel()
+
+	t.Run("covert Farcaster time to timestamp", func(t *testing.T) {
+		t.Parallel()
+
+		require.Equal(t, farcaster.CovertFarcasterTimeToTimestamp(78224681), int64(1687683881000))
+	})
+}

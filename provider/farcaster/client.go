@@ -229,23 +229,7 @@ func (c *client) fetch(ctx context.Context, path string, result any) error {
 	return nil
 }
 
-func ConvertTimestampToEventID(timestamp int64) uint64 {
-	timestampWithoutEpoch := timestamp - FarcasterEpoch
-	binaryTimestamp := fmt.Sprintf("%b", timestampWithoutEpoch)
-
-	var eventID int64
-
-	// Calculate the eventID by combining the binary timestamp and a sequence (in this case, 0).
-	for i := 0; i < len(binaryTimestamp); i++ {
-		eventID = eventID*2 + int64(binaryTimestamp[i]-'0')
-	}
-
-	// Add a sequence (in this case, 0) to the eventID.
-	eventID <<= SequenceBits
-
-	return uint64(eventID)
-}
-
+// CovertFarcasterTimeToTimestamp Converts a Farcaster seconds timestamp to a Unix milliseconds timestamp.
 func CovertFarcasterTimeToTimestamp(timestamp int64) int64 {
 	return timestamp*1000 + FarcasterEpoch
 }
