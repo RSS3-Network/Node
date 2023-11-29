@@ -15,10 +15,10 @@ func TestClient_GetCastsByFid(t *testing.T) {
 
 	type arguments struct {
 		ctx       context.Context
-		fid       int64
-		reverse   *bool
+		fid       *int64
+		reverse   bool
 		pageSize  *int
-		pageToken *string
+		pageToken string
 	}
 
 	testcases := []struct {
@@ -31,10 +31,10 @@ func TestClient_GetCastsByFid(t *testing.T) {
 			name: "GetCastsByFid",
 			arguments: arguments{
 				ctx:       context.Background(),
-				fid:       14142,
-				reverse:   lo.ToPtr(true),
+				fid:       lo.ToPtr(int64(14142)),
+				reverse:   true,
 				pageSize:  lo.ToPtr(1),
-				pageToken: lo.ToPtr("BKoKZDoVcDGeRnWIhFYzaY2sN/C3cY7M"),
+				pageToken: "BKoKZDoVcDGeRnWIhFYzaY2sN/C3cY7M",
 			},
 			want: farcaster.MessageResponse{
 				Messages: []farcaster.Message{
@@ -92,7 +92,7 @@ func TestClient_GetCastByFidAndHash(t *testing.T) {
 
 	type arguments struct {
 		ctx  context.Context
-		fid  int64
+		fid  *int64
 		hash string
 	}
 
@@ -106,7 +106,7 @@ func TestClient_GetCastByFidAndHash(t *testing.T) {
 			name: "GetCastByFidAndHash",
 			arguments: arguments{
 				ctx:  context.Background(),
-				fid:  14142,
+				fid:  lo.ToPtr(int64(14142)),
 				hash: "0xf866cfbce9c43b322b52186e67f2dd273863088d",
 			},
 			want: farcaster.Message{
@@ -161,8 +161,8 @@ func TestClient_GetVerificationsByFid(t *testing.T) {
 
 	type arguments struct {
 		ctx       context.Context
-		fid       int64
-		pageToken *string
+		fid       *int64
+		pageToken string
 	}
 
 	testcases := []struct {
@@ -175,8 +175,8 @@ func TestClient_GetVerificationsByFid(t *testing.T) {
 			name: "GetVerificationsByFid",
 			arguments: arguments{
 				ctx:       context.Background(),
-				fid:       14142,
-				pageToken: nil,
+				fid:       lo.ToPtr(int64(14142)),
+				pageToken: "",
 			},
 			want: farcaster.MessageResponse{
 				Messages: []farcaster.Message{
@@ -232,7 +232,7 @@ func TestClient_GetUserNameProofsByFid(t *testing.T) {
 
 	type arguments struct {
 		ctx context.Context
-		fid int64
+		fid *int64
 	}
 
 	testcases := []struct {
@@ -245,7 +245,7 @@ func TestClient_GetUserNameProofsByFid(t *testing.T) {
 			name: "GetUserNameProofsByFid",
 			arguments: arguments{
 				ctx: context.Background(),
-				fid: 14142,
+				fid: lo.ToPtr(int64(14142)),
 			},
 			want: farcaster.ProofResponse{
 				Proofs: []farcaster.UserNameProof{
@@ -298,8 +298,8 @@ func TestClient_GetUserDataByFid(t *testing.T) {
 
 	type arguments struct {
 		ctx       context.Context
-		fid       int64
-		pageToken *string
+		fid       *int64
+		pageToken string
 	}
 
 	testcases := []struct {
@@ -312,8 +312,8 @@ func TestClient_GetUserDataByFid(t *testing.T) {
 			name: "GetUserDataByFid",
 			arguments: arguments{
 				ctx:       context.Background(),
-				fid:       14142,
-				pageToken: nil,
+				fid:       lo.ToPtr(int64(14142)),
+				pageToken: "",
 			},
 			want: farcaster.MessageResponse{
 				Messages: []farcaster.Message{
@@ -419,8 +419,8 @@ func TestClient_GetUserDataByFidAndType(t *testing.T) {
 
 	type arguments struct {
 		ctx          context.Context
-		fid          int64
-		userDataType *string
+		fid          *int64
+		userDataType string
 	}
 
 	testcases := []struct {
@@ -433,8 +433,8 @@ func TestClient_GetUserDataByFidAndType(t *testing.T) {
 			name: "GetUserDataByFid",
 			arguments: arguments{
 				ctx:          context.Background(),
-				fid:          14142,
-				userDataType: lo.ToPtr(farcaster.UserDataTypeDisplay.String()),
+				fid:          lo.ToPtr(int64(14142)),
+				userDataType: farcaster.UserDataTypeDisplay.String(),
 			},
 			want: farcaster.Message{
 				Data: farcaster.MessageData{
@@ -484,7 +484,7 @@ func TestClient_GetEvents(t *testing.T) {
 
 	type arguments struct {
 		ctx         context.Context
-		fromEventID int64
+		fromEventID *int64
 	}
 
 	testcases := []struct {
@@ -497,7 +497,7 @@ func TestClient_GetEvents(t *testing.T) {
 			name: "GetEvents",
 			arguments: arguments{
 				ctx:         context.Background(),
-				fromEventID: 0,
+				fromEventID: nil,
 			},
 			wantError: require.NoError,
 		},
@@ -527,7 +527,7 @@ func TestClient_GetFids(t *testing.T) {
 
 	type arguments struct {
 		ctx      context.Context
-		reverse  *bool
+		reverse  bool
 		pageSize *int
 	}
 
@@ -541,7 +541,7 @@ func TestClient_GetFids(t *testing.T) {
 			name: "GetFids",
 			arguments: arguments{
 				ctx:      context.Background(),
-				reverse:  lo.ToPtr(true),
+				reverse:  true,
 				pageSize: lo.ToPtr(1),
 			},
 			wantError: require.NoError,
@@ -572,11 +572,11 @@ func TestClient_GetReactionsByFid(t *testing.T) {
 
 	type arguments struct {
 		ctx          context.Context
-		fid          int64
-		reverse      *bool
+		fid          *int64
+		reverse      bool
 		pageSize     *int
-		pageToken    *string
-		reactionType *string
+		pageToken    string
+		reactionType string
 	}
 
 	testcases := []struct {
@@ -589,11 +589,11 @@ func TestClient_GetReactionsByFid(t *testing.T) {
 			name: "GetReactionsByFid",
 			arguments: arguments{
 				ctx:          context.Background(),
-				fid:          14142,
-				reverse:      lo.ToPtr(true),
+				fid:          lo.ToPtr(int64(14142)),
+				reverse:      true,
 				pageSize:     lo.ToPtr(1),
-				pageToken:    lo.ToPtr("BWWo+w1isWEOfdF3NjzTVxv+mhEtYYXe"),
-				reactionType: lo.ToPtr(farcaster.ReactionTypeRecast.String()),
+				pageToken:    "BWWo+w1isWEOfdF3NjzTVxv+mhEtYYXe",
+				reactionType: farcaster.ReactionTypeRecast.String(),
 			},
 			want: farcaster.MessageResponse{
 				Messages: []farcaster.Message{
@@ -651,8 +651,8 @@ func TestClient_GetReaction(t *testing.T) {
 
 	type arguments struct {
 		ctx          context.Context
-		fid          int64
-		targetFid    int64
+		fid          *int64
+		targetFid    *int64
 		targetHash   string
 		reactionType string
 	}
@@ -667,8 +667,8 @@ func TestClient_GetReaction(t *testing.T) {
 			name: "GetReaction",
 			arguments: arguments{
 				ctx:          context.Background(),
-				fid:          14142,
-				targetFid:    23901,
+				fid:          lo.ToPtr(int64(14142)),
+				targetFid:    lo.ToPtr(int64(23901)),
 				targetHash:   "0x05536f622dbedaa75ae1bd8ec9ff98bb0df10894",
 				reactionType: farcaster.ReactionTypeRecast.String(),
 			},

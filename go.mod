@@ -6,6 +6,7 @@ require (
 	github.com/Khan/genqlient v0.6.0
 	github.com/avast/retry-go/v4 v4.5.1
 	github.com/ethereum/go-ethereum v1.13.5
+	github.com/go-playground/form/v4 v4.2.1
 	github.com/orlangure/gnomock v0.30.0
 	github.com/pressly/goose/v3 v3.16.0
 	github.com/samber/lo v1.38.1
