@@ -17,7 +17,7 @@ const (
 
 type File struct {
 	Environment string           `mapstructure:"environment"`
-	Node        *engine.Config   `mapstructure:"node"`
+	Node        []*engine.Config `mapstructure:"node"`
 	Database    *database.Config `mapstructure:"database"`
 }
 

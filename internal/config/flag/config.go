@@ -1,5 +1,6 @@
 package flag
 
 var (
-	KeyConfig = "config"
+	KeyConfig   = "config"
+	KeyNodeName = "node_name"
 )

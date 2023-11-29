@@ -38,12 +38,20 @@ var command = cobra.Command{
 			return fmt.Errorf("migrate database: %w", err)
 		}
 
-		server, err := node.NewServer(config.Node, databaseClient)
-		if err != nil {
-			return fmt.Errorf("build node server: %w", err)
+		for _, nodeConfig := range config.Node {
+			if nodeConfig.Name != viper.GetString(flag.KeyNodeName) {
+				continue
+			}
+
+			server, err := node.NewServer(nodeConfig, databaseClient)
+			if err != nil {
+				return fmt.Errorf("build node server: %w", err)
+			}
+
+			return server.Run(cmd.Context())
 		}
 
-		return server.Run(cmd.Context())
+		return fmt.Errorf("unsupported node %s", viper.GetString(flag.KeyNodeName))
 	},
 }
 
@@ -59,6 +67,7 @@ func init() {
 	initializeLogger()
 
 	command.PersistentFlags().String(flag.KeyConfig, "./deploy/config.development.yaml", "config file path")
+	command.PersistentFlags().String(flag.KeyNodeName, "fallback.ethereum.mainnet", "node name")
 }
 
 func main() {
