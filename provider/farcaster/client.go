@@ -45,6 +45,7 @@ type Client interface {
 type client struct {
 	endpointURL *url.URL
 	httpClient  *http.Client
+	encoder     *form.Encoder
 	attempts    uint
 }
 
@@ -202,9 +203,7 @@ func (c *client) GetReaction(ctx context.Context, fid, targetFid *int64, targetH
 }
 
 func (c *client) call(ctx context.Context, path string, query farcasterQuery, response any) error {
-	encoder := form.NewEncoder()
-
-	values, err := encoder.Encode(query)
+	values, err := c.encoder.Encode(query)
 
 	if err != nil {
 		return fmt.Errorf("build params %w", err)
@@ -286,6 +285,7 @@ func NewClient(endpoint string, options ...ClientOption) (Client, error) {
 			httpClient: &http.Client{
 				Timeout: DefaultTimeout,
 			},
+			encoder:  form.NewEncoder(),
 			attempts: DefaultAttempts,
 		}
 
