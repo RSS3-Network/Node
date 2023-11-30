@@ -2,6 +2,7 @@ package node
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/constant"
@@ -16,6 +17,7 @@ import (
 )
 
 type Server struct {
+	id             string
 	config         *engine.Config
 	source         engine.Source
 	worker         engine.Worker
@@ -89,26 +91,59 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		return feed != nil
 	})
 
-	// Save feeds to database.
-	if err := s.databaseClient.SaveFeeds(ctx, feeds); err != nil {
-		return fmt.Errorf("save %d feeds: %w", len(feeds), err)
-	}
+	// Save feeds and checkpoint to the database.
+	return s.databaseClient.WithTransaction(ctx, func(ctx context.Context, client database.Client) error {
+		if err := client.SaveFeeds(ctx, feeds); err != nil {
+			return fmt.Errorf("save %d feeds: %w", len(feeds), err)
+		}
 
-	return nil
+		checkpoint := engine.Checkpoint{
+			ID:      s.id,
+			Network: s.source.Chain().Network(),
+			Chain:   s.source.Chain(),
+			Worker:  s.worker.Name(),
+			State:   s.source.State(),
+		}
+
+		zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
+
+		if err := client.SaveCheckpoint(ctx, &checkpoint); err != nil {
+			return fmt.Errorf("save checkpoint: %w", err)
+		}
+
+		return nil
+	})
 }
 
-func NewServer(config *engine.Config, databaseClient database.Client) (server *Server, err error) {
+func NewServer(ctx context.Context, config *engine.Config, databaseClient database.Client) (server *Server, err error) {
 	instance := Server{
+		id:             config.Name,
 		config:         config,
 		databaseClient: databaseClient,
 	}
 
-	if instance.source, err = source.New(instance.config); err != nil {
-		return nil, fmt.Errorf("new source: %w", err)
-	}
-
+	// Initialize worker.
 	if instance.worker, err = worker.New(instance.config); err != nil {
 		return nil, fmt.Errorf("new worker: %w", err)
+	}
+
+	// Load checkpoint for initialize source.
+	checkpoint, err := instance.databaseClient.LoadCheckpoint(ctx, instance.id, config.Chain, instance.worker.Name())
+	if err != nil {
+		return nil, fmt.Errorf("loca checkpoint: %w", err)
+	}
+
+	// Unmarshal checkpoint state to map for print it in log.
+	var state map[string]any
+	if err := json.Unmarshal(checkpoint.State, &state); err != nil {
+		return nil, fmt.Errorf("unmarshal checkpoint state: %w", err)
+	}
+
+	zap.L().Info("load checkpoint", zap.String("checkpoint.id", checkpoint.ID), zap.String("checkpoint.chain", checkpoint.Chain.FullName()), zap.String("checkpoint.worker", checkpoint.Worker), zap.Any("checkpoint.state", state))
+
+	// Initialize source.
+	if instance.source, err = source.New(instance.config, checkpoint); err != nil {
+		return nil, fmt.Errorf("new source: %w", err)
 	}
 
 	return &instance, nil

@@ -9,10 +9,10 @@ import (
 )
 
 // New creates a new source.
-func New(config *engine.Config) (engine.Source, error) {
+func New(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Source, error) {
 	switch config.Network {
 	case filter.NetworkEthereum:
-		return ethereum.NewSource(config)
+		return ethereum.NewSource(config, checkpoint)
 	default:
 		return nil, fmt.Errorf("unsupported source %s", config.Network)
 	}

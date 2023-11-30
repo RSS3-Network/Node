@@ -44,7 +44,7 @@ var command = cobra.Command{
 				continue
 			}
 
-			server, err := node.NewServer(nodeConfig, databaseClient)
+			server, err := node.NewServer(cmd.Context(), nodeConfig, databaseClient)
 			if err != nil {
 				return fmt.Errorf("build node server: %w", err)
 			}
