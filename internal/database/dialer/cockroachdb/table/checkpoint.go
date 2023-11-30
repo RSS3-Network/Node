@@ -25,7 +25,7 @@ func (c *Checkpoint) Import(checkpoint *engine.Checkpoint) (err error) {
 	c.ID = checkpoint.ID
 	c.Chain = checkpoint.Chain.FullName()
 	c.Worker = checkpoint.Worker
-	c.State = json.RawMessage(checkpoint.State)
+	c.State = checkpoint.State
 
 	return nil
 }

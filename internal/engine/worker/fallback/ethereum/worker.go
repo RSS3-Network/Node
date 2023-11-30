@@ -24,7 +24,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return fmt.Sprintf("fallback.%s", filter.NetworkEthereum)
+	return engine.Fallback.String()
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {

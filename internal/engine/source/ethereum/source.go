@@ -141,7 +141,7 @@ func (s *source) buildTasks(block *types.Block, receipts types.Receipts) ([]*Tas
 		}
 
 		task := Task{
-			Chain:       filter.ChainEthereum(s.state.ChainID),
+			Chain:       filter.ChainEthereum(s.Chain().ID()),
 			Header:      block.Header(),
 			Transaction: transaction,
 			Receipt:     receipt,
@@ -164,8 +164,9 @@ func NewSource(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Sou
 	}
 
 	instance := source{
-		config: config,
-		state:  state,
+		config:       config,
+		state:        state,
+		pendingState: state, // Default pending state is equal to current state.
 	}
 
 	return &instance, nil

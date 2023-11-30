@@ -11,7 +11,6 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/source"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker"
 	"github.com/naturalselectionlabs/rss3-node/schema"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.uber.org/zap"
@@ -118,21 +117,23 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 
 func NewServer(ctx context.Context, config *engine.Config, databaseClient database.Client) (server *Server, err error) {
 	instance := Server{
-		id:             fmt.Sprintf("%s.%s", source.NameEthereum, worker.NameFallbackEthereum),
+		id:             config.Name,
 		config:         config,
 		databaseClient: databaseClient,
 	}
 
-	chain, err := filter.ChainEthereumString(config.Chain)
-	if err != nil {
-		return nil, err
+	// Initialize worker.
+	if instance.worker, err = worker.New(instance.config); err != nil {
+		return nil, fmt.Errorf("new worker: %w", err)
 	}
 
-	checkpoint, err := instance.databaseClient.LoadCheckpoint(ctx, instance.id, chain, worker.NameFallbackEthereum)
+	// Load checkpoint for initialize source.
+	checkpoint, err := instance.databaseClient.LoadCheckpoint(ctx, instance.id, config.Chain, instance.worker.Name())
 	if err != nil {
 		return nil, fmt.Errorf("loca checkpoint: %w", err)
 	}
 
+	// Unmarshal checkpoint state to map for print it in log.
 	var state map[string]any
 	if err := json.Unmarshal(checkpoint.State, &state); err != nil {
 		return nil, fmt.Errorf("unmarshal checkpoint state: %w", err)
@@ -140,13 +141,9 @@ func NewServer(ctx context.Context, config *engine.Config, databaseClient databa
 
 	zap.L().Info("load checkpoint", zap.String("checkpoint.id", checkpoint.ID), zap.String("checkpoint.chain", checkpoint.Chain.FullName()), zap.String("checkpoint.worker", checkpoint.Worker), zap.Any("checkpoint.state", state))
 
-	// TODO Implement support for sources and workers from non Ethereum networks.
-	if instance.source, err = source.New(source.NameEthereum, config, checkpoint); err != nil {
+	// Initialize source.
+	if instance.source, err = source.New(instance.config, checkpoint); err != nil {
 		return nil, fmt.Errorf("new source: %w", err)
-	}
-
-	if instance.worker, err = worker.New(worker.NameFallbackEthereum, instance.config); err != nil {
-		return nil, fmt.Errorf("new worker: %w", err)
 	}
 
 	return &instance, nil
