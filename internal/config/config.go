@@ -8,7 +8,6 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
 )
 
 const (
@@ -50,7 +49,11 @@ func Setup(configFilePath string) (*File, error) {
 		return nil, fmt.Errorf("validate config file: %w", err)
 	}
 
-	zap.L().Info("config file loaded", zap.Any("config", configFile))
+	for _, nodeConfig := range configFile.Node {
+		if err := nodeConfig.Parse(); err != nil {
+			return nil, fmt.Errorf("parse node config: %w", err)
+		}
+	}
 
 	return &configFile, nil
 }

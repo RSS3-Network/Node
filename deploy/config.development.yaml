@@ -7,16 +7,11 @@ database:
 
 
 node:
-  - name: fallback.ethereum.mainnet
-    type: blockchain
+    # name of the node, if it's blockchain node, it should be defined as: {network}.{chain}.{worker}:{name}
+  - name: ethereum.mainnet.fallback:default
     endpoint: https://rpc.ankr.com/eth
 
-  - name: fallback.ethereum.polygon
-    type: blockchain
-    endpoint: https://rpc.ankr.com/polygon
-
-  - name: rss
-    type: rsshub
+  - name: rsshub:default
     # RSSHub is the only supported RSS module for now
     # as RSSHub is an external dependency, you need to make sure:
     # 1. the instance must be accessible by your RSS3 node itself
@@ -30,4 +25,4 @@ node:
     # or query string auth using access_key
     # make sure it's always accessible by your RSS3 node
     # see: https://docs.rsshub.app/install/#user-authentication-configurations
-    access_key:
+    # access_key: ""

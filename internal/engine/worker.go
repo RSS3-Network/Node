@@ -6,10 +6,11 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/schema"
 )
 
-type Name string
+//go:generate go run --mod=mod github.com/dmarkham/enumer@v1.5.9 --values --type=Name --linecomment --output worker_string.go --json --sql
+type Name int
 
 const (
-	Fallback Name = "fallback"
+	Fallback Name = iota + 1 // fallback
 )
 
 type Worker interface {
