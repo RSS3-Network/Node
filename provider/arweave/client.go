@@ -2,6 +2,7 @@ package arweave
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/everFinance/goar/types"
 	syncx "github.com/naturalselectionlabs/rss3-node/common/sync"
 	"github.com/samber/lo"
 )
@@ -23,6 +25,9 @@ const (
 // Client is the interface that wraps the Fetch method.
 type Client interface {
 	GetTransactionData(ctx context.Context, id string) (io.ReadCloser, error)
+	GetBlockNumber(ctx context.Context) (blockNumber int64, err error)
+	GetBlockByHeight(ctx context.Context, height int64) (block *types.Block, err error)
+	GetTransactionByID(ctx context.Context, id string) (transaction *types.Transaction, err error)
 }
 
 // Ensure that client implements Client.
@@ -86,6 +91,144 @@ func (c *client) do(ctx context.Context, method string, url string, body io.Read
 	}
 
 	return response.Body, nil
+}
+
+// GetBlockNumber returns the current block number of the arweave network.
+func (c *client) GetBlockNumber(ctx context.Context) (blockNumber int64, err error) {
+	c.locker.RLock()
+	defer c.locker.RUnlock()
+
+	quickGroup := syncx.NewQuickGroup[int64](ctx)
+
+	// Try to fetch from all gateways.
+	for _, gateway := range c.gateways {
+		gateway := gateway
+
+		quickGroup.Go(func(ctx context.Context) (int64, error) {
+			requestURL, err := url.JoinPath(gateway, "info")
+			if err != nil {
+				return 0, fmt.Errorf("invalid gateway url: %w", err)
+			}
+
+			data, err := c.do(ctx, http.MethodGet, requestURL, nil)
+			if err != nil {
+				return 0, fmt.Errorf("fetch from gateway %s: %w", gateway, err)
+			}
+
+			info := types.NetworkInfo{}
+
+			content, err := io.ReadAll(data)
+			if err != nil {
+				return 0, err
+			}
+
+			err = json.Unmarshal(content, &info)
+			if err != nil {
+				return 0, fmt.Errorf("unmarshal response body: %w", err)
+			}
+
+			return info.Blocks, nil
+		})
+	}
+
+	result, err := quickGroup.Wait()
+	if err != nil {
+		return 0, fmt.Errorf("fetch from all gateways: %w", err)
+	}
+
+	return result, nil
+}
+
+// GetBlockByHeight returns block by specific block number
+func (c *client) GetBlockByHeight(ctx context.Context, height int64) (block *types.Block, err error) {
+	c.locker.RLock()
+	defer c.locker.RUnlock()
+
+	quickGroup := syncx.NewQuickGroup[*types.Block](ctx)
+
+	// Try to fetch from all gateways.
+	for _, gateway := range c.gateways {
+		gateway := gateway
+
+		quickGroup.Go(func(ctx context.Context) (*types.Block, error) {
+			requestURL, err := url.JoinPath(gateway, fmt.Sprintf("block/height/%d", height))
+			if err != nil {
+				return nil, fmt.Errorf("invalid gateway url: %w", err)
+			}
+
+			var block *types.Block
+
+			data, err := c.do(ctx, http.MethodGet, requestURL, nil)
+			if err != nil {
+				return nil, fmt.Errorf("fetch from gateway %s: %w", gateway, err)
+			}
+
+			content, err := io.ReadAll(data)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(content, &block)
+			if err != nil {
+				return nil, fmt.Errorf("unmarshal response body: %w", err)
+			}
+
+			return block, nil
+		})
+	}
+
+	result, err := quickGroup.Wait()
+	if err != nil {
+		return nil, fmt.Errorf("fetch from all gateways: %w", err)
+	}
+
+	return result, nil
+}
+
+// GetTransactionByID returns transaction by specific transaction id
+func (c *client) GetTransactionByID(ctx context.Context, id string) (transaction *types.Transaction, err error) {
+	c.locker.RLock()
+	defer c.locker.RUnlock()
+
+	quickGroup := syncx.NewQuickGroup[*types.Transaction](ctx)
+
+	// Try to fetch from all gateways.
+	for _, gateway := range c.gateways {
+		gateway := gateway
+
+		quickGroup.Go(func(ctx context.Context) (*types.Transaction, error) {
+			requestURL, err := url.JoinPath(gateway, fmt.Sprintf("tx/%s", id))
+			if err != nil {
+				return nil, fmt.Errorf("invalid gateway url: %w", err)
+			}
+
+			var transaction *types.Transaction
+
+			data, err := c.do(ctx, http.MethodGet, requestURL, nil)
+			if err != nil {
+				return nil, fmt.Errorf("fetch from gateway %s: %w", gateway, err)
+			}
+
+			content, err := io.ReadAll(data)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(content, &transaction)
+			if err != nil {
+				return nil, fmt.Errorf("unmarshal response body: %w", err)
+			}
+
+			return transaction, nil
+		})
+	}
+
+	result, err := quickGroup.Wait()
+	if err != nil {
+		return nil, fmt.Errorf("fetch from all gateways: %w", err)
+	}
+
+	return result, nil
 }
 
 // ClientOption is the type of the options passed to NewClient.
