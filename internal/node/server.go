@@ -103,12 +103,11 @@ func NewServer(config *engine.Config, databaseClient database.Client) (server *S
 		databaseClient: databaseClient,
 	}
 
-	// TODO Implement support for sources and workers from non Ethereum networks.
-	if instance.source, err = source.New(source.NameEthereum, instance.config); err != nil {
+	if instance.source, err = source.New(instance.config); err != nil {
 		return nil, fmt.Errorf("new source: %w", err)
 	}
 
-	if instance.worker, err = worker.New(worker.NameFallbackEthereum, instance.config); err != nil {
+	if instance.worker, err = worker.New(instance.config); err != nil {
 		return nil, fmt.Errorf("new worker: %w", err)
 	}
 

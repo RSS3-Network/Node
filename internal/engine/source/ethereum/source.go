@@ -50,7 +50,7 @@ func (s *source) initialize(ctx context.Context) (err error) {
 	s.state = &State{
 		ChainID:     filter.ChainEthereumMainnet.ID(),
 		BlockHash:   ethereum.HashGenesis,
-		BlockNumber: 0,
+		BlockNumber: 18669058,
 	}
 
 	if s.ethereumClient, err = ethclient.Dial(s.config.Endpoint); err != nil {
