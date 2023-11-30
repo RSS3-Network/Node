@@ -5,9 +5,9 @@ import (
 )
 
 type Config struct {
-	Name     string         `mapstructure:"name"`
-	Type     string         `mapstructure:"type"`
-	Endpoint string         `mapstructure:"endpoint"`
+	Name     string         `mapstructure:"name" validate:"required"`
+	Type     string         `mapstructure:"type" validate:"required"`
+	Endpoint string         `mapstructure:"endpoint" validate:"required"`
 	Worker   Name           `mapstructure:"worker"`
 	Network  filter.Network `mapstructure:"network"`
 	Chain    filter.Chain   `mapstructure:"chain"`
