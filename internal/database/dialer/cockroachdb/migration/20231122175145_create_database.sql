@@ -50,10 +50,23 @@ CREATE INDEX IF NOT EXISTS "idx_feeds_timestamp" ON "feeds" ("timestamp" DESC);
 CREATE INDEX IF NOT EXISTS "idx_feeds_tag_type" ON "feeds" ("tag", "type");
 CREATE INDEX IF NOT EXISTS "idx_feeds_total_actions" ON "feeds" ("total_actions");
 
+CREATE TABLE IF NOT EXISTS "checkpoints"
+(
+    "id"         text        NOT NULL,
+    "chain"      text        NOT NULL,
+    "worker"     text        NOT NULL,
+    "state"      jsonb       NOT NULL,
+    "created_at" timestamptz NOT NULL DEFAULT now(),
+    "updated_at" timestamptz NOT NULL DEFAULT now(),
+
+    CONSTRAINT "pk_checkpoints" PRIMARY KEY ("id")
+);
+
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE IF EXISTS "indexes";
 DROP TABLE IF EXISTS "feeds";
+DROP TABLE IF EXISTS "checkpoints";
 -- +goose StatementEnd

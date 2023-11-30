@@ -78,7 +78,7 @@ func TestClient(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
-			container, dataSourceName, err := createContainer(context.Background(), testcase.driver)
+			container, dataSourceName, err := createContainer(context.Background(), testcase.driver, testcase.partition)
 			require.NoError(t, err)
 
 			t.Cleanup(func() {
@@ -114,7 +114,12 @@ func TestClient(t *testing.T) {
 	}
 }
 
-func createContainer(ctx context.Context, driver database.Driver) (container *gnomock.Container, dataSourceName string, err error) {
+func createContainer(ctx context.Context, driver database.Driver, partition bool) (container *gnomock.Container, dataSourceName string, err error) {
+	config := database.Config{
+		Driver:    driver,
+		Partition: partition,
+	}
+
 	switch driver {
 	case database.DriverCockroachDB:
 		preset := cockroachdb.Preset(
@@ -122,19 +127,41 @@ func createContainer(ctx context.Context, driver database.Driver) (container *gn
 			cockroachdb.WithVersion("v23.1.8"),
 		)
 
-		container, err = gnomock.Start(preset, gnomock.WithContext(ctx))
+		// Use a health check function to wait for the database to be ready.
+		healthcheckFunc := func(ctx context.Context, container *gnomock.Container) error {
+			config.URI = formatContainerURI(container)
+
+			client, err := dialer.Dial(ctx, &config)
+			if err != nil {
+				return err
+			}
+
+			transaction, err := client.Begin(ctx)
+			if err != nil {
+				return err
+			}
+
+			defer lo.Try(transaction.Rollback)
+
+			return nil
+		}
+
+		container, err = gnomock.Start(preset, gnomock.WithContext(ctx), gnomock.WithHealthCheck(healthcheckFunc))
 		if err != nil {
 			return nil, "", err
 		}
 
-		dataSourceName = fmt.Sprintf(
-			"postgres://root@%s:%d/%s?sslmode=disable",
-			container.Host, container.DefaultPort(),
-			"test",
-		)
-
-		return container, dataSourceName, nil
+		return container, formatContainerURI(container), nil
 	default:
 		return nil, "", fmt.Errorf("unsupported driver: %s", driver)
 	}
+}
+
+func formatContainerURI(container *gnomock.Container) string {
+	return fmt.Sprintf(
+		"postgres://root@%s:%d/%s?sslmode=disable",
+		container.Host,
+		container.DefaultPort(),
+		"test",
+	)
 }
