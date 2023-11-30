@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _NetworkName = "unknownethereum"
+const _NetworkName = "unknownethereumarweave"
 
-var _NetworkIndex = [...]uint8{0, 7, 15}
+var _NetworkIndex = [...]uint8{0, 7, 15, 22}
 
-const _NetworkLowerName = "unknownethereum"
+const _NetworkLowerName = "unknownethereumarweave"
 
 func (i Network) String() string {
 	if i >= Network(len(_NetworkIndex)-1) {
@@ -32,20 +32,24 @@ func _NetworkNoOp() {
 	var x [1]struct{}
 	_ = x[NetworkUnknown-(0)]
 	_ = x[NetworkEthereum-(1)]
+	_ = x[NetworkArweave-(2)]
 }
 
-var _NetworkValues = []Network{NetworkUnknown, NetworkEthereum}
+var _NetworkValues = []Network{NetworkUnknown, NetworkEthereum, NetworkArweave}
 
 var _NetworkNameToValueMap = map[string]Network{
-	_NetworkName[0:7]:       NetworkUnknown,
-	_NetworkLowerName[0:7]:  NetworkUnknown,
-	_NetworkName[7:15]:      NetworkEthereum,
-	_NetworkLowerName[7:15]: NetworkEthereum,
+	_NetworkName[0:7]:        NetworkUnknown,
+	_NetworkLowerName[0:7]:   NetworkUnknown,
+	_NetworkName[7:15]:       NetworkEthereum,
+	_NetworkLowerName[7:15]:  NetworkEthereum,
+	_NetworkName[15:22]:      NetworkArweave,
+	_NetworkLowerName[15:22]: NetworkArweave,
 }
 
 var _NetworkNames = []string{
 	_NetworkName[0:7],
 	_NetworkName[7:15],
+	_NetworkName[15:22],
 }
 
 // NetworkString retrieves an enum value from the enum constants string name.

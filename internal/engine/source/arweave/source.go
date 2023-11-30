@@ -35,11 +35,6 @@ type source struct {
 	state         *State
 }
 
-func (s *source) Name() string {
-	//	TODO Implement it.
-	return "arweave"
-}
-
 func (s *source) Chain() filter.Chain {
 	return filter.ChainArweaveMainnet
 }
@@ -63,6 +58,7 @@ func (s *source) initialize() (err error) {
 		BlockNumber: 0,
 	}
 
+	// initialize arweave client
 	if s.arweaveClient, err = arweave.NewClient(); err != nil {
 		return fmt.Errorf("create arweave client: %w", err)
 	}
@@ -73,7 +69,7 @@ func (s *source) initialize() (err error) {
 func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task) error {
 	var blockNumberLatestLocal uint64
 
-	// Refresh the remote block number.
+	// Get remote block number.
 	blockNumberLatestRemote, err := s.arweaveClient.GetBlockNumber(ctx)
 	if err != nil {
 		return fmt.Errorf("get latest block number: %w", err)
@@ -81,15 +77,13 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 
 	// TODO End polling at completion if target block height is specified.
 	for {
-		// The local block number is equal than the remote block number.
+		// The local block number is less or equal than the remote block number.
 		if s.state.BlockNumber >= blockNumberLatestLocal || blockNumberLatestLocal == 0 {
-			// RPC providers may incorrectly shunt the request to a lagging node.
 			if uint64(blockNumberLatestRemote) <= blockNumberLatestLocal {
 				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestLocal), zap.Duration("block.time", defaultBlockTime))
 
 				time.Sleep(defaultBlockTime)
 			} else {
-				// TODO Need to handle block reorganization.
 				blockNumberLatestLocal = uint64(blockNumberLatestRemote)
 			}
 

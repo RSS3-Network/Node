@@ -7,17 +7,12 @@ type ChainArweave uint64
 
 //goland:noinspection GoMixedReceiverTypes
 func (i ChainArweave) Network() Network {
-	return NetworkEthereum
+	return NetworkArweave
 }
 
 //goland:noinspection GoMixedReceiverTypes
 func (i ChainArweave) ID() uint64 {
 	return uint64(i)
-}
-
-//goland:noinspection GoMixedReceiverTypes
-func (i ChainArweave) Name() string {
-	return i.String()
 }
 
 const (

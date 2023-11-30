@@ -74,25 +74,6 @@ func (c *client) GetTransactionData(ctx context.Context, id string) (io.ReadClos
 	return result, nil
 }
 
-// do send an HTTP request with the given method, url and body.
-func (c *client) do(ctx context.Context, method string, url string, body io.Reader) (io.ReadCloser, error) {
-	request, err := http.NewRequestWithContext(ctx, method, url, body)
-	if err != nil {
-		return nil, fmt.Errorf("create request: %w", err)
-	}
-
-	response, err := http.DefaultClient.Do(request)
-	if err != nil {
-		return nil, fmt.Errorf("send request: %w", err)
-	}
-
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("expected status code %d", response.StatusCode)
-	}
-
-	return response.Body, nil
-}
-
 // GetBlockNumber returns the current block number of the arweave network.
 func (c *client) GetBlockNumber(ctx context.Context) (blockNumber int64, err error) {
 	c.locker.RLock()
@@ -229,6 +210,25 @@ func (c *client) GetTransactionByID(ctx context.Context, id string) (transaction
 	}
 
 	return result, nil
+}
+
+// do send an HTTP request with the given method, url and body.
+func (c *client) do(ctx context.Context, method string, url string, body io.Reader) (io.ReadCloser, error) {
+	request, err := http.NewRequestWithContext(ctx, method, url, body)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return nil, fmt.Errorf("send request: %w", err)
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("expected status code %d", response.StatusCode)
+	}
+
+	return response.Body, nil
 }
 
 // ClientOption is the type of the options passed to NewClient.

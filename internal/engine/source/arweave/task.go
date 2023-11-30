@@ -22,7 +22,7 @@ type Task struct {
 }
 
 func (t Task) ID() string {
-	return fmt.Sprintf("%s-%s-%s", t.Chain.Network(), t.Chain.Name(), t.Transaction.ID)
+	return fmt.Sprintf("%s-%s", t.Chain.Network(), t.Transaction.ID)
 }
 
 func (t Task) Network() filter.Network {
