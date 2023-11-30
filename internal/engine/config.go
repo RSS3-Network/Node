@@ -19,12 +19,12 @@ type Config struct {
 func (c *Config) Parse() (err error) {
 	data := strings.Split(c.Name, ":")
 	if len(data) < 1 {
-		return fmt.Errorf("invalid name: %s", c.Name)
+		return fmt.Errorf("invalid name %s", c.Name)
 	}
 
 	engineConfigs := strings.Split(data[0], ".")
 	if len(engineConfigs) < 1 {
-		return fmt.Errorf("invalid name: %s", c.Name)
+		return fmt.Errorf("invalid name %s", c.Name)
 	}
 
 	if c.Network, err = filter.NetworkString(engineConfigs[0]); err != nil {
@@ -35,7 +35,7 @@ func (c *Config) Parse() (err error) {
 	case filter.NetworkRSSHub:
 	default:
 		if len(engineConfigs) < 3 {
-			return fmt.Errorf("invalid name: %s", c.Name)
+			return fmt.Errorf("invalid name %s", c.Name)
 		}
 
 		if c.Chain, err = filter.ChainString(c.Network, engineConfigs[1]); err != nil {

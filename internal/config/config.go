@@ -26,29 +26,30 @@ type File struct {
 func Setup(configFilePath string) (*File, error) {
 	viper.SetConfigFile(configFilePath)
 
-	// read config file
+	// Read config file.
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("read config file: %w", err)
 	}
 
 	var configFile File
 
-	// parse config file into struct
+	// Parse config file.
 	if err := viper.Unmarshal(&configFile); err != nil {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)
 	}
 
-	// set default values
+	// Set default values.
 	if err := defaults.Set(&configFile); err != nil {
 		return nil, fmt.Errorf("set default values: %w", err)
 	}
 
-	// validate config file
+	// Validate config values.
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := validate.Struct(&configFile); err != nil {
 		return nil, fmt.Errorf("validate config file: %w", err)
 	}
 
+	// Parse node config.
 	for _, nodeConfig := range configFile.Node {
 		if err := nodeConfig.Parse(); err != nil {
 			return nil, fmt.Errorf("parse node config: %w", err)
