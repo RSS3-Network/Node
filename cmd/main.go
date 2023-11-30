@@ -21,7 +21,10 @@ var command = cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, _ []string) error {
-		config, err := config.Setup(lo.Must(cmd.PersistentFlags().GetString(flag.KeyConfig)))
+		keyConfig := lo.Must(cmd.PersistentFlags().GetString(flag.KeyConfig))
+		keyNodeName := lo.Must(cmd.PersistentFlags().GetString(flag.KeyNodeName))
+
+		config, err := config.Setup(keyConfig)
 		if err != nil {
 			return fmt.Errorf("setup config file: %w", err)
 		}
@@ -37,7 +40,7 @@ var command = cobra.Command{
 		}
 
 		for _, nodeConfig := range config.Node {
-			if nodeConfig.Name != lo.Must(cmd.PersistentFlags().GetString(flag.KeyNodeName)) {
+			if nodeConfig.Name != keyNodeName {
 				continue
 			}
 
@@ -49,7 +52,7 @@ var command = cobra.Command{
 			return server.Run(cmd.Context())
 		}
 
-		return fmt.Errorf("unsupported node %s", viper.GetString(flag.KeyNodeName))
+		return fmt.Errorf("unsupported node %s", keyNodeName)
 	},
 }
 
