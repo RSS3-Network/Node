@@ -8,6 +8,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
 
+// NewWorker creates a new fallback worker.
 func NewWorker(config *engine.Config) (engine.Worker, error) {
 	switch config.Network {
 	case filter.NetworkEthereum:

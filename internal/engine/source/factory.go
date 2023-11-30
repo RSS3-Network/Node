@@ -8,6 +8,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
 
+// New creates a new source.
 func New(config *engine.Config) (engine.Source, error) {
 	switch config.Network {
 	case filter.NetworkEthereum:

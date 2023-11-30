@@ -15,6 +15,7 @@ type Config struct {
 	Chain    filter.Chain   `mapstructure:"-"`
 }
 
+// Parse parses the config name.
 func (c *Config) Parse() (err error) {
 	data := strings.Split(c.Name, ":")
 	if len(data) < 1 {
