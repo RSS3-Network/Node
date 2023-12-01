@@ -2,6 +2,7 @@ package ethereum
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"time"
@@ -10,7 +11,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
@@ -26,11 +26,16 @@ var _ engine.Source = (*source)(nil)
 type source struct {
 	config         *engine.Config
 	ethereumClient *ethclient.Client
-	state          *State
+	state          State
+	pendingState   State
 }
 
 func (s *source) Chain() filter.Chain {
 	return filter.ChainEthereumMainnet
+}
+
+func (s *source) State() json.RawMessage {
+	return lo.Must(json.Marshal(s.state))
 }
 
 func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, errorChan chan<- error) {
@@ -46,17 +51,6 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 }
 
 func (s *source) initialize(ctx context.Context) (err error) {
-	// TODO Load state from checkpoint.
-	s.state = &State{
-		ChainID:     filter.ChainEthereumMainnet.ID(),
-		BlockHash:   ethereum.HashGenesis,
-		BlockNumber: 0,
-	}
-
-	if s.ethereumClient, err = ethclient.Dial(s.config.Endpoint); err != nil {
-		return fmt.Errorf("dial rpc endpoint: %w", err)
-	}
-
 	if s.ethereumClient, err = ethclient.Dial(s.config.Endpoint); err != nil {
 		return fmt.Errorf("dial ethereum endpoint: %w", err)
 	}
@@ -118,8 +112,11 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 		// TODO It might be possible to use generics to avoid manual type assertions.
 		tasksChan <- lo.Map(tasks, func(task *Task, _ int) engine.Task { return task })
 
-		// Update local block number.
-		s.state.BlockNumber++
+		// Update state by two phase commit to avoid data inconsistency.
+		s.state = s.pendingState
+
+		s.pendingState.BlockHash = block.Hash()
+		s.pendingState.BlockNumber++
 	}
 }
 
@@ -140,7 +137,7 @@ func (s *source) buildTasks(block *types.Block, receipts types.Receipts) ([]*Tas
 		}
 
 		task := Task{
-			Chain:       filter.ChainEthereum(s.state.ChainID),
+			Chain:       filter.ChainEthereum(s.Chain().ID()),
 			Header:      block.Header(),
 			Transaction: transaction,
 			Receipt:     receipt,
@@ -152,9 +149,20 @@ func (s *source) buildTasks(block *types.Block, receipts types.Receipts) ([]*Tas
 	return tasks, nil
 }
 
-func NewSource(config *engine.Config) (engine.Source, error) {
+func NewSource(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Source, error) {
+	var state State
+
+	// Initialize state from checkpoint.
+	if checkpoint != nil {
+		if err := json.Unmarshal(checkpoint.State, &state); err != nil {
+			return nil, err
+		}
+	}
+
 	instance := source{
-		config: config,
+		config:       config,
+		state:        state,
+		pendingState: state, // Default pending state is equal to current state.
 	}
 
 	return &instance, nil

@@ -42,7 +42,7 @@ func TestSource(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
-			instance, err := arweave.NewSource(testcase.arguments.config)
+			instance, err := arweave.NewSource(testcase.arguments.config, nil)
 			require.NoError(t, err, "new arweave source")
 
 			var (

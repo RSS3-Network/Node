@@ -4,7 +4,7 @@ package filter
 type Network uint64
 
 const (
-	NetworkUnknown  Network = iota // unknown
-	NetworkEthereum                // ethereum
+	NetworkEthereum Network = iota // ethereum
+	NetworkRSSHub                  // rsshub
 	NetworkArweave                 // arweave
 )

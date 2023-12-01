@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math/big"
@@ -39,11 +40,16 @@ var _ engine.Source = (*source)(nil)
 type source struct {
 	config        *engine.Config
 	arweaveClient arweave.Client
-	state         *State
+	state         State
+	pendingState  State
 }
 
 func (s *source) Chain() filter.Chain {
 	return filter.ChainArweaveMainnet
+}
+
+func (s *source) State() json.RawMessage {
+	return lo.Must(json.Marshal(s.state))
 }
 
 // Start starts the source.
@@ -63,12 +69,6 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 
 // initialize initializes the source.
 func (s *source) initialize() (err error) {
-	// TODO Load state from checkpoint.
-	s.state = &State{
-		ChainID:     filter.ChainArweaveMainnet.ID(),
-		BlockNumber: 0,
-	}
-
 	// initialize arweave client
 	if s.arweaveClient, err = arweave.NewClient(); err != nil {
 		return fmt.Errorf("create arweave client: %w", err)
@@ -154,8 +154,9 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 		// TODO It might be possible to use generics to avoid manual type assertions.
 		tasksChan <- tasks
 
-		// Update local block number.
-		s.state.BlockNumber++
+		// Update state by two phase commit to avoid data inconsistency.
+		s.state = s.pendingState
+		s.pendingState.BlockNumber++
 	}
 }
 
@@ -214,6 +215,7 @@ func (s *source) batchPullTransactions(ctx context.Context, transactionIDs []str
 	return resultPool.Wait()
 }
 
+// batchPullData pulls data by transactions.
 func (s *source) batchPullData(ctx context.Context, transactions []*types.Transaction) error {
 	resultPool := pool.New().
 		WithContext(ctx).
@@ -376,6 +378,7 @@ func (s *source) GroupBundleTransactions(transactions []*types.Transaction, bloc
 	})
 }
 
+// discardRootBundleTransaction discards the root bundle transaction.
 func (s *source) discardRootBundleTransaction(transactions []*types.Transaction) []*types.Transaction {
 	return lo.Filter(transactions, func(transaction *types.Transaction, _ int) bool {
 		transactionOwner, err := utils.OwnerToAddress(transaction.Owner)
@@ -387,6 +390,7 @@ func (s *source) discardRootBundleTransaction(transactions []*types.Transaction)
 	})
 }
 
+// buildTasks builds tasks from blocks and transactions.
 func (s *source) buildTasks(blocks []*types.Block, transactions []*types.Transaction) ([]engine.Task, error) {
 	tasks := make([]engine.Task, 0)
 
@@ -396,7 +400,7 @@ func (s *source) buildTasks(blocks []*types.Block, transactions []*types.Transac
 		})
 
 		tasks = append(tasks, Task{
-			Chain:       filter.ChainArweave(s.state.ChainID),
+			Chain:       filter.ChainArweave(s.Chain().ID()),
 			Block:       *block,
 			Transaction: *transaction,
 		})
@@ -405,9 +409,21 @@ func (s *source) buildTasks(blocks []*types.Block, transactions []*types.Transac
 	return tasks, nil
 }
 
-func NewSource(config *engine.Config) (engine.Source, error) {
+// NewSource creates a new arweave source.
+func NewSource(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Source, error) {
+	var state State
+
+	// Initialize state from checkpoint.
+	if checkpoint != nil {
+		if err := json.Unmarshal(checkpoint.State, &state); err != nil {
+			return nil, err
+		}
+	}
+
 	instance := source{
-		config: config,
+		config:       config,
+		state:        state,
+		pendingState: state, // Default pending state is equal to current state.
 	}
 
 	return &instance, nil
