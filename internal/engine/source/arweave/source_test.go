@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -29,22 +29,11 @@ func TestSource(t *testing.T) {
 		config *engine.Config
 	}
 
-	testcases := []struct {
+	var testcases []struct {
 		name      string
 		arguments arguments
 		want      require.ValueAssertionFunc
 		wantError require.ErrorAssertionFunc
-	}{
-		// TODO Implement a solution to configure custom block number ranges for source.
-		// {
-		// 	name: "From block number 15537393 to 15537398",
-		// 	want: func(t require.TestingT, actual interface{}, msgAndArgs ...interface{}) {
-		// 		tasks, ok := actual.([]engine.Task)
-		// 		require.True(t, ok, "invalid tasks type: %T", actual)
-		//
-		// 		require.Len(t, tasks, 5, "invalid tasks length")
-		// 	},
-		// },
 	}
 
 	for _, testcase := range testcases {
@@ -53,8 +42,8 @@ func TestSource(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
-			instance, err := ethereum.NewSource(testcase.arguments.config)
-			require.NoError(t, err, "new ethereum source")
+			instance, err := arweave.NewSource(testcase.arguments.config)
+			require.NoError(t, err, "new arweave source")
 
 			var (
 				tasksChan = make(chan []engine.Task, 1)

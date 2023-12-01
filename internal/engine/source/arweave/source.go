@@ -27,6 +27,13 @@ const (
 	defaultBlockTime = 120 * time.Second
 )
 
+// TODO get from command line arguments
+var bundlrNodes = []string{
+	"OXcT1sVRSA5eGwt2k6Yuz8-3e3g9WJi5uSE99CWqsBs", // Bundlr Node 1
+	"ZE0N-8P9gXkhtK-07PQu9d8me5tGDxa_i4Mee5RzVYg", // Bundlr Node 2
+}
+
+// ensure that source implements Source.
 var _ engine.Source = (*source)(nil)
 
 type source struct {
@@ -39,18 +46,22 @@ func (s *source) Chain() filter.Chain {
 	return filter.ChainArweaveMainnet
 }
 
+// Start starts the source.
 func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, errorChan chan<- error) {
+	// Initialize source.
 	if err := s.initialize(); err != nil {
 		errorChan <- fmt.Errorf("initialize source: %w", err)
 
 		return
 	}
 
+	// start a goroutine to poll blocks
 	go func() {
 		errorChan <- s.pollBlocks(ctx, tasksChan)
 	}()
 }
 
+// initialize initializes the source.
 func (s *source) initialize() (err error) {
 	// TODO Load state from checkpoint.
 	s.state = &State{
@@ -67,56 +78,58 @@ func (s *source) initialize() (err error) {
 }
 
 func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task) error {
-	var blockNumberLatestLocal uint64
-
-	// Get remote block number.
+	// Get remote block number from arweave network.
 	blockNumberLatestRemote, err := s.arweaveClient.GetBlockNumber(ctx)
 	if err != nil {
 		return fmt.Errorf("get latest block number: %w", err)
 	}
 
-	// TODO End polling at completion if target block height is specified.
-	for {
-		// The local block number is less or equal than the remote block number.
-		if s.state.BlockNumber >= blockNumberLatestLocal || blockNumberLatestLocal == 0 {
-			if uint64(blockNumberLatestRemote) <= blockNumberLatestLocal {
-				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestLocal), zap.Duration("block.time", defaultBlockTime))
+	zap.L().Info("get latest block number", zap.Int64("block_number", blockNumberLatestRemote))
 
+	for {
+		// Check if block number is latest.
+		if s.state.BlockNumber >= uint64(blockNumberLatestRemote) {
+			// Get latest block number from arweave network for reconfirm.
+			blockNumberLatestRemote, err = s.arweaveClient.GetBlockNumber(ctx)
+			if err != nil {
+				return fmt.Errorf("get latest block number: %w", err)
+			}
+
+			zap.L().Info("get latest block number", zap.Int64("block_number", blockNumberLatestRemote))
+
+			if s.state.BlockNumber >= uint64(blockNumberLatestRemote) {
+				// wait for next block on arweave network
 				time.Sleep(defaultBlockTime)
-			} else {
-				blockNumberLatestLocal = uint64(blockNumberLatestRemote)
 			}
 
 			continue
 		}
 
-		// Pull blocks
-		blocks, err := s.batchPullBlocksByRange(ctx, blockNumberLatestLocal, uint64(blockNumberLatestRemote))
+		// Pull blocks by range
+		blocks, err := s.batchPullBlocksByRange(ctx, s.state.BlockNumber, uint64(blockNumberLatestRemote))
 		if err != nil {
 			return fmt.Errorf("batch pull blocks: %w", err)
 		}
-
-		// TODO filter blocks by filter option.
 
 		// Pull transactions
 		transactionIDs := lo.FlatMap(blocks, func(block *types.Block, _ int) []string {
 			return block.Txs
 		})
 
+		// batch pull transactions by ids
 		transactions, err := s.batchPullTransactions(ctx, transactionIDs)
 		if err != nil {
 			return fmt.Errorf("batch pull transactions: %w", err)
 		}
 
-		// TODO filter transactions by filter option.
+		// TODO: match and filter transactions
 
 		// pull transaction data
-		// TODO add filter option
 		if err := s.batchPullData(ctx, transactions); err != nil {
 			return fmt.Errorf("batch pull data: %w", err)
 		}
 
-		// Filter and decode Bundle transactions group by block
+		// Decode Bundle transactions group by block
 		for index, block := range blocks {
 			bundleTransactions, err := s.batchPullBundleTransactions(ctx, s.GroupBundleTransactions(transactions, block))
 			if err != nil {
@@ -129,6 +142,9 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 
 			transactions = append(transactions, bundleTransactions...)
 		}
+
+		// Discard the Bundle transaction itself
+		transactions = s.discardRootBundleTransaction(transactions)
 
 		tasks, err := s.buildTasks(blocks, transactions)
 		if err != nil {
@@ -143,6 +159,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 	}
 }
 
+// batchPullBlocksByRange pulls blocks by range, from local state block number to remote block number.
 func (s *source) batchPullBlocksByRange(ctx context.Context, blockHeightStart, blockHeightEnd uint64) ([]*types.Block, error) {
 	zap.L().Info("begin to batch pull transactions by range", zap.Uint64("block.height.start", blockHeightStart), zap.Uint64("block.height.end", blockHeightEnd))
 
@@ -159,6 +176,7 @@ func (s *source) batchPullBlocksByRange(ctx context.Context, blockHeightStart, b
 	return blocks, nil
 }
 
+// batchPullBlocks pulls blocks by block heights.
 func (s *source) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) ([]*types.Block, error) {
 	zap.L().Info("begin to pull blocks", zap.Int("blocks", len(blockHeights)))
 
@@ -177,6 +195,7 @@ func (s *source) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) (
 	return resultPool.Wait()
 }
 
+// batchPullTransactions pulls transactions by transaction ids.
 func (s *source) batchPullTransactions(ctx context.Context, transactionIDs []string) ([]*types.Transaction, error) {
 	zap.L().Info("begin to pull transactions", zap.Int("transactions", len(transactionIDs)))
 
@@ -225,6 +244,7 @@ func (s *source) batchPullData(ctx context.Context, transactions []*types.Transa
 	return resultPool.Wait()
 }
 
+// batchPullBundleTransactions pulls bundle transactions by transaction ids.
 func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs []string) ([]*types.Transaction, error) {
 	zap.L().Info("begin to pull and filter bundle transactions", zap.Int("transactions", len(transactionIDs)))
 
@@ -281,6 +301,8 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 					Signature: dataItem.Signature,
 				}
 
+				// TODO: match and filter bundle transactions
+
 				data, err := io.ReadAll(dataItem)
 				if err != nil {
 					return nil, fmt.Errorf("read data item %s: %w", dataItemInfo.ID, err)
@@ -304,6 +326,7 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 	return lo.Flatten(bundleTransactions), nil
 }
 
+// GroupBundleTransactions groups bundle transactions by block.
 func (s *source) GroupBundleTransactions(transactions []*types.Transaction, block *types.Block) []string {
 	return lo.FilterMap(transactions, func(transaction *types.Transaction, _ int) (string, bool) {
 		hasBundleFormatTag := lo.ContainsBy(transaction.Tags, func(tag types.Tag) bool {
@@ -349,12 +372,18 @@ func (s *source) GroupBundleTransactions(transactions []*types.Transaction, bloc
 			return "", false
 		}
 
-		bundlrNodes := []string{
-			"OXcT1sVRSA5eGwt2k6Yuz8-3e3g9WJi5uSE99CWqsBs", // Bundlr Node 1
-			"ZE0N-8P9gXkhtK-07PQu9d8me5tGDxa_i4Mee5RzVYg", // Bundlr Node 2
+		return transaction.ID, lo.Contains(bundlrNodes, owner)
+	})
+}
+
+func (s *source) discardRootBundleTransaction(transactions []*types.Transaction) []*types.Transaction {
+	return lo.Filter(transactions, func(transaction *types.Transaction, _ int) bool {
+		transactionOwner, err := utils.OwnerToAddress(transaction.Owner)
+		if err != nil {
+			return false
 		}
 
-		return transaction.ID, lo.Contains(bundlrNodes, owner)
+		return !lo.Contains(bundlrNodes, transactionOwner)
 	})
 }
 
