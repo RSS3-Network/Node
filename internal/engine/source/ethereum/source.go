@@ -52,10 +52,6 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 
 func (s *source) initialize(ctx context.Context) (err error) {
 	if s.ethereumClient, err = ethclient.Dial(s.config.Endpoint); err != nil {
-		return fmt.Errorf("dial rpc endpoint: %w", err)
-	}
-
-	if s.ethereumClient, err = ethclient.Dial(s.config.Endpoint); err != nil {
 		return fmt.Errorf("dial ethereum endpoint: %w", err)
 	}
 

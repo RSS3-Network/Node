@@ -96,7 +96,7 @@ func (c *client) Commit() error {
 func (c *client) LoadCheckpoint(ctx context.Context, id string, chain filter.Chain, worker string) (*engine.Checkpoint, error) {
 	var value table.Checkpoint
 
-	fmt.Println("checkpoint", id, chain.FullName(), worker)
+	zap.L().Info("load checkpoint", zap.String("id", id), zap.String("fullname", chain.FullName()), zap.String("worker", worker))
 
 	if err := c.database.WithContext(ctx).
 		Where("id = ? AND chain = ? AND worker = ?", id, chain.FullName(), worker).
