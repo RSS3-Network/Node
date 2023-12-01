@@ -732,6 +732,6 @@ func TestClient_Func(t *testing.T) {
 	t.Run("covert Farcaster time to timestamp", func(t *testing.T) {
 		t.Parallel()
 
-		require.Equal(t, farcaster.CovertFarcasterTimeToTimestamp(78224681), int64(1687683881000))
+		require.Equal(t, farcaster.CovertFarcasterTimeToTimestamp(78224681), int64(1687683881))
 	})
 }

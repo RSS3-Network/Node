@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _NetworkName = "ethereumrsshub"
+const _NetworkName = "ethereumrsshubfarcaster"
 
-var _NetworkIndex = [...]uint8{0, 8, 14}
+var _NetworkIndex = [...]uint8{0, 8, 14, 23}
 
-const _NetworkLowerName = "ethereumrsshub"
+const _NetworkLowerName = "ethereumrsshubfarcaster"
 
 func (i Network) String() string {
 	if i >= Network(len(_NetworkIndex)-1) {
@@ -32,20 +32,24 @@ func _NetworkNoOp() {
 	var x [1]struct{}
 	_ = x[NetworkEthereum-(0)]
 	_ = x[NetworkRSSHub-(1)]
+	_ = x[NetworkFarcaster-(2)]
 }
 
-var _NetworkValues = []Network{NetworkEthereum, NetworkRSSHub}
+var _NetworkValues = []Network{NetworkEthereum, NetworkRSSHub, NetworkFarcaster}
 
 var _NetworkNameToValueMap = map[string]Network{
-	_NetworkName[0:8]:       NetworkEthereum,
-	_NetworkLowerName[0:8]:  NetworkEthereum,
-	_NetworkName[8:14]:      NetworkRSSHub,
-	_NetworkLowerName[8:14]: NetworkRSSHub,
+	_NetworkName[0:8]:        NetworkEthereum,
+	_NetworkLowerName[0:8]:   NetworkEthereum,
+	_NetworkName[8:14]:       NetworkRSSHub,
+	_NetworkLowerName[8:14]:  NetworkRSSHub,
+	_NetworkName[14:23]:      NetworkFarcaster,
+	_NetworkLowerName[14:23]: NetworkFarcaster,
 }
 
 var _NetworkNames = []string{
 	_NetworkName[0:8],
 	_NetworkName[8:14],
+	_NetworkName[14:23],
 }
 
 // NetworkString retrieves an enum value from the enum constants string name.

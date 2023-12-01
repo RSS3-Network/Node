@@ -33,6 +33,7 @@ func (c *Config) Parse() (err error) {
 
 	switch c.Network {
 	case filter.NetworkRSSHub:
+	case filter.NetworkFarcaster:
 	default:
 		if len(engineConfigs) < 3 {
 			return fmt.Errorf("invalid name %s", c.Name)
