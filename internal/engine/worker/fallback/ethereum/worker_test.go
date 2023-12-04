@@ -57,7 +57,6 @@ func TestWorker_Ethereum(t *testing.T) {
 						Type:        types.DynamicFeeTxType,
 						ChainID:     lo.Must(hexutil.DecodeBig("0x1")),
 					},
-					TransactionIndex: 0xf4,
 					Receipt: &ethereum.Receipt{
 						BlockHash:         common.HexToHash("0xea9d0ecd7a085aa998789e8e9c017a7d45f199873380ecb568218525171165b0"),
 						BlockNumber:       lo.Must(hexutil.DecodeBig("0xdc1390")),
@@ -72,8 +71,8 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &engine.Config{
-					Network:  filter.NetworkEthereum.String(),
-					Chain:    filter.ChainEthereumMainnet.String(),
+					Network:  filter.NetworkEthereum,
+					Chain:    filter.ChainEthereumMainnet,
 					Endpoint: endpoint.MustGet(filter.ChainEthereumMainnet),
 				},
 			},

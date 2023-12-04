@@ -1,0 +1,31 @@
+version: "3"
+
+services:
+  devcontainer:
+    container_name: devcontainer
+    build:
+      context: .
+      dockerfile: Dockerfile
+    cap_add:
+      - SYS_PTRACE
+    command: sleep infinity
+  cockroachdb:
+    container_name: cockroachdb
+    image: cockroachdb/cockroach:v23.1.8
+    networks:
+      - default
+    ports:
+      - "8080:8080"
+      - "26257:26257"
+    volumes:
+      - "cockroachdb:/cockroach/cockroach-data"
+    command:
+      - start-single-node
+      - --cluster-name=rss3-node
+      - --insecure
+
+volumes:
+  cockroachdb:
+
+networks:
+  default:

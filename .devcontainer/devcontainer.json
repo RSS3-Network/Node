@@ -1,0 +1,13 @@
+{
+  "name": "rss3-node",
+  "dockerComposeFile": "docker-compose.yaml",
+  "service": "devcontainer",
+  "runServices": [
+    "cockroachdb"
+  ],
+  "workspaceFolder": "/workspace/${localWorkspaceFolderBasename}",
+  "forwardPorts": [
+    "cockroachdb:8080",
+    "cockroachdb:26257"
+  ]
+}

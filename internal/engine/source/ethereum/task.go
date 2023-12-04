@@ -21,7 +21,6 @@ type Task struct {
 	Chain            filter.ChainEthereum
 	Header           *ethereum.Header
 	Transaction      *ethereum.Transaction
-	TransactionIndex uint
 	Receipt          *ethereum.Receipt
 }
 
@@ -69,7 +68,7 @@ func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error
 	feed := schema.Feed{
 		ID:    t.Transaction.Hash.String(),
 		Chain: t.Chain,
-		Index: t.TransactionIndex,
+		Index: t.Receipt.TransactionIndex,
 		From:  from.String(),
 		To:    to.String(),
 		Type:  filter.TypeUnknown,

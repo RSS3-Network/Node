@@ -33,6 +33,10 @@ type worker struct {
 	erc1155Filterer *erc1155.ERC1155Filterer
 }
 
+func (w *worker) Name() string {
+	return engine.Fallback.String()
+}
+
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	// The worker will handle all Ethereum network transactions.
 	return task.Network() == filter.NetworkEthereum, nil

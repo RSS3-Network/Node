@@ -81,15 +81,15 @@ func (c *client) lookupERC20ByRPC(ctx context.Context, _ filter.ChainEthereum, a
 	}
 
 	if tokenMetadata.Name, err = caller.Name(&callOptions); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get name: %w", err)
 	}
 
 	if tokenMetadata.Symbol, err = caller.Symbol(&callOptions); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get symbol: %w", err)
 	}
 
 	if tokenMetadata.Decimals, err = caller.Decimals(&callOptions); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get decimals: %w", err)
 	}
 
 	return &tokenMetadata, nil
@@ -139,15 +139,15 @@ func (c *client) lookupERC721(ctx context.Context, _ filter.ChainEthereum, addre
 	}
 
 	if tokenMetadata.Name, err = caller.Name(&callOptions); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get name: %w", err)
 	}
 
 	if tokenMetadata.Symbol, err = caller.Symbol(&callOptions); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get symbol: %w", err)
 	}
 
 	if tokenMetadata.URI, err = caller.TokenURI(&callOptions, id); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get token uri: %w", err)
 	}
 
 	return &tokenMetadata, nil
@@ -171,15 +171,15 @@ func (c *client) lookupERC1155(ctx context.Context, _ filter.ChainEthereum, addr
 	}
 
 	if tokenMetadata.Name, err = caller.Name(&callOptions); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get name: %w", err)
 	}
 
 	if tokenMetadata.Symbol, err = caller.Symbol(&callOptions); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get symbol: %w", err)
 	}
 
 	if tokenMetadata.URI, err = caller.Uri(&callOptions, id); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get uri: %w", err)
 	}
 
 	return &tokenMetadata, nil

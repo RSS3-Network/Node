@@ -1,5 +1,28 @@
 environment: development
+
+database:
+  driver: cockroachdb
+  partition: true
+  uri: postgres://root@localhost:26257/defaultdb
+
+
 node:
-  network: arweave
-  chain: mainnet
-  endpoint: https://ethereum.blockpi.network/v1/rpc/public
+    # name of the node, if it's blockchain node, it should be defined as: {network}.{chain}.{worker}:{name}
+  - name: ethereum.mainnet.fallback:default
+    endpoint: https://rpc.ankr.com/eth
+
+  - name: rsshub:default
+    # RSSHub is the only supported RSS module for now
+    # as RSSHub is an external dependency, you need to make sure:
+    # 1. the instance must be accessible by your RSS3 node itself
+    # 2. certain APIs must be accessible by the Global Indexer:
+    #    2.1 /api/routes # TBD
+    #    2.2 /api/config # TBD
+    # endpoint stands for the RSSHub node you are running
+    endpoint: https://rsshub.abc.com/
+    # proper authentication is highly recommended to protect your RSSHub instance
+    # choose an authentication method: basic auth using username/password
+    # or query string auth using access_key
+    # make sure it's always accessible by your RSS3 node
+    # see: https://docs.rsshub.app/install/#user-authentication-configurations
+    # access_key: ""

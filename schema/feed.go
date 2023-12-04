@@ -2,6 +2,14 @@ package schema
 
 import "github.com/naturalselectionlabs/rss3-node/schema/filter"
 
+type FeedTransformer interface {
+	Import(feed *Feed) error
+}
+
+type FeedsTransformer interface {
+	Import(feed []*Feed) error
+}
+
 type Feed struct {
 	ID        string           `json:"id"`
 	Network   filter.Network   `json:"network"`
