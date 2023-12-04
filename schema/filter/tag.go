@@ -6,4 +6,5 @@ type Tag uint64
 const (
 	TagUnknown Tag = iota
 	TagTransaction
+	TagCollectible
 )
