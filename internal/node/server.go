@@ -127,7 +127,7 @@ func NewServer(ctx context.Context, config *engine.Config, databaseClient databa
 		return nil, fmt.Errorf("new worker: %w", err)
 	}
 
-	// Load checkpoint for initialize source.
+	// Load checkpoint for initialize the source.
 	checkpoint, err := instance.databaseClient.LoadCheckpoint(ctx, instance.id, config.Chain, instance.worker.Name())
 	if err != nil {
 		return nil, fmt.Errorf("loca checkpoint: %w", err)
