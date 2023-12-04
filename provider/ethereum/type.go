@@ -80,6 +80,7 @@ type Transaction struct {
 	From        common.Address  `json:"from"`
 	Gas         uint64          `json:"gas"`
 	GasPrice    *big.Int        `json:"gasPrice"`
+	GasTipCap   *big.Int        `json:"maxPriorityFeePerGas"`
 	Hash        common.Hash     `json:"hash"`
 	Input       []byte          `json:"input"`
 	To          *common.Address `json:"to"`

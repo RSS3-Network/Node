@@ -18,10 +18,10 @@ const defaultFeeDecimal = 18
 var _ engine.Task = (*Task)(nil)
 
 type Task struct {
-	Chain            filter.ChainEthereum
-	Header           *ethereum.Header
-	Transaction      *ethereum.Transaction
-	Receipt          *ethereum.Receipt
+	Chain       filter.ChainEthereum
+	Header      *ethereum.Header
+	Transaction *ethereum.Transaction
+	Receipt     *ethereum.Receipt
 }
 
 func (t Task) ID() string {
@@ -88,9 +88,24 @@ func (t Task) buildFee() (*big.Int, error) {
 	switch t.Transaction.Type {
 	case types.LegacyTxType, types.AccessListTxType:
 		return new(big.Int).Mul(t.Transaction.GasPrice, new(big.Int).SetUint64(t.Receipt.GasUsed)), nil
-	case types.DynamicFeeTxType:
-		// TODO Add support for EIP-1559 transaction.
-		return big.NewInt(0), nil
+	case types.DynamicFeeTxType: // https://eips.ethereum.org/EIPS/eip-1559
+		var (
+			gasPrice decimal.Decimal
+			gasUsed  = decimal.NewFromBigInt(new(big.Int).SetUint64(t.Receipt.GasUsed), 0)
+		)
+
+		if t.Receipt.EffectiveGasPrice != nil {
+			gasPrice = decimal.NewFromBigInt(t.Receipt.EffectiveGasPrice, 0)
+		} else {
+			var (
+				baseFee   = decimal.NewFromBigInt(t.Header.BaseFee, 0)
+				gasTipCap = decimal.NewFromBigInt(t.Transaction.GasTipCap, 0)
+			)
+
+			gasPrice = baseFee.Add(gasTipCap)
+		}
+
+		return gasPrice.Mul(gasUsed).BigInt(), nil
 	default:
 		return nil, fmt.Errorf("unsupported transaction type %d", t.Transaction.Type)
 	}
