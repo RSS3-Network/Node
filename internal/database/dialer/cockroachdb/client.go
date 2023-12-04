@@ -12,6 +12,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroachdb/table"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/farcaster/model"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/pressly/goose/v3"
@@ -143,6 +144,46 @@ func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
 	}
 
 	return fmt.Errorf("not implemented")
+}
+
+// LoadProfile loads a profile.
+func (c *client) LoadProfile(ctx context.Context, fid int64) (*model.Profile, error) {
+	var value table.Profile
+
+	zap.L().Info("load farcaster profile", zap.Int64("fid", fid))
+
+	if err := c.database.WithContext(ctx).
+		Where("fid = ?", fid).
+		First(&value).
+		Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+
+		// Initialize a default profile.
+		value = table.Profile{
+			Fid: fid,
+		}
+	}
+
+	return value.Export()
+}
+
+// SaveProfile saves a profile.
+func (c *client) SaveProfile(ctx context.Context, profile *model.Profile) error {
+	clauses := []clause.Expression{
+		clause.OnConflict{
+			Columns:   []clause.Column{{Name: "fid"}},
+			UpdateAll: true,
+		},
+	}
+
+	var value table.Profile
+	if err := value.Import(profile); err != nil {
+		return err
+	}
+
+	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
 // createPartitionTable creates a partition table.

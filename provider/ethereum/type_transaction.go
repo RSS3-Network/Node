@@ -20,6 +20,7 @@ func (t Transaction) MarshalJSON() ([]byte, error) {
 		From        common.Address  `json:"from"`
 		Gas         hexutil.Uint64  `json:"gas"`
 		GasPrice    *hexutil.Big    `json:"gasPrice"`
+		GasTipCap   *big.Int        `json:"maxPriorityFeePerGas"`
 		Hash        common.Hash     `json:"hash"`
 		Input       hexutil.Bytes   `json:"input"`
 		To          *common.Address `json:"to"`
@@ -34,6 +35,7 @@ func (t Transaction) MarshalJSON() ([]byte, error) {
 	enc.From = t.From
 	enc.Gas = hexutil.Uint64(t.Gas)
 	enc.GasPrice = (*hexutil.Big)(t.GasPrice)
+	enc.GasTipCap = t.GasTipCap
 	enc.Hash = t.Hash
 	enc.Input = t.Input
 	enc.To = t.To
@@ -52,6 +54,7 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 		From        *common.Address `json:"from"`
 		Gas         *hexutil.Uint64 `json:"gas"`
 		GasPrice    *hexutil.Big    `json:"gasPrice"`
+		GasTipCap   *big.Int        `json:"maxPriorityFeePerGas"`
 		Hash        *common.Hash    `json:"hash"`
 		Input       *hexutil.Bytes  `json:"input"`
 		To          *common.Address `json:"to"`
@@ -78,6 +81,9 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 	}
 	if dec.GasPrice != nil {
 		t.GasPrice = (*big.Int)(dec.GasPrice)
+	}
+	if dec.GasTipCap != nil {
+		t.GasTipCap = dec.GasTipCap
 	}
 	if dec.Hash != nil {
 		t.Hash = *dec.Hash
