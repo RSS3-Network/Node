@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/everFinance/goar/types"
 	syncx "github.com/naturalselectionlabs/rss3-node/common/sync"
+	"github.com/naturalselectionlabs/rss3-node/provider/arweave/types"
 	"github.com/samber/lo"
 )
 

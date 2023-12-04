@@ -3,9 +3,9 @@ package arweave
 import (
 	"fmt"
 
-	"github.com/everFinance/goar/types"
-	"github.com/everFinance/goar/utils"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	"github.com/naturalselectionlabs/rss3-node/provider/arweave/types"
+	"github.com/naturalselectionlabs/rss3-node/provider/arweave/utils"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/shopspring/decimal"
@@ -37,9 +37,11 @@ func (t Task) Validate() error {
 	return nil
 }
 
+// BuildFeed builds a feed from the task.
 func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error) {
 	var feeValue decimal.Decimal
 
+	// set fee value if reward is not empty.
 	if t.Transaction.Reward != "" {
 		var err error
 
@@ -53,6 +55,7 @@ func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error
 		feeValue = decimal.Zero
 	}
 
+	// from address is the owner of the transaction.
 	from, err := utils.OwnerToAddress(t.Transaction.Owner)
 	if err != nil {
 		return nil, fmt.Errorf("parse transaction owner: %w", err)

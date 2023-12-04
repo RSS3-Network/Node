@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/everFinance/goar/types"
-	"github.com/everFinance/goar/utils"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave/bundle"
+	"github.com/naturalselectionlabs/rss3-node/provider/arweave/types"
+	"github.com/naturalselectionlabs/rss3-node/provider/arweave/utils"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
