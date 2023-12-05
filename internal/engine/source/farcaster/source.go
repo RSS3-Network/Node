@@ -182,42 +182,26 @@ func (s *source) pollReactionsByFid(ctx context.Context, fid *int64, pageToken s
 func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farcaster.Message) ([]*Task, error) {
 	tasks := make([]*Task, 0)
 
-	for _, msg := range messages {
-		msg := msg
-		switch msg.Data.Type {
+	for _, message := range messages {
+		message := message
+		switch message.Data.Type {
 		case farcaster.MessageTypeCastAdd.String():
-			if msg.Data.CastAddBody.ParentCastID != nil {
-				targetFid := int64(msg.Data.CastAddBody.ParentCastID.Fid)
-				targetMessage, err := s.farcasterClient.GetCastByFidAndHash(ctx, &targetFid, msg.Data.CastAddBody.ParentCastID.Hash)
+			if err := s.fillCastParams(ctx, &message); err != nil {
+				zap.L().Warn("fill farcaster cast params error", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
 
-				if err != nil {
-					zap.L().Warn("fetch farcaster target cast error", zap.Int64("fid", targetFid), zap.String("hash", msg.Data.CastAddBody.ParentCastID.Hash))
-				}
-
-				_ = s.fillMentionsUsernames(ctx, targetMessage)
-
-				msg.Data.CastAddBody.ParentCast = targetMessage
+				continue
 			}
-
-			_ = s.fillMentionsUsernames(ctx, &msg)
 		case farcaster.MessageTypeReactionAdd.String():
-			if msg.Data.ReactionBody.Type == farcaster.ReactionTypeRecast.String() {
-				targetFid := int64(msg.Data.ReactionBody.TargetCastID.Fid)
-				targetMessage, err := s.farcasterClient.GetCastByFidAndHash(ctx, &targetFid, msg.Data.ReactionBody.TargetCastID.Hash)
+			if err := s.fillCastParams(ctx, &message); err != nil {
+				zap.L().Warn("fill farcaster reaction params error", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
 
-				if err != nil {
-					zap.L().Warn("fetch farcaster target cast error", zap.Int64("fid", targetFid), zap.String("hash", msg.Data.CastAddBody.ParentCastID.Hash))
-				}
-
-				_ = s.fillMentionsUsernames(ctx, targetMessage)
-
-				msg.Data.ReactionBody.TargetCast = targetMessage
+				continue
 			}
 		}
 
 		tasks = append(tasks, &Task{
 			Chain:   filter.ChainFarcaster(s.Chain().ID()),
-			Message: msg,
+			Message: message,
 		})
 	}
 
@@ -250,6 +234,11 @@ func (s *source) pollEvents(ctx context.Context, tasksChan chan<- []engine.Task)
 
 		s.state.EventID = eventsResponse.NextPageEventID
 
+		if len(tasks) > 0 {
+			task, _ := lo.Last(tasks)
+			s.state.EventTimestamp = time.Unix(farcaster.CovertFarcasterTimeToTimestamp(int64(task.Message.Data.Timestamp)), 10)
+		}
+
 		cursor = eventsResponse.NextPageEventID
 	}
 }
@@ -261,15 +250,29 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 		if event.Type == farcaster.HubEventTypeMergeMessage.String() {
 			switch event.MergeMessageBody.Message.Data.Type {
 			case farcaster.MessageTypeCastAdd.String():
+				message := event.MergeMessageBody.Message
+				if err := s.fillCastParams(ctx, &message); err != nil {
+					zap.L().Warn("fill farcaster cast params error", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
+
+					continue
+				}
+
 				tasks = append(tasks, &Task{
 					Chain:   filter.ChainFarcaster(s.Chain().ID()),
-					Message: event.MergeMessageBody.Message,
+					Message: message,
 				})
 			case farcaster.MessageTypeReactionAdd.String():
 				if event.MergeMessageBody.Message.Data.ReactionBody.Type == farcaster.ReactionTypeRecast.String() {
+					message := event.MergeMessageBody.Message
+					if err := s.fillReactionParams(ctx, &message); err != nil {
+						zap.L().Warn("fill farcaster reaction params error", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
+
+						continue
+					}
+
 					tasks = append(tasks, &Task{
 						Chain:   filter.ChainFarcaster(s.Chain().ID()),
-						Message: event.MergeMessageBody.Message,
+						Message: message,
 					})
 				}
 			case farcaster.MessageTypeVerificationRemove.String(),
@@ -295,37 +298,19 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 	return tasks, nil
 }
 
-func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (string, error) {
-	username, custodyAddress, ethAddresses, err := s.getProfileByFid(ctx, fid)
-	if err != nil {
-		return "", fmt.Errorf("get new farcaster profile %d: %w", fid, err)
-	}
-
-	if err = s.databaseClient.SaveProfile(ctx, &model.Profile{
-		Fid:            *fid,
-		Username:       username,
-		CustodyAddress: custodyAddress,
-		EthAddresses:   ethAddresses,
-	}); err != nil {
-		return "", err
-	}
-
-	return username, nil
-}
-
-func (s *source) getProfileByFid(ctx context.Context, fid *int64) (string, string, []string, error) {
+func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Profile, error) {
 	// owner username(handle)
 	userDataByFidAndTypeRes, err := s.farcasterClient.GetUserDataByFidAndType(ctx, fid, farcaster.UserDataTypeUsername.String())
 
 	if err != nil {
-		return "", "", nil, fmt.Errorf("fetch user data error: %w,%d", err, fid)
+		return nil, fmt.Errorf("fetch user data error: %w,%d", err, fid)
 	}
 
 	// custody address
 	custodyAddresses, err := s.farcasterClient.GetUserNameProofsByFid(ctx, fid)
 
 	if err != nil {
-		return "", "", nil, fmt.Errorf("fetch custody address error: %w,%d", err, fid)
+		return nil, fmt.Errorf("fetch custody address error: %w,%d", err, fid)
 	}
 
 	var custodyAddress string
@@ -344,43 +329,129 @@ func (s *source) getProfileByFid(ctx context.Context, fid *int64) (string, strin
 	verificationsByFidRes, err := s.farcasterClient.GetVerificationsByFid(ctx, fid, "")
 
 	if err != nil {
-		return "", "", nil, fmt.Errorf("fetch eth address error: %w,%d", err, fid)
+		return nil, fmt.Errorf("fetch eth address error: %w,%d", err, fid)
 	}
 
 	ethAddresses := lo.Map(verificationsByFidRes.Messages, func(x farcaster.Message, index int) string {
 		return common.HexToAddress(x.Data.VerificationAddEthAddressBody.Address).String()
 	})
 
-	return userDataByFidAndTypeRes.Data.UserDataBody.Value, common.HexToAddress(custodyAddress).String(), ethAddresses, nil
+	if err != nil {
+		return nil, fmt.Errorf("get new farcaster profile %d: %w", fid, err)
+	}
+
+	profile := &model.Profile{
+		Fid:            *fid,
+		Username:       userDataByFidAndTypeRes.Data.UserDataBody.Value,
+		CustodyAddress: common.HexToAddress(custodyAddress).String(),
+		EthAddresses:   ethAddresses,
+	}
+
+	if err = s.databaseClient.SaveProfile(ctx, profile); err != nil {
+		return nil, err
+	}
+
+	return profile, nil
 }
 
-func (s *source) fillMentionsUsernames(ctx context.Context, msg *farcaster.Message) error {
-	msg.Data.CastAddBody.MentionsUsernames = make([]string, len(msg.Data.CastAddBody.Mentions))
-	for i, fid := range msg.Data.CastAddBody.Mentions {
-		fid := int64(fid)
-		profile, err := s.databaseClient.LoadProfile(ctx, fid)
+func (s *source) getProfileByFid(ctx context.Context, fid *int64) (*model.Profile, error) {
+	var (
+		profile *model.Profile
+		err     error
+	)
+
+	profile, err = s.databaseClient.LoadProfile(ctx, *fid)
+
+	if err != nil || profile == nil {
+		profile, err = s.updateProfileByFid(ctx, fid)
 
 		if err != nil {
-			zap.L().Warn("fetch farcaster local profile error", zap.Int64("fid", fid))
+			return nil, fmt.Errorf("fetch farcaster profile %d: %w", fid, err)
+		}
+	}
+
+	return profile, nil
+}
+
+func (s *source) fillMentionsUsernames(ctx context.Context, message *farcaster.Message) error {
+	message.Data.CastAddBody.MentionsUsernames = make([]string, len(message.Data.CastAddBody.Mentions))
+	for i, fid := range message.Data.CastAddBody.Mentions {
+		fid := int64(fid)
+		profile, err := s.getProfileByFid(ctx, &fid)
+
+		if err != nil {
+			zap.L().Warn("fetch farcaster profile error", zap.Int64("fid", fid))
 
 			continue
 		}
 
-		if profile == nil {
-			username, err := s.updateProfileByFid(ctx, &fid)
-			if err != nil {
-				zap.L().Warn("save farcaster local profile error", zap.Int64("fid", fid))
-
-				continue
-			}
-
-			profile.Username = username
-		}
-
-		msg.Data.CastAddBody.MentionsUsernames[i] = profile.Username
+		message.Data.CastAddBody.MentionsUsernames[i] = profile.Username
 	}
 
 	return nil
+}
+
+func (s *source) fillProfile(ctx context.Context, message *farcaster.Message) error {
+	fid := int64(message.Data.Fid)
+	profile, err := s.getProfileByFid(ctx, &fid)
+
+	if err != nil {
+		return fmt.Errorf("fetch farcaster profile error: %w", err)
+	}
+
+	message.Data.Profile = profile
+
+	return nil
+}
+
+func (s *source) fillCastParams(ctx context.Context, message *farcaster.Message) error {
+	if message.Data.CastAddBody.ParentCastID != nil {
+		targetFid := int64(message.Data.CastAddBody.ParentCastID.Fid)
+		targetMessage, err := s.farcasterClient.GetCastByFidAndHash(ctx, &targetFid, message.Data.CastAddBody.ParentCastID.Hash)
+
+		if err != nil {
+			zap.L().Warn("fetch farcaster target cast error", zap.Int64("fid", targetFid), zap.String("hash", message.Data.CastAddBody.ParentCastID.Hash))
+		}
+
+		if err = s.fillMentionsUsernames(ctx, targetMessage); err != nil {
+			return err
+		}
+
+		message.Data.CastAddBody.ParentCast = targetMessage
+
+		if err = s.fillProfile(ctx, message.Data.CastAddBody.ParentCast); err != nil {
+			return err
+		}
+	}
+
+	if err := s.fillProfile(ctx, message); err != nil {
+		return err
+	}
+
+	return s.fillMentionsUsernames(ctx, message)
+}
+
+func (s *source) fillReactionParams(ctx context.Context, message *farcaster.Message) error {
+	if message.Data.ReactionBody.Type == farcaster.ReactionTypeRecast.String() {
+		targetFid := int64(message.Data.ReactionBody.TargetCastID.Fid)
+		targetMessage, err := s.farcasterClient.GetCastByFidAndHash(ctx, &targetFid, message.Data.ReactionBody.TargetCastID.Hash)
+
+		if err != nil {
+			zap.L().Warn("fetch farcaster target cast error", zap.Int64("fid", targetFid), zap.String("hash", message.Data.CastAddBody.ParentCastID.Hash))
+		}
+
+		if err = s.fillMentionsUsernames(ctx, targetMessage); err != nil {
+			return err
+		}
+
+		message.Data.ReactionBody.TargetCast = targetMessage
+
+		if err = s.fillProfile(ctx, message.Data.CastAddBody.ParentCast); err != nil {
+			return err
+		}
+	}
+
+	return s.fillProfile(ctx, message)
 }
 
 func NewSource(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Source, error) {

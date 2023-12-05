@@ -1,5 +1,7 @@
 package farcaster
 
+import "github.com/naturalselectionlabs/rss3-node/internal/engine/source/farcaster/model"
+
 const FarcasterEpoch = 1609459200 // January 1, 2021 UTC https://github.com/farcasterxyz/hub-monorepo/blob/77ff79ed804104956eb153247c22c00099c7b122/packages/core/src/time.ts#L4
 
 type farcasterQuery struct {
@@ -46,6 +48,7 @@ type Message struct {
 type MessageData struct {
 	Type                          string                         `json:"type"`
 	Fid                           uint64                         `json:"fid"`
+	Profile                       *model.Profile                 `json:"profile,omitempty"`
 	Timestamp                     uint32                         `json:"timestamp"`
 	Network                       string                         `json:"network"`
 	CastAddBody                   *CastAddBody                   `json:"castAddBody,omitempty"`
