@@ -2,9 +2,9 @@ package worker
 
 import (
 	"fmt"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/rss3"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/rss3"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/fallback"
 )
 
