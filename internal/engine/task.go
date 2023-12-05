@@ -10,5 +10,5 @@ type Task interface {
 	Network() filter.Network
 	Timestamp() uint64
 	Validate() error
-	BuildFeed() (*schema.Feed, error)
+	BuildFeed(options ...schema.FeedOption) (*schema.Feed, error)
 }
