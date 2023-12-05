@@ -8,6 +8,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/fallback"
 )
 
+// New creates a new worker by the given config.
 func New(config *engine.Config) (engine.Worker, error) {
 	switch config.Worker {
 	case engine.Fallback:

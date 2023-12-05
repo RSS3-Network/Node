@@ -54,6 +54,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
 
+	// Match and handle logs.
 	for _, log := range ethereumTask.Receipt.Logs {
 		var (
 			actions []*schema.Action
@@ -62,11 +63,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 		switch {
 		case w.matchStakingDeposited(ethereumTask, log):
-			actions, err = w.handleStakingDeposited(ctx, ethereumTask, log)
+			actions, err = w.transformStakingDeposited(ctx, ethereumTask, log)
 		case w.matchStakingWithdrawn(ethereumTask, log):
-			actions, err = w.handleStakingWithdrawn(ctx, ethereumTask, log)
+			actions, err = w.transformStakingWithdrawn(ctx, ethereumTask, log)
 		case w.matchStakingRewardsClaimed(ethereumTask, log):
-			actions, err = w.handleStakingRewardsClaimed(ctx, ethereumTask, log)
+			actions, err = w.transformStakingRewardsClaimed(ctx, ethereumTask, log)
 		default:
 			continue
 		}
@@ -98,7 +99,7 @@ func (w *worker) matchStakingRewardsClaimed(_ *source.Task, log *ethereum.Log) b
 	return log.Address == rss3.AddressStaking && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], rss3.EventHashRewardsClaimed)
 }
 
-func (w *worker) handleStakingDeposited(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformStakingDeposited(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.stakingFilterer.ParseDeposited(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Deposited event: %w", err)
@@ -121,7 +122,7 @@ func (w *worker) handleStakingDeposited(ctx context.Context, task *source.Task, 
 	return actions, nil
 }
 
-func (w *worker) handleStakingWithdrawn(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformStakingWithdrawn(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.stakingFilterer.ParseWithdrawn(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Withdrawn event: %w", err)
@@ -139,7 +140,7 @@ func (w *worker) handleStakingWithdrawn(ctx context.Context, task *source.Task, 
 	return actions, nil
 }
 
-func (w *worker) handleStakingRewardsClaimed(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformStakingRewardsClaimed(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.stakingFilterer.ParseRewardsClaimed(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse RewardsClaimed event: %w", err)
@@ -158,6 +159,7 @@ func (w *worker) handleStakingRewardsClaimed(ctx context.Context, task *source.T
 }
 
 func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Task, from, to common.Address, tokenValue *big.Int, stakingAction metadata.ExchangeStakingAction, period *metadata.ExchangeStakingPeriod) (*schema.Action, error) {
+	// The Token always is $RSS3.
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.Chain, &rss3.AddressToken, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", rss3.AddressToken, err)
@@ -180,6 +182,7 @@ func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Ta
 	return &action, nil
 }
 
+// NewWorker creates a new RSS3 worker.
 func NewWorker(config *engine.Config) (engine.Worker, error) {
 	var (
 		err      error
@@ -194,6 +197,7 @@ func NewWorker(config *engine.Config) (engine.Worker, error) {
 
 	instance.tokenClient = token.NewClient(instance.ethereumClient)
 
+	// Initialize RSS3 staking filterer.
 	instance.stakingFilterer = lo.Must(rss3.NewStakingFilterer(ethereum.AddressGenesis, nil))
 
 	return &instance, nil
