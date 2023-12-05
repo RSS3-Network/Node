@@ -7,7 +7,7 @@ import (
 	"github.com/Khan/genqlient/graphql"
 )
 
-// command to generate the client code in operation.go
+// Command to generate the client code in operation.go.
 //go:generate go run --mod=mod github.com/Khan/genqlient@v0.6.0
 
 const (
@@ -19,10 +19,10 @@ const (
 	ProposalStateClosed = "closed"
 )
 
-// use _ to make sure we implement the interface
+// Use _ to make sure we implement the interface.
 var _ graphql.Doer = (*client)(nil)
 
-// a graphql.Doer that adds the X-API-KEY header to requests.
+// A graphql.Doer that adds the X-API-KEY header to requests.
 type client struct {
 	httpClient *http.Client
 	apiKey     string
@@ -47,13 +47,13 @@ func NewClient(endpoint string, options ...Option) (graphql.Client, error) {
 		httpClient: http.DefaultClient,
 	}
 
-	// apply options
+	// Apply options.
 	for _, option := range options {
 		if err := option(&instance); err != nil {
 			return nil, fmt.Errorf("apply option: %w", err)
 		}
 	}
 
-	// return the client
+	// Return the client
 	return graphql.NewClient(endpoint, &instance), nil
 }
