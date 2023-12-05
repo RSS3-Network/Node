@@ -61,7 +61,9 @@ type MessageData struct {
 type CastAddBody struct {
 	EmbedsDeprecated  []string `json:"embedsDeprecated"`
 	Mentions          []uint64 `json:"mentions"`
+	MentionsUsernames []string `json:"mentionsUsernames"`
 	ParentCastID      *CastID  `json:"parentCastId,omitempty"`
+	ParentCast        *Message `json:"parentCast,omitempty"`
 	ParentURL         string   `json:"parentUrl,omitempty"`
 	Text              string   `json:"text"`
 	MentionsPositions []int32  `json:"mentionsPositions"`
@@ -87,9 +89,10 @@ type UserDataBody struct {
 }
 
 type ReactionBody struct {
-	Type         string `json:"type"`
-	TargetCastID CastID `json:"targetCastId"`
-	TaergetURL   string `json:"targetUrl"`
+	Type         string   `json:"type"`
+	TargetCastID CastID   `json:"targetCastId"`
+	TargetCast   *Message `json:"targetCast"`
+	TargetURL    string   `json:"targetUrl"`
 }
 
 type LinkBody struct {
