@@ -15,4 +15,5 @@ func (i TransactionType) Tag() Tag {
 
 const (
 	TypeTransactionTransfer TransactionType = iota + 1
+	TypeTransactionApproval
 )
