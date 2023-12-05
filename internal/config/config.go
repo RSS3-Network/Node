@@ -2,11 +2,14 @@ package config
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/creasty/defaults"
 	"github.com/go-playground/validator/v10"
+	"github.com/mitchellh/mapstructure"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/spf13/viper"
 )
 
@@ -19,7 +22,7 @@ const (
 
 type File struct {
 	Environment string           `mapstructure:"environment" validate:"required" default:"development"`
-	Node        []*engine.Config `mapstructure:"node" validate:"required,gt=0,dive,required"`
+	Node        *engine.Module   `mapstructure:"node" validate:"required"`
 	Database    *database.Config `mapstructure:"database" validate:"required"`
 }
 
@@ -34,7 +37,10 @@ func Setup(configFilePath string) (*File, error) {
 	var configFile File
 
 	// Parse config file.
-	if err := viper.Unmarshal(&configFile); err != nil {
+	if err := viper.Unmarshal(&configFile, viper.DecodeHook(
+		mapstructure.ComposeDecodeHookFunc(
+			decodeMapstructure,
+		))); err != nil {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)
 	}
 
@@ -49,14 +55,25 @@ func Setup(configFilePath string) (*File, error) {
 		return nil, fmt.Errorf("validate config file: %w", err)
 	}
 
-	// Parse node config.
-	for _, nodeConfig := range configFile.Node {
-		if err := nodeConfig.Parse(); err != nil {
-			return nil, fmt.Errorf("parse node config: %w", err)
-		}
+	return &configFile, nil
+}
+
+func decodeMapstructure(f reflect.Type, _ reflect.Type, data interface{}) (interface{}, error) {
+	if f.Kind() != reflect.String {
+		return data, nil
 	}
 
-	return &configFile, nil
+	value := data.(string)
+
+	if network, err := filter.NetworkString(value); err == nil {
+		return network, nil
+	}
+
+	if worker, err := engine.NameString(value); err == nil {
+		return worker, nil
+	}
+
+	return data, nil
 }
 
 func init() {
