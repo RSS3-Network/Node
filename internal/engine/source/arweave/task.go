@@ -37,7 +37,7 @@ func (t Task) Validate() error {
 }
 
 // BuildFeed builds a feed from the task.
-func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error) {
+func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 	var feeValue decimal.Decimal
 
 	// Set fee value if the reward is not empty.
@@ -71,6 +71,12 @@ func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error
 		},
 		Actions:   make([]*schema.Action, 0),
 		Timestamp: uint64(t.Block.Timestamp),
+	}
+
+	for _, option := range options {
+		if err := option(&feed); err != nil {
+			return nil, fmt.Errorf("apply option: %w", err)
+		}
 	}
 
 	return &feed, nil
