@@ -7,6 +7,7 @@ import (
 
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
+	"github.com/naturalselectionlabs/rss3-node/provider/arweave/utils"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
@@ -77,8 +78,14 @@ func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, tas
 		return nil, fmt.Errorf("parse transaction quantity %s", task.Transaction.Quantity)
 	}
 
+	// from address is the owner of the transaction.
+	from, err := utils.OwnerToAddress(task.Transaction.Owner)
+	if err != nil {
+		return nil, fmt.Errorf("parse transaction owner: %w", err)
+	}
+
 	// Build the native transfer transaction action.
-	return w.buildArweaveTransactionTransferAction(ctx, task.Transaction.Owner, task.Transaction.Target, value)
+	return w.buildArweaveTransactionTransferAction(ctx, from, task.Transaction.Target, value)
 }
 
 // buildArweaveTransactionTransferAction returns the native transfer transaction action.

@@ -11,7 +11,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-const defaultFeeDecimal = 18
+const defaultFeeDecimal = 12
 
 var _ engine.Task = (*Task)(nil)
 
@@ -49,8 +49,6 @@ func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error
 		if err != nil {
 			return nil, fmt.Errorf("parse transaction reward: %w", err)
 		}
-
-		feeValue = feeValue.Shift(-12)
 	} else {
 		feeValue = decimal.Zero
 	}
