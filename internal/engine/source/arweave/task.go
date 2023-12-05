@@ -41,7 +41,7 @@ func (t Task) Validate() error {
 func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error) {
 	var feeValue decimal.Decimal
 
-	// set fee value if reward is not empty.
+	// Set fee value if the reward is not empty.
 	if t.Transaction.Reward != "" {
 		var err error
 
@@ -53,7 +53,7 @@ func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error
 		feeValue = decimal.Zero
 	}
 
-	// from address is the owner of the transaction.
+	// From address is the owner of the transaction.
 	from, err := utils.OwnerToAddress(t.Transaction.Owner)
 	if err != nil {
 		return nil, fmt.Errorf("parse transaction owner: %w", err)

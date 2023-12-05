@@ -17,9 +17,9 @@ type Block struct {
 	WalletList               string        `json:"wallet_list"`
 	RewardAddr               string        `json:"reward_addr"`
 	Tags                     []interface{} `json:"tags"`
-	RewardPool               interface{}   `json:"reward_pool"` // always string
-	WeaveSize                interface{}   `json:"weave_size"`  // always string
-	BlockSize                interface{}   `json:"block_size"`  // always string
+	RewardPool               interface{}   `json:"reward_pool"` // Always string.
+	WeaveSize                interface{}   `json:"weave_size"`  // Always string.
+	BlockSize                interface{}   `json:"block_size"`  // Always string.
 	CumulativeDiff           interface{}   `json:"cumulative_diff"`
 	SizeTaggedTxs            interface{}   `json:"size_tagged_txs"`
 	Poa                      POA           `json:"poa"`

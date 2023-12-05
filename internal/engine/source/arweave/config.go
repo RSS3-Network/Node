@@ -5,6 +5,6 @@ import (
 )
 
 type Config struct {
-	BlockNumberStart  *big.Int
-	BlockNumberTarget *big.Int
+	BlockHeightStart  *big.Int
+	BlockHeightTarget *big.Int
 }

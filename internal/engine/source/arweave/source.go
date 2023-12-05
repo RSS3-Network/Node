@@ -34,7 +34,7 @@ var bundlrNodes = []string{
 	"ZE0N-8P9gXkhtK-07PQu9d8me5tGDxa_i4Mee5RzVYg", // Bundlr Node 2
 }
 
-// ensure that source implements Source.
+// Ensure that source implements Source.
 var _ engine.Source = (*source)(nil)
 
 type source struct {
@@ -61,7 +61,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 		return
 	}
 
-	// start a goroutine to poll blocks
+	// Start a goroutine to poll blocks.
 	go func() {
 		errorChan <- s.pollBlocks(ctx, tasksChan)
 	}()
@@ -69,7 +69,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 
 // initialize initializes the source.
 func (s *source) initialize() (err error) {
-	// initialize arweave client
+	// Initialize arweave client.
 	if s.arweaveClient, err = arweave.NewClient(); err != nil {
 		return fmt.Errorf("create arweave client: %w", err)
 	}
@@ -78,58 +78,57 @@ func (s *source) initialize() (err error) {
 }
 
 func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task) error {
-	// Get remote block number from arweave network.
-	blockNumberLatestRemote, err := s.arweaveClient.GetBlockNumber(ctx)
+	// Get remote block height from arweave network.
+	blockHeightLatestRemote, err := s.arweaveClient.GetBlockHeight(ctx)
 	if err != nil {
-		return fmt.Errorf("get latest block number: %w", err)
+		return fmt.Errorf("get latest block height: %w", err)
 	}
 
-	zap.L().Info("get latest block number", zap.Int64("block_number", blockNumberLatestRemote))
+	zap.L().Info("get latest block height", zap.Int64("block.height", blockHeightLatestRemote))
 
 	for {
-		// Check if block number is latest.
-		if s.state.BlockNumber >= uint64(blockNumberLatestRemote) {
-			// Get latest block number from arweave network for reconfirm.
-			blockNumberLatestRemote, err = s.arweaveClient.GetBlockNumber(ctx)
-			if err != nil {
-				return fmt.Errorf("get latest block number: %w", err)
+		// Check if block height is latest.
+		if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {
+			// Get the latest block height from arweave network for reconfirming.
+			if blockHeightLatestRemote, err = s.arweaveClient.GetBlockHeight(ctx); err != nil {
+				return fmt.Errorf("get latest block height: %w", err)
 			}
 
-			zap.L().Info("get latest block number", zap.Int64("block_number", blockNumberLatestRemote))
+			zap.L().Info("get latest block height", zap.Int64("block.height", blockHeightLatestRemote))
 
-			if s.state.BlockNumber >= uint64(blockNumberLatestRemote) {
-				// wait for next block on arweave network
+			if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {
+				// Wait for the next block on arweave network.
 				time.Sleep(defaultBlockTime)
 			}
 
 			continue
 		}
 
-		// Pull blocks by range
-		blocks, err := s.batchPullBlocksByRange(ctx, s.state.BlockNumber, uint64(blockNumberLatestRemote))
+		// Pull blocks by range.
+		blocks, err := s.batchPullBlocksByRange(ctx, s.state.BlockHeight, uint64(blockHeightLatestRemote))
 		if err != nil {
 			return fmt.Errorf("batch pull blocks: %w", err)
 		}
 
-		// Pull transactions
+		// Pull transactions.
 		transactionIDs := lo.FlatMap(blocks, func(block *types.Block, _ int) []string {
 			return block.Txs
 		})
 
-		// batch pull transactions by ids
+		// Batch pull transactions by ids.
 		transactions, err := s.batchPullTransactions(ctx, transactionIDs)
 		if err != nil {
 			return fmt.Errorf("batch pull transactions: %w", err)
 		}
 
-		// TODO: match and filter transactions
+		// TODO: Match and filter transactions.
 
-		// pull transaction data
+		// Pull transaction data.
 		if err := s.batchPullData(ctx, transactions); err != nil {
 			return fmt.Errorf("batch pull data: %w", err)
 		}
 
-		// Decode Bundle transactions group by block
+		// Decode Bundle transactions group by block.
 		for index, block := range blocks {
 			bundleTransactions, err := s.batchPullBundleTransactions(ctx, s.GroupBundleTransactions(transactions, block))
 			if err != nil {
@@ -143,7 +142,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 			transactions = append(transactions, bundleTransactions...)
 		}
 
-		// Discard the Bundle transaction itself
+		// Discard the Bundle transaction itself.
 		transactions = s.discardRootBundleTransaction(transactions)
 
 		tasks, err := s.buildTasks(blocks, transactions)
@@ -156,15 +155,15 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 
 		// Update state by two phase commit to avoid data inconsistency.
 		s.state = s.pendingState
-		s.pendingState.BlockNumber++
+		s.pendingState.BlockHeight++
 	}
 }
 
-// batchPullBlocksByRange pulls blocks by range, from local state block number to remote block number.
+// batchPullBlocksByRange pulls blocks by range, from local state block height to remote block height.
 func (s *source) batchPullBlocksByRange(ctx context.Context, blockHeightStart, blockHeightEnd uint64) ([]*types.Block, error) {
 	zap.L().Info("begin to batch pull transactions by range", zap.Uint64("block.height.start", blockHeightStart), zap.Uint64("block.height.end", blockHeightEnd))
 
-	// Pull blocks by block heights
+	// Pull blocks by block heights.
 	blockHeights := lo.Map(lo.RangeWithSteps(blockHeightStart, blockHeightEnd+1, 1), func(blockHeight uint64, _ int) *big.Int {
 		return new(big.Int).SetUint64(blockHeight)
 	})
@@ -272,7 +271,7 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 
 			header, err := decoder.DecodeHeader()
 			if err != nil {
-				// Ignore invalid bundle transaction
+				// Ignore invalid bundle transaction.
 				zap.L().Error("discard a invalid bundle transaction", zap.String("transaction_id", transactionID))
 
 				return nil, nil
@@ -283,7 +282,7 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 
 				dataItem, err := decoder.DecodeDataItem()
 				if err != nil {
-					// Ignore invalid signature and data length
+					// Ignore invalid signature and data length.
 					zap.L().Error("decode data item", zap.Error(err), zap.String("transaction_id", transactionID))
 
 					return nil, nil
@@ -303,7 +302,7 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 					Signature: dataItem.Signature,
 				}
 
-				// TODO: match and filter bundle transactions
+				// TODO: Match and filter bundle transactions.
 
 				data, err := io.ReadAll(dataItem)
 				if err != nil {
@@ -423,7 +422,7 @@ func NewSource(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Sou
 	instance := source{
 		config:       config,
 		state:        state,
-		pendingState: state, // Default pending state is equal to current state.
+		pendingState: state, // Default pending state is equal to the current state.
 	}
 
 	return &instance, nil

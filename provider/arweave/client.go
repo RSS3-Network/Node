@@ -25,7 +25,7 @@ const (
 // Client is the interface that wraps the Fetch method.
 type Client interface {
 	GetTransactionData(ctx context.Context, id string) (io.ReadCloser, error)
-	GetBlockNumber(ctx context.Context) (blockNumber int64, err error)
+	GetBlockHeight(ctx context.Context) (blockHeight int64, err error)
 	GetBlockByHeight(ctx context.Context, height int64) (block *types.Block, err error)
 	GetTransactionByID(ctx context.Context, id string) (transaction *types.Transaction, err error)
 }
@@ -74,8 +74,8 @@ func (c *client) GetTransactionData(ctx context.Context, id string) (io.ReadClos
 	return result, nil
 }
 
-// GetBlockNumber returns the current block number of the arweave network.
-func (c *client) GetBlockNumber(ctx context.Context) (blockNumber int64, err error) {
+// GetBlockHeight returns the current block height of the arweave network.
+func (c *client) GetBlockHeight(ctx context.Context) (blockHeight int64, err error) {
 	c.locker.RLock()
 	defer c.locker.RUnlock()
 
@@ -120,7 +120,7 @@ func (c *client) GetBlockNumber(ctx context.Context) (blockNumber int64, err err
 	return result, nil
 }
 
-// GetBlockByHeight returns block by specific block number
+// GetBlockByHeight returns block by specific block height.
 func (c *client) GetBlockByHeight(ctx context.Context, height int64) (block *types.Block, err error) {
 	c.locker.RLock()
 	defer c.locker.RUnlock()

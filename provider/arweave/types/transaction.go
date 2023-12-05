@@ -6,12 +6,12 @@ type Transaction struct {
 	Format     int      `json:"format"`
 	ID         string   `json:"id"`
 	LastTx     string   `json:"last_tx"`
-	Owner      string   `json:"owner"` // utils.Base64Encode(wallet.PubKey.N.Bytes())
+	Owner      string   `json:"owner"` // Need to use utils.Base64Encode(wallet.PubKey.N.Bytes()).
 	Tags       []Tag    `json:"tags"`
 	Target     string   `json:"target"`
 	Quantity   string   `json:"quantity"`
-	Data       string   `json:"data"` // base64.encode
-	DataReader *os.File `json:"-"`    // when dataSize too big use dataReader, set Data = ""
+	Data       string   `json:"data"` // Base64 encoded.
+	DataReader *os.File `json:"-"`    // When data size too big, use data reader, set data to an empty string.
 	DataSize   string   `json:"data_size"`
 	DataRoot   string   `json:"data_root"`
 	Reward     string   `json:"reward"`
