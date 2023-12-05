@@ -1,6 +1,9 @@
 package schema
 
-import "github.com/naturalselectionlabs/rss3-node/schema/filter"
+import (
+	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/samber/lo"
+)
 
 type FeedTransformer interface {
 	Import(feed *Feed) error
@@ -24,4 +27,14 @@ type Feed struct {
 	Actions   []*Action        `json:"actions"`
 	Status    bool             `json:"status"`
 	Timestamp uint64           `json:"timestamp"`
+}
+
+type FeedOption func(feed *Feed) error
+
+func WithFeedPlatform(platform filter.Platform) FeedOption {
+	return func(feed *Feed) error {
+		feed.Platform = lo.ToPtr(platform)
+
+		return nil
+	}
 }

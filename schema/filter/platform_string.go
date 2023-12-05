@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _PlatformName = "PlatformRSS3"
+const _PlatformName = "RSS3"
 
-var _PlatformIndex = [...]uint8{0, 12}
+var _PlatformIndex = [...]uint8{0, 4}
 
-const _PlatformLowerName = "platformrss3"
+const _PlatformLowerName = "rss3"
 
 func (i Platform) String() string {
 	i -= 1
@@ -37,12 +37,12 @@ func _PlatformNoOp() {
 var _PlatformValues = []Platform{PlatformRSS3}
 
 var _PlatformNameToValueMap = map[string]Platform{
-	_PlatformName[0:12]:      PlatformRSS3,
-	_PlatformLowerName[0:12]: PlatformRSS3,
+	_PlatformName[0:4]:      PlatformRSS3,
+	_PlatformLowerName[0:4]: PlatformRSS3,
 }
 
 var _PlatformNames = []string{
-	_PlatformName[0:12],
+	_PlatformName[0:4],
 }
 
 // PlatformString retrieves an enum value from the enum constants string name.

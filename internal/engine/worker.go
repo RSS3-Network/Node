@@ -13,6 +13,7 @@ type Name int
 
 const (
 	Fallback Name = iota + 1 // fallback
+	RSS3                     // rss3
 )
 
 type Worker interface {

@@ -41,7 +41,7 @@ func (t Task) Validate() error {
 	return nil
 }
 
-func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error) {
+func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 	var to, from common.Address
 
 	if t.Transaction.To == nil {
@@ -79,6 +79,12 @@ func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error
 		Actions:   make([]*schema.Action, 0),
 		Status:    t.Receipt.Status == types.ReceiptStatusSuccessful,
 		Timestamp: t.Header.Timestamp,
+	}
+
+	for _, option := range options {
+		if err := option(&feed); err != nil {
+			return nil, fmt.Errorf("apply option: %w", err)
+		}
 	}
 
 	return &feed, nil
