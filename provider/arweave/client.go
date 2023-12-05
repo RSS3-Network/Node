@@ -11,7 +11,6 @@ import (
 	"time"
 
 	syncx "github.com/naturalselectionlabs/rss3-node/common/sync"
-	"github.com/naturalselectionlabs/rss3-node/provider/arweave/types"
 	"github.com/samber/lo"
 )
 
@@ -26,8 +25,8 @@ const (
 type Client interface {
 	GetTransactionData(ctx context.Context, id string) (io.ReadCloser, error)
 	GetBlockHeight(ctx context.Context) (blockHeight int64, err error)
-	GetBlockByHeight(ctx context.Context, height int64) (block *types.Block, err error)
-	GetTransactionByID(ctx context.Context, id string) (transaction *types.Transaction, err error)
+	GetBlockByHeight(ctx context.Context, height int64) (block *Block, err error)
+	GetTransactionByID(ctx context.Context, id string) (transaction *Transaction, err error)
 }
 
 // Ensure that client implements Client.
@@ -96,19 +95,19 @@ func (c *client) GetBlockHeight(ctx context.Context) (blockHeight int64, err err
 				return 0, fmt.Errorf("fetch from gateway %s: %w", gateway, err)
 			}
 
-			info := types.NetworkInfo{}
+			network := Network{}
 
 			content, err := io.ReadAll(data)
 			if err != nil {
 				return 0, err
 			}
 
-			err = json.Unmarshal(content, &info)
+			err = json.Unmarshal(content, &network)
 			if err != nil {
 				return 0, fmt.Errorf("unmarshal response body: %w", err)
 			}
 
-			return info.Blocks, nil
+			return network.Blocks, nil
 		})
 	}
 
@@ -121,23 +120,23 @@ func (c *client) GetBlockHeight(ctx context.Context) (blockHeight int64, err err
 }
 
 // GetBlockByHeight returns block by specific block height.
-func (c *client) GetBlockByHeight(ctx context.Context, height int64) (block *types.Block, err error) {
+func (c *client) GetBlockByHeight(ctx context.Context, height int64) (block *Block, err error) {
 	c.locker.RLock()
 	defer c.locker.RUnlock()
 
-	quickGroup := syncx.NewQuickGroup[*types.Block](ctx)
+	quickGroup := syncx.NewQuickGroup[*Block](ctx)
 
 	// Try to fetch from all gateways.
 	for _, gateway := range c.gateways {
 		gateway := gateway
 
-		quickGroup.Go(func(ctx context.Context) (*types.Block, error) {
+		quickGroup.Go(func(ctx context.Context) (*Block, error) {
 			requestURL, err := url.JoinPath(gateway, fmt.Sprintf("block/height/%d", height))
 			if err != nil {
 				return nil, fmt.Errorf("invalid gateway url: %w", err)
 			}
 
-			var block *types.Block
+			var block *Block
 
 			data, err := c.do(ctx, http.MethodGet, requestURL, nil)
 			if err != nil {
@@ -167,23 +166,23 @@ func (c *client) GetBlockByHeight(ctx context.Context, height int64) (block *typ
 }
 
 // GetTransactionByID returns transaction by specific transaction id
-func (c *client) GetTransactionByID(ctx context.Context, id string) (transaction *types.Transaction, err error) {
+func (c *client) GetTransactionByID(ctx context.Context, id string) (transaction *Transaction, err error) {
 	c.locker.RLock()
 	defer c.locker.RUnlock()
 
-	quickGroup := syncx.NewQuickGroup[*types.Transaction](ctx)
+	quickGroup := syncx.NewQuickGroup[*Transaction](ctx)
 
 	// Try to fetch from all gateways.
 	for _, gateway := range c.gateways {
 		gateway := gateway
 
-		quickGroup.Go(func(ctx context.Context) (*types.Transaction, error) {
+		quickGroup.Go(func(ctx context.Context) (*Transaction, error) {
 			requestURL, err := url.JoinPath(gateway, fmt.Sprintf("tx/%s", id))
 			if err != nil {
 				return nil, fmt.Errorf("invalid gateway url: %w", err)
 			}
 
-			var transaction *types.Transaction
+			var transaction *Transaction
 
 			data, err := c.do(ctx, http.MethodGet, requestURL, nil)
 			if err != nil {

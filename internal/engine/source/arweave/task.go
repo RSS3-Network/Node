@@ -4,8 +4,7 @@ import (
 	"fmt"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	"github.com/naturalselectionlabs/rss3-node/provider/arweave/types"
-	"github.com/naturalselectionlabs/rss3-node/provider/arweave/utils"
+	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/shopspring/decimal"
@@ -17,8 +16,8 @@ var _ engine.Task = (*Task)(nil)
 
 type Task struct {
 	Chain       filter.ChainArweave
-	Block       types.Block
-	Transaction types.Transaction
+	Block       arweave.Block
+	Transaction arweave.Transaction
 }
 
 func (t Task) ID() string {
@@ -54,7 +53,7 @@ func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error
 	}
 
 	// From address is the owner of the transaction.
-	from, err := utils.OwnerToAddress(t.Transaction.Owner)
+	from, err := arweave.PublicKeyToAddress(t.Transaction.Owner)
 	if err != nil {
 		return nil, fmt.Errorf("parse transaction owner: %w", err)
 	}

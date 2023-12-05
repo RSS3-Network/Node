@@ -6,8 +6,8 @@ import (
 	"math/big"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
-	"github.com/naturalselectionlabs/rss3-node/provider/arweave/utils"
+	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
+	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
@@ -33,7 +33,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 // Transform returns a feed with the action of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
 	// Cast the task to an Arweave task.
-	arweaveTask, ok := task.(*arweave.Task)
+	arweaveTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
@@ -60,7 +60,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 }
 
 // matchArweaveNativeTransferTransaction returns true if the transaction is a native transfer transaction.
-func (w *worker) matchArweaveNativeTransferTransaction(task *arweave.Task) bool {
+func (w *worker) matchArweaveNativeTransferTransaction(task *source.Task) bool {
 	// Parse the transaction quantity
 	value, ok := new(big.Int).SetString(task.Transaction.Quantity, 10)
 	if !ok {
@@ -72,14 +72,14 @@ func (w *worker) matchArweaveNativeTransferTransaction(task *arweave.Task) bool 
 }
 
 // handleArweaveNativeTransferTransaction returns the action of the native transfer transaction.
-func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, task *arweave.Task) (*schema.Action, error) {
+func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, task *source.Task) (*schema.Action, error) {
 	value, ok := new(big.Int).SetString(task.Transaction.Quantity, 10)
 	if !ok {
 		return nil, fmt.Errorf("parse transaction quantity %s", task.Transaction.Quantity)
 	}
 
 	// from address is the owner of the transaction.
-	from, err := utils.OwnerToAddress(task.Transaction.Owner)
+	from, err := arweave.PublicKeyToAddress(task.Transaction.Owner)
 	if err != nil {
 		return nil, fmt.Errorf("parse transaction owner: %w", err)
 	}

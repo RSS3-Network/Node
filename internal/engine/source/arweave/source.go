@@ -15,8 +15,6 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave/bundle"
-	"github.com/naturalselectionlabs/rss3-node/provider/arweave/types"
-	"github.com/naturalselectionlabs/rss3-node/provider/arweave/utils"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
@@ -111,7 +109,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 		}
 
 		// Pull transactions.
-		transactionIDs := lo.FlatMap(blocks, func(block *types.Block, _ int) []string {
+		transactionIDs := lo.FlatMap(blocks, func(block *arweave.Block, _ int) []string {
 			return block.Txs
 		})
 
@@ -160,7 +158,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 }
 
 // batchPullBlocksByRange pulls blocks by range, from local state block height to remote block height.
-func (s *source) batchPullBlocksByRange(ctx context.Context, blockHeightStart, blockHeightEnd uint64) ([]*types.Block, error) {
+func (s *source) batchPullBlocksByRange(ctx context.Context, blockHeightStart, blockHeightEnd uint64) ([]*arweave.Block, error) {
 	zap.L().Info("begin to batch pull transactions by range", zap.Uint64("block.height.start", blockHeightStart), zap.Uint64("block.height.end", blockHeightEnd))
 
 	// Pull blocks by block heights.
@@ -177,17 +175,17 @@ func (s *source) batchPullBlocksByRange(ctx context.Context, blockHeightStart, b
 }
 
 // batchPullBlocks pulls blocks by block heights.
-func (s *source) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) ([]*types.Block, error) {
+func (s *source) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) ([]*arweave.Block, error) {
 	zap.L().Info("begin to pull blocks", zap.Int("blocks", len(blockHeights)))
 
-	resultPool := pool.NewWithResults[*types.Block]().
+	resultPool := pool.NewWithResults[*arweave.Block]().
 		WithContext(ctx).
 		WithCancelOnError()
 
 	for _, blockHeight := range blockHeights {
 		blockHeight := blockHeight
 
-		resultPool.Go(func(ctx context.Context) (*types.Block, error) {
+		resultPool.Go(func(ctx context.Context) (*arweave.Block, error) {
 			return s.arweaveClient.GetBlockByHeight(ctx, blockHeight.Int64())
 		})
 	}
@@ -196,17 +194,17 @@ func (s *source) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) (
 }
 
 // batchPullTransactions pulls transactions by transaction ids.
-func (s *source) batchPullTransactions(ctx context.Context, transactionIDs []string) ([]*types.Transaction, error) {
+func (s *source) batchPullTransactions(ctx context.Context, transactionIDs []string) ([]*arweave.Transaction, error) {
 	zap.L().Info("begin to pull transactions", zap.Int("transactions", len(transactionIDs)))
 
-	resultPool := pool.NewWithResults[*types.Transaction]().
+	resultPool := pool.NewWithResults[*arweave.Transaction]().
 		WithContext(ctx).
 		WithCancelOnError()
 
 	for _, transactionID := range transactionIDs {
 		transactionID := transactionID
 
-		resultPool.Go(func(ctx context.Context) (*types.Transaction, error) {
+		resultPool.Go(func(ctx context.Context) (*arweave.Transaction, error) {
 			return s.arweaveClient.GetTransactionByID(ctx, transactionID)
 		})
 	}
@@ -215,7 +213,7 @@ func (s *source) batchPullTransactions(ctx context.Context, transactionIDs []str
 }
 
 // batchPullData pulls data by transactions.
-func (s *source) batchPullData(ctx context.Context, transactions []*types.Transaction) error {
+func (s *source) batchPullData(ctx context.Context, transactions []*arweave.Transaction) error {
 	resultPool := pool.New().
 		WithContext(ctx).
 		WithCancelOnError()
@@ -246,10 +244,10 @@ func (s *source) batchPullData(ctx context.Context, transactions []*types.Transa
 }
 
 // batchPullBundleTransactions pulls bundle transactions by transaction ids.
-func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs []string) ([]*types.Transaction, error) {
+func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs []string) ([]*arweave.Transaction, error) {
 	zap.L().Info("begin to pull and filter bundle transactions", zap.Int("transactions", len(transactionIDs)))
 
-	resultPool := pool.NewWithResults[[]*types.Transaction]().
+	resultPool := pool.NewWithResults[[]*arweave.Transaction]().
 		WithContext(ctx).
 		WithFirstError().
 		WithCancelOnError()
@@ -257,8 +255,8 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 	for _, transactionID := range transactionIDs {
 		transactionID := transactionID
 
-		resultPool.Go(func(ctx context.Context) ([]*types.Transaction, error) {
-			bundleTransactions := make([]*types.Transaction, 0)
+		resultPool.Go(func(ctx context.Context) ([]*arweave.Transaction, error) {
+			bundleTransactions := make([]*arweave.Transaction, 0)
 
 			response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
 			if err != nil {
@@ -288,14 +286,14 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 					return nil, nil
 				}
 
-				bundleTransaction := types.Transaction{
+				bundleTransaction := arweave.Transaction{
 					Format: 2,
 					ID:     dataItemInfo.ID,
 					Owner:  dataItem.Owner,
-					Tags: lo.Map(dataItem.Tags, func(tag bundle.Tag, _ int) types.Tag {
-						return types.Tag{
-							Name:  utils.Base64Encode(tag.Name),
-							Value: utils.Base64Encode(tag.Value),
+					Tags: lo.Map(dataItem.Tags, func(tag bundle.Tag, _ int) arweave.Tag {
+						return arweave.Tag{
+							Name:  arweave.Base64Encode(tag.Name),
+							Value: arweave.Base64Encode(tag.Value),
 						}
 					}),
 					Target:    dataItem.Target,
@@ -309,7 +307,7 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 					return nil, fmt.Errorf("read data item %s: %w", dataItemInfo.ID, err)
 				}
 
-				bundleTransaction.Data = utils.Base64Encode(data)
+				bundleTransaction.Data = arweave.Base64Encode(data)
 				bundleTransaction.DataSize = strconv.Itoa(len(bundleTransaction.Data))
 
 				bundleTransactions = append(bundleTransactions, &bundleTransaction)
@@ -328,9 +326,9 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 }
 
 // GroupBundleTransactions groups bundle transactions by block.
-func (s *source) GroupBundleTransactions(transactions []*types.Transaction, block *types.Block) []string {
-	return lo.FilterMap(transactions, func(transaction *types.Transaction, _ int) (string, bool) {
-		hasBundleFormatTag := lo.ContainsBy(transaction.Tags, func(tag types.Tag) bool {
+func (s *source) GroupBundleTransactions(transactions []*arweave.Transaction, block *arweave.Block) []string {
+	return lo.FilterMap(transactions, func(transaction *arweave.Transaction, _ int) (string, bool) {
+		hasBundleFormatTag := lo.ContainsBy(transaction.Tags, func(tag arweave.Tag) bool {
 			tagName, err := base64.RawURLEncoding.DecodeString(tag.Name)
 			if err != nil {
 				return false
@@ -344,7 +342,7 @@ func (s *source) GroupBundleTransactions(transactions []*types.Transaction, bloc
 			return strings.EqualFold(string(tagName), "Bundle-Format") && strings.EqualFold(string(tagValue), "binary")
 		})
 
-		hasBundleVersionTag := lo.ContainsBy(transaction.Tags, func(tag types.Tag) bool {
+		hasBundleVersionTag := lo.ContainsBy(transaction.Tags, func(tag arweave.Tag) bool {
 			tagName, err := base64.RawURLEncoding.DecodeString(tag.Name)
 			if err != nil {
 				return false
@@ -366,7 +364,7 @@ func (s *source) GroupBundleTransactions(transactions []*types.Transaction, bloc
 			return "", false
 		}
 
-		owner, err := utils.OwnerToAddress(transaction.Owner)
+		owner, err := arweave.PublicKeyToAddress(transaction.Owner)
 		if err != nil {
 			zap.L().Error("invalid owner of transaction", zap.String("transaction_id", transaction.ID), zap.Error(err))
 
@@ -378,9 +376,9 @@ func (s *source) GroupBundleTransactions(transactions []*types.Transaction, bloc
 }
 
 // discardRootBundleTransaction discards the root bundle transaction.
-func (s *source) discardRootBundleTransaction(transactions []*types.Transaction) []*types.Transaction {
-	return lo.Filter(transactions, func(transaction *types.Transaction, _ int) bool {
-		transactionOwner, err := utils.OwnerToAddress(transaction.Owner)
+func (s *source) discardRootBundleTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
+	return lo.Filter(transactions, func(transaction *arweave.Transaction, _ int) bool {
+		transactionOwner, err := arweave.PublicKeyToAddress(transaction.Owner)
 		if err != nil {
 			return false
 		}
@@ -390,11 +388,11 @@ func (s *source) discardRootBundleTransaction(transactions []*types.Transaction)
 }
 
 // buildTasks builds tasks from blocks and transactions.
-func (s *source) buildTasks(blocks []*types.Block, transactions []*types.Transaction) ([]engine.Task, error) {
+func (s *source) buildTasks(blocks []*arweave.Block, transactions []*arweave.Transaction) ([]engine.Task, error) {
 	tasks := make([]engine.Task, 0)
 
 	for _, transaction := range transactions {
-		block, _ := lo.Find(blocks, func(block *types.Block) bool {
+		block, _ := lo.Find(blocks, func(block *arweave.Block) bool {
 			return lo.Contains(block.Txs, transaction.ID)
 		})
 
