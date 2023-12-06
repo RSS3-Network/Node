@@ -71,7 +71,6 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &engine.Config{
-					Network:  filter.NetworkEthereum,
 					Chain:    filter.ChainEthereumMainnet,
 					Endpoint: endpoint.MustGet(filter.ChainEthereumMainnet),
 				},

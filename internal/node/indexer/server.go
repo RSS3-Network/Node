@@ -1,4 +1,4 @@
-package node
+package indexer
 
 import (
 	"context"
@@ -117,7 +117,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 
 func NewServer(ctx context.Context, config *engine.Config, databaseClient database.Client) (server *Server, err error) {
 	instance := Server{
-		id:             config.Name,
+		id:             fmt.Sprintf("%s.%s", config.Chain.FullName(), config.Worker),
 		config:         config,
 		databaseClient: databaseClient,
 	}
