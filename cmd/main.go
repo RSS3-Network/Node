@@ -46,8 +46,8 @@ var command = cobra.Command{
 		}
 
 		switch lo.Must(flags.GetString(flag.KeyModule)) {
-		case node.ExplorerModule:
-		case node.IndexerModule:
+		case node.Explorer:
+		case node.Indexer:
 			return runIndexer(cmd.Context(), config, databaseClient)
 		}
 
@@ -97,10 +97,10 @@ func init() {
 	initializeLogger()
 
 	command.PersistentFlags().String(flag.KeyConfig, "./deploy/config.development.yaml", "config file path")
-	command.PersistentFlags().String(flag.KeyModule, "indexer", "module name")
-	command.PersistentFlags().String(flag.KeyIndexerNetwork, "ethereum", "indexer network")
-	command.PersistentFlags().String(flag.KeyIndexerChain, "mainnet", "indexer chain")
-	command.PersistentFlags().String(flag.KeyIndexerWorker, "fallback", "indexer worker")
+	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")
+	command.PersistentFlags().String(flag.KeyIndexerNetwork, filter.NetworkEthereum.String(), "indexer network")
+	command.PersistentFlags().String(flag.KeyIndexerChain, filter.ChainEthereumMainnet.String(), "indexer chain")
+	command.PersistentFlags().String(flag.KeyIndexerWorker, engine.Fallback.String(), "indexer worker")
 }
 
 func main() {
