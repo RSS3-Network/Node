@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/samber/lo"
+	"github.com/spf13/pflag"
+	"os"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/config/flag"
@@ -13,20 +16,20 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/node/indexer"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
+
+var flags *pflag.FlagSet
 
 var command = cobra.Command{
 	Use:           constant.Name,
 	Version:       constant.BuildVersion(),
 	SilenceUsage:  true,
 	SilenceErrors: true,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return viper.BindPFlags(cmd.Flags())
-	},
 	RunE: func(cmd *cobra.Command, _ []string) error {
-		config, err := config.Setup(viper.GetString(flag.KeyConfig))
+		flags = cmd.PersistentFlags()
+
+		config, err := config.Setup(lo.Must(flags.GetString(flag.KeyConfig)))
 		if err != nil {
 			return fmt.Errorf("setup config file: %w", err)
 		}
@@ -41,28 +44,28 @@ var command = cobra.Command{
 			return fmt.Errorf("migrate database: %w", err)
 		}
 
-		switch viper.GetString(flag.KeyModule) {
+		switch lo.Must(flags.GetString(flag.KeyModule)) {
 		case "explorer":
 		case "indexer":
 			return runIndexer(cmd.Context(), config, databaseClient)
 		}
 
-		return fmt.Errorf("unsupported module %s", viper.GetString(flag.KeyModule))
+		return fmt.Errorf("unsupported module %s", lo.Must(flags.GetString(flag.KeyModule)))
 	},
 }
 
 func runIndexer(ctx context.Context, config *config.File, databaseClient database.Client) error {
-	network, err := filter.NetworkString(viper.GetString(flag.KeyIndexerNetwork))
+	network, err := filter.NetworkString(lo.Must(flags.GetString(flag.KeyIndexerNetwork)))
 	if err != nil {
 		return fmt.Errorf("network string: %w", err)
 	}
 
-	chain, err := filter.ChainString(network, viper.GetString(flag.KeyIndexerChain))
+	chain, err := filter.ChainString(network, lo.Must(flags.GetString(flag.KeyIndexerChain)))
 	if err != nil {
 		return fmt.Errorf("chain string: %w", err)
 	}
 
-	worker, err := engine.NameString(viper.GetString(flag.KeyIndexerWorker))
+	worker, err := engine.NameString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
 	if err != nil {
 		return fmt.Errorf("worker string: %w", err)
 	}
@@ -82,7 +85,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 }
 
 func initializeLogger() {
-	if viper.GetString(config.Environment) == config.EnvironmentDevelopment {
+	if os.Getenv(config.Environment) == config.EnvironmentDevelopment {
 		zap.ReplaceGlobals(zap.Must(zap.NewDevelopment()))
 	} else {
 		zap.ReplaceGlobals(zap.Must(zap.NewProduction()))

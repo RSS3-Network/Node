@@ -8,7 +8,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 )
 
@@ -50,8 +49,4 @@ func Setup(configFilePath string) (*File, error) {
 	}
 
 	return &configFile, nil
-}
-
-func init() {
-	viper.AutomaticEnv()
 }
