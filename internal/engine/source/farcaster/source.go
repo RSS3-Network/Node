@@ -454,7 +454,7 @@ func (s *source) fillReactionParams(ctx context.Context, message *farcaster.Mess
 	return s.fillProfile(ctx, message)
 }
 
-func NewSource(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Source, error) {
+func NewSource(config *engine.Config, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.Source, error) {
 	var state State
 
 	// Initialize state from checkpoint.
@@ -465,8 +465,9 @@ func NewSource(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Sou
 	}
 
 	instance := source{
-		config: config,
-		state:  state,
+		databaseClient: databaseClient,
+		config:         config,
+		state:          state,
 	}
 
 	return &instance, nil

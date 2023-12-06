@@ -142,7 +142,7 @@ func NewServer(ctx context.Context, config *engine.Config, databaseClient databa
 	zap.L().Info("load checkpoint", zap.String("checkpoint.id", checkpoint.ID), zap.String("checkpoint.chain", checkpoint.Chain.FullName()), zap.String("checkpoint.worker", checkpoint.Worker), zap.Any("checkpoint.state", state))
 
 	// Initialize source.
-	if instance.source, err = source.New(instance.config, checkpoint); err != nil {
+	if instance.source, err = source.New(instance.config, checkpoint, databaseClient); err != nil {
 		return nil, fmt.Errorf("new source: %w", err)
 	}
 
