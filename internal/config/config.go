@@ -22,7 +22,7 @@ const (
 
 type File struct {
 	Environment string           `mapstructure:"environment" validate:"required" default:"development"`
-	Node        *engine.Module   `mapstructure:"node" validate:"required"`
+	Node        *engine.Module   `mapstructure:"component" validate:"required"`
 	Database    *database.Config `mapstructure:"database" validate:"required"`
 }
 

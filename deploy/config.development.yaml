@@ -17,7 +17,7 @@ database:
   partition: true
   uri: postgres://root@localhost:26257/defaultdb
 
-node:
+component:
   rss:
     - network: rsshub
       endpoint:
