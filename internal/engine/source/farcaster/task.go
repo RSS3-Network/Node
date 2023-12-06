@@ -34,7 +34,7 @@ func (t Task) Validate() error {
 	return nil
 }
 
-func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error) {
+func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 	feed := schema.Feed{
 		ID:        common.HexToHash(t.Message.Hash).String(),
 		Chain:     t.Chain,
@@ -42,6 +42,13 @@ func (t Task) BuildFeed( /* TODO Implementing options. */ ) (*schema.Feed, error
 		Status:    true,
 		Actions:   make([]*schema.Action, 0),
 		Timestamp: t.Timestamp(),
+	}
+
+	// Apply feed options.
+	for _, option := range options {
+		if err := option(&feed); err != nil {
+			return nil, fmt.Errorf("apply option: %w", err)
+		}
 	}
 
 	return &feed, nil
