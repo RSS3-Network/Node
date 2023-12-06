@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/samber/lo"
-	"github.com/spf13/pflag"
 	"os"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/config"
@@ -13,9 +11,12 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	"github.com/naturalselectionlabs/rss3-node/internal/node"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/indexer"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/samber/lo"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"go.uber.org/zap"
 )
 
@@ -45,8 +46,8 @@ var command = cobra.Command{
 		}
 
 		switch lo.Must(flags.GetString(flag.KeyModule)) {
-		case "explorer":
-		case "indexer":
+		case node.ExplorerModule:
+		case node.IndexerModule:
 			return runIndexer(cmd.Context(), config, databaseClient)
 		}
 
