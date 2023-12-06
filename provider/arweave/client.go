@@ -41,6 +41,78 @@ type client struct {
 
 // GetTransactionData fetches the transaction data of the given id from arweave network.
 func (c *client) GetTransactionData(ctx context.Context, id string) (io.ReadCloser, error) {
+	data, err := c.queryArweaveByRoute(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("query arweave by route: %w", err)
+	}
+
+	return data, nil
+}
+
+// GetBlockHeight returns the current block height of the arweave network.
+func (c *client) GetBlockHeight(ctx context.Context) (blockHeight int64, err error) {
+	data, err := c.queryArweaveByRoute(ctx, "info")
+	if err != nil {
+		return 0, fmt.Errorf("query arweave by route: %w", err)
+	}
+
+	network := Network{}
+
+	content, err := io.ReadAll(data)
+	if err != nil {
+		return 0, err
+	}
+
+	err = json.Unmarshal(content, &network)
+	if err != nil {
+		return 0, fmt.Errorf("unmarshal response body: %w", err)
+	}
+
+	return network.Blocks, nil
+}
+
+// GetBlockByHeight returns block by specific block height.
+func (c *client) GetBlockByHeight(ctx context.Context, height int64) (block *Block, err error) {
+	data, err := c.queryArweaveByRoute(ctx, fmt.Sprintf("block/height/%d", height))
+	if err != nil {
+		return nil, fmt.Errorf("query arweave by route: %w", err)
+	}
+
+	content, err := io.ReadAll(data)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(content, &block)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal response body: %w", err)
+	}
+
+	return block, nil
+}
+
+// GetTransactionByID returns transaction by specific transaction id
+func (c *client) GetTransactionByID(ctx context.Context, id string) (transaction *Transaction, err error) {
+	data, err := c.queryArweaveByRoute(ctx, fmt.Sprintf("tx/%s", id))
+	if err != nil {
+		return nil, fmt.Errorf("query arweave by route: %w", err)
+	}
+
+	content, err := io.ReadAll(data)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(content, &transaction)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal response body: %w", err)
+	}
+
+	return transaction, nil
+}
+
+// queryArweaveByRoute queries the arweave network by the given route.
+func (c *client) queryArweaveByRoute(ctx context.Context, path string) (io.ReadCloser, error) {
 	c.locker.RLock()
 	defer c.locker.RUnlock()
 
@@ -51,7 +123,7 @@ func (c *client) GetTransactionData(ctx context.Context, id string) (io.ReadClos
 		gateway := gateway
 
 		quickGroup.Go(func(ctx context.Context) (io.ReadCloser, error) {
-			requestURL, err := url.JoinPath(gateway, id)
+			requestURL, err := url.JoinPath(gateway, path)
 			if err != nil {
 				return nil, fmt.Errorf("invalid gateway url: %w", err)
 			}
@@ -62,144 +134,6 @@ func (c *client) GetTransactionData(ctx context.Context, id string) (io.ReadClos
 			}
 
 			return data, nil
-		})
-	}
-
-	result, err := quickGroup.Wait()
-	if err != nil {
-		return nil, fmt.Errorf("fetch from all gateways: %w", err)
-	}
-
-	return result, nil
-}
-
-// GetBlockHeight returns the current block height of the arweave network.
-func (c *client) GetBlockHeight(ctx context.Context) (blockHeight int64, err error) {
-	c.locker.RLock()
-	defer c.locker.RUnlock()
-
-	quickGroup := syncx.NewQuickGroup[int64](ctx)
-
-	// Try to fetch from all gateways.
-	for _, gateway := range c.gateways {
-		gateway := gateway
-
-		quickGroup.Go(func(ctx context.Context) (int64, error) {
-			requestURL, err := url.JoinPath(gateway, "info")
-			if err != nil {
-				return 0, fmt.Errorf("invalid gateway url: %w", err)
-			}
-
-			data, err := c.do(ctx, http.MethodGet, requestURL, nil)
-			if err != nil {
-				return 0, fmt.Errorf("fetch from gateway %s: %w", gateway, err)
-			}
-
-			network := Network{}
-
-			content, err := io.ReadAll(data)
-			if err != nil {
-				return 0, err
-			}
-
-			err = json.Unmarshal(content, &network)
-			if err != nil {
-				return 0, fmt.Errorf("unmarshal response body: %w", err)
-			}
-
-			return network.Blocks, nil
-		})
-	}
-
-	result, err := quickGroup.Wait()
-	if err != nil {
-		return 0, fmt.Errorf("fetch from all gateways: %w", err)
-	}
-
-	return result, nil
-}
-
-// GetBlockByHeight returns block by specific block height.
-func (c *client) GetBlockByHeight(ctx context.Context, height int64) (block *Block, err error) {
-	c.locker.RLock()
-	defer c.locker.RUnlock()
-
-	quickGroup := syncx.NewQuickGroup[*Block](ctx)
-
-	// Try to fetch from all gateways.
-	for _, gateway := range c.gateways {
-		gateway := gateway
-
-		quickGroup.Go(func(ctx context.Context) (*Block, error) {
-			requestURL, err := url.JoinPath(gateway, fmt.Sprintf("block/height/%d", height))
-			if err != nil {
-				return nil, fmt.Errorf("invalid gateway url: %w", err)
-			}
-
-			var block *Block
-
-			data, err := c.do(ctx, http.MethodGet, requestURL, nil)
-			if err != nil {
-				return nil, fmt.Errorf("fetch from gateway %s: %w", gateway, err)
-			}
-
-			content, err := io.ReadAll(data)
-			if err != nil {
-				return nil, err
-			}
-
-			err = json.Unmarshal(content, &block)
-			if err != nil {
-				return nil, fmt.Errorf("unmarshal response body: %w", err)
-			}
-
-			return block, nil
-		})
-	}
-
-	result, err := quickGroup.Wait()
-	if err != nil {
-		return nil, fmt.Errorf("fetch from all gateways: %w", err)
-	}
-
-	return result, nil
-}
-
-// GetTransactionByID returns transaction by specific transaction id
-func (c *client) GetTransactionByID(ctx context.Context, id string) (transaction *Transaction, err error) {
-	c.locker.RLock()
-	defer c.locker.RUnlock()
-
-	quickGroup := syncx.NewQuickGroup[*Transaction](ctx)
-
-	// Try to fetch from all gateways.
-	for _, gateway := range c.gateways {
-		gateway := gateway
-
-		quickGroup.Go(func(ctx context.Context) (*Transaction, error) {
-			requestURL, err := url.JoinPath(gateway, fmt.Sprintf("tx/%s", id))
-			if err != nil {
-				return nil, fmt.Errorf("invalid gateway url: %w", err)
-			}
-
-			var transaction *Transaction
-
-			data, err := c.do(ctx, http.MethodGet, requestURL, nil)
-			if err != nil {
-				return nil, fmt.Errorf("fetch from gateway %s: %w", gateway, err)
-			}
-
-			content, err := io.ReadAll(data)
-			if err != nil {
-				return nil, err
-			}
-
-			err = json.Unmarshal(content, &transaction)
-			if err != nil {
-				return nil, fmt.Errorf("unmarshal response body: %w", err)
-			}
-
-			return transaction, nil
 		})
 	}
 
