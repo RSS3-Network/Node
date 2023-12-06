@@ -271,7 +271,7 @@ func (w *worker) detectMimeType(ctx context.Context, url string) (string, error)
 	mimeType, _ := mimetype.DetectReader(response)
 
 	if mimeType == nil {
-		return "", fmt.Errorf("can not detect mime type %s", url)
+		return "", fmt.Errorf("fail to detect mime type %s", url)
 	}
 
 	return mimeType.String(), nil
