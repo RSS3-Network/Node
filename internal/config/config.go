@@ -2,15 +2,14 @@ package config
 
 import (
 	"fmt"
-	"reflect"
+	"os"
 
 	"github.com/creasty/defaults"
 	"github.com/go-playground/validator/v10"
-	"github.com/mitchellh/mapstructure"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -21,26 +20,21 @@ const (
 )
 
 type File struct {
-	Environment string           `mapstructure:"environment" validate:"required" default:"development"`
-	Node        *engine.Module   `mapstructure:"component" validate:"required"`
-	Database    *database.Config `mapstructure:"database" validate:"required"`
+	Environment string           `yaml:"environment" validate:"required" default:"development"`
+	Node        *engine.Module   `yaml:"component" validate:"required"`
+	Database    *database.Config `yaml:"database" validate:"required"`
 }
 
 func Setup(configFilePath string) (*File, error) {
-	viper.SetConfigFile(configFilePath)
-
 	// Read config file.
-	if err := viper.ReadInConfig(); err != nil {
+	config, err := os.ReadFile(configFilePath)
+	if err != nil {
 		return nil, fmt.Errorf("read config file: %w", err)
 	}
 
+	// Unmarshal config file.
 	var configFile File
-
-	// Parse config file.
-	if err := viper.Unmarshal(&configFile, viper.DecodeHook(
-		mapstructure.ComposeDecodeHookFunc(
-			decodeMapstructure,
-		))); err != nil {
+	if err := yaml.Unmarshal(config, &configFile); err != nil {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)
 	}
 
@@ -56,24 +50,6 @@ func Setup(configFilePath string) (*File, error) {
 	}
 
 	return &configFile, nil
-}
-
-func decodeMapstructure(f reflect.Type, _ reflect.Type, data interface{}) (interface{}, error) {
-	if f.Kind() != reflect.String {
-		return data, nil
-	}
-
-	value := data.(string)
-
-	if network, err := filter.NetworkString(value); err == nil {
-		return network, nil
-	}
-
-	if worker, err := engine.NameString(value); err == nil {
-		return worker, nil
-	}
-
-	return data, nil
 }
 
 func init() {

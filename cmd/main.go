@@ -68,7 +68,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 	}
 
 	for _, nodeConfig := range config.Node.Decentralized {
-		if nodeConfig.Network == network && nodeConfig.Chain == chain.String() && nodeConfig.Worker == worker {
+		if nodeConfig.Chain == chain && nodeConfig.Worker == worker {
 			server, err := indexer.NewServer(ctx, nodeConfig, databaseClient)
 			if err != nil {
 				return fmt.Errorf("new server: %w", err)

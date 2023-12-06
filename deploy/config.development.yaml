@@ -19,8 +19,9 @@ database:
 
 component:
   rss:
-    - network: rsshub
-      endpoint:
+    - network: rss
+      chain: rsshub
+      endpoint: https://rss3.com/
       authentication:
         username: username
         password: password
