@@ -1,51 +1,46 @@
 package engine
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"gopkg.in/yaml.v3"
 )
 
-type Config struct {
-	Name     string         `mapstructure:"name" validate:"required"`
-	Endpoint string         `mapstructure:"endpoint" validate:"required"`
-	Worker   Name           `mapstructure:"-"`
-	Network  filter.Network `mapstructure:"-"`
-	Chain    filter.Chain   `mapstructure:"-"`
+type Module struct {
+	RSS           []*Config `yaml:"rss"`
+	Federated     []*Config `yaml:"federated"`
+	Decentralized []*Config `yaml:"decentralized"`
 }
 
-// Parse parses the config name.
-func (c *Config) Parse() (err error) {
-	data := strings.Split(c.Name, ":")
-	if len(data) < 1 {
-		return fmt.Errorf("invalid name %s", c.Name)
+type Config struct {
+	Chain    filter.Chain `yaml:"chain"`
+	Endpoint string       `yaml:"endpoint" validate:"required"`
+	Worker   Name         `yaml:"worker"`
+}
+
+var _ yaml.Unmarshaler = (*Config)(nil)
+
+func (c *Config) UnmarshalYAML(value *yaml.Node) error {
+	type tmp struct {
+		Network  filter.Network `yaml:"network" validate:"required"`
+		Chain    string         `yaml:"chain"`
+		Endpoint string         `yaml:"endpoint" validate:"required"`
+		Worker   Name           `yaml:"worker"`
 	}
 
-	engineConfigs := strings.Split(data[0], ".")
-	if len(engineConfigs) < 1 {
-		return fmt.Errorf("invalid name %s", c.Name)
+	var t tmp
+
+	err := value.Decode(&t)
+	if err != nil {
+		return err
 	}
 
-	if c.Network, err = filter.NetworkString(engineConfigs[0]); err != nil {
-		return fmt.Errorf("invalid network: %w", err)
+	c.Chain, err = filter.ChainString(t.Network, t.Chain)
+	if err != nil {
+		return err
 	}
 
-	switch c.Network {
-	case filter.NetworkRSSHub:
-	default:
-		if len(engineConfigs) < 3 {
-			return fmt.Errorf("invalid name %s", c.Name)
-		}
-
-		if c.Chain, err = filter.ChainString(c.Network, engineConfigs[1]); err != nil {
-			return fmt.Errorf("invalid chain: %w", err)
-		}
-
-		if c.Worker, err = NameString(engineConfigs[2]); err != nil {
-			return fmt.Errorf("invalid worker: %w", err)
-		}
-	}
+	c.Endpoint = t.Endpoint
+	c.Worker = t.Worker
 
 	return nil
 }

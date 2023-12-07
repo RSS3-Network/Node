@@ -15,6 +15,8 @@ func ChainString(network Network, chainValue string) (Chain, error) {
 		return ChainEthereumString(chainValue)
 	case NetworkArweave:
 		return ChainArweaveString(chainValue)
+	case NetworkRSS:
+		return ChainRSSString(chainValue)
 	default:
 		return nil, fmt.Errorf("unknown network: %s", network)
 	}

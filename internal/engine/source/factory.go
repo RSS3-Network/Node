@@ -11,12 +11,12 @@ import (
 
 // New creates a new source.
 func New(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Source, error) {
-	switch config.Network {
+	switch config.Chain.Network() {
 	case filter.NetworkEthereum:
 		return ethereum.NewSource(config, checkpoint)
 	case filter.NetworkArweave:
 		return arweave.NewSource(config, checkpoint)
 	default:
-		return nil, fmt.Errorf("unsupported source %s", config.Network)
+		return nil, fmt.Errorf("unsupported source %s", config.Chain.Network())
 	}
 }
