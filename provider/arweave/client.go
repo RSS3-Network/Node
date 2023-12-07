@@ -46,6 +46,9 @@ func (c *client) GetTransactionData(ctx context.Context, id string) (io.ReadClos
 		return nil, fmt.Errorf("query arweave by route: %w", err)
 	}
 
+	// close the response body when the function returns.
+	defer lo.Try(data.Close)
+
 	return data, nil
 }
 
@@ -55,6 +58,9 @@ func (c *client) GetBlockHeight(ctx context.Context) (blockHeight int64, err err
 	if err != nil {
 		return 0, fmt.Errorf("query arweave by route: %w", err)
 	}
+
+	// close the response body when the function returns.
+	defer lo.Try(data.Close)
 
 	network := Network{}
 
@@ -78,6 +84,9 @@ func (c *client) GetBlockByHeight(ctx context.Context, height int64) (block *Blo
 		return nil, fmt.Errorf("query arweave by route: %w", err)
 	}
 
+	// close the response body when the function returns.
+	defer lo.Try(data.Close)
+
 	content, err := io.ReadAll(data)
 	if err != nil {
 		return nil, err
@@ -97,6 +106,9 @@ func (c *client) GetTransactionByID(ctx context.Context, id string) (transaction
 	if err != nil {
 		return nil, fmt.Errorf("query arweave by route: %w", err)
 	}
+
+	// close the response body when the function returns.
+	defer lo.Try(data.Close)
 
 	content, err := io.ReadAll(data)
 	if err != nil {
