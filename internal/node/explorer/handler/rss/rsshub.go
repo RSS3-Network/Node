@@ -3,11 +3,12 @@ package rss
 import (
 	"context"
 	"fmt"
-	"github.com/labstack/echo/v4"
-	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/labstack/echo/v4"
+	"github.com/samber/lo"
 )
 
 // GetRSSHub get rsshub data from rsshub node
@@ -57,11 +58,13 @@ func (h *Handler) parseRSSHubAuthentication(_ context.Context, request *url.URL)
 		return
 	}
 
-	if username, password := authentication["username"], authentication["password"]; username != nil && password != nil {
+	username, password := authentication["username"], authentication["password"]
+	if username != nil && password != nil {
 		request.User = url.UserPassword(username.(string), password.(string))
 	}
 
-	if accessKey, accessCode := authentication["access_key"], authentication["access_code"]; accessKey != nil && accessCode != nil {
+	accessKey, accessCode := authentication["access_key"], authentication["access_code"]
+	if accessKey != nil && accessCode != nil {
 		request.RawQuery = fmt.Sprintf("%s&%s=%s", request.RawQuery, accessKey, accessCode)
 	}
 }

@@ -2,10 +2,11 @@ package rss
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/naturalselectionlabs/rss3-node/internal/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
-	"net/http"
 )
 
 type Handler struct {
