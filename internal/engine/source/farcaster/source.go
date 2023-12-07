@@ -92,8 +92,10 @@ func (s *source) pollCasts(ctx context.Context, tasksChan chan<- []engine.Task) 
 			return fmt.Errorf("fetch farcaster max fid: %w", err)
 		}
 
-		s.state.CastsFid = fidsResponse.Fids[0] + 1
+		s.state.CastsFid = fidsResponse.Fids[0]
 	}
+
+	s.state.CastsFid++
 
 	for s.state.CastsFid > 1 {
 		s.state.CastsFid--
@@ -186,13 +188,19 @@ func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farc
 		message := message
 		switch message.Data.Type {
 		case farcaster.MessageTypeCastAdd.String():
+			defer func() {
+				if value := recover(); value != nil {
+					zap.L().Panic("handle record", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
+				}
+			}()
+
 			if err := s.fillCastParams(ctx, &message); err != nil {
 				zap.L().Warn("fill farcaster cast params error", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
 
 				continue
 			}
 		case farcaster.MessageTypeReactionAdd.String():
-			if err := s.fillCastParams(ctx, &message); err != nil {
+			if err := s.fillReactionParams(ctx, &message); err != nil {
 				zap.L().Warn("fill farcaster reaction params error", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
 
 				continue
@@ -214,7 +222,7 @@ func (s *source) pollEvents(ctx context.Context, tasksChan chan<- []engine.Task)
 	for {
 		eventsResponse, err := s.farcasterClient.GetEvents(ctx, lo.ToPtr(int64(cursor)))
 
-		if err != nil {
+		if err != nil || eventsResponse == nil {
 			zap.L().Warn("fetch farcaster events error", zap.Uint64("event.from.id", cursor))
 
 			time.Sleep(defaultBlockTime)
@@ -362,11 +370,15 @@ func (s *source) getProfileByFid(ctx context.Context, fid *int64) (*model.Profil
 
 	profile, err = s.databaseClient.LoadProfile(ctx, *fid)
 
-	if err != nil || profile == nil {
+	if err != nil {
+		return nil, err
+	}
+
+	if profile != nil && profile.Username == "" && profile.CustodyAddress == "" && len(profile.EthAddresses) == 0 {
 		profile, err = s.updateProfileByFid(ctx, fid)
 
 		if err != nil {
-			return nil, fmt.Errorf("fetch farcaster profile %d: %w", fid, err)
+			return nil, fmt.Errorf("update farcaster profile %d: %w", fid, err)
 		}
 	}
 
@@ -410,7 +422,11 @@ func (s *source) fillCastParams(ctx context.Context, message *farcaster.Message)
 		targetMessage, err := s.farcasterClient.GetCastByFidAndHash(ctx, &targetFid, message.Data.CastAddBody.ParentCastID.Hash)
 
 		if err != nil {
-			zap.L().Warn("fetch farcaster target cast error", zap.Int64("fid", targetFid), zap.String("hash", message.Data.CastAddBody.ParentCastID.Hash))
+			return err
+		}
+
+		if targetMessage == nil {
+			return fmt.Errorf("target cast not found")
 		}
 
 		if err = s.fillMentionsUsernames(ctx, targetMessage); err != nil {
@@ -437,7 +453,11 @@ func (s *source) fillReactionParams(ctx context.Context, message *farcaster.Mess
 		targetMessage, err := s.farcasterClient.GetCastByFidAndHash(ctx, &targetFid, message.Data.ReactionBody.TargetCastID.Hash)
 
 		if err != nil {
-			zap.L().Warn("fetch farcaster target cast error", zap.Int64("fid", targetFid), zap.String("hash", message.Data.CastAddBody.ParentCastID.Hash))
+			return err
+		}
+
+		if targetMessage == nil {
+			return fmt.Errorf("target cast not found")
 		}
 
 		if err = s.fillMentionsUsernames(ctx, targetMessage); err != nil {
@@ -446,7 +466,7 @@ func (s *source) fillReactionParams(ctx context.Context, message *farcaster.Mess
 
 		message.Data.ReactionBody.TargetCast = targetMessage
 
-		if err = s.fillProfile(ctx, message.Data.CastAddBody.ParentCast); err != nil {
+		if err = s.fillProfile(ctx, message.Data.ReactionBody.TargetCast); err != nil {
 			return err
 		}
 	}

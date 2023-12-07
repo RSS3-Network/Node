@@ -32,3 +32,8 @@ component:
       chain: mainnet
       worker: fallback
       endpoint: https://rpc.ankr.com/eth
+
+    - network: farcaster
+      chain: mainnet
+      worker: farcaster
+      endpoint: https://nemes.farcaster.xyz:2281

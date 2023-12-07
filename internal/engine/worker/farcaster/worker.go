@@ -6,13 +6,14 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/go-resty/resty/v2"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/farcaster"
 	"github.com/naturalselectionlabs/rss3-node/provider/farcaster"
-	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
@@ -24,7 +25,7 @@ import (
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
-	httpClient ipfs.HTTPClient
+	httpClient *resty.Client
 }
 
 func (w *worker) Name() string {
@@ -42,7 +43,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	feed, err := task.BuildFeed()
+	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.PlatformFarcaster))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -59,6 +60,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 	if err != nil {
 		return nil, fmt.Errorf("handle farcaster message failed: %w", err)
+	}
+
+	if len(feed.Actions) == 0 {
+		return nil, nil
 	}
 
 	return feed, nil
@@ -266,9 +271,16 @@ func (w *worker) buildPostMedia(ctx context.Context, post *metadata.Social, embe
 }
 
 func (w *worker) detectMimeType(ctx context.Context, url string) (string, error) {
-	response, _ := w.httpClient.Fetch(ctx, url, ipfs.FetchModeStable)
+	response, err := w.httpClient.R().SetContext(ctx).SetHeader("User-Agent", "curl/7.86.0").Get(url)
+	if err != nil {
+		return "", fmt.Errorf("fetch content: %w", err)
+	}
 
-	mimeType, _ := mimetype.DetectReader(response)
+	if response.StatusCode() != 200 {
+		return "", fmt.Errorf("unexpected status code: %d", response.StatusCode())
+	}
+
+	mimeType := mimetype.Detect(response.Body())
 
 	if mimeType == nil {
 		return "", fmt.Errorf("fail to detect mime type %s", url)
@@ -278,11 +290,7 @@ func (w *worker) detectMimeType(ctx context.Context, url string) (string, error)
 }
 
 func NewWorker() (engine.Worker, error) {
-	var instance worker
-
-	httpClient, _ := ipfs.NewHTTPClient()
-
-	instance.httpClient = httpClient
-
-	return &instance, nil
+	return &worker{
+		httpClient: resty.New().SetTimeout(5 * time.Second).SetRetryCount(3).SetLogger(zap.L().Sugar()),
+	}, nil
 }

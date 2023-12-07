@@ -10,6 +10,6 @@ func (p Platform) ID() string {
 }
 
 const (
-	PlatformRSS3 Platform = iota + 1
-	PlatformFarcaster
+	PlatformRSS3      Platform = iota + 1 // RSS3
+	PlatformFarcaster                     // Farcaster
 )
