@@ -53,6 +53,10 @@ func (s *Server) Run(ctx context.Context) error {
 }
 
 func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
+	if len(tasks) == 0 {
+		return nil
+	}
+
 	resultPool := pool.NewWithResults[*schema.Feed]().WithMaxGoroutines(lo.Ternary(len(tasks) < 20*runtime.NumCPU(), len(tasks), 20*runtime.NumCPU()))
 
 	for _, task := range tasks {
