@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"runtime"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/constant"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
@@ -52,7 +53,7 @@ func (s *Server) Run(ctx context.Context) error {
 }
 
 func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
-	resultPool := pool.NewWithResults[*schema.Feed]()
+	resultPool := pool.NewWithResults[*schema.Feed]().WithMaxGoroutines(lo.Ternary(len(tasks) < 20*runtime.NumCPU(), len(tasks), 20*runtime.NumCPU()))
 
 	for _, task := range tasks {
 		task := task
