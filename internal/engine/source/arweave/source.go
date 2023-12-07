@@ -102,8 +102,14 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 			continue
 		}
 
+		// Pull blocks
+		blockHeightEnd := lo.Min([]uint64{
+			uint64(blockHeightLatestRemote),
+			s.state.BlockHeight,
+		})
+
 		// Pull blocks by range.
-		blocks, err := s.batchPullBlocksByRange(ctx, s.state.BlockHeight, uint64(blockHeightLatestRemote))
+		blocks, err := s.batchPullBlocksByRange(ctx, s.state.BlockHeight, blockHeightEnd)
 		if err != nil {
 			return fmt.Errorf("batch pull blocks: %w", err)
 		}
