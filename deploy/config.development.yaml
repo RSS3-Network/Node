@@ -21,11 +21,13 @@ component:
   rss:
     - network: rss
       chain: rsshub
-      endpoint: https://rss3.com/
-      authentication:
-        username: username
-        password: password
-        access_key: access_key
+      endpoint: https://rsshub.app/
+      parameters:
+        authentication:
+          username:
+          password:
+          access_key:
+          access_code:
 
   decentralized:
     - network: ethereum

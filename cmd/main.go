@@ -12,6 +12,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/node"
+	"github.com/naturalselectionlabs/rss3-node/internal/node/explorer"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/indexer"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
@@ -47,12 +48,22 @@ var command = cobra.Command{
 
 		switch lo.Must(flags.GetString(flag.KeyModule)) {
 		case node.Explorer:
+			return runExplorer(cmd.Context(), config, databaseClient)
 		case node.Indexer:
 			return runIndexer(cmd.Context(), config, databaseClient)
 		}
 
 		return fmt.Errorf("unsupported module %s", lo.Must(flags.GetString(flag.KeyModule)))
 	},
+}
+
+func runExplorer(ctx context.Context, config *config.File, databaseClient database.Client) error {
+	server, err := explorer.NewServer(ctx, config, databaseClient)
+	if err != nil {
+		return fmt.Errorf("new server: %w", err)
+	}
+
+	return server.Run(ctx)
 }
 
 func runIndexer(ctx context.Context, config *config.File, databaseClient database.Client) error {
