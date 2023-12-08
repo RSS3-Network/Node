@@ -13,7 +13,7 @@ func (r *RSS) GetRSSHubHandler(c echo.Context) error {
 
 	data, err := r.getRSSHubData(c.Request().Context(), path, rawQuery)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSONBlob(http.StatusOK, data)
