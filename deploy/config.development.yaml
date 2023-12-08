@@ -30,7 +30,7 @@ component:
           access_code:
 
   decentralized:
-    - network: ethereum
+    - network: arweave
       chain: mainnet
       worker: fallback
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: https://arweave.net/

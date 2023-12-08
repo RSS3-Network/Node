@@ -13,6 +13,7 @@ type Name int
 
 const (
 	Fallback Name = iota + 1 // fallback
+	Uniswap                  // uniswap
 )
 
 type Worker interface {

@@ -7,4 +7,5 @@ const (
 	TagUnknown Tag = iota
 	TagTransaction
 	TagCollectible
+	TagExchange
 )
