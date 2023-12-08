@@ -150,8 +150,6 @@ func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
 func (c *client) LoadProfile(ctx context.Context, fid int64) (*model.Profile, error) {
 	var value table.Profile
 
-	zap.L().Info("load farcaster profile", zap.Int64("fid", fid))
-
 	if err := c.database.WithContext(ctx).
 		Where("fid = ?", fid).
 		First(&value).

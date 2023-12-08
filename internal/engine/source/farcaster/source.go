@@ -28,6 +28,7 @@ type source struct {
 	farcasterClient farcaster.Client
 	databaseClient  database.Client
 	state           State
+	pendingState    State
 }
 
 func (s *source) Chain() filter.Chain {
@@ -64,7 +65,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 		}
 	}()
 
-	// poll latest events
+	//// poll latest events
 	go func() {
 		errorChan <- s.pollEvents(ctx, tasksChan)
 	}()
@@ -82,27 +83,31 @@ func (s *source) initialize() (err error) {
 }
 
 func (s *source) pollCasts(ctx context.Context, tasksChan chan<- []engine.Task) error {
-	if s.state.CastsFid == 1 {
+	if s.state.CastsBackfill {
 		return nil
 	}
 
-	if s.state.CastsFid == 0 {
+	if s.state.CastsFid == 0 && !s.state.CastsBackfill {
 		fidsResponse, err := s.farcasterClient.GetFids(ctx, true, lo.ToPtr(1))
 		if err != nil {
 			return fmt.Errorf("fetch farcaster max fid: %w", err)
 		}
 
-		s.state.CastsFid = fidsResponse.Fids[0]
+		s.pendingState.CastsFid = fidsResponse.Fids[0]
 	}
 
-	s.state.CastsFid++
-
-	for s.state.CastsFid > 1 {
-		s.state.CastsFid--
-		err := s.pollCastsByFid(ctx, lo.ToPtr(int64(s.state.CastsFid)), "", tasksChan)
+	for !s.state.CastsBackfill {
+		err := s.pollCastsByFid(ctx, lo.ToPtr(int64(s.pendingState.CastsFid)), "", tasksChan)
 
 		if err != nil {
 			return err
+		}
+
+		s.state = s.pendingState
+		s.pendingState.CastsFid--
+
+		if s.pendingState.CastsFid == 0 {
+			s.state.CastsBackfill = true
 		}
 	}
 
@@ -133,25 +138,31 @@ func (s *source) pollCastsByFid(ctx context.Context, fid *int64, pageToken strin
 }
 
 func (s *source) pollReactions(ctx context.Context, tasksChan chan<- []engine.Task) error {
-	if s.state.ReactionsFid == 1 {
+	if s.state.ReactionsBackfill {
 		return nil
 	}
 
-	if s.state.ReactionsFid == 0 {
+	if s.state.ReactionsFid == 0 && !s.state.ReactionsBackfill {
 		fidsResponse, err := s.farcasterClient.GetFids(ctx, true, lo.ToPtr(1))
 		if err != nil {
 			return fmt.Errorf("fetch farcaster max fid: %w", err)
 		}
 
-		s.state.ReactionsFid = fidsResponse.Fids[0] + 1
+		s.pendingState.ReactionsFid = fidsResponse.Fids[0]
 	}
 
-	for s.state.ReactionsFid > 1 {
-		s.state.ReactionsFid--
-		err := s.pollReactionsByFid(ctx, lo.ToPtr(int64(s.state.ReactionsFid)), "", tasksChan)
+	for !s.state.ReactionsBackfill {
+		err := s.pollReactionsByFid(ctx, lo.ToPtr(int64(s.pendingState.ReactionsFid)), "", tasksChan)
 
 		if err != nil {
 			return err
+		}
+
+		s.state = s.pendingState
+		s.pendingState.ReactionsFid--
+
+		if s.pendingState.ReactionsFid == 0 {
+			s.state.ReactionsBackfill = true
 		}
 	}
 
@@ -188,12 +199,6 @@ func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farc
 		message := message
 		switch message.Data.Type {
 		case farcaster.MessageTypeCastAdd.String():
-			defer func() {
-				if value := recover(); value != nil {
-					zap.L().Panic("handle record", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
-				}
-			}()
-
 			if err := s.fillCastParams(ctx, &message); err != nil {
 				zap.L().Warn("fill farcaster cast params error", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
 
@@ -240,11 +245,12 @@ func (s *source) pollEvents(ctx context.Context, tasksChan chan<- []engine.Task)
 		}
 		tasksChan <- lo.Map(tasks, func(task *Task, _ int) engine.Task { return task })
 
-		s.state.EventID = eventsResponse.NextPageEventID
+		s.state = s.pendingState
+		s.pendingState.EventID = eventsResponse.NextPageEventID
 
 		if len(tasks) > 0 {
 			task, _ := lo.Last(tasks)
-			s.state.EventTimestamp = time.Unix(farcaster.CovertFarcasterTimeToTimestamp(int64(task.Message.Data.Timestamp)), 10)
+			s.pendingState.EventTimestamp = time.Unix(farcaster.CovertFarcasterTimeToTimestamp(int64(task.Message.Data.Timestamp)), 10)
 		}
 
 		cursor = eventsResponse.NextPageEventID
@@ -488,6 +494,7 @@ func NewSource(config *engine.Config, checkpoint *engine.Checkpoint, databaseCli
 		databaseClient: databaseClient,
 		config:         config,
 		state:          state,
+		pendingState:   state, // Default pending state is equal to current state.
 	}
 
 	return &instance, nil
