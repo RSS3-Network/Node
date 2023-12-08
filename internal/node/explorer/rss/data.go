@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	RSSHubJSONPath = ".ums"
+	RSSHubUMSPath = ".ums"
 )
 
 func (r *RSS) getRSSHubData(ctx context.Context, path string, rawQuery string) ([]byte, error) {
@@ -24,8 +24,8 @@ func (r *RSS) getRSSHubData(ctx context.Context, path string, rawQuery string) (
 	request.Path = path
 	request.RawQuery = rawQuery
 
-	if !strings.Contains(request.Path, RSSHubJSONPath) {
-		request.Path += RSSHubJSONPath
+	if !strings.Contains(request.Path, RSSHubUMSPath) {
+		request.Path += RSSHubUMSPath
 	}
 
 	// fill in authentication config
