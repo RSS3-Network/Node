@@ -47,7 +47,8 @@ func (c *client) GetTransactionData(ctx context.Context, id string) (io.ReadClos
 	}
 
 	// close the response body when the function returns.
-	defer lo.Try(data.Close)
+	// TODO data close issue
+	//defer lo.Try(data.Close)
 
 	return data, nil
 }
