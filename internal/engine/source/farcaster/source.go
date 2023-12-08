@@ -65,7 +65,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 		}
 	}()
 
-	//// poll latest events
+	// poll latest events
 	go func() {
 		errorChan <- s.pollEvents(ctx, tasksChan)
 	}()
@@ -247,11 +247,6 @@ func (s *source) pollEvents(ctx context.Context, tasksChan chan<- []engine.Task)
 
 		s.state = s.pendingState
 		s.pendingState.EventID = eventsResponse.NextPageEventID
-
-		if len(tasks) > 0 {
-			task, _ := lo.Last(tasks)
-			s.pendingState.EventTimestamp = time.Unix(farcaster.CovertFarcasterTimeToTimestamp(int64(task.Message.Data.Timestamp)), 10)
-		}
 
 		cursor = eventsResponse.NextPageEventID
 	}
