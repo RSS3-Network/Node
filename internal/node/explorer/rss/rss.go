@@ -9,22 +9,22 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
 
-type Handler struct {
+type RSS struct {
 	httpClient *http.Client
 	rsshub     *engine.Config
 }
 
-// NewHandler creates a new rss Handler
-func NewHandler(_ context.Context, config *config.File) *Handler {
-	handler := &Handler{
+// NewRSS creates a new rss explorer
+func NewRSS(_ context.Context, config *config.File) *RSS {
+	rss := &RSS{
 		httpClient: http.DefaultClient,
 	}
 
-	for _, rss := range config.Node.RSS {
-		if rss.Chain == filter.ChainRSSRSSHub {
-			handler.rsshub = rss
+	for _, conf := range config.Node.RSS {
+		if conf.Chain == filter.ChainRSSRSSHub {
+			rss.rsshub = conf
 		}
 	}
 
-	return handler
+	return rss
 }
