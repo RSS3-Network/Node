@@ -7,11 +7,9 @@ require (
 	github.com/avast/retry-go/v4 v4.5.1
 	github.com/creasty/defaults v1.7.0
 	github.com/ethereum/go-ethereum v1.13.5
-	github.com/gabriel-vasile/mimetype v1.4.2
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.16.0
-	github.com/go-resty/resty/v2 v2.10.0
-	github.com/lib/pq v1.10.9
+	github.com/labstack/echo/v4 v4.11.3
 	github.com/orlangure/gnomock v0.30.0
 	github.com/pressly/goose/v3 v3.16.0
 	github.com/samber/lo v1.38.1
@@ -45,6 +43,7 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/ethereum/c-kzg-4844 v0.4.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-ole/go-ole v1.2.5 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
@@ -60,7 +59,11 @@ require (
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
+	github.com/lib/pq v1.10.9 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc5 // indirect
@@ -71,6 +74,8 @@ require (
 	github.com/supranational/blst v0.3.11 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.15.0 // indirect
