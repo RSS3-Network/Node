@@ -107,7 +107,8 @@ func (s *source) pollCasts(ctx context.Context, tasksChan chan<- []engine.Task) 
 		s.pendingState.CastsFid--
 
 		if s.pendingState.CastsFid == 0 {
-			s.state.CastsBackfill = true
+			s.pendingState.CastsBackfill = true
+			s.state = s.pendingState
 		}
 	}
 
@@ -162,7 +163,8 @@ func (s *source) pollReactions(ctx context.Context, tasksChan chan<- []engine.Ta
 		s.pendingState.ReactionsFid--
 
 		if s.pendingState.ReactionsFid == 0 {
-			s.state.ReactionsBackfill = true
+			s.pendingState.ReactionsBackfill = true
+			s.state = s.pendingState
 		}
 	}
 
