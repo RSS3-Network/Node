@@ -17,6 +17,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+// make sure worker implements engine.Worker
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
@@ -35,6 +36,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	case filter.NetworkArweave:
 		task := task.(*source.Task)
 
+		// Check if the transaction belongs to the mirror contract.
 		owner, err := arweave.PublicKeyToAddress(task.Transaction.Owner)
 		if err != nil {
 			return false, fmt.Errorf("parse transaction owner: %w", err)
@@ -60,20 +62,25 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
 
+	// Get actions and social content timestamp from the transaction.
 	actions, timestamp, err := w.transformPostOrReviseAction(ctx, arweaveTask)
 	if err != nil {
 		return nil, fmt.Errorf("handle arweave mirror transaction: %w", err)
 	}
 
 	feed.To = mirror.AddressMirror
-	feed.Type = actions[0].Type
-	feed.Actions = append(feed.Actions, actions...)
 	feed.Timestamp = timestamp
+
+	// Feed type should be inferred from the action (if it's revise)
+	if actions != nil {
+		feed.Type = actions[0].Type
+		feed.Actions = append(feed.Actions, actions...)
+	}
 
 	return feed, nil
 }
 
-// handleArweaveNativeTransferTransaction returns the action of the native transfer transaction.
+// transformPostOrReviseAction Returns the actions of mirror post or revise.
 func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.Task) ([]*schema.Action, uint64, error) {
 	var (
 		contentDigest       string
@@ -104,8 +111,10 @@ func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.T
 		}
 	}
 
-	contentURI := fmt.Sprintf("https://arweave.net/%s", task.Transaction.ID)
+	// Construct content URI from tx id
+	contentURI := fmt.Sprintf("ar://%s", task.Transaction.ID)
 
+	// Get detailed post info from transaction data
 	transactionData, err := arweave.Base64Decode(task.Transaction.Data)
 	if err != nil {
 		return nil, 0, fmt.Errorf("invalid foramt of transaction data: %w", err)
@@ -118,6 +127,7 @@ func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.T
 
 	var media []metadata.Media
 
+	// Get mirror nft as media
 	address := mirrorData.Get("wnft.imageURI").String()
 	if address != "" {
 		file, err := w.ipfsClient.Fetch(ctx, fmt.Sprintf("/ipfs/%s", address), ipfs.FetchModeQuick)
@@ -127,6 +137,7 @@ func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.T
 
 		defer lo.Try(file.Close)
 
+		// Get nft mimetype
 		result, err := mimetype.DetectReader(file)
 		if err != nil {
 			return nil, 0, fmt.Errorf("detect mimetype: %w", err)
@@ -143,6 +154,7 @@ func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.T
 	}
 
 	var publicationID string
+
 	if contentDigest == "" {
 		publicationID = mirrorData.Get("digest").String()
 	} else {
@@ -153,17 +165,16 @@ func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.T
 		publicationID = originContentDigest
 	}
 
+	// Construct mirror Metadata
 	mirrorMetadata := &metadata.SocialPost{
 		Title:         mirrorData.Get("content.title").String(),
 		Body:          mirrorData.Get("content.body").String(),
 		ContentURI:    contentURI,
 		PublicationID: publicationID,
-		Target: &metadata.SocialPost{
-			PublicationID: originContentDigest,
-		},
-		Media: media,
+		Media:         media,
 	}
 
+	// Build the post or revise action
 	action, err := w.buildPostOrReviseAction(ctx, task.Transaction.ID, author, mirror.AddressMirror, mirrorMetadata, emptyOriginDigest)
 	if err != nil {
 		return nil, 0, fmt.Errorf("build post action: %w", err)
@@ -173,20 +184,22 @@ func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.T
 		action,
 	}
 
-	// Build the native transfer transaction action.
 	return actions, timestamp, nil
 }
 
-// buildArweaveTransactionTransferAction returns the native transfer transaction action.
+// buildArweaveTransactionTransferAction Returns the native transfer transaction action.
 func (w *worker) buildPostOrReviseAction(_ context.Context, _, from, to string, mirrorMetadata *metadata.SocialPost, emptyOriginDigest bool) (*schema.Action, error) {
+	// Default action type is post.
 	filterType := filter.TypeSocialPost
 
+	// if the origin digest is empty, the action type should be revise.
 	if emptyOriginDigest {
 		filterType = filter.TypeSocialRevise
 	}
 
-	mirrorMetadata.Target = nil
+	// TODO Should also use dataset to identify the action type.
 
+	// Construct action
 	action := schema.Action{
 		Type:     filterType,
 		Tag:      filter.TagSocial,
