@@ -2,6 +2,7 @@ package arweave
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -23,6 +24,9 @@ const (
 // Client is the interface that wraps the Fetch method.
 type Client interface {
 	GetTransactionData(ctx context.Context, id string) (io.ReadCloser, error)
+	GetBlockHeight(ctx context.Context) (blockHeight int64, err error)
+	GetBlockByHeight(ctx context.Context, height int64) (block *Block, err error)
+	GetTransactionByID(ctx context.Context, id string) (transaction *Transaction, err error)
 }
 
 // Ensure that client implements Client.
@@ -37,6 +41,82 @@ type client struct {
 
 // GetTransactionData fetches the transaction data of the given id from arweave network.
 func (c *client) GetTransactionData(ctx context.Context, id string) (io.ReadCloser, error) {
+	return c.queryArweaveByRoute(ctx, id)
+}
+
+// GetBlockHeight returns the current block height of the arweave network.
+func (c *client) GetBlockHeight(ctx context.Context) (blockHeight int64, err error) {
+	data, err := c.queryArweaveByRoute(ctx, "info")
+	if err != nil {
+		return 0, fmt.Errorf("query arweave by route: %w", err)
+	}
+
+	// close the response body when the function returns.
+	defer lo.Try(data.Close)
+
+	network := Network{}
+
+	content, err := io.ReadAll(data)
+	if err != nil {
+		return 0, err
+	}
+
+	err = json.Unmarshal(content, &network)
+	if err != nil {
+		return 0, fmt.Errorf("unmarshal response body: %w", err)
+	}
+
+	return network.Blocks, nil
+}
+
+// GetBlockByHeight returns block by specific block height.
+func (c *client) GetBlockByHeight(ctx context.Context, height int64) (block *Block, err error) {
+	data, err := c.queryArweaveByRoute(ctx, fmt.Sprintf("block/height/%d", height))
+	if err != nil {
+		return nil, fmt.Errorf("query arweave by route: %w", err)
+	}
+
+	// close the response body when the function returns.
+	defer lo.Try(data.Close)
+
+	content, err := io.ReadAll(data)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(content, &block)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal response body: %w", err)
+	}
+
+	return block, nil
+}
+
+// GetTransactionByID returns transaction by specific transaction id
+func (c *client) GetTransactionByID(ctx context.Context, id string) (transaction *Transaction, err error) {
+	data, err := c.queryArweaveByRoute(ctx, fmt.Sprintf("tx/%s", id))
+	if err != nil {
+		return nil, fmt.Errorf("query arweave by route: %w", err)
+	}
+
+	// close the response body when the function returns.
+	defer lo.Try(data.Close)
+
+	content, err := io.ReadAll(data)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(content, &transaction)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal response body: %w", err)
+	}
+
+	return transaction, nil
+}
+
+// queryArweaveByRoute queries the arweave network by the given route.
+func (c *client) queryArweaveByRoute(ctx context.Context, path string) (io.ReadCloser, error) {
 	c.locker.RLock()
 	defer c.locker.RUnlock()
 
@@ -47,7 +127,7 @@ func (c *client) GetTransactionData(ctx context.Context, id string) (io.ReadClos
 		gateway := gateway
 
 		quickGroup.Go(func(ctx context.Context) (io.ReadCloser, error) {
-			requestURL, err := url.JoinPath(gateway, id)
+			requestURL, err := url.JoinPath(gateway, path)
 			if err != nil {
 				return nil, fmt.Errorf("invalid gateway url: %w", err)
 			}

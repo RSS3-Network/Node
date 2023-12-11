@@ -13,6 +13,8 @@ func ChainString(network Network, chainValue string) (Chain, error) {
 	switch network {
 	case NetworkEthereum:
 		return ChainEthereumString(chainValue)
+	case NetworkArweave:
+		return ChainArweaveString(chainValue)
 	case NetworkRSS:
 		return ChainRSSString(chainValue)
 	default:
