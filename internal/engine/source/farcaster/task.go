@@ -30,7 +30,6 @@ func (t Task) Timestamp() uint64 {
 }
 
 func (t Task) Validate() error {
-	// TODO Implement it.
 	return nil
 }
 

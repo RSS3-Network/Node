@@ -69,6 +69,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	return feed, nil
 }
 
+// handleFarcasterAddCast handles farcaster add cast message.
 func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.Message, feed *schema.Feed) error {
 	fid := int64(message.Data.Fid)
 
@@ -77,6 +78,7 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 	post.Handle = message.Data.Profile.Username
 	feed.From = message.Data.Profile.CustodyAddress
 
+	// this represents a reply post.
 	if message.Data.CastAddBody.ParentCastID != nil {
 		feed.Type = filter.TypeSocialComment
 
@@ -85,7 +87,7 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 		targetMessage := message.Data.CastAddBody.ParentCast
 
 		post.Target = w.buildPost(ctx, targetFid, targetMessage.Hash, targetMessage.Data.CastAddBody)
-
+		// this represents a reply to self.
 		if fid == targetFid {
 			post.Target.Handle = post.Handle
 
@@ -96,6 +98,7 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 			return nil
 		}
 
+		// this represents a reply to others.
 		post.Target.Handle = targetMessage.Data.Profile.Username
 		feed.To = targetMessage.Data.Profile.CustodyAddress
 
@@ -123,6 +126,7 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 	return nil
 }
 
+// handleFarcasterRecastReaction handles farcaster recast reaction message.
 func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farcaster.Message, feed *schema.Feed) error {
 	fid := int64(message.Data.Fid)
 
@@ -168,6 +172,7 @@ func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farc
 	return nil
 }
 
+// buildPostActions builds post actions from message.
 func (w *worker) buildPostActions(_ context.Context, ethAddresses []string, feed *schema.Feed, post *metadata.Social, socialType filter.Type) {
 	var data schema.Metadata
 
@@ -192,6 +197,7 @@ func (w *worker) buildPostActions(_ context.Context, ethAddresses []string, feed
 	}
 }
 
+// buildPost builds post from message.
 func (w *worker) buildPost(ctx context.Context, fid int64, hash string, body *farcaster.CastAddBody) *metadata.Social {
 	var (
 		text   string
@@ -200,8 +206,8 @@ func (w *worker) buildPost(ctx context.Context, fid int64, hash string, body *fa
 
 	if body != nil {
 		text = w.castToString(body)
-		embeds = lo.Map(body.Embeds, func(x farcaster.Embed, index int) string {
-			return x.URL
+		embeds = lo.Map(body.Embeds, func(uri farcaster.Embed, index int) string {
+			return uri.URL
 		})
 
 		embeds = append(embeds, body.EmbedsDeprecated...)
@@ -218,6 +224,7 @@ func (w *worker) buildPost(ctx context.Context, fid int64, hash string, body *fa
 	return post
 }
 
+// castToString completes the body based on the username in mentions.
 func (w *worker) castToString(cast *farcaster.CastAddBody) string {
 	text := cast.Text
 	mentions := cast.MentionsUsernames
@@ -243,6 +250,7 @@ func (w *worker) castToString(cast *farcaster.CastAddBody) string {
 	return textWithMentions.String()
 }
 
+// buildPostMedia will build post media from embeds.
 func (w *worker) buildPostMedia(ctx context.Context, post *metadata.Social, embeds []string) {
 	var locker sync.Mutex
 
@@ -270,6 +278,7 @@ func (w *worker) buildPostMedia(ctx context.Context, post *metadata.Social, embe
 	_ = errorGroup.Wait()
 }
 
+// detectMimeType will detect mime type from url.
 func (w *worker) detectMimeType(ctx context.Context, url string) (string, error) {
 	response, err := w.httpClient.R().SetContext(ctx).SetHeader("User-Agent", "curl/7.86.0").Get(url)
 	if err != nil {

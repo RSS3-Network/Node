@@ -194,6 +194,7 @@ func (s *source) pollReactionsByFid(ctx context.Context, fid *int64, pageToken s
 	}
 }
 
+// buildFarcasterMessageTasks filter cast add and recast messages.
 func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farcaster.Message) ([]*Task, error) {
 	tasks := make([]*Task, 0)
 
@@ -254,6 +255,7 @@ func (s *source) pollEvents(ctx context.Context, tasksChan chan<- []engine.Task)
 	}
 }
 
+// buildFarcasterEventTasks filter cast add, recast and profile update events.
 func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaster.HubEvent, tasksChan chan<- []engine.Task) ([]*Task, error) {
 	tasks := make([]*Task, 0)
 
@@ -309,6 +311,7 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 	return tasks, nil
 }
 
+// updateProfileByFid update profile by fid.
 func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Profile, error) {
 	// owner username(handle)
 	userDataByFidAndTypeRes, err := s.farcasterClient.GetUserDataByFidAndType(ctx, fid, farcaster.UserDataTypeUsername.String())
@@ -365,6 +368,7 @@ func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Pro
 	return profile, nil
 }
 
+// getProfileByFid get profile by fid.
 func (s *source) getProfileByFid(ctx context.Context, fid *int64) (*model.Profile, error) {
 	var (
 		profile *model.Profile
@@ -388,6 +392,7 @@ func (s *source) getProfileByFid(ctx context.Context, fid *int64) (*model.Profil
 	return profile, nil
 }
 
+// fillMentionsUsernames transfer mentions fid to username.
 func (s *source) fillMentionsUsernames(ctx context.Context, message *farcaster.Message) error {
 	message.Data.CastAddBody.MentionsUsernames = make([]string, len(message.Data.CastAddBody.Mentions))
 	for i, fid := range message.Data.CastAddBody.Mentions {
@@ -406,6 +411,7 @@ func (s *source) fillMentionsUsernames(ctx context.Context, message *farcaster.M
 	return nil
 }
 
+// fillProfile fill profile in each message.
 func (s *source) fillProfile(ctx context.Context, message *farcaster.Message) error {
 	fid := int64(message.Data.Fid)
 	profile, err := s.getProfileByFid(ctx, &fid)
@@ -419,6 +425,7 @@ func (s *source) fillProfile(ctx context.Context, message *farcaster.Message) er
 	return nil
 }
 
+// fillCastParams fill params in cast add message.
 func (s *source) fillCastParams(ctx context.Context, message *farcaster.Message) error {
 	if message.Data.CastAddBody.ParentCastID != nil {
 		targetFid := int64(message.Data.CastAddBody.ParentCastID.Fid)
@@ -450,6 +457,7 @@ func (s *source) fillCastParams(ctx context.Context, message *farcaster.Message)
 	return s.fillMentionsUsernames(ctx, message)
 }
 
+// fillReactionParams fill params in recast message.
 func (s *source) fillReactionParams(ctx context.Context, message *farcaster.Message) error {
 	if message.Data.ReactionBody.Type == farcaster.ReactionTypeRecast.String() {
 		targetFid := int64(message.Data.ReactionBody.TargetCastID.Fid)
