@@ -41,16 +41,7 @@ type client struct {
 
 // GetTransactionData fetches the transaction data of the given id from arweave network.
 func (c *client) GetTransactionData(ctx context.Context, id string) (io.ReadCloser, error) {
-	data, err := c.queryArweaveByRoute(ctx, id)
-	if err != nil {
-		return nil, fmt.Errorf("query arweave by route: %w", err)
-	}
-
-	// close the response body when the function returns.
-	// TODO data close issue
-	//defer lo.Try(data.Close)
-
-	return data, nil
+	return c.queryArweaveByRoute(ctx, id)
 }
 
 // GetBlockHeight returns the current block height of the arweave network.
