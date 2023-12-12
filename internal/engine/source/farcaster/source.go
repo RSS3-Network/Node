@@ -234,12 +234,16 @@ func (s *source) pollEvents(ctx context.Context, tasksChan chan<- []engine.Task)
 			zap.L().Warn("fetch farcaster events error", zap.Uint64("event.from.id", cursor))
 
 			time.Sleep(defaultBlockTime)
+
+			continue
 		}
 
 		if len(eventsResponse.Events) == 0 {
 			zap.L().Info("wait for new events", zap.Uint64("event.from.id", cursor), zap.Duration("block.time", defaultBlockTime))
 
 			time.Sleep(defaultBlockTime)
+
+			continue
 		}
 
 		tasks, err := s.buildFarcasterEventTasks(ctx, eventsResponse.Events, tasksChan)
