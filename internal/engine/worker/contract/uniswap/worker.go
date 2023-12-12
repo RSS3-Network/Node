@@ -9,6 +9,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
+	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/uniswap"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/token"
 	"github.com/naturalselectionlabs/rss3-node/schema"
@@ -118,7 +119,7 @@ func (w *worker) handleV1ExchangeAddLiquidityLog(ctx context.Context, task sourc
 		},
 	}
 
-	return w.buildEthereumExchangeLiquidityAction(ctx, task, event.Provider, event.Raw.Address, metadata.ActionExchangeLiquidityAdd, tokens)
+	return w.buildExchangeLiquidityAction(ctx, task, event.Provider, event.Raw.Address, metadata.ActionExchangeLiquidityAdd, tokens)
 }
 
 func (w *worker) handleV1ExchangeRemoveLiquidityLog(ctx context.Context, task source.Task, log *ethereum.Log) (*schema.Action, error) {
@@ -153,7 +154,308 @@ func (w *worker) handleV1ExchangeRemoveLiquidityLog(ctx context.Context, task so
 		},
 	}
 
-	return w.buildEthereumExchangeLiquidityAction(ctx, task, event.Raw.Address, event.Provider, metadata.ActionExchangeLiquidityRemove, tokens)
+	return w.buildExchangeLiquidityAction(ctx, task, event.Raw.Address, event.Provider, metadata.ActionExchangeLiquidityRemove, tokens)
+}
+
+func (w *worker) handleV2SwapLog(ctx context.Context, task source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.uniswapV2PairFilterer.ParseSwap(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Swap event: %w", err)
+	}
+
+	pair, err := uniswap.NewV2PairCaller(event.Raw.Address, w.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("load pair: %w", err)
+	}
+
+	tokenLeft, err := pair.Token0(nil)
+	if err != nil {
+		return nil, fmt.Errorf("get token 0 from pair: %w", err)
+	}
+
+	tokenRight, err := pair.Token1(nil)
+	if err != nil {
+		return nil, fmt.Errorf("get token 1 from pair: %w", err)
+	}
+
+	sender, receiver := event.Sender, event.To
+
+	if event.Sender == *task.Transaction.To && event.To == *task.Transaction.To {
+		isNotFirstSwapEvent := lo.ContainsBy(task.Receipt.Logs, func(log *ethereum.Log) bool {
+			return len(log.Topics) != 0 && contract.MatchEventHashes(log.Topics[0], uniswap.EventHashV2PairSwap) && log.Index < event.Raw.Index
+		})
+
+		if !isNotFirstSwapEvent {
+			sender = task.Transaction.From
+		}
+	}
+
+	// nolint:revive // False positive
+	if event.Amount1Out.Sign() == 1 {
+		return w.buildExchangeSwapAction(ctx, task, sender, receiver, &tokenLeft, &tokenRight, event.Amount0In, event.Amount1Out)
+	} else {
+		return w.buildExchangeSwapAction(ctx, task, sender, receiver, &tokenRight, &tokenLeft, event.Amount1In, event.Amount0Out)
+	}
+}
+
+func (w *worker) handleV2PairMintLog(ctx context.Context, task source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.uniswapV2PairFilterer.ParseMint(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Mint event: %w", err)
+	}
+
+	pair, err := uniswap.NewV2PairCaller(event.Raw.Address, w.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("load pair: %w", err)
+	}
+
+	tokenLeft, err := pair.Token0(nil)
+	if err != nil {
+		return nil, fmt.Errorf("get token 0 from pair: %w", err)
+	}
+
+	tokenRight, err := pair.Token1(nil)
+	if err != nil {
+		return nil, fmt.Errorf("get token 1 from pair: %w", err)
+	}
+
+	factory, err := uniswap.NewV2FactoryCaller(uniswap.AddressV2Factory, w.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("load factory: %w", err)
+	}
+
+	pairAddress, err := factory.GetPair(nil, tokenLeft, tokenRight)
+	if err != nil {
+		return nil, fmt.Errorf("get pair address from factory: %w", err)
+	}
+
+	if pairAddress != event.Raw.Address {
+		return nil, fmt.Errorf("unofficial pair contract: %s", event.Raw.Address)
+	}
+
+	tokens := []metadata.Token{
+		{
+			Address: lo.ToPtr(tokenLeft.String()),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount0, 0)),
+		},
+		{
+			Address: lo.ToPtr(tokenRight.String()),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount1, 0)),
+		},
+	}
+
+	return w.buildExchangeLiquidityAction(ctx, task, event.Sender, event.Raw.Address, metadata.ActionExchangeLiquidityAdd, tokens)
+}
+
+func (w *worker) handleV2PairBurnLog(ctx context.Context, task source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.uniswapV2PairFilterer.ParseBurn(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Burn event: %w", err)
+	}
+
+	pair, err := uniswap.NewV2PairCaller(event.Raw.Address, w.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("load pair: %w", err)
+	}
+
+	tokenLeft, err := pair.Token0(nil)
+	if err != nil {
+		return nil, fmt.Errorf("get token 0 from pair: %w", err)
+	}
+
+	tokenRight, err := pair.Token1(nil)
+	if err != nil {
+		return nil, fmt.Errorf("get token 1 from pair: %w", err)
+	}
+
+	factory, err := uniswap.NewV2FactoryCaller(uniswap.AddressV2Factory, w.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("load factory: %w", err)
+	}
+
+	pairAddress, err := factory.GetPair(nil, tokenLeft, tokenRight)
+	if err != nil {
+		return nil, fmt.Errorf("get pair address from factory: %w", err)
+	}
+
+	if pairAddress != event.Raw.Address {
+		return nil, fmt.Errorf("unofficial pair contract: %s", event.Raw.Address)
+	}
+
+	tokens := []metadata.Token{
+		{
+			Address: lo.ToPtr(tokenLeft.String()),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount0, 0)),
+		},
+		{
+			Address: lo.ToPtr(tokenRight.String()),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount1, 0)),
+		},
+	}
+
+	return w.buildExchangeLiquidityAction(ctx, task, event.Raw.Address, task.Transaction.From, metadata.ActionExchangeLiquidityRemove, tokens)
+}
+
+func (w *worker) handleEthereumV3SwapLog(ctx context.Context, task source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.uniswapV3PoolFilterer.ParseSwap(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Swap event: %w", err)
+	}
+
+	pool, err := uniswap.NewV3PoolCaller(event.Raw.Address, w.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("load pool: %w", err)
+	}
+
+	tokenLeft, err := pool.Token0(nil)
+	if err != nil {
+		return nil, fmt.Errorf("get token 0 from pool: %w", err)
+	}
+
+	tokenRight, err := pool.Token1(nil)
+	if err != nil {
+		return nil, fmt.Errorf("get token 1 from pool: %w", err)
+	}
+
+	fee, err := pool.Fee(nil)
+	if err != nil {
+		return nil, fmt.Errorf("get fee from pool: %w", err)
+	}
+
+	factory, err := uniswap.NewV3FactoryCaller(uniswap.AddressV3Factory, w.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("load factory: %w", err)
+	}
+
+	poolAddress, err := factory.GetPool(nil, tokenLeft, tokenRight, fee)
+	if err != nil {
+		return nil, fmt.Errorf("get pool address from factory: %w", err)
+	}
+
+	if poolAddress != event.Raw.Address {
+		return nil, fmt.Errorf("unofficial pool address: %s", event.Raw.Address)
+	}
+
+	sender, receiver := event.Sender, event.Recipient
+
+	switch {
+	case event.Sender == *task.Transaction.To && event.Recipient == *task.Transaction.To:
+		isNotFirstSwapEvent := lo.ContainsBy(task.Receipt.Logs, func(log *ethereum.Log) bool {
+			return len(log.Topics) != 0 && contract.MatchEventHashes(log.Topics[0], uniswap.EventHashV3PoolSwap) && log.Index < event.Raw.Index
+		})
+
+		if !isNotFirstSwapEvent {
+			sender = task.Transaction.From
+		}
+	case event.Sender == *task.Transaction.To:
+		sender = task.Transaction.From
+	}
+
+	// nolint:revive // False positive
+	if event.Amount0.Sign() == 1 { // Amount0 is positive
+		return w.buildExchangeSwapAction(ctx, task, sender, receiver, &tokenLeft, &tokenRight, event.Amount0, event.Amount1)
+	} else {
+		return w.buildExchangeSwapAction(ctx, task, sender, receiver, &tokenRight, &tokenLeft, event.Amount1, event.Amount0)
+	}
+}
+
+func (w *worker) handleNonfungiblePositionManagerIncreaseLiquidityLog(ctx context.Context, task source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.uniswapNonfungiblePositionManagerFilterer.ParseIncreaseLiquidity(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse IncreaseLiquidity event: %w", err)
+	}
+
+	nonfungiblePositionManager, err := uniswap.NewNonfungiblePositionManagerCaller(uniswap.AddressNonfungiblePositionManager, w.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("load nonfungible position manager: %w", err)
+	}
+
+	positions, err := nonfungiblePositionManager.Positions(nil, event.TokenId)
+	if err != nil {
+		return nil, fmt.Errorf("get positions from nonfungible position manager: %w", err)
+	}
+
+	tokens := []metadata.Token{
+		{
+			Address: lo.ToPtr(positions.Token0.String()),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount0, 0)),
+		},
+		{
+			Address: lo.ToPtr(positions.Token1.String()),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount1, 0)),
+		},
+	}
+
+	return w.buildExchangeLiquidityAction(ctx, task, task.Transaction.From, event.Raw.Address, metadata.ActionExchangeLiquidityAdd, tokens)
+}
+
+func (w *worker) handleNonfungiblePositionManagerDecreaseLiquidityLog(ctx context.Context, task source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.uniswapNonfungiblePositionManagerFilterer.ParseDecreaseLiquidity(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse DecreaseLiquidity event: %w", err)
+	}
+
+	nonfungiblePositionManager, err := uniswap.NewNonfungiblePositionManagerCaller(uniswap.AddressNonfungiblePositionManager, w.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("load nonfungible position manager: %w", err)
+	}
+
+	positions, err := nonfungiblePositionManager.Positions(nil, event.TokenId)
+	if err != nil {
+		return nil, fmt.Errorf("get positions from nonfungible position manager: %w", err)
+	}
+
+	tokens := []metadata.Token{
+		{
+			Address: lo.ToPtr(positions.Token0.String()),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount0, 0)),
+		},
+		{
+			Address: lo.ToPtr(positions.Token1.String()),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount1, 0)),
+		},
+	}
+
+	return w.buildExchangeLiquidityAction(ctx, task, event.Raw.Address, task.Transaction.From, metadata.ActionExchangeLiquidityRemove, tokens)
+}
+
+func (w *worker) handleNonfungiblePositionManagerCollectLog(ctx context.Context, task source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.uniswapNonfungiblePositionManagerFilterer.ParseCollect(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Collect event: %w", err)
+	}
+
+	nonfungiblePositionManager, err := uniswap.NewNonfungiblePositionManagerCaller(uniswap.AddressNonfungiblePositionManager, w.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("load nonfungible position manager: %w", err)
+	}
+
+	positions, err := nonfungiblePositionManager.Positions(nil, event.TokenId)
+	if err != nil {
+		return nil, fmt.Errorf("get positions from nonfungible position manager: %w", err)
+	}
+
+	tokens := []metadata.Token{
+		{
+			Address: lo.ToPtr(positions.Token0.String()),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount0, 0)),
+		},
+		{
+			Address: lo.ToPtr(positions.Token1.String()),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount1, 0)),
+		},
+	}
+
+	return w.buildExchangeLiquidityAction(ctx, task, event.Raw.Address, task.Transaction.From, metadata.ActionExchangeLiquidityCollect, tokens)
+}
+
+func (w *worker) handleNonfungiblePositionManagerTransferLog(ctx context.Context, task source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.uniswapNonfungiblePositionManagerFilterer.ParseTransfer(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Transfer event: %w", err)
+	}
+
+	return w.buildTransactionMintAction(ctx, task, event.From, event.To, event.Raw.Address, event.TokenId)
 }
 
 func (w *worker) buildExchangeSwapAction(ctx context.Context, task source.Task, sender, receipt common.Address, tokenIn, tokenOut *common.Address, amountIn, amountOut *big.Int) (*schema.Action, error) {
@@ -185,7 +487,7 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task source.Task, 
 	return &action, nil
 }
 
-func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task source.Task, sender, receipt common.Address, liquidityAction metadata.ExchangeLiquidityAction, tokens []metadata.Token) (*schema.Action, error) {
+func (w *worker) buildExchangeLiquidityAction(ctx context.Context, task source.Task, sender, receipt common.Address, liquidityAction metadata.ExchangeLiquidityAction, tokens []metadata.Token) (*schema.Action, error) {
 	tokenMetadataSlice := make([]metadata.Token, 0, len(tokens))
 
 	for _, token := range tokens {
@@ -213,6 +515,26 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task 
 			Action: liquidityAction,
 			Tokens: tokenMetadataSlice,
 		},
+	}
+
+	return &action, nil
+}
+
+func (w *worker) buildTransactionMintAction(ctx context.Context, task source.Task, sender, receipt, tokenAddress common.Address, tokenID *big.Int) (*schema.Action, error) {
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.Chain, &tokenAddress, tokenID, task.Header.Number)
+	if err != nil {
+		return nil, fmt.Errorf("lookup token metadata %s %d: %w", tokenAddress, tokenID, err)
+	}
+
+	tokenMetadata.ID = lo.ToPtr(decimal.NewFromBigInt(tokenID, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromInt(1))
+
+	action := schema.Action{
+		Type:     filter.TypeTransactionMint,
+		Platform: filter.PlatformUniswap.String(),
+		From:     sender.String(),
+		To:       receipt.String(),
+		Metadata: metadata.TransactionTransfer(*tokenMetadata),
 	}
 
 	return &action, nil
