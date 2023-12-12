@@ -5,6 +5,7 @@ import (
 
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/farcaster"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
@@ -17,6 +18,8 @@ func New(config *engine.Config, checkpoint *engine.Checkpoint, databaseClient da
 		return ethereum.NewSource(config, checkpoint)
 	case filter.NetworkFarcaster:
 		return farcaster.NewSource(config, checkpoint, databaseClient)
+	case filter.NetworkArweave:
+		return arweave.NewSource(config, checkpoint)
 	default:
 		return nil, fmt.Errorf("unsupported source %s", config.Chain.Network())
 	}

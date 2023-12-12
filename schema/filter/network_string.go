@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _NetworkName = "unknownethereumrssfarcaster"
+const _NetworkName = "ethereumrsshubrssarweave"
 
-var _NetworkIndex = [...]uint8{0, 7, 15, 18, 27}
+var _NetworkIndex = [...]uint8{0, 8, 14, 17, 24}
 
-const _NetworkLowerName = "unknownethereumrssfarcaster"
+const _NetworkLowerName = "ethereumrsshubrssarweave"
 
 func (i Network) String() string {
 	if i >= Network(len(_NetworkIndex)-1) {
@@ -30,30 +30,30 @@ func (Network) Values() []string {
 // Re-run the stringer command to generate them again.
 func _NetworkNoOp() {
 	var x [1]struct{}
-	_ = x[NetworkUnknown-(0)]
-	_ = x[NetworkEthereum-(1)]
+	_ = x[NetworkEthereum-(0)]
+	_ = x[NetworkRSSHub-(1)]
 	_ = x[NetworkRSS-(2)]
-	_ = x[NetworkFarcaster-(3)]
+	_ = x[NetworkArweave-(3)]
 }
 
-var _NetworkValues = []Network{NetworkUnknown, NetworkEthereum, NetworkRSS, NetworkFarcaster}
+var _NetworkValues = []Network{NetworkEthereum, NetworkRSSHub, NetworkRSS, NetworkArweave}
 
 var _NetworkNameToValueMap = map[string]Network{
-	_NetworkName[0:7]:        NetworkUnknown,
-	_NetworkLowerName[0:7]:   NetworkUnknown,
-	_NetworkName[7:15]:       NetworkEthereum,
-	_NetworkLowerName[7:15]:  NetworkEthereum,
-	_NetworkName[15:18]:      NetworkRSS,
-	_NetworkLowerName[15:18]: NetworkRSS,
-	_NetworkName[18:27]:      NetworkFarcaster,
-	_NetworkLowerName[18:27]: NetworkFarcaster,
+	_NetworkName[0:8]:        NetworkEthereum,
+	_NetworkLowerName[0:8]:   NetworkEthereum,
+	_NetworkName[8:14]:       NetworkRSSHub,
+	_NetworkLowerName[8:14]:  NetworkRSSHub,
+	_NetworkName[14:17]:      NetworkRSS,
+	_NetworkLowerName[14:17]: NetworkRSS,
+	_NetworkName[17:24]:      NetworkArweave,
+	_NetworkLowerName[17:24]: NetworkArweave,
 }
 
 var _NetworkNames = []string{
-	_NetworkName[0:7],
-	_NetworkName[7:15],
-	_NetworkName[15:18],
-	_NetworkName[18:27],
+	_NetworkName[0:8],
+	_NetworkName[8:14],
+	_NetworkName[14:17],
+	_NetworkName[17:24],
 }
 
 // NetworkString retrieves an enum value from the enum constants string name.
