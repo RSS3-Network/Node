@@ -1,6 +1,10 @@
 package schema
 
-import "github.com/naturalselectionlabs/rss3-node/schema/filter"
+import (
+	"encoding/json"
+
+	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+)
 
 type FeedTransformer interface {
 	Import(feed *Feed) error
@@ -37,4 +41,15 @@ func WithFeedPlatform(platform filter.Platform) FeedOption {
 
 		return nil
 	}
+}
+
+func (f *Feed) MarshalJSON() ([]byte, error) {
+	type Filler Feed
+
+	filler := Filler(*f)
+
+	filler.Network = f.Chain.Network()
+	filler.Tag = f.Type.Tag()
+
+	return json.Marshal(filler)
 }

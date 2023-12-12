@@ -109,7 +109,7 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 					Platform: filter.PlatformFarcaster.String(),
 					From:     from,
 					To:       to,
-					Metadata: lo.ToPtr(metadata.SocialComment(*post)),
+					Metadata: metadata.SocialComment(*post),
 				}
 				feed.Actions = append(feed.Actions, &action)
 			}
@@ -163,7 +163,7 @@ func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farc
 				Platform: filter.PlatformFarcaster.String(),
 				From:     from,
 				To:       to,
-				Metadata: lo.ToPtr(metadata.SocialShare(*post)),
+				Metadata: metadata.SocialShare(*post),
 			}
 			feed.Actions = append(feed.Actions, &action)
 		}
@@ -178,11 +178,11 @@ func (w *worker) buildPostActions(_ context.Context, ethAddresses []string, feed
 
 	switch socialType {
 	case filter.TypeSocialPost:
-		data = lo.ToPtr(metadata.SocialPost(*post))
+		data = metadata.SocialPost(*post)
 	case filter.TypeSocialComment:
-		data = lo.ToPtr(metadata.SocialComment(*post))
+		data = metadata.SocialComment(*post)
 	case filter.TypeSocialShare:
-		data = lo.ToPtr(metadata.SocialShare(*post))
+		data = metadata.SocialShare(*post)
 	}
 
 	for _, from := range ethAddresses {
