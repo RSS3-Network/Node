@@ -88,6 +88,8 @@ func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.T
 		emptyOriginDigest   bool
 	)
 
+	fmt.Print("=== Tags: ", task.Transaction.Tags)
+
 	for _, tag := range task.Transaction.Tags {
 		tagName, err := arweave.Base64Decode(tag.Name)
 		if err != nil {
@@ -175,7 +177,7 @@ func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.T
 	}
 
 	// Build the post or revise action
-	action, err := w.buildPostOrReviseAction(ctx, task.Transaction.ID, author, mirror.AddressMirror, mirrorMetadata, emptyOriginDigest)
+	action, err := w.buildPostOrReviseAction(ctx, task.Transaction.ID, author, mirror.AddressMirror, mirrorMetadata, emptyOriginDigest, originContentDigest)
 	if err != nil {
 		return nil, 0, fmt.Errorf("build post action: %w", err)
 	}
@@ -188,7 +190,7 @@ func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.T
 }
 
 // buildArweaveTransactionTransferAction Returns the native transfer transaction action.
-func (w *worker) buildPostOrReviseAction(_ context.Context, _, from, to string, mirrorMetadata *metadata.SocialPost, emptyOriginDigest bool) (*schema.Action, error) {
+func (w *worker) buildPostOrReviseAction(_ context.Context, _, from, to string, mirrorMetadata *metadata.SocialPost, emptyOriginDigest bool, _ string) (*schema.Action, error) {
 	// Default action type is post.
 	filterType := filter.TypeSocialPost
 
