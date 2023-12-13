@@ -18,7 +18,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-var indexesTables = make(map[string]struct{})
+var indexesTables sync.Map
 
 // createPartitionTable creates a partition table.
 func (c *client) createPartitionTable(ctx context.Context, name, template string) error {
@@ -30,7 +30,7 @@ func (c *client) createPartitionTable(ctx context.Context, name, template string
 	}
 
 	if template == (*table.Index).TableName(nil) {
-		indexesTables[name] = struct{}{}
+		indexesTables.Store(name, struct{}{})
 	}
 
 	return nil
@@ -45,7 +45,7 @@ func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index
 			break
 		}
 
-		if _, exists := indexesTables[index.PartitionName()]; exists {
+		if _, exists := indexesTables.Load(index.PartitionName()); exists {
 			partitionedNames = append(partitionedNames, index.PartitionName())
 		}
 
@@ -70,7 +70,7 @@ func (c *client) autoLoadIndexesPartitionTables(ctx context.Context) {
 		}
 
 		for _, tableName := range result {
-			indexesTables[tableName] = struct{}{}
+			indexesTables.Store(tableName, struct{}{})
 		}
 
 		time.Sleep(1 * time.Minute)
@@ -399,11 +399,13 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQu
 	errorChan := make(chan error)
 	stopChan := make(chan struct{})
 
+	var mutex sync.RWMutex
+
 	for partitionedIndex, partitionedName := range partitionedNames {
 		partitionedIndex, partitionedName := partitionedIndex, partitionedName
 
 		errorGroup.Go(func() error {
-			var result []table.Index
+			var result []*table.Index
 
 			databaseStatement := c.buildFindIndexesStatement(errorContext, partitionedName, query)
 
@@ -411,17 +413,9 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQu
 				return fmt.Errorf("failed to find indexes: %w", err)
 			}
 
-			indexes[partitionedIndex] = make([]*table.Index, 0, len(result))
-
-			for _, data := range result {
-				data := data
-
-				if lo.IsEmpty(data.ID) {
-					continue
-				}
-
-				indexes[partitionedIndex] = append(indexes[partitionedIndex], &data)
-			}
+			mutex.Lock()
+			indexes[partitionedIndex] = result
+			mutex.Unlock()
 
 			select {
 			case <-stopChan:
@@ -452,6 +446,8 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQu
 			result := make([]*table.Index, 0, query.Limit)
 			flag := true
 
+			mutex.RLock()
+
 			for _, data := range indexes {
 				data := data
 
@@ -464,9 +460,13 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQu
 
 				if len(result) >= query.Limit {
 					close(stopChan)
+					mutex.RUnlock()
+
 					return result[:query.Limit], nil
 				}
 			}
+
+			mutex.RUnlock()
 
 			if flag {
 				return result, nil
