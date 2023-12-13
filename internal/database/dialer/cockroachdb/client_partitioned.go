@@ -452,15 +452,15 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQu
 			result := make([]*table.Index, 0, query.Limit)
 			flag := true
 
-			for _, index := range indexes {
-				index := index
+			for _, data := range indexes {
+				data := data
 
-				if index == nil {
+				if data == nil {
 					flag = false
 					break
 				}
 
-				result = append(result, index...)
+				result = append(result, data...)
 
 				if len(result) >= query.Limit {
 					close(stopChan)
