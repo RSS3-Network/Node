@@ -24,7 +24,7 @@ type Feed struct {
 	Tag          filter.Tag       `gorm:"column:tag"`
 	Type         string           `gorm:"column:type"`
 	Status       bool             `gorm:"column:status"`
-	Fee          *Fee             `gorm:"column:fee;jsonb"`
+	Fee          *Fee             `gorm:"column:fee;type:jsonb"`
 	TotalActions uint             `gorm:"column:total_actions"`
 	Actions      FeedActions      `gorm:"column:actions;type:jsonb"`
 	Timestamp    time.Time        `gorm:"column:timestamp"`
@@ -177,13 +177,11 @@ type Fee struct {
 
 //goland:noinspection ALL
 func (f *Fee) Import(fee *schema.Fee) error {
-	if fee == nil {
-		return nil
+	if fee != nil {
+		f.Address = fee.Address
+		f.Amount = fee.Amount
+		f.Decimal = fee.Decimal
 	}
-
-	f.Address = fee.Address
-	f.Amount = fee.Amount
-	f.Decimal = fee.Decimal
 
 	return nil
 }
