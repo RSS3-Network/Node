@@ -94,8 +94,16 @@ func TestClient(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
-			container, dataSourceName, err := createContainer(context.Background(), testcase.driver, testcase.partition)
-			require.NoError(t, err)
+			var container *gnomock.Container
+			var dataSourceName string
+			var err error
+
+			for {
+				container, dataSourceName, err = createContainer(context.Background(), testcase.driver, testcase.partition)
+				if err == nil {
+					break
+				}
+			}
 
 			t.Cleanup(func() {
 				require.NoError(t, gnomock.Stop(container))
