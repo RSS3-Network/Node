@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS "indexes"
     "updated_at" timestamptz NOT NULL DEFAULT now(),
 
     CONSTRAINT "pk_indexes" PRIMARY KEY ("id", "chain", "owner")
-);
+    );
 
 CREATE INDEX IF NOT EXISTS "idx_indexes_platform" ON "indexes" ("platform", "timestamp" DESC, "index" DESC);
 CREATE INDEX IF NOT EXISTS "idx_indexes_filter" ON "indexes" ("tag", "timestamp" DESC, "index" DESC, "type");
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS "feeds"
     "updated_at"    timestamptz NOT NULL DEFAULT now(),
 
     CONSTRAINT "pk_feeds" PRIMARY KEY ("id")
-);
+    );
 
 CREATE INDEX IF NOT EXISTS "idx_feeds_platform" ON "feeds" ("platform");
 CREATE INDEX IF NOT EXISTS "idx_feeds_timestamp" ON "feeds" ("timestamp" DESC);
@@ -60,7 +60,25 @@ CREATE TABLE IF NOT EXISTS "checkpoints"
     "updated_at" timestamptz NOT NULL DEFAULT now(),
 
     CONSTRAINT "pk_checkpoints" PRIMARY KEY ("id")
-);
+    );
+
+CREATE TABLE IF NOT EXISTS "posts"
+(
+    "id"                   text        NOT NULL,
+    "transaction_id"       text        NOT NULL,
+    "height"               decimal     NOT NULL,
+    "contributor"          text        NOT NULL,
+    "title"                text        NOT NULL,
+    "content"              text        NOT NULL,
+    "version"              text        NOT NULL,
+    "language"             text        NOT NULL,
+    "content_digital"      text        NOT NULL,
+    "origin_content_digital" text     NOT NULL,
+    "timestamp"            timestamptz NOT NULL,
+
+    CONSTRAINT "pk_profiles" PRIMARY KEY ("transaction_id")
+    );
+
 
 -- +goose StatementEnd
 
@@ -69,4 +87,5 @@ CREATE TABLE IF NOT EXISTS "checkpoints"
 DROP TABLE IF EXISTS "indexes";
 DROP TABLE IF EXISTS "feeds";
 DROP TABLE IF EXISTS "checkpoints";
+DROP TABLE IF EXISTS "posts";
 -- +goose StatementEnd

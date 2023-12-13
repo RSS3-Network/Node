@@ -12,6 +12,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroachdb/table"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror/model"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/pressly/goose/v3"
@@ -143,6 +144,42 @@ func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
 	}
 
 	return fmt.Errorf("not implemented")
+}
+
+// LoadPost loads a post.
+func (c *client) LoadPost(ctx context.Context, originContentDigest string) (*model.Post, error) {
+	var value table.Post
+
+	if err := c.database.WithContext(ctx).
+		Where("origin_content_digital = ?", originContentDigest).
+		First(&value).
+		Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+
+		// Initialize a default post.
+		value = table.Post{}
+	}
+
+	return value.Export()
+}
+
+// SavePost saves a post.
+func (c *client) SavePost(ctx context.Context, post *model.Post) error {
+	clauses := []clause.Expression{
+		clause.OnConflict{
+			Columns:   []clause.Column{{Name: "transaction_id"}},
+			UpdateAll: true,
+		},
+	}
+
+	var value table.Post
+	if err := value.Import(post); err != nil {
+		return err
+	}
+
+	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
 // createPartitionTable creates a partition table.
