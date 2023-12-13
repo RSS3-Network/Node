@@ -193,12 +193,11 @@ func (c *client) findFeedsPartitioned(ctx context.Context, query model.FeedsQuer
 	errorGroup, errorCtx := errgroup.WithContext(ctx)
 
 	for tableName, index := range partition {
+		tableName, index := tableName, index
+
 		ids := lo.Map(index, func(index *table.Index, _ int) string {
 			return index.ID
 		})
-
-		tableName := tableName
-		index := index
 
 		errorGroup.Go(func() error {
 			tableFeeds := make(table.Feeds, 0)
@@ -454,6 +453,8 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQu
 			flag := true
 
 			for _, index := range indexes {
+				index := index
+
 				if index == nil {
 					flag = false
 					break
