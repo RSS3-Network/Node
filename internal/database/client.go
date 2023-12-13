@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
@@ -19,6 +20,8 @@ type Client interface {
 	SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error
 
 	SaveFeeds(ctx context.Context, feeds []*schema.Feed) error
+	FirstFeed(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error)
+	FindFeeds(ctx context.Context, query model.FeedsQuery) ([]*schema.Feed, error)
 }
 
 type Session interface {

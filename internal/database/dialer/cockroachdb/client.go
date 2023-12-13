@@ -11,6 +11,7 @@ import (
 
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroachdb/table"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
@@ -145,15 +146,26 @@ func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
 	return fmt.Errorf("not implemented")
 }
 
-// createPartitionTable creates a partition table.
-func (c *client) createPartitionTable(ctx context.Context, name, template string) error {
-	statement := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS "%s" (LIKE "%s" INCLUDING ALL);`, name, template)
+// FirstFeed finds a feed by id.
+func (c *client) FirstFeed(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error) {
+	if c.partition {
+		return c.firstFeedPartitioned(ctx, query)
+	}
 
-	return c.database.WithContext(ctx).Exec(statement).Error
+	return nil, nil, fmt.Errorf("not implemented")
+}
+
+// FindFeeds finds feeds.
+func (c *client) FindFeeds(ctx context.Context, query model.FeedsQuery) ([]*schema.Feed, error) {
+	if c.partition {
+		return c.findFeedsPartitioned(ctx, query)
+	}
+
+	return nil, fmt.Errorf("not implemented")
 }
 
 // Dial dials a database.
-func Dial(_ context.Context, dataSourceName string, partition bool) (database.Client, error) {
+func Dial(ctx context.Context, dataSourceName string, partition bool) (database.Client, error) {
 	var err error
 
 	instance := client{
@@ -169,6 +181,10 @@ func Dial(_ context.Context, dataSourceName string, partition bool) (database.Cl
 
 	if instance.database, err = gorm.Open(postgres.Open(dataSourceName), &config); err != nil {
 		return nil, err
+	}
+
+	if instance.partition {
+		go instance.autoLoadIndexesPartitionTables(ctx)
 	}
 
 	return &instance, nil

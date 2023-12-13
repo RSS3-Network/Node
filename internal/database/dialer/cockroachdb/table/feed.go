@@ -10,10 +10,9 @@ import (
 
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
 	"github.com/shopspring/decimal"
 )
-
-var _ schema.FeedTransformer = (*Feed)(nil)
 
 type Feed struct {
 	ID           string           `gorm:"column:id"`
@@ -25,7 +24,7 @@ type Feed struct {
 	Tag          filter.Tag       `gorm:"column:tag"`
 	Type         string           `gorm:"column:type"`
 	Status       bool             `gorm:"column:status"`
-	Fee          Fee              `gorm:"column:fee;jsonb"`
+	Fee          *Fee             `gorm:"column:fee;jsonb"`
 	TotalActions uint             `gorm:"column:total_actions"`
 	Actions      FeedActions      `gorm:"column:actions;type:jsonb"`
 	Timestamp    time.Time        `gorm:"column:timestamp"`
@@ -80,7 +79,56 @@ func (f *Feed) Import(feed *schema.Feed) error {
 	return nil
 }
 
-var _ schema.FeedsTransformer = (*Feeds)(nil)
+func (f *Feed) Export(index *Index) (*schema.Feed, error) {
+	feed := schema.Feed{
+		ID:           f.ID,
+		From:         f.From,
+		To:           f.To,
+		Platform:     f.Platform,
+		Status:       f.Status,
+		Actions:      make([]*schema.Action, 0, len(f.Actions)),
+		TotalActions: f.TotalActions,
+		Timestamp:    uint64(f.Timestamp.Unix()),
+		Owner:        index.Owner,
+		Direction:    index.Direction,
+	}
+
+	splits := strings.Split(f.Chain, ".")
+	if len(splits) != 2 {
+		return nil, fmt.Errorf("invalid chain: %s", f.Chain)
+	}
+
+	var err error
+
+	if feed.Network, err = filter.NetworkString(splits[0]); err != nil {
+		return nil, fmt.Errorf("invalid network: %w", err)
+	}
+
+	if feed.Chain, err = filter.ChainString(feed.Network, splits[1]); err != nil {
+		return nil, fmt.Errorf("invalid chain: %w", err)
+	}
+
+	if feed.Type, err = filter.TypeString(f.Tag, f.Type); err != nil {
+		return nil, err
+	}
+
+	feed.Tag = feed.Type.Tag()
+
+	if feed.Fee, err = f.Fee.Export(); err != nil {
+		return nil, fmt.Errorf("invalid fee: %w", err)
+	}
+
+	for _, action := range f.Actions {
+		item, err := action.Export()
+		if err != nil {
+			return nil, err
+		}
+
+		feed.Actions = append(feed.Actions, item)
+	}
+
+	return &feed, nil
+}
 
 type Feeds []*Feed
 
@@ -98,7 +146,28 @@ func (f *Feeds) Import(feeds []*schema.Feed) error {
 	return nil
 }
 
-var _ schema.FeeTransformer = (*Fee)(nil)
+func (f *Feeds) Export(indexes []*Index) ([]*schema.Feed, error) {
+	feeds := make(map[string]*Feed)
+
+	for _, feed := range *f {
+		feeds[feed.ID] = feed
+	}
+
+	result := make([]*schema.Feed, 0, len(indexes))
+
+	for _, index := range indexes {
+		if feed, ok := feeds[index.ID]; ok {
+			data, err := feed.Export(index)
+			if err != nil {
+				return nil, err
+			}
+
+			result = append(result, data)
+		}
+	}
+
+	return result, nil
+}
 
 type Fee struct {
 	Address *string         `json:"address,omitempty"`
@@ -106,12 +175,30 @@ type Fee struct {
 	Decimal uint            `json:"decimal"`
 }
 
-func (f *Fee) Import(fee schema.Fee) error {
+//goland:noinspection ALL
+func (f *Fee) Import(fee *schema.Fee) error {
+	if fee == nil {
+		return nil
+	}
+
 	f.Address = fee.Address
 	f.Amount = fee.Amount
 	f.Decimal = fee.Decimal
 
 	return nil
+}
+
+//goland:noinspection ALL
+func (f *Fee) Export() (*schema.Fee, error) {
+	if f == nil {
+		return nil, nil
+	}
+
+	return &schema.Fee{
+		Address: f.Address,
+		Amount:  f.Amount,
+		Decimal: f.Decimal,
+	}, nil
 }
 
 var (
@@ -134,8 +221,6 @@ func (f Fee) Value() (driver.Value, error) {
 	return json.Marshal(f)
 }
 
-var _ schema.ActionTransformer = (*FeedAction)(nil)
-
 type FeedAction struct {
 	Tag      string          `json:"tag"`
 	Type     string          `json:"type"`
@@ -157,6 +242,25 @@ func (f *FeedAction) Import(action *schema.Action) (err error) {
 	}
 
 	return nil
+}
+
+func (f *FeedAction) Export() (*schema.Action, error) {
+	action := &schema.Action{
+		From:     f.From,
+		To:       f.To,
+		Platform: f.Platform,
+	}
+
+	var err error
+	if action.Tag, action.Type, err = filter.TagAndTypeString(f.Tag, f.Type); err != nil {
+		return nil, err
+	}
+
+	if action.Metadata, err = metadata.Unmarshal(action.Type, f.Metadata); err != nil {
+		return nil, err
+	}
+
+	return action, nil
 }
 
 var (

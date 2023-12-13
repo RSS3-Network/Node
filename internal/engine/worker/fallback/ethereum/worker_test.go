@@ -82,7 +82,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				From:    "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
 				To:      "0xA1b2DCAC834117F38FB0356b5176B5693E165c90",
 				Type:    filter.TypeTransactionTransfer,
-				Fee: schema.Fee{
+				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("335686667463000")),
 					Decimal: 18,
 				},

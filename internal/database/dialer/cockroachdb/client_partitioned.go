@@ -2,15 +2,80 @@ package cockroachdb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
+	"sync"
+	"time"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroachdb/table"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
+
+var indexesTables = make(map[string]struct{})
+
+// createPartitionTable creates a partition table.
+func (c *client) createPartitionTable(ctx context.Context, name, template string) error {
+	statement := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS "%s" (LIKE "%s" INCLUDING ALL);`, name, template)
+
+	err := c.database.WithContext(ctx).Exec(statement).Error
+	if err != nil {
+		return err
+	}
+
+	if template == (*table.Index).TableName(nil) {
+		indexesTables[name] = struct{}{}
+	}
+
+	return nil
+}
+
+// findIndexesPartitionTable finds partition table names of indexes in the past year.
+func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index) ([]string, error) {
+	partitionedNames := make([]string, 0)
+
+	for i := 0; i <= 4; i++ {
+		if index.Timestamp.Unix() < time.Now().AddDate(-1, 0, 0).Unix() {
+			break
+		}
+
+		if _, exists := indexesTables[index.PartitionName()]; exists {
+			partitionedNames = append(partitionedNames, index.PartitionName())
+		}
+
+		year := index.Timestamp.Year()
+		month := index.Timestamp.Month()
+
+		index.Timestamp = time.Date(lo.Ternary(month < 3, year-1, year), lo.Ternary(month < 3, month+9, month-3), index.Timestamp.Day(), 23, 59, 59, 0, time.Local)
+	}
+
+	return partitionedNames, nil
+}
+
+// autoLoadIndexesPartitionTables auto loads indexes partition tables.
+func (c *client) autoLoadIndexesPartitionTables(ctx context.Context) {
+	for {
+		result := make([]string, 0)
+
+		if err := c.database.WithContext(ctx).Table("pg_tables").Where("tablename LIKE ?", fmt.Sprintf("%s_%%", (*table.Index).TableName(nil))).Pluck("tablename", &result).Error; err != nil {
+			zap.L().Error("load partitioned indexes table names", zap.Error(err))
+
+			continue
+		}
+
+		for _, tableName := range result {
+			indexesTables[tableName] = struct{}{}
+		}
+
+		time.Sleep(1 * time.Minute)
+	}
+}
 
 // saveFeedsPartitioned saves feeds in partitioned tables.
 func (c *client) saveFeedsPartitioned(ctx context.Context, feeds []*schema.Feed) error {
@@ -68,6 +133,105 @@ func (c *client) saveFeedsPartitioned(ctx context.Context, feeds []*schema.Feed)
 	}
 
 	return errorGroup.Wait()
+}
+
+// firstFeedPartitioned finds a feed by id.
+func (c *client) firstFeedPartitioned(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error) {
+	index, err := c.firstIndexPartitioned(ctx, query)
+	if err != nil {
+		return nil, nil, fmt.Errorf("first index: %w", err)
+	}
+
+	if index == nil {
+		return nil, nil, nil
+	}
+
+	feed := &table.Feed{
+		ID:        index.ID,
+		Chain:     index.Chain,
+		Timestamp: index.Timestamp,
+	}
+
+	if err := c.database.WithContext(ctx).Table(feed.PartitionName(nil)).Where("id = ?", index.ID).Limit(1).Find(&feed).Error; err != nil {
+		return nil, nil, fmt.Errorf("find feed: %w", err)
+	}
+
+	result, err := feed.Export(index)
+	if err != nil {
+		return nil, nil, fmt.Errorf("export feed: %w", err)
+	}
+
+	page := math.Ceil(float64(len(feed.Actions)) / float64(query.ActionLimit))
+
+	feed.Actions = lo.Slice(feed.Actions, query.ActionLimit*(query.ActionPage-1), query.ActionLimit*query.ActionPage)
+
+	return result, lo.ToPtr(int(page)), nil
+}
+
+// findFeedsPartitioned finds feeds.
+func (c *client) findFeedsPartitioned(ctx context.Context, query model.FeedsQuery) ([]*schema.Feed, error) {
+	indexes, err := c.findIndexesPartitioned(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("find indexes: %w", err)
+	}
+
+	partition := lo.GroupBy(indexes, func(query *table.Index) string {
+		feed := table.Feed{
+			ID:        query.ID,
+			Chain:     query.Chain,
+			Timestamp: query.Timestamp,
+		}
+
+		return feed.PartitionName(nil)
+	})
+
+	var (
+		result = make([]*schema.Feed, 0)
+		locker sync.Mutex
+	)
+
+	errorGroup, errorCtx := errgroup.WithContext(ctx)
+
+	for tableName, index := range partition {
+		ids := lo.Map(index, func(index *table.Index, _ int) string {
+			return index.ID
+		})
+
+		tableName := tableName
+		index := index
+
+		errorGroup.Go(func() error {
+			tableFeeds := make(table.Feeds, 0)
+
+			if err := c.database.WithContext(errorCtx).Table(tableName).Where("id IN ?", lo.Uniq(ids)).Find(&tableFeeds).Error; err != nil {
+				zap.L().Error("failed to find feeds", zap.Error(err), zap.String("tableName", tableName))
+
+				return err
+			}
+
+			locker.Lock()
+			defer locker.Unlock()
+
+			feeds, err := tableFeeds.Export(index)
+			if err != nil {
+				return err
+			}
+
+			result = append(result, feeds...)
+
+			return nil
+		})
+	}
+
+	if err := errorGroup.Wait(); err != nil {
+		return nil, err
+	}
+
+	lo.ForEach(result, func(feed *schema.Feed, i int) {
+		result[i].Actions = lo.Slice(feed.Actions, 0, query.ActionLimit)
+	})
+
+	return result, nil
 }
 
 // saveIndexesPartitioned saves indexes in partitioned tables.
@@ -129,4 +293,279 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 		Clauses(onConflict).
 		CreateInBatches(indexes, math.MaxUint8).
 		Error
+}
+
+// firstIndexPartitioned finds a feed by id.
+func (c *client) firstIndexPartitioned(ctx context.Context, query model.FeedQuery) (*table.Index, error) {
+	index := table.Index{
+		Timestamp: time.Now(),
+	}
+
+	tables, err := c.findIndexesPartitionTables(ctx, index)
+	if err != nil {
+		return nil, fmt.Errorf("find indexes partition tables: %w", err)
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	errorGroup, errorContext := errgroup.WithContext(ctx)
+	resultChan := make(chan *table.Index, len(tables))
+	errorChan := make(chan error)
+	stopChan := make(chan struct{})
+
+	for _, tableName := range tables {
+		tableName := tableName
+
+		errorGroup.Go(func() error {
+			var result table.Index
+
+			if err := c.buildFirstIndexStatement(errorContext, tableName, query).Limit(1).Find(&result).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+				zap.L().Error("failed to find first index", zap.Error(err), zap.String("partition table", tableName))
+
+				return fmt.Errorf("find first index: %w", err)
+			}
+
+			if lo.IsEmpty(result.ID) {
+				return nil
+			}
+
+			select {
+			case <-stopChan:
+				return nil
+			case resultChan <- &result:
+				return nil
+			}
+		})
+	}
+
+	go func() {
+		defer close(errorChan)
+
+		errorChan <- errorGroup.Wait()
+	}()
+
+	defer cancel()
+
+	count := 0
+
+	for {
+		select {
+		case err := <-errorChan:
+			if err != nil {
+				return nil, fmt.Errorf("failed to wait result: %w", err)
+			}
+		case data := <-resultChan:
+			count++
+
+			if data != nil {
+				close(stopChan)
+				return data, nil
+			}
+
+			if count == len(tables) {
+				return nil, nil
+			}
+		}
+	}
+}
+
+// findIndexesPartitioned finds indexes.
+func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQuery) ([]*table.Index, error) {
+	index := table.Index{
+		Timestamp: time.Now(),
+	}
+
+	if query.EndTimestamp != nil && lo.FromPtr(query.EndTimestamp) < uint64(index.Timestamp.Unix()) {
+		index.Timestamp = time.Unix(int64(lo.FromPtr(query.EndTimestamp)), 0)
+	}
+
+	if query.Cursor != nil && query.Cursor.Timestamp < uint64(index.Timestamp.Unix()) {
+		index.Timestamp = time.Unix(int64(query.Cursor.Timestamp), 0)
+	}
+
+	partitionedNames, err := c.findIndexesPartitionTables(ctx, index)
+	if err != nil {
+		zap.L().Error("failed to build partitioned indexes past year", zap.Error(err))
+
+		return nil, err
+	}
+
+	if len(partitionedNames) == 0 {
+		return nil, nil
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	errorGroup, errorContext := errgroup.WithContext(ctx)
+	indexes := make([][]*table.Index, len(partitionedNames))
+	resultChan := make(chan int, len(partitionedNames))
+	errorChan := make(chan error)
+	stopChan := make(chan struct{})
+
+	for partitionedIndex, partitionedName := range partitionedNames {
+		partitionedIndex, partitionedName := partitionedIndex, partitionedName
+
+		errorGroup.Go(func() error {
+			var result []table.Index
+
+			databaseStatement := c.buildFindIndexesStatement(errorContext, partitionedName, query)
+
+			if err := databaseStatement.Find(&result).Error; err != nil {
+				zap.L().Error("failed to find indexes", zap.Error(err), zap.String("partitioned table", partitionedName))
+
+				return err
+			}
+
+			indexes[partitionedIndex] = make([]*table.Index, 0, len(result))
+
+			for _, data := range result {
+				data := data
+
+				if lo.IsEmpty(data.ID) {
+					continue
+				}
+
+				indexes[partitionedIndex] = append(indexes[partitionedIndex], &data)
+			}
+
+			select {
+			case <-stopChan:
+				return nil
+			case resultChan <- partitionedIndex:
+				return nil
+			}
+		})
+	}
+
+	go func() {
+		defer close(errorChan)
+
+		errorChan <- errorGroup.Wait()
+	}()
+
+	defer func() {
+		cancel()
+	}()
+
+	for {
+		select {
+		case err := <-errorChan:
+			if err != nil {
+				zap.L().Error("failed to wait result: ", zap.Error(err))
+
+				return nil, err
+			}
+		case <-resultChan:
+			result := make([]*table.Index, 0, query.Limit)
+			flag := true
+
+			for _, index := range indexes {
+				if index == nil {
+					flag = false
+					break
+				}
+
+				result = append(result, index...)
+
+				if len(result) >= query.Limit {
+					close(stopChan)
+					return result[:query.Limit], nil
+				}
+			}
+
+			if flag {
+				return result, nil
+			}
+		}
+	}
+}
+
+// buildFirstIndexStatement builds the query index statement.
+func (c *client) buildFirstIndexStatement(ctx context.Context, partitionedName string, query model.FeedQuery) *gorm.DB {
+	databaseStatement := c.database.WithContext(ctx).Table(partitionedName)
+
+	if query.ID != nil {
+		databaseStatement = databaseStatement.Where("id = ?", query.ID)
+	}
+
+	if query.Chain != nil {
+		databaseStatement = databaseStatement.Where("chain = ?", lo.FromPtr(query.Chain).FullName())
+	}
+
+	if query.Owner != nil {
+		databaseStatement = databaseStatement.Where("owner = ?", query.Owner)
+	}
+
+	return databaseStatement
+}
+
+// buildFindIndexesStatement builds the query indexes statement.
+func (c *client) buildFindIndexesStatement(ctx context.Context, partition string, query model.FeedsQuery) *gorm.DB {
+	databaseStatement := c.database.WithContext(ctx).Table(partition)
+
+	var table *string
+
+	if query.Distinct != nil && lo.FromPtr(query.Distinct) {
+		databaseStatement = databaseStatement.Select("DISTINCT (id) id, timestamp, index, chain")
+	}
+
+	if query.Owner != nil {
+		table = lo.ToPtr(fmt.Sprintf(`"%s"@idx_indexes_owner`, partition))
+		databaseStatement = databaseStatement.Where("owner = ?", query.Owner)
+	}
+
+	if len(query.Owners) > 0 {
+		table = lo.ToPtr(fmt.Sprintf(`"%s"@idx_indexes_owner`, partition))
+		databaseStatement = databaseStatement.Where("owner IN ?", query.Owners)
+	}
+
+	if query.Status != nil {
+		databaseStatement = databaseStatement.Where("status = ?", query.Status)
+	}
+
+	if query.Direction != nil {
+		databaseStatement = databaseStatement.Where("direction = ?", query.Direction)
+	}
+
+	if query.StartTimestamp != nil {
+		databaseStatement = databaseStatement.Where("timestamp >= ?", time.Unix(int64(*query.StartTimestamp), 0))
+	}
+
+	if query.EndTimestamp != nil {
+		databaseStatement = databaseStatement.Where("timestamp <= ?", time.Unix(int64(*query.EndTimestamp), 0))
+	}
+
+	if query.Platform != nil {
+		databaseStatement = databaseStatement.Where("platform = ?", query.Platform)
+	}
+
+	if len(query.Platforms) > 0 {
+		databaseStatement = databaseStatement.Where("platform IN ?", query.Platforms)
+	}
+
+	if len(query.Tags) > 0 {
+		databaseStatement = databaseStatement.Where("tag IN ?", query.Tags)
+	}
+
+	if len(query.Types) > 0 {
+		databaseStatement = databaseStatement.Where("type IN ?", query.Types)
+	}
+
+	if len(query.Chains) > 0 {
+		chains := make([]string, 0)
+
+		for _, chain := range query.Chains {
+			chains = append(chains, chain.FullName())
+		}
+
+		databaseStatement = databaseStatement.Where("chain IN ?", chains)
+	}
+
+	if query.Cursor != nil && query.Cursor.Timestamp > 0 {
+		databaseStatement = databaseStatement.Where("timestamp < ? OR (timestamp = ? AND index < ?)", time.Unix(int64(query.Cursor.Timestamp), 0), time.Unix(int64(query.Cursor.Timestamp), 0), query.Cursor.Index)
+	}
+
+	if table != nil {
+		databaseStatement.Statement.TableExpr.SQL = *table
+	}
+
+	return databaseStatement.Order("timestamp DESC, index DESC").Limit(query.Limit)
 }

@@ -2,27 +2,22 @@ package schema
 
 import "github.com/naturalselectionlabs/rss3-node/schema/filter"
 
-type FeedTransformer interface {
-	Import(feed *Feed) error
-}
-
-type FeedsTransformer interface {
-	Import(feed []*Feed) error
-}
-
 type Feed struct {
-	ID        string           `json:"id"`
-	Network   filter.Network   `json:"network"`
-	Index     uint             `json:"index"`
-	From      string           `json:"from"`
-	To        string           `json:"to"`
-	Tag       filter.Tag       `json:"tag"`
-	Type      filter.Type      `json:"type"`
-	Platform  *filter.Platform `json:"platform,omitempty"`
-	Fee       Fee              `json:"fee"`
-	Actions   []*Action        `json:"actions"`
-	Status    bool             `json:"status"`
-	Timestamp uint64           `json:"timestamp"`
+	ID           string           `json:"id"`
+	Owner        string           `json:"owner,omitempty"`
+	Network      filter.Network   `json:"network"`
+	Index        uint             `json:"index"`
+	From         string           `json:"from"`
+	To           string           `json:"to"`
+	Tag          filter.Tag       `json:"tag"`
+	Type         filter.Type      `json:"type"`
+	Platform     *filter.Platform `json:"platform,omitempty"`
+	Fee          *Fee             `json:"fee"`
+	TotalActions uint             `json:"total_actions"`
+	Actions      []*Action        `json:"actions"`
+	Direction    filter.Direction `json:"direction,omitempty"`
+	Status       bool             `json:"status"`
+	Timestamp    uint64           `json:"timestamp"`
 }
 
 // FeedOption is a function that can be used to modify a feed,

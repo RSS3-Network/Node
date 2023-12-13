@@ -1,10 +1,12 @@
-package explorer
+package hub
 
 import (
 	"context"
 	"net"
 
+	"github.com/NaturalSelectionLabs/goapi"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/naturalselectionlabs/rss3-node/internal/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 )
@@ -16,7 +18,7 @@ const (
 
 type Server struct {
 	httpServer *echo.Echo
-	explorer   *Explorer
+	hub        *Hub
 }
 
 func (s *Server) Run(_ context.Context) error {
@@ -28,12 +30,25 @@ func (s *Server) Run(_ context.Context) error {
 func NewServer(ctx context.Context, config *config.File, databaseClient database.Client) (*Server, error) {
 	instance := Server{
 		httpServer: echo.New(),
-		explorer:   NewExplorer(ctx, config, databaseClient),
+		hub:        NewHub(ctx, config, databaseClient),
 	}
 
 	instance.httpServer.HideBanner = true
 	instance.httpServer.HidePort = true
-	instance.httpServer.GET("/rss/rsshub/*", instance.explorer.RSS.GetRSSHubHandler)
+
+	instance.httpServer.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
+
+	// register router
+	group := goapi.NewRouter().Group("")
+	{
+		group.GET("/rss/rsshub/*", instance.hub.RSS.GetRSSHubHandler)
+		group.GET("/activities/{id}", instance.hub.Decentralized.GetActivity)
+		group.GET("/accounts/{account}/activities", instance.hub.Decentralized.GetAccountActivities)
+	}
+
+	instance.httpServer.Use(echo.WrapMiddleware(group.Handler))
+
+	instance.httpServer.Routers()
 
 	return &instance, nil
 }

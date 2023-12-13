@@ -1,8 +1,10 @@
 package table
 
 import (
+	"errors"
 	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
@@ -33,8 +35,6 @@ func (i *Index) PartitionName() string {
 	return fmt.Sprintf("%s_%d_q%d", i.TableName(), i.Timestamp.Year(), int(math.Ceil(float64(i.Timestamp.Month())/3)))
 }
 
-var _ schema.FeedTransformer = (*Index)(nil)
-
 func (i *Index) Import(feed *schema.Feed) error {
 	i.ID = feed.ID
 	i.Network = feed.Network
@@ -48,7 +48,31 @@ func (i *Index) Import(feed *schema.Feed) error {
 	return nil
 }
 
-var _ schema.FeedsTransformer = (*Indexes)(nil)
+func (i *Index) Export() (*schema.Feed, error) {
+	var feed schema.Feed
+
+	feed.ID = i.ID
+	feed.Owner = i.Owner
+	feed.Direction = i.Direction
+	feed.Timestamp = uint64(i.Timestamp.Unix())
+
+	chain := strings.Split(i.Chain, ".")
+	if len(chain) < 2 {
+		return nil, errors.New("invalid chain format")
+	}
+
+	network, err := filter.NetworkString(chain[0])
+	if err != nil {
+		return nil, fmt.Errorf("invalid network: %w", err)
+	}
+
+	feed.Chain, err = filter.ChainString(network, chain[1])
+	if err != nil {
+		return nil, fmt.Errorf("invalid chain: %w", err)
+	}
+
+	return &feed, nil
+}
 
 type Indexes []*Index
 
