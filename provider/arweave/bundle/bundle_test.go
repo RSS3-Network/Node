@@ -75,8 +75,6 @@ func TestDecoder(t *testing.T) {
 				dataItem, err := decoder.DecodeDataItem()
 				require.NoError(t, err)
 
-				t.Log(dataItem)
-
 				_, err = io.Copy(io.Discard, dataItem)
 				require.NoError(t, err)
 			}
