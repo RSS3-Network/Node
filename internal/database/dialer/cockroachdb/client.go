@@ -183,6 +183,11 @@ func Dial(ctx context.Context, dataSourceName string, partition bool) (database.
 		return nil, err
 	}
 
+	sqlDB, _ := instance.database.DB()
+	sqlDB.SetMaxIdleConns(32)
+	sqlDB.SetMaxOpenConns(64)
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
 	if instance.partition {
 		go instance.autoLoadIndexesPartitionTables(ctx)
 	}

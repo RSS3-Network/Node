@@ -123,15 +123,11 @@ func TestClient(t *testing.T) {
 			require.NoError(t, client.Migrate(context.Background()))
 
 			// Begin a transaction.
-			transaction, err := client.Begin(context.Background())
-			require.NoError(t, err)
-
-			// Insert feeds.
-			require.NoError(t, transaction.SaveFeeds(context.Background(), testcase.feedCreated))
+			require.NoError(t, client.SaveFeeds(context.Background(), testcase.feedCreated))
 
 			// Query first feed.
 			for _, feed := range testcase.feedCreated {
-				data, page, err := transaction.FirstFeed(context.Background(), model.FeedQuery{ID: &feed.ID, ActionLimit: 10})
+				data, page, err := client.FirstFeed(context.Background(), model.FeedQuery{ID: &feed.ID, ActionLimit: 10})
 				require.NoError(t, err)
 				require.NotNil(t, data)
 				require.Greater(t, lo.FromPtr(page), 0)
@@ -149,16 +145,13 @@ func TestClient(t *testing.T) {
 			}
 
 			for account, count := range accounts {
-				data, err := transaction.FindFeeds(context.Background(), model.FeedsQuery{Owner: &account, Limit: 100})
+				feeds, err := client.FindFeeds(context.Background(), model.FeedsQuery{Owner: &account, Limit: 100})
 				require.NoError(t, err)
-				require.Len(t, data, count)
+				require.Len(t, feeds, count)
 			}
 
 			// Update feeds.
-			require.NoError(t, transaction.SaveFeeds(context.Background(), testcase.feedUpdated))
-
-			// Commit the transaction.
-			require.NoError(t, transaction.Commit())
+			require.NoError(t, client.SaveFeeds(context.Background(), testcase.feedUpdated))
 		})
 	}
 }
@@ -208,7 +201,7 @@ func createContainer(ctx context.Context, driver database.Driver, partition bool
 
 func formatContainerURI(container *gnomock.Container) string {
 	return fmt.Sprintf(
-		"postgres://root@%s:%d/%s?sslmode=disable",
+		"postgres://root@%s:%d/%s?sslmode=disable&connect_timeout=100",
 		container.Host,
 		container.DefaultPort(),
 		"test",

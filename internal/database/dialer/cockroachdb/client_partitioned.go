@@ -409,9 +409,7 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQu
 			databaseStatement := c.buildFindIndexesStatement(errorContext, partitionedName, query)
 
 			if err := databaseStatement.Find(&result).Error; err != nil {
-				zap.L().Error("failed to find indexes", zap.Error(err), zap.String("partitioned table", partitionedName))
-
-				return err
+				return fmt.Errorf("failed to find indexes: %w", err)
 			}
 
 			indexes[partitionedIndex] = make([]*table.Index, 0, len(result))
@@ -449,9 +447,7 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQu
 		select {
 		case err := <-errorChan:
 			if err != nil {
-				zap.L().Error("failed to wait result: ", zap.Error(err))
-
-				return nil, err
+				return nil, fmt.Errorf("failed to wait result: %w", err)
 			}
 		case <-resultChan:
 			result := make([]*table.Index, 0, query.Limit)
@@ -483,7 +479,7 @@ func (c *client) buildFirstIndexStatement(ctx context.Context, partitionedName s
 	databaseStatement := c.database.WithContext(ctx).Table(partitionedName)
 
 	if query.ID != nil {
-		databaseStatement = databaseStatement.Where("id = ?", query.ID)
+		databaseStatement = databaseStatement.Where("id = ?", lo.FromPtr(query.ID))
 	}
 
 	if query.Chain != nil {
@@ -491,7 +487,7 @@ func (c *client) buildFirstIndexStatement(ctx context.Context, partitionedName s
 	}
 
 	if query.Owner != nil {
-		databaseStatement = databaseStatement.Where("owner = ?", query.Owner)
+		databaseStatement = databaseStatement.Where("owner = ?", lo.FromPtr(query.Owner))
 	}
 
 	return databaseStatement
