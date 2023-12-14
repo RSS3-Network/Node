@@ -2,6 +2,7 @@ package mirror_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
@@ -13,6 +14,8 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
+	"github.com/orlangure/gnomock"
+	"github.com/orlangure/gnomock/preset/cockroachdb"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -139,6 +142,27 @@ func TestWorker_Arweave(t *testing.T) {
 		},
 	}
 
+	driver := database.DriverCockroachDB
+	partition := true
+
+	container, dataSourceName, err := createContainer(context.Background(), driver, partition)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		require.NoError(t, gnomock.Stop(container))
+	})
+
+	// Dial the database.
+	databaseClient, err := dialer.Dial(context.Background(), &database.Config{
+		Driver:    driver,
+		URI:       dataSourceName,
+		Partition: partition,
+	})
+	require.NoError(t, err)
+
+	err = databaseClient.Migrate(context.Background())
+	require.NoError(t, err)
+
 	for _, testcase := range testcases {
 		testcase := testcase
 
@@ -146,16 +170,6 @@ func TestWorker_Arweave(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-
-			databaseClient, err := dialer.Dial(ctx, &database.Config{
-				Driver:    database.DriverCockroachDB,
-				Partition: false,
-				URI:       "postgres://root@localhost:26257/defaultdb",
-			})
-			require.NoError(t, err)
-
-			err = databaseClient.Migrate(ctx)
-			require.NoError(t, err)
 
 			instance, err := worker.NewWorker(testcase.arguments.config, databaseClient)
 			require.NoError(t, err)
@@ -172,4 +186,56 @@ func TestWorker_Arweave(t *testing.T) {
 			t.Log(feed)
 		})
 	}
+}
+
+func createContainer(ctx context.Context, driver database.Driver, partition bool) (container *gnomock.Container, dataSourceName string, err error) {
+	config := database.Config{
+		Driver:    driver,
+		Partition: partition,
+	}
+
+	switch driver {
+	case database.DriverCockroachDB:
+		preset := cockroachdb.Preset(
+			cockroachdb.WithDatabase("test"),
+			cockroachdb.WithVersion("v23.1.8"),
+		)
+
+		// Use a health check function to wait for the database to be ready.
+		healthcheckFunc := func(ctx context.Context, container *gnomock.Container) error {
+			config.URI = formatContainerURI(container)
+
+			client, err := dialer.Dial(ctx, &config)
+			if err != nil {
+				return err
+			}
+
+			transaction, err := client.Begin(ctx)
+			if err != nil {
+				return err
+			}
+
+			defer lo.Try(transaction.Rollback)
+
+			return nil
+		}
+
+		container, err = gnomock.Start(preset, gnomock.WithContext(ctx), gnomock.WithHealthCheck(healthcheckFunc))
+		if err != nil {
+			return nil, "", err
+		}
+
+		return container, formatContainerURI(container), nil
+	default:
+		return nil, "", fmt.Errorf("unsupported driver: %s", driver)
+	}
+}
+
+func formatContainerURI(container *gnomock.Container) string {
+	return fmt.Sprintf(
+		"postgres://root@%s:%d/%s?sslmode=disable",
+		container.Host,
+		container.DefaultPort(),
+		"test",
+	)
 }
