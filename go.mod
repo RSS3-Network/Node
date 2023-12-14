@@ -10,7 +10,6 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.2
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.16.0
-	github.com/go-resty/resty/v2 v2.10.0
 	github.com/hamba/avro v1.5.6
 	github.com/labstack/echo/v4 v4.11.3
 	github.com/lib/pq v1.10.9

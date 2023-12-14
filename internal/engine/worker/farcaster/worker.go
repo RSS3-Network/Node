@@ -6,14 +6,12 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/gabriel-vasile/mimetype"
-	"github.com/go-resty/resty/v2"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/farcaster"
 	"github.com/naturalselectionlabs/rss3-node/provider/farcaster"
+	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
@@ -25,7 +23,7 @@ import (
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
-	httpClient *resty.Client
+	httpClient ipfs.HTTPClient
 }
 
 func (w *worker) Name() string {
@@ -260,7 +258,7 @@ func (w *worker) buildPostMedia(ctx context.Context, post *metadata.Social, embe
 		embed := embed
 
 		errorGroup.Go(func() error {
-			mimeType, _ := w.detectMimeType(ctx, embed)
+			mimeType, _ := w.httpClient.GetContentType(ctx, embed)
 
 			locker.Lock()
 			defer locker.Unlock()
@@ -278,28 +276,14 @@ func (w *worker) buildPostMedia(ctx context.Context, post *metadata.Social, embe
 	_ = errorGroup.Wait()
 }
 
-// detectMimeType will detect mime type from url.
-func (w *worker) detectMimeType(ctx context.Context, url string) (string, error) {
-	response, err := w.httpClient.R().SetContext(ctx).SetHeader("User-Agent", "curl/7.86.0").Get(url)
-	if err != nil {
-		return "", fmt.Errorf("fetch content: %w", err)
-	}
-
-	if response.StatusCode() != 200 {
-		return "", fmt.Errorf("unexpected status code: %d", response.StatusCode())
-	}
-
-	mimeType := mimetype.Detect(response.Body())
-
-	if mimeType == nil {
-		return "", fmt.Errorf("fail to detect mime type %s", url)
-	}
-
-	return mimeType.String(), nil
-}
-
 func NewWorker() (engine.Worker, error) {
+	httpClient, err := ipfs.NewHTTPClient()
+
+	if err != nil {
+		return nil, fmt.Errorf("new http client: %w", err)
+	}
+
 	return &worker{
-		httpClient: resty.New().SetTimeout(5 * time.Second).SetRetryCount(3).SetLogger(zap.L().Sugar()),
+		httpClient: httpClient,
 	}, nil
 }
