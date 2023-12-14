@@ -128,7 +128,7 @@ func NewServer(ctx context.Context, config *engine.Config, databaseClient databa
 	}
 
 	// Initialize worker.
-	if instance.worker, err = worker.New(instance.config); err != nil {
+	if instance.worker, err = worker.New(instance.config, databaseClient); err != nil {
 		return nil, fmt.Errorf("new worker: %w", err)
 	}
 

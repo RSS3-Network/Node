@@ -146,7 +146,7 @@ func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
 	return fmt.Errorf("not implemented")
 }
 
-// LoadMirrorPost loads a post.
+// LoadDatasetMirrorPost LoadMirrorPost loads a post.
 func (c *client) LoadDatasetMirrorPost(ctx context.Context, originContentDigest string) (*model.DatasetMirrorPost, error) {
 	var value table.DatasetMirrorPost
 
@@ -165,11 +165,11 @@ func (c *client) LoadDatasetMirrorPost(ctx context.Context, originContentDigest 
 	return value.Export()
 }
 
-// SavePost saves a post.
+// SaveDatasetMirrorPost SavePost saves a post.
 func (c *client) SaveDatasetMirrorPost(ctx context.Context, post *model.DatasetMirrorPost) error {
 	clauses := []clause.Expression{
 		clause.OnConflict{
-			Columns:   []clause.Column{{Name: "transaction_id"}},
+			Columns:   []clause.Column{{Name: "id"}},
 			UpdateAll: true,
 		},
 	}

@@ -65,18 +65,9 @@ CREATE TABLE IF NOT EXISTS "checkpoints"
 CREATE TABLE IF NOT EXISTS "dataset_mirror_posts"
 (
     "id"                   text        NOT NULL,
-    "transaction_id"       text        NOT NULL,
-    "height"               decimal     NOT NULL,
-    "contributor"          text        NOT NULL,
-    "title"                text        NOT NULL,
-    "content"              text        NOT NULL,
-    "version"              text        NOT NULL,
-    "language"             text        NOT NULL,
-    "content_digital"      text        NOT NULL,
     "origin_content_digital" text     NOT NULL,
-    "timestamp"            timestamptz NOT NULL,
 
-    CONSTRAINT "pk_dataset_mirror_posts" PRIMARY KEY ("transaction_id")
+    CONSTRAINT "pk_dataset_mirror_posts" PRIMARY KEY ("id")
     );
 
 

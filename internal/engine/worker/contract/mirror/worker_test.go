@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/naturalselectionlabs/rss3-node/internal/database"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror"
@@ -145,7 +147,17 @@ func TestWorker_Arweave(t *testing.T) {
 
 			ctx := context.Background()
 
-			instance, err := worker.NewWorker(testcase.arguments.config)
+			databaseClient, err := dialer.Dial(ctx, &database.Config{
+				Driver:    database.DriverCockroachDB,
+				Partition: false,
+				URI:       "postgres://root@localhost:26257/defaultdb",
+			})
+			require.NoError(t, err)
+
+			err = databaseClient.Migrate(ctx)
+			require.NoError(t, err)
+
+			instance, err := worker.NewWorker(testcase.arguments.config, databaseClient)
 			require.NoError(t, err)
 
 			matched, err := instance.Match(ctx, testcase.arguments.task)

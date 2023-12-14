@@ -5,8 +5,10 @@ import (
 	"fmt"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror/model"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave/contract/mirror"
 	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
@@ -21,9 +23,10 @@ import (
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
-	config        *engine.Config
-	arweaveClient arweave.Client
-	ipfsClient    ipfs.HTTPClient
+	config         *engine.Config
+	arweaveClient  arweave.Client
+	ipfsClient     ipfs.HTTPClient
+	databaseClient database.Client
 }
 
 func (w *worker) Name() string {
@@ -87,8 +90,6 @@ func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.T
 		originContentDigest string
 		emptyOriginDigest   bool
 	)
-
-	fmt.Print("=== Tags: ", task.Transaction.Tags)
 
 	for _, tag := range task.Transaction.Tags {
 		tagName, err := arweave.Base64Decode(tag.Name)
@@ -182,6 +183,16 @@ func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.T
 		return nil, 0, fmt.Errorf("build post action: %w", err)
 	}
 
+	// Save Dataset Mirror Post
+	post := &model.DatasetMirrorPost{
+		TransactionID:        task.Transaction.ID,
+		OriginContentDigital: originContentDigest,
+	}
+
+	if err := w.databaseClient.SaveDatasetMirrorPost(context.TODO(), post); err != nil {
+		return nil, 0, fmt.Errorf("save dataset mirror post: %w", err)
+	}
+
 	actions := []*schema.Action{
 		action,
 	}
@@ -190,7 +201,7 @@ func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.T
 }
 
 // buildArweaveTransactionTransferAction Returns the native transfer transaction action.
-func (w *worker) buildPostOrReviseAction(_ context.Context, _, from, to string, mirrorMetadata *metadata.SocialPost, emptyOriginDigest bool, _ string) (*schema.Action, error) {
+func (w *worker) buildPostOrReviseAction(ctx context.Context, txID, from, to string, mirrorMetadata *metadata.SocialPost, emptyOriginDigest bool, originContentDigest string) (*schema.Action, error) {
 	// Default action type is post.
 	filterType := filter.TypeSocialPost
 
@@ -199,7 +210,17 @@ func (w *worker) buildPostOrReviseAction(_ context.Context, _, from, to string, 
 		filterType = filter.TypeSocialRevise
 	}
 
-	// TODO Should also use dataset to identify the action type.
+	// If the origin digest is not empty, check if the origin digest is the first mirror post.
+	if originContentDigest != "" {
+		post, err := w.databaseClient.LoadDatasetMirrorPost(ctx, originContentDigest)
+		if err != nil {
+			return nil, err
+		}
+
+		if post != nil && txID != post.TransactionID {
+			filterType = filter.TypeSocialRevise
+		}
+	}
 
 	// Construct action
 	action := schema.Action{
@@ -215,7 +236,7 @@ func (w *worker) buildPostOrReviseAction(_ context.Context, _, from, to string, 
 }
 
 // NewWorker returns a new Arweave worker.
-func NewWorker(config *engine.Config) (engine.Worker, error) {
+func NewWorker(config *engine.Config, databaseClient database.Client) (engine.Worker, error) {
 	var instance = worker{
 		config: config,
 	}
@@ -229,6 +250,8 @@ func NewWorker(config *engine.Config) (engine.Worker, error) {
 	if instance.ipfsClient, err = ipfs.NewHTTPClient(); err != nil {
 		return nil, fmt.Errorf("new ipfs client: %w", err)
 	}
+
+	instance.databaseClient = databaseClient
 
 	return &instance, nil
 }
