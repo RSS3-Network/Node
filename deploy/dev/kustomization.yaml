@@ -5,7 +5,7 @@ resources:
   - route.yaml
 
 helmCharts:
-  - name: rss3-node
+  - name: node
     releaseName: rss3
     repo: https://naturalselectionlabs.github.io/helm-charts
     valuesFile: values.yaml

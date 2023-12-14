@@ -23,7 +23,7 @@ jobs:
       tag: sha-${{ github.sha }}
       cluster: dev
       namespace: network
-      releaseName: rss3
+      releaseName: rss3-node
       revision: develop
       dir: deploy/dev
     secrets: inherit
