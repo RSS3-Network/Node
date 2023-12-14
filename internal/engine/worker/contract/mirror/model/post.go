@@ -7,12 +7,12 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type PostTransformer interface {
-	Import(post *Post) error
-	Export() (*Post, error)
+type DatasetMirrorPostTransformer interface {
+	Import(post *DatasetMirrorPost) error
+	Export() (*DatasetMirrorPost, error)
 }
 
-type Post struct {
+type DatasetMirrorPost struct {
 	TransactionID        string
 	Height               decimal.Decimal
 	Contributor          common.Address

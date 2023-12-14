@@ -146,9 +146,9 @@ func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
 	return fmt.Errorf("not implemented")
 }
 
-// LoadPost loads a post.
-func (c *client) LoadPost(ctx context.Context, originContentDigest string) (*model.Post, error) {
-	var value table.Post
+// LoadMirrorPost loads a post.
+func (c *client) LoadDatasetMirrorPost(ctx context.Context, originContentDigest string) (*model.DatasetMirrorPost, error) {
+	var value table.DatasetMirrorPost
 
 	if err := c.database.WithContext(ctx).
 		Where("origin_content_digital = ?", originContentDigest).
@@ -159,14 +159,14 @@ func (c *client) LoadPost(ctx context.Context, originContentDigest string) (*mod
 		}
 
 		// Initialize a default post.
-		value = table.Post{}
+		value = table.DatasetMirrorPost{}
 	}
 
 	return value.Export()
 }
 
 // SavePost saves a post.
-func (c *client) SavePost(ctx context.Context, post *model.Post) error {
+func (c *client) SaveDatasetMirrorPost(ctx context.Context, post *model.DatasetMirrorPost) error {
 	clauses := []clause.Expression{
 		clause.OnConflict{
 			Columns:   []clause.Column{{Name: "transaction_id"}},
@@ -174,7 +174,7 @@ func (c *client) SavePost(ctx context.Context, post *model.Post) error {
 		},
 	}
 
-	var value table.Post
+	var value table.DatasetMirrorPost
 	if err := value.Import(post); err != nil {
 		return err
 	}

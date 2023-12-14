@@ -15,7 +15,7 @@ import (
 type Client interface {
 	Session
 	Transaction
-	MirrorPost
+	DatasetMirrorPost
 
 	LoadCheckpoint(ctx context.Context, id string, chain filter.Chain, worker string) (*engine.Checkpoint, error)
 	SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error
@@ -34,9 +34,9 @@ type Transaction interface {
 	Commit() error
 }
 
-type MirrorPost interface {
-	LoadPost(ctx context.Context, originContentDigest string) (*model.Post, error)
-	SavePost(ctx context.Context, post *model.Post) error
+type DatasetMirrorPost interface {
+	LoadDatasetMirrorPost(ctx context.Context, originContentDigest string) (*model.DatasetMirrorPost, error)
+	SaveDatasetMirrorPost(ctx context.Context, post *model.DatasetMirrorPost) error
 }
 
 var _ goose.Logger = (*SugaredLogger)(nil)

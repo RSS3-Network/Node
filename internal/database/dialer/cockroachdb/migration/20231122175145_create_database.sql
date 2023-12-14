@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS "checkpoints"
     CONSTRAINT "pk_checkpoints" PRIMARY KEY ("id")
     );
 
-CREATE TABLE IF NOT EXISTS "posts"
+CREATE TABLE IF NOT EXISTS "dataset_mirror_posts"
 (
     "id"                   text        NOT NULL,
     "transaction_id"       text        NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS "posts"
     "origin_content_digital" text     NOT NULL,
     "timestamp"            timestamptz NOT NULL,
 
-    CONSTRAINT "pk_profiles" PRIMARY KEY ("transaction_id")
+    CONSTRAINT "pk_dataset_mirror_posts" PRIMARY KEY ("transaction_id")
     );
 
 
@@ -87,5 +87,5 @@ CREATE TABLE IF NOT EXISTS "posts"
 DROP TABLE IF EXISTS "indexes";
 DROP TABLE IF EXISTS "feeds";
 DROP TABLE IF EXISTS "checkpoints";
-DROP TABLE IF EXISTS "posts";
+DROP TABLE IF EXISTS "dataset_mirror_posts";
 -- +goose StatementEnd

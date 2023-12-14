@@ -8,9 +8,9 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-var _ model.PostTransformer = (*Post)(nil)
+var _ model.DatasetMirrorPostTransformer = (*DatasetMirrorPost)(nil)
 
-type Post struct {
+type DatasetMirrorPost struct {
 	TransactionID        string          `gorm:"column:transaction_id"`
 	Height               decimal.Decimal `gorm:"column:height"`
 	Contributor          common.Address  `gorm:"column:contributor"`
@@ -23,7 +23,7 @@ type Post struct {
 	Timestamp            time.Time       `gorm:"column:timestamp"`
 }
 
-func (p *Post) Import(post *model.Post) (err error) {
+func (p *DatasetMirrorPost) Import(post *model.DatasetMirrorPost) (err error) {
 	p.TransactionID = post.TransactionID
 	p.Height = post.Height
 	p.Contributor = post.Contributor
@@ -38,8 +38,8 @@ func (p *Post) Import(post *model.Post) (err error) {
 	return nil
 }
 
-func (p *Post) Export() (*model.Post, error) {
-	post := model.Post{
+func (p *DatasetMirrorPost) Export() (*model.DatasetMirrorPost, error) {
+	post := model.DatasetMirrorPost{
 		TransactionID:        p.TransactionID,
 		Height:               p.Height,
 		Contributor:          p.Contributor,
