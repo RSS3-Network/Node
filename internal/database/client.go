@@ -20,7 +20,7 @@ type Client interface {
 	SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error
 
 	SaveFeeds(ctx context.Context, feeds []*schema.Feed) error
-	FirstFeed(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error)
+	FindFeed(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error)
 	FindFeeds(ctx context.Context, query model.FeedsQuery) ([]*schema.Feed, error)
 }
 

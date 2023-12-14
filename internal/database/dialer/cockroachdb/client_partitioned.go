@@ -52,29 +52,25 @@ func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index
 		year := index.Timestamp.Year()
 		month := index.Timestamp.Month()
 
-		index.Timestamp = time.Date(lo.Ternary(month < 3, year-1, year), lo.Ternary(month < 3, month+9, month-3), index.Timestamp.Day(), 23, 59, 59, 0, time.Local)
+		index.Timestamp = time.Date(lo.Ternary(month < 3, year-1, year), lo.Ternary(month < 3, month+9, month-3), index.Timestamp.Day(), 23, 59, 59, 1e9-1, time.Local)
 	}
 
 	return partitionedNames, nil
 }
 
-// autoLoadIndexesPartitionTables auto loads indexes partition tables.
-func (c *client) autoLoadIndexesPartitionTables(ctx context.Context) {
-	for {
-		result := make([]string, 0)
+// loadIndexesPartitionTables loads indexes partition tables.
+func (c *client) loadIndexesPartitionTables(ctx context.Context) error {
+	result := make([]string, 0)
 
-		if err := c.database.WithContext(ctx).Table("pg_tables").Where("tablename LIKE ?", fmt.Sprintf("%s_%%", (*table.Index).TableName(nil))).Pluck("tablename", &result).Error; err != nil {
-			zap.L().Error("load partitioned indexes table names", zap.Error(err))
-
-			continue
-		}
-
-		for _, tableName := range result {
-			indexesTables.Store(tableName, struct{}{})
-		}
-
-		time.Sleep(1 * time.Minute)
+	if err := c.database.WithContext(ctx).Table("pg_tables").Where("tablename LIKE ?", fmt.Sprintf("%s_%%", (*table.Index).TableName(nil))).Pluck("tablename", &result).Error; err != nil {
+		return fmt.Errorf("load partitioned indexes table names: %w", err)
 	}
+
+	for _, tableName := range result {
+		indexesTables.Store(tableName, struct{}{})
+	}
+
+	return nil
 }
 
 // saveFeedsPartitioned saves feeds in partitioned tables.
@@ -135,9 +131,9 @@ func (c *client) saveFeedsPartitioned(ctx context.Context, feeds []*schema.Feed)
 	return errorGroup.Wait()
 }
 
-// firstFeedPartitioned finds a feed by id.
-func (c *client) firstFeedPartitioned(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error) {
-	index, err := c.firstIndexPartitioned(ctx, query)
+// findFeedPartitioned finds a feed by id.
+func (c *client) findFeedPartitioned(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error) {
+	index, err := c.findIndexPartitioned(ctx, query)
 	if err != nil {
 		return nil, nil, fmt.Errorf("first index: %w", err)
 	}
@@ -294,8 +290,8 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 		Error
 }
 
-// firstIndexPartitioned finds a feed by id.
-func (c *client) firstIndexPartitioned(ctx context.Context, query model.FeedQuery) (*table.Index, error) {
+// findIndexPartitioned finds a feed by id.
+func (c *client) findIndexPartitioned(ctx context.Context, query model.FeedQuery) (*table.Index, error) {
 	index := table.Index{
 		Timestamp: time.Now(),
 	}
@@ -317,7 +313,7 @@ func (c *client) firstIndexPartitioned(ctx context.Context, query model.FeedQuer
 		errorGroup.Go(func() error {
 			var result table.Index
 
-			if err := c.buildFirstIndexStatement(errorContext, tableName, query).Limit(1).Find(&result).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			if err := c.buildFindIndexStatement(errorContext, tableName, query).Limit(1).Find(&result).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				zap.L().Error("failed to find first index", zap.Error(err), zap.String("partition table", tableName))
 
 				return fmt.Errorf("find first index: %w", err)
@@ -475,8 +471,8 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQu
 	}
 }
 
-// buildFirstIndexStatement builds the query index statement.
-func (c *client) buildFirstIndexStatement(ctx context.Context, partitionedName string, query model.FeedQuery) *gorm.DB {
+// buildFindIndexStatement builds the query index statement.
+func (c *client) buildFindIndexStatement(ctx context.Context, partitionedName string, query model.FeedQuery) *gorm.DB {
 	databaseStatement := c.database.WithContext(ctx).Table(partitionedName)
 
 	if query.ID != nil {

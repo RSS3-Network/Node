@@ -9,7 +9,7 @@ import (
 )
 
 func (h *Hub) getFeed(ctx context.Context, request model.FeedQuery) (*schema.Feed, *int, error) {
-	return h.databaseClient.FirstFeed(ctx, request)
+	return h.databaseClient.FindFeed(ctx, request)
 }
 
 func (h *Hub) getCursor(ctx context.Context, cursor *string) (*schema.Feed, error) {

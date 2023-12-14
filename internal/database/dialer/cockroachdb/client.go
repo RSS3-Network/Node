@@ -146,10 +146,10 @@ func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
 	return fmt.Errorf("not implemented")
 }
 
-// FirstFeed finds a feed by id.
-func (c *client) FirstFeed(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error) {
+// FindFeed finds a feed by id.
+func (c *client) FindFeed(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error) {
 	if c.partition {
-		return c.firstFeedPartitioned(ctx, query)
+		return c.findFeedPartitioned(ctx, query)
 	}
 
 	return nil, nil, fmt.Errorf("not implemented")
@@ -183,13 +183,11 @@ func Dial(ctx context.Context, dataSourceName string, partition bool) (database.
 		return nil, err
 	}
 
-	sqlDB, _ := instance.database.DB()
-	sqlDB.SetMaxIdleConns(32)
-	sqlDB.SetMaxOpenConns(64)
-	sqlDB.SetConnMaxLifetime(time.Hour)
-
 	if instance.partition {
-		go instance.autoLoadIndexesPartitionTables(ctx)
+		err := instance.loadIndexesPartitionTables(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("load indexes partition tables: %w", err)
+		}
 	}
 
 	return &instance, nil
