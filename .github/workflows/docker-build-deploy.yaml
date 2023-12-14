@@ -1,0 +1,15 @@
+name: build & deploy
+
+on:
+  push:
+    branches:
+      - "develop"
+
+jobs:
+  build:
+    uses: NaturalSelectionLabs/Daedalus/.github/workflows/docker-tpl.yaml@main
+    with:
+      images: rss3/node
+      context: .
+      dockerfile: ./Dockerfile
+    secrets: inherit
