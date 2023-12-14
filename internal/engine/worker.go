@@ -17,6 +17,7 @@ const (
 
 type Worker interface {
 	Name() string
+	Filter() SourceFilter
 	Match(ctx context.Context, task Task) (bool, error)
 	Transform(ctx context.Context, task Task) (*schema.Feed, error)
 }

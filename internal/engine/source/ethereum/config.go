@@ -9,7 +9,6 @@ import (
 type Config struct {
 	BlockNumberStart  *big.Int `yaml:"block_number_start"`
 	BlockNumberTarget *big.Int `yaml:"block_number_target"`
-	Filter            *Filter  `yaml:"filter"`
 }
 
 func NewConfig(values map[string]any) (*Config, error) {

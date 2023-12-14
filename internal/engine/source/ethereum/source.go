@@ -25,6 +25,7 @@ var _ engine.Source = (*source)(nil)
 type source struct {
 	config         *Config
 	engineConfig   *engine.Config
+	filter         *Filter
 	ethereumClient ethereum.Client
 	state          State
 	pendingState   State
@@ -47,7 +48,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 
 	go func() {
 		switch {
-		case s.config.Filter.LogAddresses != nil || s.config.Filter.LogTopics != nil:
+		case s.filter.LogAddresses != nil || s.filter.LogTopics != nil:
 			errorChan <- s.poolLogs(ctx, tasksChan)
 		default:
 			errorChan <- s.pollBlocks(ctx, tasksChan)
@@ -155,8 +156,8 @@ func (s *source) poolLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 		logFilter := ethereum.Filter{
 			FromBlock: new(big.Int).SetUint64(blockNumberLatestLocal),
 			ToBlock:   new(big.Int).SetUint64(blockNumberLatestLocal + 1),
-			Addresses: s.config.Filter.LogAddresses,
-			Topics: lo.Map(s.config.Filter.LogTopics, func(topic common.Hash, _ int) []common.Hash {
+			Addresses: s.filter.LogAddresses,
+			Topics: lo.Map(s.filter.LogTopics, func(topic common.Hash, _ int) []common.Hash {
 				return []common.Hash{
 					topic,
 				}
@@ -238,7 +239,7 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 	return tasks, nil
 }
 
-func NewSource(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Source, error) {
+func NewSource(config *engine.Config, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint) (engine.Source, error) {
 	var (
 		state State
 		err   error
@@ -255,6 +256,14 @@ func NewSource(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Sou
 		engineConfig: config,
 		state:        state,
 		pendingState: state, // Default pending state is equal to the current state.
+	}
+
+	// Initialize filter.
+	if sourceFilter != nil {
+		var ok bool
+		if instance.filter, ok = sourceFilter.(*Filter); !ok {
+			return nil, fmt.Errorf("invalid source filter type %T", sourceFilter)
+		}
 	}
 
 	if instance.config, err = NewConfig(config.Parameters); err != nil {
