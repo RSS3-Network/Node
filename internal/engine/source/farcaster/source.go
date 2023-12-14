@@ -365,7 +365,7 @@ func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Pro
 		EthAddresses:   ethAddresses,
 	}
 
-	if err = s.databaseClient.SaveProfile(ctx, profile); err != nil {
+	if err = s.databaseClient.SaveDatasetFarcasterProfile(ctx, profile); err != nil {
 		return nil, err
 	}
 
@@ -379,7 +379,7 @@ func (s *source) getProfileByFid(ctx context.Context, fid *int64) (*model.Profil
 		err     error
 	)
 
-	profile, err = s.databaseClient.LoadProfile(ctx, *fid)
+	profile, err = s.databaseClient.LoadDatasetFarcasterProfile(ctx, *fid)
 
 	if err != nil {
 		return nil, err

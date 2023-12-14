@@ -62,14 +62,14 @@ CREATE TABLE IF NOT EXISTS "checkpoints"
     CONSTRAINT "pk_checkpoints" PRIMARY KEY ("id")
 );
 
-CREATE TABLE IF NOT EXISTS "profiles"
+CREATE TABLE IF NOT EXISTS "dataset_farcaster_profiles"
 (
     "fid"             bigint NOT NULL,
     "username"        text,
     "custody_address" text,
     "eth_addresses"   text[],
 
-    CONSTRAINT "pk_profiles" PRIMARY KEY ("fid")
+    CONSTRAINT "pk_dataset_farcaster_profiles" PRIMARY KEY ("fid")
 );
 
 
@@ -80,5 +80,5 @@ CREATE TABLE IF NOT EXISTS "profiles"
 DROP TABLE IF EXISTS "indexes";
 DROP TABLE IF EXISTS "feeds";
 DROP TABLE IF EXISTS "checkpoints";
-DROP TABLE IF EXISTS "profiles";
+DROP TABLE IF EXISTS "dataset_farcaster_profiles";
 -- +goose StatementEnd

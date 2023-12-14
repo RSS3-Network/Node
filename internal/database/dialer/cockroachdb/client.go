@@ -146,9 +146,9 @@ func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
 	return fmt.Errorf("not implemented")
 }
 
-// LoadProfile loads a profile.
-func (c *client) LoadProfile(ctx context.Context, fid int64) (*model.Profile, error) {
-	var value table.Profile
+// LoadDatasetFarcasterProfile loads a profile.
+func (c *client) LoadDatasetFarcasterProfile(ctx context.Context, fid int64) (*model.Profile, error) {
+	var value table.DatasetFarcasterProfile
 
 	if err := c.database.WithContext(ctx).
 		Where("fid = ?", fid).
@@ -159,7 +159,7 @@ func (c *client) LoadProfile(ctx context.Context, fid int64) (*model.Profile, er
 		}
 
 		// Initialize a default profile.
-		value = table.Profile{
+		value = table.DatasetFarcasterProfile{
 			Fid: fid,
 		}
 	}
@@ -167,8 +167,8 @@ func (c *client) LoadProfile(ctx context.Context, fid int64) (*model.Profile, er
 	return value.Export()
 }
 
-// SaveProfile saves a profile.
-func (c *client) SaveProfile(ctx context.Context, profile *model.Profile) error {
+// SaveDatasetFarcasterProfile saves a profile.
+func (c *client) SaveDatasetFarcasterProfile(ctx context.Context, profile *model.Profile) error {
 	clauses := []clause.Expression{
 		clause.OnConflict{
 			Columns:   []clause.Column{{Name: "fid"}},
@@ -176,7 +176,7 @@ func (c *client) SaveProfile(ctx context.Context, profile *model.Profile) error 
 		},
 	}
 
-	var value table.Profile
+	var value table.DatasetFarcasterProfile
 	if err := value.Import(profile); err != nil {
 		return err
 	}

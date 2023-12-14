@@ -16,7 +16,7 @@ type Client interface {
 	Session
 	Transaction
 
-	FarcasterProfile
+	DatasetFarcasterProfile
 
 	LoadCheckpoint(ctx context.Context, id string, chain filter.Chain, worker string) (*engine.Checkpoint, error)
 	SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error
@@ -35,9 +35,9 @@ type Transaction interface {
 	Commit() error
 }
 
-type FarcasterProfile interface {
-	LoadProfile(ctx context.Context, fid int64) (*model.Profile, error)
-	SaveProfile(ctx context.Context, profile *model.Profile) error
+type DatasetFarcasterProfile interface {
+	LoadDatasetFarcasterProfile(ctx context.Context, fid int64) (*model.Profile, error)
+	SaveDatasetFarcasterProfile(ctx context.Context, profile *model.Profile) error
 }
 
 var _ goose.Logger = (*SugaredLogger)(nil)
