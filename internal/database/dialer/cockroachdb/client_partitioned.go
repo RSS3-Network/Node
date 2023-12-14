@@ -59,18 +59,16 @@ func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index
 }
 
 // loadIndexesPartitionTables loads indexes partition tables.
-func (c *client) loadIndexesPartitionTables(ctx context.Context) error {
+func (c *client) loadIndexesPartitionTables(ctx context.Context) {
 	result := make([]string, 0)
 
 	if err := c.database.WithContext(ctx).Table("pg_tables").Where("tablename LIKE ?", fmt.Sprintf("%s_%%", (*table.Index).TableName(nil))).Pluck("tablename", &result).Error; err != nil {
-		return fmt.Errorf("load partitioned indexes table names: %w", err)
+		zap.L().Error("failed to load indexes partition tables", zap.Error(err))
 	}
 
 	for _, tableName := range result {
 		indexesTables.Store(tableName, struct{}{})
 	}
-
-	return nil
 }
 
 // saveFeedsPartitioned saves feeds in partitioned tables.

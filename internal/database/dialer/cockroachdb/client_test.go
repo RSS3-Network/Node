@@ -201,7 +201,7 @@ func createContainer(ctx context.Context, driver database.Driver, partition bool
 
 func formatContainerURI(container *gnomock.Container) string {
 	return fmt.Sprintf(
-		"postgres://root@%s:%d/%s?sslmode=disable&connect_timeout=100",
+		"postgres://root@%s:%d/%s?sslmode=disable",
 		container.Host,
 		container.DefaultPort(),
 		"test",

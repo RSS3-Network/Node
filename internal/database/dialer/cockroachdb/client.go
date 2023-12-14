@@ -184,10 +184,7 @@ func Dial(ctx context.Context, dataSourceName string, partition bool) (database.
 	}
 
 	if instance.partition {
-		err := instance.loadIndexesPartitionTables(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("load indexes partition tables: %w", err)
-		}
+		instance.loadIndexesPartitionTables(ctx)
 	}
 
 	return &instance, nil
