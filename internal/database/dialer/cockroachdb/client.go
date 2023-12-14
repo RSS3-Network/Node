@@ -93,13 +93,13 @@ func (c *client) Commit() error {
 	return c.database.Commit().Error
 }
 
-func (c *client) LoadCheckpoint(ctx context.Context, id string, chain filter.Chain, worker string) (*engine.Checkpoint, error) {
+func (c *client) LoadCheckpoint(ctx context.Context, id string, network filter.Network, worker string) (*engine.Checkpoint, error) {
 	var value table.Checkpoint
 
-	zap.L().Info("load checkpoint", zap.String("id", id), zap.String("fullname", chain.FullName()), zap.String("worker", worker))
+	zap.L().Info("load checkpoint", zap.String("id", id), zap.String("network", network.String()), zap.String("worker", worker))
 
 	if err := c.database.WithContext(ctx).
-		Where("id = ? AND chain = ? AND worker = ?", id, chain.FullName(), worker).
+		Where("id = ? AND network = ? AND worker = ?", id, network, worker).
 		First(&value).
 		Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -109,7 +109,7 @@ func (c *client) LoadCheckpoint(ctx context.Context, id string, chain filter.Cha
 		// Initialize a default checkpoint.
 		value = table.Checkpoint{
 			ID:        id,
-			Chain:     chain.FullName(),
+			Network:   network,
 			Worker:    worker,
 			State:     json.RawMessage("{}"),
 			CreatedAt: time.Now(),

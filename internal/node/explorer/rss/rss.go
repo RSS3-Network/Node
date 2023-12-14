@@ -21,7 +21,7 @@ func NewRSS(_ context.Context, config *config.File) *RSS {
 	}
 
 	for _, conf := range config.Node.RSS {
-		if conf.Chain == filter.ChainRSSRSSHub {
+		if conf.Network == filter.NetworkRSSHub {
 			rss.rsshub = conf
 		}
 	}

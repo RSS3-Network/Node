@@ -13,7 +13,6 @@ type FeedsTransformer interface {
 type Feed struct {
 	ID        string           `json:"id"`
 	Network   filter.Network   `json:"network"`
-	Chain     filter.Chain     `json:"chain"`
 	Index     uint             `json:"index"`
 	From      string           `json:"from"`
 	To        string           `json:"to"`

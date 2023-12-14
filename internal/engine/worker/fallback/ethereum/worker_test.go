@@ -38,7 +38,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Ethereum native transfer",
 			arguments: arguments{
 				task: &source.Task{
-					Chain: filter.ChainEthereumMainnet,
+					Network: filter.NetworkEthereum,
 					Header: &ethereum.Header{
 						// TODO Provide all fields.
 						Timestamp: 1647774927,
@@ -71,17 +71,17 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &engine.Config{
-					Chain:    filter.ChainEthereumMainnet,
-					Endpoint: endpoint.MustGet(filter.ChainEthereumMainnet),
+					Network:  filter.NetworkEthereum,
+					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
 				},
 			},
 			want: &schema.Feed{
-				ID:    "0x0c2f413efbc243f3bb8edac7e70bdc21936e01401a21b0d63e97732aa80f5d99",
-				Chain: filter.ChainEthereumMainnet,
-				Index: 244,
-				From:  "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
-				To:    "0xA1b2DCAC834117F38FB0356b5176B5693E165c90",
-				Type:  filter.TypeTransactionTransfer,
+				ID:      "0x0c2f413efbc243f3bb8edac7e70bdc21936e01401a21b0d63e97732aa80f5d99",
+				Network: filter.NetworkEthereum,
+				Index:   244,
+				From:    "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
+				To:      "0xA1b2DCAC834117F38FB0356b5176B5693E165c90",
+				Type:    filter.TypeTransactionTransfer,
 				Fee: schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("335686667463000")),
 					Decimal: 18,

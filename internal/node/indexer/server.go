@@ -104,8 +104,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 
 		checkpoint := engine.Checkpoint{
 			ID:      s.id,
-			Network: s.source.Chain().Network(),
-			Chain:   s.source.Chain(),
+			Network: s.source.Network(),
 			Worker:  s.worker.Name(),
 			State:   s.source.State(),
 		}
@@ -122,7 +121,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 
 func NewServer(ctx context.Context, config *engine.Config, databaseClient database.Client) (server *Server, err error) {
 	instance := Server{
-		id:             fmt.Sprintf("%s.%s", config.Chain.FullName(), config.Worker),
+		id:             fmt.Sprintf("%s.%s", config.Network, config.Worker),
 		config:         config,
 		databaseClient: databaseClient,
 	}
@@ -133,7 +132,7 @@ func NewServer(ctx context.Context, config *engine.Config, databaseClient databa
 	}
 
 	// Load checkpoint for initialize the source.
-	checkpoint, err := instance.databaseClient.LoadCheckpoint(ctx, instance.id, config.Chain, instance.worker.Name())
+	checkpoint, err := instance.databaseClient.LoadCheckpoint(ctx, instance.id, config.Network, instance.worker.Name())
 	if err != nil {
 		return nil, fmt.Errorf("loca checkpoint: %w", err)
 	}
@@ -144,7 +143,7 @@ func NewServer(ctx context.Context, config *engine.Config, databaseClient databa
 		return nil, fmt.Errorf("unmarshal checkpoint state: %w", err)
 	}
 
-	zap.L().Info("load checkpoint", zap.String("checkpoint.id", checkpoint.ID), zap.String("checkpoint.chain", checkpoint.Chain.FullName()), zap.String("checkpoint.worker", checkpoint.Worker), zap.Any("checkpoint.state", state))
+	zap.L().Info("load checkpoint", zap.String("checkpoint.id", checkpoint.ID), zap.String("checkpoint.network", checkpoint.Network.String()), zap.String("checkpoint.worker", checkpoint.Worker), zap.Any("checkpoint.state", state))
 
 	// Initialize source.
 	if instance.source, err = source.New(instance.config, checkpoint); err != nil {

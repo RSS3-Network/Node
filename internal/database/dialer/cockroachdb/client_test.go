@@ -32,11 +32,11 @@ func TestClient(t *testing.T) {
 			partition: true,
 			feedCreated: []*schema.Feed{
 				{
-					ID:    "0xddc42d4de320638dda200a59938514f7230bf6022355c6a8a7c39b9903598ced",
-					Chain: lo.ToPtr(filter.ChainEthereumMainnet),
-					From:  "0x566b8087067638b0cb16311e0f05bee58186e787",
-					To:    "0x9e05155e5d924c179b39a8b9b427c1bea06face3",
-					Type:  filter.TypeTransactionTransfer,
+					ID:      "0xddc42d4de320638dda200a59938514f7230bf6022355c6a8a7c39b9903598ced",
+					Network: filter.NetworkArweave,
+					From:    "0x566b8087067638b0cb16311e0f05bee58186e787",
+					To:      "0x9e05155e5d924c179b39a8b9b427c1bea06face3",
+					Type:    filter.TypeTransactionTransfer,
 					Actions: []*schema.Action{
 						{
 							Type: filter.TypeTransactionTransfer,
@@ -54,11 +54,11 @@ func TestClient(t *testing.T) {
 			},
 			feedUpdated: []*schema.Feed{
 				{
-					ID:    "0xddc42d4de320638dda200a59938514f7230bf6022355c6a8a7c39b9903598ced",
-					Chain: lo.ToPtr(filter.ChainEthereumMainnet),
-					From:  "0x566b8087067638b0cb16311e0f05bee58186e787",
-					To:    "0x9e05155e5d924c179b39a8b9b427c1bea06face3",
-					Type:  filter.TypeTransactionTransfer,
+					ID:      "0xddc42d4de320638dda200a59938514f7230bf6022355c6a8a7c39b9903598ced",
+					Network: filter.NetworkArweave,
+					From:    "0x566b8087067638b0cb16311e0f05bee58186e787",
+					To:      "0x9e05155e5d924c179b39a8b9b427c1bea06face3",
+					Type:    filter.TypeTransactionTransfer,
 					Actions: []*schema.Action{
 						{
 							Type: filter.TypeTransactionTransfer,
