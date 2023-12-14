@@ -23,8 +23,8 @@ const (
 var _ engine.Source = (*source)(nil)
 
 type source struct {
-	config         *Config
-	engineConfig   *engine.Config
+	config         *engine.Config
+	option         *Option
 	filter         *Filter
 	ethereumClient ethereum.Client
 	state          State
@@ -57,7 +57,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 }
 
 func (s *source) initialize(ctx context.Context) (err error) {
-	if s.ethereumClient, err = ethereum.Dial(ctx, s.engineConfig.Endpoint); err != nil {
+	if s.ethereumClient, err = ethereum.Dial(ctx, s.config.Endpoint); err != nil {
 		return fmt.Errorf("dial to ethereum rpc endpoint: %w", err)
 	}
 
@@ -253,7 +253,7 @@ func NewSource(config *engine.Config, sourceFilter engine.SourceFilter, checkpoi
 	}
 
 	instance := source{
-		engineConfig: config,
+		config:       config,
 		state:        state,
 		pendingState: state, // Default pending state is equal to the current state.
 	}
@@ -266,7 +266,7 @@ func NewSource(config *engine.Config, sourceFilter engine.SourceFilter, checkpoi
 		}
 	}
 
-	if instance.config, err = NewConfig(config.Parameters); err != nil {
+	if instance.option, err = NewOption(config.Parameters); err != nil {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
 

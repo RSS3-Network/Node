@@ -4,7 +4,7 @@ import (
 	"math/big"
 )
 
-type Config struct {
+type Option struct {
 	BlockHeightStart  *big.Int
 	BlockHeightTarget *big.Int
 }

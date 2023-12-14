@@ -11,22 +11,22 @@ type Module struct {
 	Decentralized []*Config `yaml:"decentralized" validate:"dive"`
 }
 
-type Config struct {
-	Chain      filter.Chain   `yaml:"chain" validate:"required"`
-	Endpoint   string         `yaml:"endpoint" validate:"required"`
-	Worker     Name           `yaml:"worker"`
-	Parameters map[string]any `yaml:"parameters"`
-}
-
 var _ yaml.Unmarshaler = (*Config)(nil)
+
+type Config struct {
+	Chain      filter.Chain `yaml:"chain" validate:"required"`
+	Endpoint   string       `yaml:"endpoint" validate:"required"`
+	Worker     Name         `yaml:"worker"`
+	Parameters Options      `yaml:"parameters"`
+}
 
 func (c *Config) UnmarshalYAML(value *yaml.Node) error {
 	type tmp struct {
-		Network    filter.Network         `yaml:"network"`
-		Chain      string                 `yaml:"chain"`
-		Endpoint   string                 `yaml:"endpoint"`
-		Worker     Name                   `yaml:"worker"`
-		Parameters map[string]interface{} `yaml:"parameters"`
+		Network    filter.Network `yaml:"network"`
+		Chain      string         `yaml:"chain"`
+		Endpoint   string         `yaml:"endpoint"`
+		Worker     Name           `yaml:"worker"`
+		Parameters Options        `yaml:"parameters"`
 	}
 
 	var t tmp
@@ -44,6 +44,16 @@ func (c *Config) UnmarshalYAML(value *yaml.Node) error {
 	c.Endpoint = t.Endpoint
 	c.Worker = t.Worker
 	c.Parameters = t.Parameters
+
+	return nil
+}
+
+type Options struct {
+	*yaml.Node
+}
+
+func (o *Options) UnmarshalYAML(node *yaml.Node) error {
+	o.Node = node
 
 	return nil
 }
