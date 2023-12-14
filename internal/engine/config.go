@@ -17,7 +17,7 @@ type Config struct {
 	Chain      filter.Chain `yaml:"chain" validate:"required"`
 	Endpoint   string       `yaml:"endpoint" validate:"required"`
 	Worker     Name         `yaml:"worker"`
-	Parameters Options      `yaml:"parameters"`
+	Parameters *Options     `yaml:"parameters"`
 }
 
 func (c *Config) UnmarshalYAML(value *yaml.Node) error {
@@ -26,7 +26,7 @@ func (c *Config) UnmarshalYAML(value *yaml.Node) error {
 		Chain      string         `yaml:"chain"`
 		Endpoint   string         `yaml:"endpoint"`
 		Worker     Name           `yaml:"worker"`
-		Parameters Options        `yaml:"parameters"`
+		Parameters *Options       `yaml:"parameters"`
 	}
 
 	var t tmp
