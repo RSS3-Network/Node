@@ -26,6 +26,7 @@ type Client interface {
 	TransactionByHash(ctx context.Context, hash common.Hash) (*Transaction, error)
 	TransactionReceipt(ctx context.Context, hash common.Hash) (*Receipt, error)
 	StorageAt(ctx context.Context, account common.Address, key common.Hash, blockNumber *big.Int) ([]byte, error)
+	FilterLogs(ctx context.Context, filter Filter) ([]*Log, error)
 }
 
 var _ Client = (*client)(nil)
@@ -144,6 +145,7 @@ func (c *client) TransactionReceipt(ctx context.Context, hash common.Hash) (*Rec
 	return &receipt, nil
 }
 
+// StorageAt returns the contract storage of the given account.
 func (c *client) StorageAt(ctx context.Context, account common.Address, key common.Hash, blockNumber *big.Int) ([]byte, error) {
 	var value hexutil.Bytes
 	if err := c.rpcClient.CallContext(ctx, &value, "eth_getStorageAt", account, key, formatBlockNumber(blockNumber)); err != nil {
@@ -151,6 +153,16 @@ func (c *client) StorageAt(ctx context.Context, account common.Address, key comm
 	}
 
 	return value, nil
+}
+
+// FilterLogs returns the logs that satisfy the filter conditions.
+func (c *client) FilterLogs(ctx context.Context, filter Filter) ([]*Log, error) {
+	var logs []*Log
+	if err := c.rpcClient.CallContext(ctx, &logs, "eth_getLogs", formatFilter(filter)); err != nil {
+		return nil, err
+	}
+
+	return logs, nil
 }
 
 // Dial creates a new client for the given endpoint.

@@ -12,10 +12,10 @@ type Module struct {
 }
 
 type Config struct {
-	Chain      filter.Chain           `yaml:"chain" validate:"required"`
-	Endpoint   string                 `yaml:"endpoint" validate:"required"`
-	Worker     Name                   `yaml:"worker"`
-	Parameters map[string]interface{} `yaml:"parameters"`
+	Chain      filter.Chain   `yaml:"chain" validate:"required"`
+	Endpoint   string         `yaml:"endpoint" validate:"required"`
+	Worker     Name           `yaml:"worker"`
+	Parameters map[string]any `yaml:"parameters"`
 }
 
 var _ yaml.Unmarshaler = (*Config)(nil)

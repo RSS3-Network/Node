@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
@@ -22,7 +23,8 @@ const (
 var _ engine.Source = (*source)(nil)
 
 type source struct {
-	config         *engine.Config
+	config         *Config
+	engineConfig   *engine.Config
 	ethereumClient ethereum.Client
 	state          State
 	pendingState   State
@@ -44,12 +46,17 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 	}
 
 	go func() {
-		errorChan <- s.pollBlocks(ctx, tasksChan)
+		switch {
+		case s.config.Filter.LogAddresses != nil || s.config.Filter.LogTopics != nil:
+			errorChan <- s.poolLogs(ctx, tasksChan)
+		default:
+			errorChan <- s.pollBlocks(ctx, tasksChan)
+		}
 	}()
 }
 
 func (s *source) initialize(ctx context.Context) (err error) {
-	if s.ethereumClient, err = ethereum.Dial(ctx, s.config.Endpoint); err != nil {
+	if s.ethereumClient, err = ethereum.Dial(ctx, s.engineConfig.Endpoint); err != nil {
 		return fmt.Errorf("dial to ethereum rpc endpoint: %w", err)
 	}
 
@@ -118,6 +125,90 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 	}
 }
 
+func (s *source) poolLogs(ctx context.Context, tasksChan chan<- []engine.Task) error {
+	var blockNumberLatestLocal uint64
+
+	// TODO End polling at completion if target block height is specified.
+	for {
+		// The local block number is equal than the remote block number.
+		if s.state.BlockNumber >= blockNumberLatestLocal || blockNumberLatestLocal == 0 {
+			// Refresh the remote block number.
+			blockNumberLatestRemote, err := s.ethereumClient.BlockNumber(ctx)
+			if err != nil {
+				return fmt.Errorf("get latest block number: %w", err)
+			}
+
+			// RPC providers may incorrectly shunt the request to a lagging node.
+			if blockNumberLatestRemote.Uint64() <= blockNumberLatestLocal {
+				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestLocal), zap.Duration("block.time", defaultBlockTime))
+
+				time.Sleep(defaultBlockTime)
+			} else {
+				// TODO Need to handle block reorganization.
+				blockNumberLatestLocal = blockNumberLatestRemote.Uint64()
+			}
+
+			continue
+		}
+
+		// Build log filter by the filter config.
+		logFilter := ethereum.Filter{
+			FromBlock: new(big.Int).SetUint64(blockNumberLatestLocal),
+			ToBlock:   new(big.Int).SetUint64(blockNumberLatestLocal + 1),
+			Addresses: s.config.Filter.LogAddresses,
+			Topics: lo.Map(s.config.Filter.LogTopics, func(topic common.Hash, _ int) []common.Hash {
+				return []common.Hash{
+					topic,
+				}
+			}),
+		}
+
+		// Get logs by filter.
+		logs, err := s.ethereumClient.FilterLogs(ctx, logFilter)
+		if err != nil {
+			return fmt.Errorf("get logs by filter: %w", err)
+		}
+
+		transactionHashes := lo.Map(logs, func(log *ethereum.Log, _ int) common.Hash {
+			return log.TransactionHash
+		})
+
+		var block *ethereum.Block
+
+		if len(logs) != 0 {
+			blockHash := logs[0].BlockHash
+
+			if block, err = s.ethereumClient.BlockByHash(ctx, blockHash); err != nil {
+				return fmt.Errorf("get block by hash %s: %w", blockHash, err)
+			}
+
+			receipts, err := s.ethereumClient.BlockReceipts(ctx, block.Number)
+			if err != nil {
+				return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
+			}
+
+			// Filter receipts by transaction hashes of logs.
+			receipts = lo.Filter(receipts, func(receipt *ethereum.Receipt, _ int) bool {
+				return lo.Contains(transactionHashes, receipt.TransactionHash)
+			})
+
+			tasks, err := s.buildTasks(block, receipts)
+			if err != nil {
+				return fmt.Errorf("build tasks for block hash: %s: %w", block.Hash, err)
+			}
+
+			// TODO It might be possible to use generics to avoid manual type assertions.
+			tasksChan <- lo.Map(tasks, func(task *Task, _ int) engine.Task { return task })
+		}
+
+		// Update state by two phase commit to avoid data inconsistency.
+		s.state = s.pendingState
+
+		s.pendingState.BlockHash = block.Hash
+		s.pendingState.BlockNumber++
+	}
+}
+
 func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt) ([]*Task, error) {
 	tasks := make([]*Task, len(block.Transactions))
 
@@ -148,7 +239,10 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 }
 
 func NewSource(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Source, error) {
-	var state State
+	var (
+		state State
+		err   error
+	)
 
 	// Initialize state from checkpoint.
 	if checkpoint != nil {
@@ -158,9 +252,13 @@ func NewSource(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Sou
 	}
 
 	instance := source{
-		config:       config,
+		engineConfig: config,
 		state:        state,
-		pendingState: state, // Default pending state is equal to current state.
+		pendingState: state, // Default pending state is equal to the current state.
+	}
+
+	if instance.config, err = NewConfig(config.Parameters); err != nil {
+		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
 	return &instance, nil
