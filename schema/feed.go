@@ -12,7 +12,7 @@ type Feed struct {
 	Tag          filter.Tag       `json:"tag"`
 	Type         filter.Type      `json:"type"`
 	Platform     *filter.Platform `json:"platform,omitempty"`
-	Fee          *Fee             `json:"fee"`
+	Fee          *Fee             `json:"fee,omitempty"`
 	TotalActions uint             `json:"total_actions"`
 	Actions      []*Action        `json:"actions"`
 	Direction    filter.Direction `json:"direction,omitempty"`
