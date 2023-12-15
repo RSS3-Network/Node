@@ -15,12 +15,5 @@ func (i SocialType) Tag() Tag {
 
 const (
 	TypeSocialPost SocialType = iota + 1
-	TypeSocialComment
-	TypeSocialShare
-	TypeSocialMint
-	TypeSocialProfile
-	TypeSocialProxy
 	TypeSocialRevise
-	TypeSocialDelete
-	TypeSocialReward
 )
