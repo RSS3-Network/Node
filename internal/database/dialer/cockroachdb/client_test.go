@@ -8,6 +8,7 @@ import (
 
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/orlangure/gnomock"
@@ -32,38 +33,53 @@ func TestClient(t *testing.T) {
 			partition: true,
 			feedCreated: []*schema.Feed{
 				{
-					ID:      "0xddc42d4de320638dda200a59938514f7230bf6022355c6a8a7c39b9903598ced",
-					Network: filter.NetworkArweave,
-					From:    "0x566b8087067638b0cb16311e0f05bee58186e787",
-					To:      "0x9e05155e5d924c179b39a8b9b427c1bea06face3",
+					ID:      "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
+					Network: filter.NetworkEthereum,
+					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
 					Type:    filter.TypeTransactionTransfer,
 					Actions: []*schema.Action{
 						{
 							Type: filter.TypeTransactionTransfer,
-							From: "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
-							To:   "0xA1b2DCAC834117F38FB0356b5176B5693E165c90",
-						},
-						{
-							Type: filter.TypeTransactionTransfer,
-							From: "0xA1b2DCAC834117F38FB0356b5176B5693E165c90",
-							To:   "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
+							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+							To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
 						},
 					},
 					Timestamp: uint64(time.Now().Unix()),
 				},
-			},
-			feedUpdated: []*schema.Feed{
 				{
-					ID:      "0xddc42d4de320638dda200a59938514f7230bf6022355c6a8a7c39b9903598ced",
-					Network: filter.NetworkArweave,
-					From:    "0x566b8087067638b0cb16311e0f05bee58186e787",
-					To:      "0x9e05155e5d924c179b39a8b9b427c1bea06face3",
+					ID:      "0xedc029f7c7acce7b72939f8bfff44c5fdc7e64e3e2ba650d195799db8fec4c90",
+					Network: filter.NetworkEthereum,
+					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
 					Type:    filter.TypeTransactionTransfer,
 					Actions: []*schema.Action{
 						{
 							Type: filter.TypeTransactionTransfer,
-							From: "0x566b8087067638b0cb16311e0f05bee58186e787",
-							To:   "0x9e05155e5d924c179b39a8b9b427c1bea06face3",
+							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+							To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
+						},
+					},
+					Timestamp: uint64(time.Now().Add(-3 * 31 * 24 * time.Hour).Unix()),
+				},
+			},
+			feedUpdated: []*schema.Feed{
+				{
+					ID:      "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
+					Network: filter.NetworkEthereum,
+					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
+					Type:    filter.TypeTransactionTransfer,
+					Actions: []*schema.Action{
+						{
+							Type: filter.TypeTransactionTransfer,
+							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+							To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
+						},
+						{
+							Type: filter.TypeTransactionTransfer,
+							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+							To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
 						},
 					},
 					Timestamp: uint64(time.Now().Unix()),
@@ -78,8 +94,16 @@ func TestClient(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
-			container, dataSourceName, err := createContainer(context.Background(), testcase.driver, testcase.partition)
-			require.NoError(t, err)
+			var container *gnomock.Container
+			var dataSourceName string
+			var err error
+
+			for {
+				container, dataSourceName, err = createContainer(context.Background(), testcase.driver, testcase.partition)
+				if err == nil {
+					break
+				}
+			}
 
 			t.Cleanup(func() {
 				require.NoError(t, gnomock.Stop(container))
@@ -99,17 +123,35 @@ func TestClient(t *testing.T) {
 			require.NoError(t, client.Migrate(context.Background()))
 
 			// Begin a transaction.
-			transaction, err := client.Begin(context.Background())
-			require.NoError(t, err)
+			require.NoError(t, client.SaveFeeds(context.Background(), testcase.feedCreated))
 
-			// Insert feeds.
-			require.NoError(t, transaction.SaveFeeds(context.Background(), testcase.feedCreated))
+			// Query first feed.
+			for _, feed := range testcase.feedCreated {
+				data, page, err := client.FindFeed(context.Background(), model.FeedQuery{ID: &feed.ID, ActionLimit: 10})
+				require.NoError(t, err)
+				require.NotNil(t, data)
+				require.Greater(t, lo.FromPtr(page), 0)
+				require.Equal(t, data.ID, feed.ID)
+				require.Equal(t, data.From, feed.From)
+				require.Equal(t, data.To, feed.To)
+			}
+
+			// Query feeds by account.
+			accounts := make(map[string]int)
+
+			for _, feed := range testcase.feedCreated {
+				accounts[feed.From]++
+				accounts[feed.To]++
+			}
+
+			for account, count := range accounts {
+				feeds, err := client.FindFeeds(context.Background(), model.FeedsQuery{Owner: &account, Limit: 100})
+				require.NoError(t, err)
+				require.Len(t, feeds, count)
+			}
 
 			// Update feeds.
-			require.NoError(t, transaction.SaveFeeds(context.Background(), testcase.feedUpdated))
-
-			// Commit the transaction.
-			require.NoError(t, transaction.Commit())
+			require.NoError(t, client.SaveFeeds(context.Background(), testcase.feedUpdated))
 		})
 	}
 }

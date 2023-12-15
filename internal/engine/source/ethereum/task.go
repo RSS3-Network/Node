@@ -72,7 +72,7 @@ func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 		From:    from.String(),
 		To:      to.String(),
 		Type:    filter.TypeUnknown,
-		Fee: schema.Fee{
+		Fee: &schema.Fee{
 			Amount:  decimal.NewFromBigInt(feeAmount, 0),
 			Decimal: defaultFeeDecimal,
 		},

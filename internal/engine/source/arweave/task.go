@@ -65,7 +65,7 @@ func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 		To:      t.Transaction.Target,
 		Type:    filter.TypeUnknown,
 		Status:  true,
-		Fee: schema.Fee{
+		Fee: &schema.Fee{
 			Amount:  feeValue,
 			Decimal: defaultFeeDecimal,
 		},

@@ -54,7 +54,7 @@ func TestWorker_Arweave(t *testing.T) {
 				From:    "JaUubKRNhJP9i1iDFt-n_s0zzqV97x8d_7ex3ZZv3CE",
 				To:      "4u5gMvlfVhkn_atzuagjO92H_xJLtVNjucSfEYBrL0E",
 				Type:    filter.TypeTransactionTransfer,
-				Fee: schema.Fee{
+				Fee: &schema.Fee{
 					Amount:  decimal.NewFromInt(3847185),
 					Decimal: 12,
 				},

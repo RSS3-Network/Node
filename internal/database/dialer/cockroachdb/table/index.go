@@ -33,8 +33,6 @@ func (i *Index) PartitionName() string {
 	return fmt.Sprintf("%s_%d_q%d", i.TableName(), i.Timestamp.Year(), int(math.Ceil(float64(i.Timestamp.Month())/3)))
 }
 
-var _ schema.FeedTransformer = (*Index)(nil)
-
 func (i *Index) Import(feed *schema.Feed) error {
 	i.ID = feed.ID
 	i.Network = feed.Network
@@ -47,8 +45,6 @@ func (i *Index) Import(feed *schema.Feed) error {
 
 	return nil
 }
-
-var _ schema.FeedsTransformer = (*Indexes)(nil)
 
 type Indexes []*Index
 
