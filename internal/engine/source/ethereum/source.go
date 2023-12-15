@@ -76,8 +76,15 @@ func (s *source) initialize(ctx context.Context) (err error) {
 func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task) error {
 	var blockNumberLatestLocal uint64
 
-	// TODO End polling at completion if target block height is specified.
+	if s.option.BlockNumberStart.Uint64() > blockNumberLatestLocal {
+		blockNumberLatestLocal = s.option.BlockNumberStart.Uint64()
+	}
+
 	for {
+		if s.option.BlockNumberTarget.Uint64() <= s.state.BlockNumber {
+			break
+		}
+
 		// The local block number is equal than the remote block number.
 		if s.state.BlockNumber >= blockNumberLatestLocal || blockNumberLatestLocal == 0 {
 			// Refresh the remote block number.
@@ -124,13 +131,22 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 		s.pendingState.BlockHash = block.Hash
 		s.pendingState.BlockNumber++
 	}
+
+	return nil
 }
 
 func (s *source) poolLogs(ctx context.Context, tasksChan chan<- []engine.Task) error {
 	var blockNumberLatestLocal uint64
 
-	// TODO End polling at completion if target block height is specified.
+	if s.option.BlockNumberStart.Uint64() > blockNumberLatestLocal {
+		blockNumberLatestLocal = s.option.BlockNumberStart.Uint64()
+	}
+
 	for {
+		if s.option.BlockNumberTarget.Uint64() <= s.state.BlockNumber {
+			break
+		}
+
 		// The local block number is equal than the remote block number.
 		if s.state.BlockNumber >= blockNumberLatestLocal || blockNumberLatestLocal == 0 {
 			// Refresh the remote block number.
@@ -208,6 +224,8 @@ func (s *source) poolLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 		s.pendingState.BlockHash = block.Hash
 		s.pendingState.BlockNumber++
 	}
+
+	return nil
 }
 
 func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt) ([]*Task, error) {
