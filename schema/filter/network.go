@@ -4,19 +4,19 @@ package filter
 type Network uint64
 
 const (
-	NetworkUnknown  Network = iota // unknown
-	NetworkEthereum                // ethereum
-	NetworkRSSHub                  // rsshub
-	NetworkRSS                     // rss
-	NetworkArweave                 // arweave
+	NetworkUnknown   Network = iota // unknown
+	NetworkEthereum                 // ethereum
+	NetworkRSSHub                   // rsshub
+	NetworkRSS                      // rss
+	NetworkArweave                  // arweave
 	NetworkFarcaster                // farcaster
 )
 
 type NetworkSource string
 
 const (
-	NetworkEthereumSource NetworkSource = "ethereum"
-	NetworkArweaveSource  NetworkSource = "arweave"
+	NetworkEthereumSource  NetworkSource = "ethereum"
+	NetworkArweaveSource   NetworkSource = "arweave"
 	NetworkFarcasterSource NetworkSource = "farcaster"
 )
 

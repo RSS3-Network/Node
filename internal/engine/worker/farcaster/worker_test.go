@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/farcaster"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/farcaster/model"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/farcaster"
 	message "github.com/naturalselectionlabs/rss3-node/provider/farcaster"
 	"github.com/naturalselectionlabs/rss3-node/schema"
@@ -34,7 +34,7 @@ func TestWorker(t *testing.T) {
 			name: "Post A Cast",
 			arguments: arguments{
 				task: &source.Task{
-					Chain: filter.ChainFarcasterMainnet,
+					Network: filter.NetworkFarcaster,
 					Message: message.Message{
 						Data: message.MessageData{
 							Type: message.MessageTypeCastAdd.String(),
@@ -73,7 +73,7 @@ func TestWorker(t *testing.T) {
 			},
 			want: &schema.Feed{
 				ID:       "0x0000000000000000000000009d72f8030aafa43f4c208b013964a51017a2747c",
-				Chain:    filter.ChainFarcasterMainnet,
+				Network:  filter.NetworkFarcaster,
 				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				To:       common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				Type:     filter.TypeSocialPost,
@@ -104,7 +104,7 @@ func TestWorker(t *testing.T) {
 			name: "Comment A Cast",
 			arguments: arguments{
 				task: &source.Task{
-					Chain: filter.ChainFarcasterMainnet,
+					Network: filter.NetworkFarcaster,
 					Message: message.Message{
 						Data: message.MessageData{
 							Type: message.MessageTypeCastAdd.String(),
@@ -175,7 +175,7 @@ func TestWorker(t *testing.T) {
 			},
 			want: &schema.Feed{
 				ID:       "0x00000000000000000000000010ae8f78cbbad692c3b330b8970770406dc785ef",
-				Chain:    filter.ChainFarcasterMainnet,
+				Network:  filter.NetworkFarcaster,
 				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				To:       common.HexToAddress("0xe25228a6525A2090be824d66Bdf6DB8836eCc90C").String(),
 				Type:     filter.TypeSocialComment,
@@ -212,7 +212,7 @@ func TestWorker(t *testing.T) {
 			name: "Share A Cast",
 			arguments: arguments{
 				task: &source.Task{
-					Chain: filter.ChainFarcasterMainnet,
+					Network: filter.NetworkFarcaster,
 					Message: message.Message{
 						Data: message.MessageData{
 							Type: message.MessageTypeReactionAdd.String(),
@@ -277,7 +277,7 @@ func TestWorker(t *testing.T) {
 			},
 			want: &schema.Feed{
 				ID:       "0x0000000000000000000000002931794842a5f3a152bff66cc010120cfe9c6102",
-				Chain:    filter.ChainFarcasterMainnet,
+				Network:  filter.NetworkFarcaster,
 				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				To:       common.HexToAddress("0xe25228a6525A2090be824d66Bdf6DB8836eCc90C").String(),
 				Type:     filter.TypeSocialShare,
@@ -313,7 +313,7 @@ func TestWorker(t *testing.T) {
 			name: "Share Own Cast",
 			arguments: arguments{
 				task: &source.Task{
-					Chain: filter.ChainFarcasterMainnet,
+					Network: filter.NetworkFarcaster,
 					Message: message.Message{
 						Data: message.MessageData{
 							Type: message.MessageTypeReactionAdd.String(),
@@ -378,7 +378,7 @@ func TestWorker(t *testing.T) {
 			},
 			want: &schema.Feed{
 				ID:       "0x0000000000000000000000000d62b1610e7dd177363cd3571bfe9a112d6185de",
-				Chain:    filter.ChainFarcasterMainnet,
+				Network:  filter.NetworkFarcaster,
 				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				To:       common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				Type:     filter.TypeSocialShare,

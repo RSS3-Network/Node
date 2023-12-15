@@ -7,6 +7,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/farcaster"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
 

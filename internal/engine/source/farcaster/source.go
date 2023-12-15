@@ -8,8 +8,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/farcaster/model"
 	"github.com/naturalselectionlabs/rss3-node/provider/farcaster"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
@@ -31,8 +31,8 @@ type source struct {
 	pendingState    State
 }
 
-func (s *source) Chain() filter.Chain {
-	return filter.ChainFarcasterMainnet
+func (s *source) Network() filter.Network {
+	return s.config.Network
 }
 
 func (s *source) State() json.RawMessage {
@@ -216,7 +216,7 @@ func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farc
 		}
 
 		tasks = append(tasks, &Task{
-			Chain:   filter.ChainFarcaster(s.Chain().ID()),
+			Network: s.Network(),
 			Message: message,
 		})
 	}
@@ -275,7 +275,7 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 				}
 
 				tasks = append(tasks, &Task{
-					Chain:   filter.ChainFarcaster(s.Chain().ID()),
+					Network: s.Network(),
 					Message: message,
 				})
 			case farcaster.MessageTypeReactionAdd.String():
@@ -288,7 +288,7 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 					}
 
 					tasks = append(tasks, &Task{
-						Chain:   filter.ChainFarcaster(s.Chain().ID()),
+						Network: s.Network(),
 						Message: message,
 					})
 				}

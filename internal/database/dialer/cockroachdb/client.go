@@ -13,7 +13,6 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroachdb/table"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/farcaster/model"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/pressly/goose/v3"
@@ -202,8 +201,6 @@ func (c *client) SaveDatasetFarcasterProfile(ctx context.Context, profile *model
 
 	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
-
-
 
 // Dial dials a database.
 func Dial(ctx context.Context, dataSourceName string, partition bool) (database.Client, error) {

@@ -13,19 +13,19 @@ import (
 var _ engine.Task = (*Task)(nil)
 
 type Task struct {
-	Chain   filter.ChainFarcaster
+	Network filter.Network
 	Message farcaster.Message
 }
 
 func (t Task) ID() string {
-	return fmt.Sprintf("%s.%s.%s", t.Chain.Network(), t.Chain, t.Message.Hash)
+	return fmt.Sprintf("%s.%s", t.Network, t.Message.Hash)
 }
 
-func (t Task) Network() filter.Network {
-	return t.Chain.Network()
+func (t Task) GetNetwork() filter.Network {
+	return t.Network
 }
 
-func (t Task) Timestamp() uint64 {
+func (t Task) GetTimestamp() uint64 {
 	return uint64(farcaster.CovertFarcasterTimeToTimestamp(int64(t.Message.Data.Timestamp)))
 }
 
@@ -36,11 +36,11 @@ func (t Task) Validate() error {
 func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 	feed := schema.Feed{
 		ID:        common.HexToHash(t.Message.Hash).String(),
-		Chain:     t.Chain,
+		Network:   t.Network,
 		Type:      filter.TypeUnknown,
 		Status:    true,
 		Actions:   make([]*schema.Action, 0),
-		Timestamp: t.Timestamp(),
+		Timestamp: t.GetTimestamp(),
 	}
 
 	// Apply feed options.

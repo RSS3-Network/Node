@@ -2,7 +2,7 @@ package table
 
 import (
 	"github.com/lib/pq"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/farcaster/model"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 )
 
 var _ model.ProfileTransformer = (*DatasetFarcasterProfile)(nil)

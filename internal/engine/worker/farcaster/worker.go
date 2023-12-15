@@ -32,7 +32,7 @@ func (w *worker) Name() string {
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	// The worker will handle all Farcaster message.
-	return task.Network() == filter.NetworkFarcaster, nil
+	return task.GetNetwork().Source() == filter.NetworkFarcasterSource, nil
 }
 
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {

@@ -42,7 +42,7 @@ func (f *Feed) MarshalJSON() ([]byte, error) {
 
 	filler := Filler(*f)
 
-	filler.Network = f.Chain.Network()
+	filler.Network = f.Network
 	filler.Tag = f.Type.Tag()
 
 	return json.Marshal(filler)
