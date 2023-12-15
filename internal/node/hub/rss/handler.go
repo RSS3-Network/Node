@@ -7,11 +7,11 @@ import (
 )
 
 // GetRSSHubHandler get rsshub data from rsshub node
-func (r *RSS) GetRSSHubHandler(c echo.Context) error {
+func (h *Hub) GetRSSHubHandler(c echo.Context) error {
 	path := c.Param("*")
 	rawQuery := c.Request().URL.RawQuery
 
-	data, err := r.getRSSHubData(c.Request().Context(), path, rawQuery)
+	data, err := h.getRSSHubData(c.Request().Context(), path, rawQuery)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}

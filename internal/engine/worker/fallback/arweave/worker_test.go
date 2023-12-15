@@ -34,7 +34,7 @@ func TestWorker_Arweave(t *testing.T) {
 			name: "Arweave native transfer",
 			arguments: arguments{
 				task: &source.Task{
-					Chain: filter.ChainArweaveMainnet,
+					Network: filter.NetworkArweave,
 					Transaction: arweave.Transaction{
 						ID:       "mQFakpEtbvv8eAjxmWYLcIO8QJJP2ZFYOhP1imDcnuY",
 						Reward:   "3847185",
@@ -48,13 +48,13 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 			},
 			want: &schema.Feed{
-				ID:    "mQFakpEtbvv8eAjxmWYLcIO8QJJP2ZFYOhP1imDcnuY",
-				Chain: filter.ChainArweaveMainnet,
-				Index: 0,
-				From:  "JaUubKRNhJP9i1iDFt-n_s0zzqV97x8d_7ex3ZZv3CE",
-				To:    "4u5gMvlfVhkn_atzuagjO92H_xJLtVNjucSfEYBrL0E",
-				Type:  filter.TypeTransactionTransfer,
-				Fee: schema.Fee{
+				ID:      "mQFakpEtbvv8eAjxmWYLcIO8QJJP2ZFYOhP1imDcnuY",
+				Network: filter.NetworkArweave,
+				Index:   0,
+				From:    "JaUubKRNhJP9i1iDFt-n_s0zzqV97x8d_7ex3ZZv3CE",
+				To:      "4u5gMvlfVhkn_atzuagjO92H_xJLtVNjucSfEYBrL0E",
+				Type:    filter.TypeTransactionTransfer,
+				Fee: &schema.Fee{
 					Amount:  decimal.NewFromInt(3847185),
 					Decimal: 12,
 				},

@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS "indexes"
 (
     "id"         text        NOT NULL,
     "owner"      text        NOT NULL,
-    "chain"      text        NOT NULL,
+    "network"    text        NOT NULL,
     "index"      int         NOT NULL,
     "platform"   text,
     "tag"        text        NOT NULL,
@@ -15,19 +15,19 @@ CREATE TABLE IF NOT EXISTS "indexes"
     "created_at" timestamptz NOT NULL DEFAULT now(),
     "updated_at" timestamptz NOT NULL DEFAULT now(),
 
-    CONSTRAINT "pk_indexes" PRIMARY KEY ("id", "chain", "owner")
+    CONSTRAINT "pk_indexes" PRIMARY KEY ("id", "network", "owner")
 );
 
 CREATE INDEX IF NOT EXISTS "idx_indexes_platform" ON "indexes" ("platform", "timestamp" DESC, "index" DESC);
 CREATE INDEX IF NOT EXISTS "idx_indexes_filter" ON "indexes" ("tag", "timestamp" DESC, "index" DESC, "type");
-CREATE INDEX IF NOT EXISTS "idx_indexes_network_chain" ON "indexes" ("chain", "timestamp" DESC, "index" DESC);
+CREATE INDEX IF NOT EXISTS "idx_indexes_network" ON "indexes" ("network", "timestamp" DESC, "index" DESC);
 CREATE INDEX IF NOT EXISTS "idx_indexes_owner" ON "indexes" ("owner", "timestamp" DESC, "index" DESC, "direction");
 CREATE INDEX IF NOT EXISTS "idx_indexes_timestamp" ON "indexes" ("timestamp" DESC, "index" DESC);
 
 CREATE TABLE IF NOT EXISTS "feeds"
 (
     "id"            text        NOT NULL,
-    "chain"         text        NOT NULL,
+    "network"       text        NOT NULL,
     "platform"      text,
     "index"         int         NOT NULL,
     "from"          text        NOT NULL,
@@ -53,7 +53,7 @@ CREATE INDEX IF NOT EXISTS "idx_feeds_total_actions" ON "feeds" ("total_actions"
 CREATE TABLE IF NOT EXISTS "checkpoints"
 (
     "id"         text        NOT NULL,
-    "chain"      text        NOT NULL,
+    "network"    text        NOT NULL,
     "worker"     text        NOT NULL,
     "state"      jsonb       NOT NULL,
     "created_at" timestamptz NOT NULL DEFAULT now(),

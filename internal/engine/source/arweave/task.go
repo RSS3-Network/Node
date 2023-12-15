@@ -15,20 +15,20 @@ const defaultFeeDecimal = 12
 var _ engine.Task = (*Task)(nil)
 
 type Task struct {
-	Chain       filter.ChainArweave
+	Network     filter.Network
 	Block       arweave.Block
 	Transaction arweave.Transaction
 }
 
 func (t Task) ID() string {
-	return fmt.Sprintf("%s-%s", t.Chain.Network(), t.Transaction.ID)
+	return fmt.Sprintf("%s-%s", t.Network, t.Transaction.ID)
 }
 
-func (t Task) Network() filter.Network {
-	return t.Chain.Network()
+func (t Task) GetNetwork() filter.Network {
+	return t.Network
 }
 
-func (t Task) Timestamp() uint64 {
+func (t Task) GetTimestamp() uint64 {
 	return uint64(t.Block.Timestamp)
 }
 
@@ -59,13 +59,13 @@ func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 	}
 
 	feed := schema.Feed{
-		ID:     t.Transaction.ID,
-		Chain:  t.Chain,
-		From:   from,
-		To:     t.Transaction.Target,
-		Type:   filter.TypeUnknown,
-		Status: true,
-		Fee: schema.Fee{
+		ID:      t.Transaction.ID,
+		Network: t.Network,
+		From:    from,
+		To:      t.Transaction.Target,
+		Type:    filter.TypeUnknown,
+		Status:  true,
+		Fee: &schema.Fee{
 			Amount:  feeValue,
 			Decimal: defaultFeeDecimal,
 		},
