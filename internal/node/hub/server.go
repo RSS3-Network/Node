@@ -3,6 +3,7 @@ package hub
 import (
 	"context"
 	"net"
+	"net/http"
 
 	"github.com/NaturalSelectionLabs/goapi"
 	"github.com/labstack/echo/v4"
@@ -41,6 +42,7 @@ func NewServer(ctx context.Context, config *config.File, databaseClient database
 	// register router
 	group := goapi.NewRouter().Group("")
 	{
+		group.GET("/healthcheck", HealthCheck)
 		group.GET("/rss/rsshub/*", instance.hub.RSS.GetRSSHubHandler)
 		group.GET("/activities/{id}", instance.hub.Decentralized.GetActivity)
 		group.GET("/accounts/{account}/activities", instance.hub.Decentralized.GetAccountActivities)
@@ -51,4 +53,8 @@ func NewServer(ctx context.Context, config *config.File, databaseClient database
 	instance.httpServer.Routers()
 
 	return &instance, nil
+}
+
+func HealthCheck(c echo.Context) error {
+	return c.String(http.StatusOK, "ok")
 }
