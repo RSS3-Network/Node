@@ -33,11 +33,11 @@ func TestClient(t *testing.T) {
 			partition: true,
 			feedCreated: []*schema.Feed{
 				{
-					ID:    "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
+					ID:      "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
 					Network: filter.NetworkEthereum,
-					From:  "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-					To:    "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
-					Type:  filter.TypeTransactionTransfer,
+					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
+					Type:    filter.TypeTransactionTransfer,
 					Actions: []*schema.Action{
 						{
 							Type: filter.TypeTransactionTransfer,
@@ -48,11 +48,11 @@ func TestClient(t *testing.T) {
 					Timestamp: uint64(time.Now().Unix()),
 				},
 				{
-					ID:    "0xedc029f7c7acce7b72939f8bfff44c5fdc7e64e3e2ba650d195799db8fec4c90",
+					ID:      "0xedc029f7c7acce7b72939f8bfff44c5fdc7e64e3e2ba650d195799db8fec4c90",
 					Network: filter.NetworkEthereum,
-					From:  "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-					To:    "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
-					Type:  filter.TypeTransactionTransfer,
+					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
+					Type:    filter.TypeTransactionTransfer,
 					Actions: []*schema.Action{
 						{
 							Type: filter.TypeTransactionTransfer,
@@ -65,11 +65,11 @@ func TestClient(t *testing.T) {
 			},
 			feedUpdated: []*schema.Feed{
 				{
-					ID:    "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
+					ID:      "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
 					Network: filter.NetworkEthereum,
-					From:  "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-					To:    "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
-					Type:  filter.TypeTransactionTransfer,
+					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
+					Type:    filter.TypeTransactionTransfer,
 					Actions: []*schema.Action{
 						{
 							Type: filter.TypeTransactionTransfer,

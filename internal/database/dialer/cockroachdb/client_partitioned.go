@@ -11,6 +11,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroachdb/table"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/schema"
+	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -142,7 +143,7 @@ func (c *client) findFeedPartitioned(ctx context.Context, query model.FeedQuery)
 
 	feed := &table.Feed{
 		ID:        index.ID,
-		Chain:     index.Chain,
+		Network:   index.Network,
 		Timestamp: index.Timestamp,
 	}
 
@@ -172,7 +173,7 @@ func (c *client) findFeedsPartitioned(ctx context.Context, query model.FeedsQuer
 	partition := lo.GroupBy(indexes, func(query *table.Index) string {
 		feed := table.Feed{
 			ID:        query.ID,
-			Chain:     query.Chain,
+			Network:   query.Network,
 			Timestamp: query.Timestamp,
 		}
 
@@ -477,8 +478,8 @@ func (c *client) buildFindIndexStatement(ctx context.Context, partitionedName st
 		databaseStatement = databaseStatement.Where("id = ?", lo.FromPtr(query.ID))
 	}
 
-	if query.Chain != nil {
-		databaseStatement = databaseStatement.Where("chain = ?", lo.FromPtr(query.Chain).FullName())
+	if query.Network != nil {
+		databaseStatement = databaseStatement.Where("network = ?", lo.FromPtr(query.Network))
 	}
 
 	if query.Owner != nil {
@@ -540,14 +541,12 @@ func (c *client) buildFindIndexesStatement(ctx context.Context, partition string
 		databaseStatement = databaseStatement.Where("type IN ?", query.Types)
 	}
 
-	if len(query.Chains) > 0 {
-		chains := make([]string, 0)
+	if len(query.Network) > 0 {
+		networks := lo.Map(query.Network, func(network filter.Network, _ int) string {
+			return network.String()
+		})
 
-		for _, chain := range query.Chains {
-			chains = append(chains, chain.FullName())
-		}
-
-		databaseStatement = databaseStatement.Where("chain IN ?", chains)
+		databaseStatement = databaseStatement.Where("networks IN ?", networks)
 	}
 
 	if query.Cursor != nil && query.Cursor.Timestamp > 0 {

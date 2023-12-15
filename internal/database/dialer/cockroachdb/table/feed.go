@@ -84,6 +84,7 @@ func (f *Feed) Export(index *Index) (*schema.Feed, error) {
 		ID:           f.ID,
 		From:         f.From,
 		To:           f.To,
+		Network:      f.Network,
 		Platform:     f.Platform,
 		Status:       f.Status,
 		Actions:      make([]*schema.Action, 0, len(f.Actions)),
@@ -93,20 +94,7 @@ func (f *Feed) Export(index *Index) (*schema.Feed, error) {
 		Direction:    index.Direction,
 	}
 
-	splits := strings.Split(f.Chain, ".")
-	if len(splits) != 2 {
-		return nil, fmt.Errorf("invalid chain: %s", f.Chain)
-	}
-
 	var err error
-
-	if feed.Network, err = filter.NetworkString(splits[0]); err != nil {
-		return nil, fmt.Errorf("invalid network: %w", err)
-	}
-
-	if feed.Chain, err = filter.ChainString(feed.Network, splits[1]); err != nil {
-		return nil, fmt.Errorf("invalid chain: %w", err)
-	}
 
 	if feed.Type, err = filter.TypeString(f.Tag, f.Type); err != nil {
 		return nil, err

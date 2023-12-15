@@ -7,7 +7,7 @@ import (
 
 type FeedQuery struct {
 	ID          *string
-	Chain       *filter.Chain
+	Network     *filter.Network
 	Owner       *string
 	ActionLimit int
 	ActionPage  int
@@ -22,7 +22,7 @@ type FeedsQuery struct {
 	EndTimestamp   *uint64
 	Platform       *filter.Platform
 	Owners         []string
-	Chains         []filter.Chain
+	Network        []filter.Network
 	Tags           []filter.Tag
 	Types          []filter.Type
 	Platforms      []filter.Platform
