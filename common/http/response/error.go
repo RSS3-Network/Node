@@ -7,7 +7,6 @@ import (
 	"github.com/NaturalSelectionLabs/goapi/lib/openapi"
 )
 
-//go:generate go run --mod=mod github.com/dmarkham/enumer --type=ErrorCode --transform=snake --values --trimprefix=ErrorCode --json --output error_code.go
 type ErrorCode int
 
 const (
