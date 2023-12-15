@@ -82,17 +82,17 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 		return fmt.Errorf("create partition table: %w", err)
 	}
 
-	// Delete indexes with the same feed id and chain.
+	// Delete indexes with the same feed id and network.
 	pkIndexes := make(map[string][]string)
 
 	for _, index := range indexes {
-		if _, ok := pkIndexes[index.ID+index.Chain]; ok {
+		if _, ok := pkIndexes[index.ID+index.Network.String()]; ok {
 			continue
 		}
 
-		pkIndexes[index.ID+index.Chain] = []string{
+		pkIndexes[index.ID+index.Network.String()] = []string{
 			index.ID,
-			index.Chain,
+			index.Network.String(),
 		}
 	}
 
@@ -102,7 +102,7 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 
 	if err := c.database.WithContext(ctx).
 		Table(indexes[0].PartitionName()).
-		Where("(id, chain) IN (?)", conditions).
+		Where("(id, network) IN (?)", conditions).
 		Delete(&table.Indexes{}).
 		Error; err != nil {
 		return fmt.Errorf("delete indexes: %w", err)
@@ -115,7 +115,7 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 				Name: "id",
 			},
 			{
-				Name: "chain",
+				Name: "network",
 			},
 			{
 				Name: "owner",

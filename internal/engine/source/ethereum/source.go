@@ -28,8 +28,8 @@ type source struct {
 	pendingState   State
 }
 
-func (s *source) Chain() filter.Chain {
-	return filter.ChainEthereumMainnet
+func (s *source) Network() filter.Network {
+	return s.config.Network
 }
 
 func (s *source) State() json.RawMessage {
@@ -51,15 +51,6 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 func (s *source) initialize(ctx context.Context) (err error) {
 	if s.ethereumClient, err = ethereum.Dial(ctx, s.config.Endpoint); err != nil {
 		return fmt.Errorf("dial to ethereum rpc endpoint: %w", err)
-	}
-
-	chainID, err := s.ethereumClient.ChainID(ctx)
-	if err != nil {
-		return fmt.Errorf("get chain id: %w", err)
-	}
-
-	if s.Chain().ID() != chainID.Uint64() {
-		return fmt.Errorf("mismatch between local chain id %d and remote chain id %d", s.Chain().ID(), chainID.Uint64())
 	}
 
 	return nil
@@ -135,7 +126,7 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 		}
 
 		task := Task{
-			Chain:       filter.ChainEthereum(s.Chain().ID()),
+			Network:     s.Network(),
 			Header:      block.Header(),
 			Transaction: transaction,
 			Receipt:     receipt,

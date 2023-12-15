@@ -18,21 +18,21 @@ const defaultFeeDecimal = 18
 var _ engine.Task = (*Task)(nil)
 
 type Task struct {
-	Chain       filter.ChainEthereum
+	Network     filter.Network
 	Header      *ethereum.Header
 	Transaction *ethereum.Transaction
 	Receipt     *ethereum.Receipt
 }
 
 func (t Task) ID() string {
-	return fmt.Sprintf("%s.%s.%s", t.Chain.Network(), t.Chain, t.Transaction.Hash)
+	return fmt.Sprintf("%s.%s", t.Network, t.Transaction.Hash)
 }
 
-func (t Task) Network() filter.Network {
-	return t.Chain.Network()
+func (t Task) GetNetwork() filter.Network {
+	return t.Network
 }
 
-func (t Task) Timestamp() uint64 {
+func (t Task) GetTimestamp() uint64 {
 	return t.Header.Timestamp
 }
 
@@ -66,12 +66,12 @@ func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 	}
 
 	feed := schema.Feed{
-		ID:    t.Transaction.Hash.String(),
-		Chain: t.Chain,
-		Index: t.Receipt.TransactionIndex,
-		From:  from.String(),
-		To:    to.String(),
-		Type:  filter.TypeUnknown,
+		ID:      t.Transaction.Hash.String(),
+		Network: t.Network,
+		Index:   t.Receipt.TransactionIndex,
+		From:    from.String(),
+		To:      to.String(),
+		Type:    filter.TypeUnknown,
 		Fee: schema.Fee{
 			Amount:  decimal.NewFromBigInt(feeAmount, 0),
 			Decimal: defaultFeeDecimal,

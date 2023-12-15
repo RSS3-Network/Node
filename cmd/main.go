@@ -72,18 +72,13 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 		return fmt.Errorf("network string: %w", err)
 	}
 
-	chain, err := filter.ChainString(network, lo.Must(flags.GetString(flag.KeyIndexerChain)))
-	if err != nil {
-		return fmt.Errorf("chain string: %w", err)
-	}
-
 	worker, err := engine.NameString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
 	if err != nil {
 		return fmt.Errorf("worker string: %w", err)
 	}
 
 	for _, nodeConfig := range config.Node.Decentralized {
-		if nodeConfig.Chain == chain && nodeConfig.Worker == worker {
+		if nodeConfig.Network == network && nodeConfig.Worker == worker {
 			server, err := indexer.NewServer(ctx, nodeConfig, databaseClient)
 			if err != nil {
 				return fmt.Errorf("new server: %w", err)
@@ -93,7 +88,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 		}
 	}
 
-	return fmt.Errorf("unsupported indexer %s.%s.%s", network, chain, worker)
+	return fmt.Errorf("unsupported indexer %s.%s", network, worker)
 }
 
 func initializeLogger() {
@@ -110,7 +105,6 @@ func init() {
 	command.PersistentFlags().String(flag.KeyConfig, "./deploy/config.development.yaml", "config file path")
 	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")
 	command.PersistentFlags().String(flag.KeyIndexerNetwork, filter.NetworkEthereum.String(), "indexer network")
-	command.PersistentFlags().String(flag.KeyIndexerChain, filter.ChainEthereumMainnet.String(), "indexer chain")
 	command.PersistentFlags().String(flag.KeyIndexerWorker, engine.Fallback.String(), "indexer worker")
 }
 

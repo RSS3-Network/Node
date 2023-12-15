@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"strings"
 	"time"
 
 	"github.com/naturalselectionlabs/rss3-node/schema"
@@ -18,7 +17,7 @@ var _ schema.FeedTransformer = (*Feed)(nil)
 
 type Feed struct {
 	ID           string           `gorm:"column:id"`
-	Chain        string           `gorm:"column:chain"`
+	Network      filter.Network   `gorm:"column:network"`
 	Platform     *filter.Platform `gorm:"column:platform"`
 	Index        uint             `gorm:"column:index"`
 	From         string           `gorm:"column:from"`
@@ -41,16 +40,16 @@ func (f *Feed) TableName() string {
 func (f *Feed) PartitionName(feed *schema.Feed) string {
 	if feed != nil {
 		f.Timestamp = time.Unix(int64(feed.Timestamp), 0)
-		f.Chain = feed.Chain.FullName()
+		f.Network = feed.Network
 	}
 
-	return fmt.Sprintf("%s_%s_%d_q%d", f.TableName(), strings.Replace(f.Chain, ".", "_", -1),
+	return fmt.Sprintf("%s_%s_%d_q%d", f.TableName(), f.Network,
 		f.Timestamp.Year(), int(math.Ceil(float64(f.Timestamp.Month())/3)))
 }
 
 func (f *Feed) Import(feed *schema.Feed) error {
 	f.ID = feed.ID
-	f.Chain = feed.Chain.FullName()
+	f.Network = feed.Network
 	f.Platform = feed.Platform
 	f.Index = feed.Index
 	f.From = feed.From

@@ -15,7 +15,7 @@ type Client interface {
 	Session
 	Transaction
 
-	LoadCheckpoint(ctx context.Context, id string, chain filter.Chain, worker string) (*engine.Checkpoint, error)
+	LoadCheckpoint(ctx context.Context, id string, network filter.Network, worker string) (*engine.Checkpoint, error)
 	SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error
 
 	SaveFeeds(ctx context.Context, feeds []*schema.Feed) error
