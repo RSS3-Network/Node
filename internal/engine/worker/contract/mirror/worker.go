@@ -66,7 +66,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	}
 
 	// Get actions and social content timestamp from the transaction.
-	actions, timestamp, err := w.transformPostOrReviseAction(ctx, arweaveTask)
+	actions, timestamp, err := w.transformMirrorAction(ctx, arweaveTask)
 	if err != nil {
 		return nil, fmt.Errorf("handle arweave mirror transaction: %w", err)
 	}
@@ -84,7 +84,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 }
 
 // transformPostOrReviseAction Returns the actions of mirror post or revise.
-func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.Task) ([]*schema.Action, uint64, error) {
+func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) ([]*schema.Action, uint64, error) {
 	var (
 		contentDigest       string
 		originContentDigest string
@@ -178,15 +178,15 @@ func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.T
 	}
 
 	// Build the post or revise action
-	action, err := w.buildPostOrReviseAction(ctx, task.Transaction.ID, author, mirror.AddressMirror, mirrorMetadata, emptyOriginDigest, originContentDigest)
+	action, err := w.buildMirrorAction(ctx, task.Transaction.ID, author, mirror.AddressMirror, mirrorMetadata, emptyOriginDigest, originContentDigest)
 	if err != nil {
 		return nil, 0, fmt.Errorf("build post action: %w", err)
 	}
 
 	// Save Dataset Mirror Post
 	post := &model.DatasetMirrorPost{
-		TransactionID:        task.Transaction.ID,
-		OriginContentDigital: originContentDigest,
+		TransactionID:       task.Transaction.ID,
+		OriginContentDigest: originContentDigest,
 	}
 
 	if err := w.databaseClient.SaveDatasetMirrorPost(context.TODO(), post); err != nil {
@@ -201,7 +201,7 @@ func (w *worker) transformPostOrReviseAction(ctx context.Context, task *source.T
 }
 
 // buildArweaveTransactionTransferAction Returns the native transfer transaction action.
-func (w *worker) buildPostOrReviseAction(ctx context.Context, txID, from, to string, mirrorMetadata *metadata.SocialPost, emptyOriginDigest bool, originContentDigest string) (*schema.Action, error) {
+func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, mirrorMetadata *metadata.SocialPost, emptyOriginDigest bool, originContentDigest string) (*schema.Action, error) {
 	// Default action type is post.
 	filterType := filter.TypeSocialPost
 

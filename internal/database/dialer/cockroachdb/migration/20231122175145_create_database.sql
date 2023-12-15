@@ -65,10 +65,12 @@ CREATE TABLE IF NOT EXISTS "checkpoints"
 CREATE TABLE IF NOT EXISTS "dataset_mirror_posts"
 (
     "id"                   text        NOT NULL,
-    "origin_content_digital" text     NOT NULL,
+    "origin_content_digest" text     NOT NULL,
 
     CONSTRAINT "pk_dataset_mirror_posts" PRIMARY KEY ("id")
     );
+
+CREATE INDEX idx_origin_content_digest ON dataset_mirror_posts (origin_content_digest);
 
 
 -- +goose StatementEnd

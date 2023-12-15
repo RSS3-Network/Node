@@ -146,12 +146,13 @@ func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
 	return fmt.Errorf("not implemented")
 }
 
-// LoadDatasetMirrorPost LoadMirrorPost loads a post.
+// LoadDatasetMirrorPost LoadMirrorPost loads a mirror post with tx id and origin content digest.
 func (c *client) LoadDatasetMirrorPost(ctx context.Context, originContentDigest string) (*model.DatasetMirrorPost, error) {
 	var value table.DatasetMirrorPost
 
+	// Get first mirror dataset post record using origin content digest
 	if err := c.database.WithContext(ctx).
-		Where("origin_content_digital = ?", originContentDigest).
+		Where("origin_content_digest = ?", originContentDigest).
 		First(&value).
 		Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -165,7 +166,7 @@ func (c *client) LoadDatasetMirrorPost(ctx context.Context, originContentDigest 
 	return value.Export()
 }
 
-// SaveDatasetMirrorPost SavePost saves a post.
+// SaveDatasetMirrorPost saves a mirror post's tx id and origin content digest to the database.
 func (c *client) SaveDatasetMirrorPost(ctx context.Context, post *model.DatasetMirrorPost) error {
 	clauses := []clause.Expression{
 		clause.OnConflict{
