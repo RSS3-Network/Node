@@ -496,7 +496,7 @@ func (c *client) buildFindIndexesStatement(ctx context.Context, partition string
 	var table *string
 
 	if query.Distinct != nil && lo.FromPtr(query.Distinct) {
-		databaseStatement = databaseStatement.Select("DISTINCT (id) id, timestamp, index, chain")
+		databaseStatement = databaseStatement.Select("DISTINCT (id) id, timestamp, index, network")
 	}
 
 	if query.Owner != nil {
