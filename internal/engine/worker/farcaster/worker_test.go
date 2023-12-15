@@ -85,7 +85,7 @@ func TestWorker(t *testing.T) {
 						Platform: filter.PlatformFarcaster.String(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
-						Metadata: metadata.SocialPost(metadata.Social{
+						Metadata: metadata.SocialPost{
 							Handle:    "brucexc.eth",
 							Body:      "Now I’m just posting this to test how fast we can index this post and delivery into various ecosystem projects built on the RSS3 Network (rss3.io). Hopefully it doesn’t take long…",
 							ProfileID: "14142",
@@ -93,7 +93,7 @@ func TestWorker(t *testing.T) {
 								{Address: "http://rss3.io", MimeType: "text/html; charset=utf-8"},
 							},
 							PublicationID: common.HexToAddress("0x0000000000000000000000009d72f8030aafa43f4c208b013964a51017a2747c").String(),
-						}),
+						},
 					},
 				},
 				Timestamp: 1697757125,
@@ -187,12 +187,12 @@ func TestWorker(t *testing.T) {
 						Platform: filter.PlatformFarcaster.String(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x827431510a5D249cE4fdB7F00C83a3353F471848").String(),
-						Metadata: metadata.SocialComment(metadata.Social{
+						Metadata: metadata.SocialPost{
 							Handle:        "brucexc.eth",
 							Body:          "about 2 minutes",
 							ProfileID:     "14142",
 							PublicationID: common.HexToAddress("0x00000000000000000000000010AE8F78cbBad692C3B330B8970770406DC785eF").String(),
-							Target: &metadata.Social{
+							Target: &metadata.SocialPost{
 								Handle:    "henryqw",
 								Body:      "Now I’m just posting this to test how fast we can index this post and delivery into various ecosystem projects built on the RSS3 Network (rss3.io). Hopefully it doesn’t take long…",
 								ProfileID: "23901",
@@ -201,7 +201,7 @@ func TestWorker(t *testing.T) {
 								},
 								PublicationID: common.HexToAddress("0x000000000000000000000000e3Fbd4Ca0aC4F89f0524F9f4cEEe49D600D21Fdd").String(),
 							},
-						}),
+						},
 					},
 				},
 				Timestamp: 1697757691,
@@ -289,11 +289,11 @@ func TestWorker(t *testing.T) {
 						Platform: filter.PlatformFarcaster.String(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x827431510a5D249cE4fdB7F00C83a3353F471848").String(),
-						Metadata: metadata.SocialShare(metadata.Social{
+						Metadata: metadata.SocialPost{
 							Handle:        "brucexc.eth",
 							ProfileID:     "14142",
 							PublicationID: common.HexToAddress("0x0000000000000000000000002931794842A5f3A152BFF66cC010120CFE9C6102").String(),
-							Target: &metadata.Social{
+							Target: &metadata.SocialPost{
 								Handle:    "henryqw",
 								Body:      "If you see a guy wearing this same shirt everyday in Istanbul, he is got shirt ton of them.",
 								ProfileID: "23901",
@@ -302,7 +302,7 @@ func TestWorker(t *testing.T) {
 								},
 								PublicationID: common.HexToAddress("0x00000000000000000000000005536f622DbEdAa75ae1Bd8eC9Ff98Bb0dF10894").String(),
 							},
-						}),
+						},
 					},
 				},
 				Timestamp: 1700007139,
@@ -390,11 +390,11 @@ func TestWorker(t *testing.T) {
 						Platform: filter.PlatformFarcaster.String(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
-						Metadata: metadata.SocialShare(metadata.Social{
+						Metadata: metadata.SocialPost{
 							Handle:        "brucexc.eth",
 							ProfileID:     "14142",
 							PublicationID: common.HexToAddress("0x0000000000000000000000000d62b1610E7Dd177363cD3571bFE9A112D6185DE").String(),
-							Target: &metadata.Social{
+							Target: &metadata.SocialPost{
 								Handle:    "brucexc.eth",
 								Body:      "Now I’m just posting this to test how fast we can index this post and delivery into various ecosystem projects built on the RSS3 Network (rss3.io). Hopefully it doesn’t take long…",
 								ProfileID: "14142",
@@ -403,7 +403,7 @@ func TestWorker(t *testing.T) {
 								},
 								PublicationID: common.HexToAddress("0x00000000000000000000000009d72F8030AAfa43F4c208B013964a51017A2747c").String(),
 							},
-						}),
+						},
 					},
 				},
 				Timestamp: 1700007675,

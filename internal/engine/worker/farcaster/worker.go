@@ -107,7 +107,7 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 					Platform: filter.PlatformFarcaster.String(),
 					From:     from,
 					To:       to,
-					Metadata: metadata.SocialComment(*post),
+					Metadata: *post,
 				}
 				feed.Actions = append(feed.Actions, &action)
 			}
@@ -161,7 +161,7 @@ func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farc
 				Platform: filter.PlatformFarcaster.String(),
 				From:     from,
 				To:       to,
-				Metadata: metadata.SocialShare(*post),
+				Metadata: *post,
 			}
 			feed.Actions = append(feed.Actions, &action)
 		}
@@ -171,32 +171,21 @@ func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farc
 }
 
 // buildPostActions builds post actions from message.
-func (w *worker) buildPostActions(_ context.Context, ethAddresses []string, feed *schema.Feed, post *metadata.Social, socialType filter.Type) {
-	var data schema.Metadata
-
-	switch socialType {
-	case filter.TypeSocialPost:
-		data = metadata.SocialPost(*post)
-	case filter.TypeSocialComment:
-		data = metadata.SocialComment(*post)
-	case filter.TypeSocialShare:
-		data = metadata.SocialShare(*post)
-	}
-
+func (w *worker) buildPostActions(_ context.Context, ethAddresses []string, feed *schema.Feed, post *metadata.SocialPost, socialType filter.Type) {
 	for _, from := range ethAddresses {
 		action := schema.Action{
 			Type:     socialType,
 			Platform: filter.PlatformFarcaster.String(),
 			From:     from,
 			To:       from,
-			Metadata: data,
+			Metadata: *post,
 		}
 		feed.Actions = append(feed.Actions, &action)
 	}
 }
 
 // buildPost builds post from message.
-func (w *worker) buildPost(ctx context.Context, fid int64, hash string, body *farcaster.CastAddBody) *metadata.Social {
+func (w *worker) buildPost(ctx context.Context, fid int64, hash string, body *farcaster.CastAddBody) *metadata.SocialPost {
 	var (
 		text   string
 		embeds []string
@@ -211,7 +200,7 @@ func (w *worker) buildPost(ctx context.Context, fid int64, hash string, body *fa
 		embeds = append(embeds, body.EmbedsDeprecated...)
 	}
 
-	post := &metadata.Social{
+	post := &metadata.SocialPost{
 		Body:          text,
 		ProfileID:     strconv.FormatInt(fid, 10),
 		PublicationID: common.HexToAddress(hash).String(),
@@ -249,7 +238,7 @@ func (w *worker) castToString(cast *farcaster.CastAddBody) string {
 }
 
 // buildPostMedia will build post media from embeds.
-func (w *worker) buildPostMedia(ctx context.Context, post *metadata.Social, embeds []string) {
+func (w *worker) buildPostMedia(ctx context.Context, post *metadata.SocialPost, embeds []string) {
 	var locker sync.Mutex
 
 	errorGroup, _ := errgroup.WithContext(ctx)

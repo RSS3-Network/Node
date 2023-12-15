@@ -7,29 +7,7 @@ import (
 
 var _ schema.Metadata = (*SocialPost)(nil)
 
-type SocialPost Social
-
-func (p SocialPost) Type() filter.Type {
-	return filter.TypeSocialPost
-}
-
-var _ schema.Metadata = (*SocialComment)(nil)
-
-type SocialComment Social
-
-func (c SocialComment) Type() filter.Type {
-	return filter.TypeSocialComment
-}
-
-var _ schema.Metadata = (*SocialShare)(nil)
-
-type SocialShare Social
-
-func (c SocialShare) Type() filter.Type {
-	return filter.TypeSocialShare
-}
-
-type Social struct {
+type SocialPost struct {
 	Handle        string   `json:"handle,omitempty"`
 	Title         string   `json:"title,omitempty"`
 	Summary       string   `json:"summary,omitempty"`
@@ -42,11 +20,15 @@ type Social struct {
 	AuthorURL     string   `json:"author_url,omitempty"`
 	Reward        *Token   `json:"reward,omitempty"`
 
-	Target    *Social `json:"target,omitempty"`
-	TargetURL string  `json:"target_url,omitempty"`
+	Target    *SocialPost `json:"target,omitempty"`
+	TargetURL string      `json:"target_url,omitempty"`
 }
 
 type Media struct {
 	Address  string `json:"address"`
 	MimeType string `json:"mime_type"`
+}
+
+func (p SocialPost) Type() filter.Type {
+	return filter.TypeSocialPost
 }
