@@ -49,7 +49,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 	go func() {
 		switch {
 		case s.filter.LogAddresses != nil || s.filter.LogTopics != nil:
-			errorChan <- s.poolLogs(ctx, tasksChan)
+			errorChan <- s.pollLogs(ctx, tasksChan)
 		default:
 			errorChan <- s.pollBlocks(ctx, tasksChan)
 		}
@@ -76,14 +76,16 @@ func (s *source) initialize(ctx context.Context) (err error) {
 func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task) error {
 	var blockNumberLatestLocal uint64
 
-	if s.option.BlockNumberStart.Uint64() > blockNumberLatestLocal {
+	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > blockNumberLatestLocal {
 		blockNumberLatestLocal = s.option.BlockNumberStart.Uint64()
 	}
 
 	for {
-		if s.option.BlockNumberTarget.Uint64() <= s.state.BlockNumber {
+		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() <= s.state.BlockNumber {
 			break
 		}
+
+		fmt.Println(s.state.BlockNumber, blockNumberLatestLocal)
 
 		// The local block number is equal than the remote block number.
 		if s.state.BlockNumber >= blockNumberLatestLocal || blockNumberLatestLocal == 0 {
@@ -135,7 +137,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 	return nil
 }
 
-func (s *source) poolLogs(ctx context.Context, tasksChan chan<- []engine.Task) error {
+func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) error {
 	var blockNumberLatestLocal uint64
 
 	if s.option.BlockNumberStart.Uint64() > blockNumberLatestLocal {
@@ -272,6 +274,7 @@ func NewSource(config *engine.Config, sourceFilter engine.SourceFilter, checkpoi
 
 	instance := source{
 		config:       config,
+		filter:       new(Filter), // Set a default filter for the source.
 		state:        state,
 		pendingState: state, // Default pending state is equal to the current state.
 	}

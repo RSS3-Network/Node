@@ -22,5 +22,5 @@ func NewOption(options *engine.Options) (*Option, error) {
 		return nil, err
 	}
 
-	return nil, nil
+	return &instance, nil
 }
