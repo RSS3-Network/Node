@@ -1,6 +1,6 @@
 package node
 
 const (
-	Explorer = "explorer"
-	Indexer  = "indexer"
+	Hub     = "hub"
+	Indexer = "indexer"
 )

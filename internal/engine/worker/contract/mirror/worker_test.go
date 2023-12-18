@@ -39,7 +39,7 @@ func TestWorker_Arweave(t *testing.T) {
 			name: "Mirror Post",
 			arguments: arguments{
 				task: &source.Task{
-					Chain: filter.ChainArweaveMainnet,
+					Network: filter.NetworkArweave,
 					Transaction: arweave.Transaction{
 						ID:       "lW0AMDN2RgOeqULk-u6Tv0wfZWpx9MfkrmqQQU-Mvuo",
 						Reward:   "27798031",
@@ -56,13 +56,13 @@ func TestWorker_Arweave(t *testing.T) {
 			},
 			want: &schema.Feed{
 				ID:       "lW0AMDN2RgOeqULk-u6Tv0wfZWpx9MfkrmqQQU-Mvuo",
-				Chain:    filter.ChainArweaveMainnet,
+				Network:  filter.NetworkArweave,
 				Index:    0,
 				From:     "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 				To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 				Type:     filter.TypeSocialPost,
 				Platform: lo.ToPtr(filter.PlatformMirror),
-				Fee: schema.Fee{
+				Fee: &schema.Fee{
 					Amount:  decimal.NewFromInt(27798031),
 					Decimal: 12,
 				},
@@ -91,7 +91,7 @@ func TestWorker_Arweave(t *testing.T) {
 			name: "Mirror Revise 01",
 			arguments: arguments{
 				task: &source.Task{
-					Chain: filter.ChainArweaveMainnet,
+					Network: filter.NetworkArweave,
 					Transaction: arweave.Transaction{
 						ID:       "CKsUVyAvgDeMyHjTn4kAwLMgv81nCH4xt6dY5xZcYbE",
 						Reward:   "17827441",
@@ -110,16 +110,17 @@ func TestWorker_Arweave(t *testing.T) {
 			},
 			want: &schema.Feed{
 				ID:       "CKsUVyAvgDeMyHjTn4kAwLMgv81nCH4xt6dY5xZcYbE",
-				Chain:    filter.ChainArweaveMainnet,
+				Network:  filter.NetworkArweave,
 				Index:    0,
 				From:     "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 				To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 				Type:     filter.TypeSocialRevise,
 				Platform: lo.ToPtr(filter.PlatformMirror),
-				Fee: schema.Fee{
+				Fee: &schema.Fee{
 					Amount:  decimal.NewFromInt(17827441),
 					Decimal: 12,
 				},
+
 				Actions: []*schema.Action{
 					{
 						Type:     filter.TypeSocialRevise,

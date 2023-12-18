@@ -7,8 +7,8 @@ import (
 
 type Task interface {
 	ID() string
-	Network() filter.Network
-	Timestamp() uint64
+	GetNetwork() filter.Network
+	GetTimestamp() uint64
 	Validate() error
 	BuildFeed(options ...schema.FeedOption) (*schema.Feed, error)
 }

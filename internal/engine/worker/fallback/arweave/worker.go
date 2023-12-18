@@ -27,7 +27,7 @@ func (w *worker) Name() string {
 
 // Match returns true if the task is an Arweave task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.Network() == filter.NetworkArweave, nil
+	return task.GetNetwork().Source() == filter.NetworkArweaveSource, nil
 }
 
 // Transform returns a feed with the action of the task.

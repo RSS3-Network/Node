@@ -1,0 +1,4 @@
+hub:
+  replicaCount: 2
+database:
+  uri: <path:kv/data/network/rss3-node#DATABASE_URI>

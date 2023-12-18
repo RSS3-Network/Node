@@ -5,16 +5,16 @@ import (
 	"github.com/samber/lo"
 )
 
-var endpointsMap = map[filter.ChainEthereum][]string{
-	filter.ChainEthereumMainnet: {
+var endpointsMap = map[filter.Network][]string{
+	filter.NetworkEthereum: {
 		"https://rpc.ankr.com/eth",
 		"https://ethereum.blockpi.network/v1/rpc/public",
 		"https://eth.llamarpc.com",
 	},
 }
 
-func Get(chain filter.ChainEthereum) ([]string, bool) {
-	endpoints, exists := endpointsMap[chain]
+func Get(network filter.Network) ([]string, bool) {
+	endpoints, exists := endpointsMap[network]
 	if exists && len(endpoints) == 0 {
 		return nil, !exists
 	}
@@ -26,6 +26,6 @@ func Get(chain filter.ChainEthereum) ([]string, bool) {
 	return endpoints, exists
 }
 
-func MustGet(chain filter.ChainEthereum) string {
-	return lo.Must(Get(chain))[0]
+func MustGet(network filter.Network) string {
+	return lo.Must(Get(network))[0]
 }

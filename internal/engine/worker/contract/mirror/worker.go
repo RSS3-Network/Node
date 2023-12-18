@@ -35,8 +35,8 @@ func (w *worker) Name() string {
 
 // Match returns true if the task is an Arweave task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	switch task.Network() {
-	case filter.NetworkArweave:
+	switch task.GetNetwork().Source() {
+	case filter.NetworkArweaveSource:
 		task := task.(*source.Task)
 
 		// Check if the transaction belongs to the mirror contract.

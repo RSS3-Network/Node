@@ -11,12 +11,12 @@ import (
 
 // NewWorker creates a new fallback worker.
 func NewWorker(config *engine.Config) (engine.Worker, error) {
-	switch config.Chain.Network() {
-	case filter.NetworkEthereum:
+	switch config.Network.Source() {
+	case filter.NetworkEthereumSource:
 		return ethereum.NewWorker(config)
-	case filter.NetworkArweave:
+	case filter.NetworkArweaveSource:
 		return arweave.NewWorker(config)
 	default:
-		return nil, fmt.Errorf("unsupported worker %s", config.Chain.Network())
+		return nil, fmt.Errorf("unsupported worker %s", config.Network)
 	}
 }

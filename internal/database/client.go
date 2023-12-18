@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror/model"
+	mirror_model "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror/model"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/pressly/goose/v3"
@@ -17,10 +18,12 @@ type Client interface {
 	Transaction
 	DatasetMirrorPost
 
-	LoadCheckpoint(ctx context.Context, id string, chain filter.Chain, worker string) (*engine.Checkpoint, error)
+	LoadCheckpoint(ctx context.Context, id string, network filter.Network, worker string) (*engine.Checkpoint, error)
 	SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error
 
 	SaveFeeds(ctx context.Context, feeds []*schema.Feed) error
+	FindFeed(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error)
+	FindFeeds(ctx context.Context, query model.FeedsQuery) ([]*schema.Feed, error)
 }
 
 type Session interface {
@@ -35,8 +38,8 @@ type Transaction interface {
 }
 
 type DatasetMirrorPost interface {
-	LoadDatasetMirrorPost(ctx context.Context, originContentDigest string) (*model.DatasetMirrorPost, error)
-	SaveDatasetMirrorPost(ctx context.Context, post *model.DatasetMirrorPost) error
+	LoadDatasetMirrorPost(ctx context.Context, originContentDigest string) (*mirror_model.DatasetMirrorPost, error)
+	SaveDatasetMirrorPost(ctx context.Context, post *mirror_model.DatasetMirrorPost) error
 }
 
 var _ goose.Logger = (*SugaredLogger)(nil)

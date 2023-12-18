@@ -13,7 +13,7 @@ import (
 type Index struct {
 	ID        string           `gorm:"column:id"`
 	Owner     string           `gorm:"column:owner"`
-	Chain     string           `gorm:"column:chain"`
+	Network   filter.Network   `gorm:"column:network"`
 	Platform  *filter.Platform `gorm:"column:platform"`
 	Index     uint             `gorm:"column:index"`
 	Tag       filter.Tag       `gorm:"column:tag"`
@@ -33,11 +33,9 @@ func (i *Index) PartitionName() string {
 	return fmt.Sprintf("%s_%d_q%d", i.TableName(), i.Timestamp.Year(), int(math.Ceil(float64(i.Timestamp.Month())/3)))
 }
 
-var _ schema.FeedTransformer = (*Index)(nil)
-
 func (i *Index) Import(feed *schema.Feed) error {
 	i.ID = feed.ID
-	i.Chain = feed.Chain.FullName()
+	i.Network = feed.Network
 	i.Platform = feed.Platform
 	i.Index = feed.Index
 	i.Tag = feed.Type.Tag()
@@ -47,8 +45,6 @@ func (i *Index) Import(feed *schema.Feed) error {
 
 	return nil
 }
-
-var _ schema.FeedsTransformer = (*Indexes)(nil)
 
 type Indexes []*Index
 
