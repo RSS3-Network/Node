@@ -67,8 +67,8 @@ func (s *source) initialize(ctx context.Context) (err error) {
 func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task) error {
 	var blockNumberLatestLocal uint64
 
-	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > blockNumberLatestLocal {
-		blockNumberLatestLocal = s.option.BlockNumberStart.Uint64()
+	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > s.state.BlockNumber {
+		s.state.BlockNumber, s.pendingState.BlockNumber = s.option.BlockNumberStart.Uint64(), s.option.BlockNumberStart.Uint64()
 	}
 
 	for {
@@ -129,8 +129,8 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) error {
 	var blockNumberLatestLocal uint64
 
-	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > blockNumberLatestLocal {
-		blockNumberLatestLocal = s.option.BlockNumberStart.Uint64()
+	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > s.state.BlockNumber {
+		s.state.BlockNumber, s.pendingState.BlockNumber = s.option.BlockNumberStart.Uint64(), s.option.BlockNumberStart.Uint64()
 	}
 
 	for {
@@ -296,6 +296,8 @@ func NewSource(config *engine.Config, sourceFilter engine.SourceFilter, checkpoi
 	if instance.option, err = NewOption(config.Parameters); err != nil {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
+
+	zap.L().Info("apply option", zap.Any("option", instance.option))
 
 	return &instance, nil
 }

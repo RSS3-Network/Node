@@ -32,3 +32,6 @@ component:
     - network: ethereum
       worker: fallback
       endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
+        block_number_target:
