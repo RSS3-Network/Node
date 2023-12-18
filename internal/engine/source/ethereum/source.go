@@ -138,12 +138,12 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) error {
 	var blockNumberLatestLocal uint64
 
-	if s.option.BlockNumberStart.Uint64() > blockNumberLatestLocal {
+	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > blockNumberLatestLocal {
 		blockNumberLatestLocal = s.option.BlockNumberStart.Uint64()
 	}
 
 	for {
-		if s.option.BlockNumberTarget.Uint64() <= s.state.BlockNumber {
+		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() <= s.state.BlockNumber {
 			break
 		}
 
@@ -170,8 +170,8 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 
 		// Build log filter by the filter config.
 		logFilter := ethereum.Filter{
-			FromBlock: new(big.Int).SetUint64(blockNumberLatestLocal),
-			ToBlock:   new(big.Int).SetUint64(blockNumberLatestLocal + 1),
+			FromBlock: new(big.Int).SetUint64(s.state.BlockNumber),
+			ToBlock:   new(big.Int).SetUint64(s.state.BlockNumber),
 			Addresses: s.filter.LogAddresses,
 			Topics: lo.Map(s.filter.LogTopics, func(topic common.Hash, _ int) []common.Hash {
 				return []common.Hash{
@@ -209,6 +209,13 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 				return lo.Contains(transactionHashes, receipt.TransactionHash)
 			})
 
+			// Remove transactions for the block if the receipt has been filtered.
+			block.Transactions = lo.Filter(block.Transactions, func(transaction *ethereum.Transaction, _ int) bool {
+				return lo.ContainsBy(receipts, func(receipt *ethereum.Receipt) bool {
+					return receipt.TransactionHash == transaction.Hash
+				})
+			})
+
 			tasks, err := s.buildTasks(block, receipts)
 			if err != nil {
 				return fmt.Errorf("build tasks for block hash: %s: %w", block.Hash, err)
@@ -216,6 +223,16 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 
 			// TODO It might be possible to use generics to avoid manual type assertions.
 			tasksChan <- lo.Map(tasks, func(task *Task, _ int) engine.Task { return task })
+		}
+
+		// If there are no logs, only update the block number.
+		if block == nil {
+			if block, err = s.ethereumClient.BlockByNumber(ctx, new(big.Int).SetUint64(s.state.BlockNumber)); err != nil {
+				return fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
+			}
+
+			// Push an empty task slice to the channel to update the block number.
+			tasksChan <- make([]engine.Task, 0)
 		}
 
 		// Update state by two phase commit to avoid data inconsistency.

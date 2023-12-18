@@ -94,6 +94,7 @@ type transactionMarshal struct {
 	BlockNumber *hexutil.Big
 	Gas         hexutil.Uint64
 	GasPrice    *hexutil.Big
+	GasTipCap   *hexutil.Big
 	Input       hexutil.Bytes
 	Index       hexutil.Uint
 	Value       *hexutil.Big
