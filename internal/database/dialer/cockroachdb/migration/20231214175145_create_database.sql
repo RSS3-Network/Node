@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS "dataset_mirror_posts"
     CONSTRAINT "pk_dataset_mirror_posts" PRIMARY KEY ("id")
     );
 
-CREATE INDEX idx_origin_content_digest ON dataset_mirror_posts (origin_content_digest);
+CREATE INDEX IF NOT EXISTS idx_origin_content_digest ON dataset_mirror_posts (origin_content_digest);
 
 
 -- +goose StatementEnd
