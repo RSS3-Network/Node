@@ -53,7 +53,22 @@ func (s *Server) Run(ctx context.Context) error {
 }
 
 func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
+	checkpoint := engine.Checkpoint{
+		ID:      s.id,
+		Network: s.source.Chain().Network(),
+		Chain:   s.source.Chain(),
+		Worker:  s.worker.Name(),
+		State:   s.source.State(),
+	}
+
+	// If no tasks are returned, only save the checkpoint to the database.
 	if len(tasks) == 0 {
+		zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
+
+		if err := s.databaseClient.SaveCheckpoint(ctx, &checkpoint); err != nil {
+			return fmt.Errorf("save checkpoint: %w", err)
+		}
+
 		return nil
 	}
 
@@ -100,14 +115,6 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 	return s.databaseClient.WithTransaction(ctx, func(ctx context.Context, client database.Client) error {
 		if err := client.SaveFeeds(ctx, feeds); err != nil {
 			return fmt.Errorf("save %d feeds: %w", len(feeds), err)
-		}
-
-		checkpoint := engine.Checkpoint{
-			ID:      s.id,
-			Network: s.source.Chain().Network(),
-			Chain:   s.source.Chain(),
-			Worker:  s.worker.Name(),
-			State:   s.source.State(),
 		}
 
 		zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
