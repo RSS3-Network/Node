@@ -15,8 +15,8 @@ const (
 	RSSHubUMSPath = ".ums"
 )
 
-func (r *RSS) getRSSHubData(ctx context.Context, path string, rawQuery string) ([]byte, error) {
-	request, err := url.Parse(r.rsshub.Endpoint)
+func (h *Hub) getRSSHubData(ctx context.Context, path string, rawQuery string) ([]byte, error) {
+	request, err := url.Parse(h.rsshub.Endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (r *RSS) getRSSHubData(ctx context.Context, path string, rawQuery string) (
 	}
 
 	// fill in authentication config
-	if err := r.parseRSSHubAuthentication(ctx, request); err != nil {
+	if err := h.parseRSSHubAuthentication(ctx, request); err != nil {
 		return nil, fmt.Errorf("parse rsshub authentication: %w", err)
 	}
 
@@ -39,7 +39,7 @@ func (r *RSS) getRSSHubData(ctx context.Context, path string, rawQuery string) (
 	}
 
 	// nolint:bodyclose // False positive
-	resp, err := r.httpClient.Do(req)
+	resp, err := h.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("rsshub request: %w", err)
 	}
@@ -59,12 +59,12 @@ func (r *RSS) getRSSHubData(ctx context.Context, path string, rawQuery string) (
 }
 
 // parseRSSHubAuthentication parse authentication config and validate it, then fill in request
-func (r *RSS) parseRSSHubAuthentication(_ context.Context, request *url.URL) error {
-	if r.rsshub.Parameters == nil {
+func (h *Hub) parseRSSHubAuthentication(_ context.Context, request *url.URL) error {
+	if h.rsshub.Parameters == nil {
 		return nil
 	}
 
-	option, err := NewOption(r.rsshub.Parameters)
+	option, err := NewOption(h.rsshub.Parameters)
 	if err != nil {
 		return fmt.Errorf("parse parmeters: %w", err)
 	}

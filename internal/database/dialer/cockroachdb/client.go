@@ -11,7 +11,9 @@ import (
 
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroachdb/table"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	mirror_model "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror/model"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/pressly/goose/v3"
@@ -93,13 +95,13 @@ func (c *client) Commit() error {
 	return c.database.Commit().Error
 }
 
-func (c *client) LoadCheckpoint(ctx context.Context, id string, chain filter.Chain, worker string) (*engine.Checkpoint, error) {
+func (c *client) LoadCheckpoint(ctx context.Context, id string, network filter.Network, worker string) (*engine.Checkpoint, error) {
 	var value table.Checkpoint
 
-	zap.L().Info("load checkpoint", zap.String("id", id), zap.String("fullname", chain.FullName()), zap.String("worker", worker))
+	zap.L().Info("load checkpoint", zap.String("id", id), zap.String("network", network.String()), zap.String("worker", worker))
 
 	if err := c.database.WithContext(ctx).
-		Where("id = ? AND chain = ? AND worker = ?", id, chain.FullName(), worker).
+		Where("id = ? AND network = ? AND worker = ?", id, network, worker).
 		First(&value).
 		Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -109,7 +111,7 @@ func (c *client) LoadCheckpoint(ctx context.Context, id string, chain filter.Cha
 		// Initialize a default checkpoint.
 		value = table.Checkpoint{
 			ID:        id,
-			Chain:     chain.FullName(),
+			Network:   network,
 			Worker:    worker,
 			State:     json.RawMessage("{}"),
 			CreatedAt: time.Now(),
@@ -145,15 +147,63 @@ func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
 	return fmt.Errorf("not implemented")
 }
 
-// createPartitionTable creates a partition table.
-func (c *client) createPartitionTable(ctx context.Context, name, template string) error {
-	statement := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS "%s" (LIKE "%s" INCLUDING ALL);`, name, template)
+// LoadDatasetMirrorPost LoadMirrorPost loads a mirror post with tx id and origin content digest.
+func (c *client) LoadDatasetMirrorPost(ctx context.Context, originContentDigest string) (*mirror_model.DatasetMirrorPost, error) {
+	var value table.DatasetMirrorPost
 
-	return c.database.WithContext(ctx).Exec(statement).Error
+	// Get first mirror dataset post record using origin content digest
+	if err := c.database.WithContext(ctx).
+		Where("origin_content_digest = ?", originContentDigest).
+		First(&value).
+		Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+
+		// Initialize a default post.
+		value = table.DatasetMirrorPost{}
+	}
+
+	return value.Export()
+}
+
+// SaveDatasetMirrorPost saves a mirror post's tx id and origin content digest to the database.
+func (c *client) SaveDatasetMirrorPost(ctx context.Context, post *mirror_model.DatasetMirrorPost) error {
+	clauses := []clause.Expression{
+		clause.OnConflict{
+			Columns:   []clause.Column{{Name: "id"}},
+			UpdateAll: true,
+		},
+	}
+
+	var value table.DatasetMirrorPost
+	if err := value.Import(post); err != nil {
+		return err
+	}
+
+	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
+}
+
+// FindFeed finds a feed by id.
+func (c *client) FindFeed(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error) {
+	if c.partition {
+		return c.findFeedPartitioned(ctx, query)
+	}
+
+	return nil, nil, fmt.Errorf("not implemented")
+}
+
+// FindFeeds finds feeds.
+func (c *client) FindFeeds(ctx context.Context, query model.FeedsQuery) ([]*schema.Feed, error) {
+	if c.partition {
+		return c.findFeedsPartitioned(ctx, query)
+	}
+
+	return nil, fmt.Errorf("not implemented")
 }
 
 // Dial dials a database.
-func Dial(_ context.Context, dataSourceName string, partition bool) (database.Client, error) {
+func Dial(ctx context.Context, dataSourceName string, partition bool) (database.Client, error) {
 	var err error
 
 	instance := client{
@@ -169,6 +219,10 @@ func Dial(_ context.Context, dataSourceName string, partition bool) (database.Cl
 
 	if instance.database, err = gorm.Open(postgres.Open(dataSourceName), &config); err != nil {
 		return nil, err
+	}
+
+	if instance.partition {
+		instance.loadIndexesPartitionTables(ctx)
 	}
 
 	return &instance, nil

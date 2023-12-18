@@ -18,7 +18,7 @@ func TestGetImplementation(t *testing.T) {
 
 	type arguments struct {
 		ctx         context.Context
-		chain       filter.ChainEthereum
+		network     filter.Network
 		address     common.Address
 		blockNumber *big.Int
 	}
@@ -33,7 +33,7 @@ func TestGetImplementation(t *testing.T) {
 			name: "Ethereum USD Coin",
 			arguments: arguments{
 				ctx:     context.Background(),
-				chain:   filter.ChainEthereumMainnet,
+				network: filter.NetworkEthereum,
 				address: common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
 			},
 			want: func(t require.TestingT, value interface{}, msgAndArgs ...interface{}) {
@@ -52,7 +52,7 @@ func TestGetImplementation(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
-			ethereumClient, err := ethereum.Dial(testcase.arguments.ctx, endpoint.MustGet(testcase.arguments.chain))
+			ethereumClient, err := ethereum.Dial(testcase.arguments.ctx, endpoint.MustGet(testcase.arguments.network))
 			testcase.wantError(t, err)
 
 			result, err := proxy.GetImplementation(testcase.arguments.ctx, testcase.arguments.address, testcase.arguments.blockNumber, ethereumClient)

@@ -24,8 +24,8 @@ var exceptionalContracts = map[uint64]map[common.Address]Standard{}
 
 // DetectTokenStandard detects the token standard of the contract by bytecode.
 // It supports the ERC-1967 proxy contract.
-func DetectTokenStandard(ctx context.Context, chainID *big.Int, address common.Address, blockNumber *big.Int, ethereumClient ethereum.Client) (Standard, error) {
-	if addressMap, exists := exceptionalContracts[chainID.Uint64()]; exists {
+func DetectTokenStandard(ctx context.Context, chainID uint64, address common.Address, blockNumber *big.Int, ethereumClient ethereum.Client) (Standard, error) {
+	if addressMap, exists := exceptionalContracts[chainID]; exists {
 		if standard, exists := addressMap[address]; exists {
 			return standard, nil
 		}
@@ -73,7 +73,7 @@ func DetectTokenStandard(ctx context.Context, chainID *big.Int, address common.A
 }
 
 // DetectNFTStandard detects the NFT standard of the contract by ERC-165.
-func DetectNFTStandard(ctx context.Context, _ *big.Int, address common.Address, blockNumber *big.Int, ethereumClient ethereum.Client) (Standard, error) {
+func DetectNFTStandard(ctx context.Context, _ uint64, address common.Address, blockNumber *big.Int, ethereumClient ethereum.Client) (Standard, error) {
 	caller, err := erc165.NewERC165Caller(address, ethereumClient)
 	if err != nil {
 		return StandardUnknown, fmt.Errorf("initialize ERC-165 caller: %w", err)
@@ -106,7 +106,7 @@ func DetectNFTStandard(ctx context.Context, _ *big.Int, address common.Address, 
 }
 
 // DetectERC20WithCode detects if bytecode of the contract is ERC-20.
-func DetectERC20WithCode(_ *big.Int, address common.Address, code []byte) bool {
+func DetectERC20WithCode(_ uint64, address common.Address, code []byte) bool {
 	exceptionalAddresses := map[common.Address]bool{}
 
 	return exceptionalAddresses[address] || ContainsMethodIDs(code,
@@ -126,12 +126,12 @@ func DetectERC20WithCode(_ *big.Int, address common.Address, code []byte) bool {
 }
 
 // DetectERC165WithCode detects if bytecode of the contract is ERC-165.
-func DetectERC165WithCode(_ *big.Int, _ common.Address, code []byte) bool {
+func DetectERC165WithCode(_ uint64, _ common.Address, code []byte) bool {
 	return ContainsMethodIDs(code, MethodID("supportsInterface(bytes4)"))
 }
 
 // DetectERC721WithCode detects if bytecode of the contract is ERC-721.
-func DetectERC721WithCode(_ *big.Int, _ common.Address, code []byte) bool {
+func DetectERC721WithCode(_ uint64, _ common.Address, code []byte) bool {
 	return ContainsMethodIDs(code, // 0x80ac58cd
 		MethodID("balanceOf(address)"),
 		MethodID("ownerOf(uint256)"),
@@ -146,7 +146,7 @@ func DetectERC721WithCode(_ *big.Int, _ common.Address, code []byte) bool {
 }
 
 // DetectERC1155WithCode detects if bytecode of the contract is ERC-1155.
-func DetectERC1155WithCode(_ *big.Int, _ common.Address, code []byte) bool {
+func DetectERC1155WithCode(_ uint64, _ common.Address, code []byte) bool {
 	return ContainsMethodIDs(code, // 0xd9b67a26
 		MethodID("balanceOf(address,uint256)"),
 		MethodID("balanceOfBatch(address[],uint256[])"),
@@ -158,6 +158,6 @@ func DetectERC1155WithCode(_ *big.Int, _ common.Address, code []byte) bool {
 }
 
 // DetectERC1967WithCode detects if bytecode of the contract is ERC-1967.
-func DetectERC1967WithCode(_ *big.Int, _ common.Address, code []byte) bool {
+func DetectERC1967WithCode(_ uint64, _ common.Address, code []byte) bool {
 	return ContainsMethodIDs(code, MethodID("implementation()"))
 }

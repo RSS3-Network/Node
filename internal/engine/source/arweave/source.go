@@ -42,8 +42,8 @@ type source struct {
 	pendingState  State
 }
 
-func (s *source) Chain() filter.Chain {
-	return filter.ChainArweaveMainnet
+func (s *source) Network() filter.Network {
+	return s.config.Network
 }
 
 func (s *source) State() json.RawMessage {
@@ -402,8 +402,8 @@ func (s *source) buildTasks(blocks []*arweave.Block, transactions []*arweave.Tra
 			return lo.Contains(block.Txs, transaction.ID)
 		})
 
-		tasks = append(tasks, Task{
-			Chain:       filter.ChainArweave(s.Chain().ID()),
+		tasks = append(tasks, &Task{
+			Network:     s.Network(),
 			Block:       *block,
 			Transaction: *transaction,
 		})

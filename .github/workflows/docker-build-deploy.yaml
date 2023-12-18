@@ -13,3 +13,17 @@ jobs:
       context: .
       dockerfile: ./Dockerfile
     secrets: inherit
+  deploy-dev:
+    if: github.ref == 'refs/heads/develop'
+    uses: NaturalSelectionLabs/Daedalus/.github/workflows/deploy-v2-tpl.yaml@main
+    needs:
+      - build
+    with:
+      images: rss3/node
+      tag: sha-${{ github.sha }}
+      cluster: dev
+      namespace: network
+      releaseName: rss3-node
+      revision: develop
+      dir: deploy/dev
+    secrets: inherit

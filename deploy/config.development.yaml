@@ -19,8 +19,7 @@ database:
 
 component:
   rss:
-    - network: rss
-      chain: rsshub
+    - network: rsshub
       endpoint: https://rsshub.app/
       parameters:
         authentication:
@@ -31,6 +30,5 @@ component:
 
   decentralized:
     - network: ethereum
-      chain: mainnet
       worker: fallback
       endpoint: https://rpc.ankr.com/eth
