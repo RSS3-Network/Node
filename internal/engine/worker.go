@@ -12,12 +12,14 @@ import (
 type Name int
 
 const (
-	Fallback  Name = iota + 1 // fallback
+	Fallback Name = iota + 1 // fallback
+	Mirror                   // mirror
 	Farcaster                 // farcaster
 )
 
 type Worker interface {
 	Name() string
+	Filter() SourceFilter
 	Match(ctx context.Context, task Task) (bool, error)
 	Transform(ctx context.Context, task Task) (*schema.Feed, error)
 }

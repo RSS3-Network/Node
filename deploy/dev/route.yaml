@@ -8,7 +8,7 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`node.rss3.io`)
+      match: Host(`node.rss3.dev`)
       services:
         - name: rss3-node-hub
           port: 80

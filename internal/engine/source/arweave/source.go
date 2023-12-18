@@ -402,7 +402,7 @@ func (s *source) buildTasks(blocks []*arweave.Block, transactions []*arweave.Tra
 			return lo.Contains(block.Txs, transaction.ID)
 		})
 
-		tasks = append(tasks, Task{
+		tasks = append(tasks, &Task{
 			Network:     s.Network(),
 			Block:       *block,
 			Transaction: *transaction,

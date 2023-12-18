@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS "feeds"
     "updated_at"    timestamptz NOT NULL DEFAULT now(),
 
     CONSTRAINT "pk_feeds" PRIMARY KEY ("id")
-);
+    );
 
 CREATE INDEX IF NOT EXISTS "idx_feeds_platform" ON "feeds" ("platform");
 CREATE INDEX IF NOT EXISTS "idx_feeds_timestamp" ON "feeds" ("timestamp" DESC);
@@ -60,7 +60,18 @@ CREATE TABLE IF NOT EXISTS "checkpoints"
     "updated_at" timestamptz NOT NULL DEFAULT now(),
 
     CONSTRAINT "pk_checkpoints" PRIMARY KEY ("id")
-);
+    );
+
+CREATE TABLE IF NOT EXISTS "dataset_mirror_posts"
+(
+    "id"                   text        NOT NULL,
+    "origin_content_digest" text     NOT NULL,
+
+    CONSTRAINT "pk_dataset_mirror_posts" PRIMARY KEY ("id")
+    );
+
+CREATE INDEX idx_origin_content_digest ON dataset_mirror_posts (origin_content_digest);
+
 
 CREATE TABLE IF NOT EXISTS "dataset_farcaster_profiles"
 (
@@ -80,5 +91,6 @@ CREATE TABLE IF NOT EXISTS "dataset_farcaster_profiles"
 DROP TABLE IF EXISTS "indexes";
 DROP TABLE IF EXISTS "feeds";
 DROP TABLE IF EXISTS "checkpoints";
+DROP TABLE IF EXISTS "dataset_mirror_posts";
 DROP TABLE IF EXISTS "dataset_farcaster_profiles";
 -- +goose StatementEnd

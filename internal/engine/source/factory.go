@@ -12,10 +12,10 @@ import (
 )
 
 // New creates a new source.
-func New(config *engine.Config, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.Source, error) {
+func New(config *engine.Config, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.Source, error) {
 	switch config.Network.Source() {
 	case filter.NetworkEthereumSource:
-		return ethereum.NewSource(config, checkpoint)
+		return ethereum.NewSource(config, sourceFilter, checkpoint)
 	case filter.NetworkArweaveSource:
 		return arweave.NewSource(config, checkpoint)
 	case filter.NetworkFarcasterSource:

@@ -64,30 +64,17 @@ func (h *Hub) parseRSSHubAuthentication(_ context.Context, request *url.URL) err
 		return nil
 	}
 
-	authentication, ok := h.rsshub.Parameters["authentication"].(map[string]interface{})
-	if !ok {
-		return nil
+	option, err := NewOption(h.rsshub.Parameters)
+	if err != nil {
+		return fmt.Errorf("parse parmeters: %w", err)
 	}
 
-	// validate authentication parameters
-	for key, value := range authentication {
-		if value == nil {
-			continue
-		}
-
-		if _, ok := value.(string); !ok {
-			return fmt.Errorf("invalid authentication config, key: %s, value: %v", key, value)
-		}
+	if option.Authentication.Username != "" && option.Authentication.Password != "" {
+		request.User = url.UserPassword(option.Authentication.Username, option.Authentication.Password)
 	}
 
-	username, password := authentication["username"], authentication["password"]
-	if username != nil && password != nil {
-		request.User = url.UserPassword(username.(string), password.(string))
-	}
-
-	accessKey, accessCode := authentication["access_key"], authentication["access_code"]
-	if accessKey != nil && accessCode != nil {
-		request.RawQuery = fmt.Sprintf("%s&%s=%s", request.RawQuery, accessKey, accessCode)
+	if option.Authentication.AccessKey != "" && option.Authentication.AccessCode != "" {
+		request.RawQuery = fmt.Sprintf("%s&%s=%s", request.RawQuery, option.Authentication.AccessKey, option.Authentication.AccessCode)
 	}
 
 	return nil
