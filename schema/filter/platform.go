@@ -12,5 +12,5 @@ func (p Platform) ID() string {
 const (
 	PlatformRSS3 Platform = iota + 1
 	PlatformMirror
-	PlatformFarcaster                     // Farcaster
+	PlatformFarcaster
 )

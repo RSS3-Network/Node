@@ -26,6 +26,11 @@ type worker struct {
 	httpClient ipfs.HTTPClient
 }
 
+// Filter returns a source filter.
+func (w *worker) Filter() engine.SourceFilter {
+	return nil
+}
+
 func (w *worker) Name() string {
 	return engine.Farcaster.String()
 }
