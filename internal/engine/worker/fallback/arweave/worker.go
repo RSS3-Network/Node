@@ -25,6 +25,11 @@ func (w *worker) Name() string {
 	return engine.Fallback.String()
 }
 
+// Filter returns a source filter.
+func (w *worker) Filter() engine.SourceFilter {
+	return nil
+}
+
 // Match returns true if the task is an Arweave task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == filter.NetworkArweaveSource, nil

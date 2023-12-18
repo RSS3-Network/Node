@@ -33,6 +33,11 @@ func (w *worker) Name() string {
 	return engine.Mirror.String()
 }
 
+// Filter returns a filter for source.
+func (w *worker) Filter() engine.SourceFilter {
+	return nil
+}
+
 // Match returns true if the task is an Arweave task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	switch task.GetNetwork().Source() {

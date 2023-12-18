@@ -53,7 +53,21 @@ func (s *Server) Run(ctx context.Context) error {
 }
 
 func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
+	checkpoint := engine.Checkpoint{
+		ID:      s.id,
+		Network: s.source.Network(),
+		Worker:  s.worker.Name(),
+		State:   s.source.State(),
+	}
+
+	// If no tasks are returned, only save the checkpoint to the database.
 	if len(tasks) == 0 {
+		zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
+
+		if err := s.databaseClient.SaveCheckpoint(ctx, &checkpoint); err != nil {
+			return fmt.Errorf("save checkpoint: %w", err)
+		}
+
 		return nil
 	}
 
@@ -102,13 +116,6 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 			return fmt.Errorf("save %d feeds: %w", len(feeds), err)
 		}
 
-		checkpoint := engine.Checkpoint{
-			ID:      s.id,
-			Network: s.source.Network(),
-			Worker:  s.worker.Name(),
-			State:   s.source.State(),
-		}
-
 		zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
 
 		if err := client.SaveCheckpoint(ctx, &checkpoint); err != nil {
@@ -146,7 +153,7 @@ func NewServer(ctx context.Context, config *engine.Config, databaseClient databa
 	zap.L().Info("load checkpoint", zap.String("checkpoint.id", checkpoint.ID), zap.String("checkpoint.network", checkpoint.Network.String()), zap.String("checkpoint.worker", checkpoint.Worker), zap.Any("checkpoint.state", state))
 
 	// Initialize source.
-	if instance.source, err = source.New(instance.config, checkpoint); err != nil {
+	if instance.source, err = source.New(instance.config, instance.worker.Filter(), checkpoint); err != nil {
 		return nil, fmt.Errorf("new source: %w", err)
 	}
 

@@ -37,6 +37,11 @@ func (w *worker) Name() string {
 	return engine.Fallback.String()
 }
 
+// Filter returns a source filter.
+func (w *worker) Filter() engine.SourceFilter {
+	return nil
+}
+
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	// The worker will handle all Ethereum network transactions.
 	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil

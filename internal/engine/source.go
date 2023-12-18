@@ -12,3 +12,5 @@ type Source interface {
 	State() json.RawMessage
 	Start(ctx context.Context, tasksChan chan<- []Task, errorChan chan<- error)
 }
+
+type SourceFilter interface{}
