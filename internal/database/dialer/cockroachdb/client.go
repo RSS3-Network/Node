@@ -13,6 +13,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroachdb/table"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	mirror_model "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror/model"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/pressly/goose/v3"
@@ -144,6 +145,43 @@ func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
 	}
 
 	return fmt.Errorf("not implemented")
+}
+
+// LoadDatasetMirrorPost LoadMirrorPost loads a mirror post with tx id and origin content digest.
+func (c *client) LoadDatasetMirrorPost(ctx context.Context, originContentDigest string) (*mirror_model.DatasetMirrorPost, error) {
+	var value table.DatasetMirrorPost
+
+	// Get first mirror dataset post record using origin content digest
+	if err := c.database.WithContext(ctx).
+		Where("origin_content_digest = ?", originContentDigest).
+		First(&value).
+		Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+
+		// Initialize a default post.
+		value = table.DatasetMirrorPost{}
+	}
+
+	return value.Export()
+}
+
+// SaveDatasetMirrorPost saves a mirror post's tx id and origin content digest to the database.
+func (c *client) SaveDatasetMirrorPost(ctx context.Context, post *mirror_model.DatasetMirrorPost) error {
+	clauses := []clause.Expression{
+		clause.OnConflict{
+			Columns:   []clause.Column{{Name: "id"}},
+			UpdateAll: true,
+		},
+	}
+
+	var value table.DatasetMirrorPost
+	if err := value.Import(post); err != nil {
+		return err
+	}
+
+	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
 // FindFeed finds a feed by id.

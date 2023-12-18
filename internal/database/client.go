@@ -6,6 +6,7 @@ import (
 
 	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	mirror_model "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror/model"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/pressly/goose/v3"
@@ -15,6 +16,7 @@ import (
 type Client interface {
 	Session
 	Transaction
+	DatasetMirrorPost
 
 	LoadCheckpoint(ctx context.Context, id string, network filter.Network, worker string) (*engine.Checkpoint, error)
 	SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error
@@ -33,6 +35,11 @@ type Session interface {
 type Transaction interface {
 	Rollback() error
 	Commit() error
+}
+
+type DatasetMirrorPost interface {
+	LoadDatasetMirrorPost(ctx context.Context, originContentDigest string) (*mirror_model.DatasetMirrorPost, error)
+	SaveDatasetMirrorPost(ctx context.Context, post *mirror_model.DatasetMirrorPost) error
 }
 
 var _ goose.Logger = (*SugaredLogger)(nil)
