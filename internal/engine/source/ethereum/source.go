@@ -85,8 +85,6 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 			break
 		}
 
-		fmt.Println(s.state.BlockNumber, blockNumberLatestLocal)
-
 		// The local block number is equal than the remote block number.
 		if s.state.BlockNumber >= blockNumberLatestLocal || blockNumberLatestLocal == 0 {
 			// Refresh the remote block number.
