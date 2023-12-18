@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -132,6 +133,11 @@ func (h *httpClient) fetchQuick(ctx context.Context, path string) (io.ReadCloser
 }
 
 func (h *httpClient) GetContentType(ctx context.Context, uri string) (string, error) {
+	// TODO: Support chain:// protocol.
+	if strings.HasPrefix(uri, "chain://") {
+		return "text/html", nil
+	}
+
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
 		return "", fmt.Errorf("new request: %w", err)
