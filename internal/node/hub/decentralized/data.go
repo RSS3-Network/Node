@@ -3,12 +3,12 @@ package decentralized
 import (
 	"context"
 	"fmt"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
-	"github.com/samber/lo"
 	"strings"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/schema"
+	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/samber/lo"
 )
 
 func (h *Hub) getFeed(ctx context.Context, request model.FeedQuery) (*schema.Feed, *int, error) {
@@ -52,7 +52,7 @@ func (h *Hub) getCursor(ctx context.Context, cursor *string) (*schema.Feed, erro
 	return data, nil
 }
 
-func (h *Hub) transformCursor(ctx context.Context, feed *schema.Feed) string {
+func (h *Hub) transformCursor(_ context.Context, feed *schema.Feed) string {
 	if feed == nil {
 		return ""
 	}
