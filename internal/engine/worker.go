@@ -15,7 +15,7 @@ const (
 	Fallback  Name = iota + 1 // fallback
 	Mirror                    // mirror
 	Farcaster                 // farcaster
-	RSS3                     // rss3
+	RSS3                      // rss3
 )
 
 type Worker interface {

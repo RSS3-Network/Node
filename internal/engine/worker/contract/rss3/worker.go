@@ -33,8 +33,21 @@ func (w *worker) Name() string {
 	return engine.RSS3.String()
 }
 
+func (w *worker) Filter() engine.SourceFilter {
+	return &source.Filter{
+		LogAddresses: []common.Address{
+			rss3.AddressStaking,
+		},
+		LogTopics: []common.Hash{
+			rss3.EventHashStakingDeposited,
+			rss3.EventHashStakingWithdrawn,
+			rss3.EventHashRewardsClaimed,
+		},
+	}
+}
+
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	switch task.Network() {
+	switch task.GetNetwork() {
 	case filter.NetworkEthereum:
 		task := task.(*source.Task)
 		return task.Transaction.To != nil && *task.Transaction.To == rss3.AddressStaking, nil
@@ -160,7 +173,7 @@ func (w *worker) transformStakingRewardsClaimed(ctx context.Context, task *sourc
 
 func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Task, from, to common.Address, tokenValue *big.Int, stakingAction metadata.ExchangeStakingAction, period *metadata.ExchangeStakingPeriod) (*schema.Action, error) {
 	// The Token always is $RSS3.
-	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.Chain, &rss3.AddressToken, nil, task.Header.Number)
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &rss3.AddressToken, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", rss3.AddressToken, err)
 	}

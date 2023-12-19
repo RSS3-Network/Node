@@ -19,6 +19,7 @@ var _ engine.Task = (*Task)(nil)
 
 type Task struct {
 	Network     filter.Network
+	ChainID     uint64
 	Header      *ethereum.Header
 	Transaction *ethereum.Transaction
 	Receipt     *ethereum.Receipt

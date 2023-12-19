@@ -2,10 +2,9 @@ package schema
 
 import (
 	"encoding/json"
-	"github.com/samber/lo"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/samber/lo"
 )
 
 type Feed struct {
@@ -24,19 +23,6 @@ type Feed struct {
 	Direction    filter.Direction `json:"direction,omitempty"`
 	Status       bool             `json:"status"`
 	Timestamp    uint64           `json:"timestamp"`
-}
-
-// FeedOption is a function that can be used to modify a feed,
-// it is used in the feed builder.
-type FeedOption func(feed *Feed) error
-
-// WithFeedPlatform is a feed option that sets the platform of the feed.
-func WithFeedPlatform(platform filter.Platform) FeedOption {
-	return func(feed *Feed) error {
-		feed.Platform = &platform
-
-		return nil
-	}
 }
 
 func (f *Feed) MarshalJSON() ([]byte, error) {
