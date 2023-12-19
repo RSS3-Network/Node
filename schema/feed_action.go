@@ -1,6 +1,10 @@
 package schema
 
-import "github.com/naturalselectionlabs/rss3-node/schema/filter"
+import (
+	"encoding/json"
+
+	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+)
 
 type Action struct {
 	Tag      filter.Tag  `json:"tag"`
@@ -9,4 +13,14 @@ type Action struct {
 	From     string      `json:"from"`
 	To       string      `json:"to"`
 	Metadata Metadata    `json:"metadata"`
+}
+
+func (a *Action) MarshalJSON() ([]byte, error) {
+	type Filler Action
+
+	filler := Filler(*a)
+
+	filler.Tag = a.Type.Tag()
+
+	return json.Marshal(filler)
 }

@@ -17,6 +17,7 @@ type Client interface {
 	Session
 	Transaction
 	DatasetMirrorPost
+	DatasetFarcasterProfile
 
 	LoadCheckpoint(ctx context.Context, id string, network filter.Network, worker string) (*engine.Checkpoint, error)
 	SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error
@@ -40,6 +41,11 @@ type Transaction interface {
 type DatasetMirrorPost interface {
 	LoadDatasetMirrorPost(ctx context.Context, originContentDigest string) (*mirror_model.DatasetMirrorPost, error)
 	SaveDatasetMirrorPost(ctx context.Context, post *mirror_model.DatasetMirrorPost) error
+}
+
+type DatasetFarcasterProfile interface {
+	LoadDatasetFarcasterProfile(ctx context.Context, fid int64) (*model.Profile, error)
+	SaveDatasetFarcasterProfile(ctx context.Context, profile *model.Profile) error
 }
 
 var _ goose.Logger = (*SugaredLogger)(nil)

@@ -231,7 +231,7 @@ func (c *client) fetch(ctx context.Context, path string, result any) error {
 
 // CovertFarcasterTimeToTimestamp Converts a Farcaster seconds timestamp to a Unix milliseconds timestamp.
 func CovertFarcasterTimeToTimestamp(timestamp int64) int64 {
-	return timestamp*1000 + FarcasterEpoch
+	return timestamp + FarcasterEpoch
 }
 
 type ClientOption func(client *client) error

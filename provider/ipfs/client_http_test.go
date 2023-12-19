@@ -97,3 +97,60 @@ func TestHttpClient_Fetch(t *testing.T) {
 		})
 	}
 }
+
+func TestHttpClient_GetContentType(t *testing.T) {
+	t.Parallel()
+
+	type arguments struct {
+		ctx     context.Context
+		options []ipfs.HTTPClientOption
+		uri     string
+	}
+
+	testcases := []struct {
+		name      string
+		arguments arguments
+		want      string
+		wantError require.ErrorAssertionFunc
+	}{
+		{
+			name: "mime type jpeg",
+			arguments: arguments{
+				ctx: context.Background(),
+				options: []ipfs.HTTPClientOption{
+					ipfs.WithTimeout(10 * time.Second),
+				},
+				uri: "https://i.imgur.com/DsrBswx.jpg",
+			},
+			want:      "image/jpeg",
+			wantError: require.NoError,
+		},
+		{
+			name: "mime type text/html",
+			arguments: arguments{
+				ctx: context.Background(),
+				options: []ipfs.HTTPClientOption{
+					ipfs.WithTimeout(10 * time.Second),
+				},
+				uri: "http://rss3.io",
+			},
+			want:      "text/html; charset=utf-8",
+			wantError: require.NoError,
+		},
+	}
+
+	for _, testcase := range testcases {
+		testcase := testcase
+
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
+			httpClient, err := ipfs.NewHTTPClient(testcase.arguments.options...)
+			testcase.wantError(t, err)
+
+			result, err := httpClient.GetContentType(testcase.arguments.ctx, testcase.arguments.uri)
+			testcase.wantError(t, err)
+			require.Equal(t, testcase.want, result)
+		})
+	}
+}

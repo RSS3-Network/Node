@@ -1,6 +1,8 @@
 package farcaster
 
-const FarcasterEpoch = 1609459200000 // January 1, 2021 UTC https://github.com/farcasterxyz/hub-monorepo/blob/77ff79ed804104956eb153247c22c00099c7b122/packages/core/src/time.ts#L4
+import "github.com/naturalselectionlabs/rss3-node/internal/database/model"
+
+const FarcasterEpoch = 1609459200 // January 1, 2021 UTC https://github.com/farcasterxyz/hub-monorepo/blob/77ff79ed804104956eb153247c22c00099c7b122/packages/core/src/time.ts#L4
 
 type farcasterQuery struct {
 	Fid          *int64 `form:"fid,omitempty"`
@@ -46,6 +48,7 @@ type Message struct {
 type MessageData struct {
 	Type                          string                         `json:"type"`
 	Fid                           uint64                         `json:"fid"`
+	Profile                       *model.Profile                 `json:"profile,omitempty"`
 	Timestamp                     uint32                         `json:"timestamp"`
 	Network                       string                         `json:"network"`
 	CastAddBody                   *CastAddBody                   `json:"castAddBody,omitempty"`
@@ -61,7 +64,9 @@ type MessageData struct {
 type CastAddBody struct {
 	EmbedsDeprecated  []string `json:"embedsDeprecated"`
 	Mentions          []uint64 `json:"mentions"`
+	MentionsUsernames []string `json:"mentionsUsernames"`
 	ParentCastID      *CastID  `json:"parentCastId,omitempty"`
+	ParentCast        *Message `json:"parentCast,omitempty"`
 	ParentURL         string   `json:"parentUrl,omitempty"`
 	Text              string   `json:"text"`
 	MentionsPositions []int32  `json:"mentionsPositions"`
@@ -87,9 +92,10 @@ type UserDataBody struct {
 }
 
 type ReactionBody struct {
-	Type         string `json:"type"`
-	TargetCastID CastID `json:"targetCastId"`
-	TaergetURL   string `json:"targetUrl"`
+	Type         string   `json:"type"`
+	TargetCastID CastID   `json:"targetCastId"`
+	TargetCast   *Message `json:"targetCast"`
+	TargetURL    string   `json:"targetUrl"`
 }
 
 type LinkBody struct {

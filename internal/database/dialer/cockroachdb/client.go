@@ -202,6 +202,44 @@ func (c *client) FindFeeds(ctx context.Context, query model.FeedsQuery) ([]*sche
 	return nil, fmt.Errorf("not implemented")
 }
 
+// LoadDatasetFarcasterProfile loads a profile.
+func (c *client) LoadDatasetFarcasterProfile(ctx context.Context, fid int64) (*model.Profile, error) {
+	var value table.DatasetFarcasterProfile
+
+	if err := c.database.WithContext(ctx).
+		Where("fid = ?", fid).
+		First(&value).
+		Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+
+		// Initialize a default profile.
+		value = table.DatasetFarcasterProfile{
+			Fid: fid,
+		}
+	}
+
+	return value.Export()
+}
+
+// SaveDatasetFarcasterProfile saves a profile.
+func (c *client) SaveDatasetFarcasterProfile(ctx context.Context, profile *model.Profile) error {
+	clauses := []clause.Expression{
+		clause.OnConflict{
+			Columns:   []clause.Column{{Name: "fid"}},
+			UpdateAll: true,
+		},
+	}
+
+	var value table.DatasetFarcasterProfile
+	if err := value.Import(profile); err != nil {
+		return err
+	}
+
+	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
+}
+
 // Dial dials a database.
 func Dial(ctx context.Context, dataSourceName string, partition bool) (database.Client, error) {
 	var err error

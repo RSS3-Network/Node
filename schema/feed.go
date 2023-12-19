@@ -1,6 +1,10 @@
 package schema
 
-import "github.com/naturalselectionlabs/rss3-node/schema/filter"
+import (
+	"encoding/json"
+
+	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+)
 
 type Feed struct {
 	ID           string           `json:"id"`
@@ -31,4 +35,15 @@ func WithFeedPlatform(platform filter.Platform) FeedOption {
 
 		return nil
 	}
+}
+
+func (f *Feed) MarshalJSON() ([]byte, error) {
+	type Filler Feed
+
+	filler := Filler(*f)
+
+	filler.Network = f.Network
+	filler.Tag = f.Type.Tag()
+
+	return json.Marshal(filler)
 }

@@ -29,6 +29,6 @@ type Media struct {
 	MimeType string `json:"mime_type"`
 }
 
-func (s SocialPost) Type() filter.Type {
+func (p SocialPost) Type() filter.Type {
 	return filter.TypeSocialPost
 }
