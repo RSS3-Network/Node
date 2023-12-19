@@ -12,8 +12,9 @@ import (
 type Name int
 
 const (
-	Fallback Name = iota + 1 // fallback
-	Mirror                   // mirror
+	Fallback  Name = iota + 1 // fallback
+	Mirror                    // mirror
+	Farcaster                 // farcaster
 )
 
 type Worker interface {

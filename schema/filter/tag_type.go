@@ -13,6 +13,8 @@ func TypeString(tag Tag, typeValue string) (Type, error) {
 		return TransactionTypeString(typeValue)
 	case TagCollectible:
 		return CollectibleTypeString(typeValue)
+	case TagSocial:
+		return SocialTypeString(typeValue)
 	case TagUnknown:
 		return UnknownTypeString(typeValue)
 	default:
