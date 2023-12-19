@@ -19,16 +19,16 @@ import (
 )
 
 // LookupFunc is a function to look up token metadata.
-type LookupFunc = func(ctx context.Context, chain filter.ChainEthereum, address *common.Address, id, blockNumber *big.Int) (*metadata.Token, error)
+type LookupFunc = func(ctx context.Context, chainID uint64, address *common.Address, id, blockNumber *big.Int) (*metadata.Token, error)
 
 // Client is a client to look up token metadata.
 type Client interface {
-	Lookup(ctx context.Context, chain filter.ChainEthereum, address *common.Address, id, blockNumber *big.Int) (*metadata.Token, error)
+	Lookup(ctx context.Context, chainID uint64, address *common.Address, id, blockNumber *big.Int) (*metadata.Token, error)
 }
 
 // nativeTokenMap is a map of native token metadata.
-var nativeTokenMap = map[filter.Chain]metadata.Token{
-	filter.ChainEthereumMainnet: {
+var nativeTokenMap = map[uint64]metadata.Token{
+	uint64(filter.EthereumChainIDMainnet): {
 		Name:     "Ethereum",
 		Symbol:   "ETH",
 		Decimals: 18,
@@ -43,26 +43,26 @@ type client struct {
 }
 
 // Lookup looks up token metadata, it supports ERC-20, ERC-721, ERC-1155 and native token.
-func (c *client) Lookup(ctx context.Context, chain filter.ChainEthereum, address *common.Address, id, blockNumber *big.Int) (*metadata.Token, error) {
+func (c *client) Lookup(ctx context.Context, chainID uint64, address *common.Address, id, blockNumber *big.Int) (*metadata.Token, error) {
 	switch {
 	case address != nil && id == nil: // ERC-20 token
-		return c.lookupERC20(ctx, chain, *address, blockNumber)
+		return c.lookupERC20(ctx, chainID, *address, blockNumber)
 	case address != nil && id != nil: // ERC-721 and ERC-1155 token
-		return c.lookupNFT(ctx, chain, *address, id, blockNumber)
+		return c.lookupNFT(ctx, chainID, *address, id, blockNumber)
 	default: // Native token
-		return c.lookupNative(ctx, chain, address, id, blockNumber)
+		return c.lookupNative(ctx, chainID, address, id, blockNumber)
 	}
 }
 
 // lookupERC20 looks up ERC-20 token metadata.
-func (c *client) lookupERC20(ctx context.Context, chain filter.ChainEthereum, address common.Address, blockNumber *big.Int) (*metadata.Token, error) {
-	tokenMetadata, err := c.lookupERC20ByRPC(ctx, chain, address, blockNumber)
+func (c *client) lookupERC20(ctx context.Context, chainID uint64, address common.Address, blockNumber *big.Int) (*metadata.Token, error) {
+	tokenMetadata, err := c.lookupERC20ByRPC(ctx, chainID, address, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup ERC20 by rpc: %w", err)
 	}
 
 	// Fallback NFT approval transactions
-	standard, err := contract.DetectNFTStandard(ctx, new(big.Int).SetUint64(chain.ID()), address, blockNumber, c.ethereumClient)
+	standard, err := contract.DetectNFTStandard(ctx, chainID, address, blockNumber, c.ethereumClient)
 	if err == nil && standard != contract.StandardUnknown {
 		tokenMetadata.Standard = standard
 	}
@@ -71,7 +71,7 @@ func (c *client) lookupERC20(ctx context.Context, chain filter.ChainEthereum, ad
 }
 
 // lookupERC20ByRPC looks up ERC-20 token metadata by RPC.
-func (c *client) lookupERC20ByRPC(ctx context.Context, _ filter.ChainEthereum, address common.Address, blockNumber *big.Int) (*metadata.Token, error) {
+func (c *client) lookupERC20ByRPC(ctx context.Context, _ uint64, address common.Address, blockNumber *big.Int) (*metadata.Token, error) {
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
 		Standard: contract.StandardERC20,
@@ -103,11 +103,9 @@ func (c *client) lookupERC20ByRPC(ctx context.Context, _ filter.ChainEthereum, a
 }
 
 // lookupNFT looks up NFT token metadata, it supports ERC-721 and ERC-1155.
-func (c *client) lookupNFT(ctx context.Context, chain filter.ChainEthereum, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
-	chainID := new(big.Int).SetUint64(chain.ID())
-
+func (c *client) lookupNFT(ctx context.Context, chain uint64, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
 	// Detect NFT standard by ERC-165.
-	standard, err := contract.DetectNFTStandard(ctx, chainID, address, blockNumber, c.ethereumClient)
+	standard, err := contract.DetectNFTStandard(ctx, chain, address, blockNumber, c.ethereumClient)
 	if err != nil {
 		return nil, fmt.Errorf("detect NFT standard: %w", err)
 	}
@@ -131,7 +129,7 @@ func (c *client) lookupNFT(ctx context.Context, chain filter.ChainEthereum, addr
 }
 
 // lookupERC721 looks up ERC-721 token metadata.
-func (c *client) lookupERC721(ctx context.Context, _ filter.ChainEthereum, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
+func (c *client) lookupERC721(ctx context.Context, _ uint64, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
 		ID:       lo.ToPtr(decimal.NewFromBigInt(id, 0)),
@@ -164,7 +162,7 @@ func (c *client) lookupERC721(ctx context.Context, _ filter.ChainEthereum, addre
 }
 
 // lookupERC1155 looks up ERC-1155 token metadata.
-func (c *client) lookupERC1155(ctx context.Context, _ filter.ChainEthereum, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
+func (c *client) lookupERC1155(ctx context.Context, _ uint64, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
 		ID:       lo.ToPtr(decimal.NewFromBigInt(id, 0)),
@@ -197,10 +195,10 @@ func (c *client) lookupERC1155(ctx context.Context, _ filter.ChainEthereum, addr
 }
 
 // lookupNative looks up native token metadata.
-func (c *client) lookupNative(_ context.Context, chain filter.ChainEthereum, _ *common.Address, _, _ *big.Int) (*metadata.Token, error) {
-	tokenMetadata, exists := nativeTokenMap[chain]
+func (c *client) lookupNative(_ context.Context, chainID uint64, _ *common.Address, _, _ *big.Int) (*metadata.Token, error) {
+	tokenMetadata, exists := nativeTokenMap[chainID]
 	if !exists {
-		return nil, fmt.Errorf("chain %s does not have a native token", chain)
+		return nil, fmt.Errorf("chain id %d does not have a native token", chainID)
 	}
 
 	return &tokenMetadata, nil

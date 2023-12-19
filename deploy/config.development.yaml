@@ -19,8 +19,7 @@ database:
 
 component:
   rss:
-    - network: rss
-      chain: rsshub
+    - network: rsshub
       endpoint: https://rsshub.app/
       parameters:
         authentication:
@@ -34,3 +33,7 @@ component:
       chain: mainnet
       worker: fallback
       endpoint: https://arweave.net/
+
+    - network: farcaster
+      worker: farcaster
+      endpoint: https://nemes.farcaster.xyz:2281

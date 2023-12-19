@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _TagName = "unknowntransactioncollectibleexchange"
+const _TagName = "unknowntransactioncollectiblesocial"
 
-var _TagIndex = [...]uint8{0, 7, 18, 29, 37}
+var _TagIndex = [...]uint8{0, 7, 18, 29, 35}
 
-const _TagLowerName = "unknowntransactioncollectibleexchange"
+const _TagLowerName = "unknowntransactioncollectiblesocial"
 
 func (i Tag) String() string {
 	if i >= Tag(len(_TagIndex)-1) {
@@ -33,10 +33,10 @@ func _TagNoOp() {
 	_ = x[TagUnknown-(0)]
 	_ = x[TagTransaction-(1)]
 	_ = x[TagCollectible-(2)]
-	_ = x[TagExchange-(3)]
+	_ = x[TagSocial-(3)]
 }
 
-var _TagValues = []Tag{TagUnknown, TagTransaction, TagCollectible, TagExchange}
+var _TagValues = []Tag{TagUnknown, TagTransaction, TagCollectible, TagSocial}
 
 var _TagNameToValueMap = map[string]Tag{
 	_TagName[0:7]:        TagUnknown,
@@ -45,15 +45,15 @@ var _TagNameToValueMap = map[string]Tag{
 	_TagLowerName[7:18]:  TagTransaction,
 	_TagName[18:29]:      TagCollectible,
 	_TagLowerName[18:29]: TagCollectible,
-	_TagName[29:37]:      TagExchange,
-	_TagLowerName[29:37]: TagExchange,
+	_TagName[29:35]:      TagSocial,
+	_TagLowerName[29:35]: TagSocial,
 }
 
 var _TagNames = []string{
 	_TagName[0:7],
 	_TagName[7:18],
 	_TagName[18:29],
-	_TagName[29:37],
+	_TagName[29:35],
 }
 
 // TagString retrieves an enum value from the enum constants string name.

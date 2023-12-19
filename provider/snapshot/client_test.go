@@ -23,15 +23,9 @@ func Test_Client(t *testing.T) {
 
 	proposalsResponse, err := snapshot.Proposals(context.Background(), client, 0)
 	require.NoError(t, err)
+	require.NotEmpty(t, proposalsResponse.Proposals)
 
-	for _, proposal := range proposalsResponse.Proposals {
-		t.Log("proposal", proposal)
-	}
-
-	votesResponse, err := snapshot.Votes(context.Background(), client, "0xd8e77a881d93bdcc7df454f24d350068895d90cc4c1bd37dc48e1c9a285c24a4", 0)
+	votesResponse, err := snapshot.Votes(context.Background(), client, "0x25a196ede90368c66da7a5d8de1edd6dac49337a33861215647a4478db91a4ad", 0)
 	require.NoError(t, err)
-
-	for _, vote := range votesResponse.Votes {
-		t.Log("vote", vote)
-	}
+	require.NotEmpty(t, votesResponse.Votes)
 }

@@ -8,4 +8,19 @@ const (
 	TagTransaction
 	TagCollectible
 	TagExchange
+	TagSocial
 )
+
+func TagAndTypeString(tagValue string, typeValue string) (Tag, Type, error) {
+	tag, err := TagString(tagValue)
+	if err != nil {
+		return TagUnknown, nil, err
+	}
+
+	_type, err := TypeString(tag, typeValue)
+	if err != nil {
+		return TagUnknown, nil, err
+	}
+
+	return tag, _type, err
+}
