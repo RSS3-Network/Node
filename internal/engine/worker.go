@@ -12,10 +12,10 @@ import (
 type Name int
 
 const (
-	Fallback Name = iota + 1 // fallback
+	Fallback  Name = iota + 1 // fallback
 	Mirror                    // mirror
 	Farcaster                 // farcaster
-	Uniswap                  // uniswap
+	Uniswap                   // uniswap
 )
 
 type Worker interface {

@@ -13,5 +13,5 @@ const (
 	PlatformRSS3      Platform = iota + 1 // RSS3
 	PlatformMirror                        // Mirror
 	PlatformFarcaster                     // Farcaster
-	PlatformUniswap
+	PlatformUniswap                       // Uniswap
 )

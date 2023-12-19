@@ -35,8 +35,14 @@ func (w *worker) Name() string {
 	return engine.Uniswap.String()
 }
 
-func (w *worker) Match(ctx context.Context, task engine.Task) (bool, error) {
-	return false, nil
+func (w *worker) Filter() engine.SourceFilter {
+	return nil
+}
+
+func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
+	_, ok := task.(*source.Task)
+
+	return ok, nil
 }
 
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
@@ -459,14 +465,14 @@ func (w *worker) handleNonfungiblePositionManagerTransferLog(ctx context.Context
 }
 
 func (w *worker) buildExchangeSwapAction(ctx context.Context, task source.Task, sender, receipt common.Address, tokenIn, tokenOut *common.Address, amountIn, amountOut *big.Int) (*schema.Action, error) {
-	tokenInMetadata, err := w.tokenClient.Lookup(ctx, task.Chain, tokenIn, nil, task.Header.Number)
+	tokenInMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenIn, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenIn, err)
 	}
 
 	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountIn, 0).Abs())
 
-	tokenOutMetadata, err := w.tokenClient.Lookup(ctx, task.Chain, tokenOut, nil, task.Header.Number)
+	tokenOutMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenOut, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenOut, err)
 	}
@@ -496,7 +502,7 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, task source.T
 			tokenAddress = lo.ToPtr(common.HexToAddress(*token.Address))
 		}
 
-		tokenMetadata, err := w.tokenClient.Lookup(ctx, task.Chain, tokenAddress, nil, task.Header.Number)
+		tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenAddress, nil, task.Header.Number)
 		if err != nil {
 			return nil, fmt.Errorf("lookup token metadata %s: %w", tokenAddress, err)
 		}
@@ -521,7 +527,7 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, task source.T
 }
 
 func (w *worker) buildTransactionMintAction(ctx context.Context, task source.Task, sender, receipt, tokenAddress common.Address, tokenID *big.Int) (*schema.Action, error) {
-	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.Chain, &tokenAddress, tokenID, task.Header.Number)
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &tokenAddress, tokenID, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s %d: %w", tokenAddress, tokenID, err)
 	}
