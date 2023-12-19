@@ -21,17 +21,14 @@ var _ echo.Validator = &Validator{}
 
 type Validator struct {
 	validate *validator.Validate
-	locker   sync.Mutex
+	once     sync.Once
 }
 
 func (v *Validator) Validate(i interface{}) error {
 	if v.validate == nil {
-		v.locker.Lock()
-		defer v.locker.Unlock()
-
-		if v.validate == nil {
+		v.once.Do(func() {
 			v.validate = validator.New()
-		}
+		})
 	}
 
 	return v.validate.Struct(i)
