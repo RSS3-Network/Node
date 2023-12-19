@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS "dataset_farcaster_profiles"
     "eth_addresses"   text[],
 
     CONSTRAINT "pk_dataset_farcaster_profiles" PRIMARY KEY ("fid")
-);
+    );
 
 
 -- +goose StatementEnd
