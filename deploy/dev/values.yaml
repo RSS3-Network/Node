@@ -2,8 +2,7 @@ hub:
   replicaCount: 2
 database:
   uri: <path:kv/data/network/rss3-node#DATABASE_URI>
-component:
-  decentralized:
-    - network: farcaster
-      worker: farcaster
-      endpoint: <path:kv/data/network/rss3-node#FARCASTER_URI>
+workers:
+  - network: farcaster
+    worker: farcaster
+    endpoint: <path:kv/data/network/rss3-node#FARCASTER_URI>
