@@ -164,11 +164,9 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 			FromBlock: new(big.Int).SetUint64(s.state.BlockNumber),
 			ToBlock:   new(big.Int).SetUint64(s.state.BlockNumber),
 			Addresses: s.filter.LogAddresses,
-			Topics: lo.Map(s.filter.LogTopics, func(topic common.Hash, _ int) []common.Hash {
-				return []common.Hash{
-					topic,
-				}
-			}),
+			Topics: [][]common.Hash{
+				s.filter.LogTopics,
+			},
 		}
 
 		// Get logs by filter.
@@ -252,8 +250,14 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 			return nil, fmt.Errorf("no receipt matched to transaction hash %s", transaction.Hash)
 		}
 
+		chain, err := filter.EthereumChainIDString(s.Network().String())
+		if err != nil {
+			return nil, fmt.Errorf("unsupported chain %s", s.Network())
+		}
+
 		task := Task{
 			Network:     s.Network(),
+			ChainID:     uint64(chain),
 			Header:      block.Header(),
 			Transaction: transaction,
 			Receipt:     receipt,

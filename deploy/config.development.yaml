@@ -32,7 +32,12 @@ component:
     - network: ethereum
       worker: fallback
       endpoint: https://rpc.ankr.com/eth
-
+    - network: ethereum
+      worker: rss3
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
+        block_number_target:
     - network: farcaster
       worker: farcaster
       endpoint: https://nemes.farcaster.xyz:2281

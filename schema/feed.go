@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/samber/lo"
 )
 
 type Feed struct {
@@ -24,19 +25,6 @@ type Feed struct {
 	Timestamp    uint64           `json:"timestamp"`
 }
 
-// FeedOption is a function that can be used to modify a feed,
-// it is used in the feed builder.
-type FeedOption func(feed *Feed) error
-
-// WithFeedPlatform is a feed option that sets the platform of the feed.
-func WithFeedPlatform(platform filter.Platform) FeedOption {
-	return func(feed *Feed) error {
-		feed.Platform = &platform
-
-		return nil
-	}
-}
-
 func (f *Feed) MarshalJSON() ([]byte, error) {
 	type Filler Feed
 
@@ -46,4 +34,14 @@ func (f *Feed) MarshalJSON() ([]byte, error) {
 	filler.Tag = f.Type.Tag()
 
 	return json.Marshal(filler)
+}
+
+type FeedOption func(feed *Feed) error
+
+func WithFeedPlatform(platform filter.Platform) FeedOption {
+	return func(feed *Feed) error {
+		feed.Platform = lo.ToPtr(platform)
+
+		return nil
+	}
 }
