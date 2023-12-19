@@ -1,6 +1,7 @@
 package decentralized
 
 import (
+	"github.com/creasty/defaults"
 	"net/http"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -51,6 +52,10 @@ func (h *Hub) GetAccountActivities(c echo.Context) error {
 		return response.ValidateFailedError(c, err)
 	}
 
+	if err := defaults.Set(&request); err != nil {
+		return response.InternalError(c, err)
+	}
+
 	cursor, err := h.getCursor(c.Request().Context(), request.Cursor)
 	if err != nil {
 		return response.InternalError(c, err)
@@ -70,13 +75,15 @@ func (h *Hub) GetAccountActivities(c echo.Context) error {
 		Platforms:      lo.Uniq(request.Platform),
 	}
 
-	activities, err := h.getFeeds(c.Request().Context(), databaseRequest)
+	activities, last, err := h.getFeeds(c.Request().Context(), databaseRequest)
 	if err != nil {
 		return response.InternalError(c, err)
 	}
 
 	return c.JSON(http.StatusOK, ActivitiesResponse{
 		Data: activities,
-		Meta: nil,
+		Meta: lo.Ternary(len(activities) < databaseRequest.Limit, nil, &MetaCursor{
+			Cursor: last,
+		}),
 	})
 }

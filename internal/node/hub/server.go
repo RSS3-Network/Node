@@ -2,6 +2,8 @@ package hub
 
 import (
 	"context"
+	"github.com/go-playground/validator/v10"
+	"github.com/labstack/echo/v4/middleware"
 	"net"
 
 	"github.com/labstack/echo/v4"
@@ -31,10 +33,18 @@ func NewServer(ctx context.Context, config *config.File, databaseClient database
 		hub:        NewHub(ctx, config, databaseClient),
 	}
 
+	instance.httpServer.HideBanner = true
+	instance.httpServer.HidePort = true
+	instance.httpServer.Validator = &Validator{
+		validate: validator.New(),
+	}
+
+	instance.httpServer.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
+
 	// register router
-	instance.httpServer.GET("/rss/rsshub/*", instance.hub.RSS.GetRSSHubHandler)
-	instance.httpServer.GET("/activities/:id", instance.hub.Decentralized.GetActivity)
-	instance.httpServer.GET("/accounts/:account/activities", instance.hub.Decentralized.GetAccountActivities)
+	instance.httpServer.GET("/rss/*", instance.hub.RSS.GetRSSHubHandler)
+	instance.httpServer.GET("/decentralized/tx/:id", instance.hub.Decentralized.GetActivity)
+	instance.httpServer.GET("/decentralized/:account", instance.hub.Decentralized.GetAccountActivities)
 
 	return &instance, nil
 }

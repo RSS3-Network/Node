@@ -21,7 +21,7 @@ type Feed struct {
 	TotalActions uint             `json:"total_actions"`
 	Actions      []*Action        `json:"actions"`
 	Direction    filter.Direction `json:"direction,omitempty"`
-	Status       bool             `json:"status"`
+	Status       bool             `json:"success"`
 	Timestamp    uint64           `json:"timestamp"`
 }
 
