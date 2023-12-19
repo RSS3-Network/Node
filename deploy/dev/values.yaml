@@ -6,3 +6,8 @@ indexers:
   - network: farcaster
     worker: farcaster
     endpoint: <path:kv/data/network/rss3-node#FARCASTER_URI>
+  - network: ethereum
+    worker: rss3
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
+    parameters:
+      block_number_start: 14748840
