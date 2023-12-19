@@ -3,11 +3,10 @@ package metadata
 import (
 	"time"
 
-	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
 
-var _ schema.Metadata = (*ExchangeStaking)(nil)
+var _ Metadata = (*ExchangeStaking)(nil)
 
 type ExchangeStaking struct {
 	Action ExchangeStakingAction  `json:"action"`
