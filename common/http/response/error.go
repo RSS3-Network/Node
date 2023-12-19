@@ -2,9 +2,9 @@ package response
 
 import (
 	"fmt"
+	"net/http"
 
-	"github.com/NaturalSelectionLabs/goapi"
-	"github.com/NaturalSelectionLabs/goapi/lib/openapi"
+	"github.com/labstack/echo/v4"
 )
 
 //go:generate go run --mod=mod github.com/dmarkham/enumer --type=ErrorCode --transform=snake --values --trimprefix=ErrorCode --json --output error_code.go
@@ -14,102 +14,38 @@ const (
 	ErrorCodeBadRequest ErrorCode = iota + 1
 	ErrorCodeValidateFailed
 	ErrorCodeBadParams
-	ErrorCodeAddressIsEmpty
-	ErrorCodeAddressIsInvalid
 	ErrorCodeInternalError
-	ErrorCodeNotFound
 )
 
-type Error openapi.CommonError[ErrorCode]
-
-func (e Error) Error() string {
-	return e.Message
+type ErrorResponse struct {
+	Message string    `json:"error"`
+	Code    ErrorCode `json:"error_code"`
 }
 
-type BadRequest struct {
-	goapi.StatusBadRequest
-	Error Error
-}
-
-type InternalErrorResp struct {
-	goapi.StatusInternalServerError
-	Error Error
-}
-
-type NotFound struct {
-	goapi.StatusNotFound
-	Error Error
-}
-
-func BadRequestError() Error {
-	return Error{
+func BadRequestError(c echo.Context, err error) error {
+	return c.JSON(http.StatusBadRequest, &ErrorResponse{
 		Code:    ErrorCodeBadRequest,
-		Message: "Please check your request and try again.",
-	}
+		Message: fmt.Sprintf("Please check your request and try again, %s", err),
+	})
 }
 
-func ValidateFailedError(param string) Error {
-	return Error{
+func ValidateFailedError(c echo.Context, err error) error {
+	return c.JSON(http.StatusBadRequest, &ErrorResponse{
 		Code:    ErrorCodeValidateFailed,
-		Message: fmt.Sprintf("Please check your request validation and try again, parameter: %s is invalid", param),
-	}
+		Message: fmt.Sprintf("Please check your request validation and try again, %s", err),
+	})
 }
 
-func BadParamsError(tag []string, typeX []string) Error {
-	return Error{
+func BadParamsError(c echo.Context, err error) error {
+	return c.JSON(http.StatusBadRequest, &ErrorResponse{
 		Code:    ErrorCodeBadParams,
-		Message: fmt.Sprintf("Please check your param combination and try again. Tag: %s. Type: %s", tag, typeX),
-	}
+		Message: fmt.Sprintf("Please check your param combination and try again, %s", err),
+	})
 }
 
-func AddressIsEmptyError() Error {
-	return Error{
-		Code:    ErrorCodeAddressIsEmpty,
-		Message: "At least one address is required",
-	}
-}
-
-func ResolveDomainError() Error {
-	return Error{
-		Code:    ErrorCodeAddressIsInvalid,
-		Message: "An error occurred while resolving the domain.",
-	}
-}
-
-func InternalError() Error {
-	return Error{
+func InternalError(c echo.Context, err error) error {
+	return c.JSON(http.StatusInternalServerError, &ErrorResponse{
 		Code:    ErrorCodeInternalError,
-		Message: "An internal error has occurred, please try again later.",
-	}
-}
-
-func NotFoundError(id string) Error {
-	return Error{
-		Code:    ErrorCodeNotFound,
-		Message: fmt.Sprintf("Not found id: %s", id),
-	}
-}
-
-func BadRequestErrorResponse() BadRequest {
-	return BadRequest{Error: BadRequestError()}
-}
-
-func ValidateFailedErrorResponse(param string) BadRequest {
-	return BadRequest{Error: ValidateFailedError(param)}
-}
-
-func BadParamsErrorResponse(tag []string, typeX []string) BadRequest {
-	return BadRequest{Error: BadParamsError(tag, typeX)}
-}
-
-func ResolveDomainErrorResponse() InternalErrorResp {
-	return InternalErrorResp{Error: ResolveDomainError()}
-}
-
-func InternalErrorResponse() InternalErrorResp {
-	return InternalErrorResp{Error: InternalError()}
-}
-
-func NotFoundErrorResponse(id string) NotFound {
-	return NotFound{Error: NotFoundError(id)}
+		Message: fmt.Sprintf("An internal error has occurred, please try again later, %s", err),
+	})
 }

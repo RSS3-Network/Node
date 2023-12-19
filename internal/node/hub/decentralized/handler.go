@@ -1,46 +1,17 @@
 package decentralized
 
 import (
-	"github.com/NaturalSelectionLabs/goapi"
-	"github.com/naturalselectionlabs/rss3-node/common/http/response"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
 
-var _ = goapi.Interface(
-	new(ActivityResponseInterface),
-	response.BadRequest{},
-	response.InternalErrorResp{},
-	response.NotFound{},
-	ActivityResponse{},
-)
-
-var _ = goapi.Interface(
-	new(ActivitiesResponseInterface),
-	response.BadRequest{},
-	response.InternalErrorResp{},
-	ActivitiesResponse{},
-)
-
-type ActivityResponseInterface interface {
-	goapi.Response
-}
-
-type ActivitiesResponseInterface interface {
-	goapi.Response
-}
-
 type ActivityRequest struct {
-	goapi.InURL
-
 	ID          string `description:"Retrieve details for the specified activity ID" examples:"[\"0x5ffa607a127d63fb36827075493d1de06f58fc44710b9ffb887b2effe02d2b8b\"]"`
 	ActionLimit int    `description:"Specify the number of actions within the activity to retrieve" examples:"[10]" default:"10" min:"1" max:"20"`
 	ActionPage  int    `description:"Specify the pagination for actions" default:"1" min:"1"`
 }
 
 type AccountActivitiesRequest struct {
-	goapi.InURL
-
 	Account        string            `description:"Retrieve activities from the specified account" examples:"[\"vitalik.eth\",\"stani.lens\",\"diygod.csb\"]"`
 	Limit          int               `description:"Specify the number of activities to retrieve" examples:"[20]" default:"100" min:"1" max:"100"`
 	ActionLimit    int               `description:"Specify the number of actions within the activity to retrieve" examples:"[10]" default:"10" min:"1" max:"20"`
@@ -71,8 +42,6 @@ type AccountsActivitiesRequest struct {
 }
 
 type PlatformActivitiesRequest struct {
-	goapi.InURL
-
 	Platform       filter.Platform   `description:"Retrieve activities from the specified platform" examples:"[\"Uniswap\"]"`
 	Limit          int               `description:"Specify the number of activities to retrieve" examples:"[20]" default:"100" min:"1" max:"100"`
 	ActionLimit    int               `description:"Specify the number of actions within the activity to retrieve" examples:"[10]" default:"10" min:"1" max:"20"`
@@ -87,8 +56,6 @@ type PlatformActivitiesRequest struct {
 }
 
 type NetworkActivitiesRequest struct {
-	goapi.InURL
-
 	Network        filter.Network    `description:"Retrieve activities from the specified network"`
 	Limit          int               `description:"Specify the number of activities to retrieve" examples:"[20]" default:"100" min:"1" max:"100"`
 	ActionLimit    int               `description:"Specify the number of actions within the activity to retrieve" examples:"[10]" default:"10" min:"1" max:"20"`
@@ -100,13 +67,11 @@ type NetworkActivitiesRequest struct {
 }
 
 type ActivityResponse struct {
-	goapi.StatusOK
 	Data *schema.Feed    `json:"data"`
 	Meta *MetaTotalPages `json:"meta"`
 }
 
 type ActivitiesResponse struct {
-	goapi.StatusOK
 	Data []*schema.Feed `json:"data"`
 	Meta *MetaCursor    `json:"meta,omitempty"`
 }

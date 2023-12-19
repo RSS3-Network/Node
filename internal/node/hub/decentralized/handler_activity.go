@@ -1,39 +1,59 @@
 package decentralized
 
 import (
-	"context"
+	"net/http"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/labstack/echo/v4"
 	"github.com/naturalselectionlabs/rss3-node/common/http/response"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/samber/lo"
 )
 
-func (h *Hub) GetActivity(ctx context.Context, request ActivityRequest) ActivityResponseInterface {
+func (h *Hub) GetActivity(c echo.Context) error {
+	request := ActivityRequest{}
+
+	if err := c.Bind(&request); err != nil {
+		return response.BadRequestError(c, err)
+	}
+
+	if err := c.Validate(&request); err != nil {
+		return response.ValidateFailedError(c, err)
+	}
+
 	query := model.FeedQuery{
 		ID:          lo.ToPtr(request.ID),
 		ActionLimit: request.ActionLimit,
 		ActionPage:  request.ActionPage,
 	}
 
-	activity, page, err := h.getFeed(ctx, query)
+	activity, page, err := h.getFeed(c.Request().Context(), query)
 	if err != nil {
-		return response.InternalErrorResponse()
+		return response.InternalError(c, err)
 	}
 
-	return ActivityResponse{
+	return c.JSON(http.StatusOK, ActivityResponse{
 		Data: activity,
 		Meta: lo.Ternary(page == nil, nil, &MetaTotalPages{
 			TotalPages: lo.FromPtr(page),
 		}),
-	}
+	})
 }
 
-func (h *Hub) GetAccountActivities(ctx context.Context, request AccountActivitiesRequest) ActivitiesResponseInterface {
-	// TODO domain resolve
-	cursor, err := h.getCursor(ctx, request.Cursor)
+func (h *Hub) GetAccountActivities(c echo.Context) error {
+	request := AccountActivitiesRequest{}
+
+	if err := c.Bind(&request); err != nil {
+		return response.BadRequestError(c, err)
+	}
+
+	if err := c.Validate(&request); err != nil {
+		return response.ValidateFailedError(c, err)
+	}
+
+	cursor, err := h.getCursor(c.Request().Context(), request.Cursor)
 	if err != nil {
-		return response.BadRequestErrorResponse()
+		return response.InternalError(c, err)
 	}
 
 	databaseRequest := model.FeedsQuery{
@@ -50,15 +70,13 @@ func (h *Hub) GetAccountActivities(ctx context.Context, request AccountActivitie
 		Platforms:      lo.Uniq(request.Platform),
 	}
 
-	activities, err := h.getFeeds(ctx, databaseRequest)
+	activities, err := h.getFeeds(c.Request().Context(), databaseRequest)
 	if err != nil {
-		return response.InternalErrorResponse()
+		return response.InternalError(c, err)
 	}
 
-	return ActivitiesResponse{
+	return c.JSON(http.StatusOK, ActivitiesResponse{
 		Data: activities,
-		Meta: lo.Ternary(len(activities) < databaseRequest.Limit, nil, &MetaCursor{
-			Cursor: activities[len(activities)-1].ID,
-		}),
-	}
+		Meta: nil,
+	})
 }

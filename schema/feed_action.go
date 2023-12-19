@@ -2,25 +2,53 @@ package schema
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
 )
 
 type Action struct {
-	Tag      filter.Tag  `json:"tag"`
-	Type     filter.Type `json:"type"`
-	Platform string      `json:"platform,omitempty"`
-	From     string      `json:"from"`
-	To       string      `json:"to"`
-	Metadata Metadata    `json:"metadata"`
+	Tag      filter.Tag        `json:"tag"`
+	Type     filter.Type       `json:"type"`
+	Platform string            `json:"platform,omitempty"`
+	From     string            `json:"from"`
+	To       string            `json:"to"`
+	Metadata metadata.Metadata `json:"metadata"`
 }
 
-func (a *Action) MarshalJSON() ([]byte, error) {
-	type Filler Action
+type Actions []*Action
 
-	filler := Filler(*a)
+var _ json.Unmarshaler = (*Action)(nil)
 
-	filler.Tag = a.Type.Tag()
+func (a *Action) UnmarshalJSON(bytes []byte) error {
+	type ActionAlias Action
 
-	return json.Marshal(filler)
+	type action struct {
+		ActionAlias
+
+		TypeX     string          `json:"type"`
+		MetadataX json.RawMessage `json:"metadata"`
+	}
+
+	var temp action
+
+	err := json.Unmarshal(bytes, &temp)
+	if err != nil {
+		return fmt.Errorf("unmarshal action: %w", err)
+	}
+
+	temp.Type, err = filter.TypeString(temp.Tag, temp.TypeX)
+	if err != nil {
+		return fmt.Errorf("invalid action type: %w", err)
+	}
+
+	temp.Metadata, err = metadata.Unmarshal(temp.Type, temp.MetadataX)
+	if err != nil {
+		return fmt.Errorf("invalid action metadata: %w", err)
+	}
+
+	*a = Action(temp.ActionAlias)
+
+	return nil
 }

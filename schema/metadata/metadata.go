@@ -4,11 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
 
-func Unmarshal(metadataType filter.Type, data json.RawMessage) (schema.Metadata, error) {
+type Metadata interface {
+	Type() filter.Type
+}
+
+func Unmarshal(metadataType filter.Type, data json.RawMessage) (Metadata, error) {
 	switch metadataType.Tag() {
 	case filter.TagCollectible:
 		return unmarshalCollectibleMetadata(metadataType, data)
@@ -16,13 +19,15 @@ func Unmarshal(metadataType filter.Type, data json.RawMessage) (schema.Metadata,
 		return unmarshalTransactionMetadata(metadataType, data)
 	case filter.TagSocial:
 		return unmarshalSocialMetadata(metadataType, data)
+	case filter.TagRSS:
+		return unmarshalRSSMetadata(metadataType, data)
 	default:
 		return nil, fmt.Errorf("invalid metadata type: %s.%s", metadataType.Tag(), metadataType.Name())
 	}
 }
 
-func unmarshalCollectibleMetadata(metadataType filter.Type, data json.RawMessage) (schema.Metadata, error) {
-	var result schema.Metadata
+func unmarshalCollectibleMetadata(metadataType filter.Type, data json.RawMessage) (Metadata, error) {
+	var result Metadata
 
 	switch metadataType {
 	case filter.TypeCollectibleTransfer, filter.TypeCollectibleMint, filter.TypeCollectibleBurn:
@@ -38,8 +43,8 @@ func unmarshalCollectibleMetadata(metadataType filter.Type, data json.RawMessage
 	return result, nil
 }
 
-func unmarshalTransactionMetadata(metadataType filter.Type, data json.RawMessage) (schema.Metadata, error) {
-	var result schema.Metadata
+func unmarshalTransactionMetadata(metadataType filter.Type, data json.RawMessage) (Metadata, error) {
+	var result Metadata
 
 	switch metadataType {
 	case filter.TypeTransactionApproval:
@@ -57,8 +62,8 @@ func unmarshalTransactionMetadata(metadataType filter.Type, data json.RawMessage
 	return result, nil
 }
 
-func unmarshalSocialMetadata(metadataType filter.Type, data json.RawMessage) (schema.Metadata, error) {
-	var result schema.Metadata
+func unmarshalSocialMetadata(metadataType filter.Type, data json.RawMessage) (Metadata, error) {
+	var result Metadata
 
 	switch metadataType {
 	case filter.TypeSocialPost, filter.TypeSocialComment, filter.TypeSocialShare:
@@ -66,6 +71,16 @@ func unmarshalSocialMetadata(metadataType filter.Type, data json.RawMessage) (sc
 	default:
 		return nil, fmt.Errorf("invalid metadata type: %s.%s", metadataType.Tag(), metadataType.Name())
 	}
+
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil, fmt.Errorf("invalid metadata: %w", err)
+	}
+
+	return result, nil
+}
+
+func unmarshalRSSMetadata(_ filter.Type, data json.RawMessage) (Metadata, error) {
+	result := new(RSS)
 
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("invalid metadata: %w", err)

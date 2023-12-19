@@ -19,7 +19,7 @@ database:
 
 component:
   rss:
-    - network: rsshub
+    - network: rss
       endpoint: https://rsshub.app/
       parameters:
         authentication:

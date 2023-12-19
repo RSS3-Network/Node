@@ -1,11 +1,10 @@
 package metadata
 
 import (
-	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
 
-var _ schema.Metadata = (*TransactionTransfer)(nil)
+var _ Metadata = (*TransactionTransfer)(nil)
 
 type TransactionTransfer Token
 
@@ -21,7 +20,7 @@ const (
 	ActionTransactionRevoke
 )
 
-var _ schema.Metadata = (*TransactionApproval)(nil)
+var _ Metadata = (*TransactionApproval)(nil)
 
 type TransactionApproval struct {
 	Action TransactionApprovalAction `json:"action"`
