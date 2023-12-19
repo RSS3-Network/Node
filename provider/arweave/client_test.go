@@ -70,3 +70,75 @@ func TestClient_GetTransactionData(t *testing.T) {
 		})
 	}
 }
+
+func TestClient_GetBlockByHeight(t *testing.T) {
+	t.Parallel()
+
+	setup(t)
+
+	type arguments struct {
+		height int64
+	}
+
+	testcases := []struct {
+		name      string
+		arguments arguments
+	}{
+		{
+			name: "1312246",
+			arguments: arguments{
+				height: 1312246,
+			},
+		},
+	}
+
+	for _, testcase := range testcases {
+		testcase := testcase
+
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
+			block, err := arweaveClient.GetBlockByHeight(context.Background(), testcase.arguments.height)
+			require.NoError(t, err)
+
+			t.Log(block.Height)
+			t.Log(block.Hash)
+			t.Log(block.Timestamp)
+		})
+	}
+}
+
+func TestClient_GetTransactionByID(t *testing.T) {
+	t.Parallel()
+
+	setup(t)
+
+	type arguments struct {
+		id string
+	}
+
+	testcases := []struct {
+		name      string
+		arguments arguments
+	}{
+		{
+			name: "PcJuwNWK_NR8JUeoaxid81UHk2oazls4OtE6320TEl0",
+			arguments: arguments{
+				id: "PcJuwNWK_NR8JUeoaxid81UHk2oazls4OtE6320TEl0",
+			},
+		},
+	}
+
+	for _, testcase := range testcases {
+		testcase := testcase
+
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
+			transaction, err := arweaveClient.GetTransactionByID(context.Background(), testcase.arguments.id)
+			require.NoError(t, err)
+
+			t.Log(transaction.ID)
+		})
+	}
+}

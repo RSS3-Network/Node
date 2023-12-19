@@ -1,28 +1,38 @@
 environment: development
 
+discovery:
+  maintainer:
+    owner_evm_address: "0x123" # address to receive network incentivization and ownership verification
+    website: "https://abc.com/rss3-node" # link to your website
+  server:
+    # endpoint is how the Global Indexer reaches your RSS3 node
+    # a domain name is recommended but not required, you can use an IP address+port as well
+    endpoint: "https://rss3.abc.com/"
+    signature: ""
+    authentication:
+      access_key: ""
+
 database:
   driver: cockroachdb
   partition: true
   uri: postgres://root@localhost:26257/defaultdb
 
+component:
+  rss:
+    - network: rsshub
+      endpoint: https://rsshub.app/
+      parameters:
+        authentication:
+          username:
+          password:
+          access_key:
+          access_code:
 
-node:
-    # name of the node, if it's blockchain node, it should be defined as: {network}.{chain}.{worker}:{name}
-  - name: ethereum.mainnet.fallback:default
-    endpoint: https://rpc.ankr.com/eth
+  decentralized:
+    - network: ethereum
+      worker: fallback
+      endpoint: https://rpc.ankr.com/eth
 
-  - name: rsshub:default
-    # RSSHub is the only supported RSS module for now
-    # as RSSHub is an external dependency, you need to make sure:
-    # 1. the instance must be accessible by your RSS3 node itself
-    # 2. certain APIs must be accessible by the Global Indexer:
-    #    2.1 /api/routes # TBD
-    #    2.2 /api/config # TBD
-    # endpoint stands for the RSSHub node you are running
-    endpoint: https://rsshub.abc.com/
-    # proper authentication is highly recommended to protect your RSSHub instance
-    # choose an authentication method: basic auth using username/password
-    # or query string auth using access_key
-    # make sure it's always accessible by your RSS3 node
-    # see: https://docs.rsshub.app/install/#user-authentication-configurations
-    # access_key: ""
+    - network: farcaster
+      worker: farcaster
+      endpoint: https://nemes.farcaster.xyz:2281

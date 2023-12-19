@@ -37,9 +37,14 @@ func (w *worker) Name() string {
 	return engine.Fallback.String()
 }
 
+// Filter returns a source filter.
+func (w *worker) Filter() engine.SourceFilter {
+	return nil
+}
+
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	// The worker will handle all Ethereum network transactions.
-	return task.Network() == filter.NetworkEthereum, nil
+	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
 }
 
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
@@ -306,7 +311,12 @@ func (w *worker) handleERC1155ApproveLog(ctx context.Context, task *source.Task,
 }
 
 func (w *worker) buildTransactionTransferAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*schema.Action, error) {
-	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.Chain, tokenAddress, nil, task.Header.Number)
+	chainID, err := filter.EthereumChainIDString(task.GetNetwork().String())
+	if err != nil {
+		return nil, fmt.Errorf("invalid chain id: %w", err)
+	}
+
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, uint64(chainID), tokenAddress, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
@@ -324,7 +334,12 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 }
 
 func (w *worker) buildTransactionApprovalAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*schema.Action, error) {
-	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.Chain, tokenAddress, nil, task.Header.Number)
+	chainID, err := filter.EthereumChainIDString(task.GetNetwork().String())
+	if err != nil {
+		return nil, fmt.Errorf("invalid chain id: %w", err)
+	}
+
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, uint64(chainID), tokenAddress, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
@@ -351,7 +366,12 @@ func (w *worker) buildTransactionApprovalAction(ctx context.Context, task *sourc
 }
 
 func (w *worker) buildCollectibleTransferAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress common.Address, tokenID *big.Int, tokenValue *big.Int) (*schema.Action, error) {
-	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.Chain, &tokenAddress, tokenID, task.Header.Number)
+	chainID, err := filter.EthereumChainIDString(task.GetNetwork().String())
+	if err != nil {
+		return nil, fmt.Errorf("invalid chain id: %w", err)
+	}
+
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, uint64(chainID), &tokenAddress, tokenID, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
@@ -380,7 +400,12 @@ func (w *worker) buildCollectibleTransferAction(ctx context.Context, task *sourc
 }
 
 func (w *worker) buildCollectibleApprovalAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, tokenAddress common.Address, id *big.Int, approved *bool) (*schema.Action, error) {
-	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.Chain, &tokenAddress, id, task.Header.Number)
+	chainID, err := filter.EthereumChainIDString(task.GetNetwork().String())
+	if err != nil {
+		return nil, fmt.Errorf("invalid chain id: %w", err)
+	}
+
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, uint64(chainID), &tokenAddress, id, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}

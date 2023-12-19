@@ -94,6 +94,7 @@ type transactionMarshal struct {
 	BlockNumber *hexutil.Big
 	Gas         hexutil.Uint64
 	GasPrice    *hexutil.Big
+	GasTipCap   *hexutil.Big
 	Input       hexutil.Bytes
 	Index       hexutil.Uint
 	Value       *hexutil.Big
@@ -195,4 +196,33 @@ func formatTransactionCall(callMessage ethereum.CallMsg) TransactionCall {
 		Value:    callMessage.Value,
 		Data:     callMessage.Data,
 	}
+}
+
+type Filter struct {
+	BlockHash *common.Hash     `json:"blockHash"`
+	FromBlock *big.Int         `json:"fromBlock"`
+	ToBlock   *big.Int         `json:"toBlock"`
+	Addresses []common.Address `json:"addresses"`
+	Topics    [][]common.Hash  `json:"topics"`
+}
+
+func formatFilter(filter Filter) map[string]any {
+	result := map[string]interface{}{
+		"address": filter.Addresses,
+		"topics":  filter.Topics,
+	}
+
+	if filter.BlockHash == nil {
+		if filter.FromBlock == nil {
+			result["fromBlock"] = "0x0"
+		} else {
+			result["fromBlock"] = formatBlockNumber(filter.FromBlock)
+		}
+
+		result["toBlock"] = formatBlockNumber(filter.ToBlock)
+	} else {
+		result["blockHash"] = *filter.BlockHash
+	}
+
+	return result
 }

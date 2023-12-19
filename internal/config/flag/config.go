@@ -1,6 +1,8 @@
 package flag
 
 var (
-	KeyConfig   = "config"
-	KeyNodeName = "node.name"
+	KeyConfig         = "config"
+	KeyModule         = "module"
+	KeyIndexerNetwork = "indexer.network"
+	KeyIndexerWorker  = "indexer.worker"
 )

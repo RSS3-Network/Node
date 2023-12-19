@@ -1,51 +1,29 @@
 package engine
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"gopkg.in/yaml.v3"
 )
 
-type Config struct {
-	Name     string         `mapstructure:"name" validate:"required"`
-	Endpoint string         `mapstructure:"endpoint" validate:"required"`
-	Worker   Name           `mapstructure:"-"`
-	Network  filter.Network `mapstructure:"-"`
-	Chain    filter.Chain   `mapstructure:"-"`
+type Module struct {
+	RSS           []*Config `yaml:"rss" validate:"dive"`
+	Federated     []*Config `yaml:"federated" validate:"dive"`
+	Decentralized []*Config `yaml:"decentralized" validate:"dive"`
 }
 
-// Parse parses the config name.
-func (c *Config) Parse() (err error) {
-	data := strings.Split(c.Name, ":")
-	if len(data) < 1 {
-		return fmt.Errorf("invalid name %s", c.Name)
-	}
+type Config struct {
+	Network    filter.Network `yaml:"network" validate:"required"`
+	Endpoint   string         `yaml:"endpoint" validate:"required"`
+	Worker     Name           `yaml:"worker"`
+	Parameters *Options       `yaml:"parameters"`
+}
 
-	engineConfigs := strings.Split(data[0], ".")
-	if len(engineConfigs) < 1 {
-		return fmt.Errorf("invalid name %s", c.Name)
-	}
+type Options struct {
+	*yaml.Node
+}
 
-	if c.Network, err = filter.NetworkString(engineConfigs[0]); err != nil {
-		return fmt.Errorf("invalid network: %w", err)
-	}
-
-	switch c.Network {
-	case filter.NetworkRSSHub:
-	default:
-		if len(engineConfigs) < 3 {
-			return fmt.Errorf("invalid name %s", c.Name)
-		}
-
-		if c.Chain, err = filter.ChainString(c.Network, engineConfigs[1]); err != nil {
-			return fmt.Errorf("invalid chain: %w", err)
-		}
-
-		if c.Worker, err = NameString(engineConfigs[2]); err != nil {
-			return fmt.Errorf("invalid worker: %w", err)
-		}
-	}
+func (o *Options) UnmarshalYAML(node *yaml.Node) error {
+	o.Node = node
 
 	return nil
 }

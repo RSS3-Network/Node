@@ -8,7 +8,9 @@ import (
 )
 
 type Source interface {
-	Chain() filter.Chain
+	Network() filter.Network
 	State() json.RawMessage
 	Start(ctx context.Context, tasksChan chan<- []Task, errorChan chan<- error)
 }
+
+type SourceFilter interface{}

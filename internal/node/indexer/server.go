@@ -1,9 +1,10 @@
-package node
+package indexer
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"runtime"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/constant"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
@@ -52,7 +53,25 @@ func (s *Server) Run(ctx context.Context) error {
 }
 
 func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
-	resultPool := pool.NewWithResults[*schema.Feed]()
+	checkpoint := engine.Checkpoint{
+		ID:      s.id,
+		Network: s.source.Network(),
+		Worker:  s.worker.Name(),
+		State:   s.source.State(),
+	}
+
+	// If no tasks are returned, only save the checkpoint to the database.
+	if len(tasks) == 0 {
+		zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
+
+		if err := s.databaseClient.SaveCheckpoint(ctx, &checkpoint); err != nil {
+			return fmt.Errorf("save checkpoint: %w", err)
+		}
+
+		return nil
+	}
+
+	resultPool := pool.NewWithResults[*schema.Feed]().WithMaxGoroutines(lo.Ternary(len(tasks) < 20*runtime.NumCPU(), len(tasks), 20*runtime.NumCPU()))
 
 	for _, task := range tasks {
 		task := task
@@ -97,14 +116,6 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 			return fmt.Errorf("save %d feeds: %w", len(feeds), err)
 		}
 
-		checkpoint := engine.Checkpoint{
-			ID:      s.id,
-			Network: s.source.Chain().Network(),
-			Chain:   s.source.Chain(),
-			Worker:  s.worker.Name(),
-			State:   s.source.State(),
-		}
-
 		zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
 
 		if err := client.SaveCheckpoint(ctx, &checkpoint); err != nil {
@@ -117,18 +128,18 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 
 func NewServer(ctx context.Context, config *engine.Config, databaseClient database.Client) (server *Server, err error) {
 	instance := Server{
-		id:             config.Name,
+		id:             fmt.Sprintf("%s.%s", config.Network, config.Worker),
 		config:         config,
 		databaseClient: databaseClient,
 	}
 
 	// Initialize worker.
-	if instance.worker, err = worker.New(instance.config); err != nil {
+	if instance.worker, err = worker.New(instance.config, databaseClient); err != nil {
 		return nil, fmt.Errorf("new worker: %w", err)
 	}
 
 	// Load checkpoint for initialize the source.
-	checkpoint, err := instance.databaseClient.LoadCheckpoint(ctx, instance.id, config.Chain, instance.worker.Name())
+	checkpoint, err := instance.databaseClient.LoadCheckpoint(ctx, instance.id, config.Network, instance.worker.Name())
 	if err != nil {
 		return nil, fmt.Errorf("loca checkpoint: %w", err)
 	}
@@ -139,10 +150,10 @@ func NewServer(ctx context.Context, config *engine.Config, databaseClient databa
 		return nil, fmt.Errorf("unmarshal checkpoint state: %w", err)
 	}
 
-	zap.L().Info("load checkpoint", zap.String("checkpoint.id", checkpoint.ID), zap.String("checkpoint.chain", checkpoint.Chain.FullName()), zap.String("checkpoint.worker", checkpoint.Worker), zap.Any("checkpoint.state", state))
+	zap.L().Info("load checkpoint", zap.String("checkpoint.id", checkpoint.ID), zap.String("checkpoint.network", checkpoint.Network.String()), zap.String("checkpoint.worker", checkpoint.Worker), zap.Any("checkpoint.state", state))
 
 	// Initialize source.
-	if instance.source, err = source.New(instance.config, checkpoint); err != nil {
+	if instance.source, err = source.New(instance.config, instance.worker.Filter(), checkpoint, databaseClient); err != nil {
 		return nil, fmt.Errorf("new source: %w", err)
 	}
 
