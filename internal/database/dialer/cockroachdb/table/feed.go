@@ -62,8 +62,12 @@ func (f *Feed) Import(feed *schema.Feed) error {
 
 	// TODO Need to filter spam actions.
 
-	if err := f.Fee.Import(feed.Fee); err != nil {
-		return fmt.Errorf("invalid fee: %w", err)
+	if feed.Fee != nil {
+		f.Fee = new(Fee)
+
+		if err := f.Fee.Import(feed.Fee); err != nil {
+			return fmt.Errorf("invalid fee: %w", err)
+		}
 	}
 
 	for _, action := range feed.Actions {
