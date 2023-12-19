@@ -28,6 +28,7 @@ func (c *Config) ID() string {
 
 	if c.Parameters != nil {
 		var buffer map[string]any
+
 		lo.Must0(c.Parameters.Decode(&buffer))
 
 		if buffer != nil {
