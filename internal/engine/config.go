@@ -36,6 +36,7 @@ func (o *Options) UnmarshalYAML(node *yaml.Node) error {
 
 func (o *Options) String() string {
 	var buffer map[string]any
+
 	lo.Must0(o.Decode(&buffer))
 
 	if buffer == nil {
