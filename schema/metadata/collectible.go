@@ -1,11 +1,10 @@
 package metadata
 
 import (
-	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
 
-var _ schema.Metadata = (*CollectibleTransfer)(nil)
+var _ Metadata = (*CollectibleTransfer)(nil)
 
 type CollectibleTransfer Token
 
@@ -26,7 +25,7 @@ const (
 	ActionCollectibleApprovalRevoke
 )
 
-var _ schema.Metadata = (*CollectibleApproval)(nil)
+var _ Metadata = (*CollectibleApproval)(nil)
 
 type CollectibleApproval struct {
 	Action CollectibleApprovalAction `json:"action"`

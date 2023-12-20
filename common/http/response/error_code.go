@@ -8,11 +8,11 @@ import (
 	"strings"
 )
 
-const _ErrorCodeName = "bad_requestvalidate_failedbad_paramsaddress_is_emptyaddress_is_invalidinternal_errornot_found"
+const _ErrorCodeName = "bad_requestvalidate_failedbad_paramsinternal_error"
 
-var _ErrorCodeIndex = [...]uint8{0, 11, 26, 36, 52, 70, 84, 93}
+var _ErrorCodeIndex = [...]uint8{0, 11, 26, 36, 50}
 
-const _ErrorCodeLowerName = "bad_requestvalidate_failedbad_paramsaddress_is_emptyaddress_is_invalidinternal_errornot_found"
+const _ErrorCodeLowerName = "bad_requestvalidate_failedbad_paramsinternal_error"
 
 func (i ErrorCode) String() string {
 	i -= 1
@@ -33,13 +33,10 @@ func _ErrorCodeNoOp() {
 	_ = x[ErrorCodeBadRequest-(1)]
 	_ = x[ErrorCodeValidateFailed-(2)]
 	_ = x[ErrorCodeBadParams-(3)]
-	_ = x[ErrorCodeAddressIsEmpty-(4)]
-	_ = x[ErrorCodeAddressIsInvalid-(5)]
-	_ = x[ErrorCodeInternalError-(6)]
-	_ = x[ErrorCodeNotFound-(7)]
+	_ = x[ErrorCodeInternalError-(4)]
 }
 
-var _ErrorCodeValues = []ErrorCode{ErrorCodeBadRequest, ErrorCodeValidateFailed, ErrorCodeBadParams, ErrorCodeAddressIsEmpty, ErrorCodeAddressIsInvalid, ErrorCodeInternalError, ErrorCodeNotFound}
+var _ErrorCodeValues = []ErrorCode{ErrorCodeBadRequest, ErrorCodeValidateFailed, ErrorCodeBadParams, ErrorCodeInternalError}
 
 var _ErrorCodeNameToValueMap = map[string]ErrorCode{
 	_ErrorCodeName[0:11]:       ErrorCodeBadRequest,
@@ -48,24 +45,15 @@ var _ErrorCodeNameToValueMap = map[string]ErrorCode{
 	_ErrorCodeLowerName[11:26]: ErrorCodeValidateFailed,
 	_ErrorCodeName[26:36]:      ErrorCodeBadParams,
 	_ErrorCodeLowerName[26:36]: ErrorCodeBadParams,
-	_ErrorCodeName[36:52]:      ErrorCodeAddressIsEmpty,
-	_ErrorCodeLowerName[36:52]: ErrorCodeAddressIsEmpty,
-	_ErrorCodeName[52:70]:      ErrorCodeAddressIsInvalid,
-	_ErrorCodeLowerName[52:70]: ErrorCodeAddressIsInvalid,
-	_ErrorCodeName[70:84]:      ErrorCodeInternalError,
-	_ErrorCodeLowerName[70:84]: ErrorCodeInternalError,
-	_ErrorCodeName[84:93]:      ErrorCodeNotFound,
-	_ErrorCodeLowerName[84:93]: ErrorCodeNotFound,
+	_ErrorCodeName[36:50]:      ErrorCodeInternalError,
+	_ErrorCodeLowerName[36:50]: ErrorCodeInternalError,
 }
 
 var _ErrorCodeNames = []string{
 	_ErrorCodeName[0:11],
 	_ErrorCodeName[11:26],
 	_ErrorCodeName[26:36],
-	_ErrorCodeName[36:52],
-	_ErrorCodeName[52:70],
-	_ErrorCodeName[70:84],
-	_ErrorCodeName[84:93],
+	_ErrorCodeName[36:50],
 }
 
 // ErrorCodeString retrieves an enum value from the enum constants string name.

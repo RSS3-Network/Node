@@ -500,12 +500,12 @@ func (c *client) buildFindIndexesStatement(ctx context.Context, partition string
 	}
 
 	if query.Owner != nil {
-		table = lo.ToPtr(fmt.Sprintf(`"%s"@idx_indexes_owner`, partition))
+		table = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
 		databaseStatement = databaseStatement.Where("owner = ?", query.Owner)
 	}
 
 	if len(query.Owners) > 0 {
-		table = lo.ToPtr(fmt.Sprintf(`"%s"@idx_indexes_owner`, partition))
+		table = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
 		databaseStatement = databaseStatement.Where("owner IN ?", query.Owners)
 	}
 

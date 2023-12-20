@@ -1,11 +1,10 @@
 package metadata
 
 import (
-	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
 
-var _ schema.Metadata = (*SocialPost)(nil)
+var _ Metadata = (*SocialPost)(nil)
 
 type SocialPost struct {
 	Handle        string   `json:"handle,omitempty"`
