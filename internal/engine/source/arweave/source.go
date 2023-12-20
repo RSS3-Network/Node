@@ -156,7 +156,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task,
 		}
 
 		// Filter transactions by owner.
-		transactions = s.filterOwnerTransaction(transactions, filter.OwnerAddress)
+		transactions = s.filterOwnerTransaction(transactions, filter.OwnerAddresses)
 
 		// Pull transaction data.
 		if err := s.batchPullData(ctx, transactions); err != nil {

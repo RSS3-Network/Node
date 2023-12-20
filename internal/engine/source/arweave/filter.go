@@ -7,5 +7,5 @@ import (
 var _ engine.SourceFilter = (*Filter)(nil)
 
 type Filter struct {
-	OwnerAddress []string `yaml:"owner_addresses"`
+	OwnerAddresses []string `yaml:"owner_addresses"`
 }
