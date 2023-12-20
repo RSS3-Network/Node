@@ -4,7 +4,6 @@ go 1.21
 
 require (
 	github.com/Khan/genqlient v0.6.0
-	github.com/NaturalSelectionLabs/goapi v0.9.1
 	github.com/avast/retry-go/v4 v4.5.1
 	github.com/creasty/defaults v1.7.0
 	github.com/ethereum/go-ethereum v1.13.5
@@ -34,7 +33,6 @@ require (
 
 require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
-	github.com/NaturalSelectionLabs/jschema v0.9.3 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/bits-and-blooms/bitset v1.7.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
@@ -60,8 +58,6 @@ require (
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/holiman/uint256 v1.2.3 // indirect
-	github.com/huandu/go-clone v1.6.0 // indirect
-	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
@@ -79,7 +75,6 @@ require (
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/naturalselectionlabs/vary v0.3.4 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc5 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
@@ -100,9 +95,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.1 // indirect
-	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
-	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
-	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.16.0 // indirect
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect

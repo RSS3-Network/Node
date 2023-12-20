@@ -121,6 +121,7 @@ func (w *worker) matchNativeTransferTransaction(task *source.Task) bool {
 func (w *worker) matchERC20TransferLog(_ *source.Task, log *ethereum.Log) bool {
 	return len(log.Topics) == 3 && contract.MatchEventHashes(log.Topics[0], erc20.EventHashTransfer)
 }
+
 func (w *worker) matchERC20ApprovalLog(_ *source.Task, log *ethereum.Log) bool {
 	return len(log.Topics) == 3 && contract.MatchEventHashes(log.Topics[0], erc20.EventHashApproval)
 }

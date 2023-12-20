@@ -2,8 +2,10 @@ package schema
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/samber/lo"
 )
 
 type Feed struct {
@@ -20,7 +22,7 @@ type Feed struct {
 	TotalActions uint             `json:"total_actions"`
 	Actions      []*Action        `json:"actions"`
 	Direction    filter.Direction `json:"direction,omitempty"`
-	Status       bool             `json:"status"`
+	Status       bool             `json:"success"`
 	Timestamp    uint64           `json:"timestamp"`
 }
 
@@ -28,22 +30,43 @@ type Feed struct {
 // it is used in the feed builder.
 type FeedOption func(feed *Feed) error
 
-// WithFeedPlatform is a feed option that sets the platform of the feed.
 func WithFeedPlatform(platform filter.Platform) FeedOption {
 	return func(feed *Feed) error {
-		feed.Platform = &platform
+		feed.Platform = lo.ToPtr(platform)
 
 		return nil
 	}
 }
 
-func (f *Feed) MarshalJSON() ([]byte, error) {
-	type Filler Feed
+type Feeds []*Feed
 
-	filler := Filler(*f)
+var _ json.Unmarshaler = (*Feeds)(nil)
 
-	filler.Network = f.Network
-	filler.Tag = f.Type.Tag()
+func (f *Feeds) UnmarshalJSON(bytes []byte) error {
+	type FeedAlias Feed
 
-	return json.Marshal(filler)
+	type feed struct {
+		*FeedAlias
+		TypeX string `json:"type"`
+	}
+
+	var temp []*feed
+
+	err := json.Unmarshal(bytes, &temp)
+	if err != nil {
+		return fmt.Errorf("unmarshal feeds: %w", err)
+	}
+
+	for _, v := range temp {
+		v.TotalActions = uint(len(v.Actions))
+
+		v.Type, err = filter.TypeString(v.Tag, v.TypeX)
+		if err != nil {
+			return fmt.Errorf("unmarshal type: %w", err)
+		}
+
+		*f = append(*f, (*Feed)(v.FeedAlias))
+	}
+
+	return nil
 }

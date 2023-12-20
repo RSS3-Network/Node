@@ -6,7 +6,6 @@ type Network uint64
 const (
 	NetworkUnknown   Network = iota // unknown
 	NetworkEthereum                 // ethereum
-	NetworkRSSHub                   // rsshub
 	NetworkRSS                      // rss
 	NetworkArweave                  // arweave
 	NetworkFarcaster                // farcaster

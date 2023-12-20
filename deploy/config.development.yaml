@@ -19,7 +19,7 @@ database:
 
 component:
   rss:
-    - network: rsshub
+    - network: rss
       endpoint: https://rsshub.app/
       parameters:
         authentication:
@@ -29,11 +29,26 @@ component:
           access_code:
 
   decentralized:
+    - network: ethereum
+      chain: mainnet
+      worker: fallback
+      endpoint: https://arweave.net/
+    - network: ethereum
+      worker: rss3
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
+        block_number_target:
+    - network: ethereum
+      worker: uniswap
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
+        block_number_target:
     - network: arweave
       chain: mainnet
       worker: fallback
       endpoint: https://arweave.net/
-
     - network: farcaster
       worker: farcaster
       endpoint: https://nemes.farcaster.xyz:2281

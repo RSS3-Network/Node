@@ -15,6 +15,8 @@ func TypeString(tag Tag, typeValue string) (Type, error) {
 		return CollectibleTypeString(typeValue)
 	case TagSocial:
 		return SocialTypeString(typeValue)
+	case TagRSS:
+		return RSSTypeString(typeValue)
 	case TagUnknown:
 		return UnknownTypeString(typeValue)
 	default:

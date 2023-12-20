@@ -9,6 +9,7 @@ const (
 	TagCollectible
 	TagExchange
 	TagSocial
+	TagRSS
 )
 
 func TagAndTypeString(tagValue string, typeValue string) (Tag, Type, error) {
