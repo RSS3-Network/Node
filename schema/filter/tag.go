@@ -7,7 +7,9 @@ const (
 	TagUnknown Tag = iota
 	TagTransaction
 	TagCollectible
+	TagExchange
 	TagSocial
+	TagRSS
 )
 
 func TagAndTypeString(tagValue string, typeValue string) (Tag, Type, error) {

@@ -2,12 +2,14 @@ package rss
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/samber/lo"
 )
 
@@ -15,7 +17,7 @@ const (
 	RSSHubUMSPath = ".ums"
 )
 
-func (h *Hub) getRSSHubData(ctx context.Context, path string, rawQuery string) ([]byte, error) {
+func (h *Hub) getRSSHubData(ctx context.Context, path string, rawQuery string) ([]*schema.Feed, error) {
 	request, err := url.Parse(h.rsshub.Endpoint)
 	if err != nil {
 		return nil, err
@@ -55,7 +57,12 @@ func (h *Hub) getRSSHubData(ctx context.Context, path string, rawQuery string) (
 		return nil, fmt.Errorf("rsshub response body: %w", err)
 	}
 
-	return data, nil
+	activities, err := h.transformRSSHubToActivities(ctx, data)
+	if err != nil {
+		return nil, fmt.Errorf("transform rsshub response: %w", err)
+	}
+
+	return activities, nil
 }
 
 // parseRSSHubAuthentication parse authentication config and validate it, then fill in request
@@ -78,4 +85,18 @@ func (h *Hub) parseRSSHubAuthentication(_ context.Context, request *url.URL) err
 	}
 
 	return nil
+}
+
+func (h *Hub) transformRSSHubToActivities(_ context.Context, data []byte) ([]*schema.Feed, error) {
+	type response struct {
+		Data schema.Feeds `json:"data"`
+	}
+
+	var resp response
+
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return nil, fmt.Errorf("unmarshal rsshub response: %w", err)
+	}
+
+	return resp.Data, nil
 }

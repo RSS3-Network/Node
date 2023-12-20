@@ -2,7 +2,10 @@ package hub
 
 import (
 	"context"
+	"sync"
 
+	"github.com/go-playground/validator/v10"
+	"github.com/labstack/echo/v4"
 	"github.com/naturalselectionlabs/rss3-node/internal/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/hub/decentralized"
@@ -12,6 +15,23 @@ import (
 type Hub struct {
 	RSS           *rss.Hub
 	Decentralized *decentralized.Hub
+}
+
+var _ echo.Validator = &Validator{}
+
+type Validator struct {
+	validate *validator.Validate
+	once     sync.Once
+}
+
+func (v *Validator) Validate(i interface{}) error {
+	if v.validate == nil {
+		v.once.Do(func() {
+			v.validate = validator.New()
+		})
+	}
+
+	return v.validate.Struct(i)
 }
 
 func NewHub(ctx context.Context, config *config.File, database database.Client) *Hub {
