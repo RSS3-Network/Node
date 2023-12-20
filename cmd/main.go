@@ -85,13 +85,15 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 	}
 
 	for _, nodeConfig := range config.Node.Decentralized {
-		if nodeConfig.Network == network && nodeConfig.Worker == worker && strings.EqualFold(nodeConfig.Parameters.String(), parameters) {
-			server, err := indexer.NewServer(ctx, nodeConfig, databaseClient)
-			if err != nil {
-				return fmt.Errorf("new server: %w", err)
-			}
+		if nodeConfig.Network == network && nodeConfig.Worker == worker {
+			if nodeConfig.Parameters == nil && parameters == "{}" || nodeConfig.Parameters != nil && strings.EqualFold(nodeConfig.Parameters.String(), parameters) {
+				server, err := indexer.NewServer(ctx, nodeConfig, databaseClient)
+				if err != nil {
+					return fmt.Errorf("new server: %w", err)
+				}
 
-			return server.Run(ctx)
+				return server.Run(ctx)
+			}
 		}
 	}
 
