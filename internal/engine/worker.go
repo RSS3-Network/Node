@@ -16,6 +16,7 @@ const (
 	Mirror                    // mirror
 	Farcaster                 // farcaster
 	RSS3                      // rss3
+	OpenSea                   // opensea
 )
 
 type Worker interface {

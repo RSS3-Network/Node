@@ -36,3 +36,28 @@ type CollectibleApproval struct {
 func (c CollectibleApproval) Type() filter.Type {
 	return filter.TypeCollectibleApproval
 }
+
+//go:generate go run --mod=mod github.com/dmarkham/enumer --values --type=CollectibleTradeAction --transform=snake --trimprefix=ActionCollectibleTrade --output collectible_trade.go --json --sql
+type CollectibleTradeAction uint64
+
+//goland:noinspection GoMixedReceiverTypes
+func (r CollectibleTradeAction) Type() filter.Type {
+	return filter.TypeCollectibleTrade
+}
+
+const (
+	ActionCollectibleTradeBuy CollectibleTradeAction = iota + 1
+	ActionCollectibleTradeSell
+)
+
+var _ Metadata = (*CollectibleTradeAction)(nil)
+
+type CollectibleTrade struct {
+	Action CollectibleTradeAction `json:"action"`
+	Token
+	Cost *Token `json:"cost,omitempty"`
+}
+
+func (r CollectibleTrade) Type() filter.Type {
+	return filter.TypeCollectibleTrade
+}
