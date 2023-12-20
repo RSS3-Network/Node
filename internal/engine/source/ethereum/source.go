@@ -67,12 +67,13 @@ func (s *source) initialize(ctx context.Context) (err error) {
 func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task) error {
 	var blockNumberLatestLocal uint64
 
-	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > blockNumberLatestLocal {
-		blockNumberLatestLocal = s.option.BlockNumberStart.Uint64()
+	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > s.state.BlockNumber {
+		s.pendingState.BlockNumber = s.option.BlockNumberStart.Uint64()
+		s.state.BlockNumber = s.option.BlockNumberStart.Uint64()
 	}
 
 	for {
-		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() <= s.state.BlockNumber {
+		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
 			break
 		}
 
@@ -129,12 +130,13 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) error {
 	var blockNumberLatestLocal uint64
 
-	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > blockNumberLatestLocal {
-		blockNumberLatestLocal = s.option.BlockNumberStart.Uint64()
+	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > s.state.BlockNumber {
+		s.pendingState.BlockNumber = s.option.BlockNumberStart.Uint64()
+		s.state.BlockNumber = s.option.BlockNumberStart.Uint64()
 	}
 
 	for {
-		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() <= s.state.BlockNumber {
+		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
 			break
 		}
 
@@ -220,8 +222,15 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 				return fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
 			}
 
+			s.state = s.pendingState
+
+			s.pendingState.BlockHash = block.Hash
+			s.pendingState.BlockNumber++
+
 			// Push an empty task slice to the channel to update the block number.
 			tasksChan <- make([]engine.Task, 0)
+
+			continue
 		}
 
 		// Update state by two phase commit to avoid data inconsistency.
