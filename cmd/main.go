@@ -52,12 +52,7 @@ var command = cobra.Command{
 		case node.Hub:
 			return runHub(cmd.Context(), config, databaseClient)
 		case node.Indexer:
-			parameters, err := minify.JSON(lo.Must(flags.GetString(flag.KeyIndexerParameters)))
-			if err != nil {
-				return fmt.Errorf("invalid indexer parameters: %w", err)
-			}
-
-			return runIndexer(cmd.Context(), config, parameters, databaseClient)
+			return runIndexer(cmd.Context(), config, lo.Must(flags.GetString(flag.KeyIndexerParameters)), databaseClient)
 		}
 
 		return fmt.Errorf("unsupported module %s", lo.Must(flags.GetString(flag.KeyModule)))
@@ -74,6 +69,11 @@ func runHub(ctx context.Context, config *config.File, databaseClient database.Cl
 }
 
 func runIndexer(ctx context.Context, config *config.File, parameters string, databaseClient database.Client) error {
+	parameters, err := minify.JSON(parameters)
+	if err != nil {
+		return fmt.Errorf("invalid indexer parameters: %w", err)
+	}
+
 	network, err := filter.NetworkString(lo.Must(flags.GetString(flag.KeyIndexerNetwork)))
 	if err != nil {
 		return fmt.Errorf("network string: %w", err)
@@ -85,15 +85,13 @@ func runIndexer(ctx context.Context, config *config.File, parameters string, dat
 	}
 
 	for _, nodeConfig := range config.Node.Decentralized {
-		if nodeConfig.Network == network && nodeConfig.Worker == worker {
-			if strings.EqualFold(nodeConfig.Parameters.String(), parameters) {
-				server, err := indexer.NewServer(ctx, nodeConfig, databaseClient)
-				if err != nil {
-					return fmt.Errorf("new server: %w", err)
-				}
-
-				return server.Run(ctx)
+		if nodeConfig.Network == network && nodeConfig.Worker == worker && strings.EqualFold(nodeConfig.Parameters.String(), parameters) {
+			server, err := indexer.NewServer(ctx, nodeConfig, databaseClient)
+			if err != nil {
+				return fmt.Errorf("new server: %w", err)
 			}
+
+			return server.Run(ctx)
 		}
 	}
 
