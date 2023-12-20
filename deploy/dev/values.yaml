@@ -11,3 +11,12 @@ indexers:
     endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
     parameters:
       block_number_start: 14748840
+additionalRSS:
+  - network: rss
+    endpoint: https://rsshub.app/
+    parameters:
+      authentication:
+        username:
+        password:
+        access_key:
+        access_code:
