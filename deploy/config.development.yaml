@@ -36,3 +36,7 @@ component:
     - network: farcaster
       worker: farcaster
       endpoint: https://nemes.farcaster.xyz:2281
+
+    - network: arweave
+      worker: mirror
+      endpoint: https://arweave.net

@@ -37,6 +37,8 @@ var _ engine.Source = (*source)(nil)
 
 type source struct {
 	config        *engine.Config
+	option        *Option
+	filter        *Filter
 	arweaveClient arweave.Client
 	state         State
 	pendingState  State
@@ -61,7 +63,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 
 	// Start a goroutine to poll blocks.
 	go func() {
-		errorChan <- s.pollBlocks(ctx, tasksChan)
+		errorChan <- s.pollBlocks(ctx, tasksChan, s.filter)
 	}()
 }
 
@@ -75,16 +77,39 @@ func (s *source) initialize() (err error) {
 	return nil
 }
 
-func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task) error {
-	// Get remote block height from arweave network.
-	blockHeightLatestRemote, err := s.arweaveClient.GetBlockHeight(ctx)
-	if err != nil {
-		return fmt.Errorf("get latest block height: %w", err)
+func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task, filter *Filter) error {
+	var (
+		blockHeightLatestRemote int64
+		err                     error
+	)
+
+	// Get start block height from config
+	// if not set, use default value 0
+	if s.option.BlockHeightStart != nil && s.option.BlockHeightStart.Uint64() > s.state.BlockHeight {
+		s.pendingState.BlockHeight = s.option.BlockHeightStart.Uint64()
+		s.state.BlockHeight = s.option.BlockHeightStart.Uint64()
 	}
 
-	zap.L().Info("get latest block height", zap.Int64("block.height", blockHeightLatestRemote))
+	// Get target block height from config
+	// if not set, use the latest block height from arweave network
+	if s.option.BlockHeightTarget != nil {
+		zap.L().Info("block height target", zap.Uint64("block.height.target", s.option.BlockHeightTarget.Uint64()))
+		blockHeightLatestRemote = int64(s.option.BlockHeightTarget.Uint64())
+	} else {
+		// Get remote block height from arweave network.
+		blockHeightLatestRemote, err = s.arweaveClient.GetBlockHeight(ctx)
+		if err != nil {
+			return fmt.Errorf("get latest block height: %w", err)
+		}
+
+		zap.L().Info("get latest block height", zap.Int64("block.height", blockHeightLatestRemote))
+	}
 
 	for {
+		if s.option.BlockHeightTarget != nil && s.option.BlockHeightTarget.Uint64() <= s.state.BlockHeight {
+			break
+		}
+
 		// Check if block height is latest.
 		if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {
 			// Get the latest block height from arweave network for reconfirming.
@@ -102,10 +127,15 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 			continue
 		}
 
+		// set the default value of RPCThreadBlocks to 1
+		if s.option.RPCThreadBlocks == 0 {
+			s.option.RPCThreadBlocks = 1
+		}
+
 		// Pull blocks
 		blockHeightEnd := lo.Min([]uint64{
 			uint64(blockHeightLatestRemote),
-			s.state.BlockHeight,
+			s.state.BlockHeight + s.option.RPCThreadBlocks - 1,
 		})
 
 		// Pull blocks by range.
@@ -125,7 +155,8 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 			return fmt.Errorf("batch pull transactions: %w", err)
 		}
 
-		// TODO: Match and filter transactions.
+		// Filter transactions by owner.
+		transactions = s.filterOwnerTransaction(transactions, filter.OwnerAddress)
 
 		// Pull transaction data.
 		if err := s.batchPullData(ctx, transactions); err != nil {
@@ -161,6 +192,8 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 		s.state = s.pendingState
 		s.pendingState.BlockHeight++
 	}
+
+	return nil
 }
 
 // batchPullBlocksByRange pulls blocks by range, from local state block height to remote block height.
@@ -393,6 +426,18 @@ func (s *source) discardRootBundleTransaction(transactions []*arweave.Transactio
 	})
 }
 
+// filterOwnerTransaction filters owner transactions.
+func (s *source) filterOwnerTransaction(transactions []*arweave.Transaction, ownerAddress []string) []*arweave.Transaction {
+	return lo.Filter(transactions, func(transaction *arweave.Transaction, _ int) bool {
+		transactionOwner, err := arweave.PublicKeyToAddress(transaction.Owner)
+		if err != nil {
+			return false
+		}
+
+		return lo.Contains(ownerAddress, transactionOwner)
+	})
+}
+
 // buildTasks builds tasks from blocks and transactions.
 func (s *source) buildTasks(blocks []*arweave.Block, transactions []*arweave.Transaction) ([]engine.Task, error) {
 	tasks := make([]engine.Task, 0)
@@ -413,8 +458,11 @@ func (s *source) buildTasks(blocks []*arweave.Block, transactions []*arweave.Tra
 }
 
 // NewSource creates a new arweave source.
-func NewSource(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Source, error) {
-	var state State
+func NewSource(config *engine.Config, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint) (engine.Source, error) {
+	var (
+		state State
+		err   error
+	)
 
 	// Initialize state from checkpoint.
 	if checkpoint != nil {
@@ -425,8 +473,21 @@ func NewSource(config *engine.Config, checkpoint *engine.Checkpoint) (engine.Sou
 
 	instance := source{
 		config:       config,
+		filter:       new(Filter), // Set a default filter for the source.
 		state:        state,
 		pendingState: state, // Default pending state is equal to the current state.
+	}
+
+	// Initialize filter.
+	if sourceFilter != nil {
+		var ok bool
+		if instance.filter, ok = sourceFilter.(*Filter); !ok {
+			return nil, fmt.Errorf("invalid source filter type %T", sourceFilter)
+		}
+	}
+
+	if instance.option, err = NewOption(config.Parameters); err != nil {
+		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
 	return &instance, nil
