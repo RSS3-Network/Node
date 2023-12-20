@@ -19,7 +19,7 @@ database:
 
 component:
   rss:
-    - network: rsshub
+    - network: rss
       endpoint: https://rsshub.app/
       parameters:
         authentication:
@@ -35,7 +35,12 @@ component:
       parameters:
         block_number_start:
         block_number_target:
-
+    - network: ethereum
+      worker: rss3
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
+        block_number_target:
     - network: farcaster
       worker: farcaster
       endpoint: https://nemes.farcaster.xyz:2281

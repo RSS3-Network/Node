@@ -39,6 +39,8 @@ func (c *Config) ID() string {
 	return id
 }
 
+var _ fmt.Stringer = (*Options)(nil)
+
 type Options struct {
 	*yaml.Node
 }
@@ -47,4 +49,22 @@ func (o *Options) UnmarshalYAML(node *yaml.Node) error {
 	o.Node = node
 
 	return nil
+}
+
+func (o *Options) String() string {
+	var buffer map[string]any
+
+	lo.Must0(o.Decode(&buffer))
+
+	if buffer == nil {
+		return "{}"
+	}
+
+	for key, value := range buffer {
+		if value == nil {
+			delete(buffer, key)
+		}
+	}
+
+	return string(lo.Must(json.Marshal(buffer)))
 }

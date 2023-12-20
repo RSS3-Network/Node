@@ -4,7 +4,13 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/naturalselectionlabs/rss3-node/common/http/response"
+	"github.com/naturalselectionlabs/rss3-node/schema"
 )
+
+type Response struct {
+	Data []*schema.Feed `json:"data"`
+}
 
 // GetRSSHubHandler get rsshub data from rsshub node
 func (h *Hub) GetRSSHubHandler(c echo.Context) error {
@@ -13,8 +19,10 @@ func (h *Hub) GetRSSHubHandler(c echo.Context) error {
 
 	data, err := h.getRSSHubData(c.Request().Context(), path, rawQuery)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return response.InternalError(c, err)
 	}
 
-	return c.JSONBlob(http.StatusOK, data)
+	return c.JSON(http.StatusOK, Response{
+		Data: data,
+	})
 }

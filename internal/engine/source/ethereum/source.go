@@ -68,11 +68,12 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 	var blockNumberLatestLocal uint64
 
 	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > s.state.BlockNumber {
-		s.state.BlockNumber, s.pendingState.BlockNumber = s.option.BlockNumberStart.Uint64(), s.option.BlockNumberStart.Uint64()
+		s.pendingState.BlockNumber = s.option.BlockNumberStart.Uint64()
+		s.state.BlockNumber = s.option.BlockNumberStart.Uint64()
 	}
 
 	for {
-		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() <= s.state.BlockNumber {
+		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
 			break
 		}
 
@@ -130,11 +131,12 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 	var blockNumberLatestLocal uint64
 
 	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > s.state.BlockNumber {
-		s.state.BlockNumber, s.pendingState.BlockNumber = s.option.BlockNumberStart.Uint64(), s.option.BlockNumberStart.Uint64()
+		s.pendingState.BlockNumber = s.option.BlockNumberStart.Uint64()
+		s.state.BlockNumber = s.option.BlockNumberStart.Uint64()
 	}
 
 	for {
-		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() <= s.state.BlockNumber {
+		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
 			break
 		}
 
@@ -164,11 +166,9 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 			FromBlock: new(big.Int).SetUint64(s.state.BlockNumber),
 			ToBlock:   new(big.Int).SetUint64(s.state.BlockNumber),
 			Addresses: s.filter.LogAddresses,
-			Topics: lo.Map(s.filter.LogTopics, func(topic common.Hash, _ int) []common.Hash {
-				return []common.Hash{
-					topic,
-				}
-			}),
+			Topics: [][]common.Hash{
+				s.filter.LogTopics,
+			},
 		}
 
 		// Get logs by filter.
@@ -222,8 +222,15 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 				return fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
 			}
 
+			s.state = s.pendingState
+
+			s.pendingState.BlockHash = block.Hash
+			s.pendingState.BlockNumber++
+
 			// Push an empty task slice to the channel to update the block number.
 			tasksChan <- make([]engine.Task, 0)
+
+			continue
 		}
 
 		// Update state by two phase commit to avoid data inconsistency.
@@ -252,8 +259,14 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 			return nil, fmt.Errorf("no receipt matched to transaction hash %s", transaction.Hash)
 		}
 
+		chain, err := filter.EthereumChainIDString(s.Network().String())
+		if err != nil {
+			return nil, fmt.Errorf("unsupported chain %s", s.Network())
+		}
+
 		task := Task{
 			Network:     s.Network(),
+			ChainID:     uint64(chain),
 			Header:      block.Header(),
 			Transaction: transaction,
 			Receipt:     receipt,

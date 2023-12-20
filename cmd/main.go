@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/config/flag"
@@ -18,6 +19,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/tdewolff/minify/v2/minify"
 	"go.uber.org/zap"
 )
 
@@ -67,6 +69,11 @@ func runHub(ctx context.Context, config *config.File, databaseClient database.Cl
 }
 
 func runIndexer(ctx context.Context, config *config.File, databaseClient database.Client) error {
+	parameters, err := minify.JSON(lo.Must(flags.GetString(flag.KeyIndexerParameters)))
+	if err != nil {
+		return fmt.Errorf("invalid indexer parameters: %w", err)
+	}
+
 	network, err := filter.NetworkString(lo.Must(flags.GetString(flag.KeyIndexerNetwork)))
 	if err != nil {
 		return fmt.Errorf("network string: %w", err)
@@ -78,7 +85,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 	}
 
 	for _, nodeConfig := range config.Node.Decentralized {
-		if nodeConfig.Network == network && nodeConfig.Worker == worker {
+		if nodeConfig.Network == network && nodeConfig.Worker == worker && strings.EqualFold(nodeConfig.Parameters.String(), parameters) {
 			server, err := indexer.NewServer(ctx, nodeConfig, databaseClient)
 			if err != nil {
 				return fmt.Errorf("new server: %w", err)
@@ -88,7 +95,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 		}
 	}
 
-	return fmt.Errorf("unsupported indexer %s.%s", network, worker)
+	return fmt.Errorf("undefined indexer %s.%s.%s", network, worker, parameters)
 }
 
 func initializeLogger() {
@@ -106,6 +113,7 @@ func init() {
 	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")
 	command.PersistentFlags().String(flag.KeyIndexerNetwork, filter.NetworkEthereum.String(), "indexer network")
 	command.PersistentFlags().String(flag.KeyIndexerWorker, engine.Fallback.String(), "indexer worker")
+	command.PersistentFlags().String(flag.KeyIndexerParameters, "{}", "indexer parameters")
 }
 
 func main() {
