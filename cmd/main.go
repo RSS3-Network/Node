@@ -52,7 +52,7 @@ var command = cobra.Command{
 		case node.Hub:
 			return runHub(cmd.Context(), config, databaseClient)
 		case node.Indexer:
-			return runIndexer(cmd.Context(), config, lo.Must(flags.GetString(flag.KeyIndexerParameters)), databaseClient)
+			return runIndexer(cmd.Context(), config, databaseClient)
 		}
 
 		return fmt.Errorf("unsupported module %s", lo.Must(flags.GetString(flag.KeyModule)))
@@ -68,8 +68,8 @@ func runHub(ctx context.Context, config *config.File, databaseClient database.Cl
 	return server.Run(ctx)
 }
 
-func runIndexer(ctx context.Context, config *config.File, parameters string, databaseClient database.Client) error {
-	parameters, err := minify.JSON(parameters)
+func runIndexer(ctx context.Context, config *config.File, databaseClient database.Client) error {
+	parameters, err := minify.JSON(lo.Must(flags.GetString(flag.KeyIndexerParameters)))
 	if err != nil {
 		return fmt.Errorf("invalid indexer parameters: %w", err)
 	}
