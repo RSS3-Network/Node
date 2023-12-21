@@ -35,7 +35,7 @@ func (w *worker) Name() string {
 
 // Filter returns a filter for source.
 func (w *worker) Filter() engine.SourceFilter {
-	return nil
+	return &source.Filter{OwnerAddresses: []string{mirror.AddressMirror}}
 }
 
 // Match returns true if the task is an Arweave task.

@@ -45,3 +45,6 @@ component:
     - network: arweave
       worker: mirror
       endpoint: https://arweave.net
+      parameters:
+        block_height_start:
+        rpc_thread_blocks:

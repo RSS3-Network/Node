@@ -11,6 +11,12 @@ indexers:
     endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
     parameters:
       block_number_start: 14748840
+  - network: arweave
+    endpoint: https://arweave.net/
+    worker: mirror
+    parameters:
+      block_height_start: 1300034
+      rpc_thread_blocks: 1
 additionalRSS:
   - network: rss
     endpoint: https://rsshub.app/
