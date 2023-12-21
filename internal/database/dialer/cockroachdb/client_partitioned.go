@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sort"
 	"sync"
 	"time"
 
@@ -223,6 +224,10 @@ func (c *client) findFeedsPartitioned(ctx context.Context, query model.FeedsQuer
 
 	lo.ForEach(result, func(feed *schema.Feed, i int) {
 		result[i].Actions = lo.Slice(feed.Actions, 0, query.ActionLimit)
+	})
+
+	sort.SliceStable(result, func(i, j int) bool {
+		return result[i].Timestamp > result[j].Timestamp
 	})
 
 	return result, nil
