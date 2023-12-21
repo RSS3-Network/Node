@@ -7,9 +7,9 @@ import (
 )
 
 type Option struct {
-	BlockHeightStart  *big.Int
-	BlockHeightTarget *big.Int
-	RPCThreadBlocks   uint64
+	BlockHeightStart  *big.Int `yaml:"block_height_start"`
+	BlockHeightTarget *big.Int `yaml:"block_height_target"`
+	RPCThreadBlocks   uint64   `yaml:"rpc_thread_blocks"`
 }
 
 func NewOption(options *engine.Options) (*Option, error) {
