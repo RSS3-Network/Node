@@ -14,6 +14,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const (
+	// FeedSpamLimit The restriction conditions for judging the feed to be spam cannot be changed at will.
+	FeedSpamLimit = 100
+)
+
 type Feed struct {
 	ID           string           `gorm:"column:id"`
 	Network      filter.Network   `gorm:"column:network"`
@@ -60,13 +65,28 @@ func (f *Feed) Import(feed *schema.Feed) error {
 	f.Actions = make(FeedActions, 0)
 	f.Timestamp = time.Unix(int64(feed.Timestamp), 0)
 
-	// TODO Need to filter spam actions.
-
 	if feed.Fee != nil {
 		f.Fee = new(Fee)
 
 		if err := f.Fee.Import(feed.Fee); err != nil {
 			return fmt.Errorf("invalid fee: %w", err)
+		}
+	}
+
+	// spam transactions only retain last one action
+	if f.TotalActions > FeedSpamLimit {
+		for i := len(feed.Actions) - 1; i >= 0; i-- {
+			item := new(FeedAction)
+
+			if err := item.Import(feed.Actions[i]); err != nil {
+				return err
+			}
+
+			if f.Tag.String() == item.Tag && f.Type == item.Type {
+				f.Actions = append(f.Actions, item)
+
+				return nil
+			}
 		}
 	}
 
