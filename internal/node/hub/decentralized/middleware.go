@@ -2,9 +2,10 @@ package decentralized
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/labstack/echo/v4"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
-	"reflect"
 )
 
 func (h *Hub) Bind(i interface{}, c echo.Context) error {
@@ -49,6 +50,7 @@ func (h *Hub) Bind(i interface{}, c echo.Context) error {
 					if err == nil {
 						field = req.FieldByName("Type")
 						value = reflect.ValueOf(typex)
+
 						break
 					}
 				}
@@ -75,6 +77,7 @@ func (h *Hub) Bind(i interface{}, c echo.Context) error {
 				default:
 					field.Set(value)
 				}
+
 				delete(queryParams, k)
 			}
 		}
