@@ -22,6 +22,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// Worker is the worker for OpenSea.
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
@@ -40,6 +41,7 @@ func (w *worker) Name() string {
 	return engine.OpenSea.String()
 }
 
+// Filter opensea contract address and event hash.
 func (w *worker) Filter() engine.SourceFilter {
 	return &source.Filter{
 		LogAddresses: []common.Address{
@@ -61,7 +63,6 @@ func (w *worker) Filter() engine.SourceFilter {
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	switch task.GetNetwork() {
-	// Match Ethereum network.
 	case filter.NetworkEthereum:
 		// Match Ethereum task.
 		task := task.(*source.Task)
@@ -88,24 +89,27 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	}
 }
 
+// Transform Ethereum task to feed.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	// Build default opensea feed from task.
 	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformOpenSea))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
 
-	// Match and handle logs.
+	// Match and handle ethereum logs.
 	for _, log := range ethereumTask.Receipt.Logs {
 		var (
 			actions []*schema.Action
 			err     error
 		)
 
+		// Match opensea core contract events
 		switch {
 		case w.matchWyvernExchangeV1Orders(ethereumTask, log):
 			actions, err = w.transformWyvernExchangeV1Orders(ctx, ethereumTask, log)
@@ -121,7 +125,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			return nil, err
 		}
 
-		// Overwrite the type for feed.
+		// Change feed type to the first action type.
 		for _, action := range actions {
 			feed.Type = action.Type
 		}
@@ -132,19 +136,24 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	return feed, nil
 }
 
+// matchWyvernExchangeV1Orders matches WyvernExchangeV1 OrdersMatched event.
 func (w *worker) matchWyvernExchangeV1Orders(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == opensea.AddressWyvernExchangeV1 && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], opensea.EventHashWyvernExchangeV1OrdersMatched)
 }
 
+// matchWyvernExchangeV2Orders matches WyvernExchangeV2 OrdersMatched event.
 func (w *worker) matchWyvernExchangeV2Orders(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == opensea.AddressWyvernExchangeV2 && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], opensea.EventHashWyvernExchangeV2OrdersMatched)
 }
 
+// matchSeaportV1OrderFulfilled matches SeaportV1 OrderFulfilled event.
 func (w *worker) matchSeaportV1OrderFulfilled(_ *source.Task, log *ethereum.Log) bool {
+	// Match SeaportV1 OrderFulfilled event.
 	if !contract.MatchEventHashes(log.Topics[0], opensea.EventHashSeaportV1OrderFulfilled) {
 		return false
 	}
 
+	// Match SeaportV1 contract address.
 	return contract.MatchAddresses(
 		log.Address,
 		opensea.AddressSeaportV1Dot0, opensea.AddressSeaportV1Dot1, opensea.AddressSeaportV1Dot2,
@@ -152,7 +161,9 @@ func (w *worker) matchSeaportV1OrderFulfilled(_ *source.Task, log *ethereum.Log)
 	)
 }
 
+// transformWyvernExchangeV1Orders transforms WyvernExchangeV1 OrdersMatched event.
 func (w *worker) transformWyvernExchangeV1Orders(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	// Parse OrdersMatched event.
 	event, err := w.wyvernExchangeV1Filterer.ParseOrdersMatched(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse OrdersMatched event: %w", err)
@@ -171,11 +182,13 @@ func (w *worker) transformWyvernExchangeV1Orders(ctx context.Context, task *sour
 
 		switch {
 		case log.Topics[0] == erc721.EventHashTransfer && len(log.Topics) == 4:
+			// Parse erc721 transfer event.
 			transferEvent, err := w.erc721Filterer.ParseTransfer(log.Export())
 			if err != nil {
 				return nil, fmt.Errorf("parse transfer event: %w", err)
 			}
 
+			// If the taker is not the recipient, swap the maker and taker.
 			if event.Taker != transferEvent.To {
 				event.Maker, event.Taker = event.Taker, event.Maker
 			}
@@ -184,11 +197,13 @@ func (w *worker) transformWyvernExchangeV1Orders(ctx context.Context, task *sour
 			nftID = transferEvent.TokenId
 			nftValue = big.NewInt(1)
 		case log.Topics[0] == erc1155.EventHashTransferSingle:
+			// Parse erc1155 transfer event.
 			transferEvent, err := w.erc1155Filterer.ParseTransferSingle(log.Export())
 			if err != nil {
 				return nil, fmt.Errorf("parse transfer event: %w", err)
 			}
 
+			// If the taker is not the recipient, swap the maker and taker.
 			if event.Taker != transferEvent.To {
 				event.Maker, event.Taker = event.Taker, event.Maker
 			}
@@ -201,6 +216,7 @@ func (w *worker) transformWyvernExchangeV1Orders(ctx context.Context, task *sour
 		}
 	}
 
+	// Build collectible trade action.
 	action, err := w.buildEthereumCollectibleTradeAction(ctx, task, event.Maker, event.Taker, nftAddress, nftID, nftValue, nil, event.Price)
 	if err != nil {
 		return nil, err
@@ -216,11 +232,13 @@ func (w *worker) transformWyvernExchangeV2Orders(ctx context.Context, task *sour
 }
 
 func (w *worker) transformSeaportV1OrderFulfilled(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	// Parse OrderFulfilled event.
 	event, err := w.seaportV1Filterer.ParseOrderFulfilled(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse OrderFulfilled event: %w", err)
 	}
 
+	// The seller is the maker, and the buyer is the taker.
 	seller, buyer := event.Offerer, event.Recipient
 
 	var (
@@ -230,6 +248,8 @@ func (w *worker) transformSeaportV1OrderFulfilled(ctx context.Context, task *sou
 		nftID, nftValue *big.Int
 	)
 
+	// Go through event.Offer to get the offer token.
+	// handle different item types.
 	for _, offer := range event.Offer {
 		switch offer.ItemType {
 		case opensea.ItemTypeNative:
@@ -241,6 +261,8 @@ func (w *worker) transformSeaportV1OrderFulfilled(ctx context.Context, task *sou
 		}
 	}
 
+	// Go through event.Consideration to get the offer token.
+	// handle different item types.
 	for _, consideration := range event.Consideration {
 		switch consideration.ItemType {
 		case opensea.ItemTypeNative:
@@ -265,6 +287,7 @@ func (w *worker) transformSeaportV1OrderFulfilled(ctx context.Context, task *sou
 		}
 	}
 
+	// Build collectible trade action.
 	action, err := w.buildEthereumCollectibleTradeAction(ctx, task, seller, buyer, nft, nftID, nftValue, offerToken, offerValue)
 	if err != nil {
 		return nil, err
@@ -282,6 +305,7 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 
 	nftValue = lo.Ternary(nftValue == nil, big.NewInt(1), nftValue)
 
+	// Get collectible token metadata.
 	collectibleTokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &nft, nftID, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup collectible token metadata: %w", err)
@@ -290,6 +314,7 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 	collectibleTokenMetadata.ID = lo.ToPtr(decimal.NewFromBigInt(nftID, 0))
 	collectibleTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(nftValue, 0))
 
+	// Get offer token metadata.
 	costTokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, offerToken, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup collectible token metadata: %w", err)
@@ -317,7 +342,7 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 	return &action, nil
 }
 
-// NewWorker creates a new RSS3 worker.
+// NewWorker creates a new OpenSea worker.
 func NewWorker(config *engine.Config) (engine.Worker, error) {
 	var (
 		err      error
@@ -326,10 +351,12 @@ func NewWorker(config *engine.Config) (engine.Worker, error) {
 		}
 	)
 
+	// Initialize ethereum client.
 	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
 		return nil, fmt.Errorf("initialize ethereum client: %w", err)
 	}
 
+	// Initialize token client.
 	instance.tokenClient = token.NewClient(instance.ethereumClient)
 
 	// Initialize opensea filterers.
