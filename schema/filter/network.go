@@ -1,5 +1,7 @@
 package filter
 
+import "github.com/labstack/echo/v4"
+
 //go:generate go run --mod=mod github.com/dmarkham/enumer@v1.5.9 --values --type=Network --linecomment --output network_string.go --json --yaml --sql
 type Network uint64
 
@@ -10,6 +12,19 @@ const (
 	NetworkArweave                  // arweave
 	NetworkFarcaster                // farcaster
 )
+
+var _ echo.BindUnmarshaler = (*Network)(nil)
+
+func (n *Network) UnmarshalParam(param string) error {
+	network, err := NetworkString(param)
+	if err != nil {
+		return err
+	}
+
+	*n = network
+
+	return nil
+}
 
 type NetworkSource string
 

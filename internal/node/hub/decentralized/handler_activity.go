@@ -41,18 +41,22 @@ func (h *Hub) GetActivity(c echo.Context) error {
 	})
 }
 
-func (h *Hub) GetAccountActivities(c echo.Context) error {
+func (h *Hub) GetAccountActivities(c echo.Context) (err error) {
 	request := AccountActivitiesRequest{}
 
-	if err := c.Bind(&request); err != nil {
+	if err = c.Bind(&request); err != nil {
 		return response.BadRequestError(c, err)
 	}
 
-	if err := c.Validate(&request); err != nil {
+	if request.Type, err = h.parseParams(c.QueryParams(), request.Tag); err != nil {
+		return response.BadRequestError(c, err)
+	}
+
+	if err = c.Validate(&request); err != nil {
 		return response.ValidateFailedError(c, err)
 	}
 
-	if err := defaults.Set(&request); err != nil {
+	if err = defaults.Set(&request); err != nil {
 		return response.InternalError(c, err)
 	}
 
@@ -70,6 +74,7 @@ func (h *Hub) GetAccountActivities(c echo.Context) error {
 		ActionLimit:    request.ActionLimit,
 		Status:         request.Status,
 		Direction:      request.Direction,
+		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(request.Type),
 		Platforms:      lo.Uniq(request.Platform),
