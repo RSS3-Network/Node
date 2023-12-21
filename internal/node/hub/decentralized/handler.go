@@ -2,8 +2,8 @@ package decentralized
 
 import (
 	"fmt"
+	"net/url"
 
-	"github.com/labstack/echo/v4"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
@@ -47,14 +47,14 @@ type MetaCursor struct {
 	Cursor string `json:"cursor"`
 }
 
-func (h *Hub) parseTypes(c echo.Context, tags []filter.Tag) ([]filter.Type, error) {
+func (h *Hub) parseParams(params url.Values, tags []filter.Tag) ([]filter.Type, error) {
 	if len(tags) == 0 {
 		return nil, nil
 	}
 
 	types := make([]filter.Type, 0)
 
-	for _, typex := range c.QueryParams()["type"] {
+	for _, typex := range params["type"] {
 		var (
 			value filter.Type
 			err   error

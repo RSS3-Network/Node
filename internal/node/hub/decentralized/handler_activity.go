@@ -48,7 +48,7 @@ func (h *Hub) GetAccountActivities(c echo.Context) (err error) {
 		return response.BadRequestError(c, err)
 	}
 
-	if request.Type, err = h.parseTypes(c, request.Tag); err != nil {
+	if request.Type, err = h.parseParams(c.QueryParams(), request.Tag); err != nil {
 		return response.BadRequestError(c, err)
 	}
 
