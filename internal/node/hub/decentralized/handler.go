@@ -18,7 +18,7 @@ type AccountActivitiesRequest struct {
 	Cursor         *string           `query:"cursor" description:"Specify the cursor used for pagination"`
 	SinceTimestamp *uint64           `query:"since_timestamp" description:"Retrieve activities starting from this timestamp" examples:"[1654000000]"`
 	UntilTimestamp *uint64           `query:"until_timestamp" description:"Retrieve activities up to this timestamp" examples:"[1696000000]"`
-	Status         *bool             `query:"status" description:"Retrieve activities based on status"`
+	Status         *bool             `query:"success" description:"Retrieve activities based on status"`
 	Direction      *filter.Direction `query:"direction" description:"Retrieve activities based on direction"`
 	Network        []filter.Network  `query:"network" description:"Retrieve activities from the specified network(s)" examples:"[[\"ethereum\",\"polygon\"]]"`
 	Tag            []filter.Tag      `query:"tag" description:"Retrieve activities from the specified tag(s)"`
