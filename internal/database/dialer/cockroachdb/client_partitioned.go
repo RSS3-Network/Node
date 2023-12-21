@@ -12,7 +12,6 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroachdb/table"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/schema"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -547,11 +546,7 @@ func (c *client) buildFindIndexesStatement(ctx context.Context, partition string
 	}
 
 	if len(query.Network) > 0 {
-		networks := lo.Map(query.Network, func(network filter.Network, _ int) string {
-			return network.String()
-		})
-
-		databaseStatement = databaseStatement.Where("networks IN ?", networks)
+		databaseStatement = databaseStatement.Where("network IN ?", query.Network)
 	}
 
 	if query.Cursor != nil && query.Cursor.Timestamp > 0 {

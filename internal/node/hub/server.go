@@ -35,7 +35,6 @@ func NewServer(ctx context.Context, config *config.File, databaseClient database
 
 	instance.httpServer.HideBanner = true
 	instance.httpServer.HidePort = true
-	instance.httpServer.Binder = instance.hub.Decentralized
 	instance.httpServer.Validator = &Validator{
 		validate: validator.New(),
 	}

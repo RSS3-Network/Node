@@ -1,6 +1,9 @@
 package decentralized
 
 import (
+	"fmt"
+
+	"github.com/labstack/echo/v4"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
@@ -22,7 +25,7 @@ type AccountActivitiesRequest struct {
 	Direction      *filter.Direction `query:"direction" description:"Retrieve activities based on direction"`
 	Network        []filter.Network  `query:"network" description:"Retrieve activities from the specified network(s)" examples:"[[\"ethereum\",\"polygon\"]]"`
 	Tag            []filter.Tag      `query:"tag" description:"Retrieve activities from the specified tag(s)"`
-	Type           []filter.Type     `query:"type" description:"Retrieve activities from the specified type(s)"`
+	Type           []filter.Type     `query:"-" description:"Retrieve activities from the specified type(s)"`
 	Platform       []filter.Platform `query:"platform" description:"Retrieve activities from the specified platform(s)"`
 }
 
@@ -42,4 +45,34 @@ type MetaTotalPages struct {
 
 type MetaCursor struct {
 	Cursor string `json:"cursor"`
+}
+
+func (h *Hub) parseTypes(c echo.Context, tags []filter.Tag) ([]filter.Type, error) {
+	if len(tags) == 0 {
+		return nil, nil
+	}
+
+	types := make([]filter.Type, 0)
+
+	for _, typex := range c.QueryParams()["type"] {
+		var (
+			value filter.Type
+			err   error
+		)
+
+		for _, tag := range tags {
+			value, err = filter.TypeString(tag, typex)
+			if err == nil {
+				types = append(types, value)
+
+				break
+			}
+		}
+
+		if err != nil {
+			return nil, fmt.Errorf("invalid type: %s", typex)
+		}
+	}
+
+	return types, nil
 }
