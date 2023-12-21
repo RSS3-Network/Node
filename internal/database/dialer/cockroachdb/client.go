@@ -161,7 +161,9 @@ func (c *client) LoadDatasetMirrorPost(ctx context.Context, originContentDigest 
 		}
 
 		// Initialize a default post.
-		value = table.DatasetMirrorPost{}
+		value = table.DatasetMirrorPost{
+			OriginContentDigest: originContentDigest,
+		}
 	}
 
 	return value.Export()

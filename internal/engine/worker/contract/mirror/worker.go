@@ -219,7 +219,7 @@ func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, m
 	if originContentDigest != "" {
 		post, err := w.databaseClient.LoadDatasetMirrorPost(ctx, originContentDigest)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("load dataset mirror post: %w", err)
 		}
 
 		if post != nil && txID != post.TransactionID {
