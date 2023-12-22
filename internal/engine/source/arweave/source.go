@@ -12,12 +12,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave/bundle"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 )
 
@@ -61,9 +63,37 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 		return
 	}
 
-	// Start a goroutine to poll blocks.
 	go func() {
-		errorChan <- s.pollBlocks(ctx, tasksChan, s.filter)
+		// Retryable function.
+		retryableFunc := func() error {
+			errorChan <- s.pollBlocks(ctx, tasksChan, s.filter)
+			return s.pollBlocks(ctx, tasksChan, s.filter)
+		}
+
+		onRetryFunc := func(n uint, err error) {
+			zap.L().Error("arweave source start", zap.Uint("retry", n), zap.Error(err))
+		}
+
+		// Set default value of RPCRetryAttempts and RPCRetryInterval.
+		if s.option.RPCRetryAttempts == 0 {
+			s.option.RPCRetryAttempts = 10
+		}
+
+		if s.option.RPCRetryInterval == 0 {
+			s.option.RPCRetryInterval = 2000
+		}
+
+		// If poll blocks failed, retry it.
+		err := retry.Do(
+			retryableFunc,
+			retry.OnRetry(onRetryFunc),
+			retry.Attempts(s.option.RPCRetryAttempts),
+			retry.Delay(cast.ToDuration(s.option.RPCRetryInterval)),
+		)
+
+		if err != nil {
+			zap.L().Error("Retry failed due to error", zap.Error(err))
+		}
 	}()
 }
 

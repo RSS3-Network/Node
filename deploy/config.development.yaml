@@ -41,10 +41,11 @@ component:
     - network: farcaster
       worker: farcaster
       endpoint: https://nemes.farcaster.xyz:2281
-
     - network: arweave
       worker: mirror
-      endpoint: https://arweave.net
+      endpoint: https://arweave.net/
       parameters:
         block_height_start:
         rpc_thread_blocks:
+        rpc_retry_attempts:
+        rpc_retry_interval:
