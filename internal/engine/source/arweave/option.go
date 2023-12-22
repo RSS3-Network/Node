@@ -10,8 +10,6 @@ type Option struct {
 	BlockHeightStart  *big.Int `yaml:"block_height_start"`
 	BlockHeightTarget *big.Int `yaml:"block_height_target"`
 	RPCThreadBlocks   uint64   `yaml:"rpc_thread_blocks"`
-	RPCRetryAttempts  uint     `yaml:"rpc_retry_attempts"`
-	RPCRetryInterval  uint     `yaml:"rpc_retry_interval"`
 }
 
 func NewOption(options *engine.Options) (*Option, error) {

@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/Khan/genqlient v0.6.0
 	github.com/avast/retry-go/v4 v4.5.1
+	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/creasty/defaults v1.7.0
 	github.com/ethereum/go-ethereum v1.13.5
 	github.com/gabriel-vasile/mimetype v1.4.2
@@ -18,7 +19,6 @@ require (
 	github.com/samber/lo v1.38.1
 	github.com/shopspring/decimal v1.3.1
 	github.com/sourcegraph/conc v0.3.0
-	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.18.0
@@ -87,6 +87,7 @@ require (
 	github.com/sethvargo/go-retry v0.2.4 // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect
 	github.com/spf13/afero v1.11.0 // indirect
+	github.com/spf13/cast v1.6.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/supranational/blst v0.3.11 // indirect
 	github.com/tdewolff/parse/v2 v2.7.7 // indirect

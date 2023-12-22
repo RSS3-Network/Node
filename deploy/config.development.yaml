@@ -47,5 +47,3 @@ component:
       parameters:
         block_height_start:
         rpc_thread_blocks:
-        rpc_retry_attempts:
-        rpc_retry_interval:
