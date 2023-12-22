@@ -43,7 +43,6 @@ component:
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start:
-        block_number_target:
     - network: farcaster
       worker: farcaster
       endpoint: https://nemes.farcaster.xyz:2281
