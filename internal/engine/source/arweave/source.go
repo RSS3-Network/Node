@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cenkalti/backoff/v4"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave/bundle"
@@ -57,32 +56,13 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 	// Initialize source.
 	if err := s.initialize(); err != nil {
 		errorChan <- fmt.Errorf("initialize source: %w", err)
+
 		return
 	}
 
+	// Start a goroutine to poll blocks.
 	go func() {
-		retryableFunc := func() error {
-			err := s.pollBlocks(ctx, tasksChan, s.filter)
-			if err != nil {
-				errorChan <- err
-			}
-
-			return err
-		}
-
-		onRetryFunc := func(err error, duration time.Duration) {
-			zap.L().Error("arweave source start", zap.Duration("retry after", duration), zap.Error(err))
-		}
-
-		// Create a new exponential backoff policy
-		backoffPolicy := backoff.NewExponentialBackOff()
-		backoffPolicy.InitialInterval = 500 * time.Millisecond
-
-		err := backoff.RetryNotify(retryableFunc, backoffPolicy, onRetryFunc)
-
-		if err != nil {
-			zap.L().Error("Retry failed due to error", zap.Error(err))
-		}
+		errorChan <- s.pollBlocks(ctx, tasksChan, s.filter)
 	}()
 }
 
