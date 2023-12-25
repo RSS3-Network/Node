@@ -10,9 +10,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/gabriel-vasile/mimetype"
-	syncx "github.com/naturalselectionlabs/rss3-node/common/sync"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 // DefaultClient is the default client.
@@ -122,33 +123,46 @@ func (c *client) queryArweaveByRoute(ctx context.Context, path string) (io.ReadC
 	c.locker.RLock()
 	defer c.locker.RUnlock()
 
-	quickGroup := syncx.NewQuickGroup[io.ReadCloser](ctx)
+	var data io.ReadCloser
 
-	// Try to fetch from all gateways.
-	for _, gateway := range c.gateways {
-		gateway := gateway
+	var err error
 
-		quickGroup.Go(func(ctx context.Context) (io.ReadCloser, error) {
+	retryableFunc := func() error {
+		for _, gateway := range c.gateways {
 			requestURL, err := url.JoinPath(gateway, path)
 			if err != nil {
-				return nil, fmt.Errorf("invalid gateway url: %w", err)
+				return fmt.Errorf("invalid gateway url: %w", err)
 			}
 
-			data, err := c.do(ctx, http.MethodGet, requestURL, nil)
-			if err != nil {
-				return nil, fmt.Errorf("fetch from gateway %s: %w", gateway, err)
+			data, err = c.do(ctx, http.MethodGet, requestURL, nil)
+			if err == nil {
+				// Successful response received, return the data.
+				return nil
 			}
+		}
 
-			return data, nil
-		})
+		// If all gateways have been tried and none succeeded, return the last error.
+		return fmt.Errorf("fetch from all gateways failed: %w", err)
 	}
 
-	result, err := quickGroup.Wait()
+	onRetryFunc := func(err error, duration time.Duration) {
+		// Log the error and the backoff duration.
+		zap.L().Error("retry failed", zap.Error(err), zap.Duration("duration", duration))
+	}
+
+	// Create a new exponential backoff policy
+	backoffPolicy := backoff.NewExponentialBackOff()
+	backoffPolicy.InitialInterval = 500 * time.Millisecond
+
+	err = backoff.RetryNotify(retryableFunc, backoffPolicy, onRetryFunc)
+
 	if err != nil {
-		return nil, fmt.Errorf("fetch from all gateways: %w", err)
+		// Log the error after all retries have failed.
+		zap.L().Error("retry failed", zap.Error(err))
+		return nil, err
 	}
 
-	return result, nil
+	return data, nil
 }
 
 // do send an HTTP request with the given method, url and body.
