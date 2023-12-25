@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gabriel-vasile/mimetype"
 	syncx "github.com/naturalselectionlabs/rss3-node/common/sync"
 	"github.com/samber/lo"
 )
@@ -27,6 +28,7 @@ type Client interface {
 	GetBlockHeight(ctx context.Context) (blockHeight int64, err error)
 	GetBlockByHeight(ctx context.Context, height int64) (block *Block, err error)
 	GetTransactionByID(ctx context.Context, id string) (transaction *Transaction, err error)
+	GetContentType(ctx context.Context, path string) (string, error)
 }
 
 // Ensure that client implements Client.
@@ -166,6 +168,38 @@ func (c *client) do(ctx context.Context, method string, url string, body io.Read
 	}
 
 	return response.Body, nil
+}
+
+// GetContentType returns the content type of the given url.
+func (c *client) GetContentType(ctx context.Context, url string) (string, error) {
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return "", fmt.Errorf("create request: %w", err)
+	}
+
+	// nolint:bodyclose // False positive.
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return "", fmt.Errorf("send request: %w", err)
+	}
+
+	defer lo.Try(response.Body.Close)
+
+	if response.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("expected status code %d", response.StatusCode)
+	}
+
+	// Use the mimetype package to detect the MIME type directly from the response body
+	mimeType, err := mimetype.DetectReader(response.Body)
+	if err != nil {
+		return "", fmt.Errorf("error detecting mime type: %w", err)
+	}
+
+	if mimeType == nil {
+		return "", fmt.Errorf("can not detect mime type %s", url)
+	}
+
+	return mimeType.String(), nil
 }
 
 // ClientOption is the type of the options passed to NewClient.

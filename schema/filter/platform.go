@@ -13,6 +13,7 @@ const (
 	PlatformRSS3      Platform = iota + 1 // RSS3
 	PlatformMirror                        // Mirror
 	PlatformFarcaster                     // Farcaster
+	PlatformParagraph                     // Paragraph
 )
 
 func (p Platform) ID() string {
