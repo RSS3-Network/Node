@@ -15,6 +15,7 @@ const (
 	PlatformFarcaster                     // Farcaster
 	PlatformParagraph                     // Paragraph
 	PlatformOpenSea                       // OpenSea
+	PlatformOptimism                      // Optimism
 )
 
 func (p Platform) ID() string {
