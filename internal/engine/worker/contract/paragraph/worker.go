@@ -76,12 +76,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	feed.Timestamp = timestamp
 
 	// Feed type should be inferred from the action (if it's revise)
-	if actions != nil {
+	if actions[0] != nil {
 		feed.Type = actions[0].Type
 		feed.Actions = append(feed.Actions, actions...)
 	}
-
-	fmt.Printf("======\nfeed: %+v\n", feed)
 
 	return feed, nil
 }
@@ -179,6 +177,7 @@ func (w *worker) buildParagraphAction(_ context.Context, from, to string, paragr
 	return &action, nil
 }
 
+// buildParagraphMetadata Returns the metadata of the paragraph post.
 func (w *worker) buildParagraphMetadata(ctx context.Context, handle, contentURI string, contentData []byte) (*metadata.SocialPost, error) {
 	paragraphData := gjson.ParseBytes(contentData)
 
@@ -201,6 +200,7 @@ func (w *worker) buildParagraphMetadata(ctx context.Context, handle, contentURI 
 		}
 	}
 
+	// Get media from collectibleImgUrl
 	if paragraphData.Get("collectibleImgUrl").Exists() {
 		address := paragraphData.Get("collectibleImgUrl").String()
 		if address != "" {

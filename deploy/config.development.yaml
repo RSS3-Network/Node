@@ -51,5 +51,5 @@ component:
       worker: paragraph
       endpoint: https://arweave.net
       parameters:
-        block_height_start: 1300034
-        rpc_thread_blocks: 3
+        block_height_start:
+        rpc_thread_blocks:
