@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"fmt"
+	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
 	"log"
 	"math/big"
 	"os"
@@ -11,8 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
+	sourceethereum "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/endpoint"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
@@ -31,13 +31,13 @@ var command = &cobra.Command{
 			task engine.Task
 			tmpl = template.New("")
 
-			network  = lo.Must(cmd.PersistentFlags().GetString("network"))
+			source   = filter.NetworkSource(lo.Must(cmd.PersistentFlags().GetString("source")))
 			endpoint = lo.Must(cmd.PersistentFlags().GetString("endpoint"))
 			feed     = lo.Must(cmd.PersistentFlags().GetString("feed"))
 		)
 
-		switch network {
-		case filter.NetworkEthereum.String():
+		switch source {
+		case filter.NetworkEthereumSource:
 			tmpl.Funcs(template.FuncMap{
 				"BytesToHex": func(value []byte) string {
 					return hexutil.Encode(value)
@@ -47,14 +47,19 @@ var command = &cobra.Command{
 				},
 			})
 
-			chainID, err := filter.EthereumChainIDString(network)
-			if err != nil {
-				return fmt.Errorf("unsupported ethereum chain: %w", err)
-			}
-
 			ethereumClient, err := ethereum.Dial(cmd.Context(), endpoint)
 			if err != nil {
 				return fmt.Errorf("dial to endpoint: %w", err)
+			}
+
+			chainID, err := ethereumClient.ChainID(cmd.Context())
+			if err != nil {
+				return fmt.Errorf("get chain id: %w", err)
+			}
+
+			network := filter.EthereumChainID(chainID.Uint64())
+			if !network.IsAEthereumChainID() {
+				return fmt.Errorf("unsupported chain id %d", chainID.Uint64())
 			}
 
 			transaction, err := ethereumClient.TransactionByHash(cmd.Context(), common.HexToHash(feed))
@@ -72,21 +77,21 @@ var command = &cobra.Command{
 				return fmt.Errorf("get block by hash: %w", err)
 			}
 
-			task = &source.Task{
-				ChainID:     uint64(chainID),
+			task = &sourceethereum.Task{
+				ChainID:     chainID.Uint64(),
 				Header:      header,
 				Transaction: transaction,
 				Receipt:     receipt,
 			}
 		default:
-			return fmt.Errorf("unsupport network %s", network)
+			return fmt.Errorf("unsupport source %s", source)
 		}
 
 		if tmpl, err = tmpl.ParseFS(embedFS, "template/*.tmpl"); err != nil {
 			return fmt.Errorf("parse templates: %w", err)
 		}
 
-		if err := tmpl.ExecuteTemplate(os.Stdout, network, task); err != nil {
+		if err := tmpl.ExecuteTemplate(os.Stdout, string(source), task); err != nil {
 			return fmt.Errorf("execute template: %w", err)
 		}
 
@@ -95,7 +100,7 @@ var command = &cobra.Command{
 }
 
 func init() {
-	command.PersistentFlags().String("network", filter.NetworkEthereum.String(), "")
+	command.PersistentFlags().String("source", string(filter.NetworkEthereumSource), "")
 	command.PersistentFlags().String("endpoint", endpoint.MustGet(filter.NetworkEthereum), "")
 	command.PersistentFlags().String("feed", "0xf74008a8fde35012c5bc9c897c1d413fe0befbc9e6fc9b6d8bfab38b7dd3c6bd", "")
 }
