@@ -3,7 +3,6 @@ package main
 import (
 	"embed"
 	"fmt"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
 	"log"
 	"math/big"
 	"os"
@@ -13,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	sourceethereum "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
+	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/endpoint"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
