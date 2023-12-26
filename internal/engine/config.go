@@ -22,6 +22,23 @@ type Config struct {
 	Parameters *Options       `yaml:"parameters"`
 }
 
+// ID returns the unique identifier of the configuration.
+func (c *Config) ID() string {
+	id := fmt.Sprintf("%s.%s", c.Network, c.Worker)
+
+	if c.Parameters != nil {
+		var buffer map[string]any
+
+		lo.Must0(c.Parameters.Decode(&buffer))
+
+		if buffer != nil {
+			id = fmt.Sprintf("%s.%s", id, string(lo.Must(json.Marshal(buffer))))
+		}
+	}
+
+	return id
+}
+
 var _ fmt.Stringer = (*Options)(nil)
 
 type Options struct {
