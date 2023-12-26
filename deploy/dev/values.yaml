@@ -16,13 +16,13 @@ indexers:
     worker: mirror
     parameters:
       block_height_start: 1275799
-      rpc_thread_blocks: 3
+      rpc_thread_blocks: 1
   - network: arweave
     endpoint: https://arweave.net/
     worker: paragraph
     parameters:
       block_height_start: 1275799
-      rpc_thread_blocks: 3
+      rpc_thread_blocks: 1
 additionalRSS:
   - network: rss
     endpoint: https://rsshub.app/

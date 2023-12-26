@@ -36,20 +36,7 @@ func (w *worker) Filter() engine.SourceFilter {
 
 // Match returns true if the task is an Arweave task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	switch task.GetNetwork().Source() {
-	case filter.NetworkArweaveSource:
-		task := task.(*source.Task)
-
-		// Check if the transaction belongs to the paragraph contract.
-		owner, err := arweave.PublicKeyToAddress(task.Transaction.Owner)
-		if err != nil {
-			return false, fmt.Errorf("parse transaction owner: %w", err)
-		}
-
-		return owner == paragraph.AddressParagraph, nil
-	default:
-		return false, nil
-	}
+	return task.GetNetwork().Source() == filter.NetworkArweaveSource, nil
 }
 
 // Transform returns a feed with the action of the task.
