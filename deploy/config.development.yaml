@@ -17,6 +17,12 @@ database:
   partition: true
   uri: postgres://root@localhost:26257/defaultdb
 
+stream:
+  enable: false
+  driver: kafka
+  topic: rss3.node.feeds
+  uri: localhost:9092
+
 component:
   rss:
     - network: rss
@@ -40,7 +46,7 @@ component:
         block_number_target:
     - network: farcaster
       worker: farcaster
-      endpoint: https://nemes.farcaster.xyz:2281
+      endpoint: https://8ea83e.hubs.neynar.com:2281
 
     - network: arweave
       worker: mirror

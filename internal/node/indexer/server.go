@@ -11,6 +11,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/source"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker"
+	"github.com/naturalselectionlabs/rss3-node/internal/stream"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
@@ -23,6 +24,7 @@ type Server struct {
 	source         engine.Source
 	worker         engine.Worker
 	databaseClient database.Client
+	streamClient   stream.Client
 }
 
 func (s *Server) Run(ctx context.Context) error {
@@ -122,15 +124,23 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 			return fmt.Errorf("save checkpoint: %w", err)
 		}
 
+		// Push feeds to the stream.
+		if s.streamClient != nil && len(feeds) > 0 {
+			if err := s.streamClient.PushFeeds(ctx, feeds); err != nil {
+				return fmt.Errorf("publish %d feeds: %w", len(feeds), err)
+			}
+		}
+
 		return nil
 	})
 }
 
-func NewServer(ctx context.Context, config *engine.Config, databaseClient database.Client) (server *Server, err error) {
+func NewServer(ctx context.Context, config *engine.Config, databaseClient database.Client, streamClient stream.Client) (server *Server, err error) {
 	instance := Server{
 		id:             fmt.Sprintf("%s.%s", config.Network, config.Worker),
 		config:         config,
 		databaseClient: databaseClient,
+		streamClient:   streamClient,
 	}
 
 	// Initialize worker.
