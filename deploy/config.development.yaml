@@ -50,3 +50,9 @@ component:
       parameters:
         block_height_start:
         rpc_thread_blocks:
+    - network: arweave
+      worker: paragraph
+      endpoint: https://arweave.net
+      parameters:
+        block_height_start:
+        rpc_thread_blocks:
