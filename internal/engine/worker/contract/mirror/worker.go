@@ -35,7 +35,7 @@ func (w *worker) Name() string {
 
 // Filter returns a filter for source.
 func (w *worker) Filter() engine.SourceFilter {
-	return nil
+	return &source.Filter{OwnerAddresses: []string{mirror.AddressMirror}}
 }
 
 // Match returns true if the task is an Arweave task.
@@ -219,7 +219,7 @@ func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, m
 	if originContentDigest != "" {
 		post, err := w.databaseClient.LoadDatasetMirrorPost(ctx, originContentDigest)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("load dataset mirror post: %w", err)
 		}
 
 		if post != nil && txID != post.TransactionID {

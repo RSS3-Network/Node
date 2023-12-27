@@ -2,11 +2,11 @@ package ethereum_test
 
 import (
 	"context"
+	"math/big"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/fallback/ethereum"
@@ -39,35 +39,41 @@ func TestWorker_Ethereum(t *testing.T) {
 			arguments: arguments{
 				task: &source.Task{
 					Network: filter.NetworkEthereum,
+					ChainID: 1,
 					Header: &ethereum.Header{
-						// TODO Provide all fields.
-						Timestamp: 1647774927,
+						Hash:         common.HexToHash("0xea9d0ecd7a085aa998789e8e9c017a7d45f199873380ecb568218525171165b0"),
+						ParentHash:   common.HexToHash("0x5eaec1d0cb27184353b58d38ee2d1c1fdabdde060b781af03e68fc4fb2e5af12"),
+						UncleHash:    common.HexToHash("0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"),
+						Coinbase:     common.HexToAddress("0xEA674fdDe714fd979de3EdF0F56AA9716B898ec8"),
+						Number:       lo.Must(new(big.Int).SetString("14422928", 0)),
+						GasLimit:     29999972,
+						GasUsed:      29944698,
+						Timestamp:    1647774927,
+						BaseFee:      lo.Must(new(big.Int).SetString("15564031841", 0)),
+						Transactions: nil,
 					},
 					Transaction: &ethereum.Transaction{
-						BlockHash:   common.HexToHash("0xea9d0ecd7a085aa998789e8e9c017a7d45f199873380ecb568218525171165b0"),
-						BlockNumber: lo.Must(hexutil.DecodeBig("0xdc1390")),
-						From:        common.HexToAddress("0x000000A52a03835517E9d193B3c27626e1Bc96b1"),
-						Gas:         0x5208,
-						GasPrice:    nil,
-						Hash:        common.HexToHash("0x0c2f413efbc243f3bb8edac7e70bdc21936e01401a21b0d63e97732aa80f5d99"),
-						Input:       nil,
-						To:          lo.ToPtr(common.HexToAddress("0xa1b2dcac834117f38fb0356b5176b5693e165c90")),
-						Index:       0xf4,
-						Value:       lo.Must(hexutil.DecodeBig("0xd48ed9972b634")),
-						Type:        types.DynamicFeeTxType,
-						ChainID:     lo.Must(hexutil.DecodeBig("0x1")),
+						BlockHash: common.HexToHash("0x0c2f413efbc243f3bb8edac7e70bdc21936e01401a21b0d63e97732aa80f5d99"),
+						From:      common.HexToAddress("0x000000A52a03835517E9d193B3c27626e1Bc96b1"),
+						Gas:       21000,
+						Hash:      common.HexToHash("0x0c2f413efbc243f3bb8edac7e70bdc21936e01401a21b0d63e97732aa80f5d99"),
+						Input:     nil,
+						To:        lo.ToPtr(common.HexToAddress("0xA1b2DCAC834117F38FB0356b5176B5693E165c90")),
+						Value:     lo.Must(new(big.Int).SetString("3739360016119348", 0)),
+						Type:      2,
+						ChainID:   lo.Must(new(big.Int).SetString("1", 0)),
 					},
 					Receipt: &ethereum.Receipt{
 						BlockHash:         common.HexToHash("0xea9d0ecd7a085aa998789e8e9c017a7d45f199873380ecb568218525171165b0"),
-						BlockNumber:       lo.Must(hexutil.DecodeBig("0xdc1390")),
+						BlockNumber:       lo.Must(new(big.Int).SetString("14422928", 0)),
 						ContractAddress:   nil,
-						CumulativeGasUsed: 0x18b21de,
-						EffectiveGasPrice: lo.Must(hexutil.DecodeBig("0x3b8c8f46b")),
-						GasUsed:           0x5208,
-						Logs:              nil,
-						Status:            types.ReceiptStatusSuccessful,
+						CumulativeGasUsed: 25895390,
+						EffectiveGasPrice: hexutil.MustDecodeBig("0x3b8c8f46b"),
+						GasUsed:           21000,
+						Logs:              []*ethereum.Log{},
+						Status:            1,
 						TransactionHash:   common.HexToHash("0x0c2f413efbc243f3bb8edac7e70bdc21936e01401a21b0d63e97732aa80f5d99"),
-						TransactionIndex:  0xf4,
+						TransactionIndex:  244,
 					},
 				},
 				config: &engine.Config{
