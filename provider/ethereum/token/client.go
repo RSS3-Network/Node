@@ -39,11 +39,21 @@ var _ Client = (*client)(nil)
 
 // client is a client to look up token metadata.
 type client struct {
-	ethereumClient ethereum.Client
+	ethereumClient     ethereum.Client
+	unexpectedTokenMap map[uint64]map[common.Address]LookupFunc
 }
 
 // Lookup looks up token metadata, it supports ERC-20, ERC-721, ERC-1155 and native token.
 func (c *client) Lookup(ctx context.Context, chainID uint64, address *common.Address, id, blockNumber *big.Int) (*metadata.Token, error) {
+	// Lookup unexpected token
+	if address != nil {
+		if lookupMap, exists := c.unexpectedTokenMap[chainID]; exists {
+			if lookup, exists := lookupMap[*address]; exists {
+				return lookup(ctx, chainID, address, id, blockNumber)
+			}
+		}
+	}
+
 	switch {
 	case address != nil && id == nil: // ERC-20 token
 		return c.lookupERC20(ctx, chainID, *address, blockNumber)
@@ -204,10 +214,35 @@ func (c *client) lookupNative(_ context.Context, chainID uint64, _ *common.Addre
 	return &tokenMetadata, nil
 }
 
+// lookupENS looks up ENS token metadata.
+func (c *client) lookupENS(_ context.Context, _ uint64, address *common.Address, id, _ *big.Int) (*metadata.Token, error) {
+	tokenMetadata := metadata.Token{
+		Address:  lo.ToPtr(address.String()),
+		Symbol:   "ENS",
+		URI:      fmt.Sprintf("https://metadata.ens.domains/mainnet/%v/%v", address, id),
+		Standard: contract.StandardERC721,
+	}
+
+	if id == nil {
+		return &tokenMetadata, nil
+	}
+
+	tokenMetadata.ID = lo.ToPtr(decimal.NewFromBigInt(id, 0))
+
+	return &tokenMetadata, nil
+}
+
 // NewClient returns a new client.
 func NewClient(ethereumClient ethereum.Client) Client {
 	instance := client{
 		ethereumClient: ethereumClient,
+	}
+
+	instance.unexpectedTokenMap = map[uint64]map[common.Address]LookupFunc{
+		1: {
+			// ENS
+			common.HexToAddress("0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85"): instance.lookupENS,
+		},
 	}
 
 	return &instance
