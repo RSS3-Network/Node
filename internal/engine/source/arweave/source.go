@@ -52,7 +52,6 @@ func (s *source) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-// Start starts the source.
 func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, errorChan chan<- error) {
 	// Initialize source.
 	if err := s.initialize(); err != nil {

@@ -137,7 +137,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 
 func NewServer(ctx context.Context, config *engine.Config, databaseClient database.Client, streamClient stream.Client) (server *Server, err error) {
 	instance := Server{
-		id:             fmt.Sprintf("%s.%s", config.Network, config.Worker),
+		id:             config.ID(),
 		config:         config,
 		databaseClient: databaseClient,
 		streamClient:   streamClient,

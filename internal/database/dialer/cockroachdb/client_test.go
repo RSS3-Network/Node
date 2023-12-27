@@ -23,14 +23,14 @@ func TestClient(t *testing.T) {
 	testcases := []struct {
 		name        string
 		driver      database.Driver
-		partition   bool
+		partition   *bool
 		feedCreated []*schema.Feed
 		feedUpdated []*schema.Feed
 	}{
 		{
 			name:      "cockroach",
 			driver:    database.DriverCockroachDB,
-			partition: true,
+			partition: lo.ToPtr(true),
 			feedCreated: []*schema.Feed{
 				{
 					ID:      "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
@@ -99,7 +99,7 @@ func TestClient(t *testing.T) {
 			var err error
 
 			for {
-				container, dataSourceName, err = createContainer(context.Background(), testcase.driver, testcase.partition)
+				container, dataSourceName, err = createContainer(context.Background(), testcase.driver, *testcase.partition)
 				if err == nil {
 					break
 				}
@@ -159,7 +159,7 @@ func TestClient(t *testing.T) {
 func createContainer(ctx context.Context, driver database.Driver, partition bool) (container *gnomock.Container, dataSourceName string, err error) {
 	config := database.Config{
 		Driver:    driver,
-		Partition: partition,
+		Partition: &partition,
 	}
 
 	switch driver {

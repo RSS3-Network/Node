@@ -157,7 +157,7 @@ func TestWorker_Arweave(t *testing.T) {
 	databaseClient, err := dialer.Dial(context.Background(), &database.Config{
 		Driver:    driver,
 		URI:       dataSourceName,
-		Partition: partition,
+		Partition: &partition,
 	})
 	require.NoError(t, err)
 
@@ -192,7 +192,7 @@ func TestWorker_Arweave(t *testing.T) {
 func createContainer(ctx context.Context, driver database.Driver, partition bool) (container *gnomock.Container, dataSourceName string, err error) {
 	config := database.Config{
 		Driver:    driver,
-		Partition: partition,
+		Partition: &partition,
 	}
 
 	switch driver {
