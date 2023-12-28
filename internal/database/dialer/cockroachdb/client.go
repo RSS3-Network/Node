@@ -122,11 +122,54 @@ func (c *client) LoadCheckpoint(ctx context.Context, id string, network filter.N
 	return value.Export()
 }
 
+func (c *client) LoadCheckpoints(ctx context.Context, id string, network filter.Network, worker string) ([]*engine.Checkpoint, error) {
+	databaseStatement := c.database.WithContext(ctx)
+
+	var checkpoints []*table.Checkpoint
+
+	zap.L().Info("load checkpoints", zap.String("id", id), zap.String("network", network.String()), zap.String("worker", worker))
+
+	if id != "" {
+		databaseStatement = databaseStatement.Where("id = ?", id)
+	}
+
+	if network != filter.NetworkUnknown {
+		databaseStatement = databaseStatement.Where("network = ?", network)
+	}
+
+	if worker != "" {
+		databaseStatement = databaseStatement.Where("worker= ?", worker)
+	}
+
+	if err := databaseStatement.Find(&checkpoints).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+	}
+
+	result := make([]*engine.Checkpoint, 0, len(checkpoints))
+
+	for _, checkpoint := range checkpoints {
+		data, err := checkpoint.Export()
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, data)
+	}
+
+	return result, nil
+}
+
 func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error {
 	clauses := []clause.Expression{
 		clause.OnConflict{
-			Columns:   []clause.Column{{Name: "id"}},
-			DoUpdates: clause.AssignmentColumns([]string{"state", "updated_at"}),
+			Columns: []clause.Column{{Name: "id"}},
+			DoUpdates: clause.Assignments(map[string]interface{}{
+				"state":       checkpoint.State,
+				"updated_at":  time.Now(),
+				"index_count": gorm.Expr("checkpoints.index_count + ?", checkpoint.IndexCount),
+			}),
 		},
 	}
 

@@ -112,6 +112,8 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		return feed != nil
 	})
 
+	checkpoint.IndexCount = int64(len(feeds))
+
 	// Save feeds and checkpoint to the database.
 	return s.databaseClient.WithTransaction(ctx, func(ctx context.Context, client database.Client) error {
 		if err := client.SaveFeeds(ctx, feeds); err != nil {
