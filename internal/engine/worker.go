@@ -17,6 +17,7 @@ const (
 	Farcaster                 // farcaster
 	RSS3                      // rss3
 	Paragraph                 // paragraph
+	OpenSea                   // opensea
 )
 
 type Worker interface {

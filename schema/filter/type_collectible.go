@@ -18,4 +18,5 @@ const (
 	TypeCollectibleApproval
 	TypeCollectibleMint
 	TypeCollectibleBurn
+	TypeCollectibleTrade
 )

@@ -18,6 +18,7 @@
         BlockHash: common.HexToHash("{{ .Transaction.Hash }}"),
         From: common.HexToAddress("{{ .Transaction.From }}"),
         Gas: {{ .Transaction.Gas }},
+        GasPrice: lo.Must(new(big.Int).SetString("{{ .Transaction.GasPrice }}", 10)),
         Hash: common.HexToHash("{{ .Transaction.Hash }}"),
         Input: {{ if .Transaction.Input }}hexutil.MustDecode("{{ BytesToHex .Transaction.Input }}"){{ else }}nil{{ end }},
         To: {{ if .Transaction.To }}lo.ToPtr(common.HexToAddress("{{ .Transaction.To }}")){{ else }}nil{{ end }},
