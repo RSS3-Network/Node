@@ -14,6 +14,7 @@ const (
 	PlatformMirror                        // Mirror
 	PlatformFarcaster                     // Farcaster
 	PlatformParagraph                     // Paragraph
+	PlatformOpenSea                       // OpenSea
 )
 
 func (p Platform) ID() string {
