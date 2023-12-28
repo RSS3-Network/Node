@@ -2,8 +2,13 @@ package lens
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"math/big"
+	"strings"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
@@ -14,6 +19,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
 	"github.com/samber/lo"
 )
 
@@ -191,8 +197,28 @@ func (w *worker) matchEthereumV2ProfileCreated(_ *source.Task, log *ethereum.Log
 }
 
 // transformEthereumV1PostCreated transforms V1 PostCreated event.
-func (w *worker) transformEthereumV1PostCreated(_ context.Context, _ *source.Task, _ *ethereum.Log) ([]*schema.Action, error) {
-	return []*schema.Action{}, nil
+func (w *worker) transformEthereumV1PostCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.eventsFiltererV1.ParsePostCreated(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse post created: %w", err)
+	}
+
+	actionFrom, err := w.getLensOwnerOf(ctx, log.BlockNumber, event.ProfileId)
+	if err != nil {
+		return nil, err
+	}
+
+	post, platform, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, event.ContentURI)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build post created action.
+	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform, filter.TypeSocialPost, *post)
+
+	return []*schema.Action{
+		action,
+	}, nil
 }
 
 // transformEthereumV1CommentCreated transforms V1 CommentCreated event.
@@ -243,6 +269,135 @@ func (w *worker) transformEthereumV2Collected(_ context.Context, _ *source.Task,
 // transformEthereumV2ProfileCreated transforms V2 ProfileCreated event.
 func (w *worker) transformEthereumV2ProfileCreated(_ context.Context, _ *source.Task, _ *ethereum.Log) ([]*schema.Action, error) {
 	return []*schema.Action{}, nil
+}
+
+func (w *worker) buildEthereumTransactionPostAction(_ context.Context, from common.Address, to common.Address, platform string, socialType filter.Type, post metadata.SocialPost) *schema.Action {
+	return &schema.Action{
+		From:     from.String(),
+		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
+		Platform: platform,
+		Type:     socialType,
+		Metadata: post,
+	}
+}
+
+func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blockNumber *big.Int, profileID, pubID *big.Int, contentURI string) (*metadata.SocialPost, string, error) {
+	handle, err := w.getLensHandle(ctx, blockNumber, profileID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	content, err := w.getEthereumPublication(ctx, contentURI)
+	if err != nil {
+		return nil, "", err
+	}
+
+	var publication PublicationV1
+	if err = json.Unmarshal(content, &publication); err != nil {
+		return nil, "", fmt.Errorf("unmarshal publication: %w", err)
+	}
+
+	return &metadata.SocialPost{
+		Handle: handle,
+		Body:   publication.Content,
+		Media: lo.Map(publication.Media, func(media PublicationMedia, index int) metadata.Media {
+			return metadata.Media{
+				MimeType: media.Type,
+				Address:  media.Item,
+			}
+		}),
+		ProfileID:     EncodeID(profileID),
+		PublicationID: EncodeID(pubID),
+		ContentURI:    contentURI,
+		Tags:          lo.If(len(publication.Tags) > 0, publication.Tags).Else(nil),
+	}, publication.AppID, nil
+}
+
+func (w *worker) getLensOwnerOf(_ context.Context, blockNumber *big.Int, profileID *big.Int) (*common.Address, error) {
+	if blockNumber.Int64() < lens.BlockNumberLensV2 {
+		address, err := w.lensHubV1.OwnerOf(&bind.CallOpts{BlockNumber: blockNumber}, profileID)
+		if err != nil {
+			return nil, fmt.Errorf("get ethereum owner v1 of: %w, profile id: %d", err, profileID)
+		}
+
+		return &address, nil
+	}
+
+	address, err := w.lensHubV2.OwnerOf(&bind.CallOpts{BlockNumber: blockNumber}, profileID)
+	if err != nil {
+		return nil, fmt.Errorf("get ethereum owner v2 of: %w, profile id: %d", err, profileID)
+	}
+
+	return &address, nil
+}
+
+func (w *worker) getLensHandle(_ context.Context, blockNumber *big.Int, profileID *big.Int) (string, error) {
+	if profileID == nil || profileID.Int64() == 0 {
+		return "", nil
+	}
+
+	if blockNumber.Int64() < lens.BlockNumberLensV2 {
+		profile, err := w.lensHubV1.GetProfile(&bind.CallOpts{BlockNumber: blockNumber}, profileID)
+		if err != nil {
+			return "", fmt.Errorf("get ethereum profile v1: %w, profile id: %d", err, profileID)
+		}
+
+		return profile.Handle, nil
+	}
+
+	handleHash, err := w.handleRegistryV2.GetDefaultHandle(&bind.CallOpts{BlockNumber: blockNumber}, profileID)
+	if err != nil {
+		return "", fmt.Errorf("get ethereum default handle v2: %w, profile id: %d", err, profileID)
+	}
+
+	name, err := w.lensHandleV2.GetLocalName(&bind.CallOpts{BlockNumber: blockNumber}, handleHash)
+	if err != nil {
+		return "", fmt.Errorf("get ethereum local name v2: %w, handle hash: %s", err, handleHash)
+	}
+
+	return fmt.Sprintf("%s.lens", name), nil
+}
+
+func (w *worker) getEthereumPublication(ctx context.Context, contentURI string) (json.RawMessage, error) {
+	if len(contentURI) == 0 {
+		return []byte("{}"), nil
+	}
+
+	body, err := w.getPublicationFromHTTP(ctx, contentURI)
+	if err != nil {
+		return nil, err
+	}
+
+	content, err := io.ReadAll(body)
+	if err != nil {
+		return nil, fmt.Errorf("read all body: %w", err)
+	}
+
+	return content, nil
+}
+
+func (w *worker) getPublicationFromHTTP(ctx context.Context, contentURL string) (io.ReadCloser, error) {
+	// get from ipfs
+	if _, path, err := ipfs.ParseURL(contentURL); err == nil {
+		resp, err := w.ipfsClient.Fetch(ctx, path, ipfs.FetchModeQuick)
+		if err != nil {
+			return nil, fmt.Errorf("quick fetch ipfs: %w", err)
+		}
+
+		return resp, nil
+	}
+
+	// get from arweave
+	if strings.HasPrefix(contentURL, "ar://") {
+		//	remove ar:// prefix
+		contentURL = contentURL[5:]
+	} else if strings.HasPrefix(contentURL, "https://arweave.net/") {
+		//	 remove https://arweave.net/
+		contentURL = contentURL[19:]
+	}
+
+	// http request
+	return w.arweaveClient.GetTransactionData(ctx, contentURL)
 }
 
 // NewWorker creates a new Lens worker.
