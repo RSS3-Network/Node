@@ -62,31 +62,7 @@ func (w *worker) Filter() engine.SourceFilter {
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	switch task.GetNetwork() {
-	case filter.NetworkEthereum:
-		// Match Ethereum task.
-		task := task.(*source.Task)
-		if task.Transaction.To == nil {
-			return false, nil
-		}
-
-		// Match OpenSea contract.
-		switch *task.Transaction.To {
-		case
-			opensea.AddressWyvernExchangeV1,
-			opensea.AddressWyvernExchangeV2,
-			opensea.AddressSeaportV1Dot1,
-			opensea.AddressSeaportV1Dot2,
-			opensea.AddressSeaportV1Dot3,
-			opensea.AddressSeaportV1Dot4,
-			opensea.AddressSeaportV1Dot5:
-			return true, nil
-		default:
-			return false, nil
-		}
-	default:
-		return false, nil
-	}
+	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
 }
 
 // Transform Ethereum task to feed.
