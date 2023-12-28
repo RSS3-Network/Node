@@ -13,7 +13,7 @@ indexers:
       block_number_start: 14748840
   - network: ethereum
     worker: opensea
-    endpoint: https://rpc.ankr.com/eth
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
     parameters:
       block_number_start: 18000000
   - network: arweave
