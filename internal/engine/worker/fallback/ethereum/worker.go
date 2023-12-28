@@ -104,7 +104,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			return nil, fmt.Errorf("handle ERC-20 transfer log: %w", err)
 		}
 
-		feed.Actions = append(feed.Actions, actions...)
+		if len(actions) > 0 {
+			feed.Type, feed.Actions = actions[0].Type, append(feed.Actions, actions...)
+		}
 	}
 
 	return feed, nil
@@ -323,8 +325,19 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
+	var actionType filter.TransactionType
+
+	switch {
+	case ethereum.IsBurnAddress(to):
+		actionType = filter.TypeTransactionBurn
+	case ethereum.AddressGenesis == from:
+		actionType = filter.TypeTransactionBurn
+	default:
+		actionType = filter.TypeTransactionTransfer
+	}
+
 	action := schema.Action{
-		Type:     filter.TypeTransactionTransfer,
+		Type:     actionType,
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
