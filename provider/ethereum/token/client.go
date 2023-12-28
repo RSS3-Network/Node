@@ -239,7 +239,7 @@ func NewClient(ethereumClient ethereum.Client) Client {
 	}
 
 	instance.unexpectedTokenMap = map[uint64]map[common.Address]LookupFunc{
-		1: {
+		uint64(filter.EthereumChainIDMainnet): {
 			// ENS
 			common.HexToAddress("0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85"): instance.lookupENS,
 		},
