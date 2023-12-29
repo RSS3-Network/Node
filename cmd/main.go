@@ -126,6 +126,17 @@ func setOpenTelemetry(config *config.File) error {
 		}
 
 		otel.SetMeterProvider(meterProvider)
+
+		meterServer, err := telemetry.OpenTelemetryMeterServer()
+		if err != nil {
+			return fmt.Errorf("open telemetry meter server: %w", err)
+		}
+
+		go func() {
+			if err := meterServer.Run(); err != nil {
+				zap.L().Error("failed to run telemetry meter server", zap.Error(err))
+			}
+		}()
 	}
 
 	return nil

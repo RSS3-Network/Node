@@ -20,12 +20,12 @@ database:
 observability:
   opentelemetry:
     metrics:
-      enable: false
+      enable: true
       endpoint: 0.0.0.0:9090
     traces:
-      enable: false
-      insecure: false
-      endpoint: 0.0.0.0:4318
+      enable: true
+      insecure: true
+      endpoint: localhost:4318
 
 component:
   rss:

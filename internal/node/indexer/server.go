@@ -14,15 +14,21 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 type Server struct {
-	id             string
-	config         *engine.Config
-	source         engine.Source
-	worker         engine.Worker
-	databaseClient database.Client
+	id                string
+	config            *engine.Config
+	source            engine.Source
+	worker            engine.Worker
+	databaseClient    database.Client
+	tracer            trace.Tracer
+	meterTasksCounter metric.Int64Counter
 }
 
 func (s *Server) Run(ctx context.Context) error {
@@ -59,6 +65,15 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		Worker:  s.worker.Name(),
 		State:   s.source.State(),
 	}
+
+	ctx, span := s.tracer.Start(ctx, "handleTasks")
+	defer span.End()
+
+	span.SetAttributes(
+		attribute.String("service", constant.Name),
+		attribute.String("worker", s.worker.Name()),
+		attribute.Int("records", len(tasks)),
+	)
 
 	// If no tasks are returned, only save the checkpoint to the database.
 	if len(tasks) == 0 {
@@ -126,11 +141,22 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 	})
 }
 
+func (s *Server) initializeMeter() (err error) {
+	meter := otel.GetMeterProvider().Meter(constant.Name)
+
+	if s.meterTasksCounter, err = meter.Int64Counter("rss3_node_tasks"); err != nil {
+		return fmt.Errorf("create meter of tasks counter: %w", err)
+	}
+
+	return nil
+}
+
 func NewServer(ctx context.Context, config *engine.Config, databaseClient database.Client) (server *Server, err error) {
 	instance := Server{
 		id:             config.ID(),
 		config:         config,
 		databaseClient: databaseClient,
+		tracer:         otel.Tracer(""),
 	}
 
 	// Initialize worker.
@@ -138,6 +164,9 @@ func NewServer(ctx context.Context, config *engine.Config, databaseClient databa
 		return nil, fmt.Errorf("new worker: %w", err)
 	}
 
+	if err := instance.initializeMeter(); err != nil {
+		return nil, fmt.Errorf("initialize meter: %w", err)
+	}
 	// Load checkpoint for initialize the source.
 	checkpoint, err := instance.databaseClient.LoadCheckpoint(ctx, instance.id, config.Network, instance.worker.Name())
 	if err != nil {
