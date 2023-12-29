@@ -73,6 +73,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		attribute.String("service", constant.Name),
 		attribute.String("worker", s.worker.Name()),
 		attribute.Int("records", len(tasks)),
+		attribute.String("state", string(checkpoint.State)),
 	)
 
 	// If no tasks are returned, only save the checkpoint to the database.
