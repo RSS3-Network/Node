@@ -15,11 +15,13 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/node"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/hub"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/indexer"
+	"github.com/naturalselectionlabs/rss3-node/provider/telemetry"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/tdewolff/minify/v2/minify"
+	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 )
 
@@ -36,6 +38,10 @@ var command = cobra.Command{
 		config, err := config.Setup(lo.Must(flags.GetString(flag.KeyConfig)))
 		if err != nil {
 			return fmt.Errorf("setup config file: %w", err)
+		}
+
+		if err := setOpenTelemetry(config); err != nil {
+			return fmt.Errorf("set open telemetry: %w", err)
 		}
 
 		// Dial and migrate database.
@@ -98,6 +104,31 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 	}
 
 	return fmt.Errorf("undefined indexer %s.%s.%s", network, worker, parameters)
+}
+
+func setOpenTelemetry(config *config.File) error {
+	// Set OpenTelemetry global tracer and meter provider.
+	observabilityConfig := config.Observability.OpenTelemetry
+
+	if observabilityConfig.Traces.Enable {
+		tracerProvider, err := telemetry.OpenTelemetryTracer(observabilityConfig)
+		if err != nil {
+			return fmt.Errorf("open telemetry tracer: %w", err)
+		}
+
+		otel.SetTracerProvider(tracerProvider)
+	}
+
+	if observabilityConfig.Metrics.Enable {
+		meterProvider, err := telemetry.OpenTelemetryMeter()
+		if err != nil {
+			return fmt.Errorf("open telemetry meter: %w", err)
+		}
+
+		otel.SetMeterProvider(meterProvider)
+	}
+
+	return nil
 }
 
 func initializeLogger() {

@@ -1,9 +1,10 @@
-package provider
+package telemetry
 
 import (
 	"fmt"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/constant"
+	"github.com/naturalselectionlabs/rss3-node/internal/telemetry"
 	meterx "github.com/naturalselectionlabs/rss3-node/internal/telemetry/meter"
 	tracerx "github.com/naturalselectionlabs/rss3-node/internal/telemetry/tracer"
 	"go.opentelemetry.io/otel/exporters/prometheus"
@@ -15,11 +16,11 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func OpenTelemetryTracer() (trace.TracerProvider, error) {
+func OpenTelemetryTracer(config *telemetry.OpenTelemetryConfig) (trace.TracerProvider, error) {
 	var (
 		tracerDriver   = tracerx.DriverOpenTelemetryProtocol
-		tracerInsecure = false
-		tracerEndpoint = "localhost:4318"
+		tracerInsecure = config.Traces.Insecure
+		tracerEndpoint = config.Traces.Endpoint
 	)
 
 	spanExporter, err := tracerx.Open(tracerx.Driver(tracerDriver), tracerEndpoint, tracerInsecure)
