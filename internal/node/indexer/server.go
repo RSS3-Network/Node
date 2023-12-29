@@ -115,7 +115,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 	checkpoint.IndexCount = int64(len(feeds))
 
 	// Save feeds and checkpoint to the database.
-	return s.databaseClient.WithTransaction(ctx, func(ctx context.Context, client database.Client) error {
+	if err := s.databaseClient.WithTransaction(ctx, func(ctx context.Context, client database.Client) error {
 		if err := client.SaveFeeds(ctx, feeds); err != nil {
 			return fmt.Errorf("save %d feeds: %w", len(feeds), err)
 		}
@@ -126,15 +126,19 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 			return fmt.Errorf("save checkpoint: %w", err)
 		}
 
-		// Push feeds to the stream.
-		if s.streamClient != nil && len(feeds) > 0 {
-			if err := s.streamClient.PushFeeds(ctx, feeds); err != nil {
-				return fmt.Errorf("publish %d feeds: %w", len(feeds), err)
-			}
-		}
-
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+
+	// Push feeds to the stream.
+	if s.streamClient != nil && len(feeds) > 0 {
+		if err := s.streamClient.PushFeeds(ctx, feeds); err != nil {
+			return fmt.Errorf("publish %d feeds: %w", len(feeds), err)
+		}
+	}
+
+	return nil
 }
 
 func NewServer(ctx context.Context, config *engine.Config, databaseClient database.Client, streamClient stream.Client) (server *Server, err error) {
