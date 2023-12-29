@@ -15,7 +15,7 @@ indexers:
     worker: opensea
     endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
     parameters:
-      block_number_start: 18000000
+      block_number_start: 17571053
   - network: arweave
     endpoint: https://arweave.net/
     worker: mirror
