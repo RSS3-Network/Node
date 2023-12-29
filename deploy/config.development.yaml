@@ -17,6 +17,16 @@ database:
   partition: true
   uri: postgres://root@localhost:26257/defaultdb
 
+observability:
+  opentelemetry:
+    metrics:
+      enable: false
+      endpoint: 0.0.0.0:9090
+    traces:
+      enable: false
+      insecure: false
+      endpoint: 0.0.0.0:4318
+
 component:
   rss:
     - network: rss
