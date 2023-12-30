@@ -2,6 +2,7 @@ package worker
 
 import (
 	"fmt"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/aavegotchi"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
@@ -24,6 +25,8 @@ func New(config *engine.Config, databaseClient database.Client) (engine.Worker, 
 		return rss3.NewWorker(config)
 	case engine.Paragraph:
 		return paragraph.NewWorker(config)
+	case engine.Aavegotchi:
+		return aavegotchi.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}

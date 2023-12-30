@@ -12,11 +12,12 @@ import (
 type Name int
 
 const (
-	Fallback  Name = iota + 1 // fallback
-	Mirror                    // mirror
-	Farcaster                 // farcaster
-	RSS3                      // rss3
-	Paragraph                 // paragraph
+	Fallback   Name = iota + 1 // fallback
+	Mirror                     // mirror
+	Farcaster                  // farcaster
+	RSS3                       // rss3
+	Paragraph                  // paragrap
+	Aavegotchi                 // aavegotchi
 )
 
 type Worker interface {

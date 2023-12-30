@@ -10,10 +10,11 @@ import (
 type Platform int
 
 const (
-	PlatformRSS3      Platform = iota + 1 // RSS3
-	PlatformMirror                        // Mirror
-	PlatformFarcaster                     // Farcaster
-	PlatformParagraph                     // Paragraph
+	PlatformRSS3       Platform = iota + 1 // RSS3
+	PlatformMirror                         // Mirror
+	PlatformFarcaster                      // Farcaster
+	PlatformParagraph                      // Paragraph
+	PlatformAavegotchi                     // Aavegotchi
 )
 
 func (p Platform) ID() string {
