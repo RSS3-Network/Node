@@ -77,7 +77,7 @@ func (w *worker) Filter() engine.SourceFilter {
 	}
 }
 
-func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
+func (w *worker) Match(_ context.Context, _ engine.Task) (bool, error) {
 	return true, nil
 }
 
@@ -189,7 +189,7 @@ func (w *worker) matchLiquidityTransaction(task *source.Task, transaction *ether
 	}
 }
 
-func (w *worker) matchNonfungiblePositionManagerTransferLog(task *source.Task, log *ethereum.Log) bool {
+func (w *worker) matchNonfungiblePositionManagerTransferLog(_ *source.Task, log *ethereum.Log) bool {
 	if log.Address != uniswap.AddressNonfungiblePositionManager || len(log.Topics) == 0 || log.Topics[0] != erc721.EventHashTransfer {
 		return false
 	}
@@ -242,7 +242,7 @@ func (w *worker) transformSwapTransaction(ctx context.Context, task *source.Task
 	return actions, nil
 }
 
-func (w *worker) transformLiquidityTransaction(ctx context.Context, task *source.Task, transaction *ethereum.Transaction) (actions []*schema.Action, err error) {
+func (w *worker) transformLiquidityTransaction(ctx context.Context, task *source.Task, _ *ethereum.Transaction) (actions []*schema.Action, err error) {
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
 			continue
