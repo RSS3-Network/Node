@@ -1,0 +1,58 @@
+{{ define "ethereum" }}
+{
+    Network: filter.NetworkEthereum,
+    ChainID: {{ .ChainID }},
+    Header: &ethereum.Header{
+        Hash: common.HexToHash("{{ .Header.Hash}}"),
+        ParentHash: common.HexToHash("{{ .Header.ParentHash}}"),
+        UncleHash: common.HexToHash("{{ .Header.UncleHash}}"),
+        Coinbase: common.HexToAddress("{{ .Header.Coinbase}}"),
+        Number: lo.Must(new(big.Int).SetString("{{ .Header.Number }}", 0)),
+        GasLimit: {{ .Header.GasLimit }},
+        GasUsed: {{ .Header.GasUsed }},
+        Timestamp: {{ .Header.Timestamp }},
+        BaseFee: {{ if .Header.BaseFee }}lo.Must(new(big.Int).SetString("{{ .Header.BaseFee }}", 0)){{ else }}nil{{ end }},
+        Transactions: nil,
+    },
+    Transaction: &ethereum.Transaction{
+        BlockHash: common.HexToHash("{{ .Transaction.Hash }}"),
+        From: common.HexToAddress("{{ .Transaction.From }}"),
+        Gas: {{ .Transaction.Gas }},
+        GasPrice: lo.Must(new(big.Int).SetString("{{ .Transaction.GasPrice }}", 10)),
+        Hash: common.HexToHash("{{ .Transaction.Hash }}"),
+        Input: {{ if .Transaction.Input }}hexutil.MustDecode("{{ BytesToHex .Transaction.Input }}"){{ else }}nil{{ end }},
+        To: {{ if .Transaction.To }}lo.ToPtr(common.HexToAddress("{{ .Transaction.To }}")){{ else }}nil{{ end }},
+        Value: lo.Must(new(big.Int).SetString("{{ .Transaction.Value }}", 0)),
+        Type: {{ .Transaction.Type }},
+        ChainID: {{ if .Transaction.ChainID }}lo.Must(new(big.Int).SetString("{{ .Transaction.ChainID }}", 0)){{ else }}nil{{ end }},
+    },
+    Receipt: &ethereum.Receipt{
+        BlockHash: common.HexToHash("{{ .Receipt.BlockHash }}"),
+        BlockNumber: lo.Must(new(big.Int).SetString("{{ .Receipt.BlockNumber }}", 0)),
+        ContractAddress: {{ if .Receipt.ContractAddress }}lo.ToPtr(common.HexToAddress("{{ .Receipt.ContractAddress }}")){{ else }}nil{{ end }},
+        {{ if .Receipt.CumulativeGasUsed }}CumulativeGasUsed: {{ .Receipt.CumulativeGasUsed }},{{ end }}
+        {{ if .Receipt.EffectiveGasPrice }}EffectiveGasPrice: hexutil.MustDecodeBig("{{ BigIntToHex .Receipt.EffectiveGasPrice }}"),{{ end }}
+        GasUsed: {{ .Receipt.GasUsed }},
+        Logs: []*ethereum.Log{
+            {{- range .Receipt.Logs -}}
+            {
+                Address: common.HexToAddress("{{ .Address }}"),
+                Topics: []common.Hash{
+                {{- range .Topics }}
+                    common.HexToHash("{{ . }}"),
+                {{- end }}
+                },
+                Data: {{ if .Data }}hexutil.MustDecode("{{ BytesToHex .Data }}"){{ else }}nil{{ end }},
+                BlockNumber: lo.Must(new(big.Int).SetString("{{ .BlockNumber }}", 0)),
+                TransactionHash: common.HexToHash("{{ .TransactionHash }}"),
+                Index: {{ .Index }},
+                Removed: {{ .Removed }},
+            },
+            {{- end -}}
+        },
+        Status: {{ .Receipt.Status }},
+        TransactionHash: common.HexToHash("{{ .Receipt.TransactionHash }}"),
+        TransactionIndex: {{ .Receipt.TransactionIndex }},
+    },
+}
+{{ end }}

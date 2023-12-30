@@ -30,9 +30,11 @@ component:
 
   decentralized:
     - network: ethereum
-      chain: mainnet
       worker: fallback
-      endpoint: https://arweave.net/
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
+        block_number_target:
     - network: ethereum
       worker: rss3
       endpoint: https://rpc.ankr.com/eth
@@ -40,15 +42,22 @@ component:
         block_number_start:
         block_number_target:
     - network: ethereum
-      worker: uniswap
+      worker: opensea
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start:
-        block_number_target:
-    - network: arweave
-      chain: mainnet
-      worker: fallback
-      endpoint: https://arweave.net/
     - network: farcaster
       worker: farcaster
       endpoint: https://nemes.farcaster.xyz:2281
+    - network: arweave
+      worker: mirror
+      endpoint: https://arweave.net/
+      parameters:
+        block_height_start:
+        rpc_thread_blocks:
+    - network: arweave
+      worker: paragraph
+      endpoint: https://arweave.net
+      parameters:
+        block_height_start:
+        rpc_thread_blocks:

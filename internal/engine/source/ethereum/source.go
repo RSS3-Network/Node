@@ -310,5 +310,7 @@ func NewSource(config *engine.Config, sourceFilter engine.SourceFilter, checkpoi
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
+	zap.L().Info("apply option", zap.Any("option", instance.option))
+
 	return &instance, nil
 }

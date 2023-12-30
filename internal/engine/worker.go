@@ -16,6 +16,8 @@ const (
 	Mirror                    // mirror
 	Farcaster                 // farcaster
 	RSS3                      // rss3
+	Paragraph                 // paragraph
+	OpenSea                   // opensea
 	Uniswap                   // uniswap
 )
 

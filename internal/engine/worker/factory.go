@@ -6,6 +6,8 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/opensea"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/paragraph"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/rss3"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/uniswap"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/fallback"
@@ -22,6 +24,10 @@ func New(config *engine.Config, databaseClient database.Client) (engine.Worker, 
 		return farcaster.NewWorker()
 	case engine.RSS3:
 		return rss3.NewWorker(config)
+	case engine.Paragraph:
+		return paragraph.NewWorker(config)
+	case engine.OpenSea:
+		return opensea.NewWorker(config)
 	case engine.Uniswap:
 		return uniswap.NewWorker(config)
 	default:

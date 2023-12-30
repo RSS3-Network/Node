@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _TransactionTypeName = "transferapprovalmintburn"
+const _TransactionTypeName = "transferapprovalburnmint"
 
 var _TransactionTypeIndex = [...]uint8{0, 8, 16, 20, 24}
 
-const _TransactionTypeLowerName = "transferapprovalmintburn"
+const _TransactionTypeLowerName = "transferapprovalburnmint"
 
 func (i TransactionType) String() string {
 	i -= 1
@@ -33,21 +33,21 @@ func _TransactionTypeNoOp() {
 	var x [1]struct{}
 	_ = x[TypeTransactionTransfer-(1)]
 	_ = x[TypeTransactionApproval-(2)]
-	_ = x[TypeTransactionMint-(3)]
-	_ = x[TypeTransactionBurn-(4)]
+	_ = x[TypeTransactionBurn-(3)]
+	_ = x[TypeTransactionMint-(4)]
 }
 
-var _TransactionTypeValues = []TransactionType{TypeTransactionTransfer, TypeTransactionApproval, TypeTransactionMint, TypeTransactionBurn}
+var _TransactionTypeValues = []TransactionType{TypeTransactionTransfer, TypeTransactionApproval, TypeTransactionBurn, TypeTransactionMint}
 
 var _TransactionTypeNameToValueMap = map[string]TransactionType{
 	_TransactionTypeName[0:8]:        TypeTransactionTransfer,
 	_TransactionTypeLowerName[0:8]:   TypeTransactionTransfer,
 	_TransactionTypeName[8:16]:       TypeTransactionApproval,
 	_TransactionTypeLowerName[8:16]:  TypeTransactionApproval,
-	_TransactionTypeName[16:20]:      TypeTransactionMint,
-	_TransactionTypeLowerName[16:20]: TypeTransactionMint,
-	_TransactionTypeName[20:24]:      TypeTransactionBurn,
-	_TransactionTypeLowerName[20:24]: TypeTransactionBurn,
+	_TransactionTypeName[16:20]:      TypeTransactionBurn,
+	_TransactionTypeLowerName[16:20]: TypeTransactionBurn,
+	_TransactionTypeName[20:24]:      TypeTransactionMint,
+	_TransactionTypeLowerName[20:24]: TypeTransactionMint,
 }
 
 var _TransactionTypeNames = []string{

@@ -17,7 +17,7 @@ func New(config *engine.Config, sourceFilter engine.SourceFilter, checkpoint *en
 	case filter.NetworkEthereumSource:
 		return ethereum.NewSource(config, sourceFilter, checkpoint)
 	case filter.NetworkArweaveSource:
-		return arweave.NewSource(config, checkpoint)
+		return arweave.NewSource(config, sourceFilter, checkpoint)
 	case filter.NetworkFarcasterSource:
 		return farcaster.NewSource(config, checkpoint, databaseClient)
 	default:
