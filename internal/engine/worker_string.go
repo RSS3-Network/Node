@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _NameName = "fallbackmirrorfarcasterrss3paragraphopensea"
+const _NameName = "fallbackmirrorfarcasterrss3paragraphopenseauniswap"
 
-var _NameIndex = [...]uint8{0, 8, 14, 23, 27, 36, 43}
+var _NameIndex = [...]uint8{0, 8, 14, 23, 27, 36, 43, 50}
 
-const _NameLowerName = "fallbackmirrorfarcasterrss3paragraphopensea"
+const _NameLowerName = "fallbackmirrorfarcasterrss3paragraphopenseauniswap"
 
 func (i Name) String() string {
 	i -= 1
@@ -37,9 +37,10 @@ func _NameNoOp() {
 	_ = x[RSS3-(4)]
 	_ = x[Paragraph-(5)]
 	_ = x[OpenSea-(6)]
+	_ = x[Uniswap-(7)]
 }
 
-var _NameValues = []Name{Fallback, Mirror, Farcaster, RSS3, Paragraph, OpenSea}
+var _NameValues = []Name{Fallback, Mirror, Farcaster, RSS3, Paragraph, OpenSea, Uniswap}
 
 var _NameNameToValueMap = map[string]Name{
 	_NameName[0:8]:        Fallback,
@@ -54,6 +55,8 @@ var _NameNameToValueMap = map[string]Name{
 	_NameLowerName[27:36]: Paragraph,
 	_NameName[36:43]:      OpenSea,
 	_NameLowerName[36:43]: OpenSea,
+	_NameName[43:50]:      Uniswap,
+	_NameLowerName[43:50]: Uniswap,
 }
 
 var _NameNames = []string{
@@ -63,6 +66,7 @@ var _NameNames = []string{
 	_NameName[23:27],
 	_NameName[27:36],
 	_NameName[36:43],
+	_NameName[43:50],
 }
 
 // NameString retrieves an enum value from the enum constants string name.
