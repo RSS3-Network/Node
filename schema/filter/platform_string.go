@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _PlatformName = "RSS3MirrorFarcasterParagraphLens"
+const _PlatformName = "RSS3MirrorFarcasterParagraphPlatformLens                          // LensOpenSeaLens"
 
-var _PlatformIndex = [...]uint8{0, 4, 10, 19, 28, 32}
+var _PlatformIndex = [...]uint8{0, 4, 10, 19, 73, 80, 84}
 
-const _PlatformLowerName = "rss3mirrorfarcasterparagraphlens"
+const _PlatformLowerName = "rss3mirrorfarcasterparagraphplatformlens                          // lensopensealens"
 
 func (i Platform) String() string {
 	i -= 1
@@ -35,10 +35,11 @@ func _PlatformNoOp() {
 	_ = x[PlatformMirror-(2)]
 	_ = x[PlatformFarcaster-(3)]
 	_ = x[PlatformParagraph-(4)]
-	_ = x[PlatformLens-(5)]
+	_ = x[PlatformOpenSea-(5)]
+	_ = x[PlatformLens-(6)]
 }
 
-var _PlatformValues = []Platform{PlatformRSS3, PlatformMirror, PlatformFarcaster, PlatformParagraph, PlatformLens}
+var _PlatformValues = []Platform{PlatformRSS3, PlatformMirror, PlatformFarcaster, PlatformParagraph, PlatformOpenSea, PlatformLens}
 
 var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformName[0:4]:        PlatformRSS3,
@@ -47,18 +48,21 @@ var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformLowerName[4:10]:  PlatformMirror,
 	_PlatformName[10:19]:      PlatformFarcaster,
 	_PlatformLowerName[10:19]: PlatformFarcaster,
-	_PlatformName[19:28]:      PlatformParagraph,
-	_PlatformLowerName[19:28]: PlatformParagraph,
-	_PlatformName[28:32]:      PlatformLens,
-	_PlatformLowerName[28:32]: PlatformLens,
+	_PlatformName[19:73]:      PlatformParagraph,
+	_PlatformLowerName[19:73]: PlatformParagraph,
+	_PlatformName[73:80]:      PlatformOpenSea,
+	_PlatformLowerName[73:80]: PlatformOpenSea,
+	_PlatformName[80:84]:      PlatformLens,
+	_PlatformLowerName[80:84]: PlatformLens,
 }
 
 var _PlatformNames = []string{
 	_PlatformName[0:4],
 	_PlatformName[4:10],
 	_PlatformName[10:19],
-	_PlatformName[19:28],
-	_PlatformName[28:32],
+	_PlatformName[19:73],
+	_PlatformName[73:80],
+	_PlatformName[80:84],
 }
 
 // PlatformString retrieves an enum value from the enum constants string name.
