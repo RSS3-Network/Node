@@ -3,6 +3,8 @@ package aavegotchi
 import (
 	"context"
 	"fmt"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
@@ -15,7 +17,6 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"math/big"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -95,6 +96,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		}
 
 		feed.Actions = append(feed.Actions, action)
+	}
+
+	if feed.Type == filter.TypeMetaverseTrade {
+		return w.handleMetaverseTradeCost(ctx, feed)
 	}
 
 	return feed, nil
@@ -183,6 +188,43 @@ func (w *worker) handleERC20TransferLog(ctx context.Context, task *source.Task, 
 	}
 
 	return w.buildTransferAction(ctx, log.BlockNumber, task.ChainID, actionType, event.From, event.To, event.Raw.Address, nil, event.Value)
+}
+
+func (w *worker) handleMetaverseTradeCost(_ context.Context, feed *schema.Feed) (*schema.Feed, error) {
+	// count the cost of the trade
+	cost := metadata.Token{
+		Value: lo.ToPtr(decimal.NewFromInt(0)),
+	}
+
+	for _, action := range feed.Actions {
+		if action.From != feed.From {
+			continue
+		}
+
+		if action.Type == filter.TypeMetaverseTransfer && action.Metadata.(metadata.MetaverseTransfer).Value != nil {
+			if cost.Value.IsZero() {
+				cost = metadata.Token(action.Metadata.(metadata.MetaverseTransfer))
+			} else {
+				cost.Value = lo.ToPtr(cost.Value.Add(decimal.NewFromBigInt(action.Metadata.(metadata.MetaverseTransfer).Value.BigInt(), 0)))
+			}
+		}
+	}
+
+	for _, action := range feed.Actions {
+		if action.Type == feed.Type {
+			action.Metadata = metadata.MetaverseTrade{
+				Action: action.Metadata.(metadata.MetaverseTrade).Action,
+				Token:  action.Metadata.(metadata.MetaverseTrade).Token,
+				Cost:   cost,
+			}
+
+			feed.Actions = []*schema.Action{action}
+
+			return feed, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no metaverse trade action found")
 }
 
 func (w *worker) buildTradeAction(

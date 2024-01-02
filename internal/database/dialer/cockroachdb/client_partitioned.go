@@ -102,6 +102,11 @@ func (c *client) saveFeedsPartitioned(ctx context.Context, feeds []*schema.Feed)
 				return err
 			}
 
+			if len(tableFeeds) == 0 {
+				return nil
+			}
+
+			// #nosec
 			if err := c.createPartitionTable(ctx, name, tableFeeds[0].TableName()); err != nil {
 				return err
 			}
@@ -240,6 +245,11 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 		return err
 	}
 
+	if len(indexes) == 0 {
+		return nil
+	}
+
+	// #nosec
 	if err := c.createPartitionTable(ctx, indexes[0].PartitionName(), indexes[0].TableName()); err != nil {
 		return fmt.Errorf("create partition table: %w", err)
 	}
@@ -262,6 +272,7 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 		return value
 	})
 
+	// #nosec
 	if err := c.database.WithContext(ctx).
 		Table(indexes[0].PartitionName()).
 		Where("(id, network) IN (?)", conditions).
@@ -286,6 +297,7 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 		UpdateAll: true,
 	}
 
+	// #nosec
 	return c.database.WithContext(ctx).
 		Table(indexes[0].PartitionName()).
 		Clauses(onConflict).

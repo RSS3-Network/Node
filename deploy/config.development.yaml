@@ -51,7 +51,7 @@ component:
       worker: aavegotchi
       endpoint: https://rpc.ankr.com/polygon
       parameters:
-          block_number_start:
+          block_number_start: 48300005
     # farcaster
     - network: farcaster
       worker: farcaster
