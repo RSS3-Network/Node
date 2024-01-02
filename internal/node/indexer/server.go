@@ -126,6 +126,15 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		return feed != nil
 	})
 
+	meterTasksCounterAttributes := metric.WithAttributes(
+		attribute.String("service", constant.Name),
+		attribute.String("worker", s.worker.Name()),
+		attribute.Int("records", len(tasks)),
+		attribute.String("state", string(checkpoint.State)),
+	)
+
+	s.meterTasksCounter.Add(ctx, int64(len(tasks)), meterTasksCounterAttributes)
+
 	// Save feeds and checkpoint to the database.
 	return s.databaseClient.WithTransaction(ctx, func(ctx context.Context, client database.Client) error {
 		if err := client.SaveFeeds(ctx, feeds); err != nil {
