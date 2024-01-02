@@ -53,6 +53,7 @@ func (w *worker) Match(_ context.Context, _ engine.Task) (bool, error) {
 	return true, nil
 }
 
+// Transform transforms the task into an aavegotchi feed.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
 	// Cast the task to an Ethereum task.
 	ethereumTask, ok := task.(*source.Task)
@@ -105,26 +106,32 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	return feed, nil
 }
 
+// matchERC721ListingAdd matches the log for adding ERC721 listing.
 func (w *worker) matchERC721ListingAdd(_ context.Context, log ethereum.Log) bool {
 	return log.Topics[0] == aavegotchi.EventHashERC721ListingAdd
 }
 
+// matchERC721ExecutedListing matches the log for executing ERC721 listing.
 func (w *worker) matchERC721ExecutedListing(_ context.Context, log ethereum.Log) bool {
 	return log.Topics[0] == aavegotchi.EventHashERC721ExecutedListing
 }
 
+// matchERC1155ListingAdd matches the log for adding ERC1155 listing.
 func (w *worker) matchERC1155ListingAdd(_ context.Context, log ethereum.Log) bool {
 	return log.Topics[0] == aavegotchi.EventHashERC1155ListingAdd
 }
 
+// matchERC1155ExecutedListing matches the log for executing ERC1155 listing.
 func (w *worker) matchERC1155ExecutedListing(_ context.Context, log ethereum.Log) bool {
 	return log.Topics[0] == aavegotchi.EventHashERC1155ExecutedListing
 }
 
+// matchERC20TransferLog matches the log for ERC20 transfer.
 func (w *worker) matchERC20TransferLog(_ context.Context, log ethereum.Log) bool {
 	return len(log.Topics) == 3 && log.Topics[0] == erc20.EventHashTransfer
 }
 
+// handleERC721ListingAdd handles the log for adding ERC721 listing.
 func (w *worker) handleERC721ListingAdd(ctx context.Context, task *source.Task, log ethereum.Log, feed *schema.Feed) (*schema.Action, error) {
 	event, err := w.erc721MarketplaceFilterer.ParseERC721ListingAdd(log.Export())
 	if err != nil {
@@ -136,6 +143,7 @@ func (w *worker) handleERC721ListingAdd(ctx context.Context, task *source.Task, 
 	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, feed.Type, metadata.ActionMetaverseTradeList, event.Seller, aavegotchi.AddressAavegotchi, event.Erc721TokenAddress, event.Erc721TokenId, nil)
 }
 
+// handleERC721ExecutedListing handles the log for executing ERC721 listing.
 func (w *worker) handleERC721ExecutedListing(ctx context.Context, task *source.Task, log ethereum.Log, feed *schema.Feed) (*schema.Action, error) {
 	event, err := w.erc721MarketplaceFilterer.ParseERC721ExecutedListing(log.Export())
 	if err != nil {
@@ -149,6 +157,7 @@ func (w *worker) handleERC721ExecutedListing(ctx context.Context, task *source.T
 	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, feed.Type, metadataType, event.Seller, event.Buyer, event.Erc721TokenAddress, event.Erc721TokenId, nil)
 }
 
+// handleERC1155ListingAdd handles the log for adding ERC1155 listing.
 func (w *worker) handleERC1155ListingAdd(ctx context.Context, task *source.Task, log ethereum.Log, feed *schema.Feed) (*schema.Action, error) {
 	event, err := w.erc1155MarketplaceFilterer.ParseERC1155ListingAdd(log.Export())
 	if err != nil {
@@ -160,6 +169,7 @@ func (w *worker) handleERC1155ListingAdd(ctx context.Context, task *source.Task,
 	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, feed.Type, metadata.ActionMetaverseTradeList, event.Seller, aavegotchi.AddressAavegotchi, event.Erc1155TokenAddress, event.Erc1155TypeId, big.NewInt(1))
 }
 
+// handleERC1155ExecutedListing handles the log for executing ERC1155 listing.
 func (w *worker) handleERC1155ExecutedListing(ctx context.Context, task *source.Task, log ethereum.Log, feed *schema.Feed) (*schema.Action, error) {
 	event, err := w.erc1155MarketplaceFilterer.ParseERC1155ExecutedListing(log.Export())
 	if err != nil {
@@ -173,6 +183,7 @@ func (w *worker) handleERC1155ExecutedListing(ctx context.Context, task *source.
 	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, feed.Type, metadataType, event.Seller, event.Buyer, event.Erc1155TokenAddress, event.Erc1155TypeId, big.NewInt(1))
 }
 
+// handleERC20TransferLog handles the log for ERC20 transfer.
 func (w *worker) handleERC20TransferLog(ctx context.Context, task *source.Task, log ethereum.Log, feed *schema.Feed) (*schema.Action, error) {
 	event, err := w.erc20Filterer.ParseTransfer(log.Export())
 	if err != nil {
@@ -190,6 +201,7 @@ func (w *worker) handleERC20TransferLog(ctx context.Context, task *source.Task, 
 	return w.buildTransferAction(ctx, log.BlockNumber, task.ChainID, actionType, event.From, event.To, event.Raw.Address, nil, event.Value)
 }
 
+// handleMetaverseTradeCost counts the cost of the metaverse trade.
 func (w *worker) handleMetaverseTradeCost(_ context.Context, feed *schema.Feed) (*schema.Feed, error) {
 	// count the cost of the trade
 	cost := metadata.Token{
@@ -227,6 +239,7 @@ func (w *worker) handleMetaverseTradeCost(_ context.Context, feed *schema.Feed) 
 	return nil, fmt.Errorf("no metaverse trade action found")
 }
 
+// buildTradeAction builds a metaverse trade action.
 func (w *worker) buildTradeAction(
 	ctx context.Context,
 	blockNumber *big.Int,
@@ -257,6 +270,7 @@ func (w *worker) buildTradeAction(
 	}, nil
 }
 
+// buildTransferAction builds a metaverse transfer action.
 func (w *worker) buildTransferAction(
 	ctx context.Context,
 	blockNumber *big.Int,
