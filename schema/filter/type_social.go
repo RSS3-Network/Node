@@ -19,4 +19,5 @@ const (
 	TypeSocialComment
 	TypeSocialShare
 	TypeSocialProfile
+	TypeSocialMint
 )

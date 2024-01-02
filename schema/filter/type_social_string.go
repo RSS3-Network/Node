@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _SocialTypeName = "postrevisecommentshareprofile"
+const _SocialTypeName = "postrevisecommentshareprofilemint"
 
-var _SocialTypeIndex = [...]uint8{0, 4, 10, 17, 22, 29}
+var _SocialTypeIndex = [...]uint8{0, 4, 10, 17, 22, 29, 33}
 
-const _SocialTypeLowerName = "postrevisecommentshareprofile"
+const _SocialTypeLowerName = "postrevisecommentshareprofilemint"
 
 func (i SocialType) String() string {
 	i -= 1
@@ -36,9 +36,10 @@ func _SocialTypeNoOp() {
 	_ = x[TypeSocialComment-(3)]
 	_ = x[TypeSocialShare-(4)]
 	_ = x[TypeSocialProfile-(5)]
+	_ = x[TypeSocialMint-(6)]
 }
 
-var _SocialTypeValues = []SocialType{TypeSocialPost, TypeSocialRevise, TypeSocialComment, TypeSocialShare, TypeSocialProfile}
+var _SocialTypeValues = []SocialType{TypeSocialPost, TypeSocialRevise, TypeSocialComment, TypeSocialShare, TypeSocialProfile, TypeSocialMint}
 
 var _SocialTypeNameToValueMap = map[string]SocialType{
 	_SocialTypeName[0:4]:        TypeSocialPost,
@@ -51,6 +52,8 @@ var _SocialTypeNameToValueMap = map[string]SocialType{
 	_SocialTypeLowerName[17:22]: TypeSocialShare,
 	_SocialTypeName[22:29]:      TypeSocialProfile,
 	_SocialTypeLowerName[22:29]: TypeSocialProfile,
+	_SocialTypeName[29:33]:      TypeSocialMint,
+	_SocialTypeLowerName[29:33]: TypeSocialMint,
 }
 
 var _SocialTypeNames = []string{
@@ -59,6 +62,7 @@ var _SocialTypeNames = []string{
 	_SocialTypeName[10:17],
 	_SocialTypeName[17:22],
 	_SocialTypeName[22:29],
+	_SocialTypeName[29:33],
 }
 
 // SocialTypeString retrieves an enum value from the enum constants string name.
