@@ -8,6 +8,7 @@ type Network uint64
 const (
 	NetworkUnknown   Network = iota // unknown
 	NetworkEthereum                 // ethereum
+	NetworkPolygon                  // polygon
 	NetworkRSS                      // rss
 	NetworkArweave                  // arweave
 	NetworkFarcaster                // farcaster
@@ -36,7 +37,7 @@ const (
 
 func (n Network) Source() NetworkSource {
 	switch n {
-	case NetworkEthereum:
+	case NetworkEthereum, NetworkPolygon:
 		return NetworkEthereumSource
 	case NetworkArweave:
 		return NetworkArweaveSource
@@ -51,5 +52,6 @@ func (n Network) Source() NetworkSource {
 type EthereumChainID uint64
 
 const (
-	EthereumChainIDMainnet EthereumChainID = 1 // ethereum
+	EthereumChainIDMainnet EthereumChainID = 1   // ethereum
+	EthereumChainIDPolygon EthereumChainID = 137 // polygon
 )

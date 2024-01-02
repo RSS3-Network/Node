@@ -29,11 +29,12 @@ var _ engine.Worker = (*worker)(nil)
 type worker struct {
 	config                         *engine.Config
 	arweaveClient                  arweave.Client
+	ethereumClient                 ethereum.Client
 	ipfsClient                     ipfs.HTTPClient
-	lensHubV1                      *lens.V1LensHub
-	lensHubV2                      *lens.V2LensHub
-	lensHandleV2                   *lens.V2LensHandle
-	handleRegistryV2               *lens.V2HandleRegistry
+	lensHubV1                      *lens.V1LensHubCaller
+	lensHubV2                      *lens.V2LensHubCaller
+	lensHandleV2                   *lens.V2LensHandleCaller
+	handleRegistryV2               *lens.V2HandleRegistryCaller
 	eventsFiltererV1               *lens.V1EventsFilterer
 	eventsFiltererV2               *lens.V2EventsFilterer
 	eventsCollectPublicationAction *lens.V2CollectPublicationActionFilterer
@@ -791,16 +792,40 @@ func NewWorker(config *engine.Config) (engine.Worker, error) {
 		return nil, fmt.Errorf("new arweave client: %w", err)
 	}
 
+	// Initialize ethereum client.
+	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
+		return nil, fmt.Errorf("initialize ethereum client: %w", err)
+	}
 	// Initialize ipfs client.
 	if instance.ipfsClient, err = ipfs.NewHTTPClient(); err != nil {
 		return nil, fmt.Errorf("new ipfs client: %w", err)
 	}
 
+	lensHubV1, err := lens.NewV1LensHubCaller(lens.AddressLensProtocol, instance.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create lens hub v1: %w", err)
+	}
+
+	lensHubV2, err := lens.NewV2LensHubCaller(lens.AddressLensProtocol, instance.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create lens hub v2: %w", err)
+	}
+
+	lensHandleV2, err := lens.NewV2LensHandleCaller(lens.AddressV2LensHandle, instance.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create lens handle v2: %w", err)
+	}
+
+	handleRegistry, err := lens.NewV2HandleRegistryCaller(lens.AddressV2ProfileHandleRegistry, instance.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create handle registry v2: %w", err)
+	}
+
 	// Initialize lens filterers.
-	instance.lensHubV1 = lo.Must(lens.NewV1LensHub(ethereum.AddressGenesis, nil))
-	instance.lensHubV2 = lo.Must(lens.NewV2LensHub(ethereum.AddressGenesis, nil))
-	instance.lensHandleV2 = lo.Must(lens.NewV2LensHandle(ethereum.AddressGenesis, nil))
-	instance.handleRegistryV2 = lo.Must(lens.NewV2HandleRegistry(ethereum.AddressGenesis, nil))
+	instance.lensHubV1 = lensHubV1
+	instance.lensHubV2 = lensHubV2
+	instance.lensHandleV2 = lensHandleV2
+	instance.handleRegistryV2 = handleRegistry
 	instance.eventsFiltererV1 = lo.Must(lens.NewV1EventsFilterer(ethereum.AddressGenesis, nil))
 	instance.eventsFiltererV2 = lo.Must(lens.NewV2EventsFilterer(ethereum.AddressGenesis, nil))
 	instance.eventsCollectPublicationAction = lo.Must(lens.NewV2CollectPublicationActionFilterer(ethereum.AddressGenesis, nil))
