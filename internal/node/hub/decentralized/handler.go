@@ -3,6 +3,7 @@ package decentralized
 import (
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
@@ -45,6 +46,11 @@ type MetaTotalPages struct {
 
 type MetaCursor struct {
 	Cursor string `json:"cursor"`
+}
+
+type StatisticResponse struct {
+	Count      int64      `json:"count"`
+	LastUpdate *time.Time `json:"last_update,omitempty"`
 }
 
 func (h *Hub) parseParams(params url.Values, tags []filter.Tag) ([]filter.Type, error) {

@@ -20,6 +20,7 @@ type Client interface {
 	DatasetFarcasterProfile
 
 	LoadCheckpoint(ctx context.Context, id string, network filter.Network, worker string) (*engine.Checkpoint, error)
+	LoadCheckpoints(ctx context.Context, id string, network filter.Network, worker string) ([]*engine.Checkpoint, error)
 	SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error
 
 	SaveFeeds(ctx context.Context, feeds []*schema.Feed) error
