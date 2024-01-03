@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
@@ -223,6 +224,7 @@ func (w *worker) buildParagraphMetadata(ctx context.Context, handle, contentURI 
 		PublicationID: paragraphData.Get("slug").String(),
 		Media:         media,
 		Tags:          paragraphTags,
+		Timestamp:     uint64(time.UnixMilli(paragraphData.Get("updatedAt").Int()).Unix()),
 	}, nil
 }
 
