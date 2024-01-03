@@ -17,6 +17,12 @@ database:
   partition: true
   uri: postgres://root@localhost:26257/defaultdb
 
+stream:
+  enable: false
+  driver: kafka
+  topic: rss3.node.feeds
+  uri: localhost:9092
+
 component:
   rss:
     - network: rss
@@ -43,6 +49,11 @@ component:
         block_number_target:
     - network: ethereum
       worker: opensea
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
+    - network: ethereum
+      worker: uniswap
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start:

@@ -18,6 +18,7 @@ type SocialPost struct {
 	Tags          []string `json:"tags,omitempty"`
 	AuthorURL     string   `json:"author_url,omitempty"`
 	Reward        *Token   `json:"reward,omitempty"`
+	Timestamp     uint64   `json:"timestamp,omitempty"`
 
 	Target    *SocialPost `json:"target,omitempty"`
 	TargetURL string      `json:"target_url,omitempty"`

@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _PlatformName = "RSS3MirrorFarcasterParagraphOpenSeaOptimism"
+const _PlatformName = "RSS3MirrorFarcasterParagraphOpenSeaUniswapOptimism"
 
-var _PlatformIndex = [...]uint8{0, 4, 10, 19, 28, 35, 43}
+var _PlatformIndex = [...]uint8{0, 4, 10, 19, 28, 35, 42, 50}
 
-const _PlatformLowerName = "rss3mirrorfarcasterparagraphopenseaoptimism"
+const _PlatformLowerName = "rss3mirrorfarcasterparagraphopenseauniswapoptimism"
 
 func (i Platform) String() string {
 	i -= 1
@@ -36,10 +36,11 @@ func _PlatformNoOp() {
 	_ = x[PlatformFarcaster-(3)]
 	_ = x[PlatformParagraph-(4)]
 	_ = x[PlatformOpenSea-(5)]
-	_ = x[PlatformOptimism-(6)]
+	_ = x[PlatformUniswap-(6)]
+	_ = x[PlatformOptimism-(7)]
 }
 
-var _PlatformValues = []Platform{PlatformRSS3, PlatformMirror, PlatformFarcaster, PlatformParagraph, PlatformOpenSea, PlatformOptimism}
+var _PlatformValues = []Platform{PlatformRSS3, PlatformMirror, PlatformFarcaster, PlatformParagraph, PlatformOpenSea, PlatformUniswap, PlatformOptimism}
 
 var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformName[0:4]:        PlatformRSS3,
@@ -52,8 +53,10 @@ var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformLowerName[19:28]: PlatformParagraph,
 	_PlatformName[28:35]:      PlatformOpenSea,
 	_PlatformLowerName[28:35]: PlatformOpenSea,
-	_PlatformName[35:43]:      PlatformOptimism,
-	_PlatformLowerName[35:43]: PlatformOptimism,
+	_PlatformName[35:42]:      PlatformUniswap,
+	_PlatformLowerName[35:42]: PlatformUniswap,
+	_PlatformName[42:50]:      PlatformOptimism,
+	_PlatformLowerName[42:50]: PlatformOptimism,
 }
 
 var _PlatformNames = []string{
@@ -62,7 +65,8 @@ var _PlatformNames = []string{
 	_PlatformName[10:19],
 	_PlatformName[19:28],
 	_PlatformName[28:35],
-	_PlatformName[35:43],
+	_PlatformName[35:42],
+	_PlatformName[42:50],
 }
 
 // PlatformString retrieves an enum value from the enum constants string name.
