@@ -15,6 +15,7 @@ const (
 	PlatformFarcaster                     // Farcaster
 	PlatformParagraph                     // Paragraph
 	PlatformOpenSea                       // OpenSea
+	PlatformUniswap                       // Uniswap
 )
 
 func (p Platform) ID() string {

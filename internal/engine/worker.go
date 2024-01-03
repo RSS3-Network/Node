@@ -18,6 +18,7 @@ const (
 	RSS3                      // rss3
 	Paragraph                 // paragraph
 	OpenSea                   // opensea
+	Uniswap                   // uniswap
 )
 
 type Worker interface {
