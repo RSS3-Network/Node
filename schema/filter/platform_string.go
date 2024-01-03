@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _PlatformName = "RSS3MirrorFarcasterParagraphPlatformLens                          // LensOpenSeaLens"
+const _PlatformName = "RSS3MirrorFarcasterParagraphPlatformLens                          // LensOpenSeaUniswapLens"
 
-var _PlatformIndex = [...]uint8{0, 4, 10, 19, 73, 80, 84}
+var _PlatformIndex = [...]uint8{0, 4, 10, 19, 73, 80, 87, 91}
 
-const _PlatformLowerName = "rss3mirrorfarcasterparagraphplatformlens                          // lensopensealens"
+const _PlatformLowerName = "rss3mirrorfarcasterparagraphplatformlens                          // lensopenseauniswaplens"
 
 func (i Platform) String() string {
 	i -= 1
@@ -36,10 +36,11 @@ func _PlatformNoOp() {
 	_ = x[PlatformFarcaster-(3)]
 	_ = x[PlatformParagraph-(4)]
 	_ = x[PlatformOpenSea-(5)]
-	_ = x[PlatformLens-(6)]
+	_ = x[PlatformUniswap-(6)]
+	_ = x[PlatformLens-(7)]
 }
 
-var _PlatformValues = []Platform{PlatformRSS3, PlatformMirror, PlatformFarcaster, PlatformParagraph, PlatformOpenSea, PlatformLens}
+var _PlatformValues = []Platform{PlatformRSS3, PlatformMirror, PlatformFarcaster, PlatformParagraph, PlatformOpenSea, PlatformUniswap, PlatformLens}
 
 var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformName[0:4]:        PlatformRSS3,
@@ -52,8 +53,10 @@ var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformLowerName[19:73]: PlatformParagraph,
 	_PlatformName[73:80]:      PlatformOpenSea,
 	_PlatformLowerName[73:80]: PlatformOpenSea,
-	_PlatformName[80:84]:      PlatformLens,
-	_PlatformLowerName[80:84]: PlatformLens,
+	_PlatformName[80:87]:      PlatformUniswap,
+	_PlatformLowerName[80:87]: PlatformUniswap,
+	_PlatformName[87:91]:      PlatformLens,
+	_PlatformLowerName[87:91]: PlatformLens,
 }
 
 var _PlatformNames = []string{
@@ -62,7 +65,8 @@ var _PlatformNames = []string{
 	_PlatformName[10:19],
 	_PlatformName[19:73],
 	_PlatformName[73:80],
-	_PlatformName[80:84],
+	_PlatformName[80:87],
+	_PlatformName[87:91],
 }
 
 // PlatformString retrieves an enum value from the enum constants string name.

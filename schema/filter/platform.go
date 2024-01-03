@@ -15,6 +15,7 @@ const (
 	PlatformFarcaster                     // Farcaster
 	PlatformParagraph                     // ParagraphPlatformLens                          // Lens
 	PlatformOpenSea                       // OpenSea
+	PlatformUniswap                       // Uniswap
 	PlatformLens                          // Lens
 )
 

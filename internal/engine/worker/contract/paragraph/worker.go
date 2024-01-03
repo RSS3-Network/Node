@@ -56,13 +56,12 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	}
 
 	// Get actions and social content timestamp from the transaction.
-	actions, timestamp, err := w.transformParagraphAction(ctx, arweaveTask)
+	actions, err := w.transformParagraphAction(ctx, arweaveTask)
 	if err != nil {
 		return nil, fmt.Errorf("handle arweave mirror transaction: %w", err)
 	}
 
 	feed.To = paragraph.AddressParagraph
-	feed.Timestamp = timestamp
 
 	// Feed type should be inferred from the action (if it's revise)
 	if actions[0] != nil {
@@ -74,7 +73,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 }
 
 // transformPostOrReviseAction Returns the actions of mirror post or revise.
-func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task) ([]*schema.Action, uint64, error) {
+func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
 	var (
 		contributor     string
 		publicationSlug string
@@ -85,12 +84,12 @@ func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task
 	for _, tag := range task.Transaction.Tags {
 		tagName, err := arweave.Base64Decode(tag.Name)
 		if err != nil {
-			return nil, 0, fmt.Errorf("base64 decode tag name failed: %w", err)
+			return nil, fmt.Errorf("base64 decode tag name failed: %w", err)
 		}
 
 		tagValue, err := arweave.Base64Decode(tag.Value)
 		if err != nil {
-			return nil, 0, err
+			return nil, err
 		}
 
 		switch string(tagName) {
@@ -107,18 +106,16 @@ func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task
 
 	transactionData, err := arweave.Base64Decode(task.Transaction.Data)
 	if err != nil {
-		return nil, 0, fmt.Errorf("invalid foramt of transaction data: %w", err)
+		return nil, fmt.Errorf("invalid foramt of transaction data: %w", err)
 	}
 
 	paragraphData := gjson.ParseBytes(transactionData)
 
 	contentURI := fmt.Sprintf("https://arweave.net/%s", task.Transaction.ID)
 
-	timestamp := uint64(time.UnixMilli(paragraphData.Get("updatedAt").Int()).Unix())
-
 	paragraphMetadata, err := w.buildParagraphMetadata(ctx, publicationSlug, contentURI, transactionData)
 	if err != nil {
-		return nil, 0, fmt.Errorf("build arweave paragraph post metadata failed: %w", err)
+		return nil, fmt.Errorf("build arweave paragraph post metadata failed: %w", err)
 	}
 
 	var updated bool
@@ -133,7 +130,7 @@ func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task
 		// Build the post or revise action
 		action, err = w.buildParagraphAction(ctx, contributor, paragraph.AddressParagraph, paragraphMetadata, updated)
 		if err != nil {
-			return nil, 0, fmt.Errorf("build post action: %w", err)
+			return nil, fmt.Errorf("build post action: %w", err)
 		}
 	}
 
@@ -141,7 +138,7 @@ func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task
 		action,
 	}
 
-	return actions, timestamp, nil
+	return actions, nil
 }
 
 // buildArweaveTransactionTransferAction Returns the native transfer transaction action.
@@ -227,6 +224,7 @@ func (w *worker) buildParagraphMetadata(ctx context.Context, handle, contentURI 
 		PublicationID: paragraphData.Get("slug").String(),
 		Media:         media,
 		Tags:          paragraphTags,
+		Timestamp:     uint64(time.UnixMilli(paragraphData.Get("updatedAt").Int()).Unix()),
 	}, nil
 }
 
