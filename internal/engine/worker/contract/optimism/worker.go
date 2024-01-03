@@ -42,7 +42,10 @@ func (w *worker) Filter() engine.SourceFilter {
 		LogTopics: []common.Hash{
 			optimism.EventHashAddressL1StandardBridgeETHDepositInitiated,
 			optimism.EventHashAddressL1StandardBridgeERC20DepositInitiated,
+			optimism.EventHashAddressL1StandardBridgeETHWithdrawalFinalized,
+			optimism.EventHashAddressL1StandardBridgeERC20WithdrawalFinalized,
 			optimism.EventHashAddressL2StandardBridgeWithdrawalInitiated,
+			optimism.EventHashAddressL2StandardBridgeDepositFinalized,
 		},
 	}
 }
