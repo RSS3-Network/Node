@@ -14,6 +14,10 @@ var endpointsMap = map[filter.Network][]string{
 		"https://ethereum.blockpi.network/v1/rpc/public",
 		"https://eth.llamarpc.com",
 	},
+	filter.NetworkOptimism: {
+		"https://rpc.ankr.com/optimism",
+		"https://optimism.blockpi.network/v1/rpc/public",
+	},
 }
 
 func Get(network filter.Network) ([]string, bool) {

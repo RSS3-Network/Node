@@ -10,6 +10,12 @@ import (
 	"github.com/samber/lo"
 )
 
+const (
+	// Optimism
+	// https://github.com/Inphi/optimism-rosetta/blob/d3c37e359fa4262a2a53014c424a8ae53efaf3d0/optimism/client_bedrock.go#L138
+	TransactionTypeOptimismDeposit = 0x7E
+)
+
 //go:generate go run --mod=mod github.com/fjl/gencodec --type Header --field-override headerMarshal --out type_header.go
 type Header struct {
 	Hash         common.Hash    `json:"hash"`

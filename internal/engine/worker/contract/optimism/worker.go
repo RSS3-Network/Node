@@ -78,8 +78,14 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			actions, err = w.transformL1StandardBridgeETHDepositInitiatedLog(ctx, ethereumTask, log)
 		case w.matchL1StandardBridgeERC20DepositInitiatedLog(ethereumTask, log):
 			actions, err = w.transformL1StandardBridgeERC20DepositInitiatedLog(ctx, ethereumTask, log)
+		case w.matchL1StandardBridgeETHWithdrawalFinalizedLog(ethereumTask, log):
+			actions, err = w.transformL1StandardBridgeETHWithdrawalFinalizedLog(ctx, ethereumTask, log)
+		case w.matchL1StandardBridgeERC20WithdrawalFinalizedLog(ethereumTask, log):
+			actions, err = w.transformL1StandardBridgeERC20WithdrawalFinalizedLog(ctx, ethereumTask, log)
 		case w.matchL2StandardBridgeWithdrawalInitiatedLog(ethereumTask, log):
 			actions, err = w.transformL2StandardBridgeWithdrawalInitiatedLog(ctx, ethereumTask, log)
+		case w.matchL2StandardBridgeDepositFinalizedLog(ethereumTask, log):
+			actions, err = w.transformL2StandardBridgeDepositFinalizedLog(ctx, ethereumTask, log)
 		default:
 			zap.L().Warn("unsupported log", zap.String("task", task.ID()), zap.Uint("topic.index", log.Index))
 
@@ -92,6 +98,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			return nil, err
 		}
 
+		feed.Type = filter.TypeTransactionBridge
 		feed.Actions = append(feed.Actions, actions...)
 	}
 
@@ -106,8 +113,20 @@ func (w *worker) matchL1StandardBridgeERC20DepositInitiatedLog(_ *source.Task, l
 	return log.Address == optimism.AddressL1StandardBridge && log.Topics[0] == optimism.EventHashAddressL1StandardBridgeERC20DepositInitiated
 }
 
+func (w *worker) matchL1StandardBridgeETHWithdrawalFinalizedLog(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == optimism.AddressL1StandardBridge && log.Topics[0] == optimism.EventHashAddressL1StandardBridgeETHWithdrawalFinalized
+}
+
+func (w *worker) matchL1StandardBridgeERC20WithdrawalFinalizedLog(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == optimism.AddressL1StandardBridge && log.Topics[0] == optimism.EventHashAddressL1StandardBridgeERC20WithdrawalFinalized
+}
+
 func (w *worker) matchL2StandardBridgeWithdrawalInitiatedLog(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == optimism.AddressL2StandardBridge && log.Topics[0] == optimism.EventHashAddressL2StandardBridgeWithdrawalInitiated
+}
+
+func (w *worker) matchL2StandardBridgeDepositFinalizedLog(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == optimism.AddressL2StandardBridge && log.Topics[0] == optimism.EventHashAddressL2StandardBridgeDepositFinalized
 }
 
 func (w *worker) transformL1StandardBridgeETHDepositInitiatedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
@@ -134,6 +153,42 @@ func (w *worker) transformL1StandardBridgeERC20DepositInitiatedLog(ctx context.C
 		return nil, fmt.Errorf("parse ERC20DepositInitiated event: %w", err)
 	}
 
+	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.From, event.To, filter.NetworkEthereum, filter.NetworkOptimism, metadata.ActionTransactionBridgeDeposit, &event.L1Token, event.Amount, log.BlockNumber)
+	if err != nil {
+		return nil, fmt.Errorf("build transaction bridge action: %w", err)
+	}
+
+	actions := []*schema.Action{
+		action,
+	}
+
+	return actions, nil
+}
+
+func (w *worker) transformL1StandardBridgeETHWithdrawalFinalizedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.contractL1StandardBridgeFilterer.ParseETHWithdrawalFinalized(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse ETHWithdrawalFinalized event: %w", err)
+	}
+
+	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.From, event.To, filter.NetworkOptimism, filter.NetworkEthereum, metadata.ActionTransactionBridgeWithdraw, nil, event.Amount, log.BlockNumber)
+	if err != nil {
+		return nil, fmt.Errorf("build transaction bridge action: %w", err)
+	}
+
+	actions := []*schema.Action{
+		action,
+	}
+
+	return actions, nil
+}
+
+func (w *worker) transformL1StandardBridgeERC20WithdrawalFinalizedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.contractL1StandardBridgeFilterer.ParseERC20WithdrawalFinalized(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse ERC20WithdrawalFinalized event: %w", err)
+	}
+
 	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.From, event.To, filter.NetworkOptimism, filter.NetworkEthereum, metadata.ActionTransactionBridgeWithdraw, &event.L1Token, event.Amount, log.BlockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("build transaction bridge action: %w", err)
@@ -152,7 +207,25 @@ func (w *worker) transformL2StandardBridgeWithdrawalInitiatedLog(ctx context.Con
 		return nil, fmt.Errorf("parse WithdrawalInitiated event: %w", err)
 	}
 
-	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.From, event.To, filter.NetworkOptimism, filter.NetworkEthereum, metadata.ActionTransactionBridgeWithdraw, &event.L2Token, event.Amount, log.BlockNumber)
+	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.From, event.To, filter.NetworkOptimism, filter.NetworkEthereum, metadata.ActionTransactionBridgeDeposit, &event.L2Token, event.Amount, log.BlockNumber)
+	if err != nil {
+		return nil, fmt.Errorf("build transaction bridge action: %w", err)
+	}
+
+	actions := []*schema.Action{
+		action,
+	}
+
+	return actions, nil
+}
+
+func (w *worker) transformL2StandardBridgeDepositFinalizedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.contractL2StandardBridgeFilterer.ParseDepositFinalized(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse DepositFinalized event: %w", err)
+	}
+
+	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.From, event.To, filter.NetworkEthereum, filter.NetworkOptimism, metadata.ActionTransactionBridgeWithdraw, &event.L2Token, event.Amount, log.BlockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("build transaction bridge action: %w", err)
 	}
@@ -166,7 +239,7 @@ func (w *worker) transformL2StandardBridgeWithdrawalInitiatedLog(ctx context.Con
 
 func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address, source, target filter.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int, blockNumber *big.Int) (*schema.Action, error) {
 	// Ignore L2 ETH token address.
-	if tokenAddress != nil && *tokenAddress == optimism.AddressETH {
+	if tokenAddress != nil && (*tokenAddress == optimism.AddressL1ETH || *tokenAddress == optimism.AddressL2ETH) {
 		tokenAddress = nil
 	}
 
@@ -186,6 +259,7 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 			Action:        bridgeAction,
 			SourceNetwork: source,
 			TargetNetwork: target,
+			Token:         *tokenMetadata,
 		},
 	}
 

@@ -52,5 +52,15 @@ func (n Network) Source() NetworkSource {
 type EthereumChainID uint64
 
 const (
-	EthereumChainIDMainnet EthereumChainID = 1 // ethereum
+	EthereumChainIDMainnet  EthereumChainID = 1 // ethereum
+	EthereumChainIDOptimism EthereumChainID = 10
 )
+
+func IsOptimismSuperchain(chainID uint64) bool {
+	switch chainID {
+	case uint64(EthereumChainIDOptimism):
+		return true
+	default:
+		return false
+	}
+}

@@ -115,6 +115,19 @@ func (t Task) buildFee() (*big.Int, error) {
 
 		return gasPrice.Mul(gasUsed).BigInt(), nil
 	default:
+		if filter.IsOptimismSuperchain(t.ChainID) {
+			return t.buildFeeOptimismSuperchain()
+		}
+
+		return nil, fmt.Errorf("unsupported transaction type %d", t.Transaction.Type)
+	}
+}
+
+func (t Task) buildFeeOptimismSuperchain() (*big.Int, error) {
+	switch t.Transaction.Type {
+	case ethereum.TransactionTypeOptimismDeposit:
+		return big.NewInt(0), nil
+	default:
 		return nil, fmt.Errorf("unsupported transaction type %d", t.Transaction.Type)
 	}
 }

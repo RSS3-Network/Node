@@ -9,18 +9,27 @@ import (
 	"strings"
 )
 
-const _EthereumChainIDName = "ethereum"
+const (
+	_EthereumChainIDName_0      = "ethereum"
+	_EthereumChainIDLowerName_0 = "ethereum"
+	_EthereumChainIDName_1      = "EthereumChainIDOptimism"
+	_EthereumChainIDLowerName_1 = "ethereumchainidoptimism"
+)
 
-var _EthereumChainIDIndex = [...]uint8{0, 8}
-
-const _EthereumChainIDLowerName = "ethereum"
+var (
+	_EthereumChainIDIndex_0 = [...]uint8{0, 8}
+	_EthereumChainIDIndex_1 = [...]uint8{0, 23}
+)
 
 func (i EthereumChainID) String() string {
-	i -= 1
-	if i >= EthereumChainID(len(_EthereumChainIDIndex)-1) {
-		return fmt.Sprintf("EthereumChainID(%d)", i+1)
+	switch {
+	case i == 1:
+		return _EthereumChainIDName_0
+	case i == 10:
+		return _EthereumChainIDName_1
+	default:
+		return fmt.Sprintf("EthereumChainID(%d)", i)
 	}
-	return _EthereumChainIDName[_EthereumChainIDIndex[i]:_EthereumChainIDIndex[i+1]]
 }
 
 func (EthereumChainID) Values() []string {
@@ -32,17 +41,21 @@ func (EthereumChainID) Values() []string {
 func _EthereumChainIDNoOp() {
 	var x [1]struct{}
 	_ = x[EthereumChainIDMainnet-(1)]
+	_ = x[EthereumChainIDOptimism-(10)]
 }
 
-var _EthereumChainIDValues = []EthereumChainID{EthereumChainIDMainnet}
+var _EthereumChainIDValues = []EthereumChainID{EthereumChainIDMainnet, EthereumChainIDOptimism}
 
 var _EthereumChainIDNameToValueMap = map[string]EthereumChainID{
-	_EthereumChainIDName[0:8]:      EthereumChainIDMainnet,
-	_EthereumChainIDLowerName[0:8]: EthereumChainIDMainnet,
+	_EthereumChainIDName_0[0:8]:       EthereumChainIDMainnet,
+	_EthereumChainIDLowerName_0[0:8]:  EthereumChainIDMainnet,
+	_EthereumChainIDName_1[0:23]:      EthereumChainIDOptimism,
+	_EthereumChainIDLowerName_1[0:23]: EthereumChainIDOptimism,
 }
 
 var _EthereumChainIDNames = []string{
-	_EthereumChainIDName[0:8],
+	_EthereumChainIDName_0[0:8],
+	_EthereumChainIDName_1[0:23],
 }
 
 // EthereumChainIDString retrieves an enum value from the enum constants string name.
