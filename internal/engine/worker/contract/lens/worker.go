@@ -95,35 +95,39 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 	// Match and handle ethereum logs.
 	for _, log := range ethereumTask.Receipt.Logs {
+		// Ignore anonymous logs.
+		if len(log.Topics) == 0 {
+			continue
+		}
+
 		var (
-			actions   []*schema.Action
-			timestamp uint64
-			err       error
+			actions []*schema.Action
+			err     error
 		)
 		// Match lens core contract events
 		switch {
 		case w.matchEthereumV1PostCreated(ethereumTask, log):
-			actions, timestamp, err = w.transformEthereumV1PostCreated(ctx, ethereumTask, log)
+			actions, err = w.transformEthereumV1PostCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV1CommentCreated(ethereumTask, log):
-			actions, timestamp, err = w.transformEthereumV1CommentCreated(ctx, ethereumTask, log)
+			actions, err = w.transformEthereumV1CommentCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV1MirrorCreated(ethereumTask, log):
-			actions, timestamp, err = w.transformEthereumV1MirrorCreated(ctx, ethereumTask, log)
+			actions, err = w.transformEthereumV1MirrorCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV1ProfileCreated(ethereumTask, log):
-			actions, timestamp, err = w.transformEthereumV1ProfileCreated(ctx, ethereumTask, log)
+			actions, err = w.transformEthereumV1ProfileCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV1CollectNFTTransferred(ethereumTask, log):
-			actions, timestamp, err = w.transformEthereumV1CollectNFTTransferred(ctx, ethereumTask, log)
+			actions, err = w.transformEthereumV1CollectNFTTransferred(ctx, ethereumTask, log)
 		case w.matchEthereumV2PostCreated(ethereumTask, log):
-			actions, timestamp, err = w.transformEthereumV2PostCreated(ctx, ethereumTask, log)
+			actions, err = w.transformEthereumV2PostCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV2CommentCreated(ethereumTask, log):
-			actions, timestamp, err = w.transformEthereumV2CommentCreated(ctx, ethereumTask, log)
+			actions, err = w.transformEthereumV2CommentCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV2MirrorCreated(ethereumTask, log):
-			actions, timestamp, err = w.transformEthereumV2MirrorCreated(ctx, ethereumTask, log)
+			actions, err = w.transformEthereumV2MirrorCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV2QuoteCreated(ethereumTask, log):
-			actions, timestamp, err = w.transformEthereumV2QuoteCreated(ctx, ethereumTask, log)
+			actions, err = w.transformEthereumV2QuoteCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV2Collected(ethereumTask, log):
-			actions, timestamp, err = w.transformEthereumV2Collected(ctx, ethereumTask, log)
+			actions, err = w.transformEthereumV2Collected(ctx, ethereumTask, log)
 		case w.matchEthereumV2ProfileCreated(ethereumTask, log):
-			actions, timestamp, err = w.transformEthereumV2ProfileCreated(ctx, ethereumTask, log)
+			actions, err = w.transformEthereumV2ProfileCreated(ctx, ethereumTask, log)
 		default:
 			continue
 		}
@@ -135,7 +139,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		// Change feed type to the first action type.
 		for _, action := range actions {
 			feed.Type = action.Type
-			feed.Timestamp = timestamp
+			fmt.Printf("===== action: %+v\n", action)
 		}
 
 		feed.Actions = append(feed.Actions, actions...)
@@ -146,74 +150,74 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 // matchEthereumV1PostCreated matches V1 PostCreated event.
 func (w *worker) matchEthereumV1PostCreated(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == lens.AddressLensProtocol && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1PostCreated)
+	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1PostCreated)
 }
 
 // matchEthereumV1CommentCreated matches V1 CommentCreated event.
 func (w *worker) matchEthereumV1CommentCreated(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == lens.AddressLensProtocol && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1CommentCreated)
+	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1CommentCreated)
 }
 
 // matchEthereumV1MirrorCreated matches V1 MirrorCreated event.
 func (w *worker) matchEthereumV1MirrorCreated(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == lens.AddressLensProtocol && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1MirrorCreated)
+	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1MirrorCreated)
 }
 
 // matchEthereumV1ProfileCreated matches V1 ProfileCreated event.
 func (w *worker) matchEthereumV1ProfileCreated(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == lens.AddressLensProtocol && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1ProfileCreated)
+	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1ProfileCreated)
 }
 
 // matchEthereumV1CollectNFTTransferred matches V1 CollectNFTTransferred event.
 func (w *worker) matchEthereumV1CollectNFTTransferred(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == lens.AddressLensProtocol && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1CollectNFTTransferred)
+	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1CollectNFTTransferred)
 }
 
 // matchEthereumV2PostCreated matches V2 PostCreated event.
 func (w *worker) matchEthereumV2PostCreated(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == lens.AddressLensProtocol && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], lens.EventHashV2PostCreated)
+	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV2PostCreated)
 }
 
 // matchEthereumV2CommentCreated matches V2 CommentCreated event.
 func (w *worker) matchEthereumV2CommentCreated(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == lens.AddressLensProtocol && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], lens.EventHashV2CommentCreated)
+	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV2CommentCreated)
 }
 
 // matchEthereumV2MirrorCreated matches V2 MirrorCreated event.
 func (w *worker) matchEthereumV2MirrorCreated(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == lens.AddressLensProtocol && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], lens.EventHashV2MirrorCreated)
+	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV2MirrorCreated)
 }
 
 // matchEthereumV2QuoteCreated matches V2 QuoteCreated event.
 func (w *worker) matchEthereumV2QuoteCreated(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == lens.AddressLensProtocol && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], lens.EventHashV2QuoteCreated)
+	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV2QuoteCreated)
 }
 
 // matchEthereumV2Collected matches V2 Collected event.
 func (w *worker) matchEthereumV2Collected(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == lens.AddressV2CollectPublicationAction && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], lens.EventHashV2Collected)
+	return log.Address == lens.AddressV2CollectPublicationAction && contract.MatchEventHashes(log.Topics[0], lens.EventHashV2Collected)
 }
 
 // matchEthereumV2ProfileCreated matches V2 ProfileCreated event.
 func (w *worker) matchEthereumV2ProfileCreated(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == lens.AddressLensProtocol && len(log.Topics) == 3 && contract.MatchEventHashes(log.Topics[0], lens.EventHashV2ProfileCreated)
+	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV2ProfileCreated)
 }
 
 // transformEthereumV1PostCreated transforms V1 PostCreated event.
-func (w *worker) transformEthereumV1PostCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, uint64, error) {
+func (w *worker) transformEthereumV1PostCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.eventsFiltererV1.ParsePostCreated(log.Export())
 	if err != nil {
-		return nil, 0, fmt.Errorf("parse post created: %w", err)
+		return nil, fmt.Errorf("parse post created: %w", err)
 	}
 
 	actionFrom, err := w.getLensOwnerOf(ctx, log.BlockNumber, event.ProfileId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	post, platform, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, event.ContentURI)
+	post, platform, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, event.ContentURI, event.Timestamp.Uint64())
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	// Build post created action.
@@ -221,41 +225,41 @@ func (w *worker) transformEthereumV1PostCreated(ctx context.Context, task *sourc
 
 	return []*schema.Action{
 		action,
-	}, event.Timestamp.Uint64(), nil
+	}, nil
 }
 
 // transformEthereumV1CommentCreated transforms V1 CommentCreated event.
-func (w *worker) transformEthereumV1CommentCreated(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, uint64, error) {
+func (w *worker) transformEthereumV1CommentCreated(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.eventsFiltererV1.ParseCommentCreated(log.Export())
 	if err != nil {
-		return nil, 0, fmt.Errorf("parse comment created: %w", err)
+		return nil, fmt.Errorf("parse comment created: %w", err)
 	}
 
 	actionFrom, err := w.getLensOwnerOf(ctx, log.BlockNumber, event.ProfileId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	actionTo, err := w.getLensOwnerOf(ctx, log.BlockNumber, event.ProfileIdPointed)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	// get the metadata of comment
-	post, platform, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, event.ContentURI)
+	post, platform, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, event.ContentURI, event.Timestamp.Uint64())
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	// get the metadata of the pointed post/comment
 	pointedContentURI, err := w.getEthereumPublicationContentURI(ctx, log.BlockNumber, event.ProfileIdPointed, event.PubIdPointed)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	post.Target, _, err = w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileIdPointed, event.PubIdPointed, pointedContentURI)
+	post.Target, _, err = w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileIdPointed, event.PubIdPointed, pointedContentURI, event.Timestamp.Uint64())
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	// Build post created action.
@@ -263,25 +267,25 @@ func (w *worker) transformEthereumV1CommentCreated(ctx context.Context, _ *sourc
 
 	return []*schema.Action{
 		action,
-	}, event.Timestamp.Uint64(), nil
+	}, nil
 }
 
 // transformEthereumV1MirrorCreated transforms V1 MirrorCreated event.
-func (w *worker) transformEthereumV1MirrorCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, uint64, error) {
+func (w *worker) transformEthereumV1MirrorCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.eventsFiltererV1.ParseMirrorCreated(log.Export())
 	if err != nil {
-		return nil, 0, fmt.Errorf("parse mirror created: %w", err)
+		return nil, fmt.Errorf("parse mirror created: %w", err)
 	}
 
 	actionFrom, err := w.getLensOwnerOf(ctx, log.BlockNumber, event.ProfileId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	//  get the metadata of mirror
-	post, _, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, "")
+	post, _, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, "", event.Timestamp.Uint64())
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	// get the metadata of the pointed post/comment
@@ -289,26 +293,26 @@ func (w *worker) transformEthereumV1MirrorCreated(ctx context.Context, task *sou
 
 	pointedContentURI, err := w.getEthereumPublicationContentURI(ctx, log.BlockNumber, event.ProfileIdPointed, event.PubIdPointed)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	post.Target, platform, err = w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileIdPointed, event.PubIdPointed, pointedContentURI)
+	post.Target, platform, err = w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileIdPointed, event.PubIdPointed, pointedContentURI, event.Timestamp.Uint64())
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform, filter.TypeSocialShare, *post)
 
 	return []*schema.Action{
 		action,
-	}, event.Timestamp.Uint64(), nil
+	}, nil
 }
 
 // transformEthereumV1ProfileCreated transforms V1 ProfileCreated event.
-func (w *worker) transformEthereumV1ProfileCreated(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, uint64, error) {
+func (w *worker) transformEthereumV1ProfileCreated(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.eventsFiltererV1.ParseProfileCreated(log.Export())
 	if err != nil {
-		return nil, 0, fmt.Errorf("parse profile created: %w", err)
+		return nil, fmt.Errorf("parse profile created: %w", err)
 	}
 
 	profile := metadata.SocialProfile{
@@ -323,31 +327,31 @@ func (w *worker) transformEthereumV1ProfileCreated(ctx context.Context, _ *sourc
 
 	return []*schema.Action{
 		action,
-	}, event.Timestamp.Uint64(), nil
+	}, nil
 }
 
 // transformEthereumV1CollectNFTTransferred transforms V1 CollectNFTTransferred event.
-func (w *worker) transformEthereumV1CollectNFTTransferred(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, uint64, error) {
+func (w *worker) transformEthereumV1CollectNFTTransferred(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	var from common.Address
 
 	event, err := w.eventsFiltererV1.ParseCollectNFTTransferred(log.Export())
 	if err != nil {
-		return nil, 0, fmt.Errorf("parse collect nft transferred: %w", err)
+		return nil, fmt.Errorf("parse collect nft transferred: %w", err)
 	}
 
 	if event.From != ethereum.AddressGenesis {
-		return nil, 0, nil
+		return nil, nil
 	}
 
 	// get the metadata of the pointed post/comment
 	mintContentURI, err := w.getEthereumPublicationContentURI(ctx, log.BlockNumber, event.ProfileId, event.PubId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	post, platform, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, mintContentURI)
+	post, platform, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, mintContentURI, event.Timestamp.Uint64())
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	from = event.To
@@ -359,7 +363,7 @@ func (w *worker) transformEthereumV1CollectNFTTransferred(ctx context.Context, t
 
 		event, err := w.eventsFiltererV1.ParseCollectNFTTransferred(log.Export())
 		if err != nil {
-			return nil, 0, fmt.Errorf("parse collect nft transferred: %w", err)
+			return nil, fmt.Errorf("parse collect nft transferred: %w", err)
 		}
 
 		if event.From == ethereum.AddressGenesis {
@@ -375,91 +379,91 @@ func (w *worker) transformEthereumV1CollectNFTTransferred(ctx context.Context, t
 
 	return []*schema.Action{
 		action,
-	}, event.Timestamp.Uint64(), nil
+	}, nil
 }
 
 // transformEthereumV2PostCreated transforms V2 PostCreated event.
-func (w *worker) transformEthereumV2PostCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, uint64, error) {
+func (w *worker) transformEthereumV2PostCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.eventsFiltererV2.ParsePostCreated(log.Export())
 	if err != nil {
-		return nil, 0, fmt.Errorf("parse post created: %w", err)
+		return nil, fmt.Errorf("parse post created: %w", err)
 	}
 
 	actionFrom, err := w.getLensOwnerOf(ctx, log.BlockNumber, event.PostParams.ProfileId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	// get the metadata of the pointed post/comment
-	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.PostParams.ProfileId, event.PubId, event.PostParams.ContentURI)
+	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.PostParams.ProfileId, event.PubId, event.PostParams.ContentURI, event.Timestamp.Uint64())
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform, filter.TypeSocialPost, *post)
 
 	return []*schema.Action{
 		action,
-	}, event.Timestamp.Uint64(), nil
+	}, nil
 }
 
 // transformEthereumV2CommentCreated transforms V2 CommentCreated event.
-func (w *worker) transformEthereumV2CommentCreated(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, uint64, error) {
+func (w *worker) transformEthereumV2CommentCreated(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.eventsFiltererV2.ParseCommentCreated(log.Export())
 	if err != nil {
-		return nil, 0, fmt.Errorf("parse comment created: %w", err)
+		return nil, fmt.Errorf("parse comment created: %w", err)
 	}
 
 	actionFrom, err := w.getLensOwnerOf(ctx, log.BlockNumber, event.CommentParams.ProfileId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	actionTo, err := w.getLensOwnerOf(ctx, log.BlockNumber, event.CommentParams.PointedProfileId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	// get the metadata of comment
-	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.CommentParams.ProfileId, event.PubId, event.CommentParams.ContentURI)
+	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.CommentParams.ProfileId, event.PubId, event.CommentParams.ContentURI, event.Timestamp.Uint64())
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	// get the metadata of the pointed post/comment
 	pointedContentURI, err := w.getEthereumPublicationContentURI(ctx, log.BlockNumber, event.CommentParams.PointedProfileId, event.CommentParams.PointedPubId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	post.Target, _, err = w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.CommentParams.PointedProfileId, event.CommentParams.PointedPubId, pointedContentURI)
+	post.Target, _, err = w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.CommentParams.PointedProfileId, event.CommentParams.PointedPubId, pointedContentURI, event.Timestamp.Uint64())
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), lo.FromPtr(actionTo), platform, filter.TypeSocialComment, *post)
 
 	return []*schema.Action{
 		action,
-	}, event.Timestamp.Uint64(), nil
+	}, nil
 }
 
 // transformEthereumV2MirrorCreated transforms V2 MirrorCreated event.
-func (w *worker) transformEthereumV2MirrorCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, uint64, error) {
+func (w *worker) transformEthereumV2MirrorCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.eventsFiltererV2.ParseMirrorCreated(log.Export())
 	if err != nil {
-		return nil, 0, fmt.Errorf("parse mirror created: %w", err)
+		return nil, fmt.Errorf("parse mirror created: %w", err)
 	}
 
 	actionFrom, err := w.getLensOwnerOf(ctx, log.BlockNumber, event.MirrorParams.ProfileId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	//  get the metadata of mirror
-	post, _, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.MirrorParams.ProfileId, event.PubId, "")
+	post, _, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.MirrorParams.ProfileId, event.PubId, "", event.Timestamp.Uint64())
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	// get the metadata of the pointed post/comment
@@ -467,97 +471,97 @@ func (w *worker) transformEthereumV2MirrorCreated(ctx context.Context, task *sou
 
 	pointedContentURI, err := w.getEthereumPublicationContentURI(ctx, log.BlockNumber, event.MirrorParams.PointedProfileId, event.MirrorParams.PointedPubId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	post.Target, platform, err = w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.MirrorParams.PointedProfileId, event.MirrorParams.PointedPubId, pointedContentURI)
+	post.Target, platform, err = w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.MirrorParams.PointedProfileId, event.MirrorParams.PointedPubId, pointedContentURI, event.Timestamp.Uint64())
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform, filter.TypeSocialShare, *post)
 
 	return []*schema.Action{
 		action,
-	}, event.Timestamp.Uint64(), nil
+	}, nil
 }
 
 // transformEthereumV2QuoteCreated transforms V2 QuoteCreated event.
-func (w *worker) transformEthereumV2QuoteCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, uint64, error) {
+func (w *worker) transformEthereumV2QuoteCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.eventsFiltererV2.ParseQuoteCreated(log.Export())
 	if err != nil {
-		return nil, 0, fmt.Errorf("parse quote created: %w", err)
+		return nil, fmt.Errorf("parse quote created: %w", err)
 	}
 
 	actionFrom, err := w.getLensOwnerOf(ctx, log.BlockNumber, event.QuoteParams.ProfileId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	//  get the metadata of mirror
-	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.QuoteParams.ProfileId, event.PubId, event.QuoteParams.ContentURI)
+	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.QuoteParams.ProfileId, event.PubId, event.QuoteParams.ContentURI, event.Timestamp.Uint64())
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	// get the metadata of the pointed post/comment
 	pointedContentURI, err := w.getEthereumPublicationContentURI(ctx, log.BlockNumber, event.QuoteParams.PointedProfileId, event.QuoteParams.PointedPubId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	post.Target, _, err = w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.QuoteParams.PointedProfileId, event.QuoteParams.PointedPubId, pointedContentURI)
+	post.Target, _, err = w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.QuoteParams.PointedProfileId, event.QuoteParams.PointedPubId, pointedContentURI, event.Timestamp.Uint64())
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform, filter.TypeSocialShare, *post)
 
 	return []*schema.Action{
 		action,
-	}, event.Timestamp.Uint64(), nil
+	}, nil
 }
 
 // transformEthereumV2Collected transforms V2 Collected event.
-func (w *worker) transformEthereumV2Collected(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, uint64, error) {
+func (w *worker) transformEthereumV2Collected(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.eventsCollectPublicationAction.ParseCollected(log.Export())
 	if err != nil {
-		return nil, 0, fmt.Errorf("parse collected: %w", err)
+		return nil, fmt.Errorf("parse collected: %w", err)
 	}
 
 	actionFrom, err := w.getLensOwnerOf(ctx, log.BlockNumber, event.CollectorProfileId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	actionTo, err := w.getLensOwnerOf(ctx, log.BlockNumber, event.CollectedProfileId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	// get the metadata of the collected post/comment
 	collectedContentURI, err := w.getEthereumPublicationContentURI(ctx, log.BlockNumber, event.CollectedProfileId, event.CollectedPubId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.CollectedProfileId, event.CollectedPubId, collectedContentURI)
+	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.CollectedProfileId, event.CollectedPubId, collectedContentURI, event.Timestamp.Uint64())
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), lo.FromPtr(actionTo), platform, filter.TypeSocialMint, *post)
 
 	return []*schema.Action{
 		action,
-	}, event.Timestamp.Uint64(), nil
+	}, nil
 }
 
 // transformEthereumV2ProfileCreated transforms V2 ProfileCreated event.
-func (w *worker) transformEthereumV2ProfileCreated(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, uint64, error) {
+func (w *worker) transformEthereumV2ProfileCreated(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.eventsFiltererV2.ParseProfileCreated(log.Export())
 	if err != nil {
-		return nil, 0, fmt.Errorf("parse profile created: %w", err)
+		return nil, fmt.Errorf("parse profile created: %w", err)
 	}
 
 	profile := metadata.SocialProfile{
@@ -568,14 +572,14 @@ func (w *worker) transformEthereumV2ProfileCreated(ctx context.Context, _ *sourc
 
 	profile.Handle, err = w.getLensHandle(ctx, log.BlockNumber, event.ProfileId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	action := w.buildEthereumTransactionProfileAction(ctx, event.Creator, event.To, filter.TypeSocialProfile, profile)
 
 	return []*schema.Action{
 		action,
-	}, event.Timestamp.Uint64(), nil
+	}, nil
 }
 
 func (w *worker) buildEthereumTransactionPostAction(_ context.Context, from common.Address, to common.Address, platform string, socialType filter.Type, post metadata.SocialPost) *schema.Action {
@@ -588,7 +592,7 @@ func (w *worker) buildEthereumTransactionPostAction(_ context.Context, from comm
 	}
 }
 
-func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blockNumber *big.Int, profileID, pubID *big.Int, contentURI string) (*metadata.SocialPost, string, error) {
+func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blockNumber *big.Int, profileID, pubID *big.Int, contentURI string, timestamp uint64) (*metadata.SocialPost, string, error) {
 	handle, err := w.getLensHandle(ctx, blockNumber, profileID)
 	if err != nil {
 		return nil, "", err
@@ -617,6 +621,7 @@ func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blo
 		PublicationID: EncodeID(pubID),
 		ContentURI:    contentURI,
 		Tags:          lo.If(len(publication.Tags) > 0, publication.Tags).Else(nil),
+		Timestamp:     timestamp,
 	}, publication.AppID, nil
 }
 
@@ -729,7 +734,7 @@ func (w *worker) buildEthereumTransactionProfileAction(_ context.Context, from c
 }
 
 // buildEthereumV2TransactionPostMetadata builds post metadata.
-func (w *worker) buildEthereumV2TransactionPostMetadata(ctx context.Context, blockNumber *big.Int, profileID, pubID *big.Int, contentURI string) (*metadata.SocialPost, string, error) {
+func (w *worker) buildEthereumV2TransactionPostMetadata(ctx context.Context, blockNumber *big.Int, profileID, pubID *big.Int, contentURI string, timestamp uint64) (*metadata.SocialPost, string, error) {
 	handle, err := w.getLensHandle(ctx, blockNumber, profileID)
 	if err != nil {
 		return nil, "", err
@@ -775,6 +780,7 @@ func (w *worker) buildEthereumV2TransactionPostMetadata(ctx context.Context, blo
 		PublicationID: EncodeID(pubID),
 		ContentURI:    contentURI,
 		Tags:          lo.If(len(publication.Lens.Tags) > 0, publication.Lens.Tags).Else(nil),
+		Timestamp:     timestamp,
 	}, publication.Lens.AppID, nil
 }
 

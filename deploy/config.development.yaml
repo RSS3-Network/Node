@@ -47,15 +47,14 @@ component:
       parameters:
         block_number_start:
         block_number_target:
-<<<<<<< HEAD
     - network: polygon
       worker: lens
       endpoint: https://rpc.ankr.com/polygon
-=======
+      parameters:
+        block_number_start:
     - network: ethereum
       worker: opensea
       endpoint: https://rpc.ankr.com/eth
->>>>>>> develop
       parameters:
         block_number_start:
     - network: ethereum
