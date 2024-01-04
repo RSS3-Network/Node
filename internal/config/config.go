@@ -8,6 +8,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	"github.com/naturalselectionlabs/rss3-node/internal/stream"
 	"gopkg.in/yaml.v3"
 )
 
@@ -22,6 +23,7 @@ type File struct {
 	Environment string           `yaml:"environment" validate:"required" default:"development"`
 	Node        *engine.Module   `yaml:"component" validate:"required"`
 	Database    *database.Config `yaml:"database" validate:"required"`
+	Stream      *stream.Config   `yaml:"stream" validate:"required"`
 }
 
 func Setup(configFilePath string) (*File, error) {

@@ -45,6 +45,7 @@ func NewServer(ctx context.Context, config *config.File, databaseClient database
 	instance.httpServer.GET("/rss/*", instance.hub.RSS.GetRSSHubHandler)
 	instance.httpServer.GET("/decentralized/tx/:id", instance.hub.Decentralized.GetActivity)
 	instance.httpServer.GET("/decentralized/:account", instance.hub.Decentralized.GetAccountActivities)
+	instance.httpServer.GET("/decentralized/count", instance.hub.Decentralized.GetActivitiesCount)
 
 	return &instance, nil
 }

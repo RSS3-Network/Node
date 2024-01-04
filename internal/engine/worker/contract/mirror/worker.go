@@ -70,14 +70,13 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
 
-	// Get actions and social content timestamp from the transaction.
-	actions, timestamp, err := w.transformMirrorAction(ctx, arweaveTask)
+	// Get actions from the transaction.
+	actions, err := w.transformMirrorAction(ctx, arweaveTask)
 	if err != nil {
 		return nil, fmt.Errorf("handle arweave mirror transaction: %w", err)
 	}
 
 	feed.To = mirror.AddressMirror
-	feed.Timestamp = timestamp
 
 	// Feed type should be inferred from the action (if it's revise)
 	if actions != nil {
@@ -89,7 +88,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 }
 
 // transformPostOrReviseAction Returns the actions of mirror post or revise.
-func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) ([]*schema.Action, uint64, error) {
+func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
 	var (
 		contentDigest       string
 		originContentDigest string
@@ -99,12 +98,12 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 	for _, tag := range task.Transaction.Tags {
 		tagName, err := arweave.Base64Decode(tag.Name)
 		if err != nil {
-			return nil, 0, fmt.Errorf("base64 decode tag name: %w", err)
+			return nil, fmt.Errorf("base64 decode tag name: %w", err)
 		}
 
 		tagValue, err := arweave.Base64Decode(tag.Value)
 		if err != nil {
-			return nil, 0, err
+			return nil, err
 		}
 
 		switch string(tagName) {
@@ -125,13 +124,12 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 	// Get detailed post info from transaction data
 	transactionData, err := arweave.Base64Decode(task.Transaction.Data)
 	if err != nil {
-		return nil, 0, fmt.Errorf("invalid foramt of transaction data: %w", err)
+		return nil, fmt.Errorf("invalid foramt of transaction data: %w", err)
 	}
 
 	mirrorData := gjson.ParseBytes(transactionData)
 
 	author := mirrorData.Get("authorship.contributor").String()
-	timestamp := mirrorData.Get("content.timestamp").Uint()
 
 	var media []metadata.Media
 
@@ -140,7 +138,7 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 	if address != "" {
 		file, err := w.ipfsClient.Fetch(ctx, fmt.Sprintf("/ipfs/%s", address), ipfs.FetchModeQuick)
 		if err != nil {
-			return nil, 0, fmt.Errorf("fetch ipfs: %w", err)
+			return nil, fmt.Errorf("fetch ipfs: %w", err)
 		}
 
 		defer lo.Try(file.Close)
@@ -148,11 +146,11 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 		// Get nft mimetype
 		result, err := mimetype.DetectReader(file)
 		if err != nil {
-			return nil, 0, fmt.Errorf("detect mimetype: %w", err)
+			return nil, fmt.Errorf("detect mimetype: %w", err)
 		}
 
 		if result == nil {
-			return nil, 0, fmt.Errorf("empty result")
+			return nil, fmt.Errorf("empty result")
 		}
 
 		media = append(media, metadata.Media{
@@ -180,12 +178,13 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 		ContentURI:    contentURI,
 		PublicationID: publicationID,
 		Media:         media,
+		Timestamp:     mirrorData.Get("content.timestamp").Uint(),
 	}
 
 	// Build the post or revise action
 	action, err := w.buildMirrorAction(ctx, task.Transaction.ID, author, mirror.AddressMirror, mirrorMetadata, emptyOriginDigest, originContentDigest)
 	if err != nil {
-		return nil, 0, fmt.Errorf("build post action: %w", err)
+		return nil, fmt.Errorf("build post action: %w", err)
 	}
 
 	// Save Dataset Mirror Post
@@ -195,14 +194,14 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 	}
 
 	if err := w.databaseClient.SaveDatasetMirrorPost(context.TODO(), post); err != nil {
-		return nil, 0, fmt.Errorf("save dataset mirror post: %w", err)
+		return nil, fmt.Errorf("save dataset mirror post: %w", err)
 	}
 
 	actions := []*schema.Action{
 		action,
 	}
 
-	return actions, timestamp, nil
+	return actions, nil
 }
 
 // buildArweaveTransactionTransferAction Returns the native transfer transaction action.
