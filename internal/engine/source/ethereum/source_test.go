@@ -26,7 +26,7 @@ func TestSource(t *testing.T) {
 	initialize(t)
 
 	type arguments struct {
-		config *engine.Config
+		config *config.Module
 	}
 
 	testcases := []struct {

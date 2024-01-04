@@ -3,6 +3,7 @@ package arweave
 import (
 	"context"
 	"fmt"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"math/big"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
@@ -18,7 +19,7 @@ import (
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
-	config *engine.Config
+	config *config.Module
 }
 
 func (w *worker) Name() string {
@@ -108,7 +109,7 @@ func (w *worker) buildArweaveTransactionTransferAction(_ context.Context, from, 
 }
 
 // NewWorker returns a new Arweave worker.
-func NewWorker(config *engine.Config) (engine.Worker, error) {
+func NewWorker(config *config.Module) (engine.Worker, error) {
 	var instance = worker{
 		config: config,
 	}

@@ -2,11 +2,11 @@ package hub
 
 import (
 	"context"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"sync"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
-	"github.com/naturalselectionlabs/rss3-node/internal/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/hub/decentralized"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/hub/rss"

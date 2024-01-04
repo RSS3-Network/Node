@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -949,7 +950,7 @@ func (w *worker) buildTransactionMintAction(ctx context.Context, task *source.Ta
 	return &action, nil
 }
 
-func NewWorker(config *engine.Config) (engine.Worker, error) {
+func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance := worker{
 		uniswapV1ExchangeFilterer:                 lo.Must(uniswap.NewV1ExchangeFilterer(ethereum.AddressGenesis, nil)),
 		uniswapV2PairFilterer:                     lo.Must(uniswap.NewV2PairFilterer(ethereum.AddressGenesis, nil)),

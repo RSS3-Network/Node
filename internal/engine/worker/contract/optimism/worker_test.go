@@ -28,7 +28,7 @@ func TestWorker_Ethereum(t *testing.T) {
 
 	type arguments struct {
 		task   *source.Task
-		config *engine.Config
+		config *config.Module
 	}
 
 	testcases := []struct {

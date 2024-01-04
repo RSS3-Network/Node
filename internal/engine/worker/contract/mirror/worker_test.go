@@ -7,7 +7,6 @@ import (
 
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
@@ -26,7 +25,7 @@ func TestWorker_Arweave(t *testing.T) {
 
 	type arguments struct {
 		task   *source.Task
-		config *engine.Config
+		config *config.Module
 	}
 
 	testcases := []struct {

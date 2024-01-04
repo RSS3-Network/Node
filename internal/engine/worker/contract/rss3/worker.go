@@ -3,6 +3,7 @@ package rss3
 import (
 	"context"
 	"fmt"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"math/big"
 	"time"
 
@@ -23,7 +24,7 @@ import (
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
-	config          *engine.Config
+	config          *config.Module
 	ethereumClient  ethereum.Client
 	tokenClient     token.Client
 	stakingFilterer *rss3.StakingFilterer
@@ -201,7 +202,7 @@ func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Ta
 }
 
 // NewWorker creates a new RSS3 worker.
-func NewWorker(config *engine.Config) (engine.Worker, error) {
+func NewWorker(config *config.Module) (engine.Worker, error) {
 	var (
 		err      error
 		instance = worker{

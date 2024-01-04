@@ -3,6 +3,7 @@ package mirror
 import (
 	"context"
 	"fmt"
+	"github.com/naturalselectionlabs/rss3-node/config"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
@@ -23,7 +24,7 @@ import (
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
-	config         *engine.Config
+	config         *config.Module
 	arweaveClient  arweave.Client
 	ipfsClient     ipfs.HTTPClient
 	databaseClient database.Client
@@ -240,7 +241,7 @@ func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, m
 }
 
 // NewWorker returns a new Arweave worker.
-func NewWorker(config *engine.Config, databaseClient database.Client) (engine.Worker, error) {
+func NewWorker(config *config.Module, databaseClient database.Client) (engine.Worker, error) {
 	var instance = worker{
 		config: config,
 	}

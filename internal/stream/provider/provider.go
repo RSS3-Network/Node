@@ -3,12 +3,13 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/naturalselectionlabs/rss3-node/config"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/stream"
 	"github.com/naturalselectionlabs/rss3-node/internal/stream/provider/kafka"
 )
 
-func New(ctx context.Context, config *stream.Config) (stream.Client, error) {
+func New(ctx context.Context, config *config.StreamConfig) (stream.Client, error) {
 	switch config.Driver {
 	case stream.DriverKafka:
 		return kafka.New(ctx, config.URI, config.Topic)

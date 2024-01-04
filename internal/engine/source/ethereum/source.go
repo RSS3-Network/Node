@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"math/big"
 	"time"
 
@@ -23,7 +24,7 @@ const (
 var _ engine.Source = (*source)(nil)
 
 type source struct {
-	config         *engine.Config
+	config         *config.Module
 	option         *Option
 	filter         *Filter
 	ethereumClient ethereum.Client
@@ -278,7 +279,7 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 	return tasks, nil
 }
 
-func NewSource(config *engine.Config, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint) (engine.Source, error) {
+func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint) (engine.Source, error) {
 	var (
 		state State
 		err   error

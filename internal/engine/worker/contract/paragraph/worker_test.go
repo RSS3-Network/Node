@@ -2,9 +2,9 @@ package paragraph_test
 
 import (
 	"context"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"testing"
 
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/paragraph"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
@@ -21,7 +21,7 @@ func TestWorker_Arweave(t *testing.T) {
 
 	type arguments struct {
 		task   *source.Task
-		config *engine.Config
+		config *config.Module
 	}
 
 	testcases := []struct {

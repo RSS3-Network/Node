@@ -3,6 +3,7 @@ package aavegotchi
 import (
 	"context"
 	"fmt"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -297,7 +298,7 @@ func (w *worker) buildTransferAction(
 	}, nil
 }
 
-func NewWorker(config *engine.Config) (engine.Worker, error) {
+func NewWorker(config *config.Module) (engine.Worker, error) {
 	ethereumClient, err := ethereum.Dial(context.Background(), config.Endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("dial Ethereum: %w", err)
