@@ -3,15 +3,15 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/naturalselectionlabs/rss3-node/internal/database"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
-	"github.com/samber/lo"
 	"os"
 
 	"github.com/creasty/defaults"
 	"github.com/go-playground/validator/v10"
+	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/stream"
+	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/samber/lo"
 	"gopkg.in/yaml.v3"
 )
 

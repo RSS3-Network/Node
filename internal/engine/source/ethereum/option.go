@@ -1,8 +1,9 @@
 package ethereum
 
 import (
-	"github.com/naturalselectionlabs/rss3-node/config"
 	"math/big"
+
+	"github.com/naturalselectionlabs/rss3-node/config"
 )
 
 type Option struct {

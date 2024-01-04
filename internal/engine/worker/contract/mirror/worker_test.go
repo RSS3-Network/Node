@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
@@ -161,7 +162,7 @@ func TestWorker_Arweave(t *testing.T) {
 	})
 
 	// Dial the database.
-	databaseClient, err := dialer.Dial(context.Background(), &database.Config{
+	databaseClient, err := dialer.Dial(context.Background(), &config.DatabaseConfig{
 		Driver:    driver,
 		URI:       dataSourceName,
 		Partition: &partition,
@@ -197,7 +198,7 @@ func TestWorker_Arweave(t *testing.T) {
 }
 
 func createContainer(ctx context.Context, driver database.Driver, partition bool) (container *gnomock.Container, dataSourceName string, err error) {
-	config := database.Config{
+	config := config.DatabaseConfig{
 		Driver:    driver,
 		Partition: &partition,
 	}

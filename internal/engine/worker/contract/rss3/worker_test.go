@@ -3,13 +3,13 @@ package rss3_test
 import (
 	"context"
 	"encoding/json"
-	"github.com/naturalselectionlabs/rss3-node/config"
 	"math/big"
 	"testing"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/rss3"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"

@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/fallback/arweave"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave"

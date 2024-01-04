@@ -3,8 +3,8 @@ package dialer
 import (
 	"context"
 	"fmt"
-	"github.com/naturalselectionlabs/rss3-node/config"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroachdb"
 )

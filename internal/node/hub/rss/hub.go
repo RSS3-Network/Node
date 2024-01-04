@@ -2,9 +2,9 @@ package rss
 
 import (
 	"context"
-	"github.com/naturalselectionlabs/rss3-node/config"
 	"net/http"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
 

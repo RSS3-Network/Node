@@ -2,8 +2,8 @@ package fallback
 
 import (
 	"fmt"
-	"github.com/naturalselectionlabs/rss3-node/config"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/fallback/arweave"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/fallback/ethereum"

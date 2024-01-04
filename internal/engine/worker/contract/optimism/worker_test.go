@@ -8,7 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/optimism"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
@@ -145,7 +145,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 124,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkEthereum,
 					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
 				},
@@ -309,7 +309,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 143,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkEthereum,
 					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
 				},
@@ -461,7 +461,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 7,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkOptimism,
 					Endpoint: endpoint.MustGet(filter.NetworkOptimism),
 				},
@@ -637,7 +637,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 4,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkOptimism,
 					Endpoint: endpoint.MustGet(filter.NetworkOptimism),
 				},
@@ -763,7 +763,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 1,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkOptimism,
 					Endpoint: endpoint.MustGet(filter.NetworkOptimism),
 				},
@@ -899,7 +899,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 0,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkOptimism,
 					Endpoint: endpoint.MustGet(filter.NetworkOptimism),
 				},
@@ -1077,7 +1077,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 4,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkOptimism,
 					Endpoint: endpoint.MustGet(filter.NetworkOptimism),
 				},
@@ -1229,7 +1229,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 85,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkEthereum,
 					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
 				},
@@ -1366,7 +1366,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 103,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkEthereum,
 					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
 				},

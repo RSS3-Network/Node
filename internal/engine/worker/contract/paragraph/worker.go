@@ -3,10 +3,10 @@ package paragraph
 import (
 	"context"
 	"fmt"
-	"github.com/naturalselectionlabs/rss3-node/config"
 	"strings"
 	"time"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
