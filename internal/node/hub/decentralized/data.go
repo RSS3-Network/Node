@@ -76,7 +76,7 @@ func (h *Hub) getIndexCount(ctx context.Context) (int64, *time.Time, error) {
 		count += checkpoint.IndexCount
 
 		if updateTime == nil || checkpoint.UpdatedAt.After(*updateTime) {
-			updateTime = &checkpoint.UpdatedAt
+			updateTime = lo.ToPtr(checkpoint.UpdatedAt)
 		}
 	}
 
