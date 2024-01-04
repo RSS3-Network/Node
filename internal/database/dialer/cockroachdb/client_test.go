@@ -127,7 +127,7 @@ func TestClient(t *testing.T) {
 
 			// Query first feed.
 			for _, feed := range testcase.feedCreated {
-				data, page, err := client.FindFeed(context.Background(), model.FeedQuery{ID: &feed.ID, ActionLimit: 10})
+				data, page, err := client.FindFeed(context.Background(), model.FeedQuery{ID: lo.ToPtr(feed.ID), ActionLimit: 10})
 				require.NoError(t, err)
 				require.NotNil(t, data)
 				require.Greater(t, lo.FromPtr(page), 0)

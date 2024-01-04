@@ -18,6 +18,11 @@ var endpointsMap = map[filter.Network][]string{
 		"https://rpc.ankr.com/optimism",
 		"https://optimism.blockpi.network/v1/rpc/public",
 	},
+	filter.NetworkPolygon: {
+		"https://rpc.ankr.com/polygon",
+		"https://polygon.blockpi.network/v1/rpc/public",
+		"https://polygon.llamarpc.com",
+	},
 }
 
 func Get(network filter.Network) ([]string, bool) {
