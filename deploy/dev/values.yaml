@@ -22,6 +22,11 @@ indexers:
     parameters:
       block_number_start: 10207858
   - network: ethereum
+    worker: optimism
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
+    parameters:
+      block_number_start: 12686786
+  - network: ethereum
     worker: fallback
     endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
     parameters:

@@ -18,4 +18,5 @@ const (
 	TypeTransactionApproval
 	TypeTransactionBurn
 	TypeTransactionMint
+	TypeTransactionBridge
 )

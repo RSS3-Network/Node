@@ -19,6 +19,7 @@ const (
 	Paragraph                 // paragraph
 	OpenSea                   // opensea
 	Uniswap                   // uniswap
+	Optimism                  // optimism
 )
 
 type Worker interface {

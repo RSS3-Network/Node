@@ -7,6 +7,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/opensea"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/optimism"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/paragraph"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/rss3"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/uniswap"
@@ -30,6 +31,8 @@ func New(config *engine.Config, databaseClient database.Client) (engine.Worker, 
 		return opensea.NewWorker(config)
 	case engine.Uniswap:
 		return uniswap.NewWorker(config)
+	case engine.Optimism:
+		return optimism.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}

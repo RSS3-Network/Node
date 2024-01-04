@@ -16,6 +16,7 @@ const (
 	PlatformParagraph                     // Paragraph
 	PlatformOpenSea                       // OpenSea
 	PlatformUniswap                       // Uniswap
+	PlatformOptimism                      // Optimism
 )
 
 func (p Platform) ID() string {
