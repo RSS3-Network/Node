@@ -19,7 +19,7 @@ const (
 	Paragraph                  // paragraph
 	OpenSea                    // opensea
 	Uniswap                    // uniswap
-	Optimism                  // optimism
+	Optimism                   // optimism
 	Aavegotchi                 // aavegotchi
 )
 
