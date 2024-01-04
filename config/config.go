@@ -23,13 +23,13 @@ const (
 )
 
 type File struct {
-	Environment string          `yaml:"environment" validate:"required" default:"development"`
-	Node        *NodeConfig     `yaml:"component" validate:"required"`
-	Database    *DatabaseConfig `yaml:"database" validate:"required"`
-	Stream      *StreamConfig   `yaml:"stream" validate:"required"`
+	Environment string    `yaml:"environment" validate:"required" default:"development"`
+	Node        *Node     `yaml:"component" validate:"required"`
+	Database    *Database `yaml:"database" validate:"required"`
+	Stream      *Stream   `yaml:"stream" validate:"required"`
 }
 
-type NodeConfig struct {
+type Node struct {
 	RSS           []*Module `yaml:"rss" validate:"dive"`
 	Federated     []*Module `yaml:"federated" validate:"dive"`
 	Decentralized []*Module `yaml:"decentralized" validate:"dive"`
@@ -42,13 +42,13 @@ type Module struct {
 	Parameters *Options       `yaml:"parameters"`
 }
 
-type DatabaseConfig struct {
+type Database struct {
 	Driver    database.Driver `mapstructure:"driver" validate:"required" default:"cockroachdb"`
 	Partition *bool           `mapstructure:"partition" validate:"required" default:"true"`
 	URI       string          `mapstructure:"uri" validate:"required" default:"postgres://root@localhost:26257/defaultdb"`
 }
 
-type StreamConfig struct {
+type Stream struct {
 	Enable *bool         `mapstructure:"enable" validate:"required" default:"false"`
 	Driver stream.Driver `mapstructure:"driver" validate:"required" default:"kafka"`
 	Topic  string        `mapstructure:"topic" validate:"required" default:"rss3.node.feeds"`

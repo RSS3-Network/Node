@@ -111,7 +111,7 @@ func TestClient(t *testing.T) {
 			})
 
 			// Dial the database.
-			client, err := dialer.Dial(context.Background(), &config.DatabaseConfig{
+			client, err := dialer.Dial(context.Background(), &config.Database{
 				Driver:    testcase.driver,
 				URI:       dataSourceName,
 				Partition: testcase.partition,
@@ -158,7 +158,7 @@ func TestClient(t *testing.T) {
 }
 
 func createContainer(ctx context.Context, driver database.Driver, partition bool) (container *gnomock.Container, dataSourceName string, err error) {
-	config := config.DatabaseConfig{
+	config := config.Database{
 		Driver:    driver,
 		Partition: &partition,
 	}
