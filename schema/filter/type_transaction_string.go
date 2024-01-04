@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _TransactionTypeName = "transferapprovalburnmint"
+const _TransactionTypeName = "transferapprovalburnmintbridge"
 
-var _TransactionTypeIndex = [...]uint8{0, 8, 16, 20, 24}
+var _TransactionTypeIndex = [...]uint8{0, 8, 16, 20, 24, 30}
 
-const _TransactionTypeLowerName = "transferapprovalburnmint"
+const _TransactionTypeLowerName = "transferapprovalburnmintbridge"
 
 func (i TransactionType) String() string {
 	i -= 1
@@ -35,9 +35,10 @@ func _TransactionTypeNoOp() {
 	_ = x[TypeTransactionApproval-(2)]
 	_ = x[TypeTransactionBurn-(3)]
 	_ = x[TypeTransactionMint-(4)]
+	_ = x[TypeTransactionBridge-(5)]
 }
 
-var _TransactionTypeValues = []TransactionType{TypeTransactionTransfer, TypeTransactionApproval, TypeTransactionBurn, TypeTransactionMint}
+var _TransactionTypeValues = []TransactionType{TypeTransactionTransfer, TypeTransactionApproval, TypeTransactionBurn, TypeTransactionMint, TypeTransactionBridge}
 
 var _TransactionTypeNameToValueMap = map[string]TransactionType{
 	_TransactionTypeName[0:8]:        TypeTransactionTransfer,
@@ -48,6 +49,8 @@ var _TransactionTypeNameToValueMap = map[string]TransactionType{
 	_TransactionTypeLowerName[16:20]: TypeTransactionBurn,
 	_TransactionTypeName[20:24]:      TypeTransactionMint,
 	_TransactionTypeLowerName[20:24]: TypeTransactionMint,
+	_TransactionTypeName[24:30]:      TypeTransactionBridge,
+	_TransactionTypeLowerName[24:30]: TypeTransactionBridge,
 }
 
 var _TransactionTypeNames = []string{
@@ -55,6 +58,7 @@ var _TransactionTypeNames = []string{
 	_TransactionTypeName[8:16],
 	_TransactionTypeName[16:20],
 	_TransactionTypeName[20:24],
+	_TransactionTypeName[24:30],
 }
 
 // TransactionTypeString retrieves an enum value from the enum constants string name.

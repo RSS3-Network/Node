@@ -58,6 +58,11 @@ component:
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start:
+    - network: ethereum
+      worker: optimism
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
     - network: polygon
       worker: aavegotchi
       endpoint: https://rpc.ankr.com/polygon
