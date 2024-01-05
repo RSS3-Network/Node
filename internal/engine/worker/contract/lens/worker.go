@@ -214,7 +214,7 @@ func (w *worker) transformEthereumV1PostCreated(ctx context.Context, task *sourc
 		return nil, err
 	}
 
-	post, platform, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, event.ContentURI, event.Timestamp.Uint64())
+	post, platform, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, event.ContentURI, false, event.Timestamp.Uint64())
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +245,7 @@ func (w *worker) transformEthereumV1CommentCreated(ctx context.Context, _ *sourc
 	}
 
 	// get the metadata of comment
-	post, platform, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, event.ContentURI, event.Timestamp.Uint64())
+	post, platform, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, event.ContentURI, false, event.Timestamp.Uint64())
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +256,7 @@ func (w *worker) transformEthereumV1CommentCreated(ctx context.Context, _ *sourc
 		return nil, err
 	}
 
-	post.Target, _, err = w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileIdPointed, event.PubIdPointed, pointedContentURI, event.Timestamp.Uint64())
+	post.Target, _, err = w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileIdPointed, event.PubIdPointed, pointedContentURI, true, event.Timestamp.Uint64())
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +282,7 @@ func (w *worker) transformEthereumV1MirrorCreated(ctx context.Context, task *sou
 	}
 
 	//  get the metadata of mirror
-	post, _, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, "", event.Timestamp.Uint64())
+	post, _, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, "", false, event.Timestamp.Uint64())
 	if err != nil {
 		return nil, err
 	}
@@ -295,7 +295,7 @@ func (w *worker) transformEthereumV1MirrorCreated(ctx context.Context, task *sou
 		return nil, err
 	}
 
-	post.Target, platform, err = w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileIdPointed, event.PubIdPointed, pointedContentURI, event.Timestamp.Uint64())
+	post.Target, platform, err = w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileIdPointed, event.PubIdPointed, pointedContentURI, true, event.Timestamp.Uint64())
 	if err != nil {
 		return nil, err
 	}
@@ -348,7 +348,7 @@ func (w *worker) transformEthereumV1CollectNFTTransferred(ctx context.Context, t
 		return nil, err
 	}
 
-	post, platform, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, mintContentURI, event.Timestamp.Uint64())
+	post, platform, err := w.buildEthereumV1TransactionPostMetadata(ctx, log.BlockNumber, event.ProfileId, event.PubId, mintContentURI, false, event.Timestamp.Uint64())
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +394,7 @@ func (w *worker) transformEthereumV2PostCreated(ctx context.Context, task *sourc
 	}
 
 	// get the metadata of the pointed post/comment
-	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.PostParams.ProfileId, event.PubId, event.PostParams.ContentURI, event.Timestamp.Uint64())
+	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.PostParams.ProfileId, event.PubId, event.PostParams.ContentURI, false, event.Timestamp.Uint64())
 	if err != nil {
 		return nil, err
 	}
@@ -424,7 +424,7 @@ func (w *worker) transformEthereumV2CommentCreated(ctx context.Context, _ *sourc
 	}
 
 	// get the metadata of comment
-	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.CommentParams.ProfileId, event.PubId, event.CommentParams.ContentURI, event.Timestamp.Uint64())
+	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.CommentParams.ProfileId, event.PubId, event.CommentParams.ContentURI, false, event.Timestamp.Uint64())
 	if err != nil {
 		return nil, err
 	}
@@ -435,7 +435,7 @@ func (w *worker) transformEthereumV2CommentCreated(ctx context.Context, _ *sourc
 		return nil, err
 	}
 
-	post.Target, _, err = w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.CommentParams.PointedProfileId, event.CommentParams.PointedPubId, pointedContentURI, event.Timestamp.Uint64())
+	post.Target, _, err = w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.CommentParams.PointedProfileId, event.CommentParams.PointedPubId, pointedContentURI, true, event.Timestamp.Uint64())
 	if err != nil {
 		return nil, err
 	}
@@ -460,7 +460,7 @@ func (w *worker) transformEthereumV2MirrorCreated(ctx context.Context, task *sou
 	}
 
 	//  get the metadata of mirror
-	post, _, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.MirrorParams.ProfileId, event.PubId, "", event.Timestamp.Uint64())
+	post, _, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.MirrorParams.ProfileId, event.PubId, "", false, event.Timestamp.Uint64())
 	if err != nil {
 		return nil, err
 	}
@@ -473,7 +473,7 @@ func (w *worker) transformEthereumV2MirrorCreated(ctx context.Context, task *sou
 		return nil, err
 	}
 
-	post.Target, platform, err = w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.MirrorParams.PointedProfileId, event.MirrorParams.PointedPubId, pointedContentURI, event.Timestamp.Uint64())
+	post.Target, platform, err = w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.MirrorParams.PointedProfileId, event.MirrorParams.PointedPubId, pointedContentURI, true, event.Timestamp.Uint64())
 	if err != nil {
 		return nil, err
 	}
@@ -498,7 +498,7 @@ func (w *worker) transformEthereumV2QuoteCreated(ctx context.Context, task *sour
 	}
 
 	//  get the metadata of mirror
-	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.QuoteParams.ProfileId, event.PubId, event.QuoteParams.ContentURI, event.Timestamp.Uint64())
+	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.QuoteParams.ProfileId, event.PubId, event.QuoteParams.ContentURI, false, event.Timestamp.Uint64())
 	if err != nil {
 		return nil, err
 	}
@@ -509,7 +509,7 @@ func (w *worker) transformEthereumV2QuoteCreated(ctx context.Context, task *sour
 		return nil, err
 	}
 
-	post.Target, _, err = w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.QuoteParams.PointedProfileId, event.QuoteParams.PointedPubId, pointedContentURI, event.Timestamp.Uint64())
+	post.Target, _, err = w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.QuoteParams.PointedProfileId, event.QuoteParams.PointedPubId, pointedContentURI, true, event.Timestamp.Uint64())
 	if err != nil {
 		return nil, err
 	}
@@ -544,7 +544,7 @@ func (w *worker) transformEthereumV2Collected(ctx context.Context, _ *source.Tas
 		return nil, err
 	}
 
-	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.CollectedProfileId, event.CollectedPubId, collectedContentURI, event.Timestamp.Uint64())
+	post, platform, err := w.buildEthereumV2TransactionPostMetadata(ctx, log.BlockNumber, event.CollectedProfileId, event.CollectedPubId, collectedContentURI, false, event.Timestamp.Uint64())
 	if err != nil {
 		return nil, err
 	}
@@ -591,7 +591,7 @@ func (w *worker) buildEthereumTransactionPostAction(_ context.Context, from comm
 	}
 }
 
-func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blockNumber *big.Int, profileID, pubID *big.Int, contentURI string, timestamp uint64) (*metadata.SocialPost, string, error) {
+func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blockNumber *big.Int, profileID, pubID *big.Int, contentURI string, isTarget bool, timestamp uint64) (*metadata.SocialPost, string, error) {
 	handle, err := w.getLensHandle(ctx, blockNumber, profileID)
 	if err != nil {
 		return nil, "", err
@@ -620,7 +620,7 @@ func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blo
 		PublicationID: EncodeID(pubID),
 		ContentURI:    contentURI,
 		Tags:          lo.If(len(publication.Tags) > 0, publication.Tags).Else(nil),
-		Timestamp:     timestamp,
+		Timestamp:     lo.If(isTarget, uint64(0)).Else(timestamp),
 	}, publication.AppID, nil
 }
 
@@ -733,7 +733,7 @@ func (w *worker) buildEthereumTransactionProfileAction(_ context.Context, from c
 }
 
 // buildEthereumV2TransactionPostMetadata builds post metadata.
-func (w *worker) buildEthereumV2TransactionPostMetadata(ctx context.Context, blockNumber *big.Int, profileID, pubID *big.Int, contentURI string, timestamp uint64) (*metadata.SocialPost, string, error) {
+func (w *worker) buildEthereumV2TransactionPostMetadata(ctx context.Context, blockNumber *big.Int, profileID, pubID *big.Int, contentURI string, isTarget bool, timestamp uint64) (*metadata.SocialPost, string, error) {
 	handle, err := w.getLensHandle(ctx, blockNumber, profileID)
 	if err != nil {
 		return nil, "", err
@@ -779,7 +779,7 @@ func (w *worker) buildEthereumV2TransactionPostMetadata(ctx context.Context, blo
 		PublicationID: EncodeID(pubID),
 		ContentURI:    contentURI,
 		Tags:          lo.If(len(publication.Lens.Tags) > 0, publication.Lens.Tags).Else(nil),
-		Timestamp:     timestamp,
+		Timestamp:     lo.If(isTarget, uint64(0)).Else(timestamp),
 	}, publication.Lens.AppID, nil
 }
 
