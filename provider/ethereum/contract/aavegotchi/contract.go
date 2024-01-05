@@ -5,8 +5,8 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract"
 )
 
-//go:generate abigen --abi ./abi/ERC1155MarketplaceFacet.abi --pkg aavegotchi --type ERC1155Marketplace --out ./contract_erc1155_marketplace_facet.go
-//go:generate abigen --abi ./abi/ERC721MarketplaceFacet.abi --pkg aavegotchi --type ERC721Marketplace --out ./contract_erc721_marketplace_facet.go
+//go:generate go run -mod=mod github.com/ethereum/go-ethereum/cmd/abigen@v1.13.5 --abi ./abi/ERC1155MarketplaceFacet.abi --pkg aavegotchi --type ERC1155Marketplace --out ./contract_erc1155_marketplace_facet.go
+//go:generate go run -mod=mod github.com/ethereum/go-ethereum/cmd/abigen@v1.13.5 --abi ./abi/ERC721MarketplaceFacet.abi --pkg aavegotchi --type ERC721Marketplace --out ./contract_erc721_marketplace_facet.go
 
 var (
 	AddressAavegotchi = common.HexToAddress("0x86935F11C86623deC8a25696E1C19a8659CbF95d")
