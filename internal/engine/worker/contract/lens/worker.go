@@ -139,7 +139,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		// Change feed type to the first action type.
 		for _, action := range actions {
 			feed.Type = action.Type
-			fmt.Printf("===== action: %+v\n", action)
 		}
 
 		feed.Actions = append(feed.Actions, actions...)
