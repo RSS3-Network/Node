@@ -12,21 +12,26 @@ import (
 const (
 	_EthereumChainIDName_0      = "ethereum"
 	_EthereumChainIDLowerName_0 = "ethereum"
-	_EthereumChainIDName_1      = "polygon"
-	_EthereumChainIDLowerName_1 = "polygon"
+	_EthereumChainIDName_1      = "optimism"
+	_EthereumChainIDLowerName_1 = "optimism"
+	_EthereumChainIDName_2      = "polygon"
+	_EthereumChainIDLowerName_2 = "polygon"
 )
 
 var (
 	_EthereumChainIDIndex_0 = [...]uint8{0, 8}
-	_EthereumChainIDIndex_1 = [...]uint8{0, 7}
+	_EthereumChainIDIndex_1 = [...]uint8{0, 8}
+	_EthereumChainIDIndex_2 = [...]uint8{0, 7}
 )
 
 func (i EthereumChainID) String() string {
 	switch {
 	case i == 1:
 		return _EthereumChainIDName_0
-	case i == 137:
+	case i == 10:
 		return _EthereumChainIDName_1
+	case i == 137:
+		return _EthereumChainIDName_2
 	default:
 		return fmt.Sprintf("EthereumChainID(%d)", i)
 	}
@@ -41,21 +46,25 @@ func (EthereumChainID) Values() []string {
 func _EthereumChainIDNoOp() {
 	var x [1]struct{}
 	_ = x[EthereumChainIDMainnet-(1)]
+	_ = x[EthereumChainIDOptimism-(10)]
 	_ = x[EthereumChainIDPolygon-(137)]
 }
 
-var _EthereumChainIDValues = []EthereumChainID{EthereumChainIDMainnet, EthereumChainIDPolygon}
+var _EthereumChainIDValues = []EthereumChainID{EthereumChainIDMainnet, EthereumChainIDOptimism, EthereumChainIDPolygon}
 
 var _EthereumChainIDNameToValueMap = map[string]EthereumChainID{
 	_EthereumChainIDName_0[0:8]:      EthereumChainIDMainnet,
 	_EthereumChainIDLowerName_0[0:8]: EthereumChainIDMainnet,
-	_EthereumChainIDName_1[0:7]:      EthereumChainIDPolygon,
-	_EthereumChainIDLowerName_1[0:7]: EthereumChainIDPolygon,
+	_EthereumChainIDName_1[0:8]:      EthereumChainIDOptimism,
+	_EthereumChainIDLowerName_1[0:8]: EthereumChainIDOptimism,
+	_EthereumChainIDName_2[0:7]:      EthereumChainIDPolygon,
+	_EthereumChainIDLowerName_2[0:7]: EthereumChainIDPolygon,
 }
 
 var _EthereumChainIDNames = []string{
 	_EthereumChainIDName_0[0:8],
-	_EthereumChainIDName_1[0:7],
+	_EthereumChainIDName_1[0:8],
+	_EthereumChainIDName_2[0:7],
 }
 
 // EthereumChainIDString retrieves an enum value from the enum constants string name.

@@ -8,6 +8,7 @@ type Network uint64
 const (
 	NetworkUnknown   Network = iota // unknown
 	NetworkEthereum                 // ethereum
+	NetworkOptimism                 // optimism
 	NetworkPolygon                  // polygon
 	NetworkRSS                      // rss
 	NetworkArweave                  // arweave
@@ -52,6 +53,16 @@ func (n Network) Source() NetworkSource {
 type EthereumChainID uint64
 
 const (
-	EthereumChainIDMainnet EthereumChainID = 1   // ethereum
+	EthereumChainIDMainnet  EthereumChainID = 1 // ethereum
+	EthereumChainIDOptimism EthereumChainID = 10 // optimism
 	EthereumChainIDPolygon EthereumChainID = 137 // polygon
 )
+
+func IsOptimismSuperchain(chainID uint64) bool {
+	switch chainID {
+	case uint64(EthereumChainIDOptimism):
+		return true
+	default:
+		return false
+	}
+}

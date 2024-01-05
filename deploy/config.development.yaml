@@ -35,6 +35,7 @@ component:
           access_code:
 
   decentralized:
+    # ethereum
     - network: ethereum
       worker: fallback
       endpoint: https://rpc.ankr.com/eth
@@ -62,9 +63,21 @@ component:
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start:
+    - network: ethereum
+      worker: optimism
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
+    - network: polygon
+      worker: aavegotchi
+      endpoint: https://rpc.ankr.com/polygon
+      parameters:
+          block_number_start: 48300005
+    # farcaster
     - network: farcaster
       worker: farcaster
       endpoint: https://nemes.farcaster.xyz:2281
+    # arweave
     - network: arweave
       worker: mirror
       endpoint: https://arweave.net/

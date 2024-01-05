@@ -1,0 +1,1733 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "listingId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "seller",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "buyer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "erc721TokenAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "erc721TokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "category",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "priceInWei",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "time",
+        "type": "uint256"
+      }
+    ],
+    "name": "ERC721ExecutedListing",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "listingId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "buyer",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      }
+    ],
+    "name": "ERC721ExecutedToRecipient",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "listingId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "seller",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "erc721TokenAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "erc721TokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "category",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "time",
+        "type": "uint256"
+      }
+    ],
+    "name": "ERC721ListingAdd",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "listingId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16[2]",
+        "name": "principalSplit",
+        "type": "uint16[2]"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "affiliate",
+        "type": "address"
+      }
+    ],
+    "name": "ERC721ListingSplit",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_erc721TokenAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_erc721TokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_priceInWei",
+        "type": "uint256"
+      }
+    ],
+    "name": "addERC721Listing",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_erc721TokenAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_erc721TokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_priceInWei",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint16[2]",
+        "name": "_principalSplit",
+        "type": "uint16[2]"
+      },
+      {
+        "internalType": "address",
+        "name": "_affiliate",
+        "type": "address"
+      }
+    ],
+    "name": "addERC721ListingWithSplit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_listingId",
+        "type": "uint256"
+      }
+    ],
+    "name": "cancelERC721Listing",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_erc721TokenAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_erc721TokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "cancelERC721ListingByToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "_listingIds",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "cancelERC721Listings",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_listingId",
+        "type": "uint256"
+      }
+    ],
+    "name": "executeERC721Listing",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_listingId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_contractAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_priceInWei",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_recipient",
+        "type": "address"
+      }
+    ],
+    "name": "executeERC721ListingToRecipient",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_listingId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getAavegotchiListing",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "listingId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "seller",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "erc721TokenAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "erc721TokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "category",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "priceInWei",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timeCreated",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timePurchased",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "cancelled",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint16[2]",
+            "name": "principalSplit",
+            "type": "uint16[2]"
+          },
+          {
+            "internalType": "address",
+            "name": "affiliate",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct ERC721Listing",
+        "name": "listing_",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "randomNumber",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "status",
+            "type": "uint256"
+          },
+          {
+            "internalType": "int16[6]",
+            "name": "numericTraits",
+            "type": "int16[6]"
+          },
+          {
+            "internalType": "int16[6]",
+            "name": "modifiedNumericTraits",
+            "type": "int16[6]"
+          },
+          {
+            "internalType": "uint16[16]",
+            "name": "equippedWearables",
+            "type": "uint16[16]"
+          },
+          {
+            "internalType": "address",
+            "name": "collateral",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "escrow",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "stakedAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minimumStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "kinship",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastInteracted",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "experience",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "toNextLevel",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "usedSkillPoints",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "level",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "hauntId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "baseRarityScore",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "modifiedRarityScore",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "locked",
+            "type": "bool"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "balance",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "itemId",
+                "type": "uint256"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "string",
+                    "name": "name",
+                    "type": "string"
+                  },
+                  {
+                    "internalType": "string",
+                    "name": "description",
+                    "type": "string"
+                  },
+                  {
+                    "internalType": "string",
+                    "name": "author",
+                    "type": "string"
+                  },
+                  {
+                    "internalType": "int8[6]",
+                    "name": "traitModifiers",
+                    "type": "int8[6]"
+                  },
+                  {
+                    "internalType": "bool[16]",
+                    "name": "slotPositions",
+                    "type": "bool[16]"
+                  },
+                  {
+                    "internalType": "uint8[]",
+                    "name": "allowedCollaterals",
+                    "type": "uint8[]"
+                  },
+                  {
+                    "components": [
+                      {
+                        "internalType": "uint8",
+                        "name": "x",
+                        "type": "uint8"
+                      },
+                      {
+                        "internalType": "uint8",
+                        "name": "y",
+                        "type": "uint8"
+                      },
+                      {
+                        "internalType": "uint8",
+                        "name": "width",
+                        "type": "uint8"
+                      },
+                      {
+                        "internalType": "uint8",
+                        "name": "height",
+                        "type": "uint8"
+                      }
+                    ],
+                    "internalType": "struct Dimensions",
+                    "name": "dimensions",
+                    "type": "tuple"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "ghstPrice",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "maxQuantity",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "totalQuantity",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint32",
+                    "name": "svgId",
+                    "type": "uint32"
+                  },
+                  {
+                    "internalType": "uint8",
+                    "name": "rarityScoreModifier",
+                    "type": "uint8"
+                  },
+                  {
+                    "internalType": "bool",
+                    "name": "canPurchaseWithGhst",
+                    "type": "bool"
+                  },
+                  {
+                    "internalType": "uint16",
+                    "name": "minLevel",
+                    "type": "uint16"
+                  },
+                  {
+                    "internalType": "bool",
+                    "name": "canBeTransferred",
+                    "type": "bool"
+                  },
+                  {
+                    "internalType": "uint8",
+                    "name": "category",
+                    "type": "uint8"
+                  },
+                  {
+                    "internalType": "int16",
+                    "name": "kinshipBonus",
+                    "type": "int16"
+                  },
+                  {
+                    "internalType": "uint32",
+                    "name": "experienceBonus",
+                    "type": "uint32"
+                  }
+                ],
+                "internalType": "struct ItemType",
+                "name": "itemType",
+                "type": "tuple"
+              }
+            ],
+            "internalType": "struct ItemTypeIO[]",
+            "name": "items",
+            "type": "tuple[]"
+          }
+        ],
+        "internalType": "struct AavegotchiInfo",
+        "name": "aavegotchiInfo_",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_category",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_sort",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_length",
+        "type": "uint256"
+      }
+    ],
+    "name": "getAavegotchiListings",
+    "outputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "listingId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "address",
+                "name": "seller",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "erc721TokenAddress",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "erc721TokenId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "category",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "priceInWei",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "timeCreated",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "timePurchased",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bool",
+                "name": "cancelled",
+                "type": "bool"
+              },
+              {
+                "internalType": "uint16[2]",
+                "name": "principalSplit",
+                "type": "uint16[2]"
+              },
+              {
+                "internalType": "address",
+                "name": "affiliate",
+                "type": "address"
+              }
+            ],
+            "internalType": "struct ERC721Listing",
+            "name": "listing_",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "randomNumber",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "status",
+                "type": "uint256"
+              },
+              {
+                "internalType": "int16[6]",
+                "name": "numericTraits",
+                "type": "int16[6]"
+              },
+              {
+                "internalType": "int16[6]",
+                "name": "modifiedNumericTraits",
+                "type": "int16[6]"
+              },
+              {
+                "internalType": "uint16[16]",
+                "name": "equippedWearables",
+                "type": "uint16[16]"
+              },
+              {
+                "internalType": "address",
+                "name": "collateral",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "escrow",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "stakedAmount",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "minimumStake",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "kinship",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "lastInteracted",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "experience",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "toNextLevel",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "usedSkillPoints",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "level",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "hauntId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "baseRarityScore",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "modifiedRarityScore",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bool",
+                "name": "locked",
+                "type": "bool"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "uint256",
+                    "name": "balance",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "itemId",
+                    "type": "uint256"
+                  },
+                  {
+                    "components": [
+                      {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                      },
+                      {
+                        "internalType": "string",
+                        "name": "description",
+                        "type": "string"
+                      },
+                      {
+                        "internalType": "string",
+                        "name": "author",
+                        "type": "string"
+                      },
+                      {
+                        "internalType": "int8[6]",
+                        "name": "traitModifiers",
+                        "type": "int8[6]"
+                      },
+                      {
+                        "internalType": "bool[16]",
+                        "name": "slotPositions",
+                        "type": "bool[16]"
+                      },
+                      {
+                        "internalType": "uint8[]",
+                        "name": "allowedCollaterals",
+                        "type": "uint8[]"
+                      },
+                      {
+                        "components": [
+                          {
+                            "internalType": "uint8",
+                            "name": "x",
+                            "type": "uint8"
+                          },
+                          {
+                            "internalType": "uint8",
+                            "name": "y",
+                            "type": "uint8"
+                          },
+                          {
+                            "internalType": "uint8",
+                            "name": "width",
+                            "type": "uint8"
+                          },
+                          {
+                            "internalType": "uint8",
+                            "name": "height",
+                            "type": "uint8"
+                          }
+                        ],
+                        "internalType": "struct Dimensions",
+                        "name": "dimensions",
+                        "type": "tuple"
+                      },
+                      {
+                        "internalType": "uint256",
+                        "name": "ghstPrice",
+                        "type": "uint256"
+                      },
+                      {
+                        "internalType": "uint256",
+                        "name": "maxQuantity",
+                        "type": "uint256"
+                      },
+                      {
+                        "internalType": "uint256",
+                        "name": "totalQuantity",
+                        "type": "uint256"
+                      },
+                      {
+                        "internalType": "uint32",
+                        "name": "svgId",
+                        "type": "uint32"
+                      },
+                      {
+                        "internalType": "uint8",
+                        "name": "rarityScoreModifier",
+                        "type": "uint8"
+                      },
+                      {
+                        "internalType": "bool",
+                        "name": "canPurchaseWithGhst",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "uint16",
+                        "name": "minLevel",
+                        "type": "uint16"
+                      },
+                      {
+                        "internalType": "bool",
+                        "name": "canBeTransferred",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "uint8",
+                        "name": "category",
+                        "type": "uint8"
+                      },
+                      {
+                        "internalType": "int16",
+                        "name": "kinshipBonus",
+                        "type": "int16"
+                      },
+                      {
+                        "internalType": "uint32",
+                        "name": "experienceBonus",
+                        "type": "uint32"
+                      }
+                    ],
+                    "internalType": "struct ItemType",
+                    "name": "itemType",
+                    "type": "tuple"
+                  }
+                ],
+                "internalType": "struct ItemTypeIO[]",
+                "name": "items",
+                "type": "tuple[]"
+              }
+            ],
+            "internalType": "struct AavegotchiInfo",
+            "name": "aavegotchiInfo_",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct ERC721MarketplaceFacet.AavegotchiListing[]",
+        "name": "listings_",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_erc721TokenAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_erc721TokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getERC721Category",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "category_",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_listingId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getERC721Listing",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "listingId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "seller",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "erc721TokenAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "erc721TokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "category",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "priceInWei",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timeCreated",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timePurchased",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "cancelled",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint16[2]",
+            "name": "principalSplit",
+            "type": "uint16[2]"
+          },
+          {
+            "internalType": "address",
+            "name": "affiliate",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct ERC721Listing",
+        "name": "listing_",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_erc721TokenAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_erc721TokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_owner",
+        "type": "address"
+      }
+    ],
+    "name": "getERC721ListingFromToken",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "listingId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "seller",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "erc721TokenAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "erc721TokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "category",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "priceInWei",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timeCreated",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timePurchased",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "cancelled",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint16[2]",
+            "name": "principalSplit",
+            "type": "uint16[2]"
+          },
+          {
+            "internalType": "address",
+            "name": "affiliate",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct ERC721Listing",
+        "name": "listing_",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_category",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_sort",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_length",
+        "type": "uint256"
+      }
+    ],
+    "name": "getERC721Listings",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "listingId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "seller",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "erc721TokenAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "erc721TokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "category",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "priceInWei",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timeCreated",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timePurchased",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "cancelled",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint16[2]",
+            "name": "principalSplit",
+            "type": "uint16[2]"
+          },
+          {
+            "internalType": "address",
+            "name": "affiliate",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct ERC721Listing[]",
+        "name": "listings_",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_owner",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_category",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_sort",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_length",
+        "type": "uint256"
+      }
+    ],
+    "name": "getOwnerAavegotchiListings",
+    "outputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "listingId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "address",
+                "name": "seller",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "erc721TokenAddress",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "erc721TokenId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "category",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "priceInWei",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "timeCreated",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "timePurchased",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bool",
+                "name": "cancelled",
+                "type": "bool"
+              },
+              {
+                "internalType": "uint16[2]",
+                "name": "principalSplit",
+                "type": "uint16[2]"
+              },
+              {
+                "internalType": "address",
+                "name": "affiliate",
+                "type": "address"
+              }
+            ],
+            "internalType": "struct ERC721Listing",
+            "name": "listing_",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "randomNumber",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "status",
+                "type": "uint256"
+              },
+              {
+                "internalType": "int16[6]",
+                "name": "numericTraits",
+                "type": "int16[6]"
+              },
+              {
+                "internalType": "int16[6]",
+                "name": "modifiedNumericTraits",
+                "type": "int16[6]"
+              },
+              {
+                "internalType": "uint16[16]",
+                "name": "equippedWearables",
+                "type": "uint16[16]"
+              },
+              {
+                "internalType": "address",
+                "name": "collateral",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "escrow",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "stakedAmount",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "minimumStake",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "kinship",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "lastInteracted",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "experience",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "toNextLevel",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "usedSkillPoints",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "level",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "hauntId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "baseRarityScore",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "modifiedRarityScore",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bool",
+                "name": "locked",
+                "type": "bool"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "uint256",
+                    "name": "balance",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "itemId",
+                    "type": "uint256"
+                  },
+                  {
+                    "components": [
+                      {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                      },
+                      {
+                        "internalType": "string",
+                        "name": "description",
+                        "type": "string"
+                      },
+                      {
+                        "internalType": "string",
+                        "name": "author",
+                        "type": "string"
+                      },
+                      {
+                        "internalType": "int8[6]",
+                        "name": "traitModifiers",
+                        "type": "int8[6]"
+                      },
+                      {
+                        "internalType": "bool[16]",
+                        "name": "slotPositions",
+                        "type": "bool[16]"
+                      },
+                      {
+                        "internalType": "uint8[]",
+                        "name": "allowedCollaterals",
+                        "type": "uint8[]"
+                      },
+                      {
+                        "components": [
+                          {
+                            "internalType": "uint8",
+                            "name": "x",
+                            "type": "uint8"
+                          },
+                          {
+                            "internalType": "uint8",
+                            "name": "y",
+                            "type": "uint8"
+                          },
+                          {
+                            "internalType": "uint8",
+                            "name": "width",
+                            "type": "uint8"
+                          },
+                          {
+                            "internalType": "uint8",
+                            "name": "height",
+                            "type": "uint8"
+                          }
+                        ],
+                        "internalType": "struct Dimensions",
+                        "name": "dimensions",
+                        "type": "tuple"
+                      },
+                      {
+                        "internalType": "uint256",
+                        "name": "ghstPrice",
+                        "type": "uint256"
+                      },
+                      {
+                        "internalType": "uint256",
+                        "name": "maxQuantity",
+                        "type": "uint256"
+                      },
+                      {
+                        "internalType": "uint256",
+                        "name": "totalQuantity",
+                        "type": "uint256"
+                      },
+                      {
+                        "internalType": "uint32",
+                        "name": "svgId",
+                        "type": "uint32"
+                      },
+                      {
+                        "internalType": "uint8",
+                        "name": "rarityScoreModifier",
+                        "type": "uint8"
+                      },
+                      {
+                        "internalType": "bool",
+                        "name": "canPurchaseWithGhst",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "uint16",
+                        "name": "minLevel",
+                        "type": "uint16"
+                      },
+                      {
+                        "internalType": "bool",
+                        "name": "canBeTransferred",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "uint8",
+                        "name": "category",
+                        "type": "uint8"
+                      },
+                      {
+                        "internalType": "int16",
+                        "name": "kinshipBonus",
+                        "type": "int16"
+                      },
+                      {
+                        "internalType": "uint32",
+                        "name": "experienceBonus",
+                        "type": "uint32"
+                      }
+                    ],
+                    "internalType": "struct ItemType",
+                    "name": "itemType",
+                    "type": "tuple"
+                  }
+                ],
+                "internalType": "struct ItemTypeIO[]",
+                "name": "items",
+                "type": "tuple[]"
+              }
+            ],
+            "internalType": "struct AavegotchiInfo",
+            "name": "aavegotchiInfo_",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct ERC721MarketplaceFacet.AavegotchiListing[]",
+        "name": "listings_",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_owner",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_category",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_sort",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_length",
+        "type": "uint256"
+      }
+    ],
+    "name": "getOwnerERC721Listings",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "listingId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "seller",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "erc721TokenAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "erc721TokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "category",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "priceInWei",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timeCreated",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timePurchased",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "cancelled",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint16[2]",
+            "name": "principalSplit",
+            "type": "uint16[2]"
+          },
+          {
+            "internalType": "address",
+            "name": "affiliate",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct ERC721Listing[]",
+        "name": "listings_",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "erc721TokenAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "category",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct ERC721MarketplaceFacet.Category[]",
+        "name": "_categories",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "setERC721Categories",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_erc721TokenAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_erc721TokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_owner",
+        "type": "address"
+      }
+    ],
+    "name": "updateERC721Listing",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

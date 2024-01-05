@@ -9,12 +9,13 @@ import (
 )
 
 type Action struct {
-	Tag      filter.Tag        `json:"tag"`
-	Type     filter.Type       `json:"type"`
-	Platform string            `json:"platform,omitempty"`
-	From     string            `json:"from"`
-	To       string            `json:"to"`
-	Metadata metadata.Metadata `json:"metadata"`
+	Tag         filter.Tag        `json:"tag"`
+	Type        filter.Type       `json:"type"`
+	Platform    string            `json:"platform,omitempty"`
+	From        string            `json:"from"`
+	To          string            `json:"to"`
+	Metadata    metadata.Metadata `json:"metadata"`
+	RelatedURLs []string          `json:"related_urls,omitempty"`
 }
 
 type Actions []*Action

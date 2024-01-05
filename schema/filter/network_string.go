@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _NetworkName = "unknownethereumpolygonrssarweavefarcaster"
+const _NetworkName = "unknownethereumoptimismpolygonrssarweavefarcaster"
 
-var _NetworkIndex = [...]uint8{0, 7, 15, 22, 25, 32, 41}
+var _NetworkIndex = [...]uint8{0, 7, 15, 23, 30, 33, 40, 49}
 
-const _NetworkLowerName = "unknownethereumpolygonrssarweavefarcaster"
+const _NetworkLowerName = "unknownethereumoptimismpolygonrssarweavefarcaster"
 
 func (i Network) String() string {
 	if i >= Network(len(_NetworkIndex)-1) {
@@ -32,36 +32,40 @@ func _NetworkNoOp() {
 	var x [1]struct{}
 	_ = x[NetworkUnknown-(0)]
 	_ = x[NetworkEthereum-(1)]
-	_ = x[NetworkPolygon-(2)]
-	_ = x[NetworkRSS-(3)]
-	_ = x[NetworkArweave-(4)]
-	_ = x[NetworkFarcaster-(5)]
+	_ = x[NetworkOptimism-(2)]
+	_ = x[NetworkPolygon-(3)]
+	_ = x[NetworkRSS-(4)]
+	_ = x[NetworkArweave-(5)]
+	_ = x[NetworkFarcaster-(6)]
 }
 
-var _NetworkValues = []Network{NetworkUnknown, NetworkEthereum, NetworkPolygon, NetworkRSS, NetworkArweave, NetworkFarcaster}
+var _NetworkValues = []Network{NetworkUnknown, NetworkEthereum, NetworkOptimism, NetworkPolygon, NetworkRSS, NetworkArweave, NetworkFarcaster}
 
 var _NetworkNameToValueMap = map[string]Network{
 	_NetworkName[0:7]:        NetworkUnknown,
 	_NetworkLowerName[0:7]:   NetworkUnknown,
 	_NetworkName[7:15]:       NetworkEthereum,
 	_NetworkLowerName[7:15]:  NetworkEthereum,
-	_NetworkName[15:22]:      NetworkPolygon,
-	_NetworkLowerName[15:22]: NetworkPolygon,
-	_NetworkName[22:25]:      NetworkRSS,
-	_NetworkLowerName[22:25]: NetworkRSS,
-	_NetworkName[25:32]:      NetworkArweave,
-	_NetworkLowerName[25:32]: NetworkArweave,
-	_NetworkName[32:41]:      NetworkFarcaster,
-	_NetworkLowerName[32:41]: NetworkFarcaster,
+	_NetworkName[15:23]:      NetworkOptimism,
+	_NetworkLowerName[15:23]: NetworkOptimism,
+	_NetworkName[23:30]:      NetworkPolygon,
+	_NetworkLowerName[23:30]: NetworkPolygon,
+	_NetworkName[30:33]:      NetworkRSS,
+	_NetworkLowerName[30:33]: NetworkRSS,
+	_NetworkName[33:40]:      NetworkArweave,
+	_NetworkLowerName[33:40]: NetworkArweave,
+	_NetworkName[40:49]:      NetworkFarcaster,
+	_NetworkLowerName[40:49]: NetworkFarcaster,
 }
 
 var _NetworkNames = []string{
 	_NetworkName[0:7],
 	_NetworkName[7:15],
-	_NetworkName[15:22],
-	_NetworkName[22:25],
-	_NetworkName[25:32],
-	_NetworkName[32:41],
+	_NetworkName[15:23],
+	_NetworkName[23:30],
+	_NetworkName[30:33],
+	_NetworkName[33:40],
+	_NetworkName[40:49],
 }
 
 // NetworkString retrieves an enum value from the enum constants string name.
