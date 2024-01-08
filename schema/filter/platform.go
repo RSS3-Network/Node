@@ -18,6 +18,7 @@ const (
 	PlatformUniswap                        // Uniswap
 	PlatformOptimism                       // Optimism
 	PlatformAavegotchi                     // Aavegotchi
+	PlatformLido                           // Lido
 )
 
 func (p Platform) ID() string {

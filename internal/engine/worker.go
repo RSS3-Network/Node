@@ -21,6 +21,7 @@ const (
 	Uniswap                    // uniswap
 	Optimism                   // optimism
 	Aavegotchi                 // aavegotchi
+	Lido                       // lido
 )
 
 type Worker interface {
