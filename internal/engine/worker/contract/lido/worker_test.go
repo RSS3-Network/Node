@@ -2,6 +2,9 @@ package lido_test
 
 import (
 	"context"
+	"math/big"
+	"testing"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
@@ -17,8 +20,6 @@ import (
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
-	"math/big"
-	"testing"
 )
 
 func TestWorker_Ethereum(t *testing.T) {
@@ -1282,5 +1283,4 @@ func TestWorker_Ethereum(t *testing.T) {
 			t.Log(feed)
 		})
 	}
-
 }
