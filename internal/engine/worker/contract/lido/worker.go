@@ -9,8 +9,6 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/erc1155"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/erc20"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/erc721"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/lido"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/token"
@@ -33,9 +31,7 @@ type worker struct {
 	stakedETHWithdrawalNFTFilterer *lido.StakedETHWithdrawalNFTFilterer
 	stakedMATICFilterer            *lido.StakedMATICFilterer
 	// Common filters
-	erc20Filterer   *erc20.ERC20Filterer
-	erc721Filterer  *erc721.ERC721Filterer
-	erc1155Filterer *erc1155.ERC1155Filterer
+	erc721Filterer *erc721.ERC721Filterer
 }
 
 func (w *worker) Name() string {
@@ -155,9 +151,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance.wrappedStakedETHFilterer = lo.Must(lido.NewWrappedStakedETHFilterer(ethereum.AddressGenesis, nil))
 	instance.stakedETHWithdrawalNFTFilterer = lo.Must(lido.NewStakedETHWithdrawalNFTFilterer(ethereum.AddressGenesis, nil))
 	instance.stakedMATICFilterer = lo.Must(lido.NewStakedMATICFilterer(ethereum.AddressGenesis, nil))
-	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
 	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
-	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
 
 	return &instance, nil
 }
