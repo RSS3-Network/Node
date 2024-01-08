@@ -362,17 +362,24 @@ func (w *worker) transformEthereumV1ProfileSet(ctx context.Context, task *source
 		return nil, fmt.Errorf("parse profile updated: %w", err)
 	}
 
-	//profileData, err := w.getContentFromURI(ctx, event.Metadata)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//profileMetadata := gjson.ParseBytes(profileData)
+	profileData, err := w.getContentFromURI(ctx, event.Metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	profileMetadata := gjson.ParseBytes(profileData)
 
 	profile := metadata.SocialProfile{
 		Action:    metadata.ActionSocialProfileUpdate,
 		ProfileID: EncodeID(event.ProfileId),
 		Address:   task.Transaction.From,
+		Name:      profileMetadata.Get("name").String(),
+		Bio:       profileMetadata.Get("bio").String(),
+	}
+
+	profile.Handle, err = w.getLensHandle(ctx, log.BlockNumber, event.ProfileId)
+	if err != nil {
+		return nil, err
 	}
 
 	action := w.buildEthereumTransactionProfileAction(ctx, task.Transaction.From, task.Transaction.From, filter.TypeSocialProfile, profile)
