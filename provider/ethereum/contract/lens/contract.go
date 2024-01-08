@@ -10,6 +10,7 @@ var (
 
 	AddressLensProtocol               = common.HexToAddress("0xdb46d1dc155634fbc732f92e853b10b288ad5a1d")
 	AddressV1ProfileCreationProxy     = common.HexToAddress("0x1eec6eccaa4625da3fa6cd6339dbcc2418710e8a")
+	AddressLensPeriphery              = common.HexToAddress("0xeff187b4190E551FC25a7fA4dFC6cf7fDeF7194f")
 	AddressV2LensHandle               = common.HexToAddress("0xe7E7EaD361f3AaCD73A61A9bD6C10cA17F38E945")
 	AddressV2ProfileCreationProxy     = common.HexToAddress("0xdCB72aaB62d52aBC2E6be99BEEe535C2D1361fc0")
 	AddressV2ProfileHandleRegistry    = common.HexToAddress("0xD4F2F33680FCCb36748FA9831851643781608844")
@@ -24,11 +25,14 @@ var (
 
 	EventHashV1PostCreated           = contract.EventHash("PostCreated(uint256,uint256,string,address,bytes,address,bytes,uint256)")
 	EventHashV1ProfileCreated        = contract.EventHash("ProfileCreated(uint256,address,address,string,string,address,bytes,string,uint256)")
+	EventHashV1ProfileSet            = contract.EventHash("ProfileMetadataSet(uint256,string,uint256)")
+	EventHashV1ProfileImageURISet    = contract.EventHash("ProfileImageURISet(uint256,string,uint256)")
 	EventHashV1CommentCreated        = contract.EventHash("CommentCreated(uint256,uint256,string,uint256,uint256,bytes,address,bytes,address,bytes,uint256)")
 	EventHashV1MirrorCreated         = contract.EventHash("MirrorCreated(uint256,uint256,uint256,uint256,bytes,address,bytes,uint256)")
 	EventHashV1CollectNFTTransferred = contract.EventHash("CollectNFTTransferred(uint256,uint256,uint256,address,address,uint256)")
 
 	EventHashV2PostCreated    = contract.EventHash("PostCreated((uint256,string,address[],bytes[],address,bytes),uint256,bytes[],bytes,address,uint256)")
+	EventHashV2ProfileSet     = contract.EventHash("ProfileMetadataSet(uint256,string,address,uint256)")
 	EventHashV2CommentCreated = contract.EventHash("CommentCreated((uint256,string,uint256,uint256,uint256[],uint256[],bytes,address[],bytes[],address,bytes),uint256,bytes,bytes[],bytes,address,uint256)")
 	EventHashV2MirrorCreated  = contract.EventHash("MirrorCreated((uint256,string,uint256,uint256,uint256[],uint256[],bytes),uint256,bytes,address,uint256)")
 	EventHashV2QuoteCreated   = contract.EventHash("QuoteCreated((uint256,string,uint256,uint256,uint256[],uint256[],bytes,address[],bytes[],address,bytes),uint256,bytes,bytes[],bytes,address,uint256)")

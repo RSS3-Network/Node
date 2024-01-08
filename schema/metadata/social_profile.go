@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _SocialProfileActionName = "create"
+const _SocialProfileActionName = "createupdate"
 
-var _SocialProfileActionIndex = [...]uint8{0, 6}
+var _SocialProfileActionIndex = [...]uint8{0, 6, 12}
 
-const _SocialProfileActionLowerName = "create"
+const _SocialProfileActionLowerName = "createupdate"
 
 func (i SocialProfileAction) String() string {
 	i -= 1
@@ -32,17 +32,21 @@ func (SocialProfileAction) Values() []string {
 func _SocialProfileActionNoOp() {
 	var x [1]struct{}
 	_ = x[ActionSocialProfileCreate-(1)]
+	_ = x[ActionSocialProfileUpdate-(2)]
 }
 
-var _SocialProfileActionValues = []SocialProfileAction{ActionSocialProfileCreate}
+var _SocialProfileActionValues = []SocialProfileAction{ActionSocialProfileCreate, ActionSocialProfileUpdate}
 
 var _SocialProfileActionNameToValueMap = map[string]SocialProfileAction{
-	_SocialProfileActionName[0:6]:      ActionSocialProfileCreate,
-	_SocialProfileActionLowerName[0:6]: ActionSocialProfileCreate,
+	_SocialProfileActionName[0:6]:       ActionSocialProfileCreate,
+	_SocialProfileActionLowerName[0:6]:  ActionSocialProfileCreate,
+	_SocialProfileActionName[6:12]:      ActionSocialProfileUpdate,
+	_SocialProfileActionLowerName[6:12]: ActionSocialProfileUpdate,
 }
 
 var _SocialProfileActionNames = []string{
 	_SocialProfileActionName[0:6],
+	_SocialProfileActionName[6:12],
 }
 
 // SocialProfileActionString retrieves an enum value from the enum constants string name.

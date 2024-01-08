@@ -47,6 +47,7 @@ func (s SocialProfileAction) Type() filter.Type {
 
 const (
 	ActionSocialProfileCreate SocialProfileAction = iota + 1
+	ActionSocialProfileUpdate
 )
 
 type SocialProfile struct {

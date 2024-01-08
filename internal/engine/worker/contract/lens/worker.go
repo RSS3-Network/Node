@@ -21,6 +21,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
 	"github.com/samber/lo"
+	"github.com/tidwall/gjson"
 )
 
 // Worker is the worker for Lens.
@@ -50,6 +51,7 @@ func (w *worker) Filter() engine.SourceFilter {
 		LogAddresses: []common.Address{
 			lens.AddressLensProtocol,
 			lens.AddressV1ProfileCreationProxy,
+			lens.AddressLensPeriphery,
 			lens.AddressV2LensHandle,
 			lens.AddressV2ProfileCreationProxy,
 			lens.AddressV2ProfileHandleRegistry,
@@ -63,6 +65,8 @@ func (w *worker) Filter() engine.SourceFilter {
 		LogTopics: []common.Hash{
 			lens.EventHashV1PostCreated,
 			lens.EventHashV1ProfileCreated,
+			lens.EventHashV1ProfileSet,
+			lens.EventHashV1ProfileImageURISet,
 			lens.EventHashV1CommentCreated,
 			lens.EventHashV1MirrorCreated,
 			lens.EventHashV1CollectNFTTransferred,
@@ -72,6 +76,7 @@ func (w *worker) Filter() engine.SourceFilter {
 			lens.EventHashV2QuoteCreated,
 			lens.EventHashV2Collected,
 			lens.EventHashV2ProfileCreated,
+			lens.EventHashV2ProfileSet,
 		},
 	}
 }
@@ -114,6 +119,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			actions, err = w.transformEthereumV1MirrorCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV1ProfileCreated(ethereumTask, log):
 			actions, err = w.transformEthereumV1ProfileCreated(ctx, ethereumTask, log)
+		case w.matchEthereumV1ProfileSet(ethereumTask, log):
+			actions, err = w.transformEthereumV1ProfileSet(ctx, ethereumTask, log)
+		case w.matchEthereumV1ProfileImageURISet(ethereumTask, log):
+			actions, err = w.transformEthereumV1ProfileImageURISet(ctx, ethereumTask, log)
 		case w.matchEthereumV1CollectNFTTransferred(ethereumTask, log):
 			actions, err = w.transformEthereumV1CollectNFTTransferred(ctx, ethereumTask, log)
 		case w.matchEthereumV2PostCreated(ethereumTask, log):
@@ -128,6 +137,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			actions, err = w.transformEthereumV2Collected(ctx, ethereumTask, log)
 		case w.matchEthereumV2ProfileCreated(ethereumTask, log):
 			actions, err = w.transformEthereumV2ProfileCreated(ctx, ethereumTask, log)
+		case w.matchEthereumV2ProfileSet(ethereumTask, log):
+			actions, err = w.transformEthereumV2ProfileSet(ctx, ethereumTask, log)
 		default:
 			continue
 		}
@@ -167,6 +178,16 @@ func (w *worker) matchEthereumV1ProfileCreated(_ *source.Task, log *ethereum.Log
 	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1ProfileCreated)
 }
 
+// matchEthereumV1ProfileSet matches V1 ProfileMetadataSet event.
+func (w *worker) matchEthereumV1ProfileSet(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == lens.AddressLensPeriphery && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1ProfileImageURISet)
+}
+
+// matchEthereumV1ProfileImageURISet matches V1 ProfileImageURISet event.
+func (w *worker) matchEthereumV1ProfileImageURISet(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1ProfileSet)
+}
+
 // matchEthereumV1CollectNFTTransferred matches V1 CollectNFTTransferred event.
 func (w *worker) matchEthereumV1CollectNFTTransferred(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1CollectNFTTransferred)
@@ -200,6 +221,11 @@ func (w *worker) matchEthereumV2Collected(_ *source.Task, log *ethereum.Log) boo
 // matchEthereumV2ProfileCreated matches V2 ProfileCreated event.
 func (w *worker) matchEthereumV2ProfileCreated(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV2ProfileCreated)
+}
+
+// matchEthereumV2ProfileSet matches V2 ProfileMetadataSet event.
+func (w *worker) matchEthereumV2ProfileSet(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV2ProfileSet)
 }
 
 // transformEthereumV1PostCreated transforms V1 PostCreated event.
@@ -323,6 +349,54 @@ func (w *worker) transformEthereumV1ProfileCreated(ctx context.Context, _ *sourc
 	}
 
 	action := w.buildEthereumTransactionProfileAction(ctx, event.Creator, event.To, filter.TypeSocialProfile, profile)
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
+// transformEthereumV1ProfileSet transforms V1 ProfileMetadataSet event.
+func (w *worker) transformEthereumV1ProfileSet(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.eventsFiltererV1.ParseProfileMetadataSet(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse profile updated: %w", err)
+	}
+
+	//profileData, err := w.getContentFromURI(ctx, event.Metadata)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//profileMetadata := gjson.ParseBytes(profileData)
+
+	profile := metadata.SocialProfile{
+		Action:    metadata.ActionSocialProfileUpdate,
+		ProfileID: EncodeID(event.ProfileId),
+		Address:   task.Transaction.From,
+	}
+
+	action := w.buildEthereumTransactionProfileAction(ctx, task.Transaction.From, task.Transaction.From, filter.TypeSocialProfile, profile)
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
+// transformEthereumV1ProfileImageURISet transforms V1 ProfileImageURISet event.
+func (w *worker) transformEthereumV1ProfileImageURISet(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.eventsFiltererV1.ParseProfileImageURISet(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse profile created: %w", err)
+	}
+
+	profile := metadata.SocialProfile{
+		Action:    metadata.ActionSocialProfileUpdate,
+		ProfileID: EncodeID(event.ProfileId),
+		Address:   task.Transaction.From,
+		ImageURI:  event.ImageURI,
+	}
+
+	action := w.buildEthereumTransactionProfileAction(ctx, task.Transaction.From, task.Transaction.From, filter.TypeSocialProfile, profile)
 
 	return []*schema.Action{
 		action,
@@ -581,6 +655,41 @@ func (w *worker) transformEthereumV2ProfileCreated(ctx context.Context, _ *sourc
 	}, nil
 }
 
+// transformEthereumV2ProfileSet transforms V2 ProfileMetadataSet event.
+func (w *worker) transformEthereumV2ProfileSet(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.eventsFiltererV2.ParseProfileMetadataSet(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse profile updated: %w", err)
+	}
+
+	profileData, err := w.getContentFromURI(ctx, event.Metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	profileMetadata := gjson.ParseBytes(profileData)
+
+	profile := metadata.SocialProfile{
+		Action:    metadata.ActionSocialProfileUpdate,
+		ProfileID: EncodeID(event.ProfileId),
+		Address:   task.Transaction.From,
+		ImageURI:  profileMetadata.Get("lens.picture").String(),
+		Name:      profileMetadata.Get("lens.name").String(),
+		Bio:       profileMetadata.Get("lens.bio").String(),
+	}
+
+	profile.Handle, err = w.getLensHandle(ctx, log.BlockNumber, event.ProfileId)
+	if err != nil {
+		return nil, err
+	}
+
+	action := w.buildEthereumTransactionProfileAction(ctx, task.Transaction.From, task.Transaction.From, filter.TypeSocialProfile, profile)
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
 func (w *worker) buildEthereumTransactionPostAction(_ context.Context, from common.Address, to common.Address, platform string, socialType filter.Type, post metadata.SocialPost) *schema.Action {
 	return &schema.Action{
 		From:     from.String(),
@@ -597,7 +706,7 @@ func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blo
 		return nil, "", err
 	}
 
-	content, err := w.getEthereumPublication(ctx, contentURI)
+	content, err := w.getContentFromURI(ctx, contentURI)
 	if err != nil {
 		return nil, "", err
 	}
@@ -669,12 +778,12 @@ func (w *worker) getLensHandle(_ context.Context, blockNumber *big.Int, profileI
 	return fmt.Sprintf("%s.lens", name), nil
 }
 
-func (w *worker) getEthereumPublication(ctx context.Context, contentURI string) (json.RawMessage, error) {
+func (w *worker) getContentFromURI(ctx context.Context, contentURI string) (json.RawMessage, error) {
 	if len(contentURI) == 0 {
 		return []byte("{}"), nil
 	}
 
-	body, err := w.getPublicationFromHTTP(ctx, contentURI)
+	body, err := w.getDataFromHTTP(ctx, contentURI)
 	if err != nil {
 		return nil, err
 	}
@@ -687,7 +796,7 @@ func (w *worker) getEthereumPublication(ctx context.Context, contentURI string) 
 	return content, nil
 }
 
-func (w *worker) getPublicationFromHTTP(ctx context.Context, contentURL string) (io.ReadCloser, error) {
+func (w *worker) getDataFromHTTP(ctx context.Context, contentURL string) (io.ReadCloser, error) {
 	// get from ipfs
 	if _, path, err := ipfs.ParseURL(contentURL); err == nil {
 		resp, err := w.ipfsClient.Fetch(ctx, path, ipfs.FetchModeQuick)
@@ -739,7 +848,7 @@ func (w *worker) buildEthereumV2TransactionPostMetadata(ctx context.Context, blo
 		return nil, "", err
 	}
 
-	content, err := w.getEthereumPublication(ctx, contentURI)
+	content, err := w.getContentFromURI(ctx, contentURI)
 	if err != nil {
 		return nil, "", err
 	}
