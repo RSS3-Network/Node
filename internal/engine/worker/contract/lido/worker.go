@@ -93,24 +93,31 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		switch {
 		case w.matchStakedETHSubmittedLog(ethereumTask, log):
 			// Add ETH liquidity
+			feed.Type = filter.TypeExchangeLiquidity
 			actions, err = w.transformStakedETHSubmittedLog(ctx, ethereumTask, log)
 		case w.matchStakedETHWithdrawalNFTWithdrawalRequestedLog(ethereumTask, log):
 			// Mint ETH withdrawal NFT
+			feed.Type = filter.TypeExchangeLiquidity
 			actions, err = w.transformStakedETHWithdrawalNFTWithdrawalRequestedLog(ctx, ethereumTask, log)
 		case w.matchStakedETHWithdrawalNFTWithdrawalClaimedLog(ethereumTask, log):
 			// Remove ETH liquidity
+			feed.Type = filter.TypeCollectibleBurn
 			actions, err = w.transformStakedETHWithdrawalNFTWithdrawalClaimedLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICSubmitEventLog(ethereumTask, log):
 			// Add MATIC liquidity
+			feed.Type = filter.TypeExchangeLiquidity
 			actions, err = w.transformStakedMATICSubmitEventLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICRequestWithdrawEventLog(ethereumTask, log):
 			// Mint MATIC withdrawal NFT
+			feed.Type = filter.TypeCollectibleMint
 			actions, err = w.transformStakedMATICRequestWithdrawEventLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICClaimTokensEventLog(ethereumTask, log):
 			// Remove MATIC liquidity
+			feed.Type = filter.TypeCollectibleBurn
 			actions, err = w.transformStakedMATICClaimTokensEventLog(ctx, ethereumTask, log)
 		case w.matchStakedETHTransferSharesLog(ethereumTask, log):
 			// Wrap or unwrap wstETH
+			feed.Type = filter.TypeExchangeSwap
 			actions, err = w.transformStakedETHTransferSharesLog(ctx, ethereumTask, log)
 		default:
 			continue
@@ -118,11 +125,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 		if err != nil {
 			return nil, err
-		}
-
-		// Change feed type to the first action type.
-		for _, action := range actions {
-			feed.Type = action.Type
 		}
 
 		feed.Actions = append(feed.Actions, actions...)
