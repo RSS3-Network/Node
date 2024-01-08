@@ -9,16 +9,15 @@ import (
 	"strings"
 )
 
-const _NameName = "fallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilido"
+const _NameName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilido"
 
-var _NameIndex = [...]uint8{0, 8, 14, 23, 27, 36, 43, 50, 58, 68, 72}
+var _NameIndex = [...]uint8{0, 7, 15, 21, 30, 34, 43, 50, 57, 65, 75, 79}
 
-const _NameLowerName = "fallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilido"
+const _NameLowerName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilido"
 
 func (i Name) String() string {
-	i -= 1
 	if i < 0 || i >= Name(len(_NameIndex)-1) {
-		return fmt.Sprintf("Name(%d)", i+1)
+		return fmt.Sprintf("Name(%d)", i)
 	}
 	return _NameName[_NameIndex[i]:_NameIndex[i+1]]
 }
@@ -31,6 +30,7 @@ func (Name) Values() []string {
 // Re-run the stringer command to generate them again.
 func _NameNoOp() {
 	var x [1]struct{}
+	_ = x[Unknown-(0)]
 	_ = x[Fallback-(1)]
 	_ = x[Mirror-(2)]
 	_ = x[Farcaster-(3)]
@@ -43,42 +43,45 @@ func _NameNoOp() {
 	_ = x[Lido-(10)]
 }
 
-var _NameValues = []Name{Fallback, Mirror, Farcaster, RSS3, Paragraph, OpenSea, Uniswap, Optimism, Aavegotchi, Lido}
+var _NameValues = []Name{Unknown, Fallback, Mirror, Farcaster, RSS3, Paragraph, OpenSea, Uniswap, Optimism, Aavegotchi, Lido}
 
 var _NameNameToValueMap = map[string]Name{
-	_NameName[0:8]:        Fallback,
-	_NameLowerName[0:8]:   Fallback,
-	_NameName[8:14]:       Mirror,
-	_NameLowerName[8:14]:  Mirror,
-	_NameName[14:23]:      Farcaster,
-	_NameLowerName[14:23]: Farcaster,
-	_NameName[23:27]:      RSS3,
-	_NameLowerName[23:27]: RSS3,
-	_NameName[27:36]:      Paragraph,
-	_NameLowerName[27:36]: Paragraph,
-	_NameName[36:43]:      OpenSea,
-	_NameLowerName[36:43]: OpenSea,
-	_NameName[43:50]:      Uniswap,
-	_NameLowerName[43:50]: Uniswap,
-	_NameName[50:58]:      Optimism,
-	_NameLowerName[50:58]: Optimism,
-	_NameName[58:68]:      Aavegotchi,
-	_NameLowerName[58:68]: Aavegotchi,
-	_NameName[68:72]:      Lido,
-	_NameLowerName[68:72]: Lido,
+	_NameName[0:7]:        Unknown,
+	_NameLowerName[0:7]:   Unknown,
+	_NameName[7:15]:       Fallback,
+	_NameLowerName[7:15]:  Fallback,
+	_NameName[15:21]:      Mirror,
+	_NameLowerName[15:21]: Mirror,
+	_NameName[21:30]:      Farcaster,
+	_NameLowerName[21:30]: Farcaster,
+	_NameName[30:34]:      RSS3,
+	_NameLowerName[30:34]: RSS3,
+	_NameName[34:43]:      Paragraph,
+	_NameLowerName[34:43]: Paragraph,
+	_NameName[43:50]:      OpenSea,
+	_NameLowerName[43:50]: OpenSea,
+	_NameName[50:57]:      Uniswap,
+	_NameLowerName[50:57]: Uniswap,
+	_NameName[57:65]:      Optimism,
+	_NameLowerName[57:65]: Optimism,
+	_NameName[65:75]:      Aavegotchi,
+	_NameLowerName[65:75]: Aavegotchi,
+	_NameName[75:79]:      Lido,
+	_NameLowerName[75:79]: Lido,
 }
 
 var _NameNames = []string{
-	_NameName[0:8],
-	_NameName[8:14],
-	_NameName[14:23],
-	_NameName[23:27],
-	_NameName[27:36],
-	_NameName[36:43],
+	_NameName[0:7],
+	_NameName[7:15],
+	_NameName[15:21],
+	_NameName[21:30],
+	_NameName[30:34],
+	_NameName[34:43],
 	_NameName[43:50],
-	_NameName[50:58],
-	_NameName[58:68],
-	_NameName[68:72],
+	_NameName[50:57],
+	_NameName[57:65],
+	_NameName[65:75],
+	_NameName[75:79],
 }
 
 // NameString retrieves an enum value from the enum constants string name.
