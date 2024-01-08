@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/naturalselectionlabs/rss3-node/internal/config"
-	"github.com/naturalselectionlabs/rss3-node/internal/config/flag"
+	"github.com/naturalselectionlabs/rss3-node/config"
+	"github.com/naturalselectionlabs/rss3-node/config/flag"
 	"github.com/naturalselectionlabs/rss3-node/internal/constant"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"

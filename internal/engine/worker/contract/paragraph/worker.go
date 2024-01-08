@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
@@ -22,7 +23,7 @@ import (
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
-	config        *engine.Config
+	config        *config.Module
 	arweaveClient arweave.Client
 	ipfsClient    ipfs.HTTPClient
 }
@@ -229,7 +230,7 @@ func (w *worker) buildParagraphMetadata(ctx context.Context, handle, contentURI 
 }
 
 // NewWorker returns a new Arweave worker.
-func NewWorker(config *engine.Config) (engine.Worker, error) {
+func NewWorker(config *config.Module) (engine.Worker, error) {
 	var instance = worker{
 		config: config,
 	}

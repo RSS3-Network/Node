@@ -3,6 +3,7 @@ package fallback
 import (
 	"fmt"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/fallback/arweave"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/fallback/ethereum"
@@ -10,7 +11,7 @@ import (
 )
 
 // NewWorker creates a new fallback worker.
-func NewWorker(config *engine.Config) (engine.Worker, error) {
+func NewWorker(config *config.Module) (engine.Worker, error) {
 	switch config.Network.Source() {
 	case filter.NetworkEthereumSource:
 		return ethereum.NewWorker(config)

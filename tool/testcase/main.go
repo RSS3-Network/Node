@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"os"
 	"text/template"
+	"unicode"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -45,6 +46,11 @@ var command = &cobra.Command{
 				"BigIntToHex": func(value *big.Int) string {
 					return (*hexutil.Big)(value).String()
 				},
+				"UppercaseFirst": func(network filter.Network) string {
+					a := []rune(network.String())
+					a[0] = unicode.ToUpper(a[0])
+					return string(a)
+				},
 			})
 
 			ethereumClient, err := ethereum.Dial(cmd.Context(), endpoint)
@@ -57,9 +63,14 @@ var command = &cobra.Command{
 				return fmt.Errorf("get chain id: %w", err)
 			}
 
-			network := filter.EthereumChainID(chainID.Uint64())
-			if !network.IsAEthereumChainID() {
+			chain := filter.EthereumChainID(chainID.Uint64())
+			if !chain.IsAEthereumChainID() {
 				return fmt.Errorf("unsupported chain id %d", chainID.Uint64())
+			}
+
+			network, err := filter.NetworkString(chain.String())
+			if err != nil {
+				return fmt.Errorf("get network: %w", err)
 			}
 
 			transaction, err := ethereumClient.TransactionByHash(cmd.Context(), common.HexToHash(feed))
@@ -78,6 +89,7 @@ var command = &cobra.Command{
 			}
 
 			task = &sourceethereum.Task{
+				Network:     network,
 				ChainID:     chainID.Uint64(),
 				Header:      header,
 				Transaction: transaction,
