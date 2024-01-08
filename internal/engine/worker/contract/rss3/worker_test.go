@@ -9,7 +9,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/rss3"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
@@ -29,7 +29,7 @@ func TestWorker_Ethereum(t *testing.T) {
 
 	type arguments struct {
 		task   *source.Task
-		config *engine.Config
+		config *config.Module
 	}
 
 	testcases := []struct {
@@ -145,7 +145,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 140,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkEthereum,
 					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
 				},
@@ -285,7 +285,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 305,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkEthereum,
 					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
 				},
@@ -420,7 +420,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 49,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkEthereum,
 					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
 				},

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/constant"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
@@ -20,7 +21,7 @@ import (
 
 type Server struct {
 	id             string
-	config         *engine.Config
+	config         *config.Module
 	source         engine.Source
 	worker         engine.Worker
 	databaseClient database.Client
@@ -141,7 +142,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 	return nil
 }
 
-func NewServer(ctx context.Context, config *engine.Config, databaseClient database.Client, streamClient stream.Client) (server *Server, err error) {
+func NewServer(ctx context.Context, config *config.Module, databaseClient database.Client, streamClient stream.Client) (server *Server, err error) {
 	instance := Server{
 		id:             config.ID(),
 		config:         config,

@@ -3,7 +3,7 @@ package ethereum
 import (
 	"math/big"
 
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	"github.com/naturalselectionlabs/rss3-node/config"
 )
 
 type Option struct {
@@ -11,7 +11,7 @@ type Option struct {
 	BlockNumberTarget *big.Int `yaml:"block_number_target"`
 }
 
-func NewOption(options *engine.Options) (*Option, error) {
+func NewOption(options *config.Options) (*Option, error) {
 	var instance Option
 
 	if options == nil {

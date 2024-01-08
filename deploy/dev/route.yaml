@@ -4,11 +4,10 @@ metadata:
   name: rss3-node
 spec:
   entryPoints:
-    - web
     - websecure
   routes:
     - kind: Rule
-      match: Host(`node.rss3.dev`)
+      match: Host(`node.rss3.dev`) || Host(`node.dev.naturalselectionlabs.com`) || Host(`node.dev.nsl.xyz`)
       services:
         - name: rss3-node-hub
           port: 80

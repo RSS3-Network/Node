@@ -15,7 +15,7 @@ jobs:
     secrets: inherit
   deploy-dev:
     if: github.ref == 'refs/heads/develop'
-    uses: NaturalSelectionLabs/Daedalus/.github/workflows/deploy-v2-tpl.yaml@main
+    uses: NaturalSelectionLabs/Daedalus/.github/workflows/deploy-v3-tpl.yaml@main
     needs:
       - build
     with:
