@@ -8,6 +8,15 @@ jobs:
     name: Test
     runs-on: self-hosted
     steps:
+      - name: Import Secrets
+        uses: hashicorp/vault-action@v2.4.0
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          token: ${{ secrets.VAULT_TOKEN }}
+          secrets: |
+            kv/data/network/rss3-node ENDPOINT_ETHEREUM ;
+            kv/data/network/rss3-node ENDPOINT_POLYGON ;
+            kv/data/network/rss3-node FARCASTER_URI
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
