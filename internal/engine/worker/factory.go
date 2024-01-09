@@ -2,13 +2,13 @@ package worker
 
 import (
 	"fmt"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/lido"
 
 	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/aavegotchi"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/lens"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/lido"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/opensea"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/optimism"
