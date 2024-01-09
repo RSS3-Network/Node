@@ -181,12 +181,12 @@ func (w *worker) matchEthereumV1ProfileCreated(_ *source.Task, log *ethereum.Log
 
 // matchEthereumV1ProfileSet matches V1 ProfileMetadataSet event.
 func (w *worker) matchEthereumV1ProfileSet(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == lens.AddressLensPeriphery && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1ProfileImageURISet)
+	return log.Address == lens.AddressLensPeriphery && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1ProfileSet)
 }
 
 // matchEthereumV1ProfileImageURISet matches V1 ProfileImageURISet event.
 func (w *worker) matchEthereumV1ProfileImageURISet(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1ProfileSet)
+	return log.Address == lens.AddressLensProtocol && contract.MatchEventHashes(log.Topics[0], lens.EventHashV1ProfileImageURISet)
 }
 
 // matchEthereumV1CollectNFTTransferred matches V1 CollectNFTTransferred event.
