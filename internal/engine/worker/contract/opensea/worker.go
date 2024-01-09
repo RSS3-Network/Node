@@ -115,12 +115,12 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 // matchWyvernExchangeV1Orders matches WyvernExchangeV1 OrdersMatched event.
 func (w *worker) matchWyvernExchangeV1Orders(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == opensea.AddressWyvernExchangeV1 && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], opensea.EventHashWyvernExchangeV1OrdersMatched)
+	return log.Address == opensea.AddressWyvernExchangeV1 && contract.MatchEventHashes(log.Topics[0], opensea.EventHashWyvernExchangeV1OrdersMatched)
 }
 
 // matchWyvernExchangeV2Orders matches WyvernExchangeV2 OrdersMatched event.
 func (w *worker) matchWyvernExchangeV2Orders(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == opensea.AddressWyvernExchangeV2 && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], opensea.EventHashWyvernExchangeV2OrdersMatched)
+	return log.Address == opensea.AddressWyvernExchangeV2 && contract.MatchEventHashes(log.Topics[0], opensea.EventHashWyvernExchangeV2OrdersMatched)
 }
 
 // matchSeaportV1OrderFulfilled matches SeaportV1 OrderFulfilled event.

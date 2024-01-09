@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _PlatformName = "RSS3MirrorFarcasterParagraphOpenSeaUniswapOptimismAavegotchiLido"
+const _PlatformName = "RSS3MirrorFarcasterParagraphOpenSeaUniswapOptimismAavegotchiLensLido"
 
-var _PlatformIndex = [...]uint8{0, 4, 10, 19, 28, 35, 42, 50, 60, 64}
+var _PlatformIndex = [...]uint8{0, 4, 10, 19, 28, 35, 42, 50, 60, 64, 68}
 
-const _PlatformLowerName = "rss3mirrorfarcasterparagraphopenseauniswapoptimismaavegotchilido"
+const _PlatformLowerName = "rss3mirrorfarcasterparagraphopenseauniswapoptimismaavegotchilenslido"
 
 func (i Platform) String() string {
 	i -= 1
@@ -39,10 +39,11 @@ func _PlatformNoOp() {
 	_ = x[PlatformUniswap-(6)]
 	_ = x[PlatformOptimism-(7)]
 	_ = x[PlatformAavegotchi-(8)]
-	_ = x[PlatformLido-(9)]
+	_ = x[PlatformLens-(9)]
+	_ = x[PlatformLido-(10)]
 }
 
-var _PlatformValues = []Platform{PlatformRSS3, PlatformMirror, PlatformFarcaster, PlatformParagraph, PlatformOpenSea, PlatformUniswap, PlatformOptimism, PlatformAavegotchi, PlatformLido}
+var _PlatformValues = []Platform{PlatformRSS3, PlatformMirror, PlatformFarcaster, PlatformParagraph, PlatformOpenSea, PlatformUniswap, PlatformOptimism, PlatformAavegotchi, PlatformLens, PlatformLido}
 
 var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformName[0:4]:        PlatformRSS3,
@@ -61,8 +62,10 @@ var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformLowerName[42:50]: PlatformOptimism,
 	_PlatformName[50:60]:      PlatformAavegotchi,
 	_PlatformLowerName[50:60]: PlatformAavegotchi,
-	_PlatformName[60:64]:      PlatformLido,
-	_PlatformLowerName[60:64]: PlatformLido,
+	_PlatformName[60:64]:      PlatformLens,
+	_PlatformLowerName[60:64]: PlatformLens,
+	_PlatformName[64:68]:      PlatformLido,
+	_PlatformLowerName[64:68]: PlatformLido,
 }
 
 var _PlatformNames = []string{
@@ -75,6 +78,7 @@ var _PlatformNames = []string{
 	_PlatformName[42:50],
 	_PlatformName[50:60],
 	_PlatformName[60:64],
+	_PlatformName[64:68],
 }
 
 // PlatformString retrieves an enum value from the enum constants string name.

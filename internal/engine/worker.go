@@ -22,6 +22,7 @@ const (
 	Uniswap                // uniswap
 	Optimism               // optimism
 	Aavegotchi             // aavegotchi
+	Lens                   // lens
 	Lido                   // lido
 )
 
