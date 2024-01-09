@@ -1,7 +1,13 @@
 name: Lint
 on:
   push:
+    branches:
+      - develop
+    paths-ignore:
+      - "deploy/**"
   pull_request:
+    paths-ignore:
+      - "deploy/**"
 
 jobs:
   lint:
