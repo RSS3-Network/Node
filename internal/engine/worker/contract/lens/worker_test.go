@@ -7,7 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/lens"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
@@ -25,7 +25,7 @@ func TestWorker_Ethereum(t *testing.T) {
 
 	type arguments struct {
 		task   *source.Task
-		config *engine.Config
+		config *config.Module
 	}
 
 	testcases := []struct {
@@ -103,7 +103,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 17,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkPolygon,
 					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
 				},
@@ -216,7 +216,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 29,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkPolygon,
 					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
 				},
@@ -338,7 +338,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 39,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkPolygon,
 					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
 				},
@@ -560,7 +560,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 8,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkPolygon,
 					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
 				},
@@ -682,7 +682,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 32,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkPolygon,
 					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
 				},
@@ -787,7 +787,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 5,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkPolygon,
 					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
 				},
@@ -912,7 +912,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 112,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkPolygon,
 					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
 				},
@@ -1032,7 +1032,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 62,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkPolygon,
 					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
 				},
@@ -1163,7 +1163,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 19,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkPolygon,
 					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
 				},
@@ -1346,7 +1346,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 2,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkPolygon,
 					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
 				},
@@ -1591,7 +1591,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 13,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkPolygon,
 					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
 				},

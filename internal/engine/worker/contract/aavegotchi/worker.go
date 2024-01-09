@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
@@ -297,7 +298,7 @@ func (w *worker) buildTransferAction(
 	}, nil
 }
 
-func NewWorker(config *engine.Config) (engine.Worker, error) {
+func NewWorker(config *config.Module) (engine.Worker, error) {
 	ethereumClient, err := ethereum.Dial(context.Background(), config.Endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("dial Ethereum: %w", err)

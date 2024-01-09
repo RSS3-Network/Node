@@ -1,6 +1,8 @@
 package rss
 
-import "github.com/naturalselectionlabs/rss3-node/internal/engine"
+import (
+	"github.com/naturalselectionlabs/rss3-node/config"
+)
 
 type Option struct {
 	Authentication OptionAuthentication `yaml:"authentication"`
@@ -13,7 +15,7 @@ type OptionAuthentication struct {
 	AccessCode string `yaml:"access_code"`
 }
 
-func NewOption(options *engine.Options) (*Option, error) {
+func NewOption(options *config.Options) (*Option, error) {
 	var instance Option
 
 	if err := options.Decode(&instance); err != nil {

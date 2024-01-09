@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave/bundle"
@@ -36,7 +37,7 @@ var bundlrNodes = []string{
 var _ engine.Source = (*source)(nil)
 
 type source struct {
-	config        *engine.Config
+	config        *config.Module
 	option        *Option
 	filter        *Filter
 	arweaveClient arweave.Client
@@ -457,7 +458,7 @@ func (s *source) buildTasks(blocks []*arweave.Block, transactions []*arweave.Tra
 }
 
 // NewSource creates a new arweave source.
-func NewSource(config *engine.Config, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint) (engine.Source, error) {
+func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint) (engine.Source, error) {
 	var (
 		state State
 		err   error

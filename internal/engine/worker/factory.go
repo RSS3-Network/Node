@@ -3,6 +3,7 @@ package worker
 import (
 	"fmt"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/aavegotchi"
@@ -17,7 +18,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/farcaster"
 )
 
-func New(config *engine.Config, databaseClient database.Client) (engine.Worker, error) {
+func New(config *config.Module, databaseClient database.Client) (engine.Worker, error) {
 	switch config.Worker {
 	case engine.Fallback:
 		return fallback.NewWorker(config)

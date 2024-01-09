@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
@@ -22,7 +23,7 @@ import (
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
-	config                           *engine.Config
+	config                           *config.Module
 	ethereumClient                   ethereum.Client
 	tokenClient                      token.Client
 	contractL1StandardBridgeFilterer *optimism.L1StandardBridgeFilterer
@@ -270,7 +271,7 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 }
 
 // NewWorker creates a new Optimism worker.
-func NewWorker(config *engine.Config) (engine.Worker, error) {
+func NewWorker(config *config.Module) (engine.Worker, error) {
 	var (
 		err      error
 		instance = worker{
