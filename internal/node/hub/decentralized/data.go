@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/schema"
@@ -58,4 +59,26 @@ func (h *Hub) transformCursor(_ context.Context, feed *schema.Feed) string {
 	}
 
 	return fmt.Sprintf("%s:%s", feed.ID, feed.Network)
+}
+
+func (h *Hub) getIndexCount(ctx context.Context) (int64, *time.Time, error) {
+	var (
+		count      int64
+		updateTime *time.Time
+	)
+
+	checkpoints, err := h.databaseClient.LoadCheckpoints(ctx, "", filter.NetworkUnknown, "")
+	if err != nil {
+		return count, nil, fmt.Errorf("failed to find index count: %w", err)
+	}
+
+	for _, checkpoint := range checkpoints {
+		count += checkpoint.IndexCount
+
+		if updateTime == nil || checkpoint.UpdatedAt.After(*updateTime) {
+			updateTime = lo.ToPtr(checkpoint.UpdatedAt)
+		}
+	}
+
+	return count, updateTime, nil
 }

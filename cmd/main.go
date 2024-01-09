@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/naturalselectionlabs/rss3-node/internal/config"
-	"github.com/naturalselectionlabs/rss3-node/internal/config/flag"
+	"github.com/naturalselectionlabs/rss3-node/config"
+	"github.com/naturalselectionlabs/rss3-node/config/flag"
 	"github.com/naturalselectionlabs/rss3-node/internal/constant"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
@@ -15,6 +15,8 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/node"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/hub"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/indexer"
+	"github.com/naturalselectionlabs/rss3-node/internal/stream"
+	"github.com/naturalselectionlabs/rss3-node/internal/stream/provider"
 	"github.com/naturalselectionlabs/rss3-node/provider/telemetry"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
@@ -54,11 +56,21 @@ var command = cobra.Command{
 			return fmt.Errorf("migrate database: %w", err)
 		}
 
+		// Init stream client.
+		var streamClient stream.Client
+
+		if *config.Stream.Enable {
+			streamClient, err = provider.New(cmd.Context(), config.Stream)
+			if err != nil {
+				return fmt.Errorf("dial stream client: %w", err)
+			}
+		}
+
 		switch lo.Must(flags.GetString(flag.KeyModule)) {
 		case node.Hub:
 			return runHub(cmd.Context(), config, databaseClient)
 		case node.Indexer:
-			return runIndexer(cmd.Context(), config, databaseClient)
+			return runIndexer(cmd.Context(), config, databaseClient, streamClient)
 		}
 
 		return fmt.Errorf("unsupported module %s", lo.Must(flags.GetString(flag.KeyModule)))
@@ -74,7 +86,7 @@ func runHub(ctx context.Context, config *config.File, databaseClient database.Cl
 	return server.Run(ctx)
 }
 
-func runIndexer(ctx context.Context, config *config.File, databaseClient database.Client) error {
+func runIndexer(ctx context.Context, config *config.File, databaseClient database.Client, streamClient stream.Client) error {
 	parameters, err := minify.JSON(lo.Must(flags.GetString(flag.KeyIndexerParameters)))
 	if err != nil {
 		return fmt.Errorf("invalid indexer parameters: %w", err)
@@ -93,7 +105,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 	for _, nodeConfig := range config.Node.Decentralized {
 		if nodeConfig.Network == network && nodeConfig.Worker == worker {
 			if nodeConfig.Parameters == nil && parameters == "{}" || nodeConfig.Parameters != nil && strings.EqualFold(nodeConfig.Parameters.String(), parameters) {
-				server, err := indexer.NewServer(ctx, nodeConfig, databaseClient)
+				server, err := indexer.NewServer(ctx, nodeConfig, databaseClient, streamClient)
 				if err != nil {
 					return fmt.Errorf("new server: %w", err)
 				}

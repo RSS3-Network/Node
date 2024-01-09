@@ -7,7 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/fallback/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
@@ -26,7 +26,7 @@ func TestWorker_Ethereum(t *testing.T) {
 
 	type arguments struct {
 		task   *source.Task
-		config *engine.Config
+		config *config.Module
 	}
 
 	testcases := []struct {
@@ -77,7 +77,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex:  244,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkEthereum,
 					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
 				},
@@ -153,7 +153,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex:  293,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkEthereum,
 					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
 				},
@@ -243,7 +243,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 22,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkEthereum,
 					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
 				},
@@ -350,7 +350,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 271,
 					},
 				},
-				config: &engine.Config{
+				config: &config.Module{
 					Network:  filter.NetworkEthereum,
 					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
 				},
@@ -460,7 +460,7 @@ func TestWorker_Ethereum(t *testing.T) {
 		// 				TransactionIndex: 135,
 		// 			},
 		// 		},
-		// 		config: &engine.Config{
+		// 		config: &config.Module{
 		// 			Network:  filter.NetworkEthereum,
 		// 			Endpoint: endpoint.MustGet(filter.NetworkEthereum),
 		// 		},

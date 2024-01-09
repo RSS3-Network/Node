@@ -7,6 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
@@ -25,7 +26,7 @@ import (
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
-	config          *engine.Config
+	config          *config.Module
 	ethereumClient  ethereum.Client
 	tokenClient     token.Client
 	erc20Filterer   *erc20.ERC20Filterer
@@ -449,7 +450,7 @@ func (w *worker) buildCollectibleApprovalAction(ctx context.Context, task *sourc
 	return &action, nil
 }
 
-func NewWorker(config *engine.Config) (engine.Worker, error) {
+func NewWorker(config *config.Module) (engine.Worker, error) {
 	var instance = worker{
 		config: config,
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/paragraph"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
@@ -21,7 +21,7 @@ func TestWorker_Arweave(t *testing.T) {
 
 	type arguments struct {
 		task   *source.Task
-		config *engine.Config
+		config *config.Module
 	}
 
 	testcases := []struct {
@@ -35,6 +35,9 @@ func TestWorker_Arweave(t *testing.T) {
 			arguments: arguments{
 				task: &source.Task{
 					Network: filter.NetworkArweave,
+					Block: arweave.Block{
+						Timestamp: 1697091466,
+					},
 					Transaction: arweave.Transaction{
 						ID:       "Sz5fY8Loj67fWxLQv98r5U5-h2aIA5x4FMsAVP1N2ig",
 						Reward:   "212017846",
@@ -89,11 +92,12 @@ func TestWorker_Arweave(t *testing.T) {
 							PublicationID: "my-first-content",
 							ContentURI:    "https://arweave.net/Sz5fY8Loj67fWxLQv98r5U5-h2aIA5x4FMsAVP1N2ig",
 							Tags:          []string{"data"},
+							Timestamp:     1697091375,
 						},
 					},
 				},
 				Status:    true,
-				Timestamp: 1697091375,
+				Timestamp: 1697091466,
 			},
 			wantError: require.NoError,
 		},
@@ -102,6 +106,9 @@ func TestWorker_Arweave(t *testing.T) {
 			arguments: arguments{
 				task: &source.Task{
 					Network: filter.NetworkArweave,
+					Block: arweave.Block{
+						Timestamp: 1697092032,
+					},
 					Transaction: arweave.Transaction{
 						ID:       "Xf7C--gk4hlH3mG0UnFiISYgOdymfInv2EgeOF0GeNg",
 						Reward:   "212017846",
@@ -156,11 +163,12 @@ func TestWorker_Arweave(t *testing.T) {
 							PublicationID: "my-first-content",
 							ContentURI:    "https://arweave.net/Xf7C--gk4hlH3mG0UnFiISYgOdymfInv2EgeOF0GeNg",
 							Tags:          []string{"data"},
+							Timestamp:     1697091629,
 						},
 					},
 				},
 				Status:    true,
-				Timestamp: 1697091629,
+				Timestamp: 1697092032,
 			},
 			wantError: require.NoError,
 		},

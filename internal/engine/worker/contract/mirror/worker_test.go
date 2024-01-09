@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
@@ -26,7 +26,7 @@ func TestWorker_Arweave(t *testing.T) {
 
 	type arguments struct {
 		task   *source.Task
-		config *engine.Config
+		config *config.Module
 	}
 
 	testcases := []struct {
@@ -40,6 +40,9 @@ func TestWorker_Arweave(t *testing.T) {
 			arguments: arguments{
 				task: &source.Task{
 					Network: filter.NetworkArweave,
+					Block: arweave.Block{
+						Timestamp: 1608772429,
+					},
 					Transaction: arweave.Transaction{
 						ID:       "lW0AMDN2RgOeqULk-u6Tv0wfZWpx9MfkrmqQQU-Mvuo",
 						Reward:   "27798031",
@@ -79,11 +82,12 @@ func TestWorker_Arweave(t *testing.T) {
 							PublicationID: "a151ee1decb2028a8bb48277f6928c6f38319c32601dc1da1ee82acfcad2e525",
 							ContentURI:    "ar://lW0AMDN2RgOeqULk-u6Tv0wfZWpx9MfkrmqQQU-Mvuo",
 							Target:        nil,
+							Timestamp:     1608766070,
 						},
 					},
 				},
 				Status:    true,
-				Timestamp: 1608766070,
+				Timestamp: 1608772429,
 			},
 			wantError: require.NoError,
 		},
@@ -92,6 +96,9 @@ func TestWorker_Arweave(t *testing.T) {
 			arguments: arguments{
 				task: &source.Task{
 					Network: filter.NetworkArweave,
+					Block: arweave.Block{
+						Timestamp: 1609360471,
+					},
 					Transaction: arweave.Transaction{
 						ID:       "CKsUVyAvgDeMyHjTn4kAwLMgv81nCH4xt6dY5xZcYbE",
 						Reward:   "17827441",
@@ -133,11 +140,12 @@ func TestWorker_Arweave(t *testing.T) {
 							Body:          "One thing I've been working on over the holidays is the idea of applying [cohort-based learning](https://www.notion.so/Learn-about-Wes-and-Gagan-s-stealth-startup-bf8ae789fded4753b0f54a85ce5315c0) to a community or social token. \n\n![Our last Personal Talkens meetup, in November](https://images.mirror-media.xyz/publication-images/a8cfd1ad-bee2-40bb-88fb-e1a3bac06ab0.jpeg)\n\nI think we can do it by hosting the cohort on Kickback and getting participants to stake [$xJoon tokens](https://blockscout.com/poa/xdai/tokens/0x5fE9885226677F3Eb5C9ad8aB6c421B4EA38535d/token-transfers), similar to Kickback's fitness challenge in December. \n\nBut a few questions remain:\n\n- What should the task be?\n\n- How much should people stake?\n\n- How does this framework jive with non-tokenised cohort-based learning?\n\n- Can we use tokenised media platforms like Mirror in this experiment?\n\nI would love to hear from you, DM me at [@joonian on Twitter](https://twitter.com/joonian) or ping me on joonian@cryptographic.media. ",
 							PublicationID: "a094bb1f437620acbbbce6f229f24947ab8c6fc37f1ddfa1ae216712e38e3bcc",
 							ContentURI:    "ar://CKsUVyAvgDeMyHjTn4kAwLMgv81nCH4xt6dY5xZcYbE",
+							Timestamp:     1609360392,
 						},
 					},
 				},
 				Status:    true,
-				Timestamp: 1609360392,
+				Timestamp: 1609360471,
 			},
 			wantError: require.NoError,
 		},
@@ -154,7 +162,7 @@ func TestWorker_Arweave(t *testing.T) {
 	})
 
 	// Dial the database.
-	databaseClient, err := dialer.Dial(context.Background(), &database.Config{
+	databaseClient, err := dialer.Dial(context.Background(), &config.Database{
 		Driver:    driver,
 		URI:       dataSourceName,
 		Partition: &partition,
@@ -190,7 +198,7 @@ func TestWorker_Arweave(t *testing.T) {
 }
 
 func createContainer(ctx context.Context, driver database.Driver, partition bool) (container *gnomock.Container, dataSourceName string, err error) {
-	config := database.Config{
+	config := config.Database{
 		Driver:    driver,
 		Partition: &partition,
 	}

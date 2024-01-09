@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
@@ -110,7 +111,7 @@ func TestClient(t *testing.T) {
 			})
 
 			// Dial the database.
-			client, err := dialer.Dial(context.Background(), &database.Config{
+			client, err := dialer.Dial(context.Background(), &config.Database{
 				Driver:    testcase.driver,
 				URI:       dataSourceName,
 				Partition: testcase.partition,
@@ -127,7 +128,7 @@ func TestClient(t *testing.T) {
 
 			// Query first feed.
 			for _, feed := range testcase.feedCreated {
-				data, page, err := client.FindFeed(context.Background(), model.FeedQuery{ID: &feed.ID, ActionLimit: 10})
+				data, page, err := client.FindFeed(context.Background(), model.FeedQuery{ID: lo.ToPtr(feed.ID), ActionLimit: 10})
 				require.NoError(t, err)
 				require.NotNil(t, data)
 				require.Greater(t, lo.FromPtr(page), 0)
@@ -157,7 +158,7 @@ func TestClient(t *testing.T) {
 }
 
 func createContainer(ctx context.Context, driver database.Driver, partition bool) (container *gnomock.Container, dataSourceName string, err error) {
-	config := database.Config{
+	config := config.Database{
 		Driver:    driver,
 		Partition: &partition,
 	}

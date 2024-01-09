@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
@@ -24,7 +25,7 @@ const (
 var _ engine.Source = (*source)(nil)
 
 type source struct {
-	config          *engine.Config
+	config          *config.Module
 	farcasterClient farcaster.Client
 	databaseClient  database.Client
 	state           State
@@ -489,7 +490,7 @@ func (s *source) fillReactionParams(ctx context.Context, message *farcaster.Mess
 	return s.fillProfile(ctx, message)
 }
 
-func NewSource(config *engine.Config, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.Source, error) {
+func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.Source, error) {
 	var state State
 
 	// Initialize state from checkpoint.

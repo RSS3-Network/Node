@@ -17,6 +17,12 @@ database:
   partition: true
   uri: postgres://root@localhost:26257/defaultdb
 
+stream:
+  enable: false
+  driver: kafka
+  topic: rss3.node.feeds
+  uri: localhost:9092
+
 observability:
   opentelemetry:
     metrics:
@@ -39,6 +45,7 @@ component:
           access_code:
 
   decentralized:
+    # ethereum
     - network: ethereum
       worker: fallback
       endpoint: https://rpc.ankr.com/eth
@@ -51,14 +58,36 @@ component:
       parameters:
         block_number_start:
         block_number_target:
+    - network: polygon
+      worker: lens
+      endpoint: https://rpc.ankr.com/polygon
+      parameters:
+        block_number_start:
     - network: ethereum
       worker: opensea
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start:
+    - network: ethereum
+      worker: uniswap
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
+    - network: ethereum
+      worker: optimism
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
+    - network: polygon
+      worker: aavegotchi
+      endpoint: https://rpc.ankr.com/polygon
+      parameters:
+          block_number_start: 48300005
+    # farcaster
     - network: farcaster
       worker: farcaster
       endpoint: https://nemes.farcaster.xyz:2281
+    # arweave
     - network: arweave
       worker: mirror
       endpoint: https://arweave.net/

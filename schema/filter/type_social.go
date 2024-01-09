@@ -18,4 +18,6 @@ const (
 	TypeSocialRevise
 	TypeSocialComment
 	TypeSocialShare
+	TypeSocialProfile
+	TypeSocialMint
 )

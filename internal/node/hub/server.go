@@ -7,7 +7,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/naturalselectionlabs/rss3-node/internal/config"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 )
 
@@ -45,6 +45,7 @@ func NewServer(ctx context.Context, config *config.File, databaseClient database
 	instance.httpServer.GET("/rss/*", instance.hub.RSS.GetRSSHubHandler)
 	instance.httpServer.GET("/decentralized/tx/:id", instance.hub.Decentralized.GetActivity)
 	instance.httpServer.GET("/decentralized/:account", instance.hub.Decentralized.GetAccountActivities)
+	instance.httpServer.GET("/decentralized/count", instance.hub.Decentralized.GetActivitiesCount)
 
 	return &instance, nil
 }

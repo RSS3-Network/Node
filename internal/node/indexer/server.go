@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/constant"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/source"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker"
+	"github.com/naturalselectionlabs/rss3-node/internal/stream"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
@@ -23,10 +25,11 @@ import (
 
 type Server struct {
 	id                string
-	config            *engine.Config
+	config            *config.Module
 	source            engine.Source
 	worker            engine.Worker
 	databaseClient    database.Client
+	streamClient      stream.Client
 	tracer            trace.Tracer
 	meterTasksCounter metric.Int64Counter
 }
@@ -134,9 +137,10 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 	)
 
 	s.meterTasksCounter.Add(ctx, int64(len(tasks)), meterTasksCounterAttributes)
+	checkpoint.IndexCount = int64(len(feeds))
 
 	// Save feeds and checkpoint to the database.
-	return s.databaseClient.WithTransaction(ctx, func(ctx context.Context, client database.Client) error {
+	if err := s.databaseClient.WithTransaction(ctx, func(ctx context.Context, client database.Client) error {
 		if err := client.SaveFeeds(ctx, feeds); err != nil {
 			return fmt.Errorf("save %d feeds: %w", len(feeds), err)
 		}
@@ -148,7 +152,18 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		}
 
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+
+	// Push feeds to the stream.
+	if s.streamClient != nil && len(feeds) > 0 {
+		if err := s.streamClient.PushFeeds(ctx, feeds); err != nil {
+			return fmt.Errorf("publish %d feeds: %w", len(feeds), err)
+		}
+	}
+
+	return nil
 }
 
 func (s *Server) initializeMeter() (err error) {
@@ -161,12 +176,13 @@ func (s *Server) initializeMeter() (err error) {
 	return nil
 }
 
-func NewServer(ctx context.Context, config *engine.Config, databaseClient database.Client) (server *Server, err error) {
+func NewServer(ctx context.Context, config *config.Module, databaseClient database.Client, streamClient stream.Client) (server *Server, err error) {
 	instance := Server{
 		id:             config.ID(),
 		config:         config,
 		databaseClient: databaseClient,
 		tracer:         otel.Tracer(""),
+		streamClient:   streamClient,
 	}
 
 	// Initialize worker.

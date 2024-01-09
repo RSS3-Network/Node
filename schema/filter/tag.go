@@ -11,6 +11,7 @@ const (
 	TagCollectible
 	TagExchange
 	TagSocial
+	TagMetaverse
 	TagRSS
 )
 

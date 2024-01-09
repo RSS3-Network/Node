@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
@@ -23,7 +24,7 @@ const (
 var _ engine.Source = (*source)(nil)
 
 type source struct {
-	config         *engine.Config
+	config         *config.Module
 	option         *Option
 	filter         *Filter
 	ethereumClient ethereum.Client
@@ -278,7 +279,7 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 	return tasks, nil
 }
 
-func NewSource(config *engine.Config, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint) (engine.Source, error) {
+func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint) (engine.Source, error) {
 	var (
 		state State
 		err   error

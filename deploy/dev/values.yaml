@@ -11,16 +11,36 @@ indexers:
     endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
     parameters:
       block_number_start: 14748840
+  - network: polygon
+    worker: lens
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_POLYGON>
+    parameters:
+      block_number_start: 48300005
   - network: ethereum
     worker: opensea
     endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
     parameters:
       block_number_start: 17571053
   - network: ethereum
+    worker: uniswap
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
+    parameters:
+      block_number_start: 10207858
+  - network: ethereum
+    worker: optimism
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
+    parameters:
+      block_number_start: 12686786
+  - network: ethereum
     worker: fallback
     endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
     parameters:
       block_number_start: 17571053
+  - network: polygon
+    worker: aavegotchi
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_POLYGON>
+    parameters:
+      block_number_start: 48300005
   - network: arweave
     endpoint: https://arweave.net/
     worker: mirror

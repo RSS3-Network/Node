@@ -5,6 +5,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	"github.com/stretchr/testify/require"
@@ -26,7 +27,7 @@ func TestSource(t *testing.T) {
 	initialize(t)
 
 	type arguments struct {
-		config *engine.Config
+		config *config.Module
 	}
 
 	testcases := []struct {
