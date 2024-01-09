@@ -40,7 +40,7 @@ func TestGetImplementation(t *testing.T) {
 				address, ok := value.(*common.Address)
 				require.True(t, ok)
 
-				require.Equal(t, common.HexToAddress("0xa2327a938Febf5FEC13baCFb16Ae10EcBc4cbDCF"), *address)
+				require.Equal(t, common.HexToAddress("0x43506849D7C04F9138D1A2050bbF3A0c054402dd"), *address)
 			},
 			wantError: require.NoError,
 		},
