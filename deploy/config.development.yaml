@@ -93,3 +93,10 @@ component:
       parameters:
         block_height_start:
         rpc_thread_blocks:
+
+    # iqwiki
+    - network: ethereum
+      worker: iqwiki
+      endpoint: https://rpc.ankr.com/polygon
+      parameters:
+        block_number_start: 52070001
