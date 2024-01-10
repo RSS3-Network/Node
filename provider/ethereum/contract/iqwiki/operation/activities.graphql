@@ -1,0 +1,32 @@
+query ActivityByWikiIdAndBlock($block:Int!,$wikiId:String) {
+    activityByWikiIdAndBlock(block: $block, wikiId: $wikiId) {
+        id
+        wikiId
+        block
+        type
+        datetime
+        ipfs
+        user {
+            id
+            profile {
+                username
+                bio
+            }
+        }
+        content {
+            id
+            title
+            content
+            summary
+            categories {
+                title
+            }
+            images {
+                id
+            }
+            tags {
+                id
+            }
+        }
+    }
+}

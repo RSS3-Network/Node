@@ -2,6 +2,7 @@ package worker
 
 import (
 	"fmt"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/iqwiki"
 
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
@@ -36,6 +37,8 @@ func New(config *engine.Config, databaseClient database.Client) (engine.Worker, 
 		return optimism.NewWorker(config)
 	case engine.Aavegotchi:
 		return aavegotchi.NewWorker(config)
+	case engine.IQWiki:
+		return iqwiki.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}

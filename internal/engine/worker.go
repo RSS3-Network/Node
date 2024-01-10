@@ -21,6 +21,7 @@ const (
 	Uniswap                    // uniswap
 	Optimism                   // optimism
 	Aavegotchi                 // aavegotchi
+	IQWiki                     // iqwiki
 )
 
 type Worker interface {
