@@ -46,12 +46,18 @@ func (w *worker) Name() string {
 
 // Filter returns a filter for source.
 func (w *worker) Filter() engine.SourceFilter {
-	return &source.Filter{OwnerAddresses: momoka.AddressesLens}
+	return &source.Filter{OwnerAddresses: momoka.AddressesBundlr}
 }
 
 // Match returns true if the task is an Arweave task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkArweaveSource, nil
+	switch task.GetNetwork() {
+	case filter.NetworkArweave:
+		task := task.(*source.Task)
+		return task.Transaction.Owner != "" && lo.Contains(momoka.AddressesLens, task.Transaction.Owner), nil
+	default:
+		return false, nil
+	}
 }
 
 // Transform returns a feed with the action of the task.
