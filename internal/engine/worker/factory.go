@@ -2,6 +2,7 @@ package worker
 
 import (
 	"fmt"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/iqwiki"
 
 	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"

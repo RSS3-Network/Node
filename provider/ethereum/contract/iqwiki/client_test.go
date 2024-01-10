@@ -2,9 +2,9 @@ package iqwiki_test
 
 import (
 	"context"
+	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/iqwiki"
 	"testing"
 
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/iqwiki"
 	"github.com/stretchr/testify/require"
 )
 
