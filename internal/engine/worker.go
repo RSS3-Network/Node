@@ -23,6 +23,7 @@ const (
 	Optimism               // optimism
 	Aavegotchi             // aavegotchi
 	Lens                   // lens
+	Momoka                 // momoka
 )
 
 type Worker interface {

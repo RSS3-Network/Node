@@ -90,3 +90,9 @@ component:
       parameters:
         block_height_start:
         rpc_thread_blocks:
+    - network: arweave
+      worker: momoka
+      endpoint: https://rpc.ankr.com/polygon
+      parameters:
+        block_height_start:
+        rpc_thread_blocks:
