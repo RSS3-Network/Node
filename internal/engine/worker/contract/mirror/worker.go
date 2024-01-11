@@ -252,6 +252,7 @@ func NewWorker(config *config.Module, databaseClient database.Client) (engine.Wo
 		return nil, fmt.Errorf("new arweave client: %w", err)
 	}
 
+	// Initialize ipfs client.
 	if instance.ipfsClient, err = ipfs.NewHTTPClient(ipfs.WithGateways(config.IPFSGateways)); err != nil {
 		return nil, fmt.Errorf("new ipfs client: %w", err)
 	}
