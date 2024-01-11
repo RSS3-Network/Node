@@ -396,7 +396,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				To:      "0x253553366Da8546fC250F225fe3d25d0C782303b",
 				Type:    filter.TypeCollectibleTrade,
 				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("")),
+					Amount:  lo.Must(decimal.NewFromString("4836538783709927")),
 					Decimal: 18,
 				},
 				Platform: lo.ToPtr(filter.PlatformENS),
