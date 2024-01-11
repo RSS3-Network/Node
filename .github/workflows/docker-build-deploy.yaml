@@ -5,7 +5,7 @@ on:
     branches:
       - "develop"
     tags:
-      - *
+      - "*"
 
 jobs:
   build:
