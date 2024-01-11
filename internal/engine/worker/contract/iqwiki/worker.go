@@ -81,8 +81,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	// Parse actions from task.
 	w.parseActions(ctx, ethereumTask, feed)
 
-	// Set feed type to the first action type.
+	// Set feed type to the first action type & total actions.
 	feed.Type = feed.Actions[0].Type
+	feed.TotalActions = uint(len(feed.Actions))
 
 	return feed, nil
 }
