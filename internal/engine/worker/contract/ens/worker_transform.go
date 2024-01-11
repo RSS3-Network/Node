@@ -297,27 +297,22 @@ func (w *worker) buildEthereumENSProfileAction(_ context.Context, from, to commo
 
 // getEnsName get ens name by name hash (node)
 func (w *worker) getEnsName(_ context.Context, blockNumber *big.Int, nameHash common.Hash) (string, error) {
-	var (
-		domains string
-		err     error
-	)
-
-	// TODO: Optimize with multicall3
-
-	// Try public resolver V1
-	domains, err = w.publicResolverV1Caller.Name(&bind.CallOpts{BlockNumber: blockNumber}, nameHash)
-	if err == nil && len(domains) > 0 {
-		return domains, nil
+	namesBytes, err := w.nameWrapper.Names(&bind.CallOpts{BlockNumber: blockNumber}, nameHash)
+	if err != nil {
+		return "", fmt.Errorf("fail to find ens name hash: %w, name hash: %v", err, nameHash.String())
 	}
 
-	// Try public resolver V2
-	domains, err = w.publicResolverV2Caller.Name(&bind.CallOpts{BlockNumber: blockNumber}, nameHash)
-	if err == nil && len(domains) > 0 {
-		return domains, nil
+	if len(namesBytes) == 0 {
+		// Should fallback to additional resolvers
+		return "", fmt.Errorf("no wrapped name for hash: %v", nameHash.String())
 	}
 
-	// If still no luck
-	return "", fmt.Errorf("fail to find ens name hash: %w, name hash: %v", err, nameHash.String())
+	if namesBytes[0] == '.' {
+		// Remove leading dot
+		namesBytes = namesBytes[1:]
+	}
+
+	return string(namesBytes), nil
 }
 
 // decodeName decode ens name
