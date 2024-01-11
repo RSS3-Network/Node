@@ -27,3 +27,17 @@ jobs:
       revision: develop
       dir: deploy/dev
     secrets: inherit
+  deploy-prod:
+    if: startsWith(github.ref, 'refs/tags/v')
+    uses: NaturalSelectionLabs/Daedalus/.github/workflows/deploy-v3-tpl.yaml@main
+    needs:
+      - build
+    with:
+      images: rss3/node
+      tag: ${{ github.ref_name }}
+      cluster: prod
+      namespace: network
+      releaseName: rss3-node
+      revision: ${{ github.ref_name }}
+      dir: deploy/prod
+    secrets: inherit
