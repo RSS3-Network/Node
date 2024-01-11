@@ -87,6 +87,8 @@ component:
     - network: arweave
       worker: paragraph
       endpoint: https://arweave.net
+      ipfs_gateways:
+        - https://ipfs.rss3.page/
       parameters:
         block_height_start:
         rpc_thread_blocks:
