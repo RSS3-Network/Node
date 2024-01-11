@@ -116,12 +116,13 @@ func TestWorker_Ethereum(t *testing.T) {
 				Tag:      filter.TagSocial,
 				Platform: lo.ToPtr(filter.PlatformIQWiki),
 				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("1799863423694410")),
+					Amount:  lo.Must(decimal.NewFromString("7792791087169620")),
 					Decimal: 18,
 				},
 				TotalActions: 1,
 				Actions: []*schema.Action{
 					{
+						Tag:      filter.TagSocial,
 						Type:     filter.TypeSocialPost,
 						Platform: filter.PlatformIQWiki.String(),
 						From:     "0xcAF1CD3c9C76382E38fd813aecf103325ebD0dbE",
@@ -173,8 +174,8 @@ func TestWorker_Ethereum(t *testing.T) {
 
 			feed, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
-			require.Equal(t, testcase.want, feed)
 
+			require.Equal(t, testcase.want, feed)
 			t.Log(feed)
 		})
 	}
