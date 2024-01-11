@@ -2,6 +2,7 @@ package hub
 
 import (
 	"context"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/naturalselectionlabs/rss3-node/config"
