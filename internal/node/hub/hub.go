@@ -2,7 +2,6 @@ package hub
 
 import (
 	"context"
-	"sync"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -17,20 +16,13 @@ type Hub struct {
 	Decentralized *decentralized.Hub
 }
 
-var _ echo.Validator = &Validator{}
+var _ echo.Validator = (*Validator)(nil)
 
 type Validator struct {
 	validate *validator.Validate
-	once     sync.Once
 }
 
 func (v *Validator) Validate(i interface{}) error {
-	if v.validate == nil {
-		v.once.Do(func() {
-			v.validate = validator.New()
-		})
-	}
-
 	return v.validate.Struct(i)
 }
 
