@@ -101,8 +101,8 @@ var command = &cobra.Command{
 
 func init() {
 	command.PersistentFlags().String("source", string(filter.NetworkEthereumSource), "")
-	command.PersistentFlags().String("endpoint", endpoint.MustGet(filter.NetworkEthereum), "")
-	command.PersistentFlags().String("feed", "0xf74008a8fde35012c5bc9c897c1d413fe0befbc9e6fc9b6d8bfab38b7dd3c6bd", "")
+	command.PersistentFlags().String("endpoint", endpoint.MustGet(filter.NetworkPolygon), "")
+	command.PersistentFlags().String("feed", "0x43dc470bbec2f3c585ac8f7a8340870b774a5be52ab9cf0836a8d534761be85e", "")
 }
 
 func main() {
