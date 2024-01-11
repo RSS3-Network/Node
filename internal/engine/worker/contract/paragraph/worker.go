@@ -241,7 +241,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 		return nil, fmt.Errorf("new arweave client: %w", err)
 	}
 
-	if instance.ipfsClient, err = ipfs.NewHTTPClient(); err != nil {
+	if instance.ipfsClient, err = ipfs.NewHTTPClient(ipfs.WithGateways(config.IPFSGateways)); err != nil {
 		return nil, fmt.Errorf("new ipfs client: %w", err)
 	}
 

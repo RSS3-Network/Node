@@ -203,7 +203,9 @@ func WithTimeout(timeout time.Duration) HTTPClientOption {
 
 func WithGateways(gateways []string) HTTPClientOption {
 	return func(h *httpClient) error {
-		h.gateways = gateways // Overwrite gateways.
+		if len(gateways) > 0 {
+			h.gateways = gateways // Overwrite gateways.
+		}
 
 		return nil
 	}
