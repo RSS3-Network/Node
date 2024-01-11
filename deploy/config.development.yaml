@@ -90,3 +90,8 @@ component:
       parameters:
         block_height_start:
         rpc_thread_blocks:
+    - network: ethereum
+      worker: ens
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:

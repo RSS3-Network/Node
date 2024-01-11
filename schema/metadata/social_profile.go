@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _SocialProfileActionName = "createupdate"
+const _SocialProfileActionName = "createupdaterenewwrapunwrap"
 
-var _SocialProfileActionIndex = [...]uint8{0, 6, 12}
+var _SocialProfileActionIndex = [...]uint8{0, 6, 12, 17, 21, 27}
 
-const _SocialProfileActionLowerName = "createupdate"
+const _SocialProfileActionLowerName = "createupdaterenewwrapunwrap"
 
 func (i SocialProfileAction) String() string {
 	i -= 1
@@ -33,20 +33,32 @@ func _SocialProfileActionNoOp() {
 	var x [1]struct{}
 	_ = x[ActionSocialProfileCreate-(1)]
 	_ = x[ActionSocialProfileUpdate-(2)]
+	_ = x[ActionSocialProfileRenew-(3)]
+	_ = x[ActionSocialProfileWrap-(4)]
+	_ = x[ActionSocialProfileUnwrap-(5)]
 }
 
-var _SocialProfileActionValues = []SocialProfileAction{ActionSocialProfileCreate, ActionSocialProfileUpdate}
+var _SocialProfileActionValues = []SocialProfileAction{ActionSocialProfileCreate, ActionSocialProfileUpdate, ActionSocialProfileRenew, ActionSocialProfileWrap, ActionSocialProfileUnwrap}
 
 var _SocialProfileActionNameToValueMap = map[string]SocialProfileAction{
-	_SocialProfileActionName[0:6]:       ActionSocialProfileCreate,
-	_SocialProfileActionLowerName[0:6]:  ActionSocialProfileCreate,
-	_SocialProfileActionName[6:12]:      ActionSocialProfileUpdate,
-	_SocialProfileActionLowerName[6:12]: ActionSocialProfileUpdate,
+	_SocialProfileActionName[0:6]:        ActionSocialProfileCreate,
+	_SocialProfileActionLowerName[0:6]:   ActionSocialProfileCreate,
+	_SocialProfileActionName[6:12]:       ActionSocialProfileUpdate,
+	_SocialProfileActionLowerName[6:12]:  ActionSocialProfileUpdate,
+	_SocialProfileActionName[12:17]:      ActionSocialProfileRenew,
+	_SocialProfileActionLowerName[12:17]: ActionSocialProfileRenew,
+	_SocialProfileActionName[17:21]:      ActionSocialProfileWrap,
+	_SocialProfileActionLowerName[17:21]: ActionSocialProfileWrap,
+	_SocialProfileActionName[21:27]:      ActionSocialProfileUnwrap,
+	_SocialProfileActionLowerName[21:27]: ActionSocialProfileUnwrap,
 }
 
 var _SocialProfileActionNames = []string{
 	_SocialProfileActionName[0:6],
 	_SocialProfileActionName[6:12],
+	_SocialProfileActionName[12:17],
+	_SocialProfileActionName[17:21],
+	_SocialProfileActionName[21:27],
 }
 
 // SocialProfileActionString retrieves an enum value from the enum constants string name.

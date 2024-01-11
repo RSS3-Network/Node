@@ -15,6 +15,8 @@ require (
 	github.com/ipfs/go-cid v0.4.1
 	github.com/labstack/echo/v4 v4.11.3
 	github.com/lib/pq v1.10.9
+	github.com/multiformats/go-multicodec v0.9.0
+	github.com/multiformats/go-varint v0.0.6
 	github.com/orlangure/gnomock v0.30.0
 	github.com/pressly/goose/v3 v3.16.0
 	github.com/samber/lo v1.38.1
@@ -90,7 +92,6 @@ require (
 	github.com/multiformats/go-base36 v0.1.0 // indirect
 	github.com/multiformats/go-multibase v0.0.3 // indirect
 	github.com/multiformats/go-multihash v0.0.15 // indirect
-	github.com/multiformats/go-varint v0.0.6 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc5 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
