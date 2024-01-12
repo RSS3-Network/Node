@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroachdb/table"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
@@ -279,6 +280,38 @@ func (c *client) SaveDatasetFarcasterProfile(ctx context.Context, profile *model
 
 	var value table.DatasetFarcasterProfile
 	if err := value.Import(profile); err != nil {
+		return err
+	}
+
+	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
+}
+
+// LoadDatasetENSNamehash accepts an ENS namehash, and response with a record containing its original name string
+func (c *client) LoadDatasetENSNamehash(ctx context.Context, hash common.Hash) (*model.ENSNamehash, error) {
+	var value table.DatasetENSNamehash
+
+	if err := c.database.WithContext(ctx).
+		Where("hash_hex = ?", hash.Hex()).
+		First(&value).
+		Error; err != nil {
+		// No such ENS
+		return nil, err
+	}
+
+	return value.Export()
+}
+
+// SaveDatasetENSNamehash save an ENS namehash into database for further queries
+func (c *client) SaveDatasetENSNamehash(ctx context.Context, namehash *model.ENSNamehash) error {
+	clauses := []clause.Expression{
+		clause.OnConflict{
+			Columns:   []clause.Column{{Name: "hash_hex"}},
+			UpdateAll: true,
+		},
+	}
+
+	var value table.DatasetENSNamehash
+	if err := value.Import(namehash); err != nil {
 		return err
 	}
 

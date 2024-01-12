@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/ens"
@@ -20,7 +20,6 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 func (w *worker) transformEnsNameRegisteredV1(ctx context.Context, log ethereum.Log, task *source.Task) ([]*schema.Action, error) {
@@ -29,7 +28,7 @@ func (w *worker) transformEnsNameRegisteredV1(ctx context.Context, log ethereum.
 		return nil, fmt.Errorf("ParseNameRegistered event: %w", err)
 	}
 
-	action, err := w.buildEthereumENSRegisterAction(ctx, task, event.Label, ethereum.AddressGenesis, event.Owner, event.Cost)
+	action, err := w.buildEthereumENSRegisterAction(ctx, task, event.Label, ethereum.AddressGenesis, event.Owner, event.Cost, event.Name)
 
 	if err != nil {
 		return nil, fmt.Errorf("build collectible trade action: %w", err)
@@ -44,7 +43,7 @@ func (w *worker) transformEnsNameRegisteredV2(ctx context.Context, log ethereum.
 		return nil, fmt.Errorf("ParseNameRegistered event: %w", err)
 	}
 
-	action, err := w.buildEthereumENSRegisterAction(ctx, task, event.Label, ethereum.AddressGenesis, event.Owner, event.BaseCost)
+	action, err := w.buildEthereumENSRegisterAction(ctx, task, event.Label, ethereum.AddressGenesis, event.Owner, event.BaseCost, event.Name)
 
 	if err != nil {
 		return nil, fmt.Errorf("build collectible trade action: %w", err)
@@ -72,9 +71,7 @@ func (w *worker) transformEnsTextChanged(ctx context.Context, log ethereum.Log, 
 		return nil, fmt.Errorf("ParseTextChanged event: %w", err)
 	}
 
-	nameHash := common.BytesToHash(event.Node[:])
-
-	name, err := w.getEnsName(ctx, log.BlockNumber, nameHash)
+	name, err := w.getEnsName(ctx, log.BlockNumber, event.Node)
 	if err != nil {
 		return nil, err
 	}
@@ -92,9 +89,7 @@ func (w *worker) transformEnsTextChangedWithValue(ctx context.Context, log ether
 		return nil, fmt.Errorf("ParseTextChangedWithValue event: %w", err)
 	}
 
-	nameHash := common.BytesToHash(event.Node[:])
-
-	name, err := w.getEnsName(ctx, log.BlockNumber, nameHash)
+	name, err := w.getEnsName(ctx, log.BlockNumber, event.Node)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +235,7 @@ func (w *worker) transformEnsPubkeyChanged(ctx context.Context, log ethereum.Log
 	}, nil
 }
 
-func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *source.Task, labels [32]byte, from, to common.Address, cost *big.Int) (*schema.Action, error) {
+func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *source.Task, labels [32]byte, from, to common.Address, cost *big.Int, name string) (*schema.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, lo.ToPtr(ens.AddressBaseRegistrarImplementation), new(big.Int).SetBytes(labels[:]), task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s %s: %w", ens.AddressBaseRegistrarImplementation.String(), new(big.Int).SetBytes(labels[:]), err)
@@ -254,6 +249,15 @@ func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *sourc
 	}
 
 	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(cost, 0))
+
+	// Save namehash into database for further query requirements
+	fullName := fmt.Sprintf("%s.%s", name, "eth")
+	if err = w.databaseClient.SaveDatasetENSNamehash(ctx, &model.ENSNamehash{
+		Name: fullName,
+		Hash: Namehash(fullName),
+	}); err != nil {
+		return nil, fmt.Errorf("save dataset ens namehash: %w", err)
+	}
 
 	return &schema.Action{
 		Type:     filter.TypeCollectibleTrade,
@@ -293,83 +297,4 @@ func (w *worker) buildEthereumENSProfileAction(_ context.Context, from, to commo
 		To:       to.String(),
 		Metadata: socialProfile,
 	}
-}
-
-// getEnsName get ens name by name hash (node)
-func (w *worker) getEnsName(_ context.Context, blockNumber *big.Int, nameHash common.Hash) (string, error) {
-	namesBytes, err := w.nameWrapper.Names(&bind.CallOpts{BlockNumber: blockNumber}, nameHash)
-	if err != nil {
-		return "", fmt.Errorf("fail to find ens name hash: %w, name hash: %v", err, nameHash.String())
-	}
-
-	if len(namesBytes) == 0 {
-		// Should fallback to additional resolvers
-		return "", fmt.Errorf("no wrapped name for hash: %v", nameHash.String())
-	}
-
-	if namesBytes[0] == '.' {
-		// Remove leading dot
-		namesBytes = namesBytes[1:]
-	}
-
-	return string(namesBytes), nil
-}
-
-// decodeName decode ens name
-func (w *worker) decodeName(buf []byte) ([]string, error) {
-	var (
-		offset     = 0
-		list       []string
-		firstLabel string
-	)
-
-	// check first label length
-	length := int(buf[offset])
-	if length == 0 {
-		return []string{firstLabel, "."}, nil
-	}
-
-	// decode every label
-	for length > 0 {
-		// extract label from buf
-		label := string(buf[offset+1 : offset+1+length])
-
-		// check label
-		if !w.checkValidLabel(label) {
-			return nil, fmt.Errorf("invalid label")
-		}
-
-		// Put dot between the gap if not the first label
-		if offset > 1 {
-			list = append(list, ".")
-		} else {
-			firstLabel = label
-		}
-
-		// label in list
-		list = append(list, label)
-
-		// update offset and len
-		offset += length + 1
-		length = int(buf[offset])
-	}
-
-	// return first label and complete domain string
-	return []string{firstLabel, strings.Join(list, "")}, nil
-}
-
-// checkValidLabel: check label
-func (w *worker) checkValidLabel(name string) bool {
-	for i := 0; i < len(name); i++ {
-		c := name[i]
-		if c == 0 {
-			zap.L().Error("Invalid label contained null byte. Skipping.", zap.String("name", name))
-			return false
-		} else if c == 46 {
-			zap.L().Error("Invalid label contained separator char '.'. Skipping.", zap.String("name", name))
-			return false
-		}
-	}
-
-	return true
 }

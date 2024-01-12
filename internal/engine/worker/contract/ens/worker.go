@@ -6,6 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/naturalselectionlabs/rss3-node/config"
+	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
@@ -27,6 +28,7 @@ type worker struct {
 	config         *config.Module
 	ethereumClient ethereum.Client
 	tokenClient    token.Client
+	databaseClient database.Client
 	// Specific filters
 	baseRegistrarImplementationFilterer *ens.BaseRegistrarImplementationFilterer
 	ethRegistrarControllerV1Filterer    *ens.ETHRegistrarControllerV1Filterer
@@ -171,7 +173,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 }
 
 // NewWorker creates a new ENS worker.
-func NewWorker(config *config.Module) (engine.Worker, error) {
+func NewWorker(config *config.Module, databaseClient database.Client) (engine.Worker, error) {
 	var (
 		err      error
 		instance = worker{
@@ -186,6 +188,9 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 
 	// Initialize token client.
 	instance.tokenClient = token.NewClient(instance.ethereumClient)
+
+	// Initialize database client.
+	instance.databaseClient = databaseClient
 
 	// Initialize ens filterers and callers.
 	instance.baseRegistrarImplementationFilterer = lo.Must(ens.NewBaseRegistrarImplementationFilterer(ethereum.AddressGenesis, nil))
