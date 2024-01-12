@@ -1,6 +1,7 @@
 package ens
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"math/big"
@@ -29,12 +30,7 @@ func (w *worker) getEnsName(ctx context.Context, blockNumber *big.Int, namehash 
 	} else if len(namesBytes) == 0 {
 		zap.L().Error("Not found ens namehash from nameWrapper contract", zap.String("namehash", namehash.Hex()), zap.Error(err))
 	} else {
-		if namesBytes[0] == '.' {
-			// Remove leading dot
-			namesBytes = namesBytes[1:]
-		}
-
-		return string(namesBytes), nil
+		return string(bytes.ReplaceAll(namesBytes[1:len(namesBytes)-1], []byte("\003"), []byte("."))), nil
 	}
 
 	return "", fmt.Errorf("fail to find ens namehash %v, all methods failed", namehash.String())
