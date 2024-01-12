@@ -1,0 +1,66 @@
+name: ⛓️ New Worker
+description: Submit a new Worker
+labels: ['worker']
+
+body:
+
+  - type: markdown
+    attributes:
+      value: |
+        Please ensure the worker is not covered in [issue](https://github.com/NaturalSelectionLabs/RSS3-Node/issues) and provide all the information required by this template.
+        Otherwise the issue will be closed immediately.
+
+        We are flooded with feature requests and short-handed, please try to make it yourself. Submit a pull request when done!
+
+  - type: dropdown
+    id: tag
+    attributes:
+      label: Tag
+      multiple: false
+      options:
+        - Transaction
+        - Exchange
+        - Collectible
+        - Social
+        - Donation
+        - Governance
+        - Metaverse
+    validations:
+      required: true
+
+  - type: input
+    id: project-url
+    attributes:
+      label: Project URL
+      placeholder: https://example.com
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Worker description
+      placeholder: A short description of the worker
+    validations:
+      required: true
+
+  - type: textarea
+    id: content
+    attributes:
+      label: What actions should be included?
+    validations:
+      required: true
+
+  - type: textarea
+    id: info
+    attributes:
+      label: Additional description
+      placeholder: Any additional information you want to share
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: This is not a duplicated worker request
+      options:
+        - label: I have searched [existing issues](https://github.com/NaturalSelectionLabs/RSS3-Node/issues) and [pull requests](https://github.com/NaturalSelectionLabs/RSS3-Node/pulls) to ensure this worker has not already been requested
+          required: true

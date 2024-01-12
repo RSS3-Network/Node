@@ -61,6 +61,7 @@ component:
     - network: polygon
       worker: lens
       endpoint: https://rpc.ankr.com/polygon
+      ipfs_gateways:
       parameters:
         block_number_start:
     - network: ethereum
@@ -91,12 +92,14 @@ component:
     - network: arweave
       worker: mirror
       endpoint: https://arweave.net/
+      ipfs_gateways:
       parameters:
         block_height_start:
         rpc_thread_blocks:
     - network: arweave
       worker: paragraph
       endpoint: https://arweave.net
+      ipfs_gateways:
       parameters:
         block_height_start:
         rpc_thread_blocks:

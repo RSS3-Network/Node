@@ -37,10 +37,11 @@ type Node struct {
 }
 
 type Module struct {
-	Network    filter.Network `yaml:"network" validate:"required"`
-	Endpoint   string         `yaml:"endpoint" validate:"required"`
-	Worker     engine.Name    `yaml:"worker"`
-	Parameters *Options       `yaml:"parameters"`
+	Network      filter.Network `yaml:"network" validate:"required"`
+	Endpoint     string         `yaml:"endpoint" validate:"required"`
+	IPFSGateways []string       `yaml:"ipfs_gateways"`
+	Worker       engine.Name    `yaml:"worker"`
+	Parameters   *Options       `yaml:"parameters"`
 }
 
 type Database struct {
