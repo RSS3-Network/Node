@@ -23,7 +23,7 @@ const (
 	Optimism               // optimism
 	Aavegotchi             // aavegotchi
 	Lens                   // lens
-	IQWiki                     // iqwiki
+	IQWiki                 // iqwiki
 )
 
 type Worker interface {
