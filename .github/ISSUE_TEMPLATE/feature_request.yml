@@ -1,0 +1,41 @@
+name: 🍭 Feature Request
+description: Submit a new feature request
+labels: ['enhancement']
+
+body:
+
+  - type: markdown
+    attributes:
+      value: |
+        Please ensure the feature requested is not listed in [issue](https://github.com/NaturalSelectionLabs/RSS3-Node/issues), and is not a [New Worker](https://github.com/NaturalSelectionLabs/RSS3-Node/issues/new?assignees=&labels=worker&projects=&template=worker_coverage.yml), and provide all the information required by this template.
+        Otherwise the issue will be closed immediately.
+
+  - type: textarea
+    id: feature
+    attributes:
+      label: What feature is it?
+      placeholder: Please describe the feature you want to see.
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this feature solve?
+      placeholder: Please describe the problem this feature solves.
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Additional description
+      placeholder: Any additional description.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: This is not a duplicated feature request or new RSS proposal
+      options:
+        - label: I have searched [existing issues](https://github.com/NaturalSelectionLabs/RSS3-Node/issues) to ensure this feature has not already been requested and this is not a [New Worker](https://github.com/NaturalSelectionLabs/RSS3-Node/issues/new?assignees=&labels=worker&projects=&template=worker_coverage.yml).
+          required: true
