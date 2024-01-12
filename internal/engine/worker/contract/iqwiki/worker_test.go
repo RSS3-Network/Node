@@ -7,11 +7,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/iqwiki"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/endpoint"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
@@ -24,8 +22,7 @@ func TestWorker_Ethereum(t *testing.T) {
 	t.Parallel()
 
 	type arguments struct {
-		task   *source.Task
-		config *engine.Config
+		task *source.Task
 	}
 
 	testcases := []struct {
@@ -100,10 +97,6 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionHash:  common.HexToHash("0x43dc470bbec2f3c585ac8f7a8340870b774a5be52ab9cf0836a8d534761be85e"),
 						TransactionIndex: 16,
 					},
-				},
-				config: &engine.Config{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
 				},
 			},
 			want: &schema.Feed{
@@ -221,10 +214,6 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionHash:  common.HexToHash("0x395a0ea73962d7f6e22cecc7d74c8f489a6707cc65f7cebdb39355bf01e8694a"),
 						TransactionIndex: 3,
 					},
-				},
-				config: &engine.Config{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
 				},
 			},
 			want: &schema.Feed{
