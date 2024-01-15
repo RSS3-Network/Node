@@ -40,8 +40,6 @@ type worker struct {
 	erc20Filterer   *erc20.ERC20Filterer
 	erc721Filterer  *erc721.ERC721Filterer
 	erc1155Filterer *erc1155.ERC1155Filterer
-	// Contract caller
-	nameWrapper *ens.NameWrapperCaller
 }
 
 func (w *worker) Name() string {
@@ -203,8 +201,6 @@ func NewWorker(config *config.Module, databaseClient database.Client) (engine.Wo
 	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
 	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
 	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
-
-	instance.nameWrapper = lo.Must(ens.NewNameWrapperCaller(ens.AddressNameWrapper, instance.ethereumClient))
 
 	return &instance, nil
 }

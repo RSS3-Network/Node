@@ -1,13 +1,11 @@
 package ens
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"math/big"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"go.uber.org/zap"
@@ -21,16 +19,6 @@ func (w *worker) getEnsName(ctx context.Context, blockNumber *big.Int, namehash 
 		zap.L().Error("Fail to find ens namehash from dataset", zap.String("namehash", namehash.Hex()), zap.Error(err))
 	} else {
 		return namehashRecord.Name, nil
-	}
-
-	// Failed to load from dataset, try to load from name wrapper contract
-	namesBytes, err := w.nameWrapper.Names(&bind.CallOpts{BlockNumber: blockNumber}, namehash)
-	if err != nil {
-		zap.L().Error("Fail to find ens namehash from nameWrapper contract", zap.String("namehash", namehash.Hex()), zap.Error(err))
-	} else if len(namesBytes) == 0 {
-		zap.L().Error("Not found ens namehash from nameWrapper contract", zap.String("namehash", namehash.Hex()), zap.Error(err))
-	} else {
-		return string(bytes.ReplaceAll(namesBytes[1:len(namesBytes)-1], []byte("\003"), []byte("."))), nil
 	}
 
 	return "", fmt.Errorf("fail to find ens namehash %v, all methods failed", namehash.String())
