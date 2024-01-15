@@ -254,7 +254,7 @@ func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *sourc
 	fullName := fmt.Sprintf("%s.%s", name, "eth")
 	if err = w.databaseClient.SaveDatasetENSNamehash(ctx, &model.ENSNamehash{
 		Name: fullName,
-		Hash: Namehash(fullName),
+		Hash: ens.NameHash(fullName),
 	}); err != nil {
 		return nil, fmt.Errorf("save dataset ens namehash: %w", err)
 	}

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"go.uber.org/zap"
 )
 
@@ -81,22 +80,4 @@ func (w *worker) checkValidLabel(name string) bool {
 	}
 
 	return true
-}
-
-func Namehash(name string) common.Hash {
-	// Check if is empty
-	if name == "" {
-		return [32]byte{0}
-	}
-
-	// Process
-	splits := strings.SplitN(name, ".", 2)
-	if len(splits) == 1 {
-		splits = append(splits, "")
-	}
-
-	return crypto.Keccak256Hash(append(
-		Namehash(splits[1]).Bytes(),
-		crypto.Keccak256Hash([]byte(splits[0])).Bytes()...,
-	))
 }

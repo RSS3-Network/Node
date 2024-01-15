@@ -1729,7 +1729,7 @@ func TestWorker_Ethereum(t *testing.T) {
 	for _, fullName := range requiredNames {
 		err = databaseClient.SaveDatasetENSNamehash(context.Background(), &model.ENSNamehash{
 			Name: fullName,
-			Hash: worker.Namehash(fullName),
+			Hash: ens.NameHash(fullName),
 		})
 		require.NoError(t, err)
 	}
