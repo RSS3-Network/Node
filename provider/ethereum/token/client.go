@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/erc1155"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/erc20"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/erc721"
+	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/multicall3"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
 	"github.com/samber/lo"
@@ -91,32 +91,56 @@ func (c *client) lookupERC20(ctx context.Context, chainID uint64, address common
 }
 
 // lookupERC20ByRPC looks up ERC-20 token metadata by RPC.
-func (c *client) lookupERC20ByRPC(ctx context.Context, _ uint64, address common.Address, blockNumber *big.Int) (*metadata.Token, error) {
+func (c *client) lookupERC20ByRPC(ctx context.Context, chainID uint64, address common.Address, blockNumber *big.Int) (*metadata.Token, error) {
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
 		Standard: contract.StandardERC20,
 	}
 
-	caller, err := erc20.NewERC20Caller(address, c.ethereumClient)
+	abi, err := erc20.ERC20MetaData.GetAbi()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("load abi: %w", err)
 	}
 
-	callOptions := bind.CallOpts{
-		BlockNumber: blockNumber,
-		Context:     ctx,
+	calls := []multicall3.Multicall3Call3{
+		{
+			Target:       address,
+			AllowFailure: true,
+			CallData:     lo.Must(abi.Pack("name")),
+		},
+		{
+			Target:       address,
+			AllowFailure: true,
+			CallData:     lo.Must(abi.Pack("symbol")),
+		},
+		{
+			Target:       address,
+			AllowFailure: true,
+			CallData:     lo.Must(abi.Pack("decimals")),
+		},
 	}
 
-	if tokenMetadata.Name, err = caller.Name(&callOptions); err != nil {
-		return nil, fmt.Errorf("get name: %w", err)
+	results, err := multicall3.Aggregate3(ctx, chainID, calls, blockNumber, c.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("call aggregate3 method: %w", err)
 	}
 
-	if tokenMetadata.Symbol, err = caller.Symbol(&callOptions); err != nil {
-		return nil, fmt.Errorf("get symbol: %w", err)
+	if results[0].Success {
+		if err := abi.UnpackIntoInterface(&tokenMetadata.Name, "name", results[0].ReturnData); err != nil {
+			return nil, fmt.Errorf("unpack name: %w", err)
+		}
 	}
 
-	if tokenMetadata.Decimals, err = caller.Decimals(&callOptions); err != nil {
-		return nil, fmt.Errorf("get decimals: %w", err)
+	if results[1].Success {
+		if err := abi.UnpackIntoInterface(&tokenMetadata.Symbol, "symbol", results[1].ReturnData); err != nil {
+			return nil, fmt.Errorf("unpack symbol: %w", err)
+		}
+	}
+
+	if results[2].Success {
+		if err := abi.UnpackIntoInterface(&tokenMetadata.Decimals, "decimals", results[2].ReturnData); err != nil {
+			return nil, fmt.Errorf("unpack decimals: %w", err)
+		}
 	}
 
 	return &tokenMetadata, nil
@@ -149,66 +173,113 @@ func (c *client) lookupNFT(ctx context.Context, chain uint64, address common.Add
 }
 
 // lookupERC721 looks up ERC-721 token metadata.
-func (c *client) lookupERC721(ctx context.Context, _ uint64, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
+func (c *client) lookupERC721(ctx context.Context, chainID uint64, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
 		ID:       lo.ToPtr(decimal.NewFromBigInt(id, 0)),
 		Standard: contract.StandardERC721,
 	}
 
-	caller, err := erc721.NewERC721Caller(address, c.ethereumClient)
+	abi, err := erc721.ERC721MetaData.GetAbi()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("load abi: %w", err)
 	}
 
-	callOptions := bind.CallOpts{
-		BlockNumber: blockNumber,
-		Context:     ctx,
+	calls := []multicall3.Multicall3Call3{
+		{
+			Target:       address,
+			AllowFailure: true,
+			CallData:     lo.Must(abi.Pack("name")),
+		},
+		{
+			Target:       address,
+			AllowFailure: true,
+			CallData:     lo.Must(abi.Pack("symbol")),
+		},
+		{
+			Target:       address,
+			AllowFailure: true,
+			CallData:     lo.Must(abi.Pack("tokenURI", id)),
+		},
 	}
 
-	if tokenMetadata.Name, err = caller.Name(&callOptions); err != nil {
-		return nil, fmt.Errorf("get name: %w", err)
+	results, err := multicall3.Aggregate3(ctx, chainID, calls, blockNumber, c.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("aggregate calls: %w", err)
 	}
 
-	if tokenMetadata.Symbol, err = caller.Symbol(&callOptions); err != nil {
-		return nil, fmt.Errorf("get symbol: %w", err)
+	if results[0].Success {
+		if err := abi.UnpackIntoInterface(&tokenMetadata.Name, "name", results[0].ReturnData); err != nil {
+			return nil, fmt.Errorf("unpack name: %w", err)
+		}
 	}
 
-	if tokenMetadata.URI, err = caller.TokenURI(&callOptions, id); err != nil {
-		return nil, fmt.Errorf("get token uri: %w", err)
+	if results[1].Success {
+		if err := abi.UnpackIntoInterface(&tokenMetadata.Symbol, "symbol", results[1].ReturnData); err != nil {
+			return nil, fmt.Errorf("unpack symbol: %w", err)
+		}
+	}
+
+	if results[2].Success {
+		if err := abi.UnpackIntoInterface(&tokenMetadata.URI, "tokenURI", results[2].ReturnData); err != nil {
+			return nil, fmt.Errorf("unpack token uri: %w", err)
+		}
 	}
 
 	return &tokenMetadata, nil
 }
 
 // lookupERC1155 looks up ERC-1155 token metadata.
-func (c *client) lookupERC1155(ctx context.Context, _ uint64, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
+func (c *client) lookupERC1155(ctx context.Context, chainID uint64, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
 		ID:       lo.ToPtr(decimal.NewFromBigInt(id, 0)),
 		Standard: contract.StandardERC1155,
 	}
 
-	caller, err := erc1155.NewERC1155Caller(address, c.ethereumClient)
+	abi, err := erc1155.ERC1155MetaData.GetAbi()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("load abi: %w", err)
 	}
 
-	callOptions := bind.CallOpts{
-		BlockNumber: blockNumber,
-		Context:     ctx,
+	calls := []multicall3.Multicall3Call3{
+		{
+			Target:       address,
+			AllowFailure: true,
+			CallData:     lo.Must(abi.Pack("name")),
+		},
+		{
+			Target:       address,
+			AllowFailure: true,
+			CallData:     lo.Must(abi.Pack("symbol")),
+		},
+		{
+			Target:   address,
+			CallData: lo.Must(abi.Pack("uri", id)),
+		},
 	}
 
-	if tokenMetadata.Name, err = caller.Name(&callOptions); err != nil {
-		return nil, fmt.Errorf("get name: %w", err)
+	results, err := multicall3.Aggregate3(ctx, chainID, calls, blockNumber, c.ethereumClient)
+	if err != nil {
+		return nil, fmt.Errorf("aggregate calls: %w", err)
 	}
 
-	if tokenMetadata.Symbol, err = caller.Symbol(&callOptions); err != nil {
-		return nil, fmt.Errorf("get symbol: %w", err)
+	if results[0].Success {
+		if err := abi.UnpackIntoInterface(&tokenMetadata.Name, "name", results[0].ReturnData); err != nil {
+			return nil, fmt.Errorf("unpack name: %w", err)
+		}
 	}
 
-	if tokenMetadata.URI, err = caller.Uri(&callOptions, id); err != nil {
-		return nil, fmt.Errorf("get uri: %w", err)
+	if results[1].Success {
+		if err := abi.UnpackIntoInterface(&tokenMetadata.Symbol, "symbol", results[1].ReturnData); err != nil {
+			return nil, fmt.Errorf("unpack symbol: %w", err)
+		}
+	}
+
+	if results[2].Success {
+		if err := abi.UnpackIntoInterface(&tokenMetadata.URI, "uri", results[2].ReturnData); err != nil {
+			return nil, fmt.Errorf("unpack tokenURI: %w", err)
+		}
 	}
 
 	return &tokenMetadata, nil
