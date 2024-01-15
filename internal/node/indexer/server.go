@@ -193,6 +193,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 	if err := instance.initializeMeter(); err != nil {
 		return nil, fmt.Errorf("initialize meter: %w", err)
 	}
+
 	// Load checkpoint for initialize the source.
 	checkpoint, err := instance.databaseClient.LoadCheckpoint(ctx, instance.id, config.Network, instance.worker.Name())
 	if err != nil {
