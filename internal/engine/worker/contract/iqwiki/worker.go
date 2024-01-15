@@ -83,6 +83,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 	// Set feed type to the first action type & total actions.
 	feed.Type = feed.Actions[0].Type
+	feed.Tag = filter.TagSocial
 	feed.TotalActions = uint(len(feed.Actions))
 
 	return feed, nil

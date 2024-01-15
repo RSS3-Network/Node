@@ -72,7 +72,6 @@ func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 		Index:   t.Receipt.TransactionIndex,
 		From:    from.String(),
 		To:      to.String(),
-		Tag:     filter.TagSocial,
 		Type:    filter.TypeUnknown,
 		Fee: &schema.Fee{
 			Amount:  decimal.NewFromBigInt(feeAmount, 0),
