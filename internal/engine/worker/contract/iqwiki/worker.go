@@ -19,7 +19,7 @@ import (
 	"github.com/samber/lo"
 )
 
-// Worker is the worker for OpenSea.
+// Worker is the worker for IQWiki.
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
@@ -45,6 +45,7 @@ func (w *worker) Filter() engine.SourceFilter {
 	}
 }
 
+// Match Ethereum task to IQWiki.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	isEthereumNetwork := task.GetNetwork().Source() == filter.NetworkEthereumSource
 	if !isEthereumNetwork {
@@ -64,6 +65,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return matchEthereumIqWiki(ethereumTask)
 }
 
+// Match Ethereum task to IQWiki.
 func matchEthereumIqWiki(task *source.Task) (bool, error) {
 	return task.Transaction.From == iqwiki.AddressSig && iqwiki.AddressWiki == *task.Transaction.To, nil
 }
@@ -89,6 +91,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	return feed, nil
 }
 
+// Parse actions from Ethereum task.
 func (w *worker) parseActions(ctx context.Context, ethereumTask *source.Task, feed *schema.Feed) {
 	for _, log := range ethereumTask.Receipt.Logs {
 		action, err := w.parseAction(ctx, log, ethereumTask)
@@ -100,6 +103,7 @@ func (w *worker) parseActions(ctx context.Context, ethereumTask *source.Task, fe
 	}
 }
 
+// Parse action from Ethereum log.
 func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTask *source.Task) (*schema.Action, error) {
 	wikiPosted, err := w.iqWikiFilterer.ParsePosted(log.Export())
 	if err != nil {
@@ -160,6 +164,7 @@ func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTas
 	return action, nil
 }
 
+// Get IPFS content from Ethereum.
 func (w *worker) getEthereumIPFSContent(ctx context.Context, ipfsID string) ([]byte, error) {
 	file, err := w.ipfsClient.Fetch(ctx, fmt.Sprintf("/ipfs/%s", ipfsID), ipfs.FetchModeQuick)
 	if err != nil {
@@ -171,7 +176,7 @@ func (w *worker) getEthereumIPFSContent(ctx context.Context, ipfsID string) ([]b
 	return io.ReadAll(file)
 }
 
-// NewWorker creates a new OpenSea worker.
+// NewWorker creates a new IQWiki worker.
 func NewWorker() (engine.Worker, error) {
 	instance := worker{
 		iqWikiFilterer: lo.Must(iqwiki.NewIqWikiFilterer(ethereum.AddressGenesis, nil)),
