@@ -12,6 +12,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
+	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/ens"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
@@ -1709,6 +1710,29 @@ func TestWorker_Ethereum(t *testing.T) {
 
 	err = databaseClient.Migrate(context.Background())
 	require.NoError(t, err)
+
+	// Pre-initialize some name hash
+	requiredNames := []string{
+		// Skip register events user - they should be saved automatically into dataset
+		"33222222.eth",         // ENS NameRenewed V1
+		"scraltach.eth",        // ENS NameRenewed V2
+		"cryptopaycheck.eth",   // ENS Public Resolver TextChanged
+		"pepetrillionaire.eth", // ENS Public Resolver TextChanged With Value
+		"0-770.eth",            // ENS Name Wrapped
+		"notantoine.eth",       // ENS Name Unwrapped
+		"aintgottadollar.eth",  // ENS FusesSet
+		"legal🦅.eth",           // ENS ContentHash Changed
+		"testinginprod.eth",    // ENS Name Changed
+		"rifler.eth",           // ENS Address Changed
+		"alexkubica.eth",       // ENS Public Key Changed
+	}
+	for _, fullName := range requiredNames {
+		err = databaseClient.SaveDatasetENSNamehash(context.Background(), &model.ENSNamehash{
+			Name: fullName,
+			Hash: worker.Namehash(fullName),
+		})
+		require.NoError(t, err)
+	}
 
 	for _, testcase := range testcases {
 		testcase := testcase
