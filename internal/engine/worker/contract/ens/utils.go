@@ -11,7 +11,7 @@ import (
 )
 
 // getEnsName get ens name by name hash (node)
-func (w *worker) getEnsName(ctx context.Context, blockNumber *big.Int, namehash common.Hash) (string, error) {
+func (w *worker) getEnsName(ctx context.Context, _ *big.Int, namehash common.Hash) (string, error) {
 	// Load name from dataset
 	namehashRecord, err := w.databaseClient.LoadDatasetENSNamehash(ctx, namehash)
 	if err != nil {
