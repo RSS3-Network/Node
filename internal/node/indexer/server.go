@@ -19,7 +19,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -30,7 +29,6 @@ type Server struct {
 	worker            engine.Worker
 	databaseClient    database.Client
 	streamClient      stream.Client
-	tracer            trace.Tracer
 	meterTasksCounter metric.Int64Counter
 }
 
@@ -69,7 +67,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		State:   s.source.State(),
 	}
 
-	ctx, span := s.tracer.Start(ctx, "handleTasks")
+	ctx, span := otel.GetTracerProvider().Tracer(constant.Name).Start(ctx, "handleTasks")
 	defer span.End()
 
 	span.SetAttributes(
@@ -181,7 +179,6 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 		id:             config.ID(),
 		config:         config,
 		databaseClient: databaseClient,
-		tracer:         otel.Tracer(""),
 		streamClient:   streamClient,
 	}
 
