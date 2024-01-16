@@ -127,11 +127,28 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		return feed != nil
 	})
 
+	// Get the current block height/block number from the checkpoint state.
+	type CheckpointState struct {
+		BlockHeight uint64 `json:"block_height"`
+		BlockNumber uint64 `json:"block_number"`
+	}
+
+	var state CheckpointState
+	if err := json.Unmarshal(checkpoint.State, &state); err != nil {
+		return fmt.Errorf("unmarshal checkpoint state: %w", err)
+	}
+
+	currentBlockHeight := state.BlockNumber
+
+	if currentBlockHeight == 0 {
+		currentBlockHeight = state.BlockHeight
+	}
+
 	meterTasksCounterAttributes := metric.WithAttributes(
 		attribute.String("service", constant.Name),
 		attribute.String("worker", s.worker.Name()),
 		attribute.Int("records", len(tasks)),
-		attribute.String("state", string(checkpoint.State)),
+		attribute.Int("currentBlock", int(currentBlockHeight)),
 	)
 
 	s.meterTasksCounter.Add(ctx, int64(len(tasks)), meterTasksCounterAttributes)
