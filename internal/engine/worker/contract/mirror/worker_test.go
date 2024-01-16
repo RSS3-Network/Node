@@ -56,6 +56,9 @@ func TestWorker_Arweave(t *testing.T) {
 						},
 					},
 				},
+				config: &config.Module{
+					IPFSGateways: []string{"https://ipfs.rss3.page/"},
+				},
 			},
 			want: &schema.Feed{
 				ID:       "lW0AMDN2RgOeqULk-u6Tv0wfZWpx9MfkrmqQQU-Mvuo",
@@ -113,6 +116,9 @@ func TestWorker_Arweave(t *testing.T) {
 							{Name: "T3JpZ2luYWwtQ29udGVudC1EaWdlc3Q", Value: ""},
 						},
 					},
+				},
+				config: &config.Module{
+					IPFSGateways: []string{"https://ipfs.rss3.page/"},
 				},
 			},
 			want: &schema.Feed{

@@ -1,6 +1,7 @@
 package decentralized
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/creasty/defaults"
@@ -12,9 +13,13 @@ import (
 )
 
 func (h *Hub) GetActivity(c echo.Context) error {
-	request := ActivityRequest{}
+	var request ActivityRequest
 
 	if err := c.Bind(&request); err != nil {
+		return response.BadRequestError(c, err)
+	}
+
+	if err := defaults.Set(&request); err != nil {
 		return response.BadRequestError(c, err)
 	}
 
@@ -52,13 +57,15 @@ func (h *Hub) GetAccountActivities(c echo.Context) (err error) {
 		return response.BadRequestError(c, err)
 	}
 
+	if err = defaults.Set(&request); err != nil {
+		return response.BadRequestError(c, err)
+	}
+
 	if err = c.Validate(&request); err != nil {
 		return response.ValidateFailedError(c, err)
 	}
 
-	if err = defaults.Set(&request); err != nil {
-		return response.InternalError(c, err)
-	}
+	go h.countAccount(context.TODO(), common.HexToAddress(request.Account).String())
 
 	cursor, err := h.getCursor(c.Request().Context(), request.Cursor)
 	if err != nil {

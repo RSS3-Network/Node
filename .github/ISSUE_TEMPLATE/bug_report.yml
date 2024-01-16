@@ -1,0 +1,40 @@
+name: 🐛 Bug Report
+description: Submit discovered bugs
+labels: ['bug']
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please ensure you provide all the information required by this template, otherwise the issue will be closed immediately.
+
+  - type: textarea
+    id: what-expected
+    attributes:
+      label: What is expected?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-happened
+    attributes:
+      label: What is actually happening?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Additional info
+      description: logs, errors, etc.
+      render: shell
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: This is not a duplicated issue
+      options:
+        - label: I have searched [existing issues](https://github.com/NaturalSelectionLabs/RSS3-Node/issues) to ensure this bug has not already been reported
+          required: true

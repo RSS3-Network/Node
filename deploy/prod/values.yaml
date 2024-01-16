@@ -1,5 +1,5 @@
 hub:
-  replicaCount: 2
+  replicaCount: 3
 database:
   uri: <path:kv/data/network/rss3-node#DATABASE_URI>
 indexers:
@@ -50,12 +50,6 @@ indexers:
   - network: arweave
     endpoint: https://arweave.net/
     worker: paragraph
-    parameters:
-      block_height_start: 1275799
-      rpc_thread_blocks: 1
-  - network: arweave
-    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_POLYGON>
-    worker: momoka
     parameters:
       block_height_start: 1275799
       rpc_thread_blocks: 1
