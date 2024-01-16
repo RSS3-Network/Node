@@ -824,7 +824,7 @@ func (w *worker) getDataFromHTTP(ctx context.Context, contentURL string) (io.Rea
 		contentURL = contentURL[19:]
 	}
 
-	// http request
+	// ipfs request
 	return w.arweaveClient.GetTransactionData(ctx, contentURL)
 }
 

@@ -7,6 +7,7 @@ import (
 	"io"
 	"math/big"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -18,6 +19,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave/contract/momoka"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/lens"
+	"github.com/naturalselectionlabs/rss3-node/provider/http"
 	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
@@ -29,11 +31,16 @@ import (
 // make sure worker implements engine.Worker
 var _ engine.Worker = (*worker)(nil)
 
+const (
+	DefaultTimeout = 5 * time.Second
+)
+
 type worker struct {
 	config           *config.Module
 	ethereumClient   ethereum.Client
 	arweaveClient    arweave.Client
 	ipfsClient       ipfs.HTTPClient
+	httpClient       http.Client
 	lensHubV1        *lens.V1LensHubCaller
 	lensHubV2        *lens.V2LensHubCaller
 	lensHandleV2     *lens.V2LensHandleCaller
@@ -54,7 +61,13 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	switch task.GetNetwork() {
 	case filter.NetworkArweave:
 		task := task.(*source.Task)
-		return task.Transaction.Owner != "" && lo.Contains(momoka.AddressesLens, task.Transaction.Owner), nil
+
+		owner, err := arweave.PublicKeyToAddress(task.Transaction.Owner)
+		if err != nil {
+			return false, fmt.Errorf("parse transaction owner: %w", err)
+		}
+
+		return owner != "" && lo.Contains(momoka.AddressesLens, owner), nil
 	default:
 		return false, nil
 	}
@@ -194,7 +207,7 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 
 		body, err := w.getDataFromHTTP(ctx, location)
 		if err != nil {
-			return nil, fmt.Errorf("get publication from http: %w", err)
+			return nil, fmt.Errorf("get publication from ipfs: %w", err)
 		}
 
 		defer lo.Try(body.Close)
@@ -269,7 +282,7 @@ func (w *worker) buildArweaveMomokaPostMetadata(ctx context.Context, profileID, 
 
 		body, err := w.getDataFromHTTP(ctx, contentURI)
 		if err != nil {
-			return nil, fmt.Errorf("get publication from http: %w", err)
+			return nil, fmt.Errorf("get publication from ipfs: %w", err)
 		}
 		defer lo.Try(body.Close)
 
@@ -366,10 +379,12 @@ func (w *worker) getDataFromHTTP(ctx context.Context, contentURL string) (io.Rea
 	} else if strings.HasPrefix(contentURL, "https://arweave.net/") {
 		//	 remove https://arweave.net/
 		contentURL = contentURL[19:]
+
+		return w.arweaveClient.GetTransactionData(ctx, contentURL)
 	}
 
-	// http request
-	return w.arweaveClient.GetTransactionData(ctx, contentURL)
+	// ipfs request
+	return w.httpClient.Fetch(ctx, contentURL)
 }
 
 func (w *worker) getLensHandle(_ context.Context, blockNumber *big.Int, profileID *big.Int) (string, error) {
@@ -434,9 +449,15 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
 		return nil, fmt.Errorf("initialize ethereum client: %w", err)
 	}
+
 	// Initialize ipfs client.
 	if instance.ipfsClient, err = ipfs.NewHTTPClient(); err != nil {
 		return nil, fmt.Errorf("new ipfs client: %w", err)
+	}
+
+	// Initialize http client.
+	if instance.httpClient, err = http.NewHTTPClient(); err != nil {
+		return nil, fmt.Errorf("new http client: %w", err)
 	}
 
 	lensHubV1, err := lens.NewV1LensHubCaller(lens.AddressLensProtocol, instance.ethereumClient)
