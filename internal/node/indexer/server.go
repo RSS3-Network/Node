@@ -148,7 +148,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		attribute.String("service", constant.Name),
 		attribute.String("worker", s.worker.Name()),
 		attribute.Int("records", len(tasks)),
-		attribute.Int("currentBlock", int(currentBlockHeight)),
+		attribute.Int("current_block", int(currentBlockHeight)),
 	)
 
 	s.meterTasksCounter.Add(ctx, int64(len(tasks)), meterTasksCounterAttributes)
