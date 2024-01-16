@@ -1,6 +1,7 @@
 package rss
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -16,6 +17,8 @@ type Response struct {
 func (h *Hub) GetRSSHubHandler(c echo.Context) error {
 	path := c.Param("*")
 	rawQuery := c.Request().URL.RawQuery
+
+	go h.countRequest(context.TODO(), path)
 
 	data, err := h.getRSSHubData(c.Request().Context(), path, rawQuery)
 	if err != nil {
