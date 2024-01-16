@@ -145,7 +145,7 @@ func setOpenTelemetry(config *config.File) error {
 		}
 
 		go func() {
-			if err := meterServer.Run(); err != nil {
+			if err := meterServer.Run(*observabilityConfig.Metrics); err != nil {
 				zap.L().Error("failed to run telemetry meter server", zap.Error(err))
 			}
 		}()
