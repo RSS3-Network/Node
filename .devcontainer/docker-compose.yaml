@@ -52,10 +52,19 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
       KAFKA_LOG_DIRS: "/tmp/kraft-combined-logs"
       CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
-
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:1.49.0
+    networks:
+      - default
+    ports:
+      - "4317:4317" # OpenTelemetry Protocol over gRPC
+      - "4318:4318" # OpenTelemetry Protocol over HTTP
+      - "5778:5778" # Configurations
+      - "16686:16686" # Frontend
 volumes:
   cockroachdb:
   kafka:
-
+  jaeger:
 networks:
   default:
