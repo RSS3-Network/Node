@@ -29,7 +29,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.Paragraph.String()
+	return filter.Paragraph.String()
 }
 
 // Filter returns a filter for source.
