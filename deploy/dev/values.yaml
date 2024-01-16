@@ -23,12 +23,7 @@ indexers:
       block_number_start: 17571053
   - network: polygon
     worker: iqwiki
-    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
-    parameters:
-      block_number_start: 17571053
-  - network: ethereum
-    worker: iqwiki
-    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_POLYGON>
     parameters:
       block_number_start: 17571053
   - network: ethereum

@@ -47,27 +47,12 @@ func (w *worker) Filter() engine.SourceFilter {
 
 // Match Ethereum task to IQWiki.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	isEthereumNetwork := task.GetNetwork().Source() == filter.NetworkEthereumSource
-	if !isEthereumNetwork {
-		return false, nil
-	}
-
-	ethereumTask, ok := task.(*source.Task)
-	if !ok {
-		return false, fmt.Errorf("invalid task type: %T", task)
-	}
-
-	isEmptyTo := ethereumTask.Transaction.To == nil
-	if isEmptyTo {
-		return false, nil
-	}
-
-	return matchEthereumIqWiki(ethereumTask)
+	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
 }
 
 // Match Ethereum task to IQWiki.
-func matchEthereumIqWiki(task *source.Task) (bool, error) {
-	return task.Transaction.From == iqwiki.AddressSig && iqwiki.AddressWiki == *task.Transaction.To, nil
+func matchEthereumIqWiki(task *source.Task) bool {
+	return task.Transaction.From == iqwiki.AddressSig && iqwiki.AddressWiki == *task.Transaction.To
 }
 
 // Transform Ethereum task to feed.
@@ -77,23 +62,27 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	if ethereumTask.Transaction.To == nil {
+		return nil, fmt.Errorf("invalid transaction to: %s", ethereumTask.Transaction.Hash)
+	}
+
+	if !matchEthereumIqWiki(ethereumTask) {
+		return nil, fmt.Errorf("invalid iqwiki transaction: %s", ethereumTask.Transaction.Hash)
+	}
+
 	// Build default opensea feed from task.
-	feed, _ := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformIQWiki))
+	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformIQWiki))
+	if err != nil {
+		return nil, fmt.Errorf("build feed: %w", err)
+	}
 
 	// Parse actions from task.
-	w.parseActions(ctx, ethereumTask, feed)
-
-	// Set feed type to the first action type & total actions.
-	feed.Type = feed.Actions[0].Type
-	feed.Tag = filter.TagSocial
-	feed.TotalActions = uint(len(feed.Actions))
-
-	return feed, nil
-}
-
-// Parse actions from Ethereum task.
-func (w *worker) parseActions(ctx context.Context, ethereumTask *source.Task, feed *schema.Feed) {
 	for _, log := range ethereumTask.Receipt.Logs {
+		// Ignore anonymous logs.
+		if len(log.Topics) == 0 {
+			continue
+		}
+
 		action, err := w.parseAction(ctx, log, ethereumTask)
 		if err != nil {
 			continue
@@ -101,6 +90,13 @@ func (w *worker) parseActions(ctx context.Context, ethereumTask *source.Task, fe
 
 		feed.Actions = append(feed.Actions, action)
 	}
+
+	// Set feed type to the first action type & total actions.
+	feed.Type = feed.Actions[0].Type
+	feed.Tag = filter.TagSocial
+	feed.TotalActions = uint(len(feed.Actions))
+
+	return feed, nil
 }
 
 // Parse action from Ethereum log.
