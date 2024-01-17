@@ -22,7 +22,6 @@ type Client interface {
 	LoadCheckpoint(ctx context.Context, id string, network filter.Network, worker string) (*engine.Checkpoint, error)
 	LoadCheckpoints(ctx context.Context, id string, network filter.Network, worker string) ([]*engine.Checkpoint, error)
 	SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error
-	FindCheckpointByWorker(ctx context.Context, network filter.Network, worker string) (*engine.Checkpoint, error)
 
 	SaveFeeds(ctx context.Context, feeds []*schema.Feed) error
 	FindFeed(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error)

@@ -180,7 +180,7 @@ func (s *Server) metricHandler(ctx context.Context, observer metric.Int64Observe
 			}
 		}()
 
-		latestCheckpoint, err := s.databaseClient.FindCheckpointByWorker(ctx, s.source.Network(), s.worker.Name())
+		latestCheckpoint, err := s.databaseClient.LoadCheckpoint(ctx, s.id, s.source.Network(), s.worker.Name())
 		if err != nil {
 			zap.L().Error("find latest checkpoint", zap.Error(err))
 
