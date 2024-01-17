@@ -35,7 +35,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.Fallback.String()
+	return filter.Fallback.String()
 }
 
 // Filter returns a source filter.

@@ -31,7 +31,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.RSS3.String()
+	return filter.RSS3.String()
 }
 
 func (w *worker) Filter() engine.SourceFilter {

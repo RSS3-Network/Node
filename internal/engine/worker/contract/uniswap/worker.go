@@ -38,7 +38,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.Uniswap.String()
+	return filter.Uniswap.String()
 }
 
 func (w *worker) Filter() engine.SourceFilter {
