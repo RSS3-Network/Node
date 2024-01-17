@@ -7,7 +7,6 @@ import (
 	"io"
 	"math/big"
 	"strings"
-	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -30,10 +29,6 @@ import (
 
 // make sure worker implements engine.Worker
 var _ engine.Worker = (*worker)(nil)
-
-const (
-	DefaultTimeout = 5 * time.Second
-)
 
 type worker struct {
 	config           *config.Module
@@ -379,12 +374,13 @@ func (w *worker) getDataFromHTTP(ctx context.Context, contentURL string) (io.Rea
 	} else if strings.HasPrefix(contentURL, "https://arweave.net/") {
 		//	 remove https://arweave.net/
 		contentURL = contentURL[19:]
-
-		return w.arweaveClient.GetTransactionData(ctx, contentURL)
 	}
 
-	// ipfs request
-	return w.httpClient.Fetch(ctx, contentURL)
+	if strings.HasPrefix(contentURL, "https://") {
+		return w.httpClient.Fetch(ctx, contentURL)
+	}
+
+	return w.arweaveClient.GetTransactionData(ctx, contentURL)
 }
 
 func (w *worker) getLensHandle(_ context.Context, blockNumber *big.Int, profileID *big.Int) (string, error) {
