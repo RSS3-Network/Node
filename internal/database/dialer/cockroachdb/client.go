@@ -122,6 +122,33 @@ func (c *client) LoadCheckpoint(ctx context.Context, id string, network filter.N
 	return value.Export()
 }
 
+func (c *client) FindCheckpointByWorker(ctx context.Context, network filter.Network, worker string) (*engine.Checkpoint, error) {
+	var value table.Checkpoint
+
+	zap.L().Info("find checkpoint", zap.String("network", network.String()), zap.String("worker", worker))
+
+	if err := c.database.WithContext(ctx).
+		Where("network = ? AND worker = ?", network, worker).
+		Order("updated_at DESC").
+		First(&value).
+		Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+
+		// Initialize a default checkpoint.
+		value = table.Checkpoint{
+			Network:   network,
+			Worker:    worker,
+			State:     json.RawMessage("{}"),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+	}
+
+	return value.Export()
+}
+
 func (c *client) LoadCheckpoints(ctx context.Context, id string, network filter.Network, worker string) ([]*engine.Checkpoint, error) {
 	databaseStatement := c.database.WithContext(ctx)
 

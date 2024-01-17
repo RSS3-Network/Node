@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"runtime"
@@ -30,6 +31,7 @@ type Server struct {
 	databaseClient    database.Client
 	streamClient      stream.Client
 	meterTasksCounter metric.Int64Counter
+	meterCurrentBlock metric.Int64ObservableGauge
 }
 
 func (s *Server) Run(ctx context.Context) error {
@@ -127,28 +129,10 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		return feed != nil
 	})
 
-	// Get the current block height/block number from the checkpoint state.
-	type CheckpointState struct {
-		BlockHeight uint64 `json:"block_height"`
-		BlockNumber uint64 `json:"block_number"`
-	}
-
-	var state CheckpointState
-	if err := json.Unmarshal(checkpoint.State, &state); err != nil {
-		return fmt.Errorf("unmarshal checkpoint state: %w", err)
-	}
-
-	currentBlockHeight := state.BlockNumber
-
-	if currentBlockHeight == 0 {
-		currentBlockHeight = state.BlockHeight
-	}
-
 	meterTasksCounterAttributes := metric.WithAttributes(
 		attribute.String("service", constant.Name),
 		attribute.String("worker", s.worker.Name()),
 		attribute.Int("records", len(tasks)),
-		attribute.Int("current_block", int(currentBlockHeight)),
 	)
 
 	s.meterTasksCounter.Add(ctx, int64(len(tasks)), meterTasksCounterAttributes)
@@ -181,11 +165,66 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 	return nil
 }
 
+func (s *Server) metricHandler(ctx context.Context, observer metric.Int64Observer) error {
+	go func() {
+		tx, err := s.databaseClient.Begin(ctx, &sql.TxOptions{ReadOnly: true})
+		if err != nil {
+			zap.L().Error("begin transaction", zap.Error(err))
+
+			return
+		}
+
+		defer func() {
+			if err := tx.Rollback(); err != nil {
+				zap.L().Error("rollback transaction", zap.Error(err))
+			}
+		}()
+
+		latestCheckpoint, err := s.databaseClient.FindCheckpointByWorker(ctx, s.source.Network(), s.worker.Name())
+		if err != nil {
+			zap.L().Error("find latest checkpoint", zap.Error(err))
+
+			return
+		}
+
+		if latestCheckpoint != nil {
+			// Get the current block height/block number from the checkpoint state.
+			type CheckpointState struct {
+				BlockHeight uint64 `json:"block_height"`
+				BlockNumber uint64 `json:"block_number"`
+			}
+
+			var state CheckpointState
+			if err := json.Unmarshal(latestCheckpoint.State, &state); err != nil {
+				zap.L().Error("unmarshal checkpoint state", zap.Error(err))
+
+				return
+			}
+
+			currentBlockHeight := state.BlockNumber
+
+			if currentBlockHeight == 0 {
+				currentBlockHeight = state.BlockHeight
+			}
+
+			observer.Observe(int64(currentBlockHeight), metric.WithAttributes(
+				attribute.String("service", constant.Name),
+				attribute.String("worker", s.worker.Name())))
+		}
+	}()
+
+	return nil
+}
+
 func (s *Server) initializeMeter() (err error) {
 	meter := otel.GetMeterProvider().Meter(constant.Name)
 
 	if s.meterTasksCounter, err = meter.Int64Counter("rss3_node_tasks"); err != nil {
 		return fmt.Errorf("create meter of tasks counter: %w", err)
+	}
+
+	if s.meterCurrentBlock, err = meter.Int64ObservableGauge("rss3_node_current_block", metric.WithInt64Callback(s.metricHandler)); err != nil {
+		return fmt.Errorf("failed to observe meter CurrentBlock: %w", err)
 	}
 
 	return nil
