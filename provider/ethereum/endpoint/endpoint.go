@@ -29,7 +29,7 @@ var endpointsMap = map[filter.Network][]string{
 		"https://base.blockpi.network/v1/rpc/public",
 		"https://base.llamarpc.com",
 	},
-	filter.NetworkArbitrumOne: {
+	filter.NetworkArbitrum: {
 		"https://arb1.arbitrum.io/rpc",
 		"https://rpc.ankr.com/arbitrum",
 		"https://arbitrum.blockpi.network/v1/rpc/public",

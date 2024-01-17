@@ -81,7 +81,7 @@ func (w *worker) matchLiquidityV3Pool(task *source.Task) bool {
 		}
 	case
 		filter.NetworkOptimism,
-		filter.NetworkArbitrumOne,
+		filter.NetworkArbitrum,
 		filter.NetworkPolygon,
 		filter.NetworkFantom,
 		filter.NetworkAvalanche:

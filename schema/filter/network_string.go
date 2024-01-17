@@ -38,12 +38,12 @@ func _NetworkNoOp() {
 	_ = x[NetworkArweave-(5)]
 	_ = x[NetworkFarcaster-(6)]
 	_ = x[NetworkBase-(7)]
-	_ = x[NetworkArbitrumOne-(8)]
+	_ = x[NetworkArbitrum-(8)]
 	_ = x[NetworkFantom-(9)]
 	_ = x[NetworkAvalanche-(10)]
 }
 
-var _NetworkValues = []Network{NetworkUnknown, NetworkEthereum, NetworkOptimism, NetworkPolygon, NetworkRSS, NetworkArweave, NetworkFarcaster, NetworkBase, NetworkArbitrumOne, NetworkFantom, NetworkAvalanche}
+var _NetworkValues = []Network{NetworkUnknown, NetworkEthereum, NetworkOptimism, NetworkPolygon, NetworkRSS, NetworkArweave, NetworkFarcaster, NetworkBase, NetworkArbitrum, NetworkFantom, NetworkAvalanche}
 
 var _NetworkNameToValueMap = map[string]Network{
 	_NetworkName[0:7]:        NetworkUnknown,
@@ -62,8 +62,8 @@ var _NetworkNameToValueMap = map[string]Network{
 	_NetworkLowerName[40:49]: NetworkFarcaster,
 	_NetworkName[49:53]:      NetworkBase,
 	_NetworkLowerName[49:53]: NetworkBase,
-	_NetworkName[53:61]:      NetworkArbitrumOne,
-	_NetworkLowerName[53:61]: NetworkArbitrumOne,
+	_NetworkName[53:61]:      NetworkArbitrum,
+	_NetworkLowerName[53:61]: NetworkArbitrum,
 	_NetworkName[61:67]:      NetworkFantom,
 	_NetworkLowerName[61:67]: NetworkFantom,
 	_NetworkName[67:71]:      NetworkAvalanche,
