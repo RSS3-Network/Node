@@ -8,7 +8,6 @@ import (
 	"github.com/creasty/defaults"
 	"github.com/go-playground/validator/v10"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/stream"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
@@ -40,7 +39,7 @@ type Module struct {
 	Network      filter.Network `yaml:"network" validate:"required"`
 	Endpoint     string         `yaml:"endpoint" validate:"required"`
 	IPFSGateways []string       `yaml:"ipfs_gateways"`
-	Worker       engine.Name    `yaml:"worker"`
+	Worker       filter.Name    `yaml:"worker"`
 	Parameters   *Options       `yaml:"parameters"`
 }
 

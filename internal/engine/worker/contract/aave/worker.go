@@ -37,7 +37,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.Aave.String()
+	return filter.Aave.String()
 }
 
 // Filter contract address and event hash.

@@ -39,7 +39,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.OpenSea.String()
+	return filter.OpenSea.String()
 }
 
 // Filter opensea contract address and event hash.
