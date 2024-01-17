@@ -2,6 +2,7 @@ package mirror_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -196,9 +197,9 @@ func TestWorker_Arweave(t *testing.T) {
 			feed, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			require.Equal(t, testcase.want, feed)
+			t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
 
-			t.Log(feed)
+			require.Equal(t, testcase.want, feed)
 		})
 	}
 }
