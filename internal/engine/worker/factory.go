@@ -17,31 +17,32 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/uniswap"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/fallback"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/farcaster"
+	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 )
 
 func New(config *config.Module, databaseClient database.Client) (engine.Worker, error) {
 	switch config.Worker {
-	case engine.Fallback:
+	case filter.Fallback:
 		return fallback.NewWorker(config)
-	case engine.Mirror:
+	case filter.Mirror:
 		return mirror.NewWorker(config, databaseClient)
-	case engine.Farcaster:
+	case filter.Farcaster:
 		return farcaster.NewWorker()
-	case engine.RSS3:
+	case filter.RSS3:
 		return rss3.NewWorker(config)
-	case engine.Paragraph:
+	case filter.Paragraph:
 		return paragraph.NewWorker(config)
-	case engine.OpenSea:
+	case filter.OpenSea:
 		return opensea.NewWorker(config)
-	case engine.Uniswap:
+	case filter.Uniswap:
 		return uniswap.NewWorker(config)
-	case engine.Optimism:
+	case filter.Optimism:
 		return optimism.NewWorker(config)
-	case engine.Aavegotchi:
+	case filter.Aavegotchi:
 		return aavegotchi.NewWorker(config)
-	case engine.Lens:
+	case filter.Lens:
 		return lens.NewWorker(config)
-	case engine.Momoka:
+	case filter.Momoka:
 		return momoka.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)

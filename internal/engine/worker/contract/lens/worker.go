@@ -43,7 +43,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.Lens.String()
+	return filter.Lens.String()
 }
 
 // Filter lens contract address and event hash.

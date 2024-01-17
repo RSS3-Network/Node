@@ -43,7 +43,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.Momoka.String()
+	return filter.Momoka.String()
 }
 
 // Filter returns a filter for source.

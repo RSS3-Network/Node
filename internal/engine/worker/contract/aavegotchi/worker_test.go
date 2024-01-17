@@ -9,7 +9,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/naturalselectionlabs/rss3-node/config"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/aavegotchi"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
@@ -787,7 +786,7 @@ func TestWorker_Ethereum(t *testing.T) {
 	config := &config.Module{
 		Network:  filter.NetworkPolygon,
 		Endpoint: endpoint.MustGet(filter.NetworkPolygon),
-		Worker:   engine.Aavegotchi,
+		Worker:   filter.Aavegotchi,
 	}
 
 	for _, testcase := range testcases {
