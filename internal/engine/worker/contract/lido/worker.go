@@ -35,7 +35,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.Lido.String()
+	return filter.Lido.String()
 }
 
 // Filter lido contract address and event hash.

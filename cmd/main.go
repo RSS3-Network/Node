@@ -11,17 +11,18 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/constant"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/node"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/hub"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/indexer"
 	"github.com/naturalselectionlabs/rss3-node/internal/stream"
 	"github.com/naturalselectionlabs/rss3-node/internal/stream/provider"
+	"github.com/naturalselectionlabs/rss3-node/provider/telemetry"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/tdewolff/minify/v2/minify"
+	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 )
 
@@ -38,6 +39,10 @@ var command = cobra.Command{
 		config, err := config.Setup(lo.Must(flags.GetString(flag.KeyConfig)))
 		if err != nil {
 			return fmt.Errorf("setup config file: %w", err)
+		}
+
+		if err := setOpenTelemetry(config); err != nil {
+			return fmt.Errorf("set open telemetry: %w", err)
 		}
 
 		// Dial and migrate database.
@@ -91,7 +96,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 		return fmt.Errorf("network string: %w", err)
 	}
 
-	worker, err := engine.NameString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
+	worker, err := filter.NameString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
 	if err != nil {
 		return fmt.Errorf("worker string: %w", err)
 	}
@@ -112,6 +117,42 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 	return fmt.Errorf("undefined indexer %s.%s.%s", network, worker, parameters)
 }
 
+func setOpenTelemetry(config *config.File) error {
+	// Set OpenTelemetry global tracer and meter provider.
+	observabilityConfig := config.Observability.OpenTelemetry
+
+	if observabilityConfig.Traces.Enable {
+		tracerProvider, err := telemetry.OpenTelemetryTracer(observabilityConfig)
+		if err != nil {
+			return fmt.Errorf("open telemetry tracer: %w", err)
+		}
+
+		otel.SetTracerProvider(tracerProvider)
+	}
+
+	if observabilityConfig.Metrics.Enable {
+		meterProvider, err := telemetry.OpenTelemetryMeter()
+		if err != nil {
+			return fmt.Errorf("open telemetry meter: %w", err)
+		}
+
+		otel.SetMeterProvider(meterProvider)
+
+		meterServer, err := telemetry.OpenTelemetryMeterServer()
+		if err != nil {
+			return fmt.Errorf("open telemetry meter server: %w", err)
+		}
+
+		go func() {
+			if err := meterServer.Run(*observabilityConfig.Metrics); err != nil {
+				zap.L().Error("failed to run telemetry meter server", zap.Error(err))
+			}
+		}()
+	}
+
+	return nil
+}
+
 func initializeLogger() {
 	if os.Getenv(config.Environment) == config.EnvironmentDevelopment {
 		zap.ReplaceGlobals(zap.Must(zap.NewDevelopment()))
@@ -126,7 +167,7 @@ func init() {
 	command.PersistentFlags().String(flag.KeyConfig, "./deploy/config.development.yaml", "config file path")
 	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")
 	command.PersistentFlags().String(flag.KeyIndexerNetwork, filter.NetworkEthereum.String(), "indexer network")
-	command.PersistentFlags().String(flag.KeyIndexerWorker, engine.Fallback.String(), "indexer worker")
+	command.PersistentFlags().String(flag.KeyIndexerWorker, filter.Fallback.String(), "indexer worker")
 	command.PersistentFlags().String(flag.KeyIndexerParameters, "{}", "indexer parameters")
 }
 
