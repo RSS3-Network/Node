@@ -2,7 +2,6 @@ package momoka_test
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/naturalselectionlabs/rss3-node/config"
@@ -505,7 +504,7 @@ func TestWorker_Arweave(t *testing.T) {
 			feed, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
 
 			require.Equal(t, testcase.want, feed)
 		})
