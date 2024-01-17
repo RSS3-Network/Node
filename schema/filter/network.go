@@ -6,13 +6,17 @@ import "github.com/labstack/echo/v4"
 type Network uint64
 
 const (
-	NetworkUnknown   Network = iota // unknown
-	NetworkEthereum                 // ethereum
-	NetworkOptimism                 // optimism
-	NetworkPolygon                  // polygon
-	NetworkRSS                      // rss
-	NetworkArweave                  // arweave
-	NetworkFarcaster                // farcaster
+	NetworkUnknown     Network = iota // unknown
+	NetworkEthereum                   // ethereum
+	NetworkOptimism                   // optimism
+	NetworkPolygon                    // polygon
+	NetworkRSS                        // rss
+	NetworkArweave                    // arweave
+	NetworkFarcaster                  // farcaster
+	NetworkBase                       // base
+	NetworkArbitrumOne                // arbitrum
+	NetworkFantom                     // fantom
+	NetworkAvalanche                  // avax
 )
 
 var _ echo.BindUnmarshaler = (*Network)(nil)
@@ -31,9 +35,13 @@ func (n *Network) UnmarshalParam(param string) error {
 type NetworkSource string
 
 const (
-	NetworkEthereumSource  NetworkSource = "ethereum"
-	NetworkArweaveSource   NetworkSource = "arweave"
-	NetworkFarcasterSource NetworkSource = "farcaster"
+	NetworkEthereumSource    NetworkSource = "ethereum"
+	NetworkArweaveSource     NetworkSource = "arweave"
+	NetworkFarcasterSource   NetworkSource = "farcaster"
+	NetworkBaseSource        NetworkSource = "base"
+	NetworkArbitrumOneSource NetworkSource = "arbitrum"
+	NetworkFantomSource      NetworkSource = "fantom"
+	NetworkAvalancheSource   NetworkSource = "avax"
 )
 
 func (n Network) Source() NetworkSource {
@@ -44,6 +52,14 @@ func (n Network) Source() NetworkSource {
 		return NetworkArweaveSource
 	case NetworkFarcaster:
 		return NetworkFarcasterSource
+	case NetworkBase:
+		return NetworkBaseSource
+	case NetworkArbitrumOne:
+		return NetworkArbitrumOneSource
+	case NetworkFantom:
+		return NetworkFantomSource
+	case NetworkAvalanche:
+		return NetworkAvalancheSource
 	default:
 		return ""
 	}
@@ -53,9 +69,13 @@ func (n Network) Source() NetworkSource {
 type EthereumChainID uint64
 
 const (
-	EthereumChainIDMainnet  EthereumChainID = 1 // ethereum
-	EthereumChainIDOptimism EthereumChainID = 10 // optimism
-	EthereumChainIDPolygon EthereumChainID = 137 // polygon
+	EthereumChainIDMainnet     EthereumChainID = 1     // ethereum
+	EthereumChainIDOptimism    EthereumChainID = 10    // optimism
+	EthereumChainIDPolygon     EthereumChainID = 137   // polygon
+	EthereumChainIDBase        EthereumChainID = 8453  // base
+	EthereumChainIDArbitrumOne EthereumChainID = 42161 // arbitrum
+	EthereumChainIDFantom      EthereumChainID = 250   // fantom
+	EthereumChainIDAvalanche   EthereumChainID = 43114 // avalanche c-chain
 )
 
 func IsOptimismSuperchain(chainID uint64) bool {

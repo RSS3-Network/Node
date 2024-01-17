@@ -53,6 +53,41 @@ indexers:
     parameters:
       block_height_start: 1275799
       rpc_thread_blocks: 1
+  - network: ethereum
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
+    worker: aave
+    parameters:
+      block_number_start: 9241022
+  - network: polygon
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_POLYGON>
+    worker: aave
+    parameters:
+      block_number_start: 12687245
+  - network: avax
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_AVALANCHE>
+    worker: aave
+    parameters:
+      block_number_start: 4607005
+  - network: base
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_BASE>
+    worker: aave
+    parameters:
+      block_number_start: 2357134
+  - network: optimism
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_OPTIMISM>
+    worker: aave
+    parameters:
+      block_number_start: 4365693
+  - network: arbitrum
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ARBITRUM>
+    worker: aave
+    parameters:
+      block_number_start: 7742429
+  - network: fantom
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_FANTOM>
+    worker: aave
+    parameters:
+      block_number_start: 33142113
 additionalRSS:
   - network: rss
     endpoint: https://rsshub.app/
