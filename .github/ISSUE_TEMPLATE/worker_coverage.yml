@@ -19,12 +19,12 @@ body:
       multiple: false
       options:
         - Transaction
+        - Exchange
         - Collectible
         - Social
         - Donation
         - Governance
         - Metaverse
-        - Uncategorized
     validations:
       required: true
 
@@ -62,5 +62,5 @@ body:
     attributes:
       label: This is not a duplicated worker request
       options:
-        - label: I have searched [existing issues](https://github.com/NaturalSelectionLabs/RSS3-Node/issues) and [pull requests](https://github.com/NaturalSelectionLabs/RSS3-Node/pulls) to ensure this worker proposal has not already been requested
+        - label: I have searched [existing issues](https://github.com/NaturalSelectionLabs/RSS3-Node/issues) and [pull requests](https://github.com/NaturalSelectionLabs/RSS3-Node/pulls) to ensure this worker has not already been requested
           required: true

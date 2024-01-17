@@ -43,7 +43,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.ENS.String()
+	return filter.ENS.String()
 }
 
 // Filter ens contract address and event hash.

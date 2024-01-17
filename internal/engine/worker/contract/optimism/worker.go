@@ -31,7 +31,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.Optimism.String()
+	return filter.Optimism.String()
 }
 
 func (w *worker) Filter() engine.SourceFilter {

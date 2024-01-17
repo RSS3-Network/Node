@@ -67,3 +67,17 @@ additionalRSS:
         password:
         access_key:
         access_code:
+observability:
+  opentelemetry:
+    metrics:
+      enable: true
+      endpoint: 0.0.0.0:9090
+    traces:
+      enable: true
+      insecure: true
+      endpoint: jaeger-collector.guardian.svc:4318
+global:
+  podAnnotations:
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9090"
+    prometheus.io/scrape: "true"

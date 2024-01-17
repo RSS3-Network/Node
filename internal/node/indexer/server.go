@@ -16,16 +16,20 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 )
 
 type Server struct {
-	id             string
-	config         *config.Module
-	source         engine.Source
-	worker         engine.Worker
-	databaseClient database.Client
-	streamClient   stream.Client
+	id                string
+	config            *config.Module
+	source            engine.Source
+	worker            engine.Worker
+	databaseClient    database.Client
+	streamClient      stream.Client
+	meterTasksCounter metric.Int64Counter
 }
 
 func (s *Server) Run(ctx context.Context) error {
@@ -62,6 +66,16 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		Worker:  s.worker.Name(),
 		State:   s.source.State(),
 	}
+
+	ctx, span := otel.GetTracerProvider().Tracer(constant.Name).Start(ctx, "handleTasks")
+	defer span.End()
+
+	span.SetAttributes(
+		attribute.String("service", constant.Name),
+		attribute.String("worker", s.worker.Name()),
+		attribute.Int("records", len(tasks)),
+		attribute.String("state", string(checkpoint.State)),
+	)
 
 	// If no tasks are returned, only save the checkpoint to the database.
 	if len(tasks) == 0 {
@@ -113,6 +127,31 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		return feed != nil
 	})
 
+	// Get the current block height/block number from the checkpoint state.
+	type CheckpointState struct {
+		BlockHeight uint64 `json:"block_height"`
+		BlockNumber uint64 `json:"block_number"`
+	}
+
+	var state CheckpointState
+	if err := json.Unmarshal(checkpoint.State, &state); err != nil {
+		return fmt.Errorf("unmarshal checkpoint state: %w", err)
+	}
+
+	currentBlockHeight := state.BlockNumber
+
+	if currentBlockHeight == 0 {
+		currentBlockHeight = state.BlockHeight
+	}
+
+	meterTasksCounterAttributes := metric.WithAttributes(
+		attribute.String("service", constant.Name),
+		attribute.String("worker", s.worker.Name()),
+		attribute.Int("records", len(tasks)),
+		attribute.Int("current_block", int(currentBlockHeight)),
+	)
+
+	s.meterTasksCounter.Add(ctx, int64(len(tasks)), meterTasksCounterAttributes)
 	checkpoint.IndexCount = int64(len(feeds))
 
 	// Save feeds and checkpoint to the database.
@@ -142,6 +181,16 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 	return nil
 }
 
+func (s *Server) initializeMeter() (err error) {
+	meter := otel.GetMeterProvider().Meter(constant.Name)
+
+	if s.meterTasksCounter, err = meter.Int64Counter("rss3_node_tasks"); err != nil {
+		return fmt.Errorf("create meter of tasks counter: %w", err)
+	}
+
+	return nil
+}
+
 func NewServer(ctx context.Context, config *config.Module, databaseClient database.Client, streamClient stream.Client) (server *Server, err error) {
 	instance := Server{
 		id:             config.ID(),
@@ -153,6 +202,10 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 	// Initialize worker.
 	if instance.worker, err = worker.New(instance.config, databaseClient); err != nil {
 		return nil, fmt.Errorf("new worker: %w", err)
+	}
+
+	if err := instance.initializeMeter(); err != nil {
+		return nil, fmt.Errorf("initialize meter: %w", err)
 	}
 
 	// Load checkpoint for initialize the source.

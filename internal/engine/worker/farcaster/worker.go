@@ -32,7 +32,7 @@ func (w *worker) Filter() engine.SourceFilter {
 }
 
 func (w *worker) Name() string {
-	return engine.Farcaster.String()
+	return filter.Farcaster.String()
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {

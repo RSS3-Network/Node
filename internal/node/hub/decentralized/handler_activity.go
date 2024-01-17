@@ -1,6 +1,7 @@
 package decentralized
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/creasty/defaults"
@@ -63,6 +64,8 @@ func (h *Hub) GetAccountActivities(c echo.Context) (err error) {
 	if err = c.Validate(&request); err != nil {
 		return response.ValidateFailedError(c, err)
 	}
+
+	go h.countAccount(context.TODO(), common.HexToAddress(request.Account).String())
 
 	cursor, err := h.getCursor(c.Request().Context(), request.Cursor)
 	if err != nil {

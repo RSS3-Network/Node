@@ -8,7 +8,6 @@ import (
 	"github.com/creasty/defaults"
 	"github.com/go-playground/validator/v10"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/stream"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
@@ -23,10 +22,11 @@ const (
 )
 
 type File struct {
-	Environment string    `yaml:"environment" validate:"required" default:"development"`
-	Node        *Node     `yaml:"component" validate:"required"`
-	Database    *Database `yaml:"database" validate:"required"`
-	Stream      *Stream   `yaml:"stream" validate:"required"`
+	Environment   string     `yaml:"environment" validate:"required" default:"development"`
+	Node          *Node      `yaml:"component" validate:"required"`
+	Database      *Database  `yaml:"database" validate:"required"`
+	Stream        *Stream    `yaml:"stream" validate:"required"`
+	Observability *Telemetry `yaml:"observability" validate:"required"`
 }
 
 type Node struct {
@@ -39,7 +39,7 @@ type Module struct {
 	Network      filter.Network `yaml:"network" validate:"required"`
 	Endpoint     string         `yaml:"endpoint" validate:"required"`
 	IPFSGateways []string       `yaml:"ipfs_gateways"`
-	Worker       engine.Name    `yaml:"worker"`
+	Worker       filter.Name    `yaml:"worker"`
 	Parameters   *Options       `yaml:"parameters"`
 }
 
@@ -54,6 +54,26 @@ type Stream struct {
 	Driver stream.Driver `mapstructure:"driver" validate:"required" default:"kafka"`
 	Topic  string        `mapstructure:"topic" validate:"required" default:"rss3.node.feeds"`
 	URI    string        `mapstructure:"uri" validate:"required" default:"localhost:9092"`
+}
+
+type Telemetry struct {
+	OpenTelemetry *OpenTelemetryConfig `yaml:"opentelemetry" validate:"required"`
+}
+
+type OpenTelemetryConfig struct {
+	Metrics *OpenTelemetryMetricsConfig `yaml:"metrics" validate:"required"`
+	Traces  *OpenTelemetryTracesConfig  `yaml:"traces" validate:"required"`
+}
+
+type OpenTelemetryMetricsConfig struct {
+	Enable   bool   `yaml:"enable" default:"false"`
+	Endpoint string `yaml:"endpoint" default:"0.0.0.0:9090"`
+}
+
+type OpenTelemetryTracesConfig struct {
+	Enable   bool   `yaml:"enable" default:"false"`
+	Insecure bool   `yaml:"insecure" default:"false"`
+	Endpoint string `yaml:"endpoint" validate:"required" default:"0.0.0.0:4318"`
 }
 
 // ID returns the unique identifier of the configuration.

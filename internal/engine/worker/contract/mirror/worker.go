@@ -31,7 +31,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.Mirror.String()
+	return filter.Mirror.String()
 }
 
 // Filter returns a filter for source.
