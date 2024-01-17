@@ -17,6 +17,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/lens"
+	"github.com/naturalselectionlabs/rss3-node/provider/http"
 	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
@@ -33,6 +34,7 @@ type worker struct {
 	arweaveClient                  arweave.Client
 	ethereumClient                 ethereum.Client
 	ipfsClient                     ipfs.HTTPClient
+	httpClient                     http.Client
 	lensHubV1                      *lens.V1LensHubCaller
 	lensHubV2                      *lens.V2LensHubCaller
 	lensHandleV2                   *lens.V2LensHandleCaller
@@ -824,7 +826,10 @@ func (w *worker) getDataFromHTTP(ctx context.Context, contentURL string) (io.Rea
 		contentURL = contentURL[19:]
 	}
 
-	// ipfs request
+	if strings.HasPrefix(contentURL, "https://") {
+		return w.httpClient.Fetch(ctx, contentURL)
+	}
+
 	return w.arweaveClient.GetTransactionData(ctx, contentURL)
 }
 
@@ -921,6 +926,11 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	// Initialize ipfs client.
 	if instance.ipfsClient, err = ipfs.NewHTTPClient(ipfs.WithGateways(config.IPFSGateways)); err != nil {
 		return nil, fmt.Errorf("new ipfs client: %w", err)
+	}
+
+	// Initialize http client.
+	if instance.httpClient, err = http.NewHTTPClient(); err != nil {
+		return nil, fmt.Errorf("new http client: %w", err)
 	}
 
 	lensHubV1, err := lens.NewV1LensHubCaller(lens.AddressLensProtocol, instance.ethereumClient)
