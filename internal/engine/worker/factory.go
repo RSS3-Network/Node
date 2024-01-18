@@ -8,6 +8,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/aavegotchi"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/lens"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/matters"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/opensea"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/optimism"
@@ -40,6 +41,8 @@ func New(config *config.Module, databaseClient database.Client) (engine.Worker, 
 		return aavegotchi.NewWorker(config)
 	case engine.Lens:
 		return lens.NewWorker(config)
+	case engine.Matters:
+		return matters.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}
