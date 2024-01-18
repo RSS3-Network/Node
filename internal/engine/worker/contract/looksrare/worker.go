@@ -111,11 +111,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			return nil, err
 		}
 
-		// Change feed type to the first action type.
-		for _, action := range actions {
-			feed.Type = action.Type
-		}
-
+		feed.Type = filter.TypeCollectibleTrade
 		feed.Actions = append(feed.Actions, actions...)
 	}
 
@@ -421,6 +417,10 @@ func (w *worker) buildCollectibleTradeAction(ctx context.Context, task *source.T
 		Token:  *tokenMetadata,
 	}
 
+	if currency.String() == "0x0000000000000000000000000000000000000000" {
+		currency = nil
+	}
+
 	if offerValue != nil {
 		offerTokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, currency, nil, task.Header.Number)
 		if err != nil {
@@ -553,6 +553,10 @@ func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Ta
 
 // buildV2RoyaltyFeeAction builds royalty fee action.
 func (w *worker) buildV2RoyaltyFeeAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, amount *big.Int, currency *common.Address) (*schema.Action, error) {
+	if currency.String() == "0x0000000000000000000000000000000000000000" {
+		currency = nil
+	}
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, currency, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
