@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/robfig/cron/v3"
@@ -30,6 +33,11 @@ func (b *Broadcaster) Run(ctx context.Context) error {
 	}
 
 	b.cron.Start()
+
+	stopchan := make(chan os.Signal, 1)
+
+	signal.Notify(stopchan, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
+	<-stopchan
 
 	return nil
 }
