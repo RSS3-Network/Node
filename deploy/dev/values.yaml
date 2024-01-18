@@ -1,3 +1,9 @@
+discovery:
+  maintainer:
+    evm_address: <path:kv/data/network/rss3-node#MAINTAINER_EVM_ADDRESS>
+    signature: <path:kv/data/network/rss3-node#MAINTAINER_SIGNATURE>
+  server:
+    endpoint: <path:kv/data/network/rss3-node#SERVER_ENDPOINT>
 hub:
   replicaCount: 2
 database:
