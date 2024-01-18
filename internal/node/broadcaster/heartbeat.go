@@ -16,6 +16,8 @@ func (b *Broadcaster) Heartbeat(ctx context.Context) error {
 		Timestamp: time.Now().Unix(),
 	}
 
+	zap.L().Info("sending heartbeat", zap.Any("request", req))
+
 	if err := b.client.NodeHeartbeat(ctx, req); err != nil {
 		zap.L().Error("failed to send heartbeat", zap.Error(err))
 

@@ -15,6 +15,8 @@ func (b *Broadcaster) Register(ctx context.Context) error {
 		Endpoint:  b.config.Discovery.Server.Endpoint,
 	}
 
+	zap.L().Info("registering node", zap.Any("request", req))
+
 	if err := b.client.RegisterNode(ctx, req); err != nil {
 		zap.L().Error("failed to register node", zap.Error(err))
 
