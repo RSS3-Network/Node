@@ -64,6 +64,11 @@ indexers:
     parameters:
       block_height_start: 1275799
       rpc_thread_blocks: 1
+  - network: ethereum
+    worker: looksrare
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
+    parameters:
+      block_number_start: 17571053
 additionalRSS:
   - network: rss
     endpoint: https://rsshub.app/
