@@ -1,12 +1,11 @@
 name: build & deploy
 
 on:
-  workflow_run:
-    workflows:
-      - Lint
-      - Test
-    types:
-      - completed
+  push:
+    branches:
+      - "develop"
+    tags:
+      - "*"
 
 jobs:
   build:
