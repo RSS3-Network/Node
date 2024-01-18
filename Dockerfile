@@ -4,6 +4,9 @@ WORKDIR /root/rss3-node
 
 COPY . .
 
+ARG GH_USER
+ARG GH_TOKEN
+
 ENV GOPRIVATE="github.com/naturalselectionlabs/global-indexer"
 ENV GH_USER=$GH_USER
 ENV GH_TOKEN=$GH_TOKEN
