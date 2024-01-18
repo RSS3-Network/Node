@@ -15,7 +15,6 @@ require (
 	github.com/ipfs/go-cid v0.4.1
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/lib/pq v1.10.9
-	github.com/naturalselectionlabs/rss3-global-indexer v0.0.0-20240117025457-c5dd84924c3e
 	github.com/orlangure/gnomock v0.30.0
 	github.com/pressly/goose/v3 v3.17.0
 	github.com/prometheus/client_golang v1.17.0
