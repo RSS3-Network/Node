@@ -3,13 +3,13 @@ name: build & deploy
 on:
   workflow_run:
     workflows:
-      - Lint
       - Test
     types:
       - completed
 
 jobs:
   build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: NaturalSelectionLabs/Daedalus/.github/workflows/docker-tpl.yaml@main
     with:
       images: rss3/node

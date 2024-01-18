@@ -1,17 +1,16 @@
 name: Test
 on:
-  push:
-    branches:
-      - develop
-    paths-ignore:
-      - "deploy/**"
-  pull_request:
-    paths-ignore:
-      - "deploy/**"
+  workflow_run:
+    workflows:
+      - Test
+    types:
+      - completed
+
 
 jobs:
   test:
     name: Test
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: self-hosted
     steps:
       - name: Import Secrets
@@ -27,6 +26,10 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: "1.21"
+      - name: Configure git for private modules
+        env:
+          TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: git config --global url."https://git:${TOKEN}@github.com".insteadOf "https://github.com"
       - name: Checkout
         uses: actions/checkout@v3
       - name: Test
