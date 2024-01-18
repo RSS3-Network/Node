@@ -5,7 +5,7 @@ WORKDIR /root/rss3-node
 COPY . .
 RUN apk add --no-cache git make gcc libc-dev
 
-ENV GOPRIVATE="github.com/naturalselectionlabs/global-indexer"
+ENV GOPRIVATE="github.com/naturalselectionlabs/rss3-global-indexer"
 ENV GH_USER=$GH_USER
 ENV GH_TOKEN=$GH_TOKEN
 RUN git config --global url."https://${GH_USER}:${GH_TOKEN}@github.com".insteadOf "https://github.com"
