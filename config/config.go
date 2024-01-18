@@ -32,18 +32,18 @@ type File struct {
 }
 
 type Discovery struct {
-	Maintainer *Maintainer `yaml:"maintainer" validate:"required"`
-	Server     *Server     `yaml:"server" validate:"required"`
+	Maintainer *Maintainer `yaml:"maintainer"`
+	Server     *Server     `yaml:"server"`
 }
 
 type Maintainer struct {
-	EvmAddress common.Address `yaml:"evm_address" validate:"required"`
-	Signature  string         `yaml:"signature" validate:"required"`
+	EvmAddress common.Address `yaml:"evm_address"`
+	Signature  string         `yaml:"signature"`
 }
 
 type Server struct {
-	Endpoint              string `yaml:"endpoint" validate:"required"`
-	GlobalIndexerEndpoint string `yaml:"global_indexer_endpoint" validate:"required"`
+	Endpoint              string `yaml:"endpoint"`
+	GlobalIndexerEndpoint string `yaml:"global_indexer_endpoint"`
 }
 
 type Node struct {

@@ -1,3 +1,6 @@
+broadcaster:
+  enabled: true
+
 configs:
   discovery:
     maintainer:
