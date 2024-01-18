@@ -1,6 +1,7 @@
 package node
 
 const (
-	Hub     = "hub"
-	Indexer = "indexer"
+	Hub         = "hub"
+	Indexer     = "indexer"
+	Broadcaster = "broadcaster"
 )
