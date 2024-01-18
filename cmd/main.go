@@ -12,6 +12,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
 	"github.com/naturalselectionlabs/rss3-node/internal/node"
+	"github.com/naturalselectionlabs/rss3-node/internal/node/broadcaster"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/hub"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/indexer"
 	"github.com/naturalselectionlabs/rss3-node/internal/stream"
@@ -70,6 +71,8 @@ var command = cobra.Command{
 			return runHub(cmd.Context(), config, databaseClient)
 		case node.Indexer:
 			return runIndexer(cmd.Context(), config, databaseClient, streamClient)
+		case node.Broadcaster:
+			return runBroadcaster(cmd.Context(), config)
 		}
 
 		return fmt.Errorf("unsupported module %s", lo.Must(flags.GetString(flag.KeyModule)))
@@ -115,6 +118,15 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 	}
 
 	return fmt.Errorf("undefined indexer %s.%s.%s", network, worker, parameters)
+}
+
+func runBroadcaster(ctx context.Context, config *config.File) error {
+	server, err := broadcaster.NewBroadcaster(ctx, config)
+	if err != nil {
+		return fmt.Errorf("new broadcaster: %w", err)
+	}
+
+	return server.Run(ctx)
 }
 
 func setOpenTelemetry(config *config.File) error {
