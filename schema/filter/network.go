@@ -68,7 +68,7 @@ const (
 
 func IsOptimismSuperchain(chainID uint64) bool {
 	switch chainID {
-	case uint64(EthereumChainIDOptimism):
+	case uint64(EthereumChainIDOptimism), uint64(EthereumChainIDBase):
 		return true
 	default:
 		return false
