@@ -37,6 +37,7 @@ func (b *Broadcaster) Register(ctx context.Context) error {
 func (b *Broadcaster) Heartbeat(ctx context.Context) error {
 	request := NodeHeartbeatRequest{
 		Address:   b.config.Discovery.Maintainer.EvmAddress,
+		Endpoint:  b.config.Discovery.Server.Endpoint,
 		Signature: b.config.Discovery.Maintainer.Signature,
 		Timestamp: time.Now().Unix(),
 	}
@@ -86,12 +87,12 @@ func (b *Broadcaster) sendRequest(ctx context.Context, path string, values url.V
 		_ = resp.Body.Close()
 	}()
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status: %s", resp.Status)
-	}
-
 	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return fmt.Errorf("decode response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status: %s, response: %s", resp.Status, result)
 	}
 
 	return nil
