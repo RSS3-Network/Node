@@ -1,16 +1,17 @@
 name: Test
 on:
-  workflow_run:
-    workflows:
-      - Lint
-    types:
-      - completed
-
+  push:
+    branches:
+      - develop
+    paths-ignore:
+      - "deploy/**"
+  pull_request:
+    paths-ignore:
+      - "deploy/**"
 
 jobs:
   test:
     name: Test
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: self-hosted
     steps:
       - name: Import Secrets
