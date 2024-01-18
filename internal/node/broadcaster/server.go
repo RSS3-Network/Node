@@ -3,16 +3,16 @@ package broadcaster
 import (
 	"context"
 	"fmt"
+	"net/http"
 
-	"github.com/naturalselectionlabs/rss3-global-indexer/client"
 	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/robfig/cron/v3"
 )
 
 type Broadcaster struct {
-	client *client.Client
-	config *config.File
-	cron   *cron.Cron
+	config     *config.File
+	cron       *cron.Cron
+	httpClient *http.Client
 }
 
 func (b *Broadcaster) Run(ctx context.Context) error {
@@ -35,15 +35,9 @@ func (b *Broadcaster) Run(ctx context.Context) error {
 }
 
 func NewBroadcaster(_ context.Context, config *config.File) (*Broadcaster, error) {
-	// Dial global indexer client.
-	globalIndexerClient, err := client.NewClient(config.Discovery.Server.GlobalIndexerEndpoint)
-	if err != nil {
-		return nil, fmt.Errorf("failed to dial global indexer client: %w", err)
-	}
-
 	return &Broadcaster{
-		client: globalIndexerClient,
-		config: config,
-		cron:   cron.New(),
+		config:     config,
+		cron:       cron.New(),
+		httpClient: http.DefaultClient,
 	}, nil
 }
