@@ -16,12 +16,15 @@ const (
 	_EthereumChainIDLowerName_1 = "optimism"
 	_EthereumChainIDName_2      = "polygon"
 	_EthereumChainIDLowerName_2 = "polygon"
+	_EthereumChainIDName_3      = "crossbell"
+	_EthereumChainIDLowerName_3 = "crossbell"
 )
 
 var (
 	_EthereumChainIDIndex_0 = [...]uint8{0, 8}
 	_EthereumChainIDIndex_1 = [...]uint8{0, 8}
 	_EthereumChainIDIndex_2 = [...]uint8{0, 7}
+	_EthereumChainIDIndex_3 = [...]uint8{0, 9}
 )
 
 func (i EthereumChainID) String() string {
@@ -32,6 +35,8 @@ func (i EthereumChainID) String() string {
 		return _EthereumChainIDName_1
 	case i == 137:
 		return _EthereumChainIDName_2
+	case i == 3737:
+		return _EthereumChainIDName_3
 	default:
 		return fmt.Sprintf("EthereumChainID(%d)", i)
 	}
@@ -48,9 +53,10 @@ func _EthereumChainIDNoOp() {
 	_ = x[EthereumChainIDMainnet-(1)]
 	_ = x[EthereumChainIDOptimism-(10)]
 	_ = x[EthereumChainIDPolygon-(137)]
+	_ = x[EthereumChainIDCrossbell-(3737)]
 }
 
-var _EthereumChainIDValues = []EthereumChainID{EthereumChainIDMainnet, EthereumChainIDOptimism, EthereumChainIDPolygon}
+var _EthereumChainIDValues = []EthereumChainID{EthereumChainIDMainnet, EthereumChainIDOptimism, EthereumChainIDPolygon, EthereumChainIDCrossbell}
 
 var _EthereumChainIDNameToValueMap = map[string]EthereumChainID{
 	_EthereumChainIDName_0[0:8]:      EthereumChainIDMainnet,
@@ -59,12 +65,15 @@ var _EthereumChainIDNameToValueMap = map[string]EthereumChainID{
 	_EthereumChainIDLowerName_1[0:8]: EthereumChainIDOptimism,
 	_EthereumChainIDName_2[0:7]:      EthereumChainIDPolygon,
 	_EthereumChainIDLowerName_2[0:7]: EthereumChainIDPolygon,
+	_EthereumChainIDName_3[0:9]:      EthereumChainIDCrossbell,
+	_EthereumChainIDLowerName_3[0:9]: EthereumChainIDCrossbell,
 }
 
 var _EthereumChainIDNames = []string{
 	_EthereumChainIDName_0[0:8],
 	_EthereumChainIDName_1[0:8],
 	_EthereumChainIDName_2[0:7],
+	_EthereumChainIDName_3[0:9],
 }
 
 // EthereumChainIDString retrieves an enum value from the enum constants string name.

@@ -22,9 +22,10 @@ var (
 )
 
 var deployedAtMap = map[uint64]uint64{
-	uint64(filter.EthereumChainIDMainnet):  14353601, // https://etherscan.io/tx/0x00d9fcb7848f6f6b0aae4fb709c133d69262b902156c85a473ef23faa60760bd
-	uint64(filter.EthereumChainIDOptimism): 4286263,  // https://optimistic.etherscan.io/tx/0xb62f9191a2cf399c0d2afd33f5b8baf7c6b52af6dd2386e44121b1bab91b80e5
-	uint64(filter.EthereumChainIDPolygon):  15921452, // https://bscscan.com/tx/0xcc0ddf5f791617ba9befce57995dbcb3a202946a1eefa3469742b01a0decdaf2
+	uint64(filter.EthereumChainIDMainnet):   14353601, // https://etherscan.io/tx/0x00d9fcb7848f6f6b0aae4fb709c133d69262b902156c85a473ef23faa60760bd
+	uint64(filter.EthereumChainIDOptimism):  4286263,  // https://optimistic.etherscan.io/tx/0xb62f9191a2cf399c0d2afd33f5b8baf7c6b52af6dd2386e44121b1bab91b80e5
+	uint64(filter.EthereumChainIDPolygon):   15921452, // https://bscscan.com/tx/0xcc0ddf5f791617ba9befce57995dbcb3a202946a1eefa3469742b01a0decdaf2
+	uint64(filter.EthereumChainIDCrossbell): 38246031, // https://scan.crossbell.io/tx/0x0d7367f09c151993f1a7ac32780948fc07d232806e81d0d0c3e7058e4538d7f5
 }
 
 func IsDeployed(chainID uint64, blockNumber *big.Int) bool {

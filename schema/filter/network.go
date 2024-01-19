@@ -10,6 +10,7 @@ const (
 	NetworkEthereum                 // ethereum
 	NetworkOptimism                 // optimism
 	NetworkPolygon                  // polygon
+	NetworkCrossbell                // crossbell
 	NetworkRSS                      // rss
 	NetworkArweave                  // arweave
 	NetworkFarcaster                // farcaster
@@ -53,9 +54,10 @@ func (n Network) Source() NetworkSource {
 type EthereumChainID uint64
 
 const (
-	EthereumChainIDMainnet  EthereumChainID = 1 // ethereum
-	EthereumChainIDOptimism EthereumChainID = 10 // optimism
-	EthereumChainIDPolygon EthereumChainID = 137 // polygon
+	EthereumChainIDMainnet   EthereumChainID = 1    // ethereum
+	EthereumChainIDOptimism  EthereumChainID = 10   // optimism
+	EthereumChainIDPolygon   EthereumChainID = 137  // polygon
+	EthereumChainIDCrossbell EthereumChainID = 3737 // crossbell
 )
 
 func IsOptimismSuperchain(chainID uint64) bool {
