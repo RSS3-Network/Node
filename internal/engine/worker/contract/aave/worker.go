@@ -3,12 +3,14 @@ package aave
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
+	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/aave"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/erc1155"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/erc20"
@@ -16,7 +18,9 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/token"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
 	"github.com/samber/lo"
+	"github.com/shopspring/decimal"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -136,4 +140,399 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
 
 	return &instance, nil
+}
+
+func (w *worker) matchLiquidityV1Pool(task *source.Task) bool {
+	if task.Network != filter.NetworkEthereum {
+		return false
+	}
+
+	if *task.Transaction.To != aave.AddressV1LendingPool {
+		return false
+	}
+
+	return lo.ContainsBy(task.Receipt.Logs, func(log *ethereum.Log) bool {
+		if len(log.Topics) == 0 {
+			return false
+		}
+
+		return contract.MatchEventHashes(
+			log.Topics[0],
+			aave.EventHashV1LendingPoolDeposit,
+			aave.EventHashV1LendingPoolBorrow,
+			aave.EventHashV1LendingPoolRepay,
+		)
+	})
+}
+
+func (w *worker) matchLiquidityV2LendingPool(task *source.Task) bool {
+	switch task.Network {
+	case filter.NetworkEthereum:
+		if *task.Transaction.To != aave.AddressV2LendingPoolMainnet {
+			return false
+		}
+	case filter.NetworkPolygon:
+		if *task.Transaction.To != aave.AddressV2LendingPoolPolygon {
+			return false
+		}
+	case filter.NetworkAvalanche:
+		if *task.Transaction.To != aave.AddressV2LendingPoolAvalanche {
+			return false
+		}
+	default:
+		return false
+	}
+
+	return lo.ContainsBy(task.Receipt.Logs, func(log *ethereum.Log) bool {
+		if len(log.Topics) == 0 {
+			return false
+		}
+
+		return contract.MatchEventHashes(
+			log.Topics[0],
+			aave.EventHashV2LendingPoolDeposit,
+			aave.EventHashV2LendingPoolWithdraw,
+			aave.EventHashV2LendingPoolBorrow,
+			aave.EventHashV2LendingPoolRepay,
+		)
+	})
+}
+
+func (w *worker) matchLiquidityV3Pool(task *source.Task) bool {
+	switch task.Network {
+	case filter.NetworkEthereum:
+		if *task.Transaction.To != aave.AddressV3PoolMainnet {
+			return false
+		}
+	case filter.NetworkBase:
+		if *task.Transaction.To != aave.AddressV3PoolBase {
+			return false
+		}
+	case
+		filter.NetworkOptimism,
+		filter.NetworkArbitrum,
+		filter.NetworkPolygon,
+		filter.NetworkFantom,
+		filter.NetworkAvalanche:
+		if *task.Transaction.To != aave.AddressV3PoolOthers {
+			return false
+		}
+	default:
+		return false
+	}
+
+	return lo.ContainsBy(task.Receipt.Logs, func(log *ethereum.Log) bool {
+		if len(log.Topics) == 0 {
+			return false
+		}
+
+		return contract.MatchEventHashes(
+			log.Topics[0],
+			aave.EventHashV3PoolSupply,
+			aave.EventHashV3PoolWithdraw,
+			aave.EventHashV3PoolBorrow,
+			aave.EventHashV3PoolRepay,
+		)
+	})
+}
+
+func (w *worker) handleV1LendingPool(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
+	actions := make([]*schema.Action, 0)
+
+	for _, log := range task.Receipt.Logs {
+		if len(log.Topics) == 0 {
+			continue
+		}
+
+		var (
+			action *schema.Action
+			err    error
+		)
+
+		switch {
+		case w.matchEthereumV1LendingPoolDepositLog(log):
+			action, err = w.transformV1LendingPoolDepositLog(ctx, task, log)
+		case w.matchEthereumV1LendingPoolBorrowLog(log):
+			action, err = w.transformV1LendingPoolBorrowLog(ctx, task, log)
+		case w.matchEthereumV1LendingPoolRepayLog(log):
+			action, err = w.transformV1LendingPoolRepayLog(ctx, task, log)
+		default:
+			continue
+		}
+
+		if err != nil {
+			return nil, fmt.Errorf("handle ethereum v3 pool: %w", err)
+		}
+
+		if action != nil {
+			actions = append(actions, action)
+		}
+	}
+
+	return actions, nil
+}
+
+func (w *worker) handleV2LendingPool(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
+	actions := make([]*schema.Action, 0)
+
+	for _, log := range task.Receipt.Logs {
+		if len(log.Topics) == 0 {
+			continue
+		}
+
+		var (
+			action *schema.Action
+			err    error
+		)
+
+		switch {
+		case w.matchEthereumV2LendingPoolDepositLog(log):
+			action, err = w.transformV2LendingPoolDepositLog(ctx, task, log)
+		case w.matchEthereumV2LendingPoolWithdrawLog(log):
+			action, err = w.transformV2LendingPoolWithdrawLog(ctx, task, log)
+		case w.matchEthereumV2LendingPoolBorrowLog(log):
+			action, err = w.transformV2LendingPoolBorrowLog(ctx, task, log)
+		case w.matchEthereumV2LendingPoolRepayLog(log):
+			action, err = w.transformV2LendingPoolRepayLog(ctx, task, log)
+		default:
+			continue
+		}
+
+		if err != nil {
+			return nil, fmt.Errorf("handle ethereum v3 pool: %w", err)
+		}
+
+		if action != nil {
+			actions = append(actions, action)
+		}
+	}
+
+	return actions, nil
+}
+
+func (w *worker) handleV3Pool(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
+	actions := make([]*schema.Action, 0)
+
+	for _, log := range task.Receipt.Logs {
+		if len(log.Topics) == 0 {
+			continue
+		}
+
+		var (
+			action *schema.Action
+			err    error
+		)
+
+		switch {
+		case w.matchEthereumV3PoolSupplyLog(log):
+			action, err = w.transformV3PoolSupplyLog(ctx, task, log)
+		case w.matchEthereumV3PoolWithdrawLog(log):
+			action, err = w.transformV3PoolWithdrawLog(ctx, task, log)
+		case w.matchEthereumV3PoolBorrowLog(log):
+			action, err = w.transformV3PoolBorrowLog(ctx, task, log)
+		case w.matchEthereumV3PoolRepayLog(log):
+			action, err = w.transformV3PoolRepayLog(ctx, task, log)
+		default:
+			continue
+		}
+
+		if err != nil {
+			return nil, fmt.Errorf("handle ethereum v3 pool: %w", err)
+		}
+
+		if action != nil {
+			actions = append(actions, action)
+		}
+	}
+
+	return actions, nil
+}
+
+func (w *worker) matchEthereumV1LendingPoolDepositLog(log *ethereum.Log) bool {
+	return contract.MatchAddresses(log.Address, aave.AddressV1LendingPool) && contract.MatchEventHashes(log.Topics[0], aave.EventHashV1LendingPoolDeposit)
+}
+
+func (w *worker) matchEthereumV1LendingPoolBorrowLog(log *ethereum.Log) bool {
+	return contract.MatchAddresses(log.Address, aave.AddressV1LendingPool) && contract.MatchEventHashes(log.Topics[0], aave.EventHashV1LendingPoolBorrow)
+}
+
+func (w *worker) matchEthereumV1LendingPoolRepayLog(log *ethereum.Log) bool {
+	return contract.MatchAddresses(log.Address, aave.AddressV1LendingPool) && contract.MatchEventHashes(log.Topics[0], aave.EventHashV1LendingPoolRepay)
+}
+
+func (w *worker) matchEthereumV2LendingPoolDepositLog(log *ethereum.Log) bool {
+	return contract.MatchAddresses(log.Address, aave.AddressV2LendingPoolMainnet, aave.AddressV2LendingPoolPolygon, aave.AddressV2LendingPoolAvalanche) && contract.MatchEventHashes(log.Topics[0], aave.EventHashV2LendingPoolDeposit)
+}
+
+func (w *worker) matchEthereumV2LendingPoolWithdrawLog(log *ethereum.Log) bool {
+	return contract.MatchAddresses(log.Address, aave.AddressV2LendingPoolMainnet, aave.AddressV2LendingPoolPolygon, aave.AddressV2LendingPoolAvalanche) && contract.MatchEventHashes(log.Topics[0], aave.EventHashV2LendingPoolWithdraw)
+}
+
+func (w *worker) matchEthereumV2LendingPoolBorrowLog(log *ethereum.Log) bool {
+	return contract.MatchAddresses(log.Address, aave.AddressV2LendingPoolMainnet, aave.AddressV2LendingPoolPolygon, aave.AddressV2LendingPoolAvalanche) && contract.MatchEventHashes(log.Topics[0], aave.EventHashV2LendingPoolBorrow)
+}
+
+func (w *worker) matchEthereumV2LendingPoolRepayLog(log *ethereum.Log) bool {
+	return contract.MatchAddresses(log.Address, aave.AddressV2LendingPoolMainnet, aave.AddressV2LendingPoolPolygon, aave.AddressV2LendingPoolAvalanche) && contract.MatchEventHashes(log.Topics[0], aave.EventHashV2LendingPoolRepay)
+}
+
+func (w *worker) matchEthereumV3PoolSupplyLog(log *ethereum.Log) bool {
+	return contract.MatchAddresses(log.Address, aave.AddressV3PoolMainnet, aave.AddressV3PoolBase, aave.AddressV3PoolOthers) && contract.MatchEventHashes(log.Topics[0], aave.EventHashV3PoolSupply)
+}
+
+func (w *worker) matchEthereumV3PoolWithdrawLog(log *ethereum.Log) bool {
+	return contract.MatchAddresses(log.Address, aave.AddressV3PoolMainnet, aave.AddressV3PoolBase, aave.AddressV3PoolOthers) && contract.MatchEventHashes(log.Topics[0], aave.EventHashV3PoolWithdraw)
+}
+
+func (w *worker) matchEthereumV3PoolBorrowLog(log *ethereum.Log) bool {
+	return contract.MatchAddresses(log.Address, aave.AddressV3PoolMainnet, aave.AddressV3PoolBase, aave.AddressV3PoolOthers) && contract.MatchEventHashes(log.Topics[0], aave.EventHashV3PoolBorrow)
+}
+
+func (w *worker) matchEthereumV3PoolRepayLog(log *ethereum.Log) bool {
+	return contract.MatchAddresses(log.Address, aave.AddressV3PoolMainnet, aave.AddressV3PoolBase, aave.AddressV3PoolOthers) && contract.MatchEventHashes(log.Topics[0], aave.EventHashV3PoolRepay)
+}
+
+func (w *worker) transformV1LendingPoolDepositLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.v1LendingPoolFilterer.ParseDeposit(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse deposit event: %w", err)
+	}
+
+	lender, pool := event.User, log.Address
+
+	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquiditySupply, event.Reserve, event.Amount)
+}
+
+func (w *worker) transformV1LendingPoolBorrowLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.v1LendingPoolFilterer.ParseBorrow(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse deposit event: %w", err)
+	}
+
+	lender, pool := event.User, log.Address
+
+	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquidityBorrow, event.Reserve, event.Amount)
+}
+
+func (w *worker) transformV1LendingPoolRepayLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.v1LendingPoolFilterer.ParseRepay(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse deposit event: %w", err)
+	}
+
+	lender, pool := event.User, log.Address
+
+	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquidityRepay, event.Reserve, event.AmountMinusFees)
+}
+
+func (w *worker) transformV2LendingPoolDepositLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.v2LendingPoolFilterer.ParseDeposit(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse deposit event: %w", err)
+	}
+
+	lender, pool := event.User, log.Address
+
+	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquiditySupply, event.Reserve, event.Amount)
+}
+
+func (w *worker) transformV2LendingPoolWithdrawLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.v2LendingPoolFilterer.ParseWithdraw(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse withdraw event: %w", err)
+	}
+
+	lender, pool := event.User, log.Address
+
+	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquidityWithdraw, event.Reserve, event.Amount)
+}
+
+func (w *worker) transformV2LendingPoolBorrowLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.v2LendingPoolFilterer.ParseBorrow(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse borrow event: %w", err)
+	}
+
+	lender, pool := event.User, log.Address
+
+	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquidityBorrow, event.Reserve, event.Amount)
+}
+
+func (w *worker) transformV2LendingPoolRepayLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.v2LendingPoolFilterer.ParseRepay(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse repay event: %w", err)
+	}
+
+	lender, pool := event.User, log.Address
+
+	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquidityRepay, event.Reserve, event.Amount)
+}
+
+func (w *worker) transformV3PoolSupplyLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.v3PoolFilterer.ParseSupply(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse supply event: %w", err)
+	}
+
+	lender, pool := event.User, log.Address
+
+	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquiditySupply, event.Reserve, event.Amount)
+}
+
+func (w *worker) transformV3PoolWithdrawLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.v3PoolFilterer.ParseWithdraw(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse withdraw event: %w", err)
+	}
+
+	lender, pool := event.User, log.Address
+
+	return w.buildEthereumExchangeLiquidityAction(ctx, task, pool, lender, metadata.ActionExchangeLiquidityWithdraw, event.Reserve, event.Amount)
+}
+
+func (w *worker) transformV3PoolBorrowLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.v3PoolFilterer.ParseBorrow(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse borrow event: %w", err)
+	}
+
+	lender, borrower := log.Address, event.User
+
+	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, borrower, metadata.ActionExchangeLiquidityBorrow, event.Reserve, event.Amount)
+}
+
+func (w *worker) transformV3PoolRepayLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+	event, err := w.v3PoolFilterer.ParseRepay(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse repay event: %w", err)
+	}
+
+	lender, borrower := log.Address, event.User
+
+	return w.buildEthereumExchangeLiquidityAction(ctx, task, borrower, lender, metadata.ActionExchangeLiquidityRepay, event.Reserve, event.Amount)
+}
+
+func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task *source.Task, from, to common.Address, exchangeLiquidityAction metadata.ExchangeLiquidityAction, tokenAddress common.Address, tokenValue *big.Int) (*schema.Action, error) {
+	token, err := w.tokenClient.Lookup(ctx, task.ChainID, &tokenAddress, nil, task.Header.Number)
+	if err != nil {
+		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenAddress, err)
+	}
+
+	token.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+
+	action := schema.Action{
+		Type:     filter.TypeExchangeLiquidity,
+		Platform: filter.PlatformAAVE.String(),
+		From:     from.String(),
+		To:       to.String(),
+		Metadata: metadata.ExchangeLiquidity{
+			Action: exchangeLiquidityAction,
+			Tokens: []metadata.Token{
+				*token,
+			},
+		},
+	}
+
+	return &action, nil
 }
