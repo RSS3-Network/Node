@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _PlatformName = "RSS3MirrorFarcasterParagraphOpenSeaUniswapOptimismAavegotchiLensAAVE"
+const _PlatformName = "RSS3MirrorFarcasterParagraphOpenSeaUniswapOptimismAavegotchiLensLooksRareAAVE"
 
-var _PlatformIndex = [...]uint8{0, 4, 10, 19, 28, 35, 42, 50, 60, 64, 68}
+var _PlatformIndex = [...]uint8{0, 4, 10, 19, 28, 35, 42, 50, 60, 64, 73, 77}
 
-const _PlatformLowerName = "rss3mirrorfarcasterparagraphopenseauniswapoptimismaavegotchilensaave"
+const _PlatformLowerName = "rss3mirrorfarcasterparagraphopenseauniswapoptimismaavegotchilenslooksrareaave"
 
 func (i Platform) String() string {
 	i -= 1
@@ -40,10 +40,11 @@ func _PlatformNoOp() {
 	_ = x[PlatformOptimism-(7)]
 	_ = x[PlatformAavegotchi-(8)]
 	_ = x[PlatformLens-(9)]
-	_ = x[PlatformAAVE-(10)]
+	_ = x[PlatformLooksRare-(10)]
+	_ = x[PlatformAAVE-(11)]
 }
 
-var _PlatformValues = []Platform{PlatformRSS3, PlatformMirror, PlatformFarcaster, PlatformParagraph, PlatformOpenSea, PlatformUniswap, PlatformOptimism, PlatformAavegotchi, PlatformLens, PlatformAAVE}
+var _PlatformValues = []Platform{PlatformRSS3, PlatformMirror, PlatformFarcaster, PlatformParagraph, PlatformOpenSea, PlatformUniswap, PlatformOptimism, PlatformAavegotchi, PlatformLens, PlatformLooksRare, PlatformAAVE}
 
 var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformName[0:4]:        PlatformRSS3,
@@ -64,8 +65,10 @@ var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformLowerName[50:60]: PlatformAavegotchi,
 	_PlatformName[60:64]:      PlatformLens,
 	_PlatformLowerName[60:64]: PlatformLens,
-	_PlatformName[64:68]:      PlatformAAVE,
-	_PlatformLowerName[64:68]: PlatformAAVE,
+	_PlatformName[64:73]:      PlatformLooksRare,
+	_PlatformLowerName[64:73]: PlatformLooksRare,
+	_PlatformName[73:77]:      PlatformAAVE,
+	_PlatformLowerName[73:77]: PlatformAAVE,
 }
 
 var _PlatformNames = []string{
@@ -78,7 +81,8 @@ var _PlatformNames = []string{
 	_PlatformName[42:50],
 	_PlatformName[50:60],
 	_PlatformName[60:64],
-	_PlatformName[64:68],
+	_PlatformName[64:73],
+	_PlatformName[73:77],
 }
 
 // PlatformString retrieves an enum value from the enum constants string name.

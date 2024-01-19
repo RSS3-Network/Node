@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _NameName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilensaave"
+const _NameName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilenslooksrareaave"
 
-var _NameIndex = [...]uint8{0, 7, 15, 21, 30, 34, 43, 50, 57, 65, 75, 79, 83}
+var _NameIndex = [...]uint8{0, 7, 15, 21, 30, 34, 43, 50, 57, 65, 75, 79, 88, 92}
 
-const _NameLowerName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilensaave"
+const _NameLowerName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilenslooksrareaave"
 
 func (i Name) String() string {
 	if i < 0 || i >= Name(len(_NameIndex)-1) {
@@ -41,10 +41,11 @@ func _NameNoOp() {
 	_ = x[Optimism-(8)]
 	_ = x[Aavegotchi-(9)]
 	_ = x[Lens-(10)]
-	_ = x[Aave-(11)]
+	_ = x[Looksrare-(11)]
+	_ = x[Aave-(12)]
 }
 
-var _NameValues = []Name{Unknown, Fallback, Mirror, Farcaster, RSS3, Paragraph, OpenSea, Uniswap, Optimism, Aavegotchi, Lens, Aave}
+var _NameValues = []Name{Unknown, Fallback, Mirror, Farcaster, RSS3, Paragraph, OpenSea, Uniswap, Optimism, Aavegotchi, Lens, Looksrare, Aave}
 
 var _NameNameToValueMap = map[string]Name{
 	_NameName[0:7]:        Unknown,
@@ -69,8 +70,10 @@ var _NameNameToValueMap = map[string]Name{
 	_NameLowerName[65:75]: Aavegotchi,
 	_NameName[75:79]:      Lens,
 	_NameLowerName[75:79]: Lens,
-	_NameName[79:83]:      Aave,
-	_NameLowerName[79:83]: Aave,
+	_NameName[79:88]:      Looksrare,
+	_NameLowerName[79:88]: Looksrare,
+	_NameName[88:92]:      Aave,
+	_NameLowerName[88:92]: Aave,
 }
 
 var _NameNames = []string{
@@ -85,7 +88,8 @@ var _NameNames = []string{
 	_NameName[57:65],
 	_NameName[65:75],
 	_NameName[75:79],
-	_NameName[79:83],
+	_NameName[79:88],
+	_NameName[88:92],
 }
 
 // NameString retrieves an enum value from the enum constants string name.
