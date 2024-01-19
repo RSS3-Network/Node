@@ -19,6 +19,7 @@ const (
 	PlatformOptimism                       // Optimism
 	PlatformAavegotchi                     // Aavegotchi
 	PlatformLens                           // Lens
+	PlatformHighlight                      // Highlight
 )
 
 func (p Platform) ID() string {

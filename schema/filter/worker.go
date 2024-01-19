@@ -17,4 +17,5 @@ const (
 	Optimism               // optimism
 	Aavegotchi             // aavegotchi
 	Lens                   // lens
+	Highlight              // highlight
 )
