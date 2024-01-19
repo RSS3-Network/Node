@@ -1,9 +1,14 @@
-discovery:
-  maintainer:
-    evm_address: <path:kv/data/network/rss3-node#MAINTAINER_EVM_ADDRESS>
-    signature: <path:kv/data/network/rss3-node#MAINTAINER_SIGNATURE>
-  server:
-    endpoint: <path:kv/data/network/rss3-node#SERVER_ENDPOINT>
+broadcaster:
+  enabled: true
+
+configs:
+  discovery:
+    maintainer:
+      evm_address: <path:kv/data/network/rss3-node#MAINTAINER_EVM_ADDRESS>
+      signature: <path:kv/data/network/rss3-node#MAINTAINER_SIGNATURE>
+    server:
+      endpoint: <path:kv/data/network/rss3-node#SERVER_ENDPOINT>
+      global_indexer_endpoint: https://gi.rss3.dev/
 hub:
   replicaCount: 2
 database:
