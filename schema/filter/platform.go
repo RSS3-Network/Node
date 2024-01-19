@@ -20,6 +20,7 @@ const (
 	PlatformAavegotchi                     // Aavegotchi
 	PlatformLens                           // Lens
 	PlatformLooksRare                      // LooksRare
+	PlatformCrossbell                      // Crossbell
 )
 
 func (p Platform) ID() string {
