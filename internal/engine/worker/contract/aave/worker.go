@@ -514,12 +514,12 @@ func (w *worker) transformV3PoolRepayLog(ctx context.Context, task *source.Task,
 }
 
 func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task *source.Task, from, to common.Address, exchangeLiquidityAction metadata.ExchangeLiquidityAction, tokenAddress common.Address, tokenValue *big.Int) (*schema.Action, error) {
-	token, err := w.tokenClient.Lookup(ctx, task.ChainID, &tokenAddress, nil, task.Header.Number)
+	targetToken, err := w.tokenClient.Lookup(ctx, task.ChainID, &tokenAddress, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenAddress, err)
 	}
 
-	token.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	targetToken.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
 	action := schema.Action{
 		Type:     filter.TypeExchangeLiquidity,
@@ -529,7 +529,7 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task 
 		Metadata: metadata.ExchangeLiquidity{
 			Action: exchangeLiquidityAction,
 			Tokens: []metadata.Token{
-				*token,
+				*targetToken,
 			},
 		},
 	}
