@@ -43,6 +43,21 @@ var nativeTokenMap = map[uint64]metadata.Token{
 		Symbol:   "ETH",
 		Decimals: 18,
 	},
+	uint64(filter.EthereumChainIDArbitrum): {
+		Name:     "Ethereum",
+		Symbol:   "ETH",
+		Decimals: 18,
+	},
+	uint64(filter.EthereumChainIDFantom): {
+		Name:     "Ethereum",
+		Symbol:   "ETH",
+		Decimals: 18,
+	},
+	uint64(filter.EthereumChainIDBase): {
+		Name:     "Ethereum",
+		Symbol:   "ETH",
+		Decimals: 18,
+	},
 }
 
 var _ Client = (*client)(nil)
