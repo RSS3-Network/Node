@@ -23,6 +23,12 @@ var endpointsMap = map[filter.Network][]string{
 		"https://polygon.blockpi.network/v1/rpc/public",
 		"https://polygon.llamarpc.com",
 	},
+	filter.NetworkBase: {
+		"https://developer-access-mainnet.base.org",
+	},
+	filter.NetworkArbitrum: {
+		"https://arb1.arbitrum.io/rpc",
+	},
 }
 
 func Get(network filter.Network) ([]string, bool) {

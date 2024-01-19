@@ -12,6 +12,7 @@ const (
 	NetworkPolygon                  // polygon
 	NetworkArbitrum                 // arbitrum
 	NetworkFantom                   // fantom
+	NetworkBase                     // base
 	NetworkRSS                      // rss
 	NetworkArweave                  // arweave
 	NetworkFarcaster                // farcaster
