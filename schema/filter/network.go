@@ -58,6 +58,9 @@ const (
 	EthereumChainIDMainnet  EthereumChainID = 1   // ethereum
 	EthereumChainIDOptimism EthereumChainID = 10  // optimism
 	EthereumChainIDPolygon  EthereumChainID = 137 // polygon
+	EthereumChainIDArbitrum EthereumChainID = 42161
+	EthereumChainIDFantom   EthereumChainID = 250
+	EthereumChainIDBase     EthereumChainID = 8453
 )
 
 func IsOptimismSuperchain(chainID uint64) bool {
