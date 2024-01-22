@@ -7,6 +7,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/aavegotchi"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/crossbell"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/lens"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/looksrare"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror"
