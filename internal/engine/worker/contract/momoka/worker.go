@@ -18,7 +18,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave/contract/momoka"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/lens"
-	"github.com/naturalselectionlabs/rss3-node/provider/http"
+	"github.com/naturalselectionlabs/rss3-node/provider/httpx"
 	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
@@ -35,7 +35,7 @@ type worker struct {
 	ethereumClient   ethereum.Client
 	arweaveClient    arweave.Client
 	ipfsClient       ipfs.HTTPClient
-	httpClient       http.Client
+	httpClient       httpx.Client
 	lensHubV1        *lens.V1LensHubCaller
 	lensHubV2        *lens.V2LensHubCaller
 	lensHandleV2     *lens.V2LensHandleCaller
@@ -452,7 +452,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	}
 
 	// Initialize http client.
-	if instance.httpClient, err = http.NewHTTPClient(); err != nil {
+	if instance.httpClient, err = httpx.NewHTTPClient(); err != nil {
 		return nil, fmt.Errorf("new http client: %w", err)
 	}
 
