@@ -122,6 +122,14 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			actions, err = w.transformDeleteNote(ctx, ethereumTask, log)
 		case w.matchMintNote(ethereumTask, log):
 			actions, err = w.transformMintNote(ctx, ethereumTask, log)
+		case w.matchSetOperator(ethereumTask, log):
+			actions, err = w.transformSetOperator(ctx, ethereumTask, log)
+		case w.matchAddOperator(ethereumTask, log):
+			actions, err = w.transformAddOperator(ctx, ethereumTask, log)
+		case w.matchRemoveOperator(ethereumTask, log):
+			actions, err = w.transformRemoveOperator(ctx, ethereumTask, log)
+		case w.matchGrantOperatorPermissions(ethereumTask, log):
+			actions, err = w.transformGrantOperatorPermissions(ctx, ethereumTask, log)
 		default:
 			continue
 		}
@@ -184,6 +192,26 @@ func (w *worker) matchDeleteNote(_ *source.Task, log *ethereum.Log) bool {
 // matchMintNote matches MintNote event.
 func (w *worker) matchMintNote(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == crossbell.AddressWeb3Entry && contract.MatchEventHashes(log.Topics[0], crossbell.EventHashMintNote)
+}
+
+// matchSetOperator matches SetOperator event.
+func (w *worker) matchSetOperator(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == crossbell.AddressWeb3Entry && contract.MatchEventHashes(log.Topics[0], crossbell.EventHashSetOperator)
+}
+
+// matchAddOperator matches AddOperator event.
+func (w *worker) matchAddOperator(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == crossbell.AddressWeb3Entry && contract.MatchEventHashes(log.Topics[0], crossbell.EventHashAddOperator)
+}
+
+// matchRemoveOperator matches RemoveOperator event.
+func (w *worker) matchRemoveOperator(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == crossbell.AddressWeb3Entry && contract.MatchEventHashes(log.Topics[0], crossbell.EventHashRemoveOperator)
+}
+
+// matchGrantOperatorPermissions matches GrantOperatorPermissions event.
+func (w *worker) matchGrantOperatorPermissions(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == crossbell.AddressWeb3Entry && contract.MatchEventHashes(log.Topics[0], crossbell.EventHashGrantOperatorPermissions)
 }
 
 // transformProfileCreated transforms ProfileCreated event.
@@ -388,6 +416,86 @@ func (w *worker) transformMintNote(ctx context.Context, task *source.Task, log *
 	}, nil
 }
 
+// transformSetOperator transforms SetOperator event.
+func (w *worker) transformSetOperator(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.eventFilterer.ParseSetOperator(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse set operator: %w", err)
+	}
+
+	actionType := lo.If(event.Operator == ethereum.AddressGenesis, metadata.ActionSocialProxyRemove).Else(metadata.ActionSocialProxyAppoint)
+
+	proxy, err := w.buildProxyMetadata(ctx, log.BlockNumber, lo.ToPtr(actionType), event.CharacterId, lo.ToPtr(event.Operator))
+	if err != nil {
+		return nil, err
+	}
+
+	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, filter.TypeSocialProxy, *proxy)
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
+// transformAddOperator transforms AddOperator event.
+func (w *worker) transformAddOperator(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.eventFilterer.ParseAddOperator(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse add operator: %w", err)
+	}
+
+	proxy, err := w.buildProxyMetadata(ctx, log.BlockNumber, lo.ToPtr(metadata.ActionSocialProxyAppoint), event.CharacterId, lo.ToPtr(event.Operator))
+	if err != nil {
+		return nil, err
+	}
+
+	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, filter.TypeSocialProxy, *proxy)
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
+// transformRemoveOperator transforms RemoveOperator event.
+func (w *worker) transformRemoveOperator(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.eventFilterer.ParseRemoveOperator(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse remove operator: %w", err)
+	}
+
+	proxy, err := w.buildProxyMetadata(ctx, log.BlockNumber, lo.ToPtr(metadata.ActionSocialProxyRemove), event.CharacterId, lo.ToPtr(event.Operator))
+	if err != nil {
+		return nil, err
+	}
+
+	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, filter.TypeSocialProxy, *proxy)
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
+// transformGrantOperatorPermissions transforms GrantOperatorPermissions event.
+func (w *worker) transformGrantOperatorPermissions(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.eventFilterer.ParseGrantOperatorPermissions(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse grant operator permissions: %w", err)
+	}
+
+	actionType := lo.If(lo.IsEmpty(event.PermissionBitMap.BitLen()), metadata.ActionSocialProxyRemove).Else(metadata.ActionSocialProxyAppoint)
+
+	proxy, err := w.buildProxyMetadata(ctx, log.BlockNumber, lo.ToPtr(actionType), event.CharacterId, lo.ToPtr(event.Operator))
+	if err != nil {
+		return nil, err
+	}
+
+	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, filter.TypeSocialProxy, *proxy)
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
 // buildProfileAction builds profile action.
 func (w *worker) buildProfileAction(_ context.Context, from, to common.Address, actionType filter.Type, profile metadata.SocialProfile) *schema.Action {
 	return &schema.Action{
@@ -452,6 +560,17 @@ func (w *worker) buildPostMetadata(ctx context.Context, blockNumber, characterID
 		}),
 		ContentURI: contentURI,
 	}, linkKey, platform, nil
+}
+
+// buildProxyAction builds proxy action.
+func (w *worker) buildProxyAction(_ context.Context, from common.Address, to common.Address, actionType filter.Type, proxy metadata.SocialProxy) *schema.Action {
+	return &schema.Action{
+		From:     from.String(),
+		To:       to.String(),
+		Platform: filter.PlatformCrossbell.String(),
+		Type:     actionType,
+		Metadata: proxy,
+	}
 }
 
 // buildProfileMetadata builds profile metadata.
@@ -519,6 +638,39 @@ func (w *worker) buildProfileMetadata(
 	}
 
 	return profile, nil
+}
+
+// buildProxyMetadata
+func (w *worker) buildProxyMetadata(
+	ctx context.Context,
+	blockNumber *big.Int,
+	action *metadata.SocialProxyAction,
+	characterID *big.Int,
+	proxyAddress *common.Address,
+) (*metadata.SocialProxy, error) {
+	proxy := &metadata.SocialProxy{
+		Action:       *action,
+		ProxyAddress: *proxyAddress,
+		Profile: metadata.SocialProfile{
+			ProfileID: characterID.String(),
+		},
+	}
+
+	var err error
+
+	proxy.Profile.Address, err = w.getOwnerOf(ctx, blockNumber, characterID)
+	if err != nil {
+		return nil, err
+	}
+
+	proxy.Profile.Handle, err = w.getHandle(ctx, blockNumber, characterID)
+	if err != nil {
+		return nil, err
+	}
+
+	proxy.Profile.Handle = w.buildProfileHandleSuffix(ctx, proxy.Profile.Handle)
+
+	return proxy, nil
 }
 
 // buildCharacterProfileMetadata builds character profile metadata.

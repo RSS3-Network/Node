@@ -66,3 +66,30 @@ type SocialProfile struct {
 func (f SocialProfile) Type() filter.Type {
 	return filter.TypeSocialProfile
 }
+
+//go:generate go run --mod=mod github.com/dmarkham/enumer --values --type=SocialProxyAction --transform=snake --trimprefix=ActionSocialProxy --output social_proxy.go --json --sql
+type SocialProxyAction uint64
+
+func (s SocialProxyAction) Type() filter.Type {
+	return filter.TypeSocialProfile
+}
+
+const (
+	ActionSocialProxyAppoint SocialProxyAction = iota + 1
+	ActionSocialProxyRemove
+)
+
+type SocialProxy struct {
+	Action       SocialProxyAction `json:"action,omitempty"`
+	ProxyAddress common.Address    `json:"proxy_address"`
+
+	Profile SocialProfile `json:"profile,omitempty"`
+}
+
+func (s SocialProxy) Tag() filter.Tag {
+	return filter.TagSocial
+}
+
+func (s SocialProxy) Type() filter.Type {
+	return filter.TypeSocialProxy
+}

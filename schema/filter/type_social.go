@@ -21,4 +21,5 @@ const (
 	TypeSocialProfile
 	TypeSocialMint
 	TypeSocialDelete
+	TypeSocialProxy
 )
