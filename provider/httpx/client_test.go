@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/naturalselectionlabs/rss3-node/provider/httpx"
-	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
 	"github.com/stretchr/testify/require"
 )
 
@@ -69,7 +68,7 @@ func TestHttpClient_GetContentType(t *testing.T) {
 
 	type arguments struct {
 		ctx     context.Context
-		options []ipfs.HTTPClientOption
+		options []httpx.ClientOption
 		uri     string
 	}
 
@@ -83,8 +82,8 @@ func TestHttpClient_GetContentType(t *testing.T) {
 			name: "mime type jpeg",
 			arguments: arguments{
 				ctx: context.Background(),
-				options: []ipfs.HTTPClientOption{
-					ipfs.WithTimeout(10 * time.Second),
+				options: []httpx.ClientOption{
+					httpx.WithTimeout(10 * time.Second),
 				},
 				uri: "https://i.imgur.com/DsrBswx.jpg",
 			},
@@ -95,8 +94,8 @@ func TestHttpClient_GetContentType(t *testing.T) {
 			name: "mime type text/html",
 			arguments: arguments{
 				ctx: context.Background(),
-				options: []ipfs.HTTPClientOption{
-					ipfs.WithTimeout(10 * time.Second),
+				options: []httpx.ClientOption{
+					httpx.WithTimeout(10 * time.Second),
 				},
 				uri: "http://rss3.io",
 			},
@@ -111,7 +110,7 @@ func TestHttpClient_GetContentType(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
-			httpClient, err := ipfs.NewHTTPClient(testcase.arguments.options...)
+			httpClient, err := httpx.NewHTTPClient(testcase.arguments.options...)
 			testcase.wantError(t, err)
 
 			result, err := httpClient.GetContentType(testcase.arguments.ctx, testcase.arguments.uri)
