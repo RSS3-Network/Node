@@ -105,6 +105,14 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		switch {
 		case w.matchProfileCreated(ethereumTask, log):
 			actions, err = w.transformProfileCreated(ctx, ethereumTask, log)
+		case w.matchSetProfileURI(ethereumTask, log):
+			actions, err = w.transformSetProfileURI(ctx, ethereumTask, log)
+		case w.matchCharacterCreated(ethereumTask, log):
+			actions, err = w.transformCharacterCreated(ctx, ethereumTask, log)
+		case w.matchCharacterSetHandle(ethereumTask, log):
+			actions, err = w.transformCharacterSetHandle(ctx, ethereumTask, log)
+		case w.matchSetCharacterURI(ethereumTask, log):
+			actions, err = w.transformSetCharacterURI(ctx, ethereumTask, log)
 		default:
 			continue
 		}
@@ -129,6 +137,26 @@ func (w *worker) matchProfileCreated(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == crossbell.AddressWeb3Entry && contract.MatchEventHashes(log.Topics[0], crossbell.EventHashProfileCreated)
 }
 
+// matchSetProfileURI matches SetProfileURI event.
+func (w *worker) matchSetProfileURI(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == crossbell.AddressWeb3Entry && contract.MatchEventHashes(log.Topics[0], crossbell.EventHashSetProfileURI)
+}
+
+// matchCharacterCreated matches CharacterCreated event.
+func (w *worker) matchCharacterCreated(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == crossbell.AddressWeb3Entry && contract.MatchEventHashes(log.Topics[0], crossbell.EventHashCharacterCreated)
+}
+
+// matchCharacterSetHandle matches SetCharacterHandle event.
+func (w *worker) matchCharacterSetHandle(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == crossbell.AddressWeb3Entry && contract.MatchEventHashes(log.Topics[0], crossbell.EventHashSetHandle)
+}
+
+// matchCSetCharacterURI matches SetCharacterURI event.
+func (w *worker) matchSetCharacterURI(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == crossbell.AddressWeb3Entry && contract.MatchEventHashes(log.Topics[0], crossbell.EventHashSetCharacterURI)
+}
+
 // transformProfileCreated transforms ProfileCreated event.
 func (w *worker) transformProfileCreated(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.profileFilterer.ParseProfileCreated(log.Export())
@@ -136,20 +164,96 @@ func (w *worker) transformProfileCreated(ctx context.Context, _ *source.Task, lo
 		return nil, fmt.Errorf("parse profile created: %w", err)
 	}
 
-	profile, err := w.buildTransactionProfileMetadata(ctx, log.BlockNumber, metadata.ActionSocialProfileCreate, event.ProfileId, event.To, event.Handle, "")
+	profile, err := w.buildProfileMetadata(ctx, log.BlockNumber, metadata.ActionSocialProfileCreate, event.ProfileId, event.To, event.Handle, "")
 	if err != nil {
 		return nil, err
 	}
 
-	action := w.buildTransactionProfileAction(ctx, event.Creator, event.To, filter.TypeSocialProfile, *profile)
+	action := w.buildProfileAction(ctx, event.Creator, event.To, filter.TypeSocialProfile, *profile)
 
 	return []*schema.Action{
 		action,
 	}, nil
 }
 
-// buildTransactionProfileAction builds profile action.
-func (w *worker) buildTransactionProfileAction(_ context.Context, from, to common.Address, actionType filter.Type, profile metadata.SocialProfile) *schema.Action {
+// transformSetProfileURI transforms SetProfileURI event.
+func (w *worker) transformSetProfileURI(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.profileFilterer.ParseSetProfileUri(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse profile uri set: %w", err)
+	}
+
+	profile, err := w.buildProfileMetadata(ctx, log.BlockNumber, metadata.ActionSocialProfileUpdate, event.ProfileId, common.Address{}, "", event.NewUri)
+	if err != nil {
+		return nil, err
+	}
+
+	action := w.buildProfileAction(ctx, profile.Address, *task.Transaction.To, filter.TypeSocialProfile, *profile)
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
+// transformCharacterCreated transforms CharacterCreated event.
+func (w *worker) transformCharacterCreated(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.eventFilterer.ParseCharacterCreated(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse character created: %w", err)
+	}
+
+	profile, err := w.buildCharacterProfileMetadata(ctx, log.BlockNumber, metadata.ActionSocialProfileCreate, event.CharacterId, event.To, event.Handle, "")
+	if err != nil {
+		return nil, err
+	}
+
+	action := w.buildProfileAction(ctx, event.Creator, profile.Address, filter.TypeSocialProfile, *profile)
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
+// transformCharacterSetHandle transforms SetCharacterHandle event.
+func (w *worker) transformCharacterSetHandle(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.eventFilterer.ParseSetHandle(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse character handle set: %w", err)
+	}
+
+	profile, err := w.buildCharacterProfileMetadata(ctx, log.BlockNumber, metadata.ActionSocialProfileUpdate, event.CharacterId, event.Account, event.NewHandle, "")
+	if err != nil {
+		return nil, err
+	}
+
+	action := w.buildProfileAction(ctx, profile.Address, *task.Transaction.To, filter.TypeSocialProfile, *profile)
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
+// transformSetCharacterURI transforms SetCharacterURI event.
+func (w *worker) transformSetCharacterURI(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.eventFilterer.ParseSetCharacterUri(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse character uri set: %w", err)
+	}
+
+	profile, err := w.buildCharacterProfileMetadata(ctx, log.BlockNumber, metadata.ActionSocialProfileUpdate, event.CharacterId, common.Address{}, "", event.NewUri)
+	if err != nil {
+		return nil, err
+	}
+
+	action := w.buildProfileAction(ctx, profile.Address, *task.Transaction.To, filter.TypeSocialProfile, *profile)
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
+// buildProfileAction builds profile action.
+func (w *worker) buildProfileAction(_ context.Context, from, to common.Address, actionType filter.Type, profile metadata.SocialProfile) *schema.Action {
 	return &schema.Action{
 		From:     from.String(),
 		To:       to.String(),
@@ -159,8 +263,8 @@ func (w *worker) buildTransactionProfileAction(_ context.Context, from, to commo
 	}
 }
 
-// buildTransactionProfileMetadata builds profile metadata.
-func (w *worker) buildTransactionProfileMetadata(
+// buildProfileMetadata builds profile metadata.
+func (w *worker) buildProfileMetadata(
 	ctx context.Context,
 	blockNumber *big.Int,
 	action metadata.SocialProfileAction,
@@ -226,6 +330,66 @@ func (w *worker) buildTransactionProfileMetadata(
 	return profile, nil
 }
 
+// buildCharacterProfileMetadata builds character profile metadata.
+func (w *worker) buildCharacterProfileMetadata(
+	ctx context.Context,
+	blockNumber *big.Int,
+	action metadata.SocialProfileAction,
+	characterID *big.Int,
+	address common.Address,
+	handle string,
+	uri string,
+) (*metadata.SocialProfile, error) {
+	profile := &metadata.SocialProfile{
+		Action:    action,
+		ProfileID: characterID.String(),
+		Address:   address,
+		Handle:    handle,
+	}
+
+	if lo.IsEmpty(address) {
+		var err error
+
+		profile.Address, err = w.getEthereumOwnerOf(ctx, blockNumber, characterID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if lo.IsEmpty(handle) || lo.IsEmpty(uri) {
+		characterHandle, characterURI, err := w.getEthereumCharacter(ctx, blockNumber, characterID)
+		if err != nil {
+			return nil, err
+		}
+
+		profile.Handle = lo.If(lo.IsEmpty(handle), characterHandle).Else(handle)
+		uri = lo.If(lo.IsEmpty(uri), characterURI).Else(uri)
+	}
+
+	if !lo.IsEmpty(uri) {
+		content, err := w.getEthereumIPFSContent(ctx, uri)
+		if err != nil {
+			return nil, err
+		}
+
+		var characterURI CharacterURIContent
+		if err = json.Unmarshal(content, &characterURI); err != nil {
+			return nil, fmt.Errorf("unmarshal character uri content: %w", err)
+		}
+
+		if len(characterURI.Avatars) > 0 {
+			profile.ImageURI = characterURI.Avatars[0]
+		}
+
+		profile.Bio = characterURI.Bio
+		profile.Name = characterURI.Name
+	}
+
+	profile.Handle = w.buildEthereumProfileHandleSuffix(ctx, profile.Handle)
+
+	return profile, nil
+}
+
 // getEthereumOwnerOf gets owner of profile.
 func (w *worker) getEthereumOwnerOf(_ context.Context, blockNumber *big.Int, profileID *big.Int) (common.Address, error) {
 	owner, err := w.profileContract.OwnerOf(&bind.CallOpts{BlockNumber: blockNumber}, profileID)
@@ -244,6 +408,16 @@ func (w *worker) getEthereumProfile(_ context.Context, blockNumber *big.Int, pro
 	}
 
 	return profile.Handle, profile.Uri, nil
+}
+
+// getEthereumAssetImageURI gets asset image uri.
+func (w *worker) getEthereumCharacter(_ context.Context, blockNumber *big.Int, characterID *big.Int) (string, string, error) {
+	character, err := w.characterContract.GetCharacter(&bind.CallOpts{BlockNumber: blockNumber}, characterID)
+	if err != nil {
+		return "", "", fmt.Errorf("get character: %w", err)
+	}
+
+	return character.Handle, character.Uri, nil
 }
 
 // buildEthereumProfileHandleSuffix builds profile handle suffix.
