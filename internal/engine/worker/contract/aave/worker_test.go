@@ -930,6 +930,10 @@ func TestWorker_Ethereum(t *testing.T) {
 						CumulativeGasUsed: 1685052,
 						EffectiveGasPrice: hexutil.MustDecodeBig("0x3e88"),
 						GasUsed:           233332,
+						L1GasPrice:        lo.Must(new(big.Int).SetString("92801097015", 0)),
+						L1GasUsed:         lo.Must(new(big.Int).SetString("3024", 0)),
+						L1Fee:             lo.Must(new(big.Int).SetString("191951273883378", 0)),
+						FeeScalar:         lo.Must(new(big.Float).SetString("0.684")),
 						Logs: []*ethereum.Log{{
 							Address: common.HexToAddress("0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"),
 							Topics: []common.Hash{
