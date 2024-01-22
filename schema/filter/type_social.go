@@ -22,4 +22,5 @@ const (
 	TypeSocialMint
 	TypeSocialDelete
 	TypeSocialProxy
+	TypeSocialReward
 )

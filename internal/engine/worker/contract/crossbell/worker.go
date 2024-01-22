@@ -22,12 +22,14 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/crossbell/event"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/crossbell/periphery"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/crossbell/profile"
+	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/crossbell/tips"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/token"
 	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
 	"github.com/samber/lo"
+	"github.com/shopspring/decimal"
 )
 
 // Worker is the worker for Crossbell.
@@ -40,6 +42,7 @@ type worker struct {
 	tokenClient       token.Client
 	eventFilterer     *event.EventFilterer
 	profileFilterer   *profile.ProfileFilterer
+	tipsFilterer      *tips.TipsFilterer
 	characterContract *character.CharacterCaller
 	profileContract   *profile.ProfileCaller
 	peripheryContract *periphery.PeripheryCaller
@@ -55,6 +58,7 @@ func (w *worker) Filter() engine.SourceFilter {
 		LogAddresses: []common.Address{
 			crossbell.AddressWeb3Entry,
 			crossbell.AddressPeriphery,
+			crossbell.AddressTips,
 		},
 		LogTopics: []common.Hash{
 			crossbell.EventHashProfileCreated,
@@ -70,6 +74,7 @@ func (w *worker) Filter() engine.SourceFilter {
 			crossbell.EventHashAddOperator,
 			crossbell.EventHashRemoveOperator,
 			crossbell.EventHashGrantOperatorPermissions,
+			crossbell.EventHashTipCharacterForNote,
 		},
 	}
 }
@@ -130,6 +135,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			actions, err = w.transformRemoveOperator(ctx, ethereumTask, log)
 		case w.matchGrantOperatorPermissions(ethereumTask, log):
 			actions, err = w.transformGrantOperatorPermissions(ctx, ethereumTask, log)
+		case w.matchTipsCharacterForNote(ethereumTask, log):
+			actions, err = w.transformTipsCharacterForNote(ctx, ethereumTask, log)
 		default:
 			continue
 		}
@@ -212,6 +219,11 @@ func (w *worker) matchRemoveOperator(_ *source.Task, log *ethereum.Log) bool {
 // matchGrantOperatorPermissions matches GrantOperatorPermissions event.
 func (w *worker) matchGrantOperatorPermissions(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == crossbell.AddressWeb3Entry && contract.MatchEventHashes(log.Topics[0], crossbell.EventHashGrantOperatorPermissions)
+}
+
+// matchTipsCharacterForNote matches TipsCharacterForNote event.
+func (w *worker) matchTipsCharacterForNote(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == crossbell.AddressTips && contract.MatchEventHashes(log.Topics[0], crossbell.EventHashTipCharacterForNote)
 }
 
 // transformProfileCreated transforms ProfileCreated event.
@@ -416,6 +428,34 @@ func (w *worker) transformMintNote(ctx context.Context, task *source.Task, log *
 	}, nil
 }
 
+// transformTipsCharacterForNote transforms TipsCharacterForNote event.
+func (w *worker) transformTipsCharacterForNote(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.tipsFilterer.ParseTipCharacterForNote(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse tips character for note: %w", err)
+	}
+
+	post, _, platform, err := w.buildPostMetadata(ctx, log.BlockNumber, event.ToCharacterId, event.ToNoteId, "")
+	if err != nil {
+		return nil, err
+	}
+
+	rewardTokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &event.Token, nil, task.Header.Number)
+	if err != nil {
+		return nil, fmt.Errorf("lookup token metadata %s: %w", event.Token, err)
+	}
+
+	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(event.Amount, 0))
+
+	post.Reward = rewardTokenMetadata
+
+	action := w.buildPostRewardAction(ctx, task.Transaction.From, crossbell.AddressTips, platform, filter.TypeSocialReward, *post)
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
 // transformSetOperator transforms SetOperator event.
 func (w *worker) transformSetOperator(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.eventFilterer.ParseSetOperator(log.Export())
@@ -518,6 +558,19 @@ func (w *worker) buildPostAction(_ context.Context, from common.Address, to comm
 	}
 }
 
+// buildPostRewardAction builds post reward action.
+func (w *worker) buildPostRewardAction(_ context.Context, from common.Address, to common.Address, platform string, actionType filter.Type, post metadata.SocialPost) *schema.Action {
+	return &schema.Action{
+		From:     from.String(),
+		To:       to.String(),
+		Platform: platform,
+		Type:     actionType,
+		Metadata: &metadata.SocialPost{
+			Target: &post,
+		},
+	}
+}
+
 // buildPostMetadata builds post metadata.
 func (w *worker) buildPostMetadata(ctx context.Context, blockNumber, characterID, noteID *big.Int, contentURI string) (*metadata.SocialPost, common.Hash, string, error) {
 	handle, err := w.getHandle(ctx, blockNumber, characterID)
@@ -546,19 +599,25 @@ func (w *worker) buildPostMetadata(ctx context.Context, blockNumber, characterID
 
 	platform := w.getNotePlatform(ctx, note.Sources)
 
+	filteredMedia := []metadata.Media{}
+
+	for _, attachment := range note.Attachments {
+		if attachment.Address != "" {
+			filteredMedia = append(filteredMedia, metadata.Media{
+				MimeType: attachment.MimeType,
+				Address:  attachment.Address,
+			})
+		}
+	}
+
 	return &metadata.SocialPost{
 		ProfileID:     characterID.String(),
 		PublicationID: noteID.String(),
 		Handle:        w.buildProfileHandleSuffix(ctx, handle),
 		Title:         note.Title,
 		Body:          note.Content,
-		Media: lo.Map(note.Attachments, func(media NoteContentAttachment, index int) metadata.Media {
-			return metadata.Media{
-				MimeType: media.MimeType,
-				Address:  media.Address,
-			}
-		}),
-		ContentURI: contentURI,
+		Media:         filteredMedia,
+		ContentURI:    contentURI,
 	}, linkKey, platform, nil
 }
 
@@ -870,6 +929,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	// Initialize crossbell filterers.
 	instance.eventFilterer = lo.Must(event.NewEventFilterer(ethereum.AddressGenesis, nil))
 	instance.profileFilterer = lo.Must(profile.NewProfileFilterer(ethereum.AddressGenesis, nil))
+	instance.tipsFilterer = lo.Must(tips.NewTipsFilterer(ethereum.AddressGenesis, nil))
 
 	return &instance, nil
 }
