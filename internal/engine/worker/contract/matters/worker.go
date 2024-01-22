@@ -3,7 +3,6 @@ package matters
 import (
 	"context"
 	"fmt"
-	"github.com/naturalselectionlabs/rss3-node/provider/httpx"
 	"io"
 	"math/big"
 	"strings"
@@ -18,6 +17,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/matters"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/token"
+	"github.com/naturalselectionlabs/rss3-node/provider/httpx"
 	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
