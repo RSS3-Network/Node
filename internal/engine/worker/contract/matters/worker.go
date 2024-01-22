@@ -42,7 +42,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.Matters.String()
+	return filter.Matters.String()
 }
 
 // Filter returns a filter for source.
