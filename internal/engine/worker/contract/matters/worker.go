@@ -99,6 +99,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	}
 
 	feed.TotalActions = uint(len(feed.Actions))
+	feed.Tag = filter.TagSocial
 
 	return feed, nil
 }

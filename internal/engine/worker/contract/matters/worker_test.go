@@ -141,6 +141,7 @@ func TestWorker_Matters(t *testing.T) {
 				From:     "0x18Fb694EbAE03a78f038F54362592Dd89c0e300C",
 				To:       matters.AddressCuration.String(),
 				Type:     filter.TypeSocialReward,
+				Tag:      filter.TagSocial,
 				Platform: lo.ToPtr(filter.PlatformMatters),
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("5681706332875290")),
