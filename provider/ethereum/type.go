@@ -116,10 +116,17 @@ type Receipt struct {
 	CumulativeGasUsed uint64          `json:"cumulativeGasUsed"`
 	EffectiveGasPrice *big.Int        `json:"effectiveGasPrice"`
 	GasUsed           uint64          `json:"gasUsed"`
-	Logs              []*Log          `json:"logs"`
-	Status            uint64          `json:"status"`
-	TransactionHash   common.Hash     `json:"transactionHash"`
-	TransactionIndex  uint            `json:"transactionIndex"`
+
+	// Optimism
+	L1GasPrice *big.Int   `json:"l1GasPrice,omitempty"`
+	L1GasUsed  *big.Int   `json:"l1GasUsed,omitempty"`
+	L1Fee      *big.Int   `json:"l1Fee,omitempty"`
+	FeeScalar  *big.Float `json:"l1FeeScalar,omitempty"`
+
+	Logs             []*Log      `json:"logs"`
+	Status           uint64      `json:"status"`
+	TransactionHash  common.Hash `json:"transactionHash"`
+	TransactionIndex uint        `json:"transactionIndex"`
 }
 
 type receiptMarshal struct {
@@ -129,6 +136,12 @@ type receiptMarshal struct {
 	GasUsed           hexutil.Uint64
 	Status            hexutil.Uint64
 	TransactionIndex  hexutil.Uint
+
+	// Optimism
+	L1GasPrice *hexutil.Big
+	L1GasUsed  *hexutil.Big
+	L1Fee      *hexutil.Big
+	FeeScalar  *big.Float
 }
 
 //go:generate go run --mod=mod github.com/fjl/gencodec --type Log --field-override logMarshal --out type_log.go
