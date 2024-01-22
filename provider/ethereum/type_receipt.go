@@ -21,6 +21,10 @@ func (r Receipt) MarshalJSON() ([]byte, error) {
 		CumulativeGasUsed hexutil.Uint64  `json:"cumulativeGasUsed"`
 		EffectiveGasPrice *hexutil.Big    `json:"effectiveGasPrice"`
 		GasUsed           hexutil.Uint64  `json:"gasUsed"`
+		L1GasPrice        *hexutil.Big    `json:"l1GasPrice,omitempty"`
+		L1GasUsed         *hexutil.Big    `json:"l1GasUsed,omitempty"`
+		L1Fee             *hexutil.Big    `json:"l1Fee,omitempty"`
+		FeeScalar         *big.Float      `json:"l1FeeScalar,omitempty"`
 		Logs              []*Log          `json:"logs"`
 		Status            hexutil.Uint64  `json:"status"`
 		TransactionHash   common.Hash     `json:"transactionHash"`
@@ -33,6 +37,10 @@ func (r Receipt) MarshalJSON() ([]byte, error) {
 	enc.CumulativeGasUsed = hexutil.Uint64(r.CumulativeGasUsed)
 	enc.EffectiveGasPrice = (*hexutil.Big)(r.EffectiveGasPrice)
 	enc.GasUsed = hexutil.Uint64(r.GasUsed)
+	enc.L1GasPrice = (*hexutil.Big)(r.L1GasPrice)
+	enc.L1GasUsed = (*hexutil.Big)(r.L1GasUsed)
+	enc.L1Fee = (*hexutil.Big)(r.L1Fee)
+	enc.FeeScalar = r.FeeScalar
 	enc.Logs = r.Logs
 	enc.Status = hexutil.Uint64(r.Status)
 	enc.TransactionHash = r.TransactionHash
@@ -49,6 +57,10 @@ func (r *Receipt) UnmarshalJSON(input []byte) error {
 		CumulativeGasUsed *hexutil.Uint64 `json:"cumulativeGasUsed"`
 		EffectiveGasPrice *hexutil.Big    `json:"effectiveGasPrice"`
 		GasUsed           *hexutil.Uint64 `json:"gasUsed"`
+		L1GasPrice        *hexutil.Big    `json:"l1GasPrice,omitempty"`
+		L1GasUsed         *hexutil.Big    `json:"l1GasUsed,omitempty"`
+		L1Fee             *hexutil.Big    `json:"l1Fee,omitempty"`
+		FeeScalar         *big.Float      `json:"l1FeeScalar,omitempty"`
 		Logs              []*Log          `json:"logs"`
 		Status            *hexutil.Uint64 `json:"status"`
 		TransactionHash   *common.Hash    `json:"transactionHash"`
@@ -75,6 +87,18 @@ func (r *Receipt) UnmarshalJSON(input []byte) error {
 	}
 	if dec.GasUsed != nil {
 		r.GasUsed = uint64(*dec.GasUsed)
+	}
+	if dec.L1GasPrice != nil {
+		r.L1GasPrice = (*big.Int)(dec.L1GasPrice)
+	}
+	if dec.L1GasUsed != nil {
+		r.L1GasUsed = (*big.Int)(dec.L1GasUsed)
+	}
+	if dec.L1Fee != nil {
+		r.L1Fee = (*big.Int)(dec.L1Fee)
+	}
+	if dec.FeeScalar != nil {
+		r.FeeScalar = dec.FeeScalar
 	}
 	if dec.Logs != nil {
 		r.Logs = dec.Logs
