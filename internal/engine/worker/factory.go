@@ -44,6 +44,8 @@ func New(config *config.Module, databaseClient database.Client) (engine.Worker, 
 		return lens.NewWorker(config)
 	case filter.Looksrare:
 		return looksrare.NewWorker(config)
+	case filter.Crossbell:
+		return crossbell.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}

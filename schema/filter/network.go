@@ -39,7 +39,7 @@ const (
 
 func (n Network) Source() NetworkSource {
 	switch n {
-	case NetworkEthereum, NetworkPolygon:
+	case NetworkEthereum, NetworkPolygon, NetworkCrossbell:
 		return NetworkEthereumSource
 	case NetworkArweave:
 		return NetworkArweaveSource

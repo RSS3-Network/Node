@@ -80,6 +80,11 @@ component:
       endpoint: https://rpc.ankr.com/polygon
       parameters:
           block_number_start: 48300005
+    - network: crossbell
+      worker: crossbell
+      endpoint: https://rpc.crossbell.io
+      parameters:
+        block_number_start:
     # farcaster
     - network: farcaster
       worker: farcaster
