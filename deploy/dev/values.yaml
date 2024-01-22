@@ -1,3 +1,14 @@
+broadcaster:
+  enabled: true
+
+configs:
+  discovery:
+    maintainer:
+      evm_address: <path:kv/data/network/rss3-node#MAINTAINER_EVM_ADDRESS>
+      signature: <path:kv/data/network/rss3-node#MAINTAINER_SIGNATURE>
+    server:
+      endpoint: <path:kv/data/network/rss3-node#SERVER_ENDPOINT>
+      global_indexer_endpoint: https://gi.rss3.dev/
 hub:
   replicaCount: 2
 database:
@@ -53,6 +64,11 @@ indexers:
     parameters:
       block_height_start: 1275799
       rpc_thread_blocks: 1
+  - network: ethereum
+    worker: looksrare
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
+    parameters:
+      block_number_start: 17571053
   - network: arweave
     endpoint: <path:kv/data/network/rss3-node#ENDPOINT_POLYGON>
     worker: momoka
