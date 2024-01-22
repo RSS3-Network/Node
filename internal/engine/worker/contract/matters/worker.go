@@ -3,6 +3,7 @@ package matters
 import (
 	"context"
 	"fmt"
+	"github.com/naturalselectionlabs/rss3-node/provider/httpx"
 	"io"
 	"math/big"
 	"strings"
@@ -10,7 +11,6 @@ import (
 	md "github.com/JohannesKaufmann/html-to-markdown"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/go-shiori/go-readability"
-	"github.com/naturalselectionlabs/rss3-node/common/httpx"
 	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
@@ -144,9 +144,7 @@ func (w *worker) fetchArticle(ctx context.Context, uri string) (*readability.Art
 			return nil, fmt.Errorf("quick fetch %s: %w", path, err)
 		}
 	default:
-		headers := make(map[string][]string)
-
-		readCloser, err = w.httpClient.Get(ctx, uri, headers, nil)
+		readCloser, err = w.httpClient.Fetch(ctx, uri)
 		if err != nil {
 			return nil, fmt.Errorf("fetch metadata from HTTP %s: %w", uri, err)
 		}
@@ -236,7 +234,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 		config:          config,
 		mattersFilterer: lo.Must(matters.NewMattersFilterer(ethereum.AddressGenesis, nil)),
 		ipfsClient:      lo.Must(ipfs.NewHTTPClient(ipfs.WithGateways(config.IPFSGateways))),
-		httpClient:      lo.Must(httpx.NewClient()),
+		httpClient:      lo.Must(httpx.NewHTTPClient()),
 	}
 
 	var err error
