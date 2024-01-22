@@ -19,6 +19,8 @@ func (b *Broadcaster) Register(ctx context.Context) error {
 		Address:   b.config.Discovery.Maintainer.EvmAddress,
 		Signature: b.config.Discovery.Maintainer.Signature,
 		Endpoint:  b.config.Discovery.Server.Endpoint,
+		Stream:    b.config.Stream,
+		Config:    b.config.Node,
 	}
 
 	var response any
