@@ -104,17 +104,14 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 			return fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
 		}
 
+		// nolint:prealloc
 		var receipts []*ethereum.Receipt
 
 		// handle crossbell blockchain cause lack of `eth_getBlockReceipts` implementation
 		if s.config.Network == filter.NetworkCrossbell {
-			for _, tx := range block.Transactions {
-				receipt, err := s.ethereumClient.TransactionReceipt(ctx, tx.Hash)
-				if err != nil {
-					return fmt.Errorf("get receipt by transaction hash %s: %w", tx.Hash, err)
-				}
-
-				receipts = append(receipts, receipt)
+			receipts, err = s.getBlockReceipts(ctx, block)
+			if err != nil {
+				return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
 			}
 		} else {
 			// Before being able to handle block reorganization, correctly handle canonical.
@@ -205,17 +202,14 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 				return fmt.Errorf("get block by hash %s: %w", blockHash, err)
 			}
 
+			// nolint:prealloc
 			var receipts []*ethereum.Receipt
 
 			// handle crossbell blockchain cause lack of `eth_getBlockReceipts` implementation
 			if s.config.Network == filter.NetworkCrossbell {
-				for _, tx := range block.Transactions {
-					receipt, err := s.ethereumClient.TransactionReceipt(ctx, tx.Hash)
-					if err != nil {
-						return fmt.Errorf("get receipt by transaction hash %s: %w", tx.Hash, err)
-					}
-
-					receipts = append(receipts, receipt)
+				receipts, err = s.getBlockReceipts(ctx, block)
+				if err != nil {
+					return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
 				}
 			} else {
 				receipts, err = s.ethereumClient.BlockReceipts(ctx, block.Number)
@@ -270,6 +264,23 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 	}
 
 	return nil
+}
+
+// use `eth_getTransactionReceipt`
+func (s *source) getBlockReceipts(ctx context.Context, block *ethereum.Block) ([]*ethereum.Receipt, error) {
+	// nolint:prealloc
+	var receipts []*ethereum.Receipt
+
+	for _, tx := range block.Transactions {
+		receipt, err := s.ethereumClient.TransactionReceipt(ctx, tx.Hash)
+		if err != nil {
+			return nil, fmt.Errorf("get receipt by transaction hash %s: %w", tx.Hash, err)
+		}
+
+		receipts = append(receipts, receipt)
+	}
+
+	return receipts, nil
 }
 
 func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt) ([]*Task, error) {
