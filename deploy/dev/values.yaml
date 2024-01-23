@@ -52,6 +52,11 @@ indexers:
     endpoint: <path:kv/data/network/rss3-node#ENDPOINT_POLYGON>
     parameters:
       block_number_start: 48300005
+  - network: polygon
+    worker: matters
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_POLYGON>
+    parameters:
+      block_number_start: 52398940
   - network: arweave
     endpoint: https://arweave.net/
     worker: mirror
@@ -69,6 +74,12 @@ indexers:
     endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
     parameters:
       block_number_start: 17571053
+  - network: arweave
+    endpoint: <path:kv/data/network/rss3-node#ENDPOINT_POLYGON>
+    worker: momoka
+    parameters:
+      block_height_start: 1275799
+      rpc_thread_blocks: 1
   - network: ethereum
     endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
     worker: aave

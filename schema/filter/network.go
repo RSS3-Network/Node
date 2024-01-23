@@ -10,6 +10,7 @@ const (
 	NetworkEthereum                 // ethereum
 	NetworkOptimism                 // optimism
 	NetworkPolygon                  // polygon
+	NetworkCrossbell                // crossbell
 	NetworkRSS                      // rss
 	NetworkArweave                  // arweave
 	NetworkFarcaster                // farcaster
@@ -42,7 +43,7 @@ const (
 
 func (n Network) Source() NetworkSource {
 	switch n {
-	case NetworkEthereum, NetworkPolygon, NetworkBase, NetworkArbitrum, NetworkFantom, NetworkAvalanche:
+	case NetworkEthereum, NetworkPolygon, NetworkBase, NetworkCrossbell, NetworkArbitrum, NetworkFantom, NetworkAvalanche:
 		return NetworkEthereumSource
 	case NetworkArweave:
 		return NetworkArweaveSource
@@ -61,6 +62,7 @@ const (
 	EthereumChainIDOptimism  EthereumChainID = 10    // optimism
 	EthereumChainIDPolygon   EthereumChainID = 137   // polygon
 	EthereumChainIDBase      EthereumChainID = 8453  // base
+	EthereumChainIDCrossbell EthereumChainID = 3737  // crossbell
 	EthereumChainIDArbitrum  EthereumChainID = 42161 // arbitrum
 	EthereumChainIDFantom    EthereumChainID = 250   // fantom
 	EthereumChainIDAvalanche EthereumChainID = 43114 // avax

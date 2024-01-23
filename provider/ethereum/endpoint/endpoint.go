@@ -45,6 +45,9 @@ var endpointsMap = map[filter.Network][]string{
 		"https://rpc.ankr.com/avalanche",
 		"https://avalanche.blockpi.network/v1/rpc/public",
 	},
+	filter.NetworkCrossbell: {
+		"https://rpc.crossbell.io",
+	},
 }
 
 func Get(network filter.Network) ([]string, bool) {

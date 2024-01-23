@@ -18,5 +18,7 @@ const (
 	Aavegotchi             // aavegotchi
 	Lens                   // lens
 	Looksrare              // looksrare
+	Matters                // matters
+	Momoka                 // momoka
 	Aave                   // aave
 )
