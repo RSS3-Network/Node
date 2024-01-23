@@ -3,6 +3,7 @@ package meter
 import (
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -48,6 +49,9 @@ func New(driver Driver) (Server, error) {
 
 	instance.httpServer.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
 	instance.httpServer.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
+	instance.httpServer.GET("/healthcheck", func(c echo.Context) error {
+		return c.String(http.StatusOK, "ok")
+	})
 
 	return &instance, nil
 }
