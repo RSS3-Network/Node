@@ -23,6 +23,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/crossbell/periphery"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/crossbell/profile"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/crossbell/tips"
+	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/erc20"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/token"
 	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
 	"github.com/naturalselectionlabs/rss3-node/schema"
@@ -30,6 +31,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 )
 
 // Worker is the worker for Crossbell.
@@ -43,6 +45,7 @@ type worker struct {
 	eventFilterer     *event.EventFilterer
 	profileFilterer   *profile.ProfileFilterer
 	tipsFilterer      *tips.TipsFilterer
+	erc20Filterer     *erc20.ERC20Filterer
 	characterContract *character.CharacterCaller
 	profileContract   *profile.ProfileCaller
 	peripheryContract *periphery.PeripheryCaller
@@ -224,6 +227,11 @@ func (w *worker) matchGrantOperatorPermissions(_ *source.Task, log *ethereum.Log
 // matchTipsCharacterForNote matches TipsCharacterForNote event.
 func (w *worker) matchTipsCharacterForNote(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == crossbell.AddressTips && contract.MatchEventHashes(log.Topics[0], crossbell.EventHashTipCharacterForNote)
+}
+
+// matchERC20TransferLog matches ERC20 Transfer log.
+func (w *worker) matchERC20TransferLog(_ *source.Task, log *ethereum.Log) bool {
+	return len(log.Topics) == 3 && contract.MatchEventHashes(log.Topics[0], erc20.EventHashTransfer)
 }
 
 // transformProfileCreated transforms ProfileCreated event.
@@ -449,7 +457,35 @@ func (w *worker) transformTipsCharacterForNote(ctx context.Context, task *source
 
 	post.Reward = rewardTokenMetadata
 
-	action := w.buildPostRewardAction(ctx, task.Transaction.From, crossbell.AddressTips, platform, filter.TypeSocialReward, *post)
+	var to common.Address
+
+	for _, log := range task.Receipt.Logs {
+		if len(log.Topics) == 0 {
+			continue
+		}
+
+		switch {
+		case w.matchERC20TransferLog(task, log):
+			transferEvent, err := w.erc20Filterer.ParseTransfer(log.Export())
+			if err != nil {
+				return nil, fmt.Errorf("parse OrderFulfilled event: %w", err)
+			}
+
+			if transferEvent.From == crossbell.AddressTips {
+				to = transferEvent.To
+			}
+
+		default:
+			continue
+		}
+
+		if err != nil {
+			zap.L().Debug("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
+			continue
+		}
+	}
+
+	action := w.buildPostRewardAction(ctx, task.Transaction.From, to, platform, filter.TypeSocialReward, *post)
 
 	return []*schema.Action{
 		action,
@@ -930,6 +966,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance.eventFilterer = lo.Must(event.NewEventFilterer(ethereum.AddressGenesis, nil))
 	instance.profileFilterer = lo.Must(profile.NewProfileFilterer(ethereum.AddressGenesis, nil))
 	instance.tipsFilterer = lo.Must(tips.NewTipsFilterer(ethereum.AddressGenesis, nil))
+	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
 
 	return &instance, nil
 }

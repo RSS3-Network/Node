@@ -1182,7 +1182,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						Type:     filter.TypeSocialReward,
 						Platform: "xlog",
 						From:     "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
-						To:       "0x0058be0845952D887D1668B5545de995E12e8783",
+						To:       "0xb461c1521eE9D96a9C950337f0851b79bD66CAe1",
 						Metadata: &metadata.SocialPost{
 							Target: &metadata.SocialPost{
 								Handle:        "pseudoyu.csb",
