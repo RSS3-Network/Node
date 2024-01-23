@@ -44,8 +44,8 @@ var nativeTokenMap = map[uint64]metadata.Token{
 		Decimals: 18,
 	},
 	uint64(filter.EthereumChainIDBase): {
-		Name:     "Fantom",
-		Symbol:   "FTM",
+		Name:     "Ethereum",
+		Symbol:   "ETH",
 		Decimals: 18,
 	},
 	uint64(filter.EthereumChainIDArbitrum): {
