@@ -32,7 +32,7 @@ func (w *worker) Name() string {
 	return engine.IQWiki.String()
 }
 
-// Filter opensea contract address and event hash.
+// Filter IQWiki contract address and event hash.
 func (w *worker) Filter() engine.SourceFilter {
 	return &source.Filter{
 		LogAddresses: []common.Address{
@@ -70,7 +70,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, fmt.Errorf("invalid iqwiki transaction: %s", ethereumTask.Transaction.Hash)
 	}
 
-	// Build default opensea feed from task.
+	// Build default IQWiki feed from task.
 	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformIQWiki))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
