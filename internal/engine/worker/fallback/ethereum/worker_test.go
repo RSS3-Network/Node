@@ -496,6 +496,87 @@ func TestWorker_Ethereum(t *testing.T) {
 		// 	},
 		// 	wantError: require.NoError,
 		// },
+		{
+			name: "Transfer ETH on Base",
+			arguments: arguments{
+				task: &source.Task{
+					Network: filter.NetworkEthereum,
+					ChainID: 8453,
+					Header: &ethereum.Header{
+						Hash:         common.HexToHash("0x24c8559fb47d3a9320c868b30c257255d6ca3430ddb18264f46554578b9665e4"),
+						ParentHash:   common.HexToHash("0xa988a9126cfc8739bfac483e62bff291af7103c6225b9f5a4e9e0f245ae42fb5"),
+						UncleHash:    common.HexToHash("0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"),
+						Coinbase:     common.HexToAddress("0x4200000000000000000000000000000000000011"),
+						Number:       lo.Must(new(big.Int).SetString("2430365", 0)),
+						GasLimit:     30000000,
+						GasUsed:      2745325,
+						Timestamp:    1691650077,
+						BaseFee:      lo.Must(new(big.Int).SetString("55", 0)),
+						Transactions: nil,
+					},
+					Transaction: &ethereum.Transaction{
+						BlockHash: common.HexToHash("0xc5bb7e79738b494b9742ccc78451e4884304ad22471dbbaaf6fc70d5572ae284"),
+						From:      common.HexToAddress("0x1d97d5c7d68E03BAe6FBb1ec6E5887d6eAaaAA7d"),
+						Gas:       21000,
+						GasPrice:  lo.Must(new(big.Int).SetString("1500000055", 10)),
+						Hash:      common.HexToHash("0xc5bb7e79738b494b9742ccc78451e4884304ad22471dbbaaf6fc70d5572ae284"),
+						Input:     nil,
+						To:        lo.ToPtr(common.HexToAddress("0xdd9176eA3E7559D6B68b537eF555D3e89403f742")),
+						Value:     lo.Must(new(big.Int).SetString("550000000000000000", 0)),
+						Type:      2,
+						ChainID:   lo.Must(new(big.Int).SetString("8453", 0)),
+					},
+					Receipt: &ethereum.Receipt{
+						BlockHash:         common.HexToHash("0x24c8559fb47d3a9320c868b30c257255d6ca3430ddb18264f46554578b9665e4"),
+						BlockNumber:       lo.Must(new(big.Int).SetString("2430365", 0)),
+						ContractAddress:   nil,
+						CumulativeGasUsed: 513567,
+						EffectiveGasPrice: hexutil.MustDecodeBig("0x59682f37"),
+						GasUsed:           21000,
+						L1GasPrice:        lo.Must(new(big.Int).SetString("13361473940", 0)),
+						L1GasUsed:         lo.Must(new(big.Int).SetString("2056", 0)),
+						L1Fee:             lo.Must(new(big.Int).SetString("18790294247717", 0)),
+						FeeScalar:         lo.Must(new(big.Float).SetString("0.684")),
+						Logs:              []*ethereum.Log{},
+						Status:            1,
+						TransactionHash:   common.HexToHash("0xc5bb7e79738b494b9742ccc78451e4884304ad22471dbbaaf6fc70d5572ae284"),
+						TransactionIndex:  8,
+					},
+				},
+				config: &config.Module{
+					Network:  filter.NetworkEthereum,
+					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+				},
+			},
+			want: &schema.Feed{
+				ID:      "0xc5bb7e79738b494b9742ccc78451e4884304ad22471dbbaaf6fc70d5572ae284",
+				Network: filter.NetworkEthereum,
+				Index:   8,
+				From:    "0x1d97d5c7d68E03BAe6FBb1ec6E5887d6eAaaAA7d",
+				To:      "0xdd9176eA3E7559D6B68b537eF555D3e89403f742",
+				Type:    filter.TypeTransactionTransfer,
+				Fee: &schema.Fee{
+					Amount:  lo.Must(decimal.NewFromString("50290295402717")),
+					Decimal: 18,
+				},
+				Actions: []*schema.Action{
+					{
+						Type: filter.TypeTransactionTransfer,
+						From: "0x1d97d5c7d68E03BAe6FBb1ec6E5887d6eAaaAA7d",
+						To:   "0xdd9176eA3E7559D6B68b537eF555D3e89403f742",
+						Metadata: metadata.TransactionTransfer{
+							Name:     "Ethereum",
+							Symbol:   "ETH",
+							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("550000000000000000"))),
+							Decimals: 18,
+						},
+					},
+				},
+				Status:    true,
+				Timestamp: 1691650077,
+			},
+			wantError: require.NoError,
+		},
 	}
 
 	for _, testcase := range testcases {
@@ -515,9 +596,10 @@ func TestWorker_Ethereum(t *testing.T) {
 
 			feed, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
-			require.Equal(t, testcase.want, feed)
 
-			t.Log(feed)
+			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+
+			require.Equal(t, testcase.want, feed)
 		})
 	}
 }

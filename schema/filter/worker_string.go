@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _NameName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilenshighlight"
+const _NameName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilenslooksraremattersmomokahighlight"
 
-var _NameIndex = [...]uint8{0, 7, 15, 21, 30, 34, 43, 50, 57, 65, 75, 79, 88}
+var _NameIndex = [...]uint8{0, 7, 15, 21, 30, 34, 43, 50, 57, 65, 75, 79, 88, 95, 101, 110}
 
-const _NameLowerName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilenshighlight"
+const _NameLowerName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilenslooksraremattersmomokahighlight"
 
 func (i Name) String() string {
 	if i < 0 || i >= Name(len(_NameIndex)-1) {
@@ -41,36 +41,45 @@ func _NameNoOp() {
 	_ = x[Optimism-(8)]
 	_ = x[Aavegotchi-(9)]
 	_ = x[Lens-(10)]
-	_ = x[Highlight-(11)]
+	_ = x[Looksrare-(11)]
+	_ = x[Matters-(12)]
+	_ = x[Momoka-(13)]
+	_ = x[Highlight-(14)]
 }
 
-var _NameValues = []Name{Unknown, Fallback, Mirror, Farcaster, RSS3, Paragraph, OpenSea, Uniswap, Optimism, Aavegotchi, Lens, Highlight}
+var _NameValues = []Name{Unknown, Fallback, Mirror, Farcaster, RSS3, Paragraph, OpenSea, Uniswap, Optimism, Aavegotchi, Lens, Looksrare, Matters, Momoka, Highlight}
 
 var _NameNameToValueMap = map[string]Name{
-	_NameName[0:7]:        Unknown,
-	_NameLowerName[0:7]:   Unknown,
-	_NameName[7:15]:       Fallback,
-	_NameLowerName[7:15]:  Fallback,
-	_NameName[15:21]:      Mirror,
-	_NameLowerName[15:21]: Mirror,
-	_NameName[21:30]:      Farcaster,
-	_NameLowerName[21:30]: Farcaster,
-	_NameName[30:34]:      RSS3,
-	_NameLowerName[30:34]: RSS3,
-	_NameName[34:43]:      Paragraph,
-	_NameLowerName[34:43]: Paragraph,
-	_NameName[43:50]:      OpenSea,
-	_NameLowerName[43:50]: OpenSea,
-	_NameName[50:57]:      Uniswap,
-	_NameLowerName[50:57]: Uniswap,
-	_NameName[57:65]:      Optimism,
-	_NameLowerName[57:65]: Optimism,
-	_NameName[65:75]:      Aavegotchi,
-	_NameLowerName[65:75]: Aavegotchi,
-	_NameName[75:79]:      Lens,
-	_NameLowerName[75:79]: Lens,
-	_NameName[79:88]:      Highlight,
-	_NameLowerName[79:88]: Highlight,
+	_NameName[0:7]:          Unknown,
+	_NameLowerName[0:7]:     Unknown,
+	_NameName[7:15]:         Fallback,
+	_NameLowerName[7:15]:    Fallback,
+	_NameName[15:21]:        Mirror,
+	_NameLowerName[15:21]:   Mirror,
+	_NameName[21:30]:        Farcaster,
+	_NameLowerName[21:30]:   Farcaster,
+	_NameName[30:34]:        RSS3,
+	_NameLowerName[30:34]:   RSS3,
+	_NameName[34:43]:        Paragraph,
+	_NameLowerName[34:43]:   Paragraph,
+	_NameName[43:50]:        OpenSea,
+	_NameLowerName[43:50]:   OpenSea,
+	_NameName[50:57]:        Uniswap,
+	_NameLowerName[50:57]:   Uniswap,
+	_NameName[57:65]:        Optimism,
+	_NameLowerName[57:65]:   Optimism,
+	_NameName[65:75]:        Aavegotchi,
+	_NameLowerName[65:75]:   Aavegotchi,
+	_NameName[75:79]:        Lens,
+	_NameLowerName[75:79]:   Lens,
+	_NameName[79:88]:        Looksrare,
+	_NameLowerName[79:88]:   Looksrare,
+	_NameName[88:95]:        Matters,
+	_NameLowerName[88:95]:   Matters,
+	_NameName[95:101]:       Momoka,
+	_NameLowerName[95:101]:  Momoka,
+	_NameName[101:110]:      Highlight,
+	_NameLowerName[101:110]: Highlight,
 }
 
 var _NameNames = []string{
@@ -86,6 +95,9 @@ var _NameNames = []string{
 	_NameName[65:75],
 	_NameName[75:79],
 	_NameName[79:88],
+	_NameName[88:95],
+	_NameName[95:101],
+	_NameName[101:110],
 }
 
 // NameString retrieves an enum value from the enum constants string name.

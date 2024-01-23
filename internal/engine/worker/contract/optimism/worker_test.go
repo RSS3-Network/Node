@@ -2,7 +2,6 @@ package optimism_test
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 	"testing"
 
@@ -389,6 +388,10 @@ func TestWorker_Ethereum(t *testing.T) {
 						CumulativeGasUsed: 4406169,
 						EffectiveGasPrice: hexutil.MustDecodeBig("0x74"),
 						GasUsed:           117071,
+						L1GasPrice:        lo.Must(new(big.Int).SetString("18236934242", 0)),
+						L1GasUsed:         lo.Must(new(big.Int).SetString("2800", 0)),
+						L1Fee:             lo.Must(new(big.Int).SetString("34927376460278", 0)),
+						FeeScalar:         lo.Must(new(big.Float).SetString("0.684")),
 						Logs: []*ethereum.Log{
 							{
 								Address: common.HexToAddress("0x4200000000000000000000000000000000000010"),
@@ -475,7 +478,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Type:     filter.TypeTransactionBridge,
 				Platform: lo.ToPtr(filter.PlatformOptimism),
 				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("13580236")),
+					Amount:  lo.Must(decimal.NewFromString("34927390040514")),
 					Decimal: 18,
 				},
 				Actions: []*schema.Action{
@@ -539,6 +542,10 @@ func TestWorker_Ethereum(t *testing.T) {
 						CumulativeGasUsed: 681525,
 						EffectiveGasPrice: hexutil.MustDecodeBig("0xba"),
 						GasUsed:           129308,
+						L1GasPrice:        lo.Must(new(big.Int).SetString("16847193050", 0)),
+						L1GasUsed:         lo.Must(new(big.Int).SetString("2704", 0)),
+						L1Fee:             lo.Must(new(big.Int).SetString("31159490044924", 0)),
+						FeeScalar:         lo.Must(new(big.Float).SetString("0.684")),
 						Logs: []*ethereum.Log{
 							{
 								Address: common.HexToAddress("0x0994206dfE8De6Ec6920FF4D779B0d950605Fb53"),
@@ -651,7 +658,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Type:     filter.TypeTransactionBridge,
 				Platform: lo.ToPtr(filter.PlatformOptimism),
 				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("24051288")),
+					Amount:  lo.Must(decimal.NewFromString("31159514096212")),
 					Decimal: 18,
 				},
 				Actions: []*schema.Action{
@@ -841,6 +848,10 @@ func TestWorker_Ethereum(t *testing.T) {
 						CumulativeGasUsed: 139461,
 						EffectiveGasPrice: hexutil.MustDecodeBig("0x0"),
 						GasUsed:           139461,
+						L1GasPrice:        lo.Must(new(big.Int).SetString("28545416243", 0)),
+						L1GasUsed:         lo.Must(new(big.Int).SetString("6672", 0)),
+						L1Fee:             lo.Must(new(big.Int).SetString("190455017173296", 0)),
+						FeeScalar:         lo.Must(new(big.Float).SetString("1")),
 						Logs: []*ethereum.Log{
 							{
 								Address: common.HexToAddress("0x7F5c764cBc14f9669B88837ca1490cCa17c31607"),
@@ -913,7 +924,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Type:     filter.TypeTransactionBridge,
 				Platform: lo.ToPtr(filter.PlatformOptimism),
 				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("0")),
+					Amount:  lo.Must(decimal.NewFromString("190455017173296")),
 					Decimal: 18,
 				},
 				Actions: []*schema.Action{
@@ -979,6 +990,10 @@ func TestWorker_Ethereum(t *testing.T) {
 						CumulativeGasUsed: 681525,
 						EffectiveGasPrice: hexutil.MustDecodeBig("0xba"),
 						GasUsed:           129308,
+						L1GasPrice:        lo.Must(new(big.Int).SetString("16847193050", 0)),
+						L1GasUsed:         lo.Must(new(big.Int).SetString("2704", 0)),
+						L1Fee:             lo.Must(new(big.Int).SetString("31159490044924", 0)),
+						FeeScalar:         lo.Must(new(big.Float).SetString("0.684")),
 						Logs: []*ethereum.Log{
 							{
 								Address: common.HexToAddress("0x0994206dfE8De6Ec6920FF4D779B0d950605Fb53"),
@@ -1091,7 +1106,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Type:     filter.TypeTransactionBridge,
 				Platform: lo.ToPtr(filter.PlatformOptimism),
 				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("24051288")),
+					Amount:  lo.Must(decimal.NewFromString("31159514096212")),
 					Decimal: 18,
 				},
 				Actions: []*schema.Action{
@@ -1427,7 +1442,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			feed, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
 
 			require.Equal(t, testcase.want, feed)
 		})

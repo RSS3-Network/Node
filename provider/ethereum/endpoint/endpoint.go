@@ -24,10 +24,14 @@ var endpointsMap = map[filter.Network][]string{
 		"https://polygon.llamarpc.com",
 	},
 	filter.NetworkBase: {
-		"https://developer-access-mainnet.base.org",
+		"https://rpc.ankr.com/base",
+		"https://base.blockpi.network/v1/rpc/public",
 	},
 	filter.NetworkArbitrum: {
 		"https://arb1.arbitrum.io/rpc",
+	},
+	filter.NetworkCrossbell: {
+		"https://rpc.crossbell.io",
 	},
 }
 

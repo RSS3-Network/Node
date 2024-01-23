@@ -17,5 +17,8 @@ const (
 	Optimism               // optimism
 	Aavegotchi             // aavegotchi
 	Lens                   // lens
+	Looksrare              // looksrare
+	Matters                // matters
+	Momoka                 // momoka
 	Highlight              // highlight
 )
