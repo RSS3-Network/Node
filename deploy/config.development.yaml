@@ -109,6 +109,12 @@ component:
       endpoint: https://rpc.ankr.com/polygon
       parameters:
         block_number_start: 52398940
+    - network: arweave
+      worker: momoka
+      endpoint: https://rpc.ankr.com/polygon
+      parameters:
+        block_height_start:
+        rpc_thread_blocks:
     - network: ethereum
       worker: lido
       endpoint: https://rpc.ankr.com/eth

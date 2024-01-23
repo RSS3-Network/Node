@@ -21,6 +21,7 @@ const (
 	PlatformLens                           // Lens
 	PlatformLooksRare                      // LooksRare
 	PlatformMatters                        // Matters
+	PlatformMomoka                         // Momoka
 	PlatformLido                           // Lido
 )
 

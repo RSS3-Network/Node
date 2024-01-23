@@ -19,5 +19,6 @@ const (
 	Lens                   // lens
 	Looksrare              // looksrare
 	Matters                // matters
+	Momoka                 // momoka
 	Lido                   // lido
 )
