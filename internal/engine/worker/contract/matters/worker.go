@@ -57,14 +57,13 @@ func (w *worker) Filter() engine.SourceFilter {
 	}
 }
 
-// Match returns true if the task is an Arweave task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
 }
 
-// Transform returns a feed with the action of the task.
+// Transform matters task to feed.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
-	// Cast the task to an Arweave task.
+	// Cast the task to a matters task.
 	mattersTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -228,7 +227,7 @@ func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Ta
 	}, nil
 }
 
-// NewWorker returns a new Arweave worker.
+// NewWorker returns a new matters worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
 	var instance = worker{
 		config:          config,
