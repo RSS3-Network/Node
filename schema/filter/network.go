@@ -57,13 +57,13 @@ func (n Network) Source() NetworkSource {
 type EthereumChainID uint64
 
 const (
-	EthereumChainIDMainnet   EthereumChainID = 1   // ethereum
-	EthereumChainIDOptimism  EthereumChainID = 10  // optimism
-	EthereumChainIDPolygon   EthereumChainID = 137 // polygon
-	EthereumChainIDArbitrum  EthereumChainID = 42161
-	EthereumChainIDFantom    EthereumChainID = 250
-	EthereumChainIDBase      EthereumChainID = 8453
-	EthereumChainIDCrossbell EthereumChainID = 3737
+	EthereumChainIDMainnet   EthereumChainID = 1     // ethereum
+	EthereumChainIDOptimism  EthereumChainID = 10    // optimism
+	EthereumChainIDPolygon   EthereumChainID = 137   // polygon
+	EthereumChainIDArbitrum  EthereumChainID = 42161 // arbitrum
+	EthereumChainIDFantom    EthereumChainID = 250   // fantom
+	EthereumChainIDBase      EthereumChainID = 8453  // base
+	EthereumChainIDCrossbell EthereumChainID = 3737  // crossbell
 )
 
 func IsOptimismSuperchain(chainID uint64) bool {
