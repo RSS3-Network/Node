@@ -68,7 +68,7 @@ indexers:
     worker: lido
     endpoint: <path:kv/data/network/rss3-node#ENDPOINT_ETHEREUM>
     parameters:
-      block_number_start: 17571053
+      block_number_start: 11473216
 additionalRSS:
   - network: rss
     endpoint: https://rsshub.app/
