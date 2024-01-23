@@ -19,5 +19,7 @@ const (
 	Lens                   // lens
 	Looksrare              // looksrare
 	Matters                // matters
+	Momoka                 // momoka
+	Highlight              // highlight
 	Crossbell              // crossbell
 )

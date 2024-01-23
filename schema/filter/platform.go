@@ -21,6 +21,8 @@ const (
 	PlatformLens                           // Lens
 	PlatformLooksRare                      // LooksRare
 	PlatformMatters                        // Matters
+	PlatformMomoka                         // Momoka
+	PlatformHighlight                      // Highlight
 	PlatformCrossbell                      // Crossbell
 )
 
