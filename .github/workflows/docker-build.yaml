@@ -1,0 +1,19 @@
+name: build & deploy
+
+on:
+  push:
+    branches:
+      - "develop"
+    tags:
+      - "*"
+
+jobs:
+  build:
+    uses: NaturalSelectionLabs/Daedalus/.github/workflows/docker-tpl.yaml@main
+    with:
+      images: rss3/node
+      context: .
+      dockerfile: ./Dockerfile
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
