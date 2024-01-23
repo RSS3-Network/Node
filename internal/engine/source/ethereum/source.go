@@ -104,10 +104,24 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 			return fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
 		}
 
-		// Before being able to handle block reorganization, correctly handle canonical.
-		receipts, err := s.ethereumClient.BlockReceipts(ctx, block.Number)
-		if err != nil {
-			return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
+		var receipts []*ethereum.Receipt
+
+		// handle crossbell blockchain cause lack of `eth_getBlockReceipts` implementation
+		if s.config.Network == filter.NetworkCrossbell {
+			for _, tx := range block.Transactions {
+				receipt, err := s.ethereumClient.TransactionReceipt(ctx, tx.Hash)
+				if err != nil {
+					return fmt.Errorf("get receipt by transaction hash %s: %w", tx.Hash, err)
+				}
+
+				receipts = append(receipts, receipt)
+			}
+		} else {
+			// Before being able to handle block reorganization, correctly handle canonical.
+			receipts, err = s.ethereumClient.BlockReceipts(ctx, block.Number)
+			if err != nil {
+				return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
+			}
 		}
 
 		tasks, err := s.buildTasks(block, receipts)
@@ -191,9 +205,23 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 				return fmt.Errorf("get block by hash %s: %w", blockHash, err)
 			}
 
-			receipts, err := s.ethereumClient.BlockReceipts(ctx, block.Number)
-			if err != nil {
-				return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
+			var receipts []*ethereum.Receipt
+
+			// handle crossbell blockchain cause lack of `eth_getBlockReceipts` implementation
+			if s.config.Network == filter.NetworkCrossbell {
+				for _, tx := range block.Transactions {
+					receipt, err := s.ethereumClient.TransactionReceipt(ctx, tx.Hash)
+					if err != nil {
+						return fmt.Errorf("get receipt by transaction hash %s: %w", tx.Hash, err)
+					}
+
+					receipts = append(receipts, receipt)
+				}
+			} else {
+				receipts, err = s.ethereumClient.BlockReceipts(ctx, block.Number)
+				if err != nil {
+					return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
+				}
 			}
 
 			// Filter receipts by transaction hashes of logs.
