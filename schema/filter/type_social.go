@@ -20,4 +20,5 @@ const (
 	TypeSocialShare
 	TypeSocialProfile
 	TypeSocialMint
+	TypeSocialReward
 )

@@ -20,6 +20,7 @@ const (
 	PlatformAavegotchi                     // Aavegotchi
 	PlatformLens                           // Lens
 	PlatformLooksRare                      // LooksRare
+	PlatformMatters                        // Matters
 	PlatformENS                            // ens
 )
 
