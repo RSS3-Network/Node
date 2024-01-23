@@ -29,7 +29,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.IQWiki.String()
+	return filter.IQWiki.String()
 }
 
 // Filter IQWiki contract address and event hash.
