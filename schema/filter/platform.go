@@ -21,7 +21,8 @@ const (
 	PlatformLens                           // Lens
 	PlatformLooksRare                      // LooksRare
 	PlatformMatters                        // Matters
-	PlatformENS                            // ens
+	PlatformMomoka                         // Momoka
+	PlatformENS                            // ENS
 )
 
 func (p Platform) ID() string {
