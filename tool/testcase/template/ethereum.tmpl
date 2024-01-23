@@ -33,6 +33,10 @@
         {{ if .Receipt.CumulativeGasUsed }}CumulativeGasUsed: {{ .Receipt.CumulativeGasUsed }},{{ end }}
         {{ if .Receipt.EffectiveGasPrice }}EffectiveGasPrice: hexutil.MustDecodeBig("{{ BigIntToHex .Receipt.EffectiveGasPrice }}"),{{ end }}
         GasUsed: {{ .Receipt.GasUsed }},
+        {{ if .Receipt.L1GasPrice }}L1GasPrice: lo.Must(new(big.Int).SetString("{{ .Receipt.L1GasPrice }}", 0)),{{ end }}
+        {{ if .Receipt.L1GasUsed }}L1GasUsed: lo.Must(new(big.Int).SetString("{{ .Receipt.L1GasUsed }}", 0)),{{ end }}
+        {{ if .Receipt.L1Fee }}L1Fee: lo.Must(new(big.Int).SetString("{{ .Receipt.L1Fee }}", 0)),{{ end }}
+        {{ if .Receipt.FeeScalar }}FeeScalar: lo.Must(new(big.Float).SetString("{{ .Receipt.FeeScalar }}")),{{ end }}
         Logs: []*ethereum.Log{
             {{- range .Receipt.Logs -}}
             {

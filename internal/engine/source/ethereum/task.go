@@ -93,6 +93,15 @@ func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 }
 
 func (t Task) buildFee() (*big.Int, error) {
+	switch {
+	case filter.IsOptimismSuperchain(t.ChainID):
+		return t.buildFeeOptimismSuperchain()
+	default:
+		return t.buildFeeDefault()
+	}
+}
+
+func (t Task) buildFeeDefault() (*big.Int, error) {
 	switch t.Transaction.Type {
 	case types.LegacyTxType, types.AccessListTxType:
 		return new(big.Int).Mul(t.Transaction.GasPrice, new(big.Int).SetUint64(t.Receipt.GasUsed)), nil
@@ -115,16 +124,19 @@ func (t Task) buildFee() (*big.Int, error) {
 
 		return gasPrice.Mul(gasUsed).BigInt(), nil
 	default:
-		if filter.IsOptimismSuperchain(t.ChainID) {
-			return t.buildFeeOptimismSuperchain()
-		}
-
 		return nil, fmt.Errorf("unsupported transaction type %d", t.Transaction.Type)
 	}
 }
 
 func (t Task) buildFeeOptimismSuperchain() (*big.Int, error) {
 	switch t.Transaction.Type {
+	case types.LegacyTxType, types.AccessListTxType, types.DynamicFeeTxType:
+		fee, err := t.buildFeeDefault()
+		if err != nil {
+			return nil, err
+		}
+
+		return new(big.Int).Add(fee, t.Receipt.L1Fee), nil
 	case ethereum.TransactionTypeOptimismDeposit:
 		return big.NewInt(0), nil
 	default:

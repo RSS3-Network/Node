@@ -20,6 +20,8 @@ const (
 	PlatformAavegotchi                     // Aavegotchi
 	PlatformLens                           // Lens
 	PlatformLooksRare                      // LooksRare
+	PlatformMatters                        // Matters
+	PlatformMomoka                         // Momoka
 )
 
 func (p Platform) ID() string {
