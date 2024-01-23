@@ -104,9 +104,14 @@ component:
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start:
-
     - network: polygon
       worker: matters
       endpoint: https://rpc.ankr.com/polygon
       parameters:
         block_number_start: 52398940
+    - network: arweave
+      worker: momoka
+      endpoint: https://rpc.ankr.com/polygon
+      parameters:
+        block_height_start:
+        rpc_thread_blocks:
