@@ -1,16 +1,12 @@
 environment: development
 
 discovery:
-  maintainer:
-    owner_evm_address: "0x123" # address to receive network incentivization and ownership verification
-    website: "https://abc.com/rss3-node" # link to your website
-  server:
-    # endpoint is how the Global Indexer reaches your RSS3 node
-    # a domain name is recommended but not required, you can use an IP address+port as well
-    endpoint: "https://rss3.abc.com/"
-    signature: ""
-    authentication:
-      access_key: ""
+    maintainer:
+      evm_address:
+      signature:
+    server:
+      endpoint:
+      global_indexer_endpoint: https://gi.rss3.dev/
 
 database:
   driver: cockroachdb
@@ -103,6 +99,11 @@ component:
       parameters:
         block_height_start:
         rpc_thread_blocks:
+    - network: ethereum
+      worker: looksrare
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
 
     # iqwiki
     - network: polygon

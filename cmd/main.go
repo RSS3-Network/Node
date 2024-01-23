@@ -11,8 +11,8 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/constant"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
 	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/node"
+	"github.com/naturalselectionlabs/rss3-node/internal/node/broadcaster"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/hub"
 	"github.com/naturalselectionlabs/rss3-node/internal/node/indexer"
 	"github.com/naturalselectionlabs/rss3-node/internal/stream"
@@ -71,6 +71,8 @@ var command = cobra.Command{
 			return runHub(cmd.Context(), config, databaseClient)
 		case node.Indexer:
 			return runIndexer(cmd.Context(), config, databaseClient, streamClient)
+		case node.Broadcaster:
+			return runBroadcaster(cmd.Context(), config)
 		}
 
 		return fmt.Errorf("unsupported module %s", lo.Must(flags.GetString(flag.KeyModule)))
@@ -97,7 +99,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 		return fmt.Errorf("network string: %w", err)
 	}
 
-	worker, err := engine.NameString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
+	worker, err := filter.NameString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
 	if err != nil {
 		return fmt.Errorf("worker string: %w", err)
 	}
@@ -116,6 +118,15 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 	}
 
 	return fmt.Errorf("undefined indexer %s.%s.%s", network, worker, parameters)
+}
+
+func runBroadcaster(ctx context.Context, config *config.File) error {
+	server, err := broadcaster.NewBroadcaster(ctx, config)
+	if err != nil {
+		return fmt.Errorf("new broadcaster: %w", err)
+	}
+
+	return server.Run(ctx)
 }
 
 func setOpenTelemetry(config *config.File) error {
@@ -145,7 +156,7 @@ func setOpenTelemetry(config *config.File) error {
 		}
 
 		go func() {
-			if err := meterServer.Run(); err != nil {
+			if err := meterServer.Run(*observabilityConfig.Metrics); err != nil {
 				zap.L().Error("failed to run telemetry meter server", zap.Error(err))
 			}
 		}()
@@ -168,7 +179,7 @@ func init() {
 	command.PersistentFlags().String(flag.KeyConfig, "./deploy/config.development.yaml", "config file path")
 	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")
 	command.PersistentFlags().String(flag.KeyIndexerNetwork, filter.NetworkEthereum.String(), "indexer network")
-	command.PersistentFlags().String(flag.KeyIndexerWorker, engine.Fallback.String(), "indexer worker")
+	command.PersistentFlags().String(flag.KeyIndexerWorker, filter.Fallback.String(), "indexer worker")
 	command.PersistentFlags().String(flag.KeyIndexerParameters, "{}", "indexer parameters")
 }
 

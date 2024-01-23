@@ -6,9 +6,9 @@ import (
 	"os"
 
 	"github.com/creasty/defaults"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/go-playground/validator/v10"
 	"github.com/naturalselectionlabs/rss3-node/internal/database"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/stream"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/samber/lo"
@@ -24,10 +24,26 @@ const (
 
 type File struct {
 	Environment   string     `yaml:"environment" validate:"required" default:"development"`
+	Discovery     *Discovery `yaml:"discovery" validate:"required"`
 	Node          *Node      `yaml:"component" validate:"required"`
 	Database      *Database  `yaml:"database" validate:"required"`
 	Stream        *Stream    `yaml:"stream" validate:"required"`
 	Observability *Telemetry `yaml:"observability" validate:"required"`
+}
+
+type Discovery struct {
+	Maintainer *Maintainer `yaml:"maintainer"`
+	Server     *Server     `yaml:"server"`
+}
+
+type Maintainer struct {
+	EvmAddress common.Address `yaml:"evm_address"`
+	Signature  string         `yaml:"signature"`
+}
+
+type Server struct {
+	Endpoint              string `yaml:"endpoint"`
+	GlobalIndexerEndpoint string `yaml:"global_indexer_endpoint"`
 }
 
 type Node struct {
@@ -40,7 +56,7 @@ type Module struct {
 	Network      filter.Network `yaml:"network" validate:"required"`
 	Endpoint     string         `yaml:"endpoint" validate:"required"`
 	IPFSGateways []string       `yaml:"ipfs_gateways"`
-	Worker       engine.Name    `yaml:"worker"`
+	Worker       filter.Name    `yaml:"worker"`
 	Parameters   *Options       `yaml:"parameters"`
 }
 

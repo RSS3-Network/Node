@@ -7,12 +7,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/gabriel-vasile/mimetype"
 	syncx "github.com/naturalselectionlabs/rss3-node/common/sync"
 	"github.com/samber/lo"
 )
@@ -35,7 +33,6 @@ const (
 
 type HTTPClient interface {
 	Fetch(ctx context.Context, path string, fetchMode FetchMode) (io.ReadCloser, error)
-	GetContentType(ctx context.Context, path string) (string, error)
 }
 
 var _ HTTPClient = (*httpClient)(nil)
@@ -130,39 +127,6 @@ func (h *httpClient) fetchQuick(ctx context.Context, path string) (io.ReadCloser
 	}
 
 	return result, nil
-}
-
-func (h *httpClient) GetContentType(ctx context.Context, uri string) (string, error) {
-	// TODO: Support chain:// protocol.
-	if strings.HasPrefix(uri, "chain://") {
-		return "text/html", nil
-	}
-
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, uri, nil)
-	if err != nil {
-		return "", fmt.Errorf("new request: %w", err)
-	}
-
-	request.Header.Set("User-Agent", "curl/7.86.0")
-
-	response, err := h.httpClient.Do(request)
-	if err != nil {
-		return "", fmt.Errorf("send request: %w", err)
-	}
-
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected status code: %d", response.StatusCode)
-	}
-
-	mimeType, err := mimetype.DetectReader(response.Body)
-
-	if err != nil || mimeType == nil {
-		return "", fmt.Errorf("fail to detect mime type %s", uri)
-	}
-
-	return mimeType.String(), nil
 }
 
 func NewHTTPClient(options ...HTTPClientOption) (HTTPClient, error) {

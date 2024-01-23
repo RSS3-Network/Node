@@ -30,7 +30,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return engine.Aavegotchi.String()
+	return filter.Aavegotchi.String()
 }
 
 // Filter filters the source for Aavegotchi.

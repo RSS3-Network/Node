@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -20,7 +21,7 @@ const (
 )
 
 type Server interface {
-	Run() error
+	Run(config.OpenTelemetryMetricsConfig) error
 }
 
 var _ Server = (*server)(nil)
@@ -29,8 +30,8 @@ type server struct {
 	httpServer *echo.Echo
 }
 
-func (s *server) Run() error {
-	return s.httpServer.Start("")
+func (s *server) Run(config config.OpenTelemetryMetricsConfig) error {
+	return s.httpServer.Start(config.Endpoint)
 }
 
 func New(driver Driver) (Server, error) {

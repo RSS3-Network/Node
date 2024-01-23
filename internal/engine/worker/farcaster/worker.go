@@ -11,7 +11,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/farcaster"
 	"github.com/naturalselectionlabs/rss3-node/provider/farcaster"
-	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
+	"github.com/naturalselectionlabs/rss3-node/provider/httpx"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
@@ -23,7 +23,7 @@ import (
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
-	httpClient ipfs.HTTPClient
+	httpClient httpx.Client
 }
 
 // Filter returns a source filter.
@@ -32,7 +32,7 @@ func (w *worker) Filter() engine.SourceFilter {
 }
 
 func (w *worker) Name() string {
-	return engine.Farcaster.String()
+	return filter.Farcaster.String()
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
@@ -271,7 +271,7 @@ func (w *worker) buildPostMedia(ctx context.Context, post *metadata.SocialPost, 
 }
 
 func NewWorker() (engine.Worker, error) {
-	httpClient, err := ipfs.NewHTTPClient()
+	httpClient, err := httpx.NewHTTPClient()
 
 	if err != nil {
 		return nil, fmt.Errorf("new http client: %w", err)

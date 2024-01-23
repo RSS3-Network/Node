@@ -19,6 +19,7 @@ const (
 	PlatformOptimism                       // Optimism
 	PlatformAavegotchi                     // Aavegotchi
 	PlatformLens                           // Lens
+	PlatformLooksRare                      // LooksRare
 	PlatformIQWiki                         // IQWiki
 )
 

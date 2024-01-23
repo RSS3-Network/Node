@@ -11,7 +11,7 @@ import (
 	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
 	"github.com/naturalselectionlabs/rss3-node/provider/arweave/contract/paragraph"
-	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
+	"github.com/naturalselectionlabs/rss3-node/provider/httpx"
 	"github.com/naturalselectionlabs/rss3-node/schema"
 	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
@@ -25,11 +25,11 @@ var _ engine.Worker = (*worker)(nil)
 type worker struct {
 	config        *config.Module
 	arweaveClient arweave.Client
-	ipfsClient    ipfs.HTTPClient
+	httpClient    httpx.Client
 }
 
 func (w *worker) Name() string {
-	return engine.Paragraph.String()
+	return filter.Paragraph.String()
 }
 
 // Filter returns a filter for source.
@@ -173,7 +173,7 @@ func (w *worker) buildParagraphMetadata(ctx context.Context, handle, contentURI 
 	if paragraphData.Get("cover_img").Exists() {
 		address := paragraphData.Get("cover_img.img.src").String()
 		if address != "" {
-			mimeType, err := w.ipfsClient.GetContentType(ctx, address)
+			mimeType, err := w.httpClient.GetContentType(ctx, address)
 			if err != nil {
 				return nil, fmt.Errorf("get content type failed: %w", err)
 			}
@@ -191,7 +191,7 @@ func (w *worker) buildParagraphMetadata(ctx context.Context, handle, contentURI 
 	if paragraphData.Get("collectibleImgUrl").Exists() {
 		address := paragraphData.Get("collectibleImgUrl").String()
 		if address != "" {
-			mimeType, err := w.ipfsClient.GetContentType(ctx, address)
+			mimeType, err := w.httpClient.GetContentType(ctx, address)
 			if err != nil {
 				return nil, fmt.Errorf("get content type failed: %w", err)
 			}
@@ -241,8 +241,8 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 		return nil, fmt.Errorf("new arweave client: %w", err)
 	}
 
-	if instance.ipfsClient, err = ipfs.NewHTTPClient(ipfs.WithGateways(config.IPFSGateways)); err != nil {
-		return nil, fmt.Errorf("new ipfs client: %w", err)
+	if instance.httpClient, err = httpx.NewHTTPClient(); err != nil {
+		return nil, fmt.Errorf("new http client: %w", err)
 	}
 
 	return &instance, nil
