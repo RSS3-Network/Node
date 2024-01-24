@@ -20,5 +20,6 @@ const (
 	Looksrare              // looksrare
 	Matters                // matters
 	Momoka                 // momoka
+	Highlight              // highlight
 	Aave                   // aave
 )

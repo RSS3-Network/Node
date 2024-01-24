@@ -16,14 +16,14 @@ const (
 	_EthereumChainIDLowerName_1 = "optimism"
 	_EthereumChainIDName_2      = "polygon"
 	_EthereumChainIDLowerName_2 = "polygon"
-	_EthereumChainIDName_3      = "fantom"
-	_EthereumChainIDLowerName_3 = "fantom"
-	_EthereumChainIDName_4      = "crossbell"
-	_EthereumChainIDLowerName_4 = "crossbell"
-	_EthereumChainIDName_5      = "base"
-	_EthereumChainIDLowerName_5 = "base"
-	_EthereumChainIDName_6      = "arbitrum"
-	_EthereumChainIDLowerName_6 = "arbitrum"
+	_EthereumChainIDName_3      = "EthereumChainIDFantom"
+	_EthereumChainIDLowerName_3 = "ethereumchainidfantom"
+	_EthereumChainIDName_4      = "EthereumChainIDCrossbell"
+	_EthereumChainIDLowerName_4 = "ethereumchainidcrossbell"
+	_EthereumChainIDName_5      = "EthereumChainIDBase"
+	_EthereumChainIDLowerName_5 = "ethereumchainidbase"
+	_EthereumChainIDName_6      = "EthereumChainIDArbitrum"
+	_EthereumChainIDLowerName_6 = "ethereumchainidarbitrum"
 	_EthereumChainIDName_7      = "avax"
 	_EthereumChainIDLowerName_7 = "avax"
 )
@@ -32,10 +32,10 @@ var (
 	_EthereumChainIDIndex_0 = [...]uint8{0, 8}
 	_EthereumChainIDIndex_1 = [...]uint8{0, 8}
 	_EthereumChainIDIndex_2 = [...]uint8{0, 7}
-	_EthereumChainIDIndex_3 = [...]uint8{0, 6}
-	_EthereumChainIDIndex_4 = [...]uint8{0, 9}
-	_EthereumChainIDIndex_5 = [...]uint8{0, 4}
-	_EthereumChainIDIndex_6 = [...]uint8{0, 8}
+	_EthereumChainIDIndex_3 = [...]uint8{0, 21}
+	_EthereumChainIDIndex_4 = [...]uint8{0, 24}
+	_EthereumChainIDIndex_5 = [...]uint8{0, 19}
+	_EthereumChainIDIndex_6 = [...]uint8{0, 23}
 	_EthereumChainIDIndex_7 = [...]uint8{0, 4}
 )
 
@@ -83,32 +83,32 @@ func _EthereumChainIDNoOp() {
 var _EthereumChainIDValues = []EthereumChainID{EthereumChainIDMainnet, EthereumChainIDOptimism, EthereumChainIDPolygon, EthereumChainIDFantom, EthereumChainIDCrossbell, EthereumChainIDBase, EthereumChainIDArbitrum, EthereumChainIDAvalanche}
 
 var _EthereumChainIDNameToValueMap = map[string]EthereumChainID{
-	_EthereumChainIDName_0[0:8]:      EthereumChainIDMainnet,
-	_EthereumChainIDLowerName_0[0:8]: EthereumChainIDMainnet,
-	_EthereumChainIDName_1[0:8]:      EthereumChainIDOptimism,
-	_EthereumChainIDLowerName_1[0:8]: EthereumChainIDOptimism,
-	_EthereumChainIDName_2[0:7]:      EthereumChainIDPolygon,
-	_EthereumChainIDLowerName_2[0:7]: EthereumChainIDPolygon,
-	_EthereumChainIDName_3[0:6]:      EthereumChainIDFantom,
-	_EthereumChainIDLowerName_3[0:6]: EthereumChainIDFantom,
-	_EthereumChainIDName_4[0:9]:      EthereumChainIDCrossbell,
-	_EthereumChainIDLowerName_4[0:9]: EthereumChainIDCrossbell,
-	_EthereumChainIDName_5[0:4]:      EthereumChainIDBase,
-	_EthereumChainIDLowerName_5[0:4]: EthereumChainIDBase,
-	_EthereumChainIDName_6[0:8]:      EthereumChainIDArbitrum,
-	_EthereumChainIDLowerName_6[0:8]: EthereumChainIDArbitrum,
-	_EthereumChainIDName_7[0:4]:      EthereumChainIDAvalanche,
-	_EthereumChainIDLowerName_7[0:4]: EthereumChainIDAvalanche,
+	_EthereumChainIDName_0[0:8]:       EthereumChainIDMainnet,
+	_EthereumChainIDLowerName_0[0:8]:  EthereumChainIDMainnet,
+	_EthereumChainIDName_1[0:8]:       EthereumChainIDOptimism,
+	_EthereumChainIDLowerName_1[0:8]:  EthereumChainIDOptimism,
+	_EthereumChainIDName_2[0:7]:       EthereumChainIDPolygon,
+	_EthereumChainIDLowerName_2[0:7]:  EthereumChainIDPolygon,
+	_EthereumChainIDName_3[0:21]:      EthereumChainIDFantom,
+	_EthereumChainIDLowerName_3[0:21]: EthereumChainIDFantom,
+	_EthereumChainIDName_4[0:24]:      EthereumChainIDCrossbell,
+	_EthereumChainIDLowerName_4[0:24]: EthereumChainIDCrossbell,
+	_EthereumChainIDName_5[0:19]:      EthereumChainIDBase,
+	_EthereumChainIDLowerName_5[0:19]: EthereumChainIDBase,
+	_EthereumChainIDName_6[0:23]:      EthereumChainIDArbitrum,
+	_EthereumChainIDLowerName_6[0:23]: EthereumChainIDArbitrum,
+	_EthereumChainIDName_7[0:4]:       EthereumChainIDAvalanche,
+	_EthereumChainIDLowerName_7[0:4]:  EthereumChainIDAvalanche,
 }
 
 var _EthereumChainIDNames = []string{
 	_EthereumChainIDName_0[0:8],
 	_EthereumChainIDName_1[0:8],
 	_EthereumChainIDName_2[0:7],
-	_EthereumChainIDName_3[0:6],
-	_EthereumChainIDName_4[0:9],
-	_EthereumChainIDName_5[0:4],
-	_EthereumChainIDName_6[0:8],
+	_EthereumChainIDName_3[0:21],
+	_EthereumChainIDName_4[0:24],
+	_EthereumChainIDName_5[0:19],
+	_EthereumChainIDName_6[0:23],
 	_EthereumChainIDName_7[0:4],
 }
 

@@ -11,12 +11,12 @@ const (
 	NetworkOptimism                 // optimism
 	NetworkPolygon                  // polygon
 	NetworkCrossbell                // crossbell
+	NetworkArbitrum                 // arbitrum
+	NetworkFantom                   // fantom
 	NetworkRSS                      // rss
 	NetworkArweave                  // arweave
 	NetworkFarcaster                // farcaster
 	NetworkBase                     // base
-	NetworkArbitrum                 // arbitrum
-	NetworkFantom                   // fantom
 	NetworkAvalanche                // avax
 )
 
@@ -43,7 +43,7 @@ const (
 
 func (n Network) Source() NetworkSource {
 	switch n {
-	case NetworkEthereum, NetworkPolygon, NetworkBase, NetworkCrossbell, NetworkArbitrum, NetworkFantom, NetworkAvalanche:
+	case NetworkEthereum, NetworkPolygon, NetworkOptimism, NetworkArbitrum, NetworkFantom, NetworkBase, NetworkCrossbell, NetworkAvalanche:
 		return NetworkEthereumSource
 	case NetworkArweave:
 		return NetworkArweaveSource
@@ -58,19 +58,20 @@ func (n Network) Source() NetworkSource {
 type EthereumChainID uint64
 
 const (
-	EthereumChainIDMainnet   EthereumChainID = 1     // ethereum
-	EthereumChainIDOptimism  EthereumChainID = 10    // optimism
-	EthereumChainIDPolygon   EthereumChainID = 137   // polygon
-	EthereumChainIDBase      EthereumChainID = 8453  // base
-	EthereumChainIDCrossbell EthereumChainID = 3737  // crossbell
-	EthereumChainIDArbitrum  EthereumChainID = 42161 // arbitrum
-	EthereumChainIDFantom    EthereumChainID = 250   // fantom
+	EthereumChainIDMainnet   EthereumChainID = 1   // ethereum
+	EthereumChainIDOptimism  EthereumChainID = 10  // optimism
+	EthereumChainIDPolygon   EthereumChainID = 137 // polygon
+	EthereumChainIDArbitrum  EthereumChainID = 42161
+	EthereumChainIDFantom    EthereumChainID = 250
+	EthereumChainIDBase      EthereumChainID = 8453
+	EthereumChainIDCrossbell EthereumChainID = 3737
 	EthereumChainIDAvalanche EthereumChainID = 43114 // avax
 )
 
 func IsOptimismSuperchain(chainID uint64) bool {
 	switch chainID {
-	case uint64(EthereumChainIDOptimism), uint64(EthereumChainIDBase):
+	case uint64(EthereumChainIDOptimism),
+		uint64(EthereumChainIDBase):
 		return true
 	default:
 		return false

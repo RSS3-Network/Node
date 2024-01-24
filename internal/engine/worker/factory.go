@@ -8,6 +8,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/internal/engine"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/aave"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/aavegotchi"
+	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/highlight"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/lens"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/looksrare"
 	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/matters"
@@ -51,6 +52,8 @@ func New(config *config.Module, databaseClient database.Client) (engine.Worker, 
 		return matters.NewWorker(config)
 	case filter.Momoka:
 		return momoka.NewWorker(config)
+	case filter.Highlight:
+		return highlight.NewWorker(config)
 	case filter.Aave:
 		return aave.NewWorker(config)
 	default:

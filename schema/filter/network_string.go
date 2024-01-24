@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _NetworkName = "unknownethereumoptimismpolygoncrossbellrssarweavefarcasterbasearbitrumfantomavax"
+const _NetworkName = "unknownethereumoptimismpolygoncrossbellarbitrumfantomrssarweavefarcasterbaseavax"
 
-var _NetworkIndex = [...]uint8{0, 7, 15, 23, 30, 39, 42, 49, 58, 62, 70, 76, 80}
+var _NetworkIndex = [...]uint8{0, 7, 15, 23, 30, 39, 47, 53, 56, 63, 72, 76, 80}
 
-const _NetworkLowerName = "unknownethereumoptimismpolygoncrossbellrssarweavefarcasterbasearbitrumfantomavax"
+const _NetworkLowerName = "unknownethereumoptimismpolygoncrossbellarbitrumfantomrssarweavefarcasterbaseavax"
 
 func (i Network) String() string {
 	if i >= Network(len(_NetworkIndex)-1) {
@@ -35,16 +35,16 @@ func _NetworkNoOp() {
 	_ = x[NetworkOptimism-(2)]
 	_ = x[NetworkPolygon-(3)]
 	_ = x[NetworkCrossbell-(4)]
-	_ = x[NetworkRSS-(5)]
-	_ = x[NetworkArweave-(6)]
-	_ = x[NetworkFarcaster-(7)]
-	_ = x[NetworkBase-(8)]
-	_ = x[NetworkArbitrum-(9)]
-	_ = x[NetworkFantom-(10)]
+	_ = x[NetworkArbitrum-(5)]
+	_ = x[NetworkFantom-(6)]
+	_ = x[NetworkRSS-(7)]
+	_ = x[NetworkArweave-(8)]
+	_ = x[NetworkFarcaster-(9)]
+	_ = x[NetworkBase-(10)]
 	_ = x[NetworkAvalanche-(11)]
 }
 
-var _NetworkValues = []Network{NetworkUnknown, NetworkEthereum, NetworkOptimism, NetworkPolygon, NetworkCrossbell, NetworkRSS, NetworkArweave, NetworkFarcaster, NetworkBase, NetworkArbitrum, NetworkFantom, NetworkAvalanche}
+var _NetworkValues = []Network{NetworkUnknown, NetworkEthereum, NetworkOptimism, NetworkPolygon, NetworkCrossbell, NetworkArbitrum, NetworkFantom, NetworkRSS, NetworkArweave, NetworkFarcaster, NetworkBase, NetworkAvalanche}
 
 var _NetworkNameToValueMap = map[string]Network{
 	_NetworkName[0:7]:        NetworkUnknown,
@@ -57,18 +57,18 @@ var _NetworkNameToValueMap = map[string]Network{
 	_NetworkLowerName[23:30]: NetworkPolygon,
 	_NetworkName[30:39]:      NetworkCrossbell,
 	_NetworkLowerName[30:39]: NetworkCrossbell,
-	_NetworkName[39:42]:      NetworkRSS,
-	_NetworkLowerName[39:42]: NetworkRSS,
-	_NetworkName[42:49]:      NetworkArweave,
-	_NetworkLowerName[42:49]: NetworkArweave,
-	_NetworkName[49:58]:      NetworkFarcaster,
-	_NetworkLowerName[49:58]: NetworkFarcaster,
-	_NetworkName[58:62]:      NetworkBase,
-	_NetworkLowerName[58:62]: NetworkBase,
-	_NetworkName[62:70]:      NetworkArbitrum,
-	_NetworkLowerName[62:70]: NetworkArbitrum,
-	_NetworkName[70:76]:      NetworkFantom,
-	_NetworkLowerName[70:76]: NetworkFantom,
+	_NetworkName[39:47]:      NetworkArbitrum,
+	_NetworkLowerName[39:47]: NetworkArbitrum,
+	_NetworkName[47:53]:      NetworkFantom,
+	_NetworkLowerName[47:53]: NetworkFantom,
+	_NetworkName[53:56]:      NetworkRSS,
+	_NetworkLowerName[53:56]: NetworkRSS,
+	_NetworkName[56:63]:      NetworkArweave,
+	_NetworkLowerName[56:63]: NetworkArweave,
+	_NetworkName[63:72]:      NetworkFarcaster,
+	_NetworkLowerName[63:72]: NetworkFarcaster,
+	_NetworkName[72:76]:      NetworkBase,
+	_NetworkLowerName[72:76]: NetworkBase,
 	_NetworkName[76:80]:      NetworkAvalanche,
 	_NetworkLowerName[76:80]: NetworkAvalanche,
 }
@@ -79,12 +79,12 @@ var _NetworkNames = []string{
 	_NetworkName[15:23],
 	_NetworkName[23:30],
 	_NetworkName[30:39],
-	_NetworkName[39:42],
-	_NetworkName[42:49],
-	_NetworkName[49:58],
-	_NetworkName[58:62],
-	_NetworkName[62:70],
-	_NetworkName[70:76],
+	_NetworkName[39:47],
+	_NetworkName[47:53],
+	_NetworkName[53:56],
+	_NetworkName[56:63],
+	_NetworkName[63:72],
+	_NetworkName[72:76],
 	_NetworkName[76:80],
 }
 
