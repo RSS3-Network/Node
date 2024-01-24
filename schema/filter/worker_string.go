@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _NameName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilenslooksraremattersmomokalido"
+const _NameName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilenslooksraremattersmomokahighlightlido"
 
-var _NameIndex = [...]uint8{0, 7, 15, 21, 30, 34, 43, 50, 57, 65, 75, 79, 88, 95, 101, 105}
+var _NameIndex = [...]uint8{0, 7, 15, 21, 30, 34, 43, 50, 57, 65, 75, 79, 88, 95, 101, 110, 114}
 
-const _NameLowerName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilenslooksraremattersmomokalido"
+const _NameLowerName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilenslooksraremattersmomokahighlightlido"
 
 func (i Name) String() string {
 	if i < 0 || i >= Name(len(_NameIndex)-1) {
@@ -44,10 +44,11 @@ func _NameNoOp() {
 	_ = x[Looksrare-(11)]
 	_ = x[Matters-(12)]
 	_ = x[Momoka-(13)]
-	_ = x[Lido-(14)]
+	_ = x[Highlight-(14)]
+	_ = x[Lido-(15)]
 }
 
-var _NameValues = []Name{Unknown, Fallback, Mirror, Farcaster, RSS3, Paragraph, OpenSea, Uniswap, Optimism, Aavegotchi, Lens, Looksrare, Matters, Momoka, Lido}
+var _NameValues = []Name{Unknown, Fallback, Mirror, Farcaster, RSS3, Paragraph, OpenSea, Uniswap, Optimism, Aavegotchi, Lens, Looksrare, Matters, Momoka, Highlight, Lido}
 
 var _NameNameToValueMap = map[string]Name{
 	_NameName[0:7]:          Unknown,
@@ -78,8 +79,10 @@ var _NameNameToValueMap = map[string]Name{
 	_NameLowerName[88:95]:   Matters,
 	_NameName[95:101]:       Momoka,
 	_NameLowerName[95:101]:  Momoka,
-	_NameName[101:105]:      Lido,
-	_NameLowerName[101:105]: Lido,
+	_NameName[101:110]:      Highlight,
+	_NameLowerName[101:110]: Highlight,
+	_NameName[110:114]:      Lido,
+	_NameLowerName[110:114]: Lido,
 }
 
 var _NameNames = []string{
@@ -97,7 +100,8 @@ var _NameNames = []string{
 	_NameName[79:88],
 	_NameName[88:95],
 	_NameName[95:101],
-	_NameName[101:105],
+	_NameName[101:110],
+	_NameName[110:114],
 }
 
 // NameString retrieves an enum value from the enum constants string name.

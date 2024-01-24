@@ -27,6 +27,9 @@ var endpointsMap = map[filter.Network][]string{
 		"https://rpc.ankr.com/base",
 		"https://base.blockpi.network/v1/rpc/public",
 	},
+	filter.NetworkArbitrum: {
+		"https://arb1.arbitrum.io/rpc",
+	},
 	filter.NetworkCrossbell: {
 		"https://rpc.crossbell.io",
 	},

@@ -22,6 +22,7 @@ const (
 	PlatformLooksRare                      // LooksRare
 	PlatformMatters                        // Matters
 	PlatformMomoka                         // Momoka
+	PlatformHighlight                      // Highlight
 	PlatformLido                           // Lido
 )
 
