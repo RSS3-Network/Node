@@ -7,8 +7,8 @@ import (
 	"github.com/creasty/defaults"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/labstack/echo/v4"
-	"github.com/naturalselectionlabs/rss3-node/common/http/response"
-	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
+	"github.com/rss3-network/serving-node/common/http/response"
+	"github.com/rss3-network/serving-node/internal/database/model"
 	"github.com/samber/lo"
 )
 

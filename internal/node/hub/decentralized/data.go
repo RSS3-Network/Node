@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
-	"github.com/naturalselectionlabs/rss3-node/schema"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/rss3-network/serving-node/internal/database/model"
+	"github.com/rss3-network/serving-node/schema"
+	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/samber/lo"
 )
 

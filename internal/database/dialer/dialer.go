@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/naturalselectionlabs/rss3-node/config"
-	"github.com/naturalselectionlabs/rss3-node/internal/database"
-	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer/cockroachdb"
+	"github.com/rss3-network/serving-node/config"
+	"github.com/rss3-network/serving-node/internal/database"
+	"github.com/rss3-network/serving-node/internal/database/dialer/cockroachdb"
 )
 
 func Dial(ctx context.Context, config *config.Database) (database.Client, error) {

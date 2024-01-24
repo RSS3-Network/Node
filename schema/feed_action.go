@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
-	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
+	"github.com/rss3-network/serving-node/schema/filter"
+	"github.com/rss3-network/serving-node/schema/metadata"
 )
 
 type Action struct {
