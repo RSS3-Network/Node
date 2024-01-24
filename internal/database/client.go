@@ -5,12 +5,12 @@ import (
 	"database/sql"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/naturalselectionlabs/rss3-node/internal/database/model"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	mirror_model "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror/model"
-	"github.com/naturalselectionlabs/rss3-node/schema"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
 	"github.com/pressly/goose/v3"
+	"github.com/rss3-network/serving-node/internal/database/model"
+	"github.com/rss3-network/serving-node/internal/engine"
+	mirror_model "github.com/rss3-network/serving-node/internal/engine/worker/contract/mirror/model"
+	"github.com/rss3-network/serving-node/schema"
+	"github.com/rss3-network/serving-node/schema/filter"
 	"go.uber.org/zap"
 )
 

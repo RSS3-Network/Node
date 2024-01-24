@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/naturalselectionlabs/rss3-node/common/http/response"
-	"github.com/naturalselectionlabs/rss3-node/schema"
+	"github.com/rss3-network/serving-node/common/http/response"
+	"github.com/rss3-network/serving-node/schema"
 )
 
 type Response struct {

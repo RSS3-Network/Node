@@ -2,7 +2,7 @@ package highlight
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract"
+	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 )
 
 // exchange https://etherscan.io/address/0x1bf979282181f2b7a640d17ab5d2e25125f2de5e

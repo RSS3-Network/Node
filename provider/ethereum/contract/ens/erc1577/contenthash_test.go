@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/ens/erc1577"
+	"github.com/rss3-network/serving-node/provider/ethereum/contract/ens/erc1577"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )

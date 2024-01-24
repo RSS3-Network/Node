@@ -3,10 +3,10 @@ package telemetry
 import (
 	"fmt"
 
-	"github.com/naturalselectionlabs/rss3-node/config"
-	"github.com/naturalselectionlabs/rss3-node/internal/constant"
-	meterx "github.com/naturalselectionlabs/rss3-node/internal/telemetry/meter"
-	tracerx "github.com/naturalselectionlabs/rss3-node/internal/telemetry/tracer"
+	"github.com/rss3-network/serving-node/config"
+	"github.com/rss3-network/serving-node/internal/constant"
+	meterx "github.com/rss3-network/serving-node/internal/telemetry/meter"
+	tracerx "github.com/rss3-network/serving-node/internal/telemetry/tracer"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	meter "go.opentelemetry.io/otel/sdk/metric"
