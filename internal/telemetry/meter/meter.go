@@ -7,8 +7,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rss3-network/serving-node/config"
 )
 
 var (

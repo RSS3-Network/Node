@@ -3,13 +3,13 @@ package source
 import (
 	"fmt"
 
-	"github.com/naturalselectionlabs/rss3-node/config"
-	"github.com/naturalselectionlabs/rss3-node/internal/database"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/farcaster"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/rss3-network/serving-node/config"
+	"github.com/rss3-network/serving-node/internal/database"
+	"github.com/rss3-network/serving-node/internal/engine"
+	"github.com/rss3-network/serving-node/internal/engine/source/arweave"
+	"github.com/rss3-network/serving-node/internal/engine/source/ethereum"
+	"github.com/rss3-network/serving-node/internal/engine/source/farcaster"
+	"github.com/rss3-network/serving-node/schema/filter"
 )
 
 // New creates a new source.

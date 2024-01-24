@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/naturalselectionlabs/rss3-node/schema"
+	"github.com/rss3-network/serving-node/schema"
 	"github.com/samber/lo"
 )
 

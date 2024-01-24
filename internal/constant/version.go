@@ -2,7 +2,7 @@ package constant
 
 import "fmt"
 
-const Name = "rss3-node"
+const Name = "serving-node"
 
 // The Go compiler will set these variables via ldflags.
 var (
