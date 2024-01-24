@@ -66,6 +66,27 @@ const (
 	EthereumChainIDCrossbell EthereumChainID = 3737  // crossbell
 )
 
+func ChainID(network string) EthereumChainID {
+	switch network {
+	case NetworkEthereum.String():
+		return EthereumChainIDMainnet
+	case NetworkOptimism.String():
+		return EthereumChainIDOptimism
+	case NetworkPolygon.String():
+		return EthereumChainIDPolygon
+	case NetworkArbitrum.String():
+		return EthereumChainIDArbitrum
+	case NetworkFantom.String():
+		return EthereumChainIDFantom
+	case NetworkBase.String():
+		return EthereumChainIDBase
+	case NetworkCrossbell.String():
+		return EthereumChainIDCrossbell
+	default:
+		return 0
+	}
+}
+
 func IsOptimismSuperchain(chainID uint64) bool {
 	switch chainID {
 	case uint64(EthereumChainIDOptimism),

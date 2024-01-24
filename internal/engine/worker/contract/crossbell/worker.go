@@ -732,7 +732,43 @@ func (w *worker) buildProfileMetadata(
 		profile.Name = profileURI.Name
 	}
 
+	//if strings.Contains(profile.ImageURI, "csb://asset:") {
+	//	profile.ImageURI, _ = w.getAssetImageURI(ctx, profile.ImageURI)
+	//}
+
 	return profile, nil
+}
+
+// getAssetImageURI gets asset image uri.
+func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string, error) {
+	asset := strings.FieldsFunc(strings.TrimPrefix(assetURI, "csb://asset:"), func(r rune) bool {
+		return r == '-' || r == '@'
+	})
+
+	if len(asset) != 3 {
+		return "", fmt.Errorf("invalid asset uri: %s", assetURI)
+	}
+
+	chainID := uint64(filter.ChainID(asset[2]))
+	if chainID <= 0 {
+		return "", fmt.Errorf("invalid chain id: %s", asset[2])
+	}
+
+	tokenID, err := decimal.NewFromString(asset[1])
+	if err != nil {
+		return "", fmt.Errorf("invalid token id: %s", asset[1])
+	}
+
+	// TODO get nft image uri
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, lo.ToPtr(common.HexToAddress(asset[0])), tokenID.BigInt(), nil)
+	if err != nil {
+		fmt.Printf("lookup token metadata %s: %s\n", asset[0], err)
+		return "", fmt.Errorf("lookup token metadata %s: %w", asset[0], err)
+	}
+
+	fmt.Printf("tokenMetadata: %+v\n", tokenMetadata)
+
+	return assetURI, nil
 }
 
 // buildProxyMetadata
@@ -822,6 +858,10 @@ func (w *worker) buildCharacterProfileMetadata(
 		profile.Bio = characterURI.Bio
 		profile.Name = characterURI.Name
 	}
+
+	//if strings.Contains(profile.ImageURI, "csb://asset:") {
+	//	profile.ImageURI, _ = w.getAssetImageURI(ctx, profile.ImageURI)
+	//}
 
 	profile.Handle = w.buildProfileHandleSuffix(ctx, profile.Handle)
 
