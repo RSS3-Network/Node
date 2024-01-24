@@ -66,24 +66,24 @@ const (
 	EthereumChainIDCrossbell EthereumChainID = 3737  // crossbell
 )
 
-func ChainID(network string) EthereumChainID {
+func NetworkAndChainID(network string) (Network, EthereumChainID) {
 	switch network {
 	case NetworkEthereum.String():
-		return EthereumChainIDMainnet
+		return NetworkEthereum, EthereumChainIDMainnet
 	case NetworkOptimism.String():
-		return EthereumChainIDOptimism
+		return NetworkOptimism, EthereumChainIDOptimism
 	case NetworkPolygon.String():
-		return EthereumChainIDPolygon
+		return NetworkPolygon, EthereumChainIDPolygon
 	case NetworkArbitrum.String():
-		return EthereumChainIDArbitrum
+		return NetworkArbitrum, EthereumChainIDArbitrum
 	case NetworkFantom.String():
-		return EthereumChainIDFantom
+		return NetworkFantom, EthereumChainIDFantom
 	case NetworkBase.String():
-		return EthereumChainIDBase
+		return NetworkBase, EthereumChainIDBase
 	case NetworkCrossbell.String():
-		return EthereumChainIDCrossbell
+		return NetworkCrossbell, EthereumChainIDCrossbell
 	default:
-		return 0
+		return NetworkUnknown, 0
 	}
 }
 

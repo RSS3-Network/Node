@@ -24,6 +24,7 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/crossbell/profile"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/crossbell/tips"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/erc20"
+	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/endpoint"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/token"
 	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
 	"github.com/naturalselectionlabs/rss3-node/schema"
@@ -732,9 +733,9 @@ func (w *worker) buildProfileMetadata(
 		profile.Name = profileURI.Name
 	}
 
-	//if strings.Contains(profile.ImageURI, "csb://asset:") {
-	//	profile.ImageURI, _ = w.getAssetImageURI(ctx, profile.ImageURI)
-	//}
+	if strings.Contains(profile.ImageURI, "csb://asset:") {
+		profile.ImageURI, _ = w.getAssetImageURI(ctx, profile.ImageURI)
+	}
 
 	return profile, nil
 }
@@ -749,7 +750,7 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 		return "", fmt.Errorf("invalid asset uri: %s", assetURI)
 	}
 
-	chainID := uint64(filter.ChainID(asset[2]))
+	network, chainID := filter.NetworkAndChainID(asset[2])
 	if chainID <= 0 {
 		return "", fmt.Errorf("invalid chain id: %s", asset[2])
 	}
@@ -759,16 +760,33 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 		return "", fmt.Errorf("invalid token id: %s", asset[1])
 	}
 
+	var tokenClient token.Client
+
+	if chainID != filter.EthereumChainIDCrossbell {
+		// Initialize ethereum client.
+		endpoints, exists := endpoint.Get(network)
+		if !exists {
+			return "", fmt.Errorf("get endpoint: %w", err)
+		}
+
+		ethereumClient, err := ethereum.Dial(context.Background(), endpoints[0])
+		if err != nil {
+			return "", fmt.Errorf("initialize ethereum client: %w", err)
+		}
+
+		// Initialize token client.
+		tokenClient = token.NewClient(ethereumClient)
+	} else {
+		tokenClient = w.tokenClient
+	}
+
 	// TODO get nft image uri
-	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, lo.ToPtr(common.HexToAddress(asset[0])), tokenID.BigInt(), nil)
+	tokenMetadata, err := tokenClient.Lookup(ctx, uint64(chainID), lo.ToPtr(common.HexToAddress(asset[0])), tokenID.BigInt(), nil)
 	if err != nil {
-		fmt.Printf("lookup token metadata %s: %s\n", asset[0], err)
 		return "", fmt.Errorf("lookup token metadata %s: %w", asset[0], err)
 	}
 
-	fmt.Printf("tokenMetadata: %+v\n", tokenMetadata)
-
-	return assetURI, nil
+	return tokenMetadata.ParsedImageURL, nil
 }
 
 // buildProxyMetadata
@@ -859,9 +877,9 @@ func (w *worker) buildCharacterProfileMetadata(
 		profile.Name = characterURI.Name
 	}
 
-	//if strings.Contains(profile.ImageURI, "csb://asset:") {
-	//	profile.ImageURI, _ = w.getAssetImageURI(ctx, profile.ImageURI)
-	//}
+	if strings.Contains(profile.ImageURI, "csb://asset:") {
+		profile.ImageURI, _ = w.getAssetImageURI(ctx, profile.ImageURI)
+	}
 
 	profile.Handle = w.buildProfileHandleSuffix(ctx, profile.Handle)
 
