@@ -1,4 +1,4 @@
-module github.com/naturalselectionlabs/rss3-node
+module github.com/rss3-network/serving-node
 
 go 1.21.4
 

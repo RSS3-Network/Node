@@ -5,12 +5,12 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/lens"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/multicall3"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/weth"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/endpoint"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/rss3-network/serving-node/provider/ethereum"
+	"github.com/rss3-network/serving-node/provider/ethereum/contract/lens"
+	"github.com/rss3-network/serving-node/provider/ethereum/contract/multicall3"
+	"github.com/rss3-network/serving-node/provider/ethereum/contract/weth"
+	"github.com/rss3-network/serving-node/provider/ethereum/endpoint"
+	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/naturalselectionlabs/rss3-node/internal/constant"
-	"github.com/naturalselectionlabs/rss3-node/internal/database"
+	"github.com/rss3-network/serving-node/internal/constant"
+	"github.com/rss3-network/serving-node/internal/database"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"

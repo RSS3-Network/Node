@@ -3,7 +3,7 @@ package engine
 import (
 	"context"
 
-	"github.com/naturalselectionlabs/rss3-node/schema"
+	"github.com/rss3-network/serving-node/schema"
 )
 
 type Worker interface {

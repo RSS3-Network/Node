@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/rss3-network/serving-node/schema/filter"
 )
 
 var _ Metadata = (*SocialPost)(nil)

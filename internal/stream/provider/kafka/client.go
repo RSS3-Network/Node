@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/naturalselectionlabs/rss3-node/internal/stream"
-	"github.com/naturalselectionlabs/rss3-node/schema"
+	"github.com/rss3-network/serving-node/internal/stream"
+	"github.com/rss3-network/serving-node/schema"
 	"github.com/twmb/franz-go/pkg/kadm"
 	"github.com/twmb/franz-go/pkg/kgo"
 	"go.uber.org/zap"

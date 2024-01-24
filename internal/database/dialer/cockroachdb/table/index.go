@@ -5,9 +5,9 @@ import (
 	"math"
 	"time"
 
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
-	"github.com/naturalselectionlabs/rss3-node/schema"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/rss3-network/serving-node/provider/ethereum"
+	"github.com/rss3-network/serving-node/schema"
+	"github.com/rss3-network/serving-node/schema/filter"
 )
 
 type Index struct {
