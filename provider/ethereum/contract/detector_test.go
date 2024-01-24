@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/endpoint"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/rss3-network/serving-node/provider/ethereum"
+	"github.com/rss3-network/serving-node/provider/ethereum/contract"
+	"github.com/rss3-network/serving-node/provider/ethereum/endpoint"
+	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/stretchr/testify/require"
 )
 

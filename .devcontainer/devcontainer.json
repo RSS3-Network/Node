@@ -1,5 +1,5 @@
 {
-  "name": "rss3-node",
+  "name": "serving-node",
   "dockerComposeFile": "docker-compose.yaml",
   "service": "devcontainer",
   "runServices": [
