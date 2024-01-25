@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	workerOption "github.com/rss3-network/serving-node/internal/engine/worker/contract"
 	"io"
 	"math/big"
 	"net/http"
@@ -40,6 +41,7 @@ var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
 	config            *config.Module
+	option            *workerOption.Option
 	ethereumClient    ethereum.Client
 	ipfsClient        ipfs.HTTPClient
 	tokenClient       token.Client
@@ -733,7 +735,7 @@ func (w *worker) buildProfileMetadata(
 		profile.Name = profileURI.Name
 	}
 
-	if strings.Contains(profile.ImageURI, "csb://asset:") {
+	if w.option.ParseTokenMetadata && strings.Contains(profile.ImageURI, "csb://asset:") {
 		profile.ImageURI, _ = w.getAssetImageURI(ctx, profile.ImageURI)
 	}
 
@@ -788,8 +790,8 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 		tokenClient = w.tokenClient
 	}
 
-	// TODO get nft image uri
-	tokenMetadata, err := tokenClient.Lookup(ctx, uint64(chainID), lo.ToPtr(common.HexToAddress(asset[0])), tokenID.BigInt(), nil)
+	// parse token metadata
+	tokenMetadata, err := tokenClient.Lookup(ctx, uint64(chainID), lo.ToPtr(common.HexToAddress(asset[0])), tokenID.BigInt(), nil, *w.option)
 	if err != nil {
 		return "", fmt.Errorf("lookup token metadata %s: %w", asset[0], err)
 	}
@@ -885,7 +887,7 @@ func (w *worker) buildCharacterProfileMetadata(
 		profile.Name = characterURI.Name
 	}
 
-	if strings.Contains(profile.ImageURI, "csb://asset:") {
+	if w.option.ParseTokenMetadata && strings.Contains(profile.ImageURI, "csb://asset:") {
 		profile.ImageURI, _ = w.getAssetImageURI(ctx, profile.ImageURI)
 	}
 
@@ -996,10 +998,16 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 		}
 	)
 
+	// Initialize option.
+	if instance.option, err = workerOption.NewOption(config.Parameters); err != nil {
+		return nil, fmt.Errorf("parse config: %w", err)
+	}
+
 	// Initialize ethereum client.
 	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
 		return nil, fmt.Errorf("initialize ethereum client: %w", err)
 	}
+
 	// Initialize ipfs client.
 	if instance.ipfsClient, err = ipfs.NewHTTPClient(ipfs.WithGateways(config.IPFSGateways)); err != nil {
 		return nil, fmt.Errorf("new ipfs client: %w", err)

@@ -89,7 +89,8 @@ component:
       worker: crossbell
       endpoint: https://rpc.crossbell.io
       parameters:
-        block_number_start:
+        block_number_start: 47370106
+        parse_token_metadata: true
     # farcaster
     - network: farcaster
       worker: farcaster
@@ -114,7 +115,6 @@ component:
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start:
-
     - network: polygon
       worker: matters
       endpoint: https://rpc.ankr.com/polygon
