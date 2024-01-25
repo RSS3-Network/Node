@@ -12,9 +12,9 @@
 </p>
 <!-- markdownlint-enable -->
 
-# RSS3 Serving Node
+# RSS3 Node
 
-The RSS3 Serving Node, an RSS3 Data Sublayer (DSL) component, is responsible for indexing, transforming, storing, and ultimately serving the Open Information to the end users.
+The RSS3 Node, an RSS3 Data Sublayer (DSL) component, is responsible for indexing, transforming, storing, and ultimately serving the Open Information to the end users.
 
 ## License
 
