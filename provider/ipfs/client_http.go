@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/avast/retry-go/v4"
-	syncx "github.com/naturalselectionlabs/rss3-node/common/sync"
+	syncx "github.com/rss3-network/serving-node/common/sync"
 	"github.com/samber/lo"
 )
 

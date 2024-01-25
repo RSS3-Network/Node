@@ -7,14 +7,14 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/naturalselectionlabs/rss3-node/config"
-	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
-	worker "github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/lens"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/endpoint"
-	"github.com/naturalselectionlabs/rss3-node/schema"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
-	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
+	"github.com/rss3-network/serving-node/config"
+	source "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
+	worker "github.com/rss3-network/serving-node/internal/engine/worker/contract/lens"
+	"github.com/rss3-network/serving-node/provider/ethereum"
+	"github.com/rss3-network/serving-node/provider/ethereum/endpoint"
+	"github.com/rss3-network/serving-node/schema"
+	"github.com/rss3-network/serving-node/schema/filter"
+	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -1961,9 +1961,10 @@ func TestWorker_Ethereum(t *testing.T) {
 
 			feed, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
-			require.Equal(t, testcase.want, feed)
 
-			t.Log(feed)
+			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+
+			require.Equal(t, testcase.want, feed)
 		})
 	}
 }

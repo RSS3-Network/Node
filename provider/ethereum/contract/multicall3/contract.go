@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 )
@@ -24,7 +24,11 @@ var (
 var deployedAtMap = map[uint64]uint64{
 	uint64(filter.EthereumChainIDMainnet):  14353601, // https://etherscan.io/tx/0x00d9fcb7848f6f6b0aae4fb709c133d69262b902156c85a473ef23faa60760bd
 	uint64(filter.EthereumChainIDOptimism): 4286263,  // https://optimistic.etherscan.io/tx/0xb62f9191a2cf399c0d2afd33f5b8baf7c6b52af6dd2386e44121b1bab91b80e5
-	uint64(filter.EthereumChainIDPolygon):  15921452, // https://bscscan.com/tx/0xcc0ddf5f791617ba9befce57995dbcb3a202946a1eefa3469742b01a0decdaf2
+	//uint64(filter.EthereumChainIDBSC):      15921452, // https://bscscan.com/tx/0xcc0ddf5f791617ba9befce57995dbcb3a202946a1eefa3469742b01a0decdaf2
+	uint64(filter.EthereumChainIDPolygon):  25770160, // https://polygonscan.com/tx/0x25d385667b12d6992742127dc7682e570136397806e2773dc47922eba0001989
+	uint64(filter.EthereumChainIDFantom):   33001987, // https://ftmscan.com/tx/0xcd2027fb534d23b4562e8ee6f598a2d82c2452ed4987ba25d863f654dfad97df
+	uint64(filter.EthereumChainIDArbitrum): 7654707,  // https://arbiscan.io/tx/0x211f6689adbb0f3fba7392e899d23bde029cef532cbd0ae900920cc09f7d1f32
+	uint64(filter.EthereumChainIDBase):     5022,     // https://basescan.org/tx/0x07471adfe8f4ec553c1199f495be97fc8be8e0626ae307281c22534460184ed1
 }
 
 func IsDeployed(chainID uint64, blockNumber *big.Int) bool {

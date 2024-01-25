@@ -5,9 +5,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/naturalselectionlabs/rss3-node/config"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/source/arweave"
+	"github.com/rss3-network/serving-node/config"
+	"github.com/rss3-network/serving-node/internal/engine"
+	"github.com/rss3-network/serving-node/internal/engine/source/arweave"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"

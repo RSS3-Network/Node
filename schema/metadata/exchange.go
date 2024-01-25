@@ -3,7 +3,7 @@ package metadata
 import (
 	"time"
 
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/rss3-network/serving-node/schema/filter"
 )
 
 var _ Metadata = (*ExchangeSwap)(nil)
@@ -40,6 +40,10 @@ const (
 	ActionExchangeLiquidityAdd ExchangeLiquidityAction = iota + 1
 	ActionExchangeLiquidityRemove
 	ActionExchangeLiquidityCollect
+	ActionExchangeLiquiditySupply
+	ActionExchangeLiquidityBorrow
+	ActionExchangeLiquidityRepay
+	ActionExchangeLiquidityWithdraw
 )
 
 var _ Metadata = (*ExchangeStaking)(nil)

@@ -18,5 +18,9 @@ const (
 	Aavegotchi             // aavegotchi
 	Lens                   // lens
 	Looksrare              // looksrare
+	Matters                // matters
+	Momoka                 // momoka
+	Highlight              // highlight
+	Aave                   // aave
 	IQWiki                 // iqwiki
 )

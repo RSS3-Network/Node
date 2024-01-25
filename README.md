@@ -21,7 +21,3 @@ The RSS3 Serving Node, an RSS3 Data Sublayer (DSL) component, is responsible for
 <!-- We use MIT as it's almost unrestricted. -->
 
 [MIT](LICENSE).
-
-## Deploy status
-- DEV: [![App Status](https://argocd.naturalselectionlabs.com/api/badge?name=rss3-node-dev&revision=true)](https://argocd.naturalselectionlabs.com/applications/rss3-node-dev)
-- PRD: [![App Status](https://argocd.naturalselectionlabs.com/api/badge?name=rss3-node-prod&revision=true)](https://argocd.naturalselectionlabs.com/applications/rss3-node-prod)

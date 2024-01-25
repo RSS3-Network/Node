@@ -3,22 +3,25 @@ package worker
 import (
 	"fmt"
 
-	"github.com/naturalselectionlabs/rss3-node/config"
-	"github.com/naturalselectionlabs/rss3-node/internal/database"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/aavegotchi"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/iqwiki"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/lens"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/looksrare"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/opensea"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/optimism"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/paragraph"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/rss3"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/uniswap"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/fallback"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/farcaster"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/rss3-network/serving-node/config"
+	"github.com/rss3-network/serving-node/internal/database"
+	"github.com/rss3-network/serving-node/internal/engine"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/aave"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/aavegotchi"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/highlight"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/lens"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/looksrare"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/matters"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/mirror"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/momoka"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/opensea"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/optimism"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/paragraph"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/rss3"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/uniswap"
+	"github.com/rss3-network/serving-node/internal/engine/worker/fallback"
+	"github.com/rss3-network/serving-node/internal/engine/worker/farcaster"
+	"github.com/rss3-network/serving-node/schema/filter"
 )
 
 func New(config *config.Module, databaseClient database.Client) (engine.Worker, error) {
@@ -45,6 +48,14 @@ func New(config *config.Module, databaseClient database.Client) (engine.Worker, 
 		return lens.NewWorker(config)
 	case filter.Looksrare:
 		return looksrare.NewWorker(config)
+	case filter.Matters:
+		return matters.NewWorker(config)
+	case filter.Momoka:
+		return momoka.NewWorker(config)
+	case filter.Highlight:
+		return highlight.NewWorker(config)
+	case filter.Aave:
+		return aave.NewWorker(config)
 	case filter.IQWiki:
 		return iqwiki.NewWorker()
 	default:

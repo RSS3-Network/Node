@@ -3,10 +3,10 @@ package arweave
 import (
 	"fmt"
 
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
-	"github.com/naturalselectionlabs/rss3-node/schema"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/rss3-network/serving-node/internal/engine"
+	"github.com/rss3-network/serving-node/provider/arweave"
+	"github.com/rss3-network/serving-node/schema"
+	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/shopspring/decimal"
 )
 

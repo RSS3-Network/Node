@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/naturalselectionlabs/rss3-node/config"
 	"github.com/robfig/cron/v3"
+	"github.com/rss3-network/serving-node/config"
 )
 
 type Broadcaster struct {

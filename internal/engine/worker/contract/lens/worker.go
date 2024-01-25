@@ -10,17 +10,18 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/naturalselectionlabs/rss3-node/config"
-	"github.com/naturalselectionlabs/rss3-node/internal/engine"
-	source "github.com/naturalselectionlabs/rss3-node/internal/engine/source/ethereum"
-	"github.com/naturalselectionlabs/rss3-node/provider/arweave"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/lens"
-	"github.com/naturalselectionlabs/rss3-node/provider/ipfs"
-	"github.com/naturalselectionlabs/rss3-node/schema"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
-	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
+	"github.com/rss3-network/serving-node/config"
+	"github.com/rss3-network/serving-node/internal/engine"
+	source "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
+	"github.com/rss3-network/serving-node/provider/arweave"
+	"github.com/rss3-network/serving-node/provider/ethereum"
+	"github.com/rss3-network/serving-node/provider/ethereum/contract"
+	"github.com/rss3-network/serving-node/provider/ethereum/contract/lens"
+	"github.com/rss3-network/serving-node/provider/httpx"
+	"github.com/rss3-network/serving-node/provider/ipfs"
+	"github.com/rss3-network/serving-node/schema"
+	"github.com/rss3-network/serving-node/schema/filter"
+	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
 )
@@ -33,6 +34,7 @@ type worker struct {
 	arweaveClient                  arweave.Client
 	ethereumClient                 ethereum.Client
 	ipfsClient                     ipfs.HTTPClient
+	httpClient                     httpx.Client
 	lensHubV1                      *lens.V1LensHubCaller
 	lensHubV2                      *lens.V2LensHubCaller
 	lensHandleV2                   *lens.V2LensHandleCaller
@@ -824,7 +826,10 @@ func (w *worker) getDataFromHTTP(ctx context.Context, contentURL string) (io.Rea
 		contentURL = contentURL[19:]
 	}
 
-	// http request
+	if strings.HasPrefix(contentURL, "https://") {
+		return w.httpClient.Fetch(ctx, contentURL)
+	}
+
 	return w.arweaveClient.GetTransactionData(ctx, contentURL)
 }
 
@@ -921,6 +926,11 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	// Initialize ipfs client.
 	if instance.ipfsClient, err = ipfs.NewHTTPClient(ipfs.WithGateways(config.IPFSGateways)); err != nil {
 		return nil, fmt.Errorf("new ipfs client: %w", err)
+	}
+
+	// Initialize http client.
+	if instance.httpClient, err = httpx.NewHTTPClient(); err != nil {
+		return nil, fmt.Errorf("new http client: %w", err)
 	}
 
 	lensHubV1, err := lens.NewV1LensHubCaller(lens.AddressLensProtocol, instance.ethereumClient)

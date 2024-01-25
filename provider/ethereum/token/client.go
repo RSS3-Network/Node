@@ -6,14 +6,14 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/erc1155"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/erc20"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/erc721"
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/multicall3"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
-	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
+	"github.com/rss3-network/serving-node/provider/ethereum"
+	"github.com/rss3-network/serving-node/provider/ethereum/contract"
+	"github.com/rss3-network/serving-node/provider/ethereum/contract/erc1155"
+	"github.com/rss3-network/serving-node/provider/ethereum/contract/erc20"
+	"github.com/rss3-network/serving-node/provider/ethereum/contract/erc721"
+	"github.com/rss3-network/serving-node/provider/ethereum/contract/multicall3"
+	"github.com/rss3-network/serving-node/schema/filter"
+	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -39,13 +39,33 @@ var nativeTokenMap = map[uint64]metadata.Token{
 		Decimals: 18,
 	},
 	uint64(filter.EthereumChainIDPolygon): {
-		Name:     "Ethereum",
-		Symbol:   "ETH",
+		Name:     "Polygon",
+		Symbol:   "MATIC",
 		Decimals: 18,
 	},
 	uint64(filter.EthereumChainIDBase): {
 		Name:     "Ethereum",
 		Symbol:   "ETH",
+		Decimals: 18,
+	},
+	uint64(filter.EthereumChainIDFantom): {
+		Name:     "Fantom",
+		Symbol:   "FTM",
+		Decimals: 18,
+	},
+	uint64(filter.EthereumChainIDCrossbell): {
+		Name:     "CSB",
+		Symbol:   "CSB",
+		Decimals: 18,
+	},
+	uint64(filter.EthereumChainIDArbitrum): {
+		Name:     "Ethereum",
+		Symbol:   "ETH",
+		Decimals: 18,
+	},
+	uint64(filter.EthereumChainIDAvalanche): {
+		Name:     "Avalanche",
+		Symbol:   "AVAX",
 		Decimals: 18,
 	},
 }
