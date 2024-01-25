@@ -763,14 +763,22 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 	var tokenClient token.Client
 
 	if chainID != filter.EthereumChainIDCrossbell {
+		var ethereumClient ethereum.Client
+
 		// Initialize ethereum client.
 		endpoints, exists := endpoint.Get(network)
 		if !exists {
 			return "", fmt.Errorf("get endpoint: %w", err)
 		}
 
-		ethereumClient, err := ethereum.Dial(context.Background(), endpoints[0])
-		if err != nil {
+		for _, endpoint := range endpoints {
+			ethereumClient, err = ethereum.Dial(context.Background(), endpoint)
+			if err == nil {
+				break
+			}
+		}
+
+		if ethereumClient == nil {
 			return "", fmt.Errorf("initialize ethereum client: %w", err)
 		}
 
@@ -785,8 +793,6 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 	if err != nil {
 		return "", fmt.Errorf("lookup token metadata %s: %w", asset[0], err)
 	}
-
-	fmt.Printf("tokenMetadata: %v\n", tokenMetadata.URI)
 
 	return tokenMetadata.ParsedImageURL, nil
 }

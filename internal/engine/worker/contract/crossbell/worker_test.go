@@ -222,8 +222,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Action:    metadata.ActionSocialProfileUpdate,
 							Address:   common.HexToAddress("0x08d66b34054a174841e2361bd4746ff9f4905cc2"),
 							Handle:    "song.csb",
-							// TODO get parsed image uri
-							ImageURI: "",
+							ImageURI:  "ipfs://QmSX9QiwjTGBk5m22UscTg3vrbMwUfFsmxVzMH57hkPD5U/1008.png",
 						},
 					},
 				},

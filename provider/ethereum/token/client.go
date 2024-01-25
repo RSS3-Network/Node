@@ -2,10 +2,15 @@ package token
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"math/big"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract"
 	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract/erc1155"
@@ -18,6 +23,9 @@ import (
 	"github.com/naturalselectionlabs/rss3-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
+	"github.com/tdewolff/minify/v2/minify"
+	"github.com/tidwall/gjson"
+	"github.com/vincent-petithory/dataurl"
 )
 
 // LookupFunc is a function to look up token metadata.
@@ -180,6 +188,7 @@ func (c *client) lookupNFT(ctx context.Context, chain uint64, address common.Add
 
 	var tokenMetadata *metadata.Token
 
+	// When handling nft, we should get image uri from tokenURI
 	// Initialize ipfs client.
 	if c.ipfsClient, err = ipfs.NewHTTPClient(); err != nil {
 		return nil, fmt.Errorf("new ipfs client: %w", err)
@@ -260,6 +269,16 @@ func (c *client) lookupERC721(ctx context.Context, chainID uint64, address commo
 		}
 	}
 
+	// Ignore invalid URI
+	nonFungibleTokenMetadata, err := c.buildNonFungibleTokenMetadata(ctx, tokenMetadata.URI, id)
+	if err == nil {
+		tokenMetadata.ParsedImageURL = nonFungibleTokenMetadata.ImageURL
+	}
+
+	if isDataURIErr(err) {
+		return nil, fmt.Errorf("unsupport data uri %s %w", tokenMetadata.URI, err)
+	}
+
 	return &tokenMetadata, nil
 }
 
@@ -316,6 +335,16 @@ func (c *client) lookupERC1155(ctx context.Context, chainID uint64, address comm
 		}
 	}
 
+	// Ignore invalid URI
+	nonFungibleTokenMetadata, err := c.buildNonFungibleTokenMetadata(ctx, tokenMetadata.URI, id)
+	if err == nil {
+		tokenMetadata.ParsedImageURL = nonFungibleTokenMetadata.ImageURL
+	}
+
+	if isDataURIErr(err) {
+		return nil, fmt.Errorf("unsupport data uri %s %w", tokenMetadata.URI, err)
+	}
+
 	return &tokenMetadata, nil
 }
 
@@ -347,132 +376,133 @@ func (c *client) lookupENS(_ context.Context, _ uint64, address *common.Address,
 	return &tokenMetadata, nil
 }
 
-//func (c *client) buildNonFungibleTokenMetadata(ctx context.Context, uri string, _ common.Address, id *big.Int) (*metadata.NonFungibleTokenMetadata, error) {
-//	var (
-//		nonFungibleTokenMetadata metadata.NonFungibleTokenMetadata
-//		metadata                 json.RawMessage
-//	)
-//
-//	if uri == "" {
-//		return &nonFungibleTokenMetadata, nil
-//	}
-//
-//	var isDataURI bool
-//
-//	dataURI, err := dataurl.DecodeString(uri)
-//
-//	if err == nil {
-//		metadata, isDataURI = dataURI.Data, true
-//	}
-//
-//	if isDataURIErr(err) {
-//		return nil, err
-//	}
-//
-//	// Format URI with ID
-//	uri = strings.ReplaceAll(uri, "0x{id}", hexutil.EncodeBig(id))
-//	uri = strings.ReplaceAll(uri, "{id}", id.String())
-//
-//	_, path, err := ipfs.ParseURL(uri)
-//
-//	switch {
-//	case isDataURI: // Data URI
-//	case path != "": // IPFS
-//		if err != nil {
-//			return nil, fmt.Errorf("parse IPFS URL: %w", err)
-//		}
-//
-//		readCloser, err := c.ipfsClient.Fetch(ctx, path, ipfs.FetchModeQuick)
-//		if err != nil {
-//			return nil, fmt.Errorf("quick fetch %s: %w", path, err)
-//		}
-//
-//		if metadata, err = io.ReadAll(readCloser); err != nil {
-//			return nil, fmt.Errorf("read metadata from IPFS: %w", err)
-//		}
-//	case strings.HasPrefix(uri, "ar://"): // Arweave
-//		uri = strings.Replace(uri, "ar://", "https://arweave.net/", 1)
-//
-//		fallthrough
-//	default:
-//		response, err := c.httpClient.Fetch(ctx, uri)
-//		if err != nil {
-//			return nil, fmt.Errorf("fetch metadata from HTTP %s: %w", uri, err)
-//		}
-//
-//		if metadata, err = io.ReadAll(response); err != nil {
-//			return nil, fmt.Errorf("read metadata from HTTP %s: %w", uri, err)
-//		}
-//	}
-//
-//	fmt.Printf("metadata: %s\n", metadata)
-//
-//	//if err := e.standardizeNonFungibleTokenMetadata(ctx, chain, address.String(), id.String(), &nonFungibleTokenMetadata, metadata); err != nil {
-//	//	return nil, fmt.Errorf("standardize NFT metadata: %w", err)
-//	//}
-//
-//	return &nonFungibleTokenMetadata, nil
-//}
+// buildNonFungibleTokenMetadata builds non-fungible token metadata.
+func (c *client) buildNonFungibleTokenMetadata(ctx context.Context, uri string, id *big.Int) (*metadata.NonFungibleTokenMetadata, error) {
+	var (
+		nonFungibleTokenMetadata metadata.NonFungibleTokenMetadata
+		metadata                 json.RawMessage
+	)
+
+	if uri == "" {
+		return &nonFungibleTokenMetadata, nil
+	}
+
+	var isDataURI bool
+
+	dataURI, err := dataurl.DecodeString(uri)
+
+	if err == nil {
+		metadata, isDataURI = dataURI.Data, true
+	}
+
+	if isDataURIErr(err) {
+		return nil, err
+	}
+
+	// Format URI with ID
+	uri = strings.ReplaceAll(uri, "0x{id}", hexutil.EncodeBig(id))
+	uri = strings.ReplaceAll(uri, "{id}", id.String())
+
+	_, path, err := ipfs.ParseURL(uri)
+
+	switch {
+	case isDataURI: // Data URI
+	case path != "": // IPFS
+		if err != nil {
+			return nil, fmt.Errorf("parse IPFS URL: %w", err)
+		}
+
+		readCloser, err := c.ipfsClient.Fetch(ctx, path, ipfs.FetchModeQuick)
+		if err != nil {
+			return nil, fmt.Errorf("quick fetch %s: %w", path, err)
+		}
+
+		if metadata, err = io.ReadAll(readCloser); err != nil {
+			return nil, fmt.Errorf("read metadata from IPFS: %w", err)
+		}
+	case strings.HasPrefix(uri, "ar://"): // Arweave
+		uri = strings.Replace(uri, "ar://", "https://arweave.net/", 1)
+
+		fallthrough
+	default:
+		response, err := c.httpClient.Fetch(ctx, uri)
+		if err != nil {
+			return nil, fmt.Errorf("fetch metadata from HTTP %s: %w", uri, err)
+		}
+
+		if metadata, err = io.ReadAll(response); err != nil {
+			return nil, fmt.Errorf("read metadata from HTTP %s: %w", uri, err)
+		}
+	}
+
+	if err := c.standardizeNonFungibleTokenMetadata(ctx, &nonFungibleTokenMetadata, metadata); err != nil {
+		return nil, fmt.Errorf("standardize NFT metadata: %w", err)
+	}
+
+	return &nonFungibleTokenMetadata, nil
+}
 
 // TODO: Need better Data URI package.
-//func isDataURIErr(err error) bool {
-//	return err != nil && strings.HasPrefix(err.Error(), "expected base64, got")
-//}
+func isDataURIErr(err error) bool {
+	return err != nil && strings.HasPrefix(err.Error(), "expected base64, got")
+}
 
-//func removeInvalidCharacter(character string) string {
-//	if !utf8.ValidString(character) {
-//		return ""
-//	}
-//
-//	return character
-//}
+// removeInvalidCharacter removes invalid character.
+func removeInvalidCharacter(character string) string {
+	if !utf8.ValidString(character) {
+		return ""
+	}
 
-//func (c *client) standardizeNonFungibleTokenMetadata(ctx context.Context, address, id string, nonFungibleTokenMetadata *metadata.NonFungibleTokenMetadata, data []byte) error {
-//	result := gjson.ParseBytes(data)
-//
-//	if name := result.Get("name"); name.Exists() {
-//		nonFungibleTokenMetadata.Title = removeInvalidCharacter(name.String())
-//	} else {
-//		nonFungibleTokenMetadata.Title = removeInvalidCharacter(result.Get("title").String())
-//	}
-//
-//	nonFungibleTokenMetadata.Description = removeInvalidCharacter(result.Get("description").String())
-//
-//	if imageURL := result.Get("image"); imageURL.Exists() {
-//		nonFungibleTokenMetadata.ImageURL = imageURL.String()
-//	} else {
-//		nonFungibleTokenMetadata.ImageURL = result.Get("image_url").String()
-//	}
-//
-//	nonFungibleTokenMetadata.ExternalURL = result.Get("external_url").String()
-//	nonFungibleTokenMetadata.MediaURL = result.Get("media_url").String()
-//	nonFungibleTokenMetadata.AnimationURL = result.Get("animation_url").String()
-//
-//	var properties string
-//
-//	switch {
-//	case result.Get("properties").Exists():
-//		properties = removeInvalidCharacter(result.Get("properties").Raw)
-//	case result.Get("attributes").Exists():
-//		properties = removeInvalidCharacter(result.Get("attributes").Raw)
-//	case result.Get("traits").Exists():
-//		properties = removeInvalidCharacter(result.Get("traits").Raw)
-//	}
-//
-//	properties, err := minify.JSON(properties)
-//	if err != nil {
-//		return fmt.Errorf("minify JSON: %w", err)
-//	}
-//
-//	nonFungibleTokenMetadata.Properties = json.RawMessage(properties)
-//
-//	// Fallback to default value if properties is invalid JSON
-//	if !json.Valid(nonFungibleTokenMetadata.Properties) {
-//		nonFungibleTokenMetadata.Properties = json.RawMessage{}
-//	}
-//
-//	return nonFungibleTokenMetadata
-//}
+	return character
+}
+
+// standardizeNonFungibleTokenMetadata standardizes non-fungible token metadata.
+func (c *client) standardizeNonFungibleTokenMetadata(_ context.Context, nonFungibleTokenMetadata *metadata.NonFungibleTokenMetadata, data []byte) error {
+	result := gjson.ParseBytes(data)
+
+	if name := result.Get("name"); name.Exists() {
+		nonFungibleTokenMetadata.Title = removeInvalidCharacter(name.String())
+	} else {
+		nonFungibleTokenMetadata.Title = removeInvalidCharacter(result.Get("title").String())
+	}
+
+	nonFungibleTokenMetadata.Description = removeInvalidCharacter(result.Get("description").String())
+
+	if imageURL := result.Get("image"); imageURL.Exists() {
+		nonFungibleTokenMetadata.ImageURL = imageURL.String()
+	} else {
+		nonFungibleTokenMetadata.ImageURL = result.Get("image_url").String()
+	}
+
+	nonFungibleTokenMetadata.ExternalURL = result.Get("external_url").String()
+	nonFungibleTokenMetadata.MediaURL = result.Get("media_url").String()
+	nonFungibleTokenMetadata.AnimationURL = result.Get("animation_url").String()
+
+	var properties string
+
+	switch {
+	case result.Get("properties").Exists():
+		properties = removeInvalidCharacter(result.Get("properties").Raw)
+	case result.Get("attributes").Exists():
+		properties = removeInvalidCharacter(result.Get("attributes").Raw)
+	case result.Get("traits").Exists():
+		properties = removeInvalidCharacter(result.Get("traits").Raw)
+	}
+
+	properties, err := minify.JSON(properties)
+	if err != nil {
+		return fmt.Errorf("minify JSON: %w", err)
+	}
+
+	nonFungibleTokenMetadata.Properties = json.RawMessage(properties)
+
+	// Fallback to default value if properties is invalid JSON
+	if !json.Valid(nonFungibleTokenMetadata.Properties) {
+		nonFungibleTokenMetadata.Properties = json.RawMessage{}
+	}
+
+	return nil
+}
 
 // NewClient returns a new client.
 func NewClient(ethereumClient ethereum.Client) Client {
