@@ -786,6 +786,8 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 		return "", fmt.Errorf("lookup token metadata %s: %w", asset[0], err)
 	}
 
+	fmt.Printf("tokenMetadata: %v\n", tokenMetadata.URI)
+
 	return tokenMetadata.ParsedImageURL, nil
 }
 

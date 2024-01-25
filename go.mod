@@ -49,7 +49,10 @@ require (
 	moul.io/zapgorm2 v1.3.0
 )
 
-require golang.org/x/net v0.19.0
+require (
+	github.com/vincent-petithory/dataurl v1.0.0
+	golang.org/x/net v0.19.0
+)
 
 require (
 	github.com/DataDog/zstd v1.5.0 // indirect
@@ -73,7 +76,6 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/ethereum/c-kzg-4844 v0.4.0 // indirect
-	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
