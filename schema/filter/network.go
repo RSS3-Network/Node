@@ -9,7 +9,6 @@ const (
 	NetworkUnknown   Network = iota // unknown
 	NetworkEthereum                 // ethereum
 	NetworkOptimism                 // optimism
-	NetworkBase                     // base
 	NetworkPolygon                  // polygon
 	NetworkCrossbell                // crossbell
 	NetworkArbitrum                 // arbitrum
@@ -17,6 +16,8 @@ const (
 	NetworkRSS                      // rss
 	NetworkArweave                  // arweave
 	NetworkFarcaster                // farcaster
+	NetworkBase                     // base
+	NetworkAvalanche                // avax
 )
 
 var _ echo.BindUnmarshaler = (*Network)(nil)
@@ -42,7 +43,7 @@ const (
 
 func (n Network) Source() NetworkSource {
 	switch n {
-	case NetworkEthereum, NetworkPolygon, NetworkOptimism, NetworkArbitrum, NetworkFantom, NetworkBase, NetworkCrossbell:
+	case NetworkEthereum, NetworkPolygon, NetworkOptimism, NetworkArbitrum, NetworkFantom, NetworkBase, NetworkCrossbell, NetworkAvalanche:
 		return NetworkEthereumSource
 	case NetworkArweave:
 		return NetworkArweaveSource
@@ -64,6 +65,7 @@ const (
 	EthereumChainIDFantom    EthereumChainID = 250
 	EthereumChainIDBase      EthereumChainID = 8453
 	EthereumChainIDCrossbell EthereumChainID = 3737
+	EthereumChainIDAvalanche EthereumChainID = 43114 // avax
 )
 
 func IsOptimismSuperchain(chainID uint64) bool {
