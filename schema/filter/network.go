@@ -1,6 +1,10 @@
 package filter
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/labstack/echo/v4"
+	"github.com/mitchellh/mapstructure"
+	"reflect"
+)
 
 //go:generate go run --mod=mod github.com/dmarkham/enumer@v1.5.9 --values --type=Network --linecomment --output network_string.go --json --yaml --sql
 type Network uint64
@@ -73,5 +77,22 @@ func IsOptimismSuperchain(chainID uint64) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func NetworkHookFunc() mapstructure.DecodeHookFuncType {
+	return func(
+		f reflect.Type, // data type
+		t reflect.Type, // target data type
+		data interface{}, // raw data
+	) (interface{}, error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		if t.Kind() != reflect.Uint64 {
+			return data, nil
+		}
+		return _NetworkNameToValueMap[data.(string)], nil
 	}
 }
