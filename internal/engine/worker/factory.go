@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/aave"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/aavegotchi"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/highlight"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/iqwiki"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/lens"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/looksrare"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/matters"
