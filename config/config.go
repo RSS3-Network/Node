@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/creasty/defaults"
 	"github.com/ethereum/go-ethereum/common"
@@ -140,9 +141,24 @@ func (o *Options) String() string {
 	return string(lo.Must(json.Marshal(buffer)))
 }
 
-func Setup(configFilePath string) (*File, error) {
+func Setup(configName string) (*File, error) {
+	var (
+		config []byte
+		err    error
+	)
+
+	configPaths := []string{"/etc/serving-node/", os.Getenv("HOME") + "/.serving-node/", "./config/", "./deploy/"}
+
 	// Read config file.
-	config, err := os.ReadFile(configFilePath)
+	for _, configPath := range configPaths {
+		configFilePath := filepath.Join(configPath, configName)
+
+		config, err = os.ReadFile(configFilePath)
+		if err == nil {
+			break
+		}
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("read config file: %w", err)
 	}
