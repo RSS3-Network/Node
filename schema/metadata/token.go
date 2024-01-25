@@ -3,7 +3,7 @@ package metadata
 import (
 	"encoding/json"
 
-	"github.com/naturalselectionlabs/rss3-node/provider/ethereum/contract"
+	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 	"github.com/shopspring/decimal"
 )
 

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/naturalselectionlabs/rss3-node/provider/httpx"
+	"github.com/rss3-network/serving-node/provider/httpx"
 	"github.com/stretchr/testify/require"
 )
 

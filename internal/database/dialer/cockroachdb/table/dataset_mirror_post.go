@@ -1,7 +1,7 @@
 package table
 
 import (
-	"github.com/naturalselectionlabs/rss3-node/internal/engine/worker/contract/mirror/model"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/mirror/model"
 )
 
 var _ model.DatasetMirrorPostTransformer = (*DatasetMirrorPost)(nil)

@@ -6,19 +6,19 @@ import (
 	"os"
 	"strings"
 
-	"github.com/naturalselectionlabs/rss3-node/config"
-	"github.com/naturalselectionlabs/rss3-node/config/flag"
-	"github.com/naturalselectionlabs/rss3-node/internal/constant"
-	"github.com/naturalselectionlabs/rss3-node/internal/database"
-	"github.com/naturalselectionlabs/rss3-node/internal/database/dialer"
-	"github.com/naturalselectionlabs/rss3-node/internal/node"
-	"github.com/naturalselectionlabs/rss3-node/internal/node/broadcaster"
-	"github.com/naturalselectionlabs/rss3-node/internal/node/hub"
-	"github.com/naturalselectionlabs/rss3-node/internal/node/indexer"
-	"github.com/naturalselectionlabs/rss3-node/internal/stream"
-	"github.com/naturalselectionlabs/rss3-node/internal/stream/provider"
-	"github.com/naturalselectionlabs/rss3-node/provider/telemetry"
-	"github.com/naturalselectionlabs/rss3-node/schema/filter"
+	"github.com/rss3-network/serving-node/config"
+	"github.com/rss3-network/serving-node/config/flag"
+	"github.com/rss3-network/serving-node/internal/constant"
+	"github.com/rss3-network/serving-node/internal/database"
+	"github.com/rss3-network/serving-node/internal/database/dialer"
+	"github.com/rss3-network/serving-node/internal/node"
+	"github.com/rss3-network/serving-node/internal/node/broadcaster"
+	"github.com/rss3-network/serving-node/internal/node/hub"
+	"github.com/rss3-network/serving-node/internal/node/indexer"
+	"github.com/rss3-network/serving-node/internal/stream"
+	"github.com/rss3-network/serving-node/internal/stream/provider"
+	"github.com/rss3-network/serving-node/provider/telemetry"
+	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -176,7 +176,7 @@ func initializeLogger() {
 func init() {
 	initializeLogger()
 
-	command.PersistentFlags().String(flag.KeyConfig, "./deploy/config.development.yaml", "config file path")
+	command.PersistentFlags().String(flag.KeyConfig, "config.development.yaml", "config file name")
 	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")
 	command.PersistentFlags().String(flag.KeyIndexerNetwork, filter.NetworkEthereum.String(), "indexer network")
 	command.PersistentFlags().String(flag.KeyIndexerWorker, filter.Fallback.String(), "indexer worker")
