@@ -999,7 +999,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	)
 
 	// Initialize option.
-	if instance.option, err = workerOption.NewOption(config.Parameters); err != nil {
+	if instance.option, err = workerOption.NewOption(true); err != nil {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
 

@@ -90,7 +90,6 @@ component:
       endpoint: https://rpc.crossbell.io
       parameters:
         block_number_start:
-        parse_token_metadata: true
     # farcaster
     - network: farcaster
       worker: farcaster
