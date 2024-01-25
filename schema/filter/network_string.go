@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _NetworkName = "unknownethereumoptimismbasepolygoncrossbellarbitrumfantomrssarweavefarcaster"
+const _NetworkName = "unknownethereumoptimismpolygoncrossbellarbitrumfantomrssarweavefarcasterbaseavax"
 
-var _NetworkIndex = [...]uint8{0, 7, 15, 23, 27, 34, 43, 51, 57, 60, 67, 76}
+var _NetworkIndex = [...]uint8{0, 7, 15, 23, 30, 39, 47, 53, 56, 63, 72, 76, 80}
 
-const _NetworkLowerName = "unknownethereumoptimismbasepolygoncrossbellarbitrumfantomrssarweavefarcaster"
+const _NetworkLowerName = "unknownethereumoptimismpolygoncrossbellarbitrumfantomrssarweavefarcasterbaseavax"
 
 func (i Network) String() string {
 	if i >= Network(len(_NetworkIndex)-1) {
@@ -33,17 +33,18 @@ func _NetworkNoOp() {
 	_ = x[NetworkUnknown-(0)]
 	_ = x[NetworkEthereum-(1)]
 	_ = x[NetworkOptimism-(2)]
-	_ = x[NetworkBase-(3)]
-	_ = x[NetworkPolygon-(4)]
-	_ = x[NetworkCrossbell-(5)]
-	_ = x[NetworkArbitrum-(6)]
-	_ = x[NetworkFantom-(7)]
-	_ = x[NetworkRSS-(8)]
-	_ = x[NetworkArweave-(9)]
-	_ = x[NetworkFarcaster-(10)]
+	_ = x[NetworkPolygon-(3)]
+	_ = x[NetworkCrossbell-(4)]
+	_ = x[NetworkArbitrum-(5)]
+	_ = x[NetworkFantom-(6)]
+	_ = x[NetworkRSS-(7)]
+	_ = x[NetworkArweave-(8)]
+	_ = x[NetworkFarcaster-(9)]
+	_ = x[NetworkBase-(10)]
+	_ = x[NetworkAvalanche-(11)]
 }
 
-var _NetworkValues = []Network{NetworkUnknown, NetworkEthereum, NetworkOptimism, NetworkBase, NetworkPolygon, NetworkCrossbell, NetworkArbitrum, NetworkFantom, NetworkRSS, NetworkArweave, NetworkFarcaster}
+var _NetworkValues = []Network{NetworkUnknown, NetworkEthereum, NetworkOptimism, NetworkPolygon, NetworkCrossbell, NetworkArbitrum, NetworkFantom, NetworkRSS, NetworkArweave, NetworkFarcaster, NetworkBase, NetworkAvalanche}
 
 var _NetworkNameToValueMap = map[string]Network{
 	_NetworkName[0:7]:        NetworkUnknown,
@@ -52,36 +53,39 @@ var _NetworkNameToValueMap = map[string]Network{
 	_NetworkLowerName[7:15]:  NetworkEthereum,
 	_NetworkName[15:23]:      NetworkOptimism,
 	_NetworkLowerName[15:23]: NetworkOptimism,
-	_NetworkName[23:27]:      NetworkBase,
-	_NetworkLowerName[23:27]: NetworkBase,
-	_NetworkName[27:34]:      NetworkPolygon,
-	_NetworkLowerName[27:34]: NetworkPolygon,
-	_NetworkName[34:43]:      NetworkCrossbell,
-	_NetworkLowerName[34:43]: NetworkCrossbell,
-	_NetworkName[43:51]:      NetworkArbitrum,
-	_NetworkLowerName[43:51]: NetworkArbitrum,
-	_NetworkName[51:57]:      NetworkFantom,
-	_NetworkLowerName[51:57]: NetworkFantom,
-	_NetworkName[57:60]:      NetworkRSS,
-	_NetworkLowerName[57:60]: NetworkRSS,
-	_NetworkName[60:67]:      NetworkArweave,
-	_NetworkLowerName[60:67]: NetworkArweave,
-	_NetworkName[67:76]:      NetworkFarcaster,
-	_NetworkLowerName[67:76]: NetworkFarcaster,
+	_NetworkName[23:30]:      NetworkPolygon,
+	_NetworkLowerName[23:30]: NetworkPolygon,
+	_NetworkName[30:39]:      NetworkCrossbell,
+	_NetworkLowerName[30:39]: NetworkCrossbell,
+	_NetworkName[39:47]:      NetworkArbitrum,
+	_NetworkLowerName[39:47]: NetworkArbitrum,
+	_NetworkName[47:53]:      NetworkFantom,
+	_NetworkLowerName[47:53]: NetworkFantom,
+	_NetworkName[53:56]:      NetworkRSS,
+	_NetworkLowerName[53:56]: NetworkRSS,
+	_NetworkName[56:63]:      NetworkArweave,
+	_NetworkLowerName[56:63]: NetworkArweave,
+	_NetworkName[63:72]:      NetworkFarcaster,
+	_NetworkLowerName[63:72]: NetworkFarcaster,
+	_NetworkName[72:76]:      NetworkBase,
+	_NetworkLowerName[72:76]: NetworkBase,
+	_NetworkName[76:80]:      NetworkAvalanche,
+	_NetworkLowerName[76:80]: NetworkAvalanche,
 }
 
 var _NetworkNames = []string{
 	_NetworkName[0:7],
 	_NetworkName[7:15],
 	_NetworkName[15:23],
-	_NetworkName[23:27],
-	_NetworkName[27:34],
-	_NetworkName[34:43],
-	_NetworkName[43:51],
-	_NetworkName[51:57],
-	_NetworkName[57:60],
-	_NetworkName[60:67],
-	_NetworkName[67:76],
+	_NetworkName[23:30],
+	_NetworkName[30:39],
+	_NetworkName[39:47],
+	_NetworkName[47:53],
+	_NetworkName[53:56],
+	_NetworkName[56:63],
+	_NetworkName[63:72],
+	_NetworkName[72:76],
+	_NetworkName[76:80],
 }
 
 // NetworkString retrieves an enum value from the enum constants string name.

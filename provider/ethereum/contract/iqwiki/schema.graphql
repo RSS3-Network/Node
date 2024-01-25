@@ -1,0 +1,531 @@
+# This file was generated. Do not edit manually.
+
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+directive @isUser on FIELD_DEFINITION
+
+union MarketRankData = NftRankListData | TokenRankListData
+
+union SlugResult = Slug | Valid
+
+type Activity {
+    block: Int!
+    content: [Wiki!]!
+    created_timestamp: DateTime
+    datetime: DateTime!
+    id: ID!
+    ipfs: String!
+    language: Language!
+    type: Status!
+    updated_timestamp: DateTime
+    user: User!
+    wikiId: String!
+}
+
+type AdvancedSettings {
+    SIGN_EDITS_WITH_RELAYER: Boolean!
+}
+
+type BrainPass {
+    created: DateTime
+    description: String
+    id: ID!
+    image: String
+    metadataHash: String
+    owner: String
+    passId: ID!
+    passName: String
+    price: Int
+    tokenId: ID!
+    transactionHash: String
+    transactionType: String
+    updated: DateTime
+}
+
+type Category {
+    cardImage: String!
+    description: String!
+    heroImage: String!
+    icon: String!
+    id: ID!
+    title: String!
+    weight: Int!
+    wikis(limit: Int = 30, offset: Int = 0): [Wiki!]!
+}
+
+type Content {
+    input: String!
+    output: String!
+}
+
+type Count {
+    amount: Int!
+}
+
+type Events {
+    date: String
+    description: String
+    link: String
+    title: String
+    type: EventType
+}
+
+type HiIQHolder {
+    amount: Int!
+    created: DateTime!
+    day: DateTime!
+    id: ID!
+    updated: DateTime!
+}
+
+type IQHolder {
+    amount: Int!
+    created: DateTime!
+    day: DateTime!
+    id: ID!
+    updated: DateTime!
+}
+
+type Image {
+    id: String!
+    type: String!
+}
+
+type IpfsHash {
+    IpfsHash: String!
+    IsDuplicate: Boolean
+    PinSize: Float!
+    Timestamp: String!
+}
+
+"User subscriptions"
+type IqSubscription {
+    auxiliaryId: String
+    id: ID
+    subscriptionType: String
+    userId: String
+    wiki: Wiki!
+}
+
+type Language {
+    id: ID!
+    title: String!
+}
+
+type LinkedWikis {
+    blockchains: [String!]
+    founders: [String!]
+}
+
+type Links {
+    instagram: String
+    lens: String
+    twitter: String
+    website: String
+}
+
+type Media {
+    caption: String
+    id: String!
+    name: String
+    size: String
+    source: MediaSource!
+    thumbnail: String
+    type: MediaType
+}
+
+type Metadata {
+    id: String!
+    value: String!
+}
+
+type Mutation {
+    addWikiSubscription(auxiliaryId: String!, subscriptionType: String!, userId: String!): IqSubscription!
+    contentFeedback(
+        "The slug id of content page"
+        contentId: String,
+        feedback: ContentFeedbackType = NEUTRAL,
+        input: String,
+        message: String,
+        output: String,
+        reportType: String,
+        "IQ platorm, e.g iq-wiki, iq-social"
+        site: ContentFeedbackSite!,
+        userId: String
+    ): Boolean!
+    createProfile(profileInfo: String!): UserProfile!
+    flagWiki(report: String!, wikiId: String!): Boolean!
+    hideWiki(id: String!, lang: String = "en"): Wiki
+    pinImage(fileUpload: Upload!): IpfsHash!
+    pinJSON(data: String!): IpfsHash!
+    promoteWiki(id: String!, lang: String = "en", level: Int = 0): Wiki
+    rankPageIds(coingeckoId: String!, kind: RankType = TOKEN, wikiId: String!): Boolean!
+    relayer(txToRelay: SignaturePayloadInput!): Relayer!
+    removeWikiSubscription(auxiliaryId: String!, subscriptionType: String!, userId: String!): Boolean!
+    revalidatePage(id: String, route: String!, slug: String): Boolean!
+    toggleUserStateById(active: Boolean = true, id: String!): User
+    unhideWiki(id: String!, lang: String = "en"): Wiki
+    wikiViewCount(id: String!): Float!
+}
+
+type NftListData {
+    alias: String
+    floor_price_eth: Float!
+    floor_price_in_usd_24h_percentage_change: Float!
+    floor_price_usd: Float!
+    h24_volume_native_currency: Float!
+    h24_volume_usd: Float!
+    hasWiki: Boolean!
+    image: String!
+    market_cap_usd: Float!
+    name: String!
+    native_currency: String!
+    native_currency_symbol: String!
+}
+
+type NftRankListData {
+    author: User
+    block: Int!
+    categories: [Category!]!
+    content: String!
+    created: DateTime
+    events: [Events!]
+    founderWikis: [Wiki!]
+    hidden: Boolean!
+    id: ID!
+    images: [Image!]!
+    ipfs: String!
+    language: Language!
+    linkedWikis: LinkedWikis
+    media: [Media!]
+    metadata: [Metadata!]!
+    nftMarketData: NftListData
+    promoted: Int!
+    summary: String!
+    tags: [Tag!]!
+    title: String!
+    transactionHash: String!
+    updated: DateTime
+    user: User!
+    version: Int!
+    views: Int
+    visits(interval: IntervalByDays = WEEK): Int
+}
+
+type Notifications {
+    EDIT_NOTIFICATIONS: Boolean!
+    EVERIPEDIA_NOTIFICATIONS: Boolean!
+    WIKI_OF_THE_DAY: Boolean!
+    WIKI_OF_THE_MONTH: Boolean!
+}
+
+type Query {
+    IQHolders(endDay: String, interval: IntervalByDays = DAY, limit: Int = 182, offset: Int = 0, startDay: String): [IQHolder!]!
+    activities(lang: String = "en", limit: Int = 30, offset: Int = 0, wikiId: String): [Activity!]!
+    activitiesByCategory(category: String!, limit: Int = 30, offset: Int = 0, type: ActivityType = CREATED): [Activity!]!
+    activitiesByUser(limit: Int = 30, offset: Int = 0, userId: String!): [Activity!]!
+    activitiesByWikId(lang: String = "en", limit: Int = 30, offset: Int = 0, wikiId: String): [Activity!]!
+    activityById(id: String!): Activity!
+    activityByWikiIdAndBlock(block: Int!, lang: String = "en", limit: Int = 30, offset: Int = 0, wikiId: String): Activity!
+    addressToWiki(address: String!): [WikiUrl!]!
+    categories(limit: Int = 30, offset: Int = 0): [Category!]!
+    categoryById(id: String!): Category
+    categoryByTitle(direction: Direction = DESC, hidden: Boolean = false, lang: String = "en", limit: Int = 30, offset: Int = 0, order: OrderBy = UPDATED, title: String!): [Category!]!
+    categoryTotal(category: String!, direction: Direction = DESC, lang: String = "en", limit: Int = 30, offset: Int = 0, order: OrderBy = UPDATED): Count!
+    dailyStakedIQ(endDate: Int = 1704785747, startDate: Int = 1704180947): [StakedIQ!]!
+    dailyTreasury(endDate: Int = 1704785747, startDate: Int = 1704180947): [Treasury!]!
+    editorCount(endDate: Int = 1704785747, startDate: Int = 1704180947): Count!
+    getProfile(id: String, username: String): UserProfile
+    getProfileLikeUsername(id: String, username: String): [UserProfile!]!
+    hiIQHolders(interval: IntervalByDays = DAY, limit: Int = 182, offset: Int = 0): [HiIQHolder!]!
+    isAdmin: Boolean!
+    languages(limit: Int = 30, offset: Int = 0): [Language!]!
+    pageViewsCount(endDate: Int = 1704785747, startDate: Int = 1704180947): Count!
+    promotedWikis(direction: Direction = DESC, lang: String = "en", limit: Int = 30, offset: Int = 0, order: OrderBy = UPDATED): [Wiki!]!
+    rankList(category: TokenCategory, founders: Boolean = false, kind: RankType = TOKEN, limit: Int = 30, offset: Int = 0): [MarketRankData]!
+    retrieveBrainPass(address: String!, limit: Int = 30, offset: Int = 0): [BrainPass!]!
+    tagById(id: String!): Tag
+    tags(limit: Int = 30, offset: Int = 0): [Tag!]!
+    tagsById(id: String!, limit: Int = 30, offset: Int = 0): [Tag!]!
+    tagsPopular(endDate: Int = 1704785747, startDate: Int = 1704180947): [Tag!]!
+    tokenStats(cmcTokenName: String, tokenName: String): TokenData!
+    userById(id: String!): User
+    usernameTaken(username: String!): Boolean!
+    users(edits: Boolean, limit: Int = 30, offset: Int = 0): [User!]!
+    usersById(id: String!, limit: Int = 30, offset: Int = 0): [User!]!
+    usersHidden(limit: Int = 30, offset: Int = 0): [User!]!
+    validWikiSlug(id: String!, lang: String = "en"): SlugResult!
+    wiki(id: String!, lang: String = "en"): Wiki
+    wikiSubscriptions(userId: String!): [IqSubscription!]!
+    wikiViews(days: Int = 365, direction: Direction = DESC, limit: Int = 30, offset: Int = 0, order: OrderBy = DAY): [WikiViews!]!
+    wikis(direction: Direction = DESC, lang: String = "en", limit: Int = 30, offset: Int = 0, order: OrderBy = UPDATED): [Wiki!]!
+    wikisByCategory(category: String!, direction: Direction = DESC, lang: String = "en", limit: Int = 30, offset: Int = 0, order: OrderBy = UPDATED): [Wiki!]!
+    wikisByTitle(direction: Direction = DESC, hidden: Boolean = false, lang: String = "en", limit: Int = 30, offset: Int = 0, order: OrderBy = UPDATED, title: String!): [Wiki!]!
+    wikisCreated(endDate: Int = 1704785747, interval: String = "hour", startDate: Int = 1704180947): [WikiStats!]!
+    wikisCreatedByUser(endDate: Int = 1704785747, startDate: Int = 1704180947, userId: String!): WikiUserStats!
+    wikisEdited(endDate: Int = 1704785747, interval: String = "hour", startDate: Int = 1704180947): [WikiStats!]!
+    wikisEditedByUser(endDate: Int = 1704785747, startDate: Int = 1704180947, userId: String!): WikiUserStats!
+    wikisHidden(direction: Direction = DESC, lang: String = "en", limit: Int = 30, offset: Int = 0, order: OrderBy = UPDATED): [Wiki!]!
+    wikisPerVisits(
+        amount: Int!,
+        category: String,
+        "Format <YYYY/MM/DD>"
+        endDay: String,
+        interval: IntervalByDays = WEEK,
+        "Format <YYYY/MM/DD>"
+        startDay: String
+    ): [Wiki!]!
+}
+
+type Relayer {
+    hash: String!
+}
+
+type Slug {
+    id: String!
+}
+
+type StakedIQ {
+    amount: String!
+    created: DateTime!
+    id: ID!
+    updated: DateTime!
+}
+
+"Tags for Wikis"
+type Tag {
+    id: ID!
+    wikis(limit: Int = 30, offset: Int = 0): [Wiki!]!
+}
+
+type TokenData {
+    diluted_market_cap: Float!
+    diluted_market_cap_percentage_change: Float!
+    id: String!
+    market_cap: Float!
+    market_cap_percentage_change: Float!
+    name: String!
+    symbol: String!
+    token_image_url: String!
+    token_price_in_usd: Float!
+    volume: Float!
+    volume_percentage_change: Float!
+}
+
+type TokenListData {
+    alias: String
+    current_price: Float!
+    hasWiki: Boolean!
+    image: String!
+    market_cap: Float!
+    market_cap_change_24h: Float!
+    market_cap_rank: Float!
+    name: String!
+    price_change_24h: Float!
+}
+
+type TokenRankListData {
+    author: User
+    block: Int!
+    categories: [Category!]!
+    content: String!
+    created: DateTime
+    events: [Events!]
+    founderWikis: [Wiki!]
+    hidden: Boolean!
+    id: ID!
+    images: [Image!]!
+    ipfs: String!
+    language: Language!
+    linkedWikis: LinkedWikis
+    media: [Media!]
+    metadata: [Metadata!]!
+    promoted: Int!
+    summary: String!
+    tags: [Tag!]!
+    title: String!
+    tokenMarketData: TokenListData
+    transactionHash: String!
+    updated: DateTime
+    user: User!
+    version: Int!
+    views: Int
+    visits(interval: IntervalByDays = WEEK): Int
+}
+
+type Treasury {
+    created: DateTime!
+    id: ID!
+    totalValue: String!
+    updated: DateTime!
+}
+
+type User {
+    active: Boolean!
+    id: ID
+    profile: UserProfile
+    wikis(limit: Int = 30, offset: Int = 0): [Wiki!]!
+    wikisCreated(limit: Int = 30, offset: Int = 0): [Activity!]!
+    wikisEdited(limit: Int = 30, offset: Int = 0): [Activity!]!
+}
+
+type UserProfile {
+    active: Boolean!
+    advancedSettings: [AdvancedSettings!]
+    avatar: String
+    banner: String
+    bio: String
+    created: DateTime!
+    email: String
+    id: ID!
+    links: [Links!]
+    notifications: [Notifications!]
+    updated: DateTime!
+    username: String
+    wikiSubscribed: [Wiki!]!
+    wikiSubscriptions: [Wiki!]
+    wikisCreated(limit: Int = 30, offset: Int = 0): [Activity!]!
+    wikisEdited(limit: Int = 30, offset: Int = 0): [Activity!]!
+}
+
+type Valid {
+    valid: Boolean!
+}
+
+type Wiki {
+    author: User
+    block: Int!
+    categories: [Category!]!
+    content: String!
+    created: DateTime
+    events: [Events!]
+    founderWikis: [Wiki!]
+    hidden: Boolean!
+    id: ID!
+    images: [Image!]!
+    ipfs: String!
+    language: Language!
+    linkedWikis: LinkedWikis
+    media: [Media!]
+    metadata: [Metadata!]!
+    promoted: Int!
+    summary: String!
+    tags: [Tag!]!
+    title: String!
+    transactionHash: String!
+    updated: DateTime
+    user: User!
+    version: Int!
+    views: Int
+    visits(interval: IntervalByDays = WEEK): Int
+}
+
+type WikiStats {
+    amount: Int!
+    endOn: DateTime!
+    startOn: DateTime!
+}
+
+type WikiUrl {
+    wiki: String!
+}
+
+type WikiUserStats {
+    address: String!
+    amount: Int!
+}
+
+type WikiViews {
+    day: DateTime!
+    visits: Int!
+}
+
+enum ActivityType {
+    CREATED
+    UPDATED
+}
+
+enum ContentFeedbackSite {
+    IQSEARCH
+    IQSOCIAL
+    IQWIKI
+}
+
+enum ContentFeedbackType {
+    NEGATIVE
+    NEUTRAL
+    POSITIVE
+}
+
+enum Direction {
+    ASC
+    DESC
+}
+
+enum EventType {
+    CREATED
+    DEFAULT
+}
+
+enum IntervalByDays {
+    DAY
+    MONTH
+    NINETY_DAYS
+    WEEK
+    YEAR
+}
+
+enum MediaSource {
+    IPFS_IMG
+    IPFS_VID
+    VIMEO
+    YOUTUBE
+}
+
+enum MediaType {
+    GALLERY
+    ICON
+}
+
+enum OrderBy {
+    BLOCK
+    CREATED
+    DAY
+    ID
+    UPDATED
+    VIEWS
+}
+
+enum RankType {
+    NFT
+    TOKEN
+}
+
+enum Status {
+    CREATED
+    UPDATED
+}
+
+enum TokenCategory {
+    AI
+    FOUNDERS
+    STABLE_COINS
+}
+
+"A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format."
+scalar DateTime
+
+"The `Upload` scalar type represents a file upload."
+scalar Upload
+
+input SignaturePayloadInput {
+    deadline: Float!
+    ipfs: String!
+    r: String!
+    s: String!
+    userAddr: String!
+    v: String!
+}

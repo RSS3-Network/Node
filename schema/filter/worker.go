@@ -27,6 +27,8 @@ const (
 	Matters                // matters
 	Momoka                 // momoka
 	Highlight              // highlight
+	Aave                   // aave
+	IQWiki                 // iqwiki
 )
 
 func WorkerHookFunc() mapstructure.DecodeHookFuncType {

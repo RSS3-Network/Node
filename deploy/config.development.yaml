@@ -113,10 +113,50 @@ component:
       worker: matters
       endpoint: https://rpc.ankr.com/polygon
       parameters:
-        block_number_start: 52398940
+        block_number_start:
     - network: arweave
       worker: momoka
       endpoint: https://rpc.ankr.com/polygon
       parameters:
         block_height_start:
         rpc_thread_blocks:
+    - network: ethereum
+      endpoint: https://rpc.ankr.com/eth
+      worker: aave
+      parameters:
+        block_number_start:
+    - network: polygon
+      endpoint: https://rpc.ankr.com/polygon
+      worker: aave
+      parameters:
+        block_number_start:
+    - network: avax
+      endpoint: https://rpc.ankr.com/avalanche
+      worker: aave
+      parameters:
+        block_number_start:
+    - network: base
+      endpoint: https://rpc.ankr.com/base
+      worker: aave
+      parameters:
+        block_number_start:
+    - network: optimism
+      endpoint: https://rpc.ankr.com/optimism
+      worker: aave
+      parameters:
+        block_number_start:
+    - network: arbitrum
+      endpoint: https://rpc.ankr.com/arbitrum
+      worker: aave
+      parameters:
+        block_number_start:
+    - network: fantom
+      endpoint: https://rpc.ankr.com/fantom
+      worker: aave
+      parameters:
+        block_number_start:
+    - network: polygon
+      worker: iqwiki
+      endpoint: https://rpc.ankr.com/polygon
+      parameters:
+        block_number_start:
