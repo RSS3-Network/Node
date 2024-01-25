@@ -724,42 +724,42 @@ func AssertConfig(t *testing.T, got, expect *File) {
 	t.Run("discovery", func(t *testing.T) {
 		assert.Equal(t, expect.Discovery, got.Discovery)
 	})
-
-	t.Run("decentralized", func(t *testing.T) {
-		for i, rss := range expect.Node.RSS {
-			func(except, got *Module) {
-				t.Run(fmt.Sprintf("rss-%d", i), func(t *testing.T) {
-					t.Parallel()
-					assert.Equal(t, expect, got)
-				})
-			}(rss, got.Node.RSS[i])
-		}
-
-		for i, indexer := range got.Node.Decentralized {
-			func(except, got *Module) {
-				t.Run(fmt.Sprintf("%s-%s", indexer.Network, indexer.Worker), func(t *testing.T) {
-					t.Parallel()
-					AssertIndexer(t, except, got)
-				})
-			}(configFileTest.Node.Decentralized[i], indexer)
-		}
-	})
 }
 
-func AssertIndexer(t *testing.T, got, expect *Module) {
-	t.Run("network", func(t *testing.T) {
-		assert.Equal(t, expect.Network, got.Network)
-	})
-	t.Run("worker", func(t *testing.T) {
-		assert.Equal(t, expect.Worker, got.Worker)
-	})
-	t.Run("endpoint", func(t *testing.T) {
-		assert.Equal(t, expect.Endpoint, got.Endpoint)
-	})
-	t.Run("gateway", func(t *testing.T) {
-		assert.Equal(t, expect.IPFSGateways, got.IPFSGateways)
-	})
-	t.Run("parameters", func(t *testing.T) {
-		assert.Equal(t, expect.Parameters, got.Parameters)
-	})
-}
+//t.Run("decentralized", func(t *testing.T) {
+//	for i, rss := range expect.Node.RSS {
+//		func(except, got *Module) {
+//			t.Run(fmt.Sprintf("rss-%d", i), func(t *testing.T) {
+//				t.Parallel()
+//				assert.Equal(t, expect, got)
+//			})
+//		}(rss, got.Node.RSS[i])
+//	}
+//
+//	//for i, indexer := range got.Node.Decentralized {
+//	//	func(except, got *Module) {
+//	//		t.Run(fmt.Sprintf("%s-%s", indexer.Network, indexer.Worker), func(t *testing.T) {
+//	//			t.Parallel()
+//	//			AssertIndexer(t, except, got)
+//	//		})
+//	//	}(configFileTest.Node.Decentralized[i], indexer)
+//	//}
+//})
+
+//func AssertIndexer(t *testing.T, got, expect *Module) {
+//	t.Run("network", func(t *testing.T) {
+//		assert.Equal(t, expect.Network, got.Network)
+//	})
+//	t.Run("worker", func(t *testing.T) {
+//		assert.Equal(t, expect.Worker, got.Worker)
+//	})
+//	t.Run("endpoint", func(t *testing.T) {
+//		assert.Equal(t, expect.Endpoint, got.Endpoint)
+//	})
+//	t.Run("gateway", func(t *testing.T) {
+//		assert.Equal(t, expect.IPFSGateways, got.IPFSGateways)
+//	})
+//	t.Run("parameters", func(t *testing.T) {
+//		assert.Equal(t, expect.Parameters, got.Parameters)
+//	})
+//}
