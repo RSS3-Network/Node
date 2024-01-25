@@ -22,5 +22,6 @@ const (
 	Momoka                 // momoka
 	Highlight              // highlight
 	Aave                   // aave
+	IQWiki                 // iqwiki
 	Crossbell              // crossbell
 )

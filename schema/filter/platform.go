@@ -24,6 +24,7 @@ const (
 	PlatformMomoka                         // Momoka
 	PlatformHighlight                      // Highlight
 	PlatformAAVE                           // AAVE
+	PlatformIQWiki                         // IQWiki
 	PlatformCrossbell                      // Crossbell
 )
 
