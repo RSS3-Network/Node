@@ -24,6 +24,7 @@ const (
 	PlatformMomoka                         // Momoka
 	PlatformHighlight                      // Highlight
 	PlatformAAVE                           // AAVE
+	PlatformIQWiki                         // IQWiki
 )
 
 func (p Platform) ID() string {
