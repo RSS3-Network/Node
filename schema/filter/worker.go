@@ -21,5 +21,6 @@ const (
 	Matters                // matters
 	Momoka                 // momoka
 	Highlight              // highlight
+	Aave                   // aave
 	Crossbell              // crossbell
 )
