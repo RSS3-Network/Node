@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/aave"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/aavegotchi"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/highlight"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/iqwiki"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/lens"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/lido"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/looksrare"
@@ -57,6 +58,8 @@ func New(config *config.Module, databaseClient database.Client) (engine.Worker, 
 		return highlight.NewWorker(config)
 	case filter.Aave:
 		return aave.NewWorker(config)
+	case filter.IQWiki:
+		return iqwiki.NewWorker()
 	case filter.Lido:
 		return lido.NewWorker(config)
 	default:
