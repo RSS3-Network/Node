@@ -24,6 +24,8 @@ const (
 	_EthereumChainIDLowerName_5 = "ethereumchainidbase"
 	_EthereumChainIDName_6      = "EthereumChainIDArbitrum"
 	_EthereumChainIDLowerName_6 = "ethereumchainidarbitrum"
+	_EthereumChainIDName_7      = "avax"
+	_EthereumChainIDLowerName_7 = "avax"
 )
 
 var (
@@ -34,6 +36,7 @@ var (
 	_EthereumChainIDIndex_4 = [...]uint8{0, 24}
 	_EthereumChainIDIndex_5 = [...]uint8{0, 19}
 	_EthereumChainIDIndex_6 = [...]uint8{0, 23}
+	_EthereumChainIDIndex_7 = [...]uint8{0, 4}
 )
 
 func (i EthereumChainID) String() string {
@@ -52,6 +55,8 @@ func (i EthereumChainID) String() string {
 		return _EthereumChainIDName_5
 	case i == 42161:
 		return _EthereumChainIDName_6
+	case i == 43114:
+		return _EthereumChainIDName_7
 	default:
 		return fmt.Sprintf("EthereumChainID(%d)", i)
 	}
@@ -72,9 +77,10 @@ func _EthereumChainIDNoOp() {
 	_ = x[EthereumChainIDCrossbell-(3737)]
 	_ = x[EthereumChainIDBase-(8453)]
 	_ = x[EthereumChainIDArbitrum-(42161)]
+	_ = x[EthereumChainIDAvalanche-(43114)]
 }
 
-var _EthereumChainIDValues = []EthereumChainID{EthereumChainIDMainnet, EthereumChainIDOptimism, EthereumChainIDPolygon, EthereumChainIDFantom, EthereumChainIDCrossbell, EthereumChainIDBase, EthereumChainIDArbitrum}
+var _EthereumChainIDValues = []EthereumChainID{EthereumChainIDMainnet, EthereumChainIDOptimism, EthereumChainIDPolygon, EthereumChainIDFantom, EthereumChainIDCrossbell, EthereumChainIDBase, EthereumChainIDArbitrum, EthereumChainIDAvalanche}
 
 var _EthereumChainIDNameToValueMap = map[string]EthereumChainID{
 	_EthereumChainIDName_0[0:8]:       EthereumChainIDMainnet,
@@ -91,6 +97,8 @@ var _EthereumChainIDNameToValueMap = map[string]EthereumChainID{
 	_EthereumChainIDLowerName_5[0:19]: EthereumChainIDBase,
 	_EthereumChainIDName_6[0:23]:      EthereumChainIDArbitrum,
 	_EthereumChainIDLowerName_6[0:23]: EthereumChainIDArbitrum,
+	_EthereumChainIDName_7[0:4]:       EthereumChainIDAvalanche,
+	_EthereumChainIDLowerName_7[0:4]:  EthereumChainIDAvalanche,
 }
 
 var _EthereumChainIDNames = []string{
@@ -101,6 +109,7 @@ var _EthereumChainIDNames = []string{
 	_EthereumChainIDName_4[0:24],
 	_EthereumChainIDName_5[0:19],
 	_EthereumChainIDName_6[0:23],
+	_EthereumChainIDName_7[0:4],
 }
 
 // EthereumChainIDString retrieves an enum value from the enum constants string name.

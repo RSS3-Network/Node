@@ -23,6 +23,7 @@ const (
 	PlatformMatters                        // Matters
 	PlatformMomoka                         // Momoka
 	PlatformHighlight                      // Highlight
+	PlatformAAVE                           // AAVE
 	PlatformLido                           // Lido
 )
 

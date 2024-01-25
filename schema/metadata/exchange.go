@@ -40,6 +40,10 @@ const (
 	ActionExchangeLiquidityAdd ExchangeLiquidityAction = iota + 1
 	ActionExchangeLiquidityRemove
 	ActionExchangeLiquidityCollect
+	ActionExchangeLiquiditySupply
+	ActionExchangeLiquidityBorrow
+	ActionExchangeLiquidityRepay
+	ActionExchangeLiquidityWithdraw
 )
 
 var _ Metadata = (*ExchangeStaking)(nil)
