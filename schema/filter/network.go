@@ -1,9 +1,10 @@
 package filter
 
 import (
+	"reflect"
+
 	"github.com/labstack/echo/v4"
 	"github.com/mitchellh/mapstructure"
-	"reflect"
 )
 
 //go:generate go run --mod=mod github.com/dmarkham/enumer@v1.5.9 --values --type=Network --linecomment --output network_string.go --json --yaml --sql
@@ -93,6 +94,7 @@ func NetworkHookFunc() mapstructure.DecodeHookFuncType {
 		if t.Kind() != reflect.Uint64 {
 			return data, nil
 		}
+
 		return _NetworkNameToValueMap[data.(string)], nil
 	}
 }

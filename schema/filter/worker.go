@@ -1,8 +1,9 @@
 package filter
 
 import (
-	"github.com/mitchellh/mapstructure"
 	"reflect"
+
+	"github.com/mitchellh/mapstructure"
 )
 
 // Name represents a worker name.
@@ -41,6 +42,7 @@ func WorkerHookFunc() mapstructure.DecodeHookFuncType {
 		if t.Kind() != reflect.Int {
 			return data, nil
 		}
+
 		return _NameNameToValueMap[data.(string)], nil
 	}
 }

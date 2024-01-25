@@ -3,6 +3,10 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path"
+	"strings"
+
 	"github.com/creasty/defaults"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/go-playground/validator/v10"
@@ -13,9 +17,6 @@ import (
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
-	"os"
-	"path"
-	"strings"
 )
 
 const (
@@ -152,11 +153,11 @@ func Setup(configName string) (*File, error) {
 	case "json", "hcl", "toml":
 		return _Setup(configName, configType, viper.GetViper())
 	}
+
 	return nil, fmt.Errorf("unsupported config type: %s", configType)
 }
 
 func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
-
 	v.SetConfigName(configName)
 	v.SetConfigType(configType)
 

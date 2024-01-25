@@ -2,6 +2,10 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"path"
+	"testing"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/samber/lo"
@@ -9,9 +13,6 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"os"
-	"path"
-	"testing"
 )
 
 const (
@@ -133,7 +134,7 @@ component:
         block_height_start:
         rpc_thread_blocks:
 `
-	configExampleJson = `{
+	configExampleJSON = `{
   "environment": "development",
   "discovery": {
     "maintainer": {
@@ -578,6 +579,8 @@ var configFileTest = &File{
 }
 
 func TestSetupConfig(t *testing.T) {
+	t.Parallel()
+
 	configDir := "/etc/serving-node"
 	fs := afero.NewMemMapFs()
 
@@ -597,7 +600,6 @@ func TestSetupConfig(t *testing.T) {
 	assert.NoError(t, err)
 
 	AssertConfig(t, f, configFileTest)
-
 }
 
 //func TestConfigEnvOverride(t *testing.T) {
@@ -630,6 +632,8 @@ func TestSetupConfig(t *testing.T) {
 //}
 
 func TestConfigFilePath(t *testing.T) {
+	t.Parallel()
+
 	currentDir, err := os.Getwd()
 	assert.NoError(t, err)
 
@@ -641,64 +645,69 @@ func TestConfigFilePath(t *testing.T) {
 	}
 
 	for _, configPath := range configPaths {
-		t.Run(configPath, func(t *testing.T) {
-			t.Parallel()
-			fs := afero.NewMemMapFs()
+		func(_path string) {
+			t.Run(_path, func(t *testing.T) {
+				t.Parallel()
+				fs := afero.NewMemMapFs()
 
-			err := fs.Mkdir(configPath, 0o777)
-			assert.NoError(t, err)
+				err := fs.Mkdir(_path, 0o777)
+				assert.NoError(t, err)
 
-			file, err := fs.Create(path.Join(configPath, configName))
-			assert.NoError(t, err)
+				file, err := fs.Create(path.Join(_path, configName))
+				assert.NoError(t, err)
 
-			_, err = file.WriteString(configExampleYaml)
-			require.NoError(t, err)
+				_, err = file.WriteString(configExampleYaml)
+				require.NoError(t, err)
 
-			v := viper.New()
-			v.SetFs(fs)
+				v := viper.New()
+				v.SetFs(fs)
 
-			f, err := _Setup(configName, "yaml", v)
-			assert.NoError(t, err)
+				f, err := _Setup(configName, "yaml", v)
+				assert.NoError(t, err)
 
-			assert.Equal(t, configFileTest, f)
-		})
+				assert.Equal(t, configFileTest, f)
+			})
+		}(configPath)
 	}
 }
 
 func TestConfigFileType(t *testing.T) {
-	configDir := "/etc/serving-node"
+	t.Parallel()
 
+	configDir := "/etc/serving-node"
 	configFiles := map[string]string{
 		"yaml": configExampleYaml,
 		"yml":  configExampleYaml,
-		"json": configExampleJson,
+		"json": configExampleJSON,
 		"toml": configExampleToml,
 	}
 
-	for configType, configFile := range configFiles {
-		t.Run(configType, func(t *testing.T) {
-			t.Parallel()
-			fs := afero.NewMemMapFs()
+	for configType, configContext := range configFiles {
+		func(_type, context string) {
+			t.Run(_type, func(t *testing.T) {
+				t.Parallel()
+				fs := afero.NewMemMapFs()
 
-			err := fs.Mkdir(configDir, 0o777)
-			assert.NoError(t, err)
+				err := fs.Mkdir(configDir, 0o777)
+				assert.NoError(t, err)
 
-			configName := fmt.Sprintf("config.development.%s", configType)
+				configName := fmt.Sprintf("config.development.%s", _type)
 
-			file, err := fs.Create(path.Join(configDir, configName))
-			assert.NoError(t, err)
+				file, err := fs.Create(path.Join(configDir, configName))
+				assert.NoError(t, err)
 
-			_, err = file.WriteString(configFile)
-			require.NoError(t, err)
+				_, err = file.WriteString(context)
+				require.NoError(t, err)
 
-			v := viper.New()
-			v.SetFs(fs)
+				v := viper.New()
+				v.SetFs(fs)
 
-			f, err := _Setup(configName, configType, v)
-			assert.NoError(t, err)
+				f, err := _Setup(configName, _type, v)
+				assert.NoError(t, err)
 
-			assert.Equal(t, f, configFileTest)
-		})
+				assert.Equal(t, f, configFileTest)
+			})
+		}(configType, configContext)
 	}
 }
 
@@ -717,18 +726,22 @@ func AssertConfig(t *testing.T, got, expect *File) {
 	})
 
 	t.Run("decentralized", func(t *testing.T) {
-		for index, rss := range expect.Node.RSS {
-			t.Run(fmt.Sprintf("rss-%d", index), func(t *testing.T) {
-				t.Parallel()
-				assert.Equal(t, rss, got.Node.RSS[index])
-			})
+		for i, rss := range expect.Node.RSS {
+			func(except, got *Module) {
+				t.Run(fmt.Sprintf("rss-%d", i), func(t *testing.T) {
+					t.Parallel()
+					assert.Equal(t, expect, got)
+				})
+			}(rss, got.Node.RSS[i])
 		}
 
-		for key, indexer := range got.Node.Decentralized {
-			t.Run(fmt.Sprintf("%s-%s", indexer.Network, indexer.Worker), func(t *testing.T) {
-				t.Parallel()
-				AssertIndexer(t, configFileTest.Node.Decentralized[key], indexer)
-			})
+		for i, indexer := range got.Node.Decentralized {
+			func(except, got *Module) {
+				t.Run(fmt.Sprintf("%s-%s", indexer.Network, indexer.Worker), func(t *testing.T) {
+					t.Parallel()
+					AssertIndexer(t, except, got)
+				})
+			}(configFileTest.Node.Decentralized[i], indexer)
 		}
 	})
 }
