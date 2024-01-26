@@ -12,6 +12,7 @@ import (
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/highlight"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/iqwiki"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/lens"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/lido"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/looksrare"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/matters"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/mirror"
@@ -60,6 +61,8 @@ func New(config *config.Module, databaseClient database.Client) (engine.Worker, 
 		return aave.NewWorker(config)
 	case filter.IQWiki:
 		return iqwiki.NewWorker()
+	case filter.Lido:
+		return lido.NewWorker(config)
 	case filter.ENS:
 		return ens.NewWorker(config, databaseClient)
 	default:
