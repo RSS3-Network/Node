@@ -11,7 +11,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	worker "github.com/rss3-network/serving-node/internal/engine/worker/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum"
 	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum/contract/erc1155"
@@ -34,7 +33,7 @@ type LookupFunc = func(ctx context.Context, chainID uint64, address *common.Addr
 
 // Client is a client to look up token metadata.
 type Client interface {
-	Lookup(ctx context.Context, chainID uint64, address *common.Address, id, blockNumber *big.Int, options ...worker.Option) (*metadata.Token, error)
+	Lookup(ctx context.Context, chainID uint64, address *common.Address, id, blockNumber *big.Int, options ...Option) (*metadata.Token, error)
 }
 
 // nativeTokenMap is a map of native token metadata.
@@ -89,10 +88,20 @@ type client struct {
 	ipfsClient         ipfs.HTTPClient
 	httpClient         httpx.Client
 	unexpectedTokenMap map[uint64]map[common.Address]LookupFunc
+	parseTokenMetadata bool
+}
+
+type Option func(*client) error
+
+func WithParseTokenMetadata(value bool) Option {
+	return func(c *client) error {
+		c.parseTokenMetadata = value
+		return nil
+	}
 }
 
 // Lookup looks up token metadata, it supports ERC-20, ERC-721, ERC-1155 and native token.
-func (c *client) Lookup(ctx context.Context, chainID uint64, address *common.Address, id, blockNumber *big.Int, options ...worker.Option) (*metadata.Token, error) {
+func (c *client) Lookup(ctx context.Context, chainID uint64, address *common.Address, id, blockNumber *big.Int, options ...Option) (*metadata.Token, error) {
 	// Lookup unexpected token
 	if address != nil {
 		if lookupMap, exists := c.unexpectedTokenMap[chainID]; exists {
@@ -102,18 +111,17 @@ func (c *client) Lookup(ctx context.Context, chainID uint64, address *common.Add
 		}
 	}
 
-	var parseTokenMetadata bool
-
-	// Apply options.
 	for _, option := range options {
-		parseTokenMetadata = option.ParseTokenMetadata
+		if err := option(c); err != nil {
+			return nil, fmt.Errorf("apply option: %w", err)
+		}
 	}
 
 	switch {
 	case address != nil && id == nil: // ERC-20 token
 		return c.lookupERC20(ctx, chainID, *address, blockNumber)
 	case address != nil && id != nil: // ERC-721 and ERC-1155 token
-		return c.lookupNFT(ctx, chainID, *address, id, blockNumber, parseTokenMetadata)
+		return c.lookupNFT(ctx, chainID, *address, id, blockNumber)
 	default: // Native token
 		return c.lookupNative(ctx, chainID, address, id, blockNumber)
 	}
@@ -192,7 +200,7 @@ func (c *client) lookupERC20ByRPC(ctx context.Context, chainID uint64, address c
 }
 
 // lookupNFT looks up NFT token metadata, it supports ERC-721 and ERC-1155.
-func (c *client) lookupNFT(ctx context.Context, chain uint64, address common.Address, id *big.Int, blockNumber *big.Int, parseTokenMetadata bool) (*metadata.Token, error) {
+func (c *client) lookupNFT(ctx context.Context, chain uint64, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
 	// Detect NFT standard by ERC-165.
 	standard, err := contract.DetectNFTStandard(ctx, chain, address, blockNumber, c.ethereumClient)
 	if err != nil {
@@ -201,7 +209,7 @@ func (c *client) lookupNFT(ctx context.Context, chain uint64, address common.Add
 
 	var tokenMetadata *metadata.Token
 
-	if parseTokenMetadata {
+	if c.parseTokenMetadata {
 		// When handling nft, we should get image uri from tokenURI
 		// Initialize ipfs client.
 		if c.ipfsClient, err = ipfs.NewHTTPClient(); err != nil {
@@ -216,9 +224,9 @@ func (c *client) lookupNFT(ctx context.Context, chain uint64, address common.Add
 
 	switch standard {
 	case contract.StandardERC721:
-		tokenMetadata, err = c.lookupERC721(ctx, chain, address, id, blockNumber, parseTokenMetadata)
+		tokenMetadata, err = c.lookupERC721(ctx, chain, address, id, blockNumber)
 	case contract.StandardERC1155:
-		tokenMetadata, err = c.lookupERC1155(ctx, chain, address, id, blockNumber, parseTokenMetadata)
+		tokenMetadata, err = c.lookupERC1155(ctx, chain, address, id, blockNumber)
 	default:
 		err = fmt.Errorf("unsupported NFT standard %s", standard)
 	}
@@ -231,7 +239,7 @@ func (c *client) lookupNFT(ctx context.Context, chain uint64, address common.Add
 }
 
 // lookupERC721 looks up ERC-721 token metadata.
-func (c *client) lookupERC721(ctx context.Context, chainID uint64, address common.Address, id *big.Int, blockNumber *big.Int, parseTokenMetadata bool) (*metadata.Token, error) {
+func (c *client) lookupERC721(ctx context.Context, chainID uint64, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
 		ID:       lo.ToPtr(decimal.NewFromBigInt(id, 0)),
@@ -284,7 +292,7 @@ func (c *client) lookupERC721(ctx context.Context, chainID uint64, address commo
 		}
 	}
 
-	if parseTokenMetadata {
+	if c.parseTokenMetadata {
 		// Ignore invalid URI
 		nonFungibleTokenMetadata, err := c.buildNonFungibleTokenMetadata(ctx, tokenMetadata.URI, id)
 		if err == nil {
@@ -300,7 +308,7 @@ func (c *client) lookupERC721(ctx context.Context, chainID uint64, address commo
 }
 
 // lookupERC1155 looks up ERC-1155 token metadata.
-func (c *client) lookupERC1155(ctx context.Context, chainID uint64, address common.Address, id *big.Int, blockNumber *big.Int, parseTokenMetadata bool) (*metadata.Token, error) {
+func (c *client) lookupERC1155(ctx context.Context, chainID uint64, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
 		ID:       lo.ToPtr(decimal.NewFromBigInt(id, 0)),
@@ -352,7 +360,7 @@ func (c *client) lookupERC1155(ctx context.Context, chainID uint64, address comm
 		}
 	}
 
-	if parseTokenMetadata {
+	if c.parseTokenMetadata {
 		// Ignore invalid URI
 		nonFungibleTokenMetadata, err := c.buildNonFungibleTokenMetadata(ctx, tokenMetadata.URI, id)
 		if err == nil {

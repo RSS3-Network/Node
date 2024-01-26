@@ -15,7 +15,6 @@ import (
 	"github.com/rss3-network/serving-node/config"
 	"github.com/rss3-network/serving-node/internal/engine"
 	source "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
-	workerOption "github.com/rss3-network/serving-node/internal/engine/worker/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum"
 	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum/contract/crossbell"
@@ -41,7 +40,6 @@ var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
 	config            *config.Module
-	option            *workerOption.Option
 	ethereumClient    ethereum.Client
 	ipfsClient        ipfs.HTTPClient
 	tokenClient       token.Client
@@ -735,7 +733,7 @@ func (w *worker) buildProfileMetadata(
 		profile.Name = profileURI.Name
 	}
 
-	if w.option.ParseTokenMetadata && strings.Contains(profile.ImageURI, "csb://asset:") {
+	if strings.Contains(profile.ImageURI, "csb://asset:") {
 		profile.ImageURI, _ = w.getAssetImageURI(ctx, profile.ImageURI)
 	}
 
@@ -791,7 +789,7 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 	}
 
 	// parse token metadata
-	tokenMetadata, err := tokenClient.Lookup(ctx, uint64(chainID), lo.ToPtr(common.HexToAddress(asset[0])), tokenID.BigInt(), nil, *w.option)
+	tokenMetadata, err := tokenClient.Lookup(ctx, uint64(chainID), lo.ToPtr(common.HexToAddress(asset[0])), tokenID.BigInt(), nil, token.WithParseTokenMetadata(true))
 	if err != nil {
 		return "", fmt.Errorf("lookup token metadata %s: %w", asset[0], err)
 	}
@@ -887,7 +885,7 @@ func (w *worker) buildCharacterProfileMetadata(
 		profile.Name = characterURI.Name
 	}
 
-	if w.option.ParseTokenMetadata && strings.Contains(profile.ImageURI, "csb://asset:") {
+	if strings.Contains(profile.ImageURI, "csb://asset:") {
 		profile.ImageURI, _ = w.getAssetImageURI(ctx, profile.ImageURI)
 	}
 
@@ -997,11 +995,6 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 			config: config,
 		}
 	)
-
-	// Initialize option.
-	if instance.option, err = workerOption.NewOption(true); err != nil {
-		return nil, fmt.Errorf("parse config: %w", err)
-	}
 
 	// Initialize ethereum client.
 	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
