@@ -117,47 +117,37 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		}
 
 		if exist {
+			feed.Type = filter.TypeCollectibleTrade
 			switch {
 			case w.matchEnsNameRegisteredV1(ctx, *log):
-				feed.Type = filter.TypeCollectibleTrade
 				actions, err = w.transformEnsNameRegisteredV1(ctx, *log, ethereumTask)
 			case w.matchEnsNameRegisteredV2(ctx, *log):
-				feed.Type = filter.TypeCollectibleTrade
 				actions, err = w.transformEnsNameRegisteredV2(ctx, *log, ethereumTask)
 			default:
 				continue
 			}
 		} else {
+			feed.Type = filter.TypeSocialProfile
 			switch {
 			case w.matchEnsNameRenewed(ctx, *log):
-				feed.Type = filter.TypeSocialProfile
 				actions, err = w.transformEnsNameRenewed(ctx, *log, ethereumTask)
 			case w.matchEnsTextChanged(ctx, *log):
-				feed.Type = filter.TypeSocialProfile
 				actions, err = w.transformEnsTextChanged(ctx, *log, ethereumTask)
 			case w.matchEnsTextChangedWithValue(ctx, *log):
-				feed.Type = filter.TypeSocialProfile
 				actions, err = w.transformEnsTextChangedWithValue(ctx, *log, ethereumTask)
 			case w.matchEnsNameWrapped(ctx, *log):
-				feed.Type = filter.TypeSocialProfile
 				actions, err = w.transformEnsNameWrapped(ctx, *log, ethereumTask)
 			case w.matchEnsNameUnwrapped(ctx, *log):
-				feed.Type = filter.TypeSocialProfile
 				actions, err = w.transformEnsNameUnwrapped(ctx, *log, ethereumTask)
 			case w.matchEnsFusesSet(ctx, *log):
-				feed.Type = filter.TypeSocialProfile
 				actions, err = w.transformEnsFusesSet(ctx, *log, ethereumTask)
 			case w.matchEnsContenthashChanged(ctx, *log):
-				feed.Type = filter.TypeSocialProfile
 				actions, err = w.transformEnsContenthashChanged(ctx, *log, ethereumTask)
 			case w.matchEnsNameChanged(ctx, *log):
-				feed.Type = filter.TypeSocialProfile
 				actions, err = w.transformEnsNameChanged(ctx, *log, ethereumTask)
 			case w.matchEnsAddressChanged(ctx, *log):
-				feed.Type = filter.TypeSocialProfile
 				actions, err = w.transformEnsAddressChanged(ctx, *log, ethereumTask)
 			case w.matchEnsPubkeyChanged(ctx, *log):
-				feed.Type = filter.TypeSocialProfile
 				actions, err = w.transformEnsPubkeyChanged(ctx, *log, ethereumTask)
 			default:
 				continue
@@ -179,89 +169,67 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	return feed, nil
 }
 
-// NewWorker creates a new ENS worker.
-func NewWorker(config *config.Module, databaseClient database.Client) (engine.Worker, error) {
-	var (
-		err      error
-		instance = worker{
-			config: config,
-		}
-	)
-
-	// Initialize ethereum client.
-	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
-		return nil, fmt.Errorf("initialize ethereum client: %w", err)
-	}
-
-	// Initialize token client.
-	instance.tokenClient = token.NewClient(instance.ethereumClient)
-
-	// Initialize database client.
-	instance.databaseClient = databaseClient
-
-	// Initialize ens filterers and callers.
-	instance.baseRegistrarImplementationFilterer = lo.Must(ens.NewBaseRegistrarImplementationFilterer(ethereum.AddressGenesis, nil))
-	instance.ethRegistrarControllerV1Filterer = lo.Must(ens.NewETHRegistrarControllerV1Filterer(ethereum.AddressGenesis, nil))
-	instance.ethRegistrarControllerV2Filterer = lo.Must(ens.NewETHRegistrarControllerV2Filterer(ethereum.AddressGenesis, nil))
-	instance.publicResolverV1Filterer = lo.Must(ens.NewPublicResolverV1Filterer(ethereum.AddressGenesis, nil))
-	instance.publicResolverV2Filterer = lo.Must(ens.NewPublicResolverV2Filterer(ethereum.AddressGenesis, nil))
-	instance.nameWrapperFilterer = lo.Must(ens.NewNameWrapperFilterer(ethereum.AddressGenesis, nil))
-
-	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
-	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
-	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
-
-	return &instance, nil
-}
-
+// matchEnsNameRegisteredV1 matches events that ENS name register through V1 contract
 func (w *worker) matchEnsNameRegisteredV1(_ context.Context, log ethereum.Log) bool {
 	return log.Address == ens.AddressETHRegistrarControllerV1 && log.Topics[0] == ens.EventNameRegisteredControllerV1
 }
 
+// matchEnsNameRegisteredV2 matches events that ENS name register through V2 contract
 func (w *worker) matchEnsNameRegisteredV2(_ context.Context, log ethereum.Log) bool {
 	return log.Address == ens.AddressETHRegistrarControllerV2 && log.Topics[0] == ens.EventNameRegisteredControllerV2
 }
 
+// matchEnsNameRenewed matches events that ENS name renew
 func (w *worker) matchEnsNameRenewed(_ context.Context, log ethereum.Log) bool {
 	return (log.Address == ens.AddressETHRegistrarControllerV1 || log.Address == ens.AddressETHRegistrarControllerV2) && log.Topics[0] == ens.EventNameRenewed
 }
 
+// matchEnsTextChanged matches events that ENS text change
 func (w *worker) matchEnsTextChanged(_ context.Context, log ethereum.Log) bool {
 	return log.Address == ens.AddressPublicResolverV1 && log.Topics[0] == ens.EventTextChanged
 }
 
+// matchEnsTextChangedWithValue matches events that ENS text change with value
 func (w *worker) matchEnsTextChangedWithValue(_ context.Context, log ethereum.Log) bool {
 	return log.Address == ens.AddressPublicResolverV2 && log.Topics[0] == ens.EventTextChangedWithValue
 }
 
+// matchEnsNameWrapped matches events that ENS name wrapped
 func (w *worker) matchEnsNameWrapped(_ context.Context, log ethereum.Log) bool {
 	return log.Address == ens.AddressNameWrapper && log.Topics[0] == ens.EventNameWrapped
 }
 
+// matchEnsNameUnwrapped matches events that ENS name unwrapped
 func (w *worker) matchEnsNameUnwrapped(_ context.Context, log ethereum.Log) bool {
 	return log.Address == ens.AddressNameWrapper && log.Topics[0] == ens.EventNameUnwrapped
 }
 
+// matchEnsFusesSet matches events that ENS fuses set
 func (w *worker) matchEnsFusesSet(_ context.Context, log ethereum.Log) bool {
 	return log.Address == ens.AddressNameWrapper && log.Topics[0] == ens.EventFusesSet
 }
 
+// matchEnsContenthashChanged matches events that ENS content hash change
 func (w *worker) matchEnsContenthashChanged(_ context.Context, log ethereum.Log) bool {
 	return log.Topics[0] == ens.EventContenthashChanged
 }
 
+// matchEnsNameChanged matches events that ENS name change
 func (w *worker) matchEnsNameChanged(_ context.Context, log ethereum.Log) bool {
 	return log.Topics[0] == ens.EventNameChanged
 }
 
+// matchEnsAddressChanged matches events that ENS address change
 func (w *worker) matchEnsAddressChanged(_ context.Context, log ethereum.Log) bool {
 	return log.Topics[0] == ens.EventAddressChanged
 }
 
+// matchEnsPubkeyChanged matches events that ENS pubkey change
 func (w *worker) matchEnsPubkeyChanged(_ context.Context, log ethereum.Log) bool {
 	return log.Topics[0] == ens.EventPubkeyChanged
 }
 
+// transformEnsNameRegisteredV1 processes events that ENS name register through V1 contract
 func (w *worker) transformEnsNameRegisteredV1(ctx context.Context, log ethereum.Log, task *source.Task) ([]*schema.Action, error) {
 	event, err := w.ethRegistrarControllerV1Filterer.ParseNameRegistered(log.Export())
 	if err != nil {
@@ -277,6 +245,7 @@ func (w *worker) transformEnsNameRegisteredV1(ctx context.Context, log ethereum.
 	return []*schema.Action{action}, nil
 }
 
+// transformEnsNameRegisteredV2 processes events that ENS name register through V2 contract
 func (w *worker) transformEnsNameRegisteredV2(ctx context.Context, log ethereum.Log, task *source.Task) ([]*schema.Action, error) {
 	event, err := w.ethRegistrarControllerV2Filterer.ParseNameRegistered(log.Export())
 	if err != nil {
@@ -292,6 +261,7 @@ func (w *worker) transformEnsNameRegisteredV2(ctx context.Context, log ethereum.
 	return []*schema.Action{action}, nil
 }
 
+// transformEnsNameRenewed processes events that ENS name renew
 func (w *worker) transformEnsNameRenewed(ctx context.Context, log ethereum.Log, task *source.Task) ([]*schema.Action, error) {
 	event, err := w.ethRegistrarControllerV2Filterer.ParseNameRenewed(log.Export())
 	if err != nil {
@@ -305,6 +275,7 @@ func (w *worker) transformEnsNameRenewed(ctx context.Context, log ethereum.Log, 
 	}, nil
 }
 
+// transformEnsTextChanged processes events that ENS text change
 func (w *worker) transformEnsTextChanged(ctx context.Context, log ethereum.Log, task *source.Task) ([]*schema.Action, error) {
 	event, err := w.publicResolverV1Filterer.ParseTextChanged(log.Export())
 	if err != nil {
@@ -323,6 +294,7 @@ func (w *worker) transformEnsTextChanged(ctx context.Context, log ethereum.Log, 
 	}, nil
 }
 
+// transformEnsTextChangedWithValue processes events that ENS text change with value
 func (w *worker) transformEnsTextChangedWithValue(ctx context.Context, log ethereum.Log, task *source.Task) ([]*schema.Action, error) {
 	event, err := w.publicResolverV2Filterer.ParseTextChanged(log.Export())
 	if err != nil {
@@ -341,6 +313,7 @@ func (w *worker) transformEnsTextChangedWithValue(ctx context.Context, log ether
 	}, nil
 }
 
+// transformEnsNameWrapped processes events that ENS name wrapped
 func (w *worker) transformEnsNameWrapped(ctx context.Context, log ethereum.Log, task *source.Task) ([]*schema.Action, error) {
 	event, err := w.nameWrapperFilterer.ParseNameWrapped(log.Export())
 	if err != nil {
@@ -367,6 +340,7 @@ func (w *worker) transformEnsNameWrapped(ctx context.Context, log ethereum.Log, 
 	}, nil
 }
 
+// transformEnsNameUnwrapped processes events that ENS name unwrapped
 func (w *worker) transformEnsNameUnwrapped(ctx context.Context, log ethereum.Log, _ *source.Task) ([]*schema.Action, error) {
 	event, err := w.nameWrapperFilterer.ParseNameUnwrapped(log.Export())
 	if err != nil {
@@ -385,6 +359,7 @@ func (w *worker) transformEnsNameUnwrapped(ctx context.Context, log ethereum.Log
 	}, nil
 }
 
+// transformEnsFusesSet processes events that ENS fuses set
 func (w *worker) transformEnsFusesSet(ctx context.Context, log ethereum.Log, task *source.Task) ([]*schema.Action, error) {
 	event, err := w.nameWrapperFilterer.ParseFusesSet(log.Export())
 	if err != nil {
@@ -403,6 +378,7 @@ func (w *worker) transformEnsFusesSet(ctx context.Context, log ethereum.Log, tas
 	}, nil
 }
 
+// transformEnsContenthashChanged processes events that ENS content hash change
 func (w *worker) transformEnsContenthashChanged(ctx context.Context, log ethereum.Log, task *source.Task) ([]*schema.Action, error) {
 	event, err := w.publicResolverV2Filterer.ParseContenthashChanged(log.Export())
 	if err != nil {
@@ -421,6 +397,7 @@ func (w *worker) transformEnsContenthashChanged(ctx context.Context, log ethereu
 	}, nil
 }
 
+// transformEnsNameChanged processes events that ENS name change
 func (w *worker) transformEnsNameChanged(ctx context.Context, log ethereum.Log, task *source.Task) ([]*schema.Action, error) {
 	event, err := w.publicResolverV2Filterer.ParseNameChanged(log.Export())
 	if err != nil {
@@ -439,6 +416,7 @@ func (w *worker) transformEnsNameChanged(ctx context.Context, log ethereum.Log, 
 	}, nil
 }
 
+// transformEnsAddressChanged processes events that ENS address change
 func (w *worker) transformEnsAddressChanged(ctx context.Context, log ethereum.Log, task *source.Task) ([]*schema.Action, error) {
 	event, err := w.publicResolverV2Filterer.ParseAddressChanged(log.Export())
 	if err != nil {
@@ -457,6 +435,7 @@ func (w *worker) transformEnsAddressChanged(ctx context.Context, log ethereum.Lo
 	}, nil
 }
 
+// transformEnsPubkeyChanged processes events that ENS pubkey change
 func (w *worker) transformEnsPubkeyChanged(ctx context.Context, log ethereum.Log, task *source.Task) ([]*schema.Action, error) {
 	event, err := w.publicResolverV2Filterer.ParsePubkeyChanged(log.Export())
 	if err != nil {
@@ -537,4 +516,39 @@ func (w *worker) buildEthereumENSProfileAction(_ context.Context, from, to commo
 		To:       to.String(),
 		Metadata: socialProfile,
 	}
+}
+
+// NewWorker creates a new ENS worker.
+func NewWorker(config *config.Module, databaseClient database.Client) (engine.Worker, error) {
+	var (
+		err      error
+		instance = worker{
+			config: config,
+		}
+	)
+
+	// Initialize ethereum client.
+	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
+		return nil, fmt.Errorf("initialize ethereum client: %w", err)
+	}
+
+	// Initialize token client.
+	instance.tokenClient = token.NewClient(instance.ethereumClient)
+
+	// Initialize database client.
+	instance.databaseClient = databaseClient
+
+	// Initialize ens filterers and callers.
+	instance.baseRegistrarImplementationFilterer = lo.Must(ens.NewBaseRegistrarImplementationFilterer(ethereum.AddressGenesis, nil))
+	instance.ethRegistrarControllerV1Filterer = lo.Must(ens.NewETHRegistrarControllerV1Filterer(ethereum.AddressGenesis, nil))
+	instance.ethRegistrarControllerV2Filterer = lo.Must(ens.NewETHRegistrarControllerV2Filterer(ethereum.AddressGenesis, nil))
+	instance.publicResolverV1Filterer = lo.Must(ens.NewPublicResolverV1Filterer(ethereum.AddressGenesis, nil))
+	instance.publicResolverV2Filterer = lo.Must(ens.NewPublicResolverV2Filterer(ethereum.AddressGenesis, nil))
+	instance.nameWrapperFilterer = lo.Must(ens.NewNameWrapperFilterer(ethereum.AddressGenesis, nil))
+
+	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
+	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
+	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
+
+	return &instance, nil
 }
