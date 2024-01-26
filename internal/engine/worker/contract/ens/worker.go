@@ -118,6 +118,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 		if exist {
 			feed.Type = filter.TypeCollectibleTrade
+
 			switch {
 			case w.matchEnsNameRegisteredV1(ctx, *log):
 				actions, err = w.transformEnsNameRegisteredV1(ctx, *log, ethereumTask)
@@ -128,6 +129,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			}
 		} else {
 			feed.Type = filter.TypeSocialProfile
+
 			switch {
 			case w.matchEnsNameRenewed(ctx, *log):
 				actions, err = w.transformEnsNameRenewed(ctx, *log, ethereumTask)
