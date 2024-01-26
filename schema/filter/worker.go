@@ -23,4 +23,5 @@ const (
 	Highlight              // highlight
 	Aave                   // aave
 	IQWiki                 // iqwiki
+	Lido                   // lido
 )
