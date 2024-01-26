@@ -165,3 +165,8 @@ component:
       endpoint: https://rpc.ankr.com/polygon
       parameters:
         block_number_start:
+    - network: ethereum
+      endpoint: https://rpc.ankr.com/eth
+      worker: lido
+      parameters:
+        block_number_start:
