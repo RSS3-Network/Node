@@ -21,5 +21,7 @@ const (
 	Matters                // matters
 	Momoka                 // momoka
 	Highlight              // highlight
+	Aave                   // aave
+	IQWiki                 // iqwiki
 	ENS                    // ens
 )

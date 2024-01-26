@@ -1,0 +1,9 @@
+schema: schema.graphql
+documents: "**/*.graphql"
+extensions:
+  endpoints:
+    default:
+      url: https://graph.everipedia.org/graphql
+      headers:
+        user-agent: JS GraphQL
+      introspect: false

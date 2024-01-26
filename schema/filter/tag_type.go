@@ -9,14 +9,18 @@ type Type interface {
 
 func TypeString(tag Tag, typeValue string) (Type, error) {
 	switch tag {
-	case TagTransaction:
-		return TransactionTypeString(typeValue)
 	case TagCollectible:
 		return CollectibleTypeString(typeValue)
-	case TagSocial:
-		return SocialTypeString(typeValue)
+	case TagExchange:
+		return ExchangeTypeString(typeValue)
+	case TagMetaverse:
+		return MetaverseTypeString(typeValue)
 	case TagRSS:
 		return RSSTypeString(typeValue)
+	case TagSocial:
+		return SocialTypeString(typeValue)
+	case TagTransaction:
+		return TransactionTypeString(typeValue)
 	case TagUnknown:
 		return UnknownTypeString(typeValue)
 	default:

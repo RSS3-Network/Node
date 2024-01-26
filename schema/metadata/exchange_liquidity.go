@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _ExchangeLiquidityActionName = "addremovecollect"
+const _ExchangeLiquidityActionName = "addremovecollectsupplyborrowrepaywithdraw"
 
-var _ExchangeLiquidityActionIndex = [...]uint8{0, 3, 9, 16}
+var _ExchangeLiquidityActionIndex = [...]uint8{0, 3, 9, 16, 22, 28, 33, 41}
 
-const _ExchangeLiquidityActionLowerName = "addremovecollect"
+const _ExchangeLiquidityActionLowerName = "addremovecollectsupplyborrowrepaywithdraw"
 
 func (i ExchangeLiquidityAction) String() string {
 	i -= 1
@@ -34,23 +34,39 @@ func _ExchangeLiquidityActionNoOp() {
 	_ = x[ActionExchangeLiquidityAdd-(1)]
 	_ = x[ActionExchangeLiquidityRemove-(2)]
 	_ = x[ActionExchangeLiquidityCollect-(3)]
+	_ = x[ActionExchangeLiquiditySupply-(4)]
+	_ = x[ActionExchangeLiquidityBorrow-(5)]
+	_ = x[ActionExchangeLiquidityRepay-(6)]
+	_ = x[ActionExchangeLiquidityWithdraw-(7)]
 }
 
-var _ExchangeLiquidityActionValues = []ExchangeLiquidityAction{ActionExchangeLiquidityAdd, ActionExchangeLiquidityRemove, ActionExchangeLiquidityCollect}
+var _ExchangeLiquidityActionValues = []ExchangeLiquidityAction{ActionExchangeLiquidityAdd, ActionExchangeLiquidityRemove, ActionExchangeLiquidityCollect, ActionExchangeLiquiditySupply, ActionExchangeLiquidityBorrow, ActionExchangeLiquidityRepay, ActionExchangeLiquidityWithdraw}
 
 var _ExchangeLiquidityActionNameToValueMap = map[string]ExchangeLiquidityAction{
-	_ExchangeLiquidityActionName[0:3]:       ActionExchangeLiquidityAdd,
-	_ExchangeLiquidityActionLowerName[0:3]:  ActionExchangeLiquidityAdd,
-	_ExchangeLiquidityActionName[3:9]:       ActionExchangeLiquidityRemove,
-	_ExchangeLiquidityActionLowerName[3:9]:  ActionExchangeLiquidityRemove,
-	_ExchangeLiquidityActionName[9:16]:      ActionExchangeLiquidityCollect,
-	_ExchangeLiquidityActionLowerName[9:16]: ActionExchangeLiquidityCollect,
+	_ExchangeLiquidityActionName[0:3]:        ActionExchangeLiquidityAdd,
+	_ExchangeLiquidityActionLowerName[0:3]:   ActionExchangeLiquidityAdd,
+	_ExchangeLiquidityActionName[3:9]:        ActionExchangeLiquidityRemove,
+	_ExchangeLiquidityActionLowerName[3:9]:   ActionExchangeLiquidityRemove,
+	_ExchangeLiquidityActionName[9:16]:       ActionExchangeLiquidityCollect,
+	_ExchangeLiquidityActionLowerName[9:16]:  ActionExchangeLiquidityCollect,
+	_ExchangeLiquidityActionName[16:22]:      ActionExchangeLiquiditySupply,
+	_ExchangeLiquidityActionLowerName[16:22]: ActionExchangeLiquiditySupply,
+	_ExchangeLiquidityActionName[22:28]:      ActionExchangeLiquidityBorrow,
+	_ExchangeLiquidityActionLowerName[22:28]: ActionExchangeLiquidityBorrow,
+	_ExchangeLiquidityActionName[28:33]:      ActionExchangeLiquidityRepay,
+	_ExchangeLiquidityActionLowerName[28:33]: ActionExchangeLiquidityRepay,
+	_ExchangeLiquidityActionName[33:41]:      ActionExchangeLiquidityWithdraw,
+	_ExchangeLiquidityActionLowerName[33:41]: ActionExchangeLiquidityWithdraw,
 }
 
 var _ExchangeLiquidityActionNames = []string{
 	_ExchangeLiquidityActionName[0:3],
 	_ExchangeLiquidityActionName[3:9],
 	_ExchangeLiquidityActionName[9:16],
+	_ExchangeLiquidityActionName[16:22],
+	_ExchangeLiquidityActionName[22:28],
+	_ExchangeLiquidityActionName[28:33],
+	_ExchangeLiquidityActionName[33:41],
 }
 
 // ExchangeLiquidityActionString retrieves an enum value from the enum constants string name.
