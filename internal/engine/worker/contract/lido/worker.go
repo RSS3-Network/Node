@@ -134,33 +134,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	return feed, nil
 }
 
-// NewWorker creates a new Lido worker.
-func NewWorker(config *config.Module) (engine.Worker, error) {
-	var (
-		err      error
-		instance = worker{
-			config: config,
-		}
-	)
-
-	// Initialize ethereum client.
-	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
-		return nil, fmt.Errorf("initialize ethereum client: %w", err)
-	}
-
-	// Initialize token client.
-	instance.tokenClient = token.NewClient(instance.ethereumClient)
-
-	// Initialize lido filterers.
-	instance.stakedETHFilterer = lo.Must(lido.NewStakedETHFilterer(ethereum.AddressGenesis, nil))
-	instance.wrappedStakedETHFilterer = lo.Must(lido.NewWrappedStakedETHFilterer(ethereum.AddressGenesis, nil))
-	instance.stakedETHWithdrawalNFTFilterer = lo.Must(lido.NewStakedETHWithdrawalNFTFilterer(ethereum.AddressGenesis, nil))
-	instance.stakedMATICFilterer = lo.Must(lido.NewStakedMATICFilterer(ethereum.AddressGenesis, nil))
-	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
-
-	return &instance, nil
-}
-
+// matchStakedETHSubmittedLog matches events that Add ETH liquidity
 func (w *worker) matchStakedETHSubmittedLog(_ *source.Task, log *ethereum.Log) bool {
 	if !contract.MatchEventHashes(log.Topics[0], lido.EventHashStakedETHSubmitted) {
 		return false
@@ -169,6 +143,7 @@ func (w *worker) matchStakedETHSubmittedLog(_ *source.Task, log *ethereum.Log) b
 	return contract.MatchAddresses(log.Address, lido.AddressStakedETH)
 }
 
+// matchStakedETHWithdrawalNFTWithdrawalRequestedLog matches events that Mint ETH withdrawal NFT
 func (w *worker) matchStakedETHWithdrawalNFTWithdrawalRequestedLog(_ *source.Task, log *ethereum.Log) bool {
 	if !contract.MatchEventHashes(log.Topics[0], lido.EventHashStakedETHWithdrawalNFTWithdrawalRequested) {
 		return false
@@ -177,6 +152,7 @@ func (w *worker) matchStakedETHWithdrawalNFTWithdrawalRequestedLog(_ *source.Tas
 	return contract.MatchAddresses(log.Address, lido.AddressStakedETHWithdrawalNFT)
 }
 
+// matchStakedETHWithdrawalNFTWithdrawalClaimedLog matches events that Remove ETH liquidity
 func (w *worker) matchStakedETHWithdrawalNFTWithdrawalClaimedLog(_ *source.Task, log *ethereum.Log) bool {
 	if !contract.MatchEventHashes(log.Topics[0], lido.EventHashStakedETHWithdrawalNFTWithdrawalClaimed) {
 		return false
@@ -185,6 +161,7 @@ func (w *worker) matchStakedETHWithdrawalNFTWithdrawalClaimedLog(_ *source.Task,
 	return contract.MatchAddresses(log.Address, lido.AddressStakedETHWithdrawalNFT)
 }
 
+// matchStakedMATICSubmitEventLog matches events that Add MATIC liquidity
 func (w *worker) matchStakedMATICSubmitEventLog(_ *source.Task, log *ethereum.Log) bool {
 	if !contract.MatchEventHashes(log.Topics[0], lido.EventHashStakedMATICSubmitEvent) {
 		return false
@@ -193,6 +170,7 @@ func (w *worker) matchStakedMATICSubmitEventLog(_ *source.Task, log *ethereum.Lo
 	return contract.MatchAddresses(log.Address, lido.AddressStakedMATIC)
 }
 
+// matchStakedMATICRequestWithdrawEventLog matches events that Mint MATIC withdrawal NFT
 func (w *worker) matchStakedMATICRequestWithdrawEventLog(_ *source.Task, log *ethereum.Log) bool {
 	if !contract.MatchEventHashes(log.Topics[0], lido.EventHashStakedMATICRequestWithdrawEvent) {
 		return false
@@ -201,6 +179,7 @@ func (w *worker) matchStakedMATICRequestWithdrawEventLog(_ *source.Task, log *et
 	return contract.MatchAddresses(log.Address, lido.AddressStakedMATIC)
 }
 
+// matchStakedMATICClaimTokensEventLog matches events that Remove MATIC liquidity
 func (w *worker) matchStakedMATICClaimTokensEventLog(_ *source.Task, log *ethereum.Log) bool {
 	if !contract.MatchEventHashes(log.Topics[0], lido.EventHashStakedMATICClaimTokensEvent) {
 		return false
@@ -209,6 +188,7 @@ func (w *worker) matchStakedMATICClaimTokensEventLog(_ *source.Task, log *ethere
 	return contract.MatchAddresses(log.Address, lido.AddressStakedMATIC)
 }
 
+// matchStakedETHTransferSharesLog matches events that Wrap or unwrap wstETH
 func (w *worker) matchStakedETHTransferSharesLog(_ *source.Task, log *ethereum.Log) bool {
 	if !contract.MatchEventHashes(log.Topics[0], lido.EventHashStakedETHTransferShares) {
 		return false
@@ -226,6 +206,7 @@ func (w *worker) matchStakedETHTransferSharesLog(_ *source.Task, log *ethereum.L
 	return event.From == lido.AddressWrappedStakedETH || event.To == lido.AddressWrappedStakedETH
 }
 
+// transformStakedETHWithdrawalNFTWithdrawalClaimedLog processes events that Remove ETH liquidity
 func (w *worker) transformStakedETHWithdrawalNFTWithdrawalClaimedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.stakedETHWithdrawalNFTFilterer.ParseWithdrawalClaimed(log.Export())
 	if err != nil {
@@ -250,6 +231,7 @@ func (w *worker) transformStakedETHWithdrawalNFTWithdrawalClaimedLog(ctx context
 	}, nil
 }
 
+// transformStakedETHWithdrawalNFTWithdrawalRequestedLog processes events that Mint ETH withdrawal NFT
 func (w *worker) transformStakedETHWithdrawalNFTWithdrawalRequestedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.stakedETHWithdrawalNFTFilterer.ParseWithdrawalRequested(log.Export())
 	if err != nil {
@@ -272,6 +254,7 @@ func (w *worker) transformStakedETHWithdrawalNFTWithdrawalRequestedLog(ctx conte
 	}, nil
 }
 
+// transformStakedETHSubmittedLog processes events that Add ETH liquidity
 func (w *worker) transformStakedETHSubmittedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.stakedETHFilterer.ParseSubmitted(log.Export())
 	if err != nil {
@@ -294,6 +277,7 @@ func (w *worker) transformStakedETHSubmittedLog(ctx context.Context, task *sourc
 	}, nil
 }
 
+// transformStakedMATICSubmitEventLog processes events that Add MATIC liquidity
 func (w *worker) transformStakedMATICSubmitEventLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.stakedMATICFilterer.ParseSubmitEvent(log.Export())
 	if err != nil {
@@ -316,6 +300,7 @@ func (w *worker) transformStakedMATICSubmitEventLog(ctx context.Context, task *s
 	}, nil
 }
 
+// transformStakedMATICRequestWithdrawEventLog processes events that Mint MATIC withdrawal NFT
 func (w *worker) transformStakedMATICRequestWithdrawEventLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	withdrawEvent, err := w.stakedMATICFilterer.ParseRequestWithdrawEvent(log.Export())
 	if err != nil {
@@ -351,6 +336,7 @@ func (w *worker) transformStakedMATICRequestWithdrawEventLog(ctx context.Context
 	}, nil
 }
 
+// transformStakedMATICClaimTokensEventLog processes events that Remove MATIC liquidity
 func (w *worker) transformStakedMATICClaimTokensEventLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.stakedMATICFilterer.ParseClaimTokensEvent(log.Export())
 	if err != nil {
@@ -375,6 +361,7 @@ func (w *worker) transformStakedMATICClaimTokensEventLog(ctx context.Context, ta
 	}, nil
 }
 
+// transformStakedETHTransferSharesLog processes events that Wrap or unwrap wstETH
 func (w *worker) transformStakedETHTransferSharesLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	transferSharesEvent, err := w.stakedETHFilterer.ParseTransferShares(log.Export())
 	if err != nil {
@@ -542,4 +529,31 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 	}
 
 	return &action, nil
+}
+
+// NewWorker creates a new Lido worker.
+func NewWorker(config *config.Module) (engine.Worker, error) {
+	var (
+		err      error
+		instance = worker{
+			config: config,
+		}
+	)
+
+	// Initialize ethereum client.
+	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
+		return nil, fmt.Errorf("initialize ethereum client: %w", err)
+	}
+
+	// Initialize token client.
+	instance.tokenClient = token.NewClient(instance.ethereumClient)
+
+	// Initialize lido filterers.
+	instance.stakedETHFilterer = lo.Must(lido.NewStakedETHFilterer(ethereum.AddressGenesis, nil))
+	instance.wrappedStakedETHFilterer = lo.Must(lido.NewWrappedStakedETHFilterer(ethereum.AddressGenesis, nil))
+	instance.stakedETHWithdrawalNFTFilterer = lo.Must(lido.NewStakedETHWithdrawalNFTFilterer(ethereum.AddressGenesis, nil))
+	instance.stakedMATICFilterer = lo.Must(lido.NewStakedMATICFilterer(ethereum.AddressGenesis, nil))
+	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
+
+	return &instance, nil
 }
