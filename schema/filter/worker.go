@@ -24,4 +24,5 @@ const (
 	Aave                   // aave
 	IQWiki                 // iqwiki
 	Lido                   // lido
+	Crossbell              // crossbell
 )

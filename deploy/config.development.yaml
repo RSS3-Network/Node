@@ -85,6 +85,11 @@ component:
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start:
+    - network: crossbell
+      worker: crossbell
+      endpoint: https://rpc.crossbell.io
+      parameters:
+        block_number_start:
     # farcaster
     - network: farcaster
       worker: farcaster

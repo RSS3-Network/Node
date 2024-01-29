@@ -20,5 +20,7 @@ const (
 	TypeSocialShare
 	TypeSocialProfile
 	TypeSocialMint
+	TypeSocialDelete
+	TypeSocialProxy
 	TypeSocialReward
 )

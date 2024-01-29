@@ -9,6 +9,7 @@ const (
 	NetworkUnknown   Network = iota // unknown
 	NetworkEthereum                 // ethereum
 	NetworkOptimism                 // optimism
+	NetworkBase                     // base
 	NetworkPolygon                  // polygon
 	NetworkCrossbell                // crossbell
 	NetworkArbitrum                 // arbitrum
@@ -16,7 +17,6 @@ const (
 	NetworkRSS                      // rss
 	NetworkArweave                  // arweave
 	NetworkFarcaster                // farcaster
-	NetworkBase                     // base
 	NetworkAvalanche                // avax
 )
 
@@ -43,7 +43,7 @@ const (
 
 func (n Network) Source() NetworkSource {
 	switch n {
-	case NetworkEthereum, NetworkPolygon, NetworkOptimism, NetworkArbitrum, NetworkFantom, NetworkBase, NetworkCrossbell, NetworkAvalanche:
+	case NetworkEthereum, NetworkPolygon, NetworkOptimism, NetworkArbitrum, NetworkFantom, NetworkBase, NetworkCrossbell:
 		return NetworkEthereumSource
 	case NetworkArweave:
 		return NetworkArweaveSource
@@ -67,6 +67,29 @@ const (
 	EthereumChainIDCrossbell EthereumChainID = 3737
 	EthereumChainIDAvalanche EthereumChainID = 43114 // avax
 )
+
+func NetworkAndChainID(network string) (Network, EthereumChainID) {
+	switch network {
+	case NetworkEthereum.String():
+		return NetworkEthereum, EthereumChainIDMainnet
+	case NetworkOptimism.String():
+		return NetworkOptimism, EthereumChainIDOptimism
+	case NetworkPolygon.String():
+		return NetworkPolygon, EthereumChainIDPolygon
+	case NetworkArbitrum.String():
+		return NetworkArbitrum, EthereumChainIDArbitrum
+	case NetworkFantom.String():
+		return NetworkFantom, EthereumChainIDFantom
+	case NetworkBase.String():
+		return NetworkBase, EthereumChainIDBase
+	case NetworkCrossbell.String():
+		return NetworkCrossbell, EthereumChainIDCrossbell
+	case NetworkAvalanche.String():
+		return NetworkAvalanche, EthereumChainIDAvalanche
+	default:
+		return NetworkUnknown, 0
+	}
+}
 
 func IsOptimismSuperchain(chainID uint64) bool {
 	switch chainID {

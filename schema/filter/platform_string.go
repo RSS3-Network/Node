@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _PlatformName = "RSS3MirrorFarcasterParagraphOpenSeaUniswapOptimismAavegotchiLensLooksRareMattersMomokaHighlightAAVEIQWikiLido"
+const _PlatformName = "RSS3MirrorFarcasterParagraphOpenSeaUniswapOptimismAavegotchiLensLooksRareMattersMomokaHighlightAAVEIQWikiLidoCrossbell"
 
-var _PlatformIndex = [...]uint8{0, 4, 10, 19, 28, 35, 42, 50, 60, 64, 73, 80, 86, 95, 99, 105, 109}
+var _PlatformIndex = [...]uint8{0, 4, 10, 19, 28, 35, 42, 50, 60, 64, 73, 80, 86, 95, 99, 105, 109, 118}
 
-const _PlatformLowerName = "rss3mirrorfarcasterparagraphopenseauniswapoptimismaavegotchilenslooksraremattersmomokahighlightaaveiqwikilido"
+const _PlatformLowerName = "rss3mirrorfarcasterparagraphopenseauniswapoptimismaavegotchilenslooksraremattersmomokahighlightaaveiqwikilidocrossbell"
 
 func (i Platform) String() string {
 	i -= 1
@@ -47,9 +47,10 @@ func _PlatformNoOp() {
 	_ = x[PlatformAAVE-(14)]
 	_ = x[PlatformIQWiki-(15)]
 	_ = x[PlatformLido-(16)]
+	_ = x[PlatformCrossbell-(17)]
 }
 
-var _PlatformValues = []Platform{PlatformRSS3, PlatformMirror, PlatformFarcaster, PlatformParagraph, PlatformOpenSea, PlatformUniswap, PlatformOptimism, PlatformAavegotchi, PlatformLens, PlatformLooksRare, PlatformMatters, PlatformMomoka, PlatformHighlight, PlatformAAVE, PlatformIQWiki, PlatformLido}
+var _PlatformValues = []Platform{PlatformRSS3, PlatformMirror, PlatformFarcaster, PlatformParagraph, PlatformOpenSea, PlatformUniswap, PlatformOptimism, PlatformAavegotchi, PlatformLens, PlatformLooksRare, PlatformMatters, PlatformMomoka, PlatformHighlight, PlatformAAVE, PlatformIQWiki, PlatformLido, PlatformCrossbell}
 
 var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformName[0:4]:          PlatformRSS3,
@@ -84,6 +85,8 @@ var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformLowerName[99:105]:  PlatformIQWiki,
 	_PlatformName[105:109]:      PlatformLido,
 	_PlatformLowerName[105:109]: PlatformLido,
+	_PlatformName[109:118]:      PlatformCrossbell,
+	_PlatformLowerName[109:118]: PlatformCrossbell,
 }
 
 var _PlatformNames = []string{
@@ -103,6 +106,7 @@ var _PlatformNames = []string{
 	_PlatformName[95:99],
 	_PlatformName[99:105],
 	_PlatformName[105:109],
+	_PlatformName[109:118],
 }
 
 // PlatformString retrieves an enum value from the enum constants string name.

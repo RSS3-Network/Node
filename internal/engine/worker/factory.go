@@ -8,6 +8,7 @@ import (
 	"github.com/rss3-network/serving-node/internal/engine"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/aave"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/aavegotchi"
+	"github.com/rss3-network/serving-node/internal/engine/worker/contract/crossbell"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/highlight"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/iqwiki"
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/lens"
@@ -62,6 +63,8 @@ func New(config *config.Module, databaseClient database.Client) (engine.Worker, 
 		return iqwiki.NewWorker()
 	case filter.Lido:
 		return lido.NewWorker(config)
+	case filter.Crossbell:
+		return crossbell.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}

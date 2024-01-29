@@ -49,7 +49,10 @@ require (
 	moul.io/zapgorm2 v1.3.0
 )
 
-require golang.org/x/net v0.19.0
+require (
+	github.com/vincent-petithory/dataurl v1.0.0
+	golang.org/x/net v0.19.0
+)
 
 require (
 	github.com/DataDog/zstd v1.5.0 // indirect
