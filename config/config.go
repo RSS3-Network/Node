@@ -4,19 +4,25 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
+	"path"
+	"reflect"
+	"strings"
 
 	"github.com/creasty/defaults"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/go-playground/validator/v10"
+	"github.com/mitchellh/mapstructure"
 	"github.com/rss3-network/serving-node/internal/database"
 	"github.com/rss3-network/serving-node/internal/stream"
 	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/samber/lo"
+	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 )
 
 const (
+	EnvPrefix = "NODE"
+
 	Environment = "environment"
 
 	EnvironmentDevelopment = "development"
@@ -24,41 +30,41 @@ const (
 )
 
 type File struct {
-	Environment   string     `yaml:"environment" validate:"required" default:"development"`
-	Discovery     *Discovery `yaml:"discovery" validate:"required"`
-	Node          *Node      `yaml:"component" validate:"required"`
-	Database      *Database  `yaml:"database" validate:"required"`
-	Stream        *Stream    `yaml:"stream" validate:"required"`
-	Observability *Telemetry `yaml:"observability" validate:"required"`
+	Environment   string     `mapstructure:"environment" validate:"required" default:"development"`
+	Discovery     *Discovery `mapstructure:"discovery" validate:"required"`
+	Node          *Node      `mapstructure:"component" validate:"required"`
+	Database      *Database  `mapstructure:"database" validate:"required"`
+	Stream        *Stream    `mapstructure:"stream" validate:"required"`
+	Observability *Telemetry `mapstructure:"observability" validate:"required"`
 }
 
 type Discovery struct {
-	Maintainer *Maintainer `yaml:"maintainer"`
-	Server     *Server     `yaml:"server"`
+	Maintainer *Maintainer `mapstructure:"maintainer"`
+	Server     *Server     `mapstructure:"server"`
 }
 
 type Maintainer struct {
-	EvmAddress common.Address `yaml:"evm_address"`
-	Signature  string         `yaml:"signature"`
+	EvmAddress common.Address `mapstructure:"evm_address"`
+	Signature  string         `mapstructure:"signature"`
 }
 
 type Server struct {
-	Endpoint              string `yaml:"endpoint"`
-	GlobalIndexerEndpoint string `yaml:"global_indexer_endpoint"`
+	Endpoint              string `mapstructure:"endpoint"`
+	GlobalIndexerEndpoint string `mapstructure:"global_indexer_endpoint"`
 }
 
 type Node struct {
-	RSS           []*Module `yaml:"rss" validate:"dive"`
-	Federated     []*Module `yaml:"federated" validate:"dive"`
-	Decentralized []*Module `yaml:"decentralized" validate:"dive"`
+	RSS           []*Module `mapstructure:"rss" validate:"dive"`
+	Federated     []*Module `mapstructure:"federated" validate:"dive"`
+	Decentralized []*Module `mapstructure:"decentralized" validate:"dive"`
 }
 
 type Module struct {
-	Network      filter.Network `yaml:"network" validate:"required"`
-	Endpoint     string         `yaml:"endpoint" validate:"required"`
-	IPFSGateways []string       `yaml:"ipfs_gateways"`
-	Worker       filter.Name    `yaml:"worker"`
-	Parameters   *Options       `yaml:"parameters"`
+	Network      filter.Network `mapstructure:"network" validate:"required"`
+	Endpoint     string         `mapstructure:"endpoint" validate:"required"`
+	IPFSGateways []string       `mapstructure:"ipfs_gateways"`
+	Worker       filter.Name    `mapstructure:"worker"`
+	Parameters   *Options       `mapstructure:"parameters"`
 }
 
 type Database struct {
@@ -75,23 +81,23 @@ type Stream struct {
 }
 
 type Telemetry struct {
-	OpenTelemetry *OpenTelemetryConfig `yaml:"opentelemetry" validate:"required"`
+	OpenTelemetry *OpenTelemetryConfig `mapstructure:"opentelemetry" validate:"required"`
 }
 
 type OpenTelemetryConfig struct {
-	Metrics *OpenTelemetryMetricsConfig `yaml:"metrics" validate:"required"`
-	Traces  *OpenTelemetryTracesConfig  `yaml:"traces" validate:"required"`
+	Metrics *OpenTelemetryMetricsConfig `mapstructure:"metrics" validate:"required"`
+	Traces  *OpenTelemetryTracesConfig  `mapstructure:"traces" validate:"required"`
 }
 
 type OpenTelemetryMetricsConfig struct {
-	Enable   bool   `yaml:"enable" default:"false"`
-	Endpoint string `yaml:"endpoint" default:"0.0.0.0:9090"`
+	Enable   bool   `mapstructure:"enable" default:"false"`
+	Endpoint string `mapstructure:"endpoint" default:"0.0.0.0:9090"`
 }
 
 type OpenTelemetryTracesConfig struct {
-	Enable   bool   `yaml:"enable" default:"false"`
-	Insecure bool   `yaml:"insecure" default:"false"`
-	Endpoint string `yaml:"endpoint" validate:"required" default:"0.0.0.0:4318"`
+	Enable   bool   `mapstructure:"enable" default:"false"`
+	Insecure bool   `mapstructure:"insecure" default:"false"`
+	Endpoint string `mapstructure:"endpoint" validate:"required" default:"0.0.0.0:4318"`
 }
 
 // ID returns the unique identifier of the configuration.
@@ -142,30 +148,60 @@ func (o *Options) String() string {
 }
 
 func Setup(configName string) (*File, error) {
-	var (
-		config []byte
-		err    error
-	)
+	configType := path.Ext(configName)[1:]
 
-	configPaths := []string{"/etc/serving-node/", os.Getenv("HOME") + "/.serving-node/", "./config/", "./deploy/"}
-
-	// Read config file.
-	for _, configPath := range configPaths {
-		configFilePath := filepath.Join(configPath, configName)
-
-		config, err = os.ReadFile(configFilePath)
-		if err == nil {
-			break
-		}
+	switch configType {
+	case "yaml", "yml":
+		return _Setup(configName, "yaml", viper.GetViper())
+	case "json", "hcl", "toml":
+		return _Setup(configName, configType, viper.GetViper())
 	}
 
-	if err != nil {
-		return nil, fmt.Errorf("read config file: %w", err)
+	return nil, fmt.Errorf("unsupported config type: %s", configType)
+}
+
+func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
+	v.SetConfigName(configName)
+	v.SetConfigType(configType)
+
+	v.AddConfigPath("/etc/rss3/node/")
+	v.AddConfigPath(path.Join(os.Getenv("HOME"), ".rss3", "node"))
+
+	if currentDir, err := os.Getwd(); err == nil {
+		v.AddConfigPath(path.Join(currentDir, "config"))
+		v.AddConfigPath(path.Join(currentDir, "deploy"))
+	}
+
+	v.SetEnvPrefix(EnvPrefix)
+	v.SetEnvKeyReplacer(strings.NewReplacer(`.`, `_`))
+	v.AutomaticEnv()
+
+	// Read config file
+	if err := v.ReadInConfig(); err != nil {
+		return nil, err
+	}
+
+	for _, key := range getAllKeys(&File{}) {
+		envKey := strings.ReplaceAll(
+			strings.ToUpper(fmt.Sprintf("%s_%s", EnvPrefix, key)),
+			".",
+			"_",
+		)
+		if err := v.BindEnv(key, envKey); err != nil {
+			continue
+		}
+
+		if val, ok := os.LookupEnv(envKey); ok {
+			v.Set(key, val)
+		}
 	}
 
 	// Unmarshal config file.
 	var configFile File
-	if err := yaml.Unmarshal(config, &configFile); err != nil {
+	if err := v.Unmarshal(&configFile, viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
+		filter.NetworkHookFunc(),
+		filter.WorkerHookFunc(),
+	))); err != nil {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)
 	}
 
@@ -181,4 +217,42 @@ func Setup(configName string) (*File, error) {
 	}
 
 	return &configFile, nil
+}
+
+func getAllKeys(iface interface{}, parts ...string) []string {
+	var keys []string
+
+	ifv := reflect.ValueOf(iface)
+	if ifv.Kind() == reflect.Ptr {
+		ifv = ifv.Elem()
+	}
+
+	for i := 0; i < ifv.NumField(); i++ {
+		v := ifv.Field(i)
+		t := ifv.Type().Field(i)
+		tv, ok := t.Tag.Lookup("mapstructure")
+
+		if !ok {
+			continue
+		}
+
+		switch v.Kind() {
+		case reflect.Struct:
+			keys = append(keys, getAllKeys(v.Interface(), append(parts, tv)...)...)
+		case reflect.Ptr:
+			if v.IsNil() && v.CanSet() {
+				v.Set(reflect.New(v.Type().Elem()))
+			}
+
+			if v.Elem().Kind() == reflect.Struct {
+				keys = append(keys, getAllKeys(v.Interface(), append(parts, tv)...)...)
+			}
+
+			keys = append(keys, strings.Join(append(parts, tv), "."))
+		default:
+			keys = append(keys, strings.Join(append(parts, tv), "."))
+		}
+	}
+
+	return keys
 }
