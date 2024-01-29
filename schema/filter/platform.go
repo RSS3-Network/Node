@@ -25,6 +25,8 @@ const (
 	PlatformHighlight                      // Highlight
 	PlatformAAVE                           // AAVE
 	PlatformIQWiki                         // IQWiki
+	PlatformLido                           // Lido
+	PlatformCrossbell                      // Crossbell
 )
 
 func (p Platform) ID() string {

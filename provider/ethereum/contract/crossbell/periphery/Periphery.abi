@@ -1,0 +1,579 @@
+[
+  {
+    "type": "event",
+    "name": "Initialized",
+    "inputs": [
+      {
+        "type": "uint8",
+        "name": "version",
+        "internalType": "uint8",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "function",
+    "stateMutability": "pure",
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "name": "getLinkingAddress",
+    "inputs": [
+      {
+        "type": "bytes32",
+        "name": "linkKey",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address[]",
+        "name": "",
+        "internalType": "address[]"
+      }
+    ],
+    "name": "getLinkingAddresses",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "fromCharacterId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "bytes32",
+        "name": "linkType",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "string",
+        "name": "",
+        "internalType": "string"
+      }
+    ],
+    "name": "getLinkingAnyUri",
+    "inputs": [
+      {
+        "type": "bytes32",
+        "name": "linkKey",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "string[]",
+        "name": "results",
+        "internalType": "string[]"
+      }
+    ],
+    "name": "getLinkingAnyUris",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "fromCharacterId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "bytes32",
+        "name": "linkType",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "pure",
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "characterId",
+        "internalType": "uint256"
+      }
+    ],
+    "name": "getLinkingCharacterId",
+    "inputs": [
+      {
+        "type": "bytes32",
+        "name": "linkKey",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "uint256[]",
+        "name": "results",
+        "internalType": "uint256[]"
+      }
+    ],
+    "name": "getLinkingCharacterIds",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "fromCharacterId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "bytes32",
+        "name": "linkType",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "tuple",
+        "name": "",
+        "internalType": "struct DataTypes.ERC721Struct",
+        "components": [
+          {
+            "type": "address",
+            "name": "tokenAddress",
+            "internalType": "address"
+          },
+          {
+            "type": "uint256",
+            "name": "erc721TokenId",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "name": "getLinkingERC721",
+    "inputs": [
+      {
+        "type": "bytes32",
+        "name": "linkKey",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "tuple[]",
+        "name": "results",
+        "internalType": "struct DataTypes.ERC721Struct[]",
+        "components": [
+          {
+            "type": "address",
+            "name": "tokenAddress",
+            "internalType": "address"
+          },
+          {
+            "type": "uint256",
+            "name": "erc721TokenId",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "name": "getLinkingERC721s",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "fromCharacterId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "bytes32",
+        "name": "linkType",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "pure",
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "linklistId",
+        "internalType": "uint256"
+      }
+    ],
+    "name": "getLinkingLinklistId",
+    "inputs": [
+      {
+        "type": "bytes32",
+        "name": "linkKey",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "uint256[]",
+        "name": "linklistIds",
+        "internalType": "uint256[]"
+      }
+    ],
+    "name": "getLinkingLinklistIds",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "fromCharacterId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "bytes32",
+        "name": "linkType",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "tuple",
+        "name": "",
+        "internalType": "struct DataTypes.NoteStruct",
+        "components": [
+          {
+            "type": "uint256",
+            "name": "characterId",
+            "internalType": "uint256"
+          },
+          {
+            "type": "uint256",
+            "name": "noteId",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "name": "getLinkingNote",
+    "inputs": [
+      {
+        "type": "bytes32",
+        "name": "linkKey",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "tuple[]",
+        "name": "results",
+        "internalType": "struct DataTypes.Note[]",
+        "components": [
+          {
+            "type": "bytes32",
+            "name": "linkItemType",
+            "internalType": "bytes32"
+          },
+          {
+            "type": "bytes32",
+            "name": "linkKey",
+            "internalType": "bytes32"
+          },
+          {
+            "type": "string",
+            "name": "contentUri",
+            "internalType": "string"
+          },
+          {
+            "type": "address",
+            "name": "linkModule",
+            "internalType": "address"
+          },
+          {
+            "type": "address",
+            "name": "mintModule",
+            "internalType": "address"
+          },
+          {
+            "type": "address",
+            "name": "mintNFT",
+            "internalType": "address"
+          },
+          {
+            "type": "bool",
+            "name": "deleted",
+            "internalType": "bool"
+          },
+          {
+            "type": "bool",
+            "name": "locked",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "name": "getLinkingNotes",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "fromCharacterId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "bytes32",
+        "name": "linkType",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "tuple[]",
+        "name": "results",
+        "internalType": "struct DataTypes.Note[]",
+        "components": [
+          {
+            "type": "bytes32",
+            "name": "linkItemType",
+            "internalType": "bytes32"
+          },
+          {
+            "type": "bytes32",
+            "name": "linkKey",
+            "internalType": "bytes32"
+          },
+          {
+            "type": "string",
+            "name": "contentUri",
+            "internalType": "string"
+          },
+          {
+            "type": "address",
+            "name": "linkModule",
+            "internalType": "address"
+          },
+          {
+            "type": "address",
+            "name": "mintModule",
+            "internalType": "address"
+          },
+          {
+            "type": "address",
+            "name": "mintNFT",
+            "internalType": "address"
+          },
+          {
+            "type": "bool",
+            "name": "deleted",
+            "internalType": "bool"
+          },
+          {
+            "type": "bool",
+            "name": "locked",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "name": "getNotesByCharacterId",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "characterId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "uint256",
+        "name": "offset",
+        "internalType": "uint256"
+      },
+      {
+        "type": "uint256",
+        "name": "limit",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [],
+    "name": "initialize",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "_web3Entry",
+        "internalType": "address"
+      },
+      {
+        "type": "address",
+        "name": "_linklist",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [],
+    "name": "linkCharactersInBatch",
+    "inputs": [
+      {
+        "type": "tuple",
+        "name": "vars",
+        "internalType": "struct DataTypes.linkCharactersInBatchData",
+        "components": [
+          {
+            "type": "uint256",
+            "name": "fromCharacterId",
+            "internalType": "uint256"
+          },
+          {
+            "type": "uint256[]",
+            "name": "toCharacterIds",
+            "internalType": "uint256[]"
+          },
+          {
+            "type": "bytes[]",
+            "name": "data",
+            "internalType": "bytes[]"
+          },
+          {
+            "type": "address[]",
+            "name": "toAddresses",
+            "internalType": "address[]"
+          },
+          {
+            "type": "bytes32",
+            "name": "linkType",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "name": "linklist",
+    "inputs": []
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [],
+    "name": "migrate",
+    "inputs": [
+      {
+        "type": "tuple",
+        "name": "vars",
+        "internalType": "struct DataTypes.MigrateData",
+        "components": [
+          {
+            "type": "address",
+            "name": "account",
+            "internalType": "address"
+          },
+          {
+            "type": "string",
+            "name": "handle",
+            "internalType": "string"
+          },
+          {
+            "type": "string",
+            "name": "uri",
+            "internalType": "string"
+          },
+          {
+            "type": "address[]",
+            "name": "toAddresses",
+            "internalType": "address[]"
+          },
+          {
+            "type": "bytes32",
+            "name": "linkType",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [],
+    "name": "sync",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "account",
+        "internalType": "address"
+      },
+      {
+        "type": "string",
+        "name": "handle",
+        "internalType": "string"
+      },
+      {
+        "type": "string",
+        "name": "uri",
+        "internalType": "string"
+      },
+      {
+        "type": "address[]",
+        "name": "toAddresses",
+        "internalType": "address[]"
+      },
+      {
+        "type": "bytes32",
+        "name": "linkType",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "name": "web3Entry",
+    "inputs": []
+  }
+]

@@ -52,6 +52,7 @@ require (
 require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/spf13/afero v1.11.0
+	github.com/vincent-petithory/dataurl v1.0.0
 	golang.org/x/net v0.20.0
 )
 

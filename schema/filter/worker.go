@@ -29,6 +29,8 @@ const (
 	Highlight              // highlight
 	Aave                   // aave
 	IQWiki                 // iqwiki
+	Lido                   // lido
+	Crossbell              // crossbell
 )
 
 func WorkerHookFunc() mapstructure.DecodeHookFuncType {
