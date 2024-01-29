@@ -85,10 +85,14 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 		action, err := w.parseAction(ctx, log, ethereumTask)
 		if err != nil {
-			return nil, err
+			continue
 		}
 
 		feed.Actions = append(feed.Actions, action)
+	}
+
+	if len(feed.Actions) == 0 {
+		return nil, fmt.Errorf("no actions in transaction: %s", ethereumTask.Transaction.Hash)
 	}
 
 	// Set feed type to the first action type & total actions.
