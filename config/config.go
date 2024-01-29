@@ -17,7 +17,6 @@ import (
 	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -117,17 +116,9 @@ func (c *Module) ID() string {
 	return id
 }
 
-var _ fmt.Stringer = (*Options)(nil)
+//var _ fmt.Stringer = (*Options)(nil)
 
-type Options struct {
-	*yaml.Node
-}
-
-func (o *Options) UnmarshalYAML(node *yaml.Node) error {
-	o.Node = node
-
-	return nil
-}
+type Options map[string]any
 
 func (o *Options) String() string {
 	var buffer map[string]any
@@ -145,6 +136,15 @@ func (o *Options) String() string {
 	}
 
 	return string(lo.Must(json.Marshal(buffer)))
+}
+
+func (o *Options) Decode(v interface{}) error {
+	jsonStr, err := json.Marshal(*o)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(jsonStr, v)
 }
 
 func Setup(configName string) (*File, error) {
@@ -201,6 +201,7 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	if err := v.Unmarshal(&configFile, viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
 		filter.NetworkHookFunc(),
 		filter.WorkerHookFunc(),
+		EvmAddressHookFunc(),
 	))); err != nil {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)
 	}
@@ -255,4 +256,22 @@ func getAllKeys(iface interface{}, parts ...string) []string {
 	}
 
 	return keys
+}
+
+func EvmAddressHookFunc() mapstructure.DecodeHookFuncType {
+	return func(
+		f reflect.Type, // data type
+		t reflect.Type, // target data type
+		data interface{}, // raw data
+	) (interface{}, error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		if t.Kind() != reflect.TypeOf(common.Address{}).Kind() {
+			return data, nil
+		}
+
+		return common.HexToAddress(data.(string)), nil
+	}
 }

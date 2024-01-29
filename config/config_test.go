@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"reflect"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -20,10 +21,10 @@ const (
 	configExampleYaml = `environment: development
 discovery:
     maintainer:
-      evm_address:
-      signature:
+      evm_address: 0x111222333444555666777888999aaabbbcccddde
+      signature: 0x000000000111111111222222222333333333444444444555555555666666666777777777888888888999999999aaaaaaaaabbbbbbbbbcccccccccdddddddddeeee
     server:
-      endpoint:
+      endpoint: https://node.mydomain.com/
       global_indexer_endpoint: https://gi.rss3.dev/
 database:
   driver: cockroachdb
@@ -49,100 +50,33 @@ component:
       endpoint: https://rsshub.app/
       parameters:
         authentication:
-          username:
-          password:
-          access_key:
-          access_code:
+          username: user
+          password: pass
+          access_key: abc
+          access_code: def
   decentralized:
-    # ethereum
     - network: ethereum
       worker: fallback
       endpoint: https://rpc.ankr.com/eth
       parameters:
-        block_number_start:
-        block_number_target:
+        block_number_start: 47370106
+        block_number_target: 456
     - network: ethereum
       worker: rss3
       endpoint: https://rpc.ankr.com/eth
       parameters:
-        block_number_start:
-        block_number_target:
-    - network: polygon
-      worker: lens
-      endpoint: https://rpc.ankr.com/polygon
-      ipfs_gateways:
-      parameters:
-        block_number_start:
-    - network: ethereum
-      worker: opensea
-      endpoint: https://rpc.ankr.com/eth
-      parameters:
-        block_number_start:
-    - network: ethereum
-      worker: uniswap
-      endpoint: https://rpc.ankr.com/eth
-      parameters:
-        block_number_start:
-    - network: ethereum
-      worker: optimism
-      endpoint: https://rpc.ankr.com/eth
-      parameters:
-        block_number_start:
-    - network: polygon
-      worker: aavegotchi
-      endpoint: https://rpc.ankr.com/polygon
-      parameters:
-          block_number_start: 48300005
-    - network: ethereum
-      worker: highlight
-      endpoint: https://rpc.ankr.com/eth
-      parameters:
-        block_number_start:
-    # farcaster
-    - network: farcaster
-      worker: farcaster
-      endpoint: https://nemes.farcaster.xyz:2281
-    # arweave
-    - network: arweave
-      worker: mirror
-      endpoint: https://arweave.net/
-      ipfs_gateways:
-      parameters:
-        block_height_start:
-        rpc_thread_blocks:
-    - network: arweave
-      worker: paragraph
-      endpoint: https://arweave.net
-      ipfs_gateways:
-      parameters:
-        block_height_start:
-        rpc_thread_blocks:
-    - network: ethereum
-      worker: looksrare
-      endpoint: https://rpc.ankr.com/eth
-      parameters:
-        block_number_start:
-    - network: polygon
-      worker: matters
-      endpoint: https://rpc.ankr.com/polygon
-      parameters:
-        block_number_start: 52398940
-    - network: arweave
-      worker: momoka
-      endpoint: https://rpc.ankr.com/polygon
-      parameters:
-        block_height_start:
-        rpc_thread_blocks:
+        block_height_start: 123
+        rpc_thread_blocks: 2
 `
 	configExampleJSON = `{
   "environment": "development",
   "discovery": {
     "maintainer": {
-      "evm_address": null,
-      "signature": null
+      "evm_address": "0x111222333444555666777888999aaabbbcccddde",
+      "signature": "0x000000000111111111222222222333333333444444444555555555666666666777777777888888888999999999aaaaaaaaabbbbbbbbbcccccccccdddddddddeeee"
     },
     "server": {
-      "endpoint": null,
+      "endpoint": "https://node.mydomain.com/",
       "global_indexer_endpoint": "https://gi.rss3.dev/"
     }
   },
@@ -177,10 +111,10 @@ component:
         "endpoint": "https://rsshub.app/",
         "parameters": {
           "authentication": {
-            "username": null,
-            "password": null,
-            "access_key": null,
-            "access_code": null
+            "username": "user",
+            "password": "pass",
+            "access_key": "abc",
+            "access_code": "def"
           }
         }
       }
@@ -191,8 +125,8 @@ component:
         "worker": "fallback",
         "endpoint": "https://rpc.ankr.com/eth",
         "parameters": {
-          "block_number_start": null,
-          "block_number_target": null
+          "block_number_start": 47370106,
+          "block_number_target": 456
         }
       },
       {
@@ -200,107 +134,8 @@ component:
         "worker": "rss3",
         "endpoint": "https://rpc.ankr.com/eth",
         "parameters": {
-          "block_number_start": null,
-          "block_number_target": null
-        }
-      },
-      {
-        "network": "polygon",
-        "worker": "lens",
-        "endpoint": "https://rpc.ankr.com/polygon",
-        "ipfs_gateways": null,
-        "parameters": {
-          "block_number_start": null
-        }
-      },
-      {
-        "network": "ethereum",
-        "worker": "opensea",
-        "endpoint": "https://rpc.ankr.com/eth",
-        "parameters": {
-          "block_number_start": null
-        }
-      },
-      {
-        "network": "ethereum",
-        "worker": "uniswap",
-        "endpoint": "https://rpc.ankr.com/eth",
-        "parameters": {
-          "block_number_start": null
-        }
-      },
-      {
-        "network": "ethereum",
-        "worker": "optimism",
-        "endpoint": "https://rpc.ankr.com/eth",
-        "parameters": {
-          "block_number_start": null
-        }
-      },
-      {
-        "network": "polygon",
-        "worker": "aavegotchi",
-        "endpoint": "https://rpc.ankr.com/polygon",
-        "parameters": {
-          "block_number_start": 48300005
-        }
-      },
-      {
-        "network": "ethereum",
-        "worker": "highlight",
-        "endpoint": "https://rpc.ankr.com/eth",
-        "parameters": {
-          "block_number_start": null
-        }
-      },
-      {
-        "network": "farcaster",
-        "worker": "farcaster",
-        "endpoint": "https://nemes.farcaster.xyz:2281"
-      },
-      {
-        "network": "arweave",
-        "worker": "mirror",
-        "endpoint": "https://arweave.net/",
-        "ipfs_gateways": null,
-        "parameters": {
-          "block_height_start": null,
-          "rpc_thread_blocks": null
-        }
-      },
-      {
-        "network": "arweave",
-        "worker": "paragraph",
-        "endpoint": "https://arweave.net",
-        "ipfs_gateways": null,
-        "parameters": {
-          "block_height_start": null,
-          "rpc_thread_blocks": null
-        }
-      },
-      {
-        "network": "ethereum",
-        "worker": "looksrare",
-        "endpoint": "https://rpc.ankr.com/eth",
-        "parameters": {
-          "block_number_start": null
-        }
-      },
-      {
-        "network": "polygon",
-        "worker": "matters",
-        "endpoint": "https://rpc.ankr.com/polygon",
-        "parameters": {
-          "block_number_start": 52398940
-        }
-      },
-      {
-        "network": "arweave",
-        "worker": "momoka",
-        "endpoint": "https://rpc.ankr.com/polygon",
-        "parameters": {
-          "block_height_start": null,
-          "rpc_thread_blocks": null
+          "block_height_start": 123,
+          "rpc_thread_blocks": 2
         }
       }
     ]
@@ -309,11 +144,11 @@ component:
 	configExampleToml = `environment = "development"
 
 [discovery.maintainer]
-evm_address = ""
-signature = ""
+evm_address = "0x111222333444555666777888999aaabbbcccddde"
+signature = "0x000000000111111111222222222333333333444444444555555555666666666777777777888888888999999999aaaaaaaaabbbbbbbbbcccccccccdddddddddeeee"
 
 [discovery.server]
-endpoint = ""
+endpoint = "https://node.mydomain.com/"
 global_indexer_endpoint = "https://gi.rss3.dev/"
 
 [database]
@@ -341,214 +176,79 @@ network = "rss"
 endpoint = "https://rsshub.app/"
 
 [component.rss.parameters.authentication]
+username = "user"
+password = "pass"
+access_key = "abc"
+access_code = "def"
 
 [[component.decentralized]]
 network = "ethereum"
 worker = "fallback"
 endpoint = "https://rpc.ankr.com/eth"
 
-[component.decentralized.parameters]
+  [component.decentralized.parameters]
+  block_number_start = 47370106
+  block_number_target = 456
 
 [[component.decentralized]]
 network = "ethereum"
 worker = "rss3"
 endpoint = "https://rpc.ankr.com/eth"
 
-[component.decentralized.parameters]
+  [component.decentralized.parameters]
+  block_height_start = 123
+  rpc_thread_blocks = 2
 
-[[component.decentralized]]
-network = "polygon"
-worker = "lens"
-endpoint = "https://rpc.ankr.com/polygon"
-
-[component.decentralized.parameters]
-
-[[component.decentralized]]
-network = "ethereum"
-worker = "opensea"
-endpoint = "https://rpc.ankr.com/eth"
-
-[component.decentralized.parameters]
-
-[[component.decentralized]]
-network = "ethereum"
-worker = "uniswap"
-endpoint = "https://rpc.ankr.com/eth"
-
-[component.decentralized.parameters]
-
-[[component.decentralized]]
-network = "ethereum"
-worker = "optimism"
-endpoint = "https://rpc.ankr.com/eth"
-
-[component.decentralized.parameters]
-
-[[component.decentralized]]
-network = "polygon"
-worker = "aavegotchi"
-endpoint = "https://rpc.ankr.com/polygon"
-
-[component.decentralized.parameters]
-block_number_start = 48_300_005
-
-[[component.decentralized]]
-network = "ethereum"
-worker = "highlight"
-endpoint = "https://rpc.ankr.com/eth"
-
-[component.decentralized.parameters]
-
-[[component.decentralized]]
-network = "farcaster"
-worker = "farcaster"
-endpoint = "https://nemes.farcaster.xyz:2281"
-
-[[component.decentralized]]
-network = "arweave"
-worker = "mirror"
-endpoint = "https://arweave.net/"
-
-[component.decentralized.parameters]
-
-[[component.decentralized]]
-network = "arweave"
-worker = "paragraph"
-endpoint = "https://arweave.net"
-
-[component.decentralized.parameters]
-
-[[component.decentralized]]
-network = "ethereum"
-worker = "looksrare"
-endpoint = "https://rpc.ankr.com/eth"
-
-[component.decentralized.parameters]
-
-[[component.decentralized]]
-network = "polygon"
-worker = "matters"
-endpoint = "https://rpc.ankr.com/polygon"
-
-[component.decentralized.parameters]
-block_number_start = 52_398_940
-
-[[component.decentralized]]
-network = "arweave"
-worker = "momoka"
-endpoint = "https://rpc.ankr.com/polygon"
-
-[component.decentralized.parameters]
-block_height_start = ""
-rpc_thread_blocks = ""
 `
 )
 
-var configFileTest = &File{
+var configFileExcept = &File{
 	Environment: "development",
 	Discovery: &Discovery{
 		Maintainer: &Maintainer{
-			EvmAddress: common.Address{},
-			Signature:  "",
+			EvmAddress: common.HexToAddress("0x111222333444555666777888999aaabbbcccddde"),
+			Signature:  "0x000000000111111111222222222333333333444444444555555555666666666777777777888888888999999999aaaaaaaaabbbbbbbbbcccccccccdddddddddeeee",
 		},
 		Server: &Server{
-			Endpoint:              "",
+			Endpoint:              "https://node.mydomain.com/",
 			GlobalIndexerEndpoint: "https://gi.rss3.dev/",
 		},
 	},
 	Node: &Node{
 		RSS: []*Module{
 			{
-				Network:    filter.NetworkRSS,
-				Endpoint:   "https://rsshub.app/",
-				Worker:     0,
-				Parameters: &Options{},
+				Network:  filter.NetworkRSS,
+				Endpoint: "https://rsshub.app/",
+				Worker:   0,
+				Parameters: &Options{
+					"authentication": map[string]any{
+						"access_code": "def",
+						"access_key":  "abc",
+						"password":    "pass",
+						"username":    "user",
+					},
+				},
 			},
 		},
 		Federated: nil,
 		Decentralized: []*Module{
 			{
-				Network:    filter.NetworkEthereum,
-				Worker:     filter.Fallback,
-				Endpoint:   "https://rpc.ankr.com/eth",
-				Parameters: &Options{},
+				Network:  filter.NetworkEthereum,
+				Worker:   filter.Fallback,
+				Endpoint: "https://rpc.ankr.com/eth",
+				Parameters: &Options{
+					"block_number_start":  47370106,
+					"block_number_target": 456,
+				},
 			},
 			{
-				Network:    filter.NetworkEthereum,
-				Worker:     filter.RSS3,
-				Endpoint:   "https://rpc.ankr.com/eth",
-				Parameters: &Options{},
-			},
-			{
-				Network:    filter.NetworkPolygon,
-				Worker:     filter.Lens,
-				Endpoint:   "https://rpc.ankr.com/polygon",
-				Parameters: &Options{},
-			},
-			{
-				Network:    filter.NetworkEthereum,
-				Worker:     filter.OpenSea,
-				Endpoint:   "https://rpc.ankr.com/eth",
-				Parameters: &Options{},
-			},
-			{
-				Network:    filter.NetworkEthereum,
-				Worker:     filter.Uniswap,
-				Endpoint:   "https://rpc.ankr.com/eth",
-				Parameters: &Options{},
-			},
-			{
-				Network:    filter.NetworkEthereum,
-				Worker:     filter.Optimism,
-				Endpoint:   "https://rpc.ankr.com/eth",
-				Parameters: &Options{},
-			},
-			{
-				Network:    filter.NetworkPolygon,
-				Worker:     filter.Aavegotchi,
-				Endpoint:   "https://rpc.ankr.com/polygon",
-				Parameters: &Options{},
-			},
-			{
-				Network:    filter.NetworkEthereum,
-				Worker:     filter.Highlight,
-				Endpoint:   "https://rpc.ankr.com/eth",
-				Parameters: &Options{},
-			},
-			{
-				Network:  filter.NetworkFarcaster,
-				Worker:   filter.Farcaster,
-				Endpoint: "https://nemes.farcaster.xyz:2281",
-			},
-			{
-				Network:    filter.NetworkArweave,
-				Worker:     filter.Mirror,
-				Endpoint:   "https://arweave.net/",
-				Parameters: &Options{},
-			},
-			{
-				Network:    filter.NetworkArweave,
-				Worker:     filter.Paragraph,
-				Endpoint:   "https://arweave.net",
-				Parameters: &Options{},
-			},
-			{
-				Network:    filter.NetworkEthereum,
-				Worker:     filter.Looksrare,
-				Endpoint:   "https://rpc.ankr.com/eth",
-				Parameters: &Options{},
-			},
-			{
-				Network:    filter.NetworkPolygon,
-				Worker:     filter.Matters,
-				Endpoint:   "https://rpc.ankr.com/polygon",
-				Parameters: &Options{},
-			},
-			{
-				Network:    filter.NetworkArweave,
-				Worker:     filter.Momoka,
-				Endpoint:   "https://rpc.ankr.com/polygon",
-				Parameters: &Options{},
+				Network:  filter.NetworkEthereum,
+				Worker:   filter.RSS3,
+				Endpoint: "https://rpc.ankr.com/eth",
+				Parameters: &Options{
+					"block_height_start": 123,
+					"rpc_thread_blocks":  2,
+				},
 			},
 		},
 	},
@@ -599,7 +299,7 @@ func TestSetupConfig(t *testing.T) {
 	f, err := _Setup(configName, "yaml", v)
 	assert.NoError(t, err)
 
-	AssertConfig(t, f, configFileTest)
+	AssertConfig(t, f, configFileExcept)
 }
 
 //func TestConfigEnvOverride(t *testing.T) {
@@ -670,7 +370,7 @@ func TestConfigFilePath(t *testing.T) {
 				f, err := _Setup(configName, "yaml", v)
 				assert.NoError(t, err)
 
-				assert.Equal(t, configFileTest, f)
+				assert.Equal(t, configFileExcept, f)
 			})
 		}(configPath)
 	}
@@ -710,13 +410,13 @@ func TestConfigFileType(t *testing.T) {
 				f, err := _Setup(configName, _type, v)
 				assert.NoError(t, err)
 
-				assert.Equal(t, f, configFileTest)
+				AssertConfig(t, configFileExcept, f)
 			})
 		}(configType, configContext)
 	}
 }
 
-func AssertConfig(t *testing.T, got, expect *File) {
+func AssertConfig(t *testing.T, expect, got *File) {
 	t.Run("environment", func(t *testing.T) {
 		assert.Equal(t, expect.Environment, got.Environment)
 	})
@@ -729,42 +429,73 @@ func AssertConfig(t *testing.T, got, expect *File) {
 	t.Run("discovery", func(t *testing.T) {
 		assert.Equal(t, expect.Discovery, got.Discovery)
 	})
+
+	t.Run("decentralized", func(t *testing.T) {
+		for i, rss := range expect.Node.RSS {
+			func(_except, got *Module) {
+				t.Run(fmt.Sprintf("rss-%d", i), func(t *testing.T) {
+					t.Parallel()
+					assert.Equal(t, _except, got)
+				})
+			}(rss, got.Node.RSS[i])
+		}
+
+		for i, indexer := range got.Node.Decentralized {
+			func(_except, got *Module) {
+				t.Run(fmt.Sprintf("%s-%s", indexer.Network, indexer.Worker), func(t *testing.T) {
+					t.Parallel()
+					AssertIndexer(t, _except, got)
+				})
+			}(configFileExcept.Node.Decentralized[i], indexer)
+		}
+	})
 }
 
-//t.Run("decentralized", func(t *testing.T) {
-//	for i, rss := range expect.Node.RSS {
-//		func(except, got *Module) {
-//			t.Run(fmt.Sprintf("rss-%d", i), func(t *testing.T) {
-//				t.Parallel()
-//				assert.Equal(t, expect, got)
-//			})
-//		}(rss, got.Node.RSS[i])
-//	}
-//
-//	//for i, indexer := range got.Node.Decentralized {
-//	//	func(except, got *Module) {
-//	//		t.Run(fmt.Sprintf("%s-%s", indexer.Network, indexer.Worker), func(t *testing.T) {
-//	//			t.Parallel()
-//	//			AssertIndexer(t, except, got)
-//	//		})
-//	//	}(configFileTest.Node.Decentralized[i], indexer)
-//	//}
-//})
+func AssertIndexer(t *testing.T, got, expect *Module) {
+	t.Run("network", func(t *testing.T) {
+		assert.Equal(t, expect.Network, got.Network)
+	})
+	t.Run("worker", func(t *testing.T) {
+		assert.Equal(t, expect.Worker, got.Worker)
+	})
+	t.Run("endpoint", func(t *testing.T) {
+		assert.Equal(t, expect.Endpoint, got.Endpoint)
+	})
+	t.Run("gateway", func(t *testing.T) {
+		assert.Equal(t, expect.IPFSGateways, got.IPFSGateways)
+	})
+	t.Run("parameters", func(t *testing.T) {
+		AssertParameters(t, *expect.Parameters, *got.Parameters)
+	})
+}
 
-//func AssertIndexer(t *testing.T, got, expect *Module) {
-//	t.Run("network", func(t *testing.T) {
-//		assert.Equal(t, expect.Network, got.Network)
-//	})
-//	t.Run("worker", func(t *testing.T) {
-//		assert.Equal(t, expect.Worker, got.Worker)
-//	})
-//	t.Run("endpoint", func(t *testing.T) {
-//		assert.Equal(t, expect.Endpoint, got.Endpoint)
-//	})
-//	t.Run("gateway", func(t *testing.T) {
-//		assert.Equal(t, expect.IPFSGateways, got.IPFSGateways)
-//	})
-//	t.Run("parameters", func(t *testing.T) {
-//		assert.Equal(t, expect.Parameters, got.Parameters)
-//	})
-//}
+func AssertParameters(t *testing.T, got, expect map[string]any) {
+	if expect == nil && got == nil {
+		return
+	}
+
+	if expect == nil || got == nil || len(expect) != len(got) {
+		t.Errorf("Maps length expect %d but got %d \n", len(expect), len(got))
+		return
+	}
+
+	for key, expectedValue := range expect {
+		actualValue, ok := got[key]
+		if !ok {
+			t.Errorf("Key %s is missing\n", key)
+		}
+
+		switch reflect.TypeOf(expectedValue).Kind() {
+		case reflect.String:
+			assert.Equal(t, expectedValue, actualValue)
+		case reflect.Float64, reflect.Float32:
+			assert.Equal(t, expectedValue.(float64), actualValue.(float64))
+		case reflect.Int64:
+			assert.Equal(t, expectedValue.(int64), actualValue.(int64))
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			assert.Equal(t, expectedValue.(uint64), actualValue.(uint64))
+		case reflect.Map:
+			AssertParameters(t, expectedValue.(map[string]any), actualValue.(map[string]any))
+		}
+	}
+}
