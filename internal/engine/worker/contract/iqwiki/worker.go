@@ -85,7 +85,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 		action, err := w.parseAction(ctx, log, ethereumTask)
 		if err != nil {
-			continue
+			return nil, err
 		}
 
 		feed.Actions = append(feed.Actions, action)
