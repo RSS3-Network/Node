@@ -581,7 +581,7 @@ var configFileTest = &File{
 func TestSetupConfig(t *testing.T) {
 	t.Parallel()
 
-	configDir := "/etc/serving-node"
+	configDir := "/etc/rss3/node"
 	fs := afero.NewMemMapFs()
 
 	err := fs.Mkdir(configDir, 0o777)
@@ -603,10 +603,17 @@ func TestSetupConfig(t *testing.T) {
 }
 
 //func TestConfigEnvOverride(t *testing.T) {
-//	t.Setenv("SN_ENVIRONMENT", "testing")
-//	t.Setenv("SN_DATABASE_URI", "postgres://mock@localhost:26257/defaultdb")
+//	t.Parallel()
 //
-//	configDir := "/etc/serving-node"
+//	exceptEnvironment := "testing"
+//	exceptDatabaseURI := "postgres://mock@localhost:26257/defaultdb"
+//	exceptMetricsEndpoint := "127.0.0.1:9000"
+//
+//	t.Setenv("NODE_ENVIRONMENT", exceptEnvironment)
+//	t.Setenv("NODE_DATABASE_URI", exceptDatabaseURI)
+//	t.Setenv("NODE_OBSERVABILITY_OPENTELEMETRY_METRICS_ENDPOINT", exceptMetricsEndpoint)
+//
+//	configDir := "/etc/rss3/node"
 //	fs := afero.NewMemMapFs()
 //
 //	err := fs.Mkdir(configDir, 0o777)
@@ -624,11 +631,9 @@ func TestSetupConfig(t *testing.T) {
 //	f, err := _Setup(configName, "yaml", v)
 //	assert.NoError(t, err)
 //
-//	t.Log(v.Get("database.uri"))
-//	t.Log(v.Get("DATABASE_URI"))
-//
-//	assert.Equal(t, "testing", f.Environment)
-//	assert.Equal(t, "postgres://mock@localhost:26257/defaultdb", f.Database.URI)
+//	assert.Equal(t, exceptEnvironment, f.Environment)
+//	assert.Equal(t, exceptDatabaseURI, f.Database.URI)
+//	assert.Equal(t, exceptMetricsEndpoint, f.Observability.OpenTelemetry.Metrics.Endpoint)
 //}
 
 func TestConfigFilePath(t *testing.T) {
@@ -638,8 +643,8 @@ func TestConfigFilePath(t *testing.T) {
 	assert.NoError(t, err)
 
 	configPaths := []string{
-		"/etc/serving-node/",
-		path.Join(os.Getenv("HOME"), ".serving-node"),
+		"/etc/rss3/node/",
+		path.Join(os.Getenv("HOME"), ".rss3", "node"),
 		path.Join(currentDir, "config"),
 		path.Join(currentDir, "deploy"),
 	}
@@ -674,7 +679,7 @@ func TestConfigFilePath(t *testing.T) {
 func TestConfigFileType(t *testing.T) {
 	t.Parallel()
 
-	configDir := "/etc/serving-node"
+	configDir := "/etc/rss3/node"
 	configFiles := map[string]string{
 		"yaml": configExampleYaml,
 		"yml":  configExampleYaml,
