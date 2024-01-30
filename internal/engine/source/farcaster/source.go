@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/serving-node/config"
 	"github.com/rss3-network/serving-node/internal/database"
 	"github.com/rss3-network/serving-node/internal/database/model"
 	"github.com/rss3-network/serving-node/internal/engine"
 	"github.com/rss3-network/serving-node/provider/farcaster"
-	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )

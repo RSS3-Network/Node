@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
 )
 
 type Task interface {

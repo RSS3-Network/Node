@@ -7,16 +7,15 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/config"
 	source "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/serving-node/internal/engine/worker/contract/matters"
 	"github.com/rss3-network/serving-node/provider/ethereum"
-	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum/contract/matters"
 	"github.com/rss3-network/serving-node/provider/ethereum/endpoint"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
-	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -161,7 +160,7 @@ func TestWorker_Matters(t *testing.T) {
 								Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(690000), 0)),
 								Name:     "(PoS) Tether USD",
 								Symbol:   "USDT",
-								Standard: contract.StandardERC20,
+								Standard: metadata.StandardERC20,
 								Decimals: 6,
 							},
 							Target: &metadata.SocialPost{

@@ -7,15 +7,14 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/config"
 	source "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/serving-node/internal/engine/worker/contract/opensea"
 	"github.com/rss3-network/serving-node/provider/ethereum"
-	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum/endpoint"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
-	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -144,7 +143,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "Zerion Genesis Collection",
 								Symbol:   "ZGC",
-								Standard: contract.StandardERC1155,
+								Standard: metadata.StandardERC1155,
 								URI:      "ipfs://QmXBUGFTXuAeBfK9oB9G1NAhGq7AwosWjHFRHMdahETeRK",
 							},
 
@@ -296,7 +295,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "Turtle Case Gang",
 								Symbol:   "TurtlecaseGang",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "ipfs://QmTzkoeQVxjMiAz6GtBzihW2gfgxp4dta21tcEvXwmMUoj/51.json",
 							},
 
@@ -305,7 +304,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("99400000000000000"))),
 								Name:     "Wrapped Ether",
 								Symbol:   "WETH",
-								Standard: contract.StandardERC20,
+								Standard: metadata.StandardERC20,
 								Decimals: 18,
 							},
 						},
@@ -427,7 +426,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "Azuki",
 								Symbol:   "AZUKI",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "ipfs://QmZcH4YvBVVRJtdn4RdbaqgspFU8gH6P9vomDpBVpAL3u4/4103",
 							},
 
@@ -594,7 +593,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "Frenly Pandas",
 								Symbol:   "FANDAS",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "https://ipfs.io/ipfs/QmNcoaNf9rnyhsDkyt9aB9vvEb5uEdG1bHx62AtfbWpEJF/2892.json",
 							},
 
@@ -619,7 +618,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "Frenly Pandas",
 								Symbol:   "FANDAS",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "https://ipfs.io/ipfs/QmNcoaNf9rnyhsDkyt9aB9vvEb5uEdG1bHx62AtfbWpEJF/1788.json",
 							},
 
@@ -878,7 +877,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "Women of Crypto",
 								Symbol:   "WOC",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "ipfs://QmWHiAaPXHmk4RJg4f2W2FVtC4vqDXGWCnnUtSRLV3bKcK/7173",
 							},
 
@@ -1005,7 +1004,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "Shrapnel Operators Collection",
 								Symbol:   "SOC",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "ipfs://QmTUfSLbqqpwix4WyfnUeMAeLGgdz9NuS7oPnL92MK9oUt/2",
 							},
 
@@ -1147,7 +1146,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "Flippr Access Pass",
 								Symbol:   "FLIPPR",
-								Standard: contract.StandardERC1155,
+								Standard: metadata.StandardERC1155,
 								URI:      "ipfs://QmerHKcZLVTxN3Y7S7P2vo2XfN7dGHZnYDQcsrvubvHJKM",
 							},
 
@@ -1264,7 +1263,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								ID:       lo.ToPtr(lo.Must(decimal.NewFromString("74423267982534601206598717130436619001173770632196343728263400099197042616208"))),
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Symbol:   "ENS",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/74423267982534601206598717130436619001173770632196343728263400099197042616208",
 							},
 

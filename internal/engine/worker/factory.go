@@ -3,6 +3,7 @@ package worker
 import (
 	"fmt"
 
+	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/serving-node/config"
 	"github.com/rss3-network/serving-node/internal/database"
 	"github.com/rss3-network/serving-node/internal/engine"
@@ -24,7 +25,6 @@ import (
 	"github.com/rss3-network/serving-node/internal/engine/worker/contract/uniswap"
 	"github.com/rss3-network/serving-node/internal/engine/worker/fallback"
 	"github.com/rss3-network/serving-node/internal/engine/worker/farcaster"
-	"github.com/rss3-network/serving-node/schema/filter"
 )
 
 func New(config *config.Module, databaseClient database.Client) (engine.Worker, error) {

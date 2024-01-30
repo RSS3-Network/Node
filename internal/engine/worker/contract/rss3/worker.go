@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/config"
 	"github.com/rss3-network/serving-node/internal/engine"
 	source "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
@@ -14,9 +17,6 @@ import (
 	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum/contract/rss3"
 	"github.com/rss3-network/serving-node/provider/ethereum/token"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
-	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )

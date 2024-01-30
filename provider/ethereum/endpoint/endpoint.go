@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rss3-network/serving-node/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/samber/lo"
 )
 

@@ -12,9 +12,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/go-playground/validator/v10"
 	"github.com/mitchellh/mapstructure"
+	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/serving-node/internal/database"
 	"github.com/rss3-network/serving-node/internal/stream"
-	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
 )

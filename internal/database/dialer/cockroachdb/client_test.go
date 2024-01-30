@@ -8,12 +8,12 @@ import (
 
 	"github.com/orlangure/gnomock"
 	"github.com/orlangure/gnomock/preset/cockroachdb"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/serving-node/config"
 	"github.com/rss3-network/serving-node/internal/database"
 	"github.com/rss3-network/serving-node/internal/database/dialer"
 	"github.com/rss3-network/serving-node/internal/database/model"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )

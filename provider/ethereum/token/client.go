@@ -11,6 +11,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/provider/ethereum"
 	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum/contract/erc1155"
@@ -19,8 +21,6 @@ import (
 	"github.com/rss3-network/serving-node/provider/ethereum/contract/multicall3"
 	"github.com/rss3-network/serving-node/provider/httpx"
 	"github.com/rss3-network/serving-node/provider/ipfs"
-	"github.com/rss3-network/serving-node/schema/filter"
-	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/tdewolff/minify/v2/minify"
@@ -136,7 +136,7 @@ func (c *client) lookupERC20(ctx context.Context, chainID uint64, address common
 
 	// Fallback NFT approval transactions
 	standard, err := contract.DetectNFTStandard(ctx, chainID, address, blockNumber, c.ethereumClient)
-	if err == nil && standard != contract.StandardUnknown {
+	if err == nil && standard != metadata.StandardUnknown {
 		tokenMetadata.Standard = standard
 	}
 
@@ -147,7 +147,7 @@ func (c *client) lookupERC20(ctx context.Context, chainID uint64, address common
 func (c *client) lookupERC20ByRPC(ctx context.Context, chainID uint64, address common.Address, blockNumber *big.Int) (*metadata.Token, error) {
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
-		Standard: contract.StandardERC20,
+		Standard: metadata.StandardERC20,
 	}
 
 	abi, err := erc20.ERC20MetaData.GetAbi()
@@ -223,9 +223,9 @@ func (c *client) lookupNFT(ctx context.Context, chain uint64, address common.Add
 	}
 
 	switch standard {
-	case contract.StandardERC721:
+	case metadata.StandardERC721:
 		tokenMetadata, err = c.lookupERC721(ctx, chain, address, id, blockNumber)
-	case contract.StandardERC1155:
+	case metadata.StandardERC1155:
 		tokenMetadata, err = c.lookupERC1155(ctx, chain, address, id, blockNumber)
 	default:
 		err = fmt.Errorf("unsupported NFT standard %s", standard)
@@ -243,7 +243,7 @@ func (c *client) lookupERC721(ctx context.Context, chainID uint64, address commo
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
 		ID:       lo.ToPtr(decimal.NewFromBigInt(id, 0)),
-		Standard: contract.StandardERC721,
+		Standard: metadata.StandardERC721,
 	}
 
 	abi, err := erc721.ERC721MetaData.GetAbi()
@@ -312,7 +312,7 @@ func (c *client) lookupERC1155(ctx context.Context, chainID uint64, address comm
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
 		ID:       lo.ToPtr(decimal.NewFromBigInt(id, 0)),
-		Standard: contract.StandardERC1155,
+		Standard: metadata.StandardERC1155,
 	}
 
 	abi, err := erc1155.ERC1155MetaData.GetAbi()
@@ -391,7 +391,7 @@ func (c *client) lookupENS(_ context.Context, _ uint64, address *common.Address,
 		Address:  lo.ToPtr(address.String()),
 		Symbol:   "ENS",
 		URI:      fmt.Sprintf("https://metadata.ens.domains/mainnet/%v/%v", address, id),
-		Standard: contract.StandardERC721,
+		Standard: metadata.StandardERC721,
 	}
 
 	if id == nil {

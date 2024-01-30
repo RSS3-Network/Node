@@ -7,15 +7,14 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/config"
 	source "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/serving-node/internal/engine/worker/contract/looksrare"
 	"github.com/rss3-network/serving-node/provider/ethereum"
-	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum/endpoint"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
-	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -207,7 +206,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "Wrapped Ether",
 							Symbol:   "WETH",
 							Decimals: 18,
-							Standard: contract.StandardERC20,
+							Standard: metadata.StandardERC20,
 						},
 					},
 					{
@@ -221,7 +220,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "Wrapped Ether",
 							Symbol:   "WETH",
 							Decimals: 18,
-							Standard: contract.StandardERC20,
+							Standard: metadata.StandardERC20,
 						},
 					},
 					{
@@ -237,7 +236,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "OnChainMonkey",
 								Symbol:   "OCMONK",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "data:application/json;base64,eyJuYW1lIjogIk9uQ2hhaW4gTW9ua2V5ICM1NzUxIiwgImF0dHJpYnV0ZXMiOiBbeyJ0cmFpdF90eXBlIjogIkJhY2tncm91bmQiLCJ2YWx1ZSI6ICIyIn0seyJ0cmFpdF90eXBlIjogIkZ1ciIsInZhbHVlIjogIjMifSx7InRyYWl0X3R5cGUiOiAiRWFycmluZyIsInZhbHVlIjogIjAifSx7InRyYWl0X3R5cGUiOiAiSGF0IiwidmFsdWUiOiAiMjgifSx7InRyYWl0X3R5cGUiOiAiRXllcyIsInZhbHVlIjogIjgifSx7InRyYWl0X3R5cGUiOiAiQ2xvdGhlcyIsInZhbHVlIjogIjgifSx7InRyYWl0X3R5cGUiOiAiTW91dGgiLCJ2YWx1ZSI6ICIxMCJ9XSwiaW1hZ2UiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhCeVpYTmxjblpsUVhOd1pXTjBVbUYwYVc4OUluaE5hVzVaVFdsdUlHMWxaWFFpSUhacFpYZENiM2c5SWpBZ01DQTFNREFnTlRBd0lqNDhjbVZqZENCNFBTSXdJaUI1UFNJd0lpQjNhV1IwYUQwaU5UQXdJaUJvWldsbmFIUTlJalV3TUNJZ2MzUjViR1U5SW1acGJHdzZJMlU1TWlJdlBqeHlaV04wSUhkcFpIUm9QU0l6TURBaUlHaGxhV2RvZEQwaU1USXdJaUI0UFNJNU9TSWdlVDBpTkRBd0lpQnpkSGxzWlQwaVptbHNiRG9qTmpVeklpOCtQR05wY21Oc1pTQmplRDBpTVRrd0lpQmplVDBpTkRjd0lpQnlQU0kxSWlCemRIbHNaVDBpWm1sc2JEb2pZVGN4SWk4K1BHTnBjbU5zWlNCamVEMGlNekV3SWlCamVUMGlORGN3SWlCeVBTSTFJaUJ6ZEhsc1pUMGlabWxzYkRvallUY3hJaTgrUEdOcGNtTnNaU0JqZUQwaU1UQXdJaUJqZVQwaU1qVXdJaUJ5UFNJMU1DSWdjM1I1YkdVOUltWnBiR3c2SXpZMU15SXZQanhqYVhKamJHVWdZM2c5SWpFd01DSWdZM2s5SWpJMU1DSWdjajBpTWpBaUlITjBlV3hsUFNKbWFXeHNPaU5oTnpFaUx6NDhZMmx5WTJ4bElHTjRQU0kwTURBaUlHTjVQU0l5TlRBaUlISTlJalV3SWlCemRIbHNaVDBpWm1sc2JEb2pOalV6SWk4K1BHTnBjbU5zWlNCamVEMGlOREF3SWlCamVUMGlNalV3SWlCeVBTSXlNQ0lnYzNSNWJHVTlJbVpwYkd3NkkyRTNNU0l2UGp4amFYSmpiR1VnWTNnOUlqSTFNQ0lnWTNrOUlqSTFNQ0lnY2owaU1UVXdJaUJ6ZEhsc1pUMGlabWxzYkRvak5qVXpJaTgrUEdOcGNtTnNaU0JqZUQwaU1qVXdJaUJqZVQwaU1qVXdJaUJ5UFNJeE1qQWlJSE4wZVd4bFBTSm1hV3hzT2lOaE56RWlMejQ4WTJseVkyeGxJR040UFNJeU1EQWlJR041UFNJeU1UVWlJSEk5SWpNMUlpQnpkSGxzWlQwaVptbHNiRG9qWm1abUlpOCtQR05wY21Oc1pTQmplRDBpTXpBMUlpQmplVDBpTWpJeUlpQnlQU0l6TVNJZ2MzUjViR1U5SW1acGJHdzZJMlptWmlJdlBqeGphWEpqYkdVZ1kzZzlJakl3TUNJZ1kzazlJakl5TUNJZ2NqMGlNakFpSUhOMGVXeGxQU0ptYVd4c09pTTRPRGdpTHo0OFkybHlZMnhsSUdONFBTSXpNREFpSUdONVBTSXlNakFpSUhJOUlqSXdJaUJ6ZEhsc1pUMGlabWxzYkRvak9EZzRJaTgrUEdOcGNtTnNaU0JqZUQwaU1qQXdJaUJqZVQwaU1qSXdJaUJ5UFNJM0lpQnpkSGxzWlQwaVptbHNiRG9qTURBd0lpOCtQR05wY21Oc1pTQmplRDBpTXpBd0lpQmplVDBpTWpJd0lpQnlQU0kzSWlCemRIbHNaVDBpWm1sc2JEb2pNREF3SWk4K1BISmxZM1FnZUQwaU1UVXdJaUI1UFNJeE9UQWlJSGRwWkhSb1BTSXlNREFpSUdobGFXZG9kRDBpTXpBaUlITjBlV3hsUFNKbWFXeHNPaU5oTnpFaUx6NDhjbVZqZENCNFBTSXhOakFpSUhrOUlqRTNNQ0lnZDJsa2RHZzlJakU0TUNJZ2FHVnBaMmgwUFNJMU1DSWdjM1I1YkdVOUltWnBiR3c2STJFM01TSXZQanhsYkd4cGNITmxJR040UFNJeU5UQWlJR041UFNJek1UVWlJSEo0UFNJNE5DSWdjbms5SWpNMElpQnpkSGxzWlQwaVptbHNiRG9qTmpVeklpOCtQSEpsWTNRZ2VEMGlNVGsxSWlCNVBTSXpNekFpSUhkcFpIUm9QU0l4TVRBaUlHaGxhV2RvZEQwaU15SWdjM1I1YkdVOUltWnBiR3c2SXpBd01DSXZQanhqYVhKamJHVWdZM2c5SWpJMk9DSWdZM2s5SWpJNU5TSWdjajBpTlNJZ2MzUjViR1U5SW1acGJHdzZJekF3TUNJdlBqeGphWEpqYkdVZ1kzZzlJakl6TWlJZ1kzazlJakk1TlNJZ2NqMGlOU0lnYzNSNWJHVTlJbVpwYkd3Nkl6QXdNQ0l2UGp4c2FXNWxJSGd4UFNJeE56VWlJSGt4UFNJek1EY2lJSGd5UFNJeE56VWlJSGt5UFNJek1USWlJSE4wZVd4bFBTSnpkSEp2YTJVNkl6QXdNRHR6ZEhKdmEyVXRkMmxrZEdnNk1pSXZQanhzYVc1bElIZ3hQU0l5TURBaUlIa3hQU0l6TURjaUlIZ3lQU0l5TURBaUlIa3lQU0l6TVRJaUlITjBlV3hsUFNKemRISnZhMlU2SXpBd01EdHpkSEp2YTJVdGQybGtkR2c2TWlJdlBqeHNhVzVsSUhneFBTSXlNalVpSUhreFBTSXpNRGNpSUhneVBTSXlNalVpSUhreVBTSXpNVElpSUhOMGVXeGxQU0p6ZEhKdmEyVTZJekF3TUR0emRISnZhMlV0ZDJsa2RHZzZNaUl2UGp4c2FXNWxJSGd4UFNJeU5UQWlJSGt4UFNJek1EY2lJSGd5UFNJeU5UQWlJSGt5UFNJek1USWlJSE4wZVd4bFBTSnpkSEp2YTJVNkl6QXdNRHR6ZEhKdmEyVXRkMmxrZEdnNk1pSXZQanhzYVc1bElIZ3hQU0l5TnpVaUlIa3hQU0l6TURjaUlIZ3lQU0l5TnpVaUlIa3lQU0l6TVRJaUlITjBlV3hsUFNKemRISnZhMlU2SXpBd01EdHpkSEp2YTJVdGQybGtkR2c2TWlJdlBqeHNhVzVsSUhneFBTSXpNREFpSUhreFBTSXpNRGNpSUhneVBTSXpNREFpSUhreVBTSXpNVElpSUhOMGVXeGxQU0p6ZEhKdmEyVTZJekF3TUR0emRISnZhMlV0ZDJsa2RHZzZNaUl2UGp4c2FXNWxJSGd4UFNJek1qVWlJSGt4UFNJek1EY2lJSGd5UFNJek1qVWlJSGt5UFNJek1USWlJSE4wZVd4bFBTSnpkSEp2YTJVNkl6QXdNRHR6ZEhKdmEyVXRkMmxrZEdnNk1pSXZQanhzYVc1bElIZ3hQU0l4T0RjaUlIa3hQU0l6TVRjaUlIZ3lQU0l4T0RjaUlIa3lQU0l6TWpJaUlITjBlV3hsUFNKemRISnZhMlU2SXpBd01EdHpkSEp2YTJVdGQybGtkR2c2TWlJdlBqeHNhVzVsSUhneFBTSXlNVElpSUhreFBTSXpNVGNpSUhneVBTSXlNVElpSUhreVBTSXpNaklpSUhOMGVXeGxQU0p6ZEhKdmEyVTZJekF3TUR0emRISnZhMlV0ZDJsa2RHZzZNaUl2UGp4c2FXNWxJSGd4UFNJeU16Y2lJSGt4UFNJek1UY2lJSGd5UFNJeU16Y2lJSGt5UFNJek1qSWlJSE4wZVd4bFBTSnpkSEp2YTJVNkl6QXdNRHR6ZEhKdmEyVXRkMmxrZEdnNk1pSXZQanhzYVc1bElIZ3hQU0l5TmpJaUlIa3hQU0l6TVRjaUlIZ3lQU0l5TmpJaUlIa3lQU0l6TWpJaUlITjBlV3hsUFNKemRISnZhMlU2SXpBd01EdHpkSEp2YTJVdGQybGtkR2c2TWlJdlBqeHNhVzVsSUhneFBTSXlPRGNpSUhreFBTSXpNVGNpSUhneVBTSXlPRGNpSUhreVBTSXpNaklpSUhOMGVXeGxQU0p6ZEhKdmEyVTZJekF3TUR0emRISnZhMlV0ZDJsa2RHZzZNaUl2UGp4c2FXNWxJSGd4UFNJek1USWlJSGt4UFNJek1UY2lJSGd5UFNJek1USWlJSGt5UFNJek1qSWlJSE4wZVd4bFBTSnpkSEp2YTJVNkl6QXdNRHR6ZEhKdmEyVXRkMmxrZEdnNk1pSXZQanh5WldOMElIZHBaSFJvUFNJeU1EQWlJR2hsYVdkb2REMGlPVGtpSUhnOUlqRTFNQ0lnZVQwaU5EQWlJSE4wZVd4bFBTSm1hV3hzT2lObU9EQWlMejQ4Y21WamRDQjNhV1IwYUQwaU1qQXdJaUJvWldsbmFIUTlJak16SWlCNFBTSXhOVEFpSUhrOUlqRXdOaUlnYzNSNWJHVTlJbVpwYkd3Nkl6a3daaUl2UGp4eVpXTjBJSGRwWkhSb1BTSXpNREFpSUdobGFXZG9kRDBpTVRJd0lpQjRQU0k1T1NJZ2VUMGlOREF3SWlCemRIbHNaVDBpWm1sc2JEb2paakF3SWk4K1BISmxZM1FnZDJsa2RHZzlJalV3SWlCb1pXbG5hSFE5SWpVMUlpQjRQU0l5T0RBaUlIazlJalF6TUNJZ2MzUjViR1U5SW1acGJHdzZJekJtTUNJdlBqd3ZjM1puUGc9PSJ9",
 							},
 
@@ -246,7 +245,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("529000000000000000"))),
 								Name:     "Wrapped Ether",
 								Symbol:   "WETH",
-								Standard: contract.StandardERC20,
+								Standard: metadata.StandardERC20,
 								Decimals: 18,
 							},
 						},
@@ -417,7 +416,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "Wrapped Ether",
 							Symbol:   "WETH",
 							Decimals: 18,
-							Standard: contract.StandardERC20,
+							Standard: metadata.StandardERC20,
 						},
 					},
 					{
@@ -431,7 +430,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "Wrapped Ether",
 							Symbol:   "WETH",
 							Decimals: 18,
-							Standard: contract.StandardERC20,
+							Standard: metadata.StandardERC20,
 						},
 					},
 					{
@@ -447,7 +446,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "Otherdeed",
 								Symbol:   "OTHR",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "https://api.otherside.xyz/lands/61559",
 							},
 							Cost: &metadata.Token{
@@ -455,7 +454,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1281100000000000000"))),
 								Name:     "Wrapped Ether",
 								Symbol:   "WETH",
-								Standard: contract.StandardERC20,
+								Standard: metadata.StandardERC20,
 								Decimals: 18,
 							},
 						},
@@ -673,7 +672,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "Wrapped Ether",
 							Symbol:   "WETH",
 							Decimals: 18,
-							Standard: contract.StandardERC20,
+							Standard: metadata.StandardERC20,
 						},
 					},
 					{
@@ -687,7 +686,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "Wrapped Ether",
 							Symbol:   "WETH",
 							Decimals: 18,
-							Standard: contract.StandardERC20,
+							Standard: metadata.StandardERC20,
 						},
 					},
 					{
@@ -703,7 +702,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "Otherdeed",
 								Symbol:   "OTHR",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "https://api.otherside.xyz/lands/81270",
 							},
 							Cost: &metadata.Token{
@@ -711,7 +710,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1600000000000000000"))),
 								Name:     "Wrapped Ether",
 								Symbol:   "WETH",
-								Standard: contract.StandardERC20,
+								Standard: metadata.StandardERC20,
 								Decimals: 18,
 							},
 						},
@@ -821,7 +820,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "Redacted Remilio Party",
 								Symbol:   "RRP",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "ipfs://bafybeicbgyhvddvn2jdqwvlavszpbk2rek62g6ah4zoxmbsijlr47imcfi/1662",
 							},
 
@@ -985,7 +984,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "Beanz",
 								Symbol:   "BEANZ",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "ipfs://QmdYeDpkVZedk1mkGodjNmF35UNxwafhFLVvsHrWgJoz6A/beanz_metadata/159",
 							},
 
@@ -1010,7 +1009,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "Wrapped Ether",
 							Symbol:   "WETH",
 							Decimals: 18,
-							Standard: contract.StandardERC20,
+							Standard: metadata.StandardERC20,
 						},
 					},
 				},
@@ -1177,7 +1176,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "Ghostd Ghosties",
 								Symbol:   "GST",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "ipfs://bafybeigb5nf5o4rfdyuas3kdaxugr5uv4tboeprsqa5vgn5lhndvbx3d2a/59",
 							},
 							Cost: &metadata.Token{
@@ -1225,7 +1224,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 								Name:     "Ghostd Ghosties",
 								Symbol:   "GST",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "ipfs://bafybeigb5nf5o4rfdyuas3kdaxugr5uv4tboeprsqa5vgn5lhndvbx3d2a/58",
 							},
 							Cost: &metadata.Token{

@@ -5,9 +5,9 @@ import (
 	"math"
 	"time"
 
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/serving-node/provider/ethereum"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
 )
 
 type Index struct {

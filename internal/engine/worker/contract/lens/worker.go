@@ -10,6 +10,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/config"
 	"github.com/rss3-network/serving-node/internal/engine"
 	source "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
@@ -19,9 +22,6 @@ import (
 	"github.com/rss3-network/serving-node/provider/ethereum/contract/lens"
 	"github.com/rss3-network/serving-node/provider/httpx"
 	"github.com/rss3-network/serving-node/provider/ipfs"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
-	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
 )
