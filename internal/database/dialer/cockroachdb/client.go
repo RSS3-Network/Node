@@ -291,7 +291,7 @@ func (c *client) LoadDatasetENSNamehash(ctx context.Context, hash common.Hash) (
 	var value table.DatasetENSNamehash
 
 	if err := c.database.WithContext(ctx).
-		Where("hash_hex = ?", hash.Bytes()).
+		Where("hash = ?", hash.Bytes()).
 		First(&value).
 		Error; err != nil {
 		// No such ENS
@@ -305,7 +305,7 @@ func (c *client) LoadDatasetENSNamehash(ctx context.Context, hash common.Hash) (
 func (c *client) SaveDatasetENSNamehash(ctx context.Context, namehash *model.ENSNamehash) error {
 	clauses := []clause.Expression{
 		clause.OnConflict{
-			Columns:   []clause.Column{{Name: "hash_hex"}},
+			Columns:   []clause.Column{{Name: "hash"}},
 			UpdateAll: true,
 		},
 	}
