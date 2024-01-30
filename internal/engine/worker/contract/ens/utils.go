@@ -16,11 +16,11 @@ func (w *worker) getEnsName(ctx context.Context, _ *big.Int, namehash common.Has
 	namehashRecord, err := w.databaseClient.LoadDatasetENSNamehash(ctx, namehash)
 	if err != nil {
 		zap.L().Error("Fail to find ens namehash from dataset", zap.String("namehash", namehash.Hex()), zap.Error(err))
-	} else {
-		return namehashRecord.Name, nil
+
+		return "", fmt.Errorf("fail to find ens namehash %v, all methods failed", namehash.String())
 	}
 
-	return "", fmt.Errorf("fail to find ens namehash %v, all methods failed", namehash.String())
+	return namehashRecord.Name, nil
 }
 
 // decodeName decode ens name

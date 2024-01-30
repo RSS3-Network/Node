@@ -8,12 +8,12 @@ import (
 var _ model.ENSNamehashTransformer = (*DatasetENSNamehash)(nil)
 
 type DatasetENSNamehash struct {
-	HashHex string `gorm:"column:hash_hex;primary_key"`
+	HashHex []byte `gorm:"column:hash_hex;primary_key"`
 	Name    string `gorm:"column:name;index:idx_ensnamehash_name"`
 }
 
 func (d *DatasetENSNamehash) Import(ensNamehash *model.ENSNamehash) (err error) {
-	d.HashHex = ensNamehash.Hash.Hex()
+	d.HashHex = ensNamehash.Hash.Bytes()
 	d.Name = ensNamehash.Name
 
 	return nil
@@ -21,7 +21,7 @@ func (d *DatasetENSNamehash) Import(ensNamehash *model.ENSNamehash) (err error) 
 
 func (d *DatasetENSNamehash) Export() (*model.ENSNamehash, error) {
 	profile := model.ENSNamehash{
-		Hash: common.HexToHash(d.HashHex),
+		Hash: common.BytesToHash(d.HashHex),
 		Name: d.Name,
 	}
 

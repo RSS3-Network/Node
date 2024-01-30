@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS "dataset_ens_namehashes"
 (
-    "hash_hex" text NOT NULL,
+    "hash_hex" bytea NOT NULL,
     "name"     text NOT NULL,
 
     CONSTRAINT "pk_dataset_ens_namehashs" PRIMARY KEY ("hash_hex")
