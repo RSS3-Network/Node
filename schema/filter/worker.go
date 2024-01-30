@@ -1,5 +1,11 @@
 package filter
 
+import (
+	"reflect"
+
+	"github.com/mitchellh/mapstructure"
+)
+
 // Name represents a worker name.
 //
 //go:generate go run --mod=mod github.com/dmarkham/enumer@v1.5.9 --values --type=Name --linecomment --output worker_string.go --json --yaml --sql
@@ -24,5 +30,24 @@ const (
 	Aave                   // aave
 	IQWiki                 // iqwiki
 	Lido                   // lido
+	Crossbell              // crossbell
 	ENS                    // ens
 )
+
+func WorkerHookFunc() mapstructure.DecodeHookFuncType {
+	return func(
+		f reflect.Type, // data type
+		t reflect.Type, // target data type
+		data interface{}, // raw data
+	) (interface{}, error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		if t.Kind() != reflect.Int {
+			return data, nil
+		}
+
+		return _NameNameToValueMap[data.(string)], nil
+	}
+}

@@ -7,8 +7,8 @@ import (
 )
 
 type Option struct {
-	BlockNumberStart  *big.Int `yaml:"block_number_start"`
-	BlockNumberTarget *big.Int `yaml:"block_number_target"`
+	BlockNumberStart  *big.Int `json:"block_number_start" mapstructure:"block_number_start"`
+	BlockNumberTarget *big.Int `json:"block_number_target" mapstructure:"block_number_target"`
 }
 
 func NewOption(options *config.Options) (*Option, error) {

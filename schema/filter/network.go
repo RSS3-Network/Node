@@ -1,6 +1,11 @@
 package filter
 
-import "github.com/labstack/echo/v4"
+import (
+	"reflect"
+
+	"github.com/labstack/echo/v4"
+	"github.com/mitchellh/mapstructure"
+)
 
 //go:generate go run --mod=mod github.com/dmarkham/enumer@v1.5.9 --values --type=Network --linecomment --output network_string.go --json --yaml --sql
 type Network uint64
@@ -9,6 +14,7 @@ const (
 	NetworkUnknown   Network = iota // unknown
 	NetworkEthereum                 // ethereum
 	NetworkOptimism                 // optimism
+	NetworkBase                     // base
 	NetworkPolygon                  // polygon
 	NetworkCrossbell                // crossbell
 	NetworkArbitrum                 // arbitrum
@@ -16,7 +22,6 @@ const (
 	NetworkRSS                      // rss
 	NetworkArweave                  // arweave
 	NetworkFarcaster                // farcaster
-	NetworkBase                     // base
 	NetworkAvalanche                // avax
 )
 
@@ -58,15 +63,38 @@ func (n Network) Source() NetworkSource {
 type EthereumChainID uint64
 
 const (
-	EthereumChainIDMainnet   EthereumChainID = 1   // ethereum
-	EthereumChainIDOptimism  EthereumChainID = 10  // optimism
-	EthereumChainIDPolygon   EthereumChainID = 137 // polygon
-	EthereumChainIDArbitrum  EthereumChainID = 42161
-	EthereumChainIDFantom    EthereumChainID = 250
-	EthereumChainIDBase      EthereumChainID = 8453
-	EthereumChainIDCrossbell EthereumChainID = 3737
+	EthereumChainIDMainnet   EthereumChainID = 1     // ethereum
+	EthereumChainIDOptimism  EthereumChainID = 10    // optimism
+	EthereumChainIDPolygon   EthereumChainID = 137   // polygon
+	EthereumChainIDArbitrum  EthereumChainID = 42161 // arbitrum
+	EthereumChainIDFantom    EthereumChainID = 250   // fantom
+	EthereumChainIDBase      EthereumChainID = 8453  // base
+	EthereumChainIDCrossbell EthereumChainID = 3737  // crossbell
 	EthereumChainIDAvalanche EthereumChainID = 43114 // avax
 )
+
+func NetworkAndChainID(network string) (Network, EthereumChainID) {
+	switch network {
+	case NetworkEthereum.String():
+		return NetworkEthereum, EthereumChainIDMainnet
+	case NetworkOptimism.String():
+		return NetworkOptimism, EthereumChainIDOptimism
+	case NetworkPolygon.String():
+		return NetworkPolygon, EthereumChainIDPolygon
+	case NetworkArbitrum.String():
+		return NetworkArbitrum, EthereumChainIDArbitrum
+	case NetworkFantom.String():
+		return NetworkFantom, EthereumChainIDFantom
+	case NetworkBase.String():
+		return NetworkBase, EthereumChainIDBase
+	case NetworkCrossbell.String():
+		return NetworkCrossbell, EthereumChainIDCrossbell
+	case NetworkAvalanche.String():
+		return NetworkAvalanche, EthereumChainIDAvalanche
+	default:
+		return NetworkUnknown, 0
+	}
+}
 
 func IsOptimismSuperchain(chainID uint64) bool {
 	switch chainID {
@@ -75,5 +103,23 @@ func IsOptimismSuperchain(chainID uint64) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func NetworkHookFunc() mapstructure.DecodeHookFuncType {
+	return func(
+		f reflect.Type, // data type
+		t reflect.Type, // target data type
+		data interface{}, // raw data
+	) (interface{}, error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		if t.Kind() != reflect.Uint64 {
+			return data, nil
+		}
+
+		return _NetworkNameToValueMap[data.(string)], nil
 	}
 }

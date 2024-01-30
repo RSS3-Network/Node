@@ -26,6 +26,7 @@ const (
 	PlatformAAVE                           // AAVE
 	PlatformIQWiki                         // IQWiki
 	PlatformLido                           // Lido
+	PlatformCrossbell                      // Crossbell
 	PlatformENS                            // ENS
 )
 

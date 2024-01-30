@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _NameName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilenslooksraremattersmomokahighlightaaveiqwikilidoens"
+const _NameName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilenslooksraremattersmomokahighlightaaveiqwikilidocrossbellens"
 
-var _NameIndex = [...]uint8{0, 7, 15, 21, 30, 34, 43, 50, 57, 65, 75, 79, 88, 95, 101, 110, 114, 120, 124, 127}
+var _NameIndex = [...]uint8{0, 7, 15, 21, 30, 34, 43, 50, 57, 65, 75, 79, 88, 95, 101, 110, 114, 120, 124, 133, 136}
 
-const _NameLowerName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilenslooksraremattersmomokahighlightaaveiqwikilidoens"
+const _NameLowerName = "unknownfallbackmirrorfarcasterrss3paragraphopenseauniswapoptimismaavegotchilenslooksraremattersmomokahighlightaaveiqwikilidocrossbellens"
 
 func (i Name) String() string {
 	if i < 0 || i >= Name(len(_NameIndex)-1) {
@@ -48,10 +48,11 @@ func _NameNoOp() {
 	_ = x[Aave-(15)]
 	_ = x[IQWiki-(16)]
 	_ = x[Lido-(17)]
-	_ = x[ENS-(18)]
+	_ = x[Crossbell-(18)]
+	_ = x[ENS-(19)]
 }
 
-var _NameValues = []Name{Unknown, Fallback, Mirror, Farcaster, RSS3, Paragraph, OpenSea, Uniswap, Optimism, Aavegotchi, Lens, Looksrare, Matters, Momoka, Highlight, Aave, IQWiki, Lido, ENS}
+var _NameValues = []Name{Unknown, Fallback, Mirror, Farcaster, RSS3, Paragraph, OpenSea, Uniswap, Optimism, Aavegotchi, Lens, Looksrare, Matters, Momoka, Highlight, Aave, IQWiki, Lido, Crossbell, ENS}
 
 var _NameNameToValueMap = map[string]Name{
 	_NameName[0:7]:          Unknown,
@@ -90,8 +91,10 @@ var _NameNameToValueMap = map[string]Name{
 	_NameLowerName[114:120]: IQWiki,
 	_NameName[120:124]:      Lido,
 	_NameLowerName[120:124]: Lido,
-	_NameName[124:127]:      ENS,
-	_NameLowerName[124:127]: ENS,
+	_NameName[124:133]:      Crossbell,
+	_NameLowerName[124:133]: Crossbell,
+	_NameName[133:136]:      ENS,
+	_NameLowerName[133:136]: ENS,
 }
 
 var _NameNames = []string{
@@ -113,7 +116,8 @@ var _NameNames = []string{
 	_NameName[110:114],
 	_NameName[114:120],
 	_NameName[120:124],
-	_NameName[124:127],
+	_NameName[124:133],
+	_NameName[133:136],
 }
 
 // NameString retrieves an enum value from the enum constants string name.
