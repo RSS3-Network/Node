@@ -291,7 +291,7 @@ func (c *client) LoadDatasetENSNamehash(ctx context.Context, hash common.Hash) (
 	var value table.DatasetENSNamehash
 
 	if err := c.database.WithContext(ctx).
-		Where("hash = ?", hash.Bytes()).
+		Where("hash = ?", hash).
 		First(&value).
 		Error; err != nil {
 		// No such ENS
