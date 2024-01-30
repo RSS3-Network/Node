@@ -8,14 +8,14 @@ import (
 
 	"github.com/Khan/genqlient/graphql"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/internal/engine"
 	source "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
 	"github.com/rss3-network/serving-node/provider/ethereum"
 	"github.com/rss3-network/serving-node/provider/ethereum/contract/iqwiki"
 	"github.com/rss3-network/serving-node/provider/ipfs"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
-	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 )
 

@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/serving-node/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"

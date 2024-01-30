@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/rss3-network/serving-node/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/filter"
 )
 
 type Source interface {

@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/provider/ethereum"
 	"github.com/rss3-network/serving-node/provider/ethereum/contract/erc165"
 	"github.com/rss3-network/serving-node/provider/ethereum/proxy"
@@ -20,11 +21,11 @@ var (
 	InterfaceIDERC1155 = [4]byte(hexutil.MustDecode("0xd9b67a26"))
 )
 
-var exceptionalContracts = map[uint64]map[common.Address]Standard{}
+var exceptionalContracts = map[uint64]map[common.Address]metadata.Standard{}
 
 // DetectTokenStandard detects the token standard of the contract by bytecode.
 // It supports the ERC-1967 proxy contract.
-func DetectTokenStandard(ctx context.Context, chainID uint64, address common.Address, blockNumber *big.Int, ethereumClient ethereum.Client) (Standard, error) {
+func DetectTokenStandard(ctx context.Context, chainID uint64, address common.Address, blockNumber *big.Int, ethereumClient ethereum.Client) (metadata.Standard, error) {
 	if addressMap, exists := exceptionalContracts[chainID]; exists {
 		if standard, exists := addressMap[address]; exists {
 			return standard, nil
@@ -33,34 +34,34 @@ func DetectTokenStandard(ctx context.Context, chainID uint64, address common.Add
 
 	code, err := ethereumClient.CodeAt(ctx, address, blockNumber)
 	if err != nil {
-		return StandardUnknown, fmt.Errorf("get code: %w", err)
+		return metadata.StandardUnknown, fmt.Errorf("get code: %w", err)
 	}
 
 	// If the contract is ERC-1967, get the implementation contract first
 	if DetectERC1967WithCode(chainID, address, code) {
 		implementation, err := proxy.GetImplementation(ctx, address, blockNumber, ethereumClient)
 		if err != nil {
-			return StandardUnknown, fmt.Errorf("get %s implementation: %w", address, err)
+			return metadata.StandardUnknown, fmt.Errorf("get %s implementation: %w", address, err)
 		}
 
 		if code, err = ethereumClient.CodeAt(ctx, *implementation, blockNumber); err != nil {
-			return StandardUnknown, fmt.Errorf("get %s code: %w", implementation, err)
+			return metadata.StandardUnknown, fmt.Errorf("get %s code: %w", implementation, err)
 		}
 	}
 
 	// It can cover most ERC-20 tokens
 	if DetectERC20WithCode(chainID, address, code) {
-		return StandardERC20, nil
+		return metadata.StandardERC20, nil
 	}
 
 	// The result may be influenced by compiler optimization
 	if DetectERC721WithCode(chainID, address, code) {
-		return StandardERC721, nil
+		return metadata.StandardERC721, nil
 	}
 
 	// The result may be influenced by compiler optimization
 	if DetectERC1155WithCode(chainID, address, code) {
-		return StandardERC1155, nil
+		return metadata.StandardERC1155, nil
 	}
 
 	// Precise determination of contract criteria by Interface ID, but will require RPC requests
@@ -69,14 +70,14 @@ func DetectTokenStandard(ctx context.Context, chainID uint64, address common.Add
 	}
 
 	// If ERC-165 is not implemented, it is not a standard NFT contract
-	return StandardUnknown, nil
+	return metadata.StandardUnknown, nil
 }
 
 // DetectNFTStandard detects the NFT standard of the contract by ERC-165.
-func DetectNFTStandard(ctx context.Context, _ uint64, address common.Address, blockNumber *big.Int, ethereumClient ethereum.Client) (Standard, error) {
+func DetectNFTStandard(ctx context.Context, _ uint64, address common.Address, blockNumber *big.Int, ethereumClient ethereum.Client) (metadata.Standard, error) {
 	caller, err := erc165.NewERC165Caller(address, ethereumClient)
 	if err != nil {
-		return StandardUnknown, fmt.Errorf("initialize ERC-165 caller: %w", err)
+		return metadata.StandardUnknown, fmt.Errorf("initialize ERC-165 caller: %w", err)
 	}
 
 	callOptions := bind.CallOpts{
@@ -86,23 +87,23 @@ func DetectNFTStandard(ctx context.Context, _ uint64, address common.Address, bl
 
 	isERC721, err := caller.SupportsInterface(&callOptions, InterfaceIDERC721)
 	if err != nil {
-		return StandardUnknown, fmt.Errorf("detect ERC-721 interface: %w", err)
+		return metadata.StandardUnknown, fmt.Errorf("detect ERC-721 interface: %w", err)
 	}
 
 	if isERC721 {
-		return StandardERC721, nil
+		return metadata.StandardERC721, nil
 	}
 
 	isERC1155, err := caller.SupportsInterface(&callOptions, InterfaceIDERC1155)
 	if err != nil {
-		return StandardUnknown, fmt.Errorf("detect ERC-1155 interface: %w", err)
+		return metadata.StandardUnknown, fmt.Errorf("detect ERC-1155 interface: %w", err)
 	}
 
 	if isERC1155 {
-		return StandardERC1155, nil
+		return metadata.StandardERC1155, nil
 	}
 
-	return StandardUnknown, nil
+	return metadata.StandardUnknown, nil
 }
 
 // DetectERC20WithCode detects if bytecode of the contract is ERC-20.

@@ -5,11 +5,11 @@ import (
 	"database/sql"
 
 	"github.com/pressly/goose/v3"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/serving-node/internal/database/model"
 	"github.com/rss3-network/serving-node/internal/engine"
 	mirror_model "github.com/rss3-network/serving-node/internal/engine/worker/contract/mirror/model"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
 	"go.uber.org/zap"
 )
 

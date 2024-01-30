@@ -6,10 +6,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/serving-node/internal/engine"
 	"github.com/rss3-network/serving-node/provider/ethereum"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/shopspring/decimal"
 )
 
