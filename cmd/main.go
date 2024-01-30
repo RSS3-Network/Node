@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/serving-node/config"
 	"github.com/rss3-network/serving-node/config/flag"
 	"github.com/rss3-network/serving-node/internal/constant"
@@ -18,7 +19,6 @@ import (
 	"github.com/rss3-network/serving-node/internal/stream"
 	"github.com/rss3-network/serving-node/internal/stream/provider"
 	"github.com/rss3-network/serving-node/provider/telemetry"
-	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"

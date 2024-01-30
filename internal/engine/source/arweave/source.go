@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/serving-node/config"
 	"github.com/rss3-network/serving-node/internal/engine"
 	"github.com/rss3-network/serving-node/provider/arweave"
 	"github.com/rss3-network/serving-node/provider/arweave/bundle"
-	"github.com/rss3-network/serving-node/schema/filter"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.uber.org/zap"

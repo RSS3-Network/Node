@@ -7,15 +7,14 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/config"
 	source "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/serving-node/internal/engine/worker/fallback/ethereum"
 	"github.com/rss3-network/serving-node/provider/ethereum"
-	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum/endpoint"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
-	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -270,7 +269,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "RSS3",
 							Symbol:   "RSS3",
 							Decimals: 18,
-							Standard: contract.StandardERC20,
+							Standard: metadata.StandardERC20,
 						},
 					},
 				},
@@ -378,7 +377,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								ID:       lo.ToPtr(decimal.NewFromInt(1032)),
 								Name:     "The Genesis RSS3 Avatar NFT",
 								Symbol:   "The Genesis RSS3 Avatar NFT",
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								URI:      "data:application/json;base64,eyJuYW1lIjogIlRoZSBHZW5lc2lzIFJTUzMgQXZhdGFyIE5GVCAjMTAzMiIsICJkZXNjcmlwdGlvbiI6ICJUaGUgR2VuZXNpcyBSU1MzIEF2YXRhciBORlQgaXMgYSBjb2xsZWN0aW9uIG9mIDEwLDAwMCB1bmlxdWUgYXZhdGFycyBtZXRpY3Vsb3VzbHkgZGVzaWduZWQgdG8gaWRlbnRpZnkgUlNTMyBjb21tdW5pdHkgbWVtYmVycy4iLCAiaW1hZ2UiOiAiaXBmczovL1FtU1g5UWl3alRHQms1bTIyVXNjVGczdnJiTXdVZkZzbXhWek1INTdoa1BENVUvMTAzMi5wbmcifQ==",
 							},
 						},
@@ -393,7 +392,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Value:    lo.ToPtr(decimal.New(1, 0)),
 							Name:     "The Genesis RSS3 Avatar NFT",
 							Symbol:   "The Genesis RSS3 Avatar NFT",
-							Standard: contract.StandardERC721,
+							Standard: metadata.StandardERC721,
 							URI:      "data:application/json;base64,eyJuYW1lIjogIlRoZSBHZW5lc2lzIFJTUzMgQXZhdGFyIE5GVCAjMTAzMiIsICJkZXNjcmlwdGlvbiI6ICJUaGUgR2VuZXNpcyBSU1MzIEF2YXRhciBORlQgaXMgYSBjb2xsZWN0aW9uIG9mIDEwLDAwMCB1bmlxdWUgYXZhdGFycyBtZXRpY3Vsb3VzbHkgZGVzaWduZWQgdG8gaWRlbnRpZnkgUlNTMyBjb21tdW5pdHkgbWVtYmVycy4iLCAiaW1hZ2UiOiAiaXBmczovL1FtU1g5UWl3alRHQms1bTIyVXNjVGczdnJiTXdVZkZzbXhWek1INTdoa1BENVUvMTAzMi5wbmcifQ==",
 						},
 					},
@@ -486,7 +485,7 @@ func TestWorker_Ethereum(t *testing.T) {
 		// 					ID:       lo.ToPtr(lo.Must(decimal.NewFromString("0"))),
 		// 					Value:    lo.ToPtr(decimal.NewFromInt(1)),
 		// 					Name:     "TIME NFT Special Issues",
-		// 					Standard: contract.StandardERC1155,
+		// 					Standard: metadata.StandardERC1155,
 		// 					URI:      "https://timepieces.mypinata.cloud/ipfs/QmbZtT3KVHYL6QAuNbrLGKp4sQyaWkkzTDRvHFCmq7Py6y",
 		// 				},
 		// 			},

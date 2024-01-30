@@ -7,16 +7,15 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/config"
 	source "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/serving-node/internal/engine/worker/contract/aave"
 	"github.com/rss3-network/serving-node/provider/ethereum"
-	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum/contract/aave"
 	"github.com/rss3-network/serving-node/provider/ethereum/endpoint"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
-	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -206,7 +205,7 @@ func TestWorker_Ethereum(t *testing.T) {
 									Name:     "Liquid staked Ether 2.0",
 									Symbol:   "stETH",
 									Decimals: 18,
-									Standard: contract.StandardERC20,
+									Standard: metadata.StandardERC20,
 								},
 							},
 						},
@@ -375,7 +374,7 @@ func TestWorker_Ethereum(t *testing.T) {
 									Name:     "USD Coin",
 									Symbol:   "USDC",
 									Decimals: 6,
-									Standard: contract.StandardERC20,
+									Standard: metadata.StandardERC20,
 								},
 							},
 						},
@@ -556,7 +555,7 @@ func TestWorker_Ethereum(t *testing.T) {
 									Name:     "Tether USD",
 									Symbol:   "USDT",
 									Decimals: 6,
-									Standard: contract.StandardERC20,
+									Standard: metadata.StandardERC20,
 								},
 							},
 						},
@@ -724,7 +723,7 @@ func TestWorker_Ethereum(t *testing.T) {
 									Name:     "USD Coin",
 									Symbol:   "USDC",
 									Decimals: 6,
-									Standard: contract.StandardERC20,
+									Standard: metadata.StandardERC20,
 								},
 							},
 						},
@@ -882,7 +881,7 @@ func TestWorker_Ethereum(t *testing.T) {
 									Name:     "Rocket Pool ETH",
 									Symbol:   "rETH",
 									Decimals: 18,
-									Standard: contract.StandardERC20,
+									Standard: metadata.StandardERC20,
 								},
 							},
 						},
@@ -1044,7 +1043,7 @@ func TestWorker_Ethereum(t *testing.T) {
 									Name:     "USD Base Coin",
 									Symbol:   "USDbC",
 									Decimals: 6,
-									Standard: contract.StandardERC20,
+									Standard: metadata.StandardERC20,
 								},
 							},
 						},
@@ -1202,7 +1201,7 @@ func TestWorker_Ethereum(t *testing.T) {
 									Name:     "Wrapped BTC",
 									Symbol:   "WBTC",
 									Decimals: 8,
-									Standard: contract.StandardERC20,
+									Standard: metadata.StandardERC20,
 								},
 							},
 						},
@@ -1348,7 +1347,7 @@ func TestWorker_Ethereum(t *testing.T) {
 									Name:     "Tether USD",
 									Symbol:   "USDT",
 									Decimals: 6,
-									Standard: contract.StandardERC20,
+									Standard: metadata.StandardERC20,
 								},
 							},
 						},
@@ -1494,7 +1493,7 @@ func TestWorker_Ethereum(t *testing.T) {
 									Name:     "Tether USD",
 									Symbol:   "USDT",
 									Decimals: 6,
-									Standard: contract.StandardERC20,
+									Standard: metadata.StandardERC20,
 								},
 							},
 						},

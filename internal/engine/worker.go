@@ -3,7 +3,7 @@ package engine
 import (
 	"context"
 
-	"github.com/rss3-network/serving-node/schema"
+	"github.com/rss3-network/protocol-go/schema"
 )
 
 type Worker interface {

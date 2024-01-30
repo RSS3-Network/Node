@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/serving-node/config"
 	"github.com/rss3-network/serving-node/internal/constant"
 	"github.com/rss3-network/serving-node/internal/database"
@@ -14,7 +15,6 @@ import (
 	"github.com/rss3-network/serving-node/internal/engine/source"
 	"github.com/rss3-network/serving-node/internal/engine/worker"
 	"github.com/rss3-network/serving-node/internal/stream"
-	"github.com/rss3-network/serving-node/schema"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.opentelemetry.io/otel"

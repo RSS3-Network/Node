@@ -7,15 +7,14 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/config"
 	source "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/serving-node/internal/engine/worker/contract/highlight"
 	"github.com/rss3-network/serving-node/provider/ethereum"
-	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum/endpoint"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
-	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -195,7 +194,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
 							Name:     "R3FUS3",
 							Symbol:   "R3FUS3",
-							Standard: contract.StandardERC721,
+							Standard: metadata.StandardERC721,
 							URI:      "https://highlight-creator-assets.highlight.xyz/main/base-dir/b0b61e2c-f741-48c4-94ca-f090c9f5817e/onChainDir/696",
 						},
 					},
@@ -210,7 +209,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
 							Name:     "R3FUS3",
 							Symbol:   "R3FUS3",
-							Standard: contract.StandardERC721,
+							Standard: metadata.StandardERC721,
 							URI:      "https://highlight-creator-assets.highlight.xyz/main/base-dir/b0b61e2c-f741-48c4-94ca-f090c9f5817e/onChainDir/697",
 						},
 					},
@@ -225,7 +224,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
 							Name:     "R3FUS3",
 							Symbol:   "R3FUS3",
-							Standard: contract.StandardERC721,
+							Standard: metadata.StandardERC721,
 							URI:      "https://highlight-creator-assets.highlight.xyz/main/base-dir/b0b61e2c-f741-48c4-94ca-f090c9f5817e/onChainDir/698",
 						},
 					},

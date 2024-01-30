@@ -7,16 +7,15 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/config"
 	source "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/serving-node/internal/engine/worker/contract/lido"
 	"github.com/rss3-network/serving-node/provider/ethereum"
-	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum/contract/lido"
 	"github.com/rss3-network/serving-node/provider/ethereum/endpoint"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
-	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -160,7 +159,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "Liquid staked Ether 2.0",
 							Symbol:   "stETH",
 							Decimals: 18,
-							Standard: contract.StandardERC20,
+							Standard: metadata.StandardERC20,
 						},
 					},
 				},
@@ -332,7 +331,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 							Name:     "Lido: stETH Withdrawal NFT",
 							Symbol:   "unstETH",
-							Standard: contract.StandardERC721,
+							Standard: metadata.StandardERC721,
 							URI:      "https://wq-api.lido.fi/v1/nft/2427?requested=3018000000000000000&created_at=1686882899",
 						},
 					},
@@ -440,7 +439,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 							Name:     "Lido: stETH Withdrawal NFT",
 							Symbol:   "unstETH",
-							Standard: contract.StandardERC721,
+							Standard: metadata.StandardERC721,
 						},
 					},
 					{
@@ -610,7 +609,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "Staked MATIC",
 							Symbol:   "stMATIC",
 							Decimals: 18,
-							Standard: contract.StandardERC20,
+							Standard: metadata.StandardERC20,
 						},
 					},
 				},
@@ -806,7 +805,7 @@ func TestWorker_Ethereum(t *testing.T) {
 									Name:     "Staked MATIC",
 									Symbol:   "stMATIC",
 									Decimals: 18,
-									Standard: contract.StandardERC20,
+									Standard: metadata.StandardERC20,
 								},
 							},
 						},
@@ -822,7 +821,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 							Name:     "PoLido",
 							Symbol:   "PLO",
-							Standard: contract.StandardERC721,
+							Standard: metadata.StandardERC721,
 						},
 					},
 				},
@@ -978,7 +977,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 							Name:     "PoLido",
 							Symbol:   "PLO",
-							Standard: contract.StandardERC721,
+							Standard: metadata.StandardERC721,
 						},
 					},
 					{
@@ -992,7 +991,7 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "Matic Token",
 							Symbol:   "MATIC",
 							Decimals: 18,
-							Standard: contract.StandardERC20,
+							Standard: metadata.StandardERC20,
 						},
 					},
 				},
@@ -1122,7 +1121,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Name:     "Liquid staked Ether 2.0",
 								Symbol:   "stETH",
 								Decimals: 18,
-								Standard: contract.StandardERC20,
+								Standard: metadata.StandardERC20,
 							},
 							To: metadata.Token{
 								Address:  lo.ToPtr("0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"),
@@ -1130,7 +1129,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Name:     "Wrapped liquid staked Ether 2.0",
 								Symbol:   "wstETH",
 								Decimals: 18,
-								Standard: contract.StandardERC20,
+								Standard: metadata.StandardERC20,
 							},
 						},
 					},
@@ -1249,7 +1248,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Name:     "Wrapped liquid staked Ether 2.0",
 								Symbol:   "wstETH",
 								Decimals: 18,
-								Standard: contract.StandardERC20,
+								Standard: metadata.StandardERC20,
 							},
 							To: metadata.Token{
 								Address:  lo.ToPtr("0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"),
@@ -1257,7 +1256,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Name:     "Liquid staked Ether 2.0",
 								Symbol:   "stETH",
 								Decimals: 18,
-								Standard: contract.StandardERC20,
+								Standard: metadata.StandardERC20,
 							},
 						},
 					},

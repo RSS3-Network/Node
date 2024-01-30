@@ -11,6 +11,9 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/orlangure/gnomock"
 	"github.com/orlangure/gnomock/preset/cockroachdb"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/config"
 	"github.com/rss3-network/serving-node/internal/database"
 	"github.com/rss3-network/serving-node/internal/database/dialer"
@@ -18,12 +21,8 @@ import (
 	source "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/serving-node/internal/engine/worker/contract/ens"
 	"github.com/rss3-network/serving-node/provider/ethereum"
-	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum/contract/ens"
 	"github.com/rss3-network/serving-node/provider/ethereum/endpoint"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
-	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -222,7 +221,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Address:  lo.ToPtr(ens.AddressBaseRegistrarImplementation.String()),
 								ID:       lo.ToPtr(decimal.NewFromBigInt(common.HexToHash("0x23913293c04ada44918795ed0efdcb432ed227577f69dfc432395af6d0551173").Big(), 0)),
 								Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								Symbol:   "ENS",
 								URI:      "https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/16087491595487441497767710101977939215480045234077591418499274871761116926323",
 							},
@@ -418,7 +417,7 @@ func TestWorker_Ethereum(t *testing.T) {
 								Address:  lo.ToPtr(ens.AddressBaseRegistrarImplementation.String()),
 								ID:       lo.ToPtr(decimal.NewFromBigInt(common.HexToHash("0xda8c6e91c89ffabbbc6d14bac2c59c9c8a55fd24063001bbc5cb3a592f82ac2a").Big(), 0)),
 								Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
-								Standard: contract.StandardERC721,
+								Standard: metadata.StandardERC721,
 								Symbol:   "ENS",
 								URI:      "https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/98852322702639730223199955634700678434407562961828698565072639218093587082282",
 							},

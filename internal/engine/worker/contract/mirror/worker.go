@@ -5,6 +5,9 @@ import (
 	"fmt"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/config"
 	"github.com/rss3-network/serving-node/internal/database"
 	"github.com/rss3-network/serving-node/internal/engine"
@@ -13,9 +16,6 @@ import (
 	"github.com/rss3-network/serving-node/provider/arweave"
 	"github.com/rss3-network/serving-node/provider/arweave/contract/mirror"
 	"github.com/rss3-network/serving-node/provider/ipfs"
-	"github.com/rss3-network/serving-node/schema"
-	"github.com/rss3-network/serving-node/schema/filter"
-	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
 )

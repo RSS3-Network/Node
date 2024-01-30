@@ -7,12 +7,11 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/serving-node/provider/ethereum"
-	"github.com/rss3-network/serving-node/provider/ethereum/contract"
 	"github.com/rss3-network/serving-node/provider/ethereum/endpoint"
 	"github.com/rss3-network/serving-node/provider/ethereum/token"
-	"github.com/rss3-network/serving-node/schema/filter"
-	"github.com/rss3-network/serving-node/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -54,7 +53,7 @@ func TestEthereumClient(t *testing.T) {
 				Name:     "RSS3",
 				Symbol:   "RSS3",
 				Decimals: 18,
-				Standard: contract.StandardERC20,
+				Standard: metadata.StandardERC20,
 			},
 		},
 		{
@@ -69,7 +68,7 @@ func TestEthereumClient(t *testing.T) {
 				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("61"))),
 				Name:     "RSS Fruits Token",
 				Symbol:   "RFT",
-				Standard: contract.StandardERC721,
+				Standard: metadata.StandardERC721,
 				URI:      "https://gateway.pinata.cloud/ipfs/QmRjC25urVAke71UYAV4PoMi4mCACcqG7MizjLVnJuVQyw",
 			},
 		},
@@ -85,7 +84,7 @@ func TestEthereumClient(t *testing.T) {
 				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 				Name:     "Base, Introduced",
 				Symbol:   "BASEINTRODUCED",
-				Standard: contract.StandardERC721,
+				Standard: metadata.StandardERC721,
 				URI:      "data:application/json;base64,eyJuYW1lIjogIkJhc2UsIEludHJvZHVjZWQgMSIsICJkZXNjcmlwdGlvbiI6ICJNZWV0IEJhc2UsIGFuIEV0aGVyZXVtIEwyIHRoYXQgb2ZmZXJzIGEgc2VjdXJlLCBsb3ctY29zdCwgZGV2ZWxvcGVyLWZyaWVuZGx5IHdheSBmb3IgYW55b25lLCBhbnl3aGVyZSwgdG8gYnVpbGQgZGVjZW50cmFsaXplZCBhcHBzLlxuXG5XZSBjb2xsZWN0aXZlbHkgbWludGVkIOKAmEJhc2UsIEludHJvZHVjZWTigJkgdG8gY2VsZWJyYXRlIHRoZSB0ZXN0bmV0IGxhdW5jaCBhbmQgZ3JvdyB0aGUgYnJvYWRlciBCYXNlIGNvbW11bml0eS4gV2XigJlyZSBleGNpdGVkIHRvIGJ1aWxkIEJhc2UgdG9nZXRoZXIuIiwgImltYWdlIjogImlwZnM6Ly9iYWZ5YmVpYmh0azIzaDZzYXM0eXVhaHR5eTd2Mmt6dndvd3c3aGU0NHJoaXg3a3E0NHJmMmFmM2ZjcSIsICJwcm9wZXJ0aWVzIjogeyJudW1iZXIiOiAxLCAibmFtZSI6ICJCYXNlLCBJbnRyb2R1Y2VkIn19",
 			},
 		},
@@ -101,7 +100,7 @@ func TestEthereumClient(t *testing.T) {
 				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("0"))),
 				Name:     "Cheers UP",
 				Symbol:   "CUP",
-				Standard: contract.StandardERC721,
+				Standard: metadata.StandardERC721,
 				URI:      "ipfs://QmR4fuz6w9oKEo6oqwFdTmuXqWwmrsFwv659tSZr1SJiNR",
 			},
 		},
@@ -117,7 +116,7 @@ func TestEthereumClient(t *testing.T) {
 				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 				Name:     "RSS3 Whitepaper",
 				Symbol:   "RWP",
-				Standard: contract.StandardERC721,
+				Standard: metadata.StandardERC721,
 				URI:      "ipfs://QmTMD6sLA7M4iegKDhbdMPBZ4HLi5fjW27w2J16gqc5Cb7/1.json",
 			},
 		},
@@ -133,7 +132,7 @@ func TestEthereumClient(t *testing.T) {
 				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("4452815761501376758038898720702591022279500679302039557361006834352129"))),
 				Name:     "OpenSea Shared Storefront",
 				Symbol:   "OPENSTORE",
-				Standard: contract.StandardERC1155,
+				Standard: metadata.StandardERC1155,
 				URI:      "https://api.opensea.io/api/v1/metadata/0x495f947276749Ce646f68AC8c248420045cb7b5e/0x{id}",
 			},
 		},
@@ -149,7 +148,7 @@ func TestEthereumClient(t *testing.T) {
 				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
 				Name:     "Love, Death + Robots",
 				Symbol:   "LDR",
-				Standard: contract.StandardERC1155,
+				Standard: metadata.StandardERC1155,
 				URI:      "ipfs://QmNjmcjL2cz1LrHmTXy3CpVifRNoy3TDh6duo7jxkFFBZH/{id}",
 			},
 		},
