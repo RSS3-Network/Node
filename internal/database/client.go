@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/pressly/goose/v3"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/filter"
@@ -18,6 +19,7 @@ type Client interface {
 	Transaction
 	DatasetMirrorPost
 	DatasetFarcasterProfile
+	DatasetENSNamehash
 
 	LoadCheckpoint(ctx context.Context, id string, network filter.Network, worker string) (*engine.Checkpoint, error)
 	LoadCheckpoints(ctx context.Context, id string, network filter.Network, worker string) ([]*engine.Checkpoint, error)
@@ -47,6 +49,11 @@ type DatasetMirrorPost interface {
 type DatasetFarcasterProfile interface {
 	LoadDatasetFarcasterProfile(ctx context.Context, fid int64) (*model.Profile, error)
 	SaveDatasetFarcasterProfile(ctx context.Context, profile *model.Profile) error
+}
+
+type DatasetENSNamehash interface {
+	LoadDatasetENSNamehash(ctx context.Context, hash common.Hash) (*model.ENSNamehash, error)
+	SaveDatasetENSNamehash(ctx context.Context, namehash *model.ENSNamehash) error
 }
 
 var _ goose.Logger = (*SugaredLogger)(nil)

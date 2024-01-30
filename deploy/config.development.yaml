@@ -170,3 +170,8 @@ component:
       worker: lido
       parameters:
         block_number_start:
+    - network: ethereum
+      endpoint: https://rpc.ankr.com/eth
+      worker: ens
+      parameters:
+        block_number_start:
