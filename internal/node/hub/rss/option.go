@@ -1,7 +1,7 @@
 package rss
 
 import (
-	"github.com/rss3-network/serving-node/config"
+	"github.com/rss3-network/node/config"
 )
 
 type Option struct {

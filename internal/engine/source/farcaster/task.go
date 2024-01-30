@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/rss3-network/node/internal/engine"
+	"github.com/rss3-network/node/provider/farcaster"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/filter"
-	"github.com/rss3-network/serving-node/internal/engine"
-	"github.com/rss3-network/serving-node/provider/farcaster"
 )
 
 var _ engine.Task = (*Task)(nil)

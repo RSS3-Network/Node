@@ -5,9 +5,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/rss3-network/serving-node/config"
-	"github.com/rss3-network/serving-node/internal/engine"
-	"github.com/rss3-network/serving-node/internal/engine/source/arweave"
+	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/internal/engine"
+	"github.com/rss3-network/node/internal/engine/source/arweave"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"

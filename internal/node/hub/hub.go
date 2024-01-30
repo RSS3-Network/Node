@@ -5,10 +5,10 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
-	"github.com/rss3-network/serving-node/config"
-	"github.com/rss3-network/serving-node/internal/database"
-	"github.com/rss3-network/serving-node/internal/node/hub/decentralized"
-	"github.com/rss3-network/serving-node/internal/node/hub/rss"
+	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/internal/database"
+	"github.com/rss3-network/node/internal/node/hub/decentralized"
+	"github.com/rss3-network/node/internal/node/hub/rss"
 )
 
 type Hub struct {

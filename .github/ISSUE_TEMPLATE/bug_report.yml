@@ -36,5 +36,5 @@ body:
     attributes:
       label: This is not a duplicated issue
       options:
-        - label: I have searched [existing issues](https://github.com/rss3-network/serving-node/issues) to ensure this bug has not already been reported
+        - label: I have searched [existing issues](https://github.com/rss3-network/node/issues) to ensure this bug has not already been reported
           required: true

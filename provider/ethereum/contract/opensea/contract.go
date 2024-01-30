@@ -2,7 +2,7 @@ package opensea
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/serving-node/provider/ethereum/contract"
+	"github.com/rss3-network/node/provider/ethereum/contract"
 )
 
 // WyvernExchangeV1 https://etherscan.io/address/0x7Be8076f4EA4A4AD08075C2508e481d6C946D12b

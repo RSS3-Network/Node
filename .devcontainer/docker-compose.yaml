@@ -21,7 +21,7 @@ services:
       - "cockroachdb:/cockroach/cockroach-data"
     command:
       - start-single-node
-      - --cluster-name=serving-node
+      - --cluster-name=node
       - --insecure
   kafka:
     container_name: broker

@@ -3,7 +3,7 @@ package ethereum
 import (
 	"math/big"
 
-	"github.com/rss3-network/serving-node/config"
+	"github.com/rss3-network/node/config"
 )
 
 type Option struct {

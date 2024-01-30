@@ -2,7 +2,7 @@ package lido
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/serving-node/provider/ethereum/contract"
+	"github.com/rss3-network/node/provider/ethereum/contract"
 )
 
 // StakedETH https://etherscan.io/address/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84

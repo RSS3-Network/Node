@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/protocol-go/schema/filter"
-	"github.com/rss3-network/serving-node/config"
-	"github.com/rss3-network/serving-node/internal/constant"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"

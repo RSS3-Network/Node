@@ -8,10 +8,10 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/rss3-network/node/provider/ethereum"
+	"github.com/rss3-network/node/provider/ethereum/contract/erc165"
+	"github.com/rss3-network/node/provider/ethereum/proxy"
 	"github.com/rss3-network/protocol-go/schema/metadata"
-	"github.com/rss3-network/serving-node/provider/ethereum"
-	"github.com/rss3-network/serving-node/provider/ethereum/contract/erc165"
-	"github.com/rss3-network/serving-node/provider/ethereum/proxy"
 )
 
 var (

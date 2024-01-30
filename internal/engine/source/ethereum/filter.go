@@ -2,7 +2,7 @@ package ethereum
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/serving-node/internal/engine"
+	"github.com/rss3-network/node/internal/engine"
 )
 
 var _ engine.SourceFilter = (*Filter)(nil)

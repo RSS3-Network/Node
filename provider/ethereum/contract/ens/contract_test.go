@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/serving-node/provider/ethereum/contract/ens"
+	"github.com/rss3-network/node/provider/ethereum/contract/ens"
 	"github.com/stretchr/testify/require"
 )
 
