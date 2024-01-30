@@ -11,11 +11,11 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/rss3-network/node/internal/engine"
+	sourceethereum "github.com/rss3-network/node/internal/engine/source/ethereum"
+	"github.com/rss3-network/node/provider/ethereum"
+	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/protocol-go/schema/filter"
-	"github.com/rss3-network/serving-node/internal/engine"
-	sourceethereum "github.com/rss3-network/serving-node/internal/engine/source/ethereum"
-	"github.com/rss3-network/serving-node/provider/ethereum"
-	"github.com/rss3-network/serving-node/provider/ethereum/endpoint"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 )

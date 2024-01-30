@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/rss3-network/serving-node/config"
-	"github.com/rss3-network/serving-node/internal/stream"
-	"github.com/rss3-network/serving-node/internal/stream/provider/kafka"
+	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/internal/stream"
+	"github.com/rss3-network/node/internal/stream/provider/kafka"
 )
 
 func New(ctx context.Context, config *config.Stream) (stream.Client, error) {

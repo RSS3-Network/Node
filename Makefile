@@ -19,12 +19,12 @@ test:
 build: generate
 	mkdir -p ./build
 	go build \
-		-ldflags "-X github.com/rss3-network/serving-node/internal/constant.Version=$(VERSION) -X github.com/rss3-network/serving-node/internal/constant.Commit=$(COMMIT)" \
-		-o ./build/serving-node ./cmd
+		-ldflags "-X github.com/rss3-network/node/internal/constant.Version=$(VERSION) -X github.com/rss3-network/node/internal/constant.Commit=$(COMMIT)" \
+		-o ./build/node ./cmd
 
 image: generate
 	docker build \
-    		--tag rss3-network/serving-node:$(VERSION) \
+    		--tag rss3-network/node:$(VERSION) \
     		.
 
 run: generate

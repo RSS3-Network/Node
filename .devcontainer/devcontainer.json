@@ -1,5 +1,5 @@
 {
-  "name": "serving-node",
+  "name": "node",
   "dockerComposeFile": "docker-compose.yaml",
   "service": "devcontainer",
   "runServices": [

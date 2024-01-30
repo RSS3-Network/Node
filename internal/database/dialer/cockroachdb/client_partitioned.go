@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/rss3-network/node/internal/database/dialer/cockroachdb/table"
+	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/serving-node/internal/database/dialer/cockroachdb/table"
-	"github.com/rss3-network/serving-node/internal/database/model"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"

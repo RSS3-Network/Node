@@ -1,4 +1,4 @@
-module github.com/rss3-network/serving-node
+module github.com/rss3-network/node
 
 go 1.21.4
 

@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/rss3-network/serving-node/provider/snapshot"
+	"github.com/rss3-network/node/provider/snapshot"
 	"github.com/stretchr/testify/require"
 )
 

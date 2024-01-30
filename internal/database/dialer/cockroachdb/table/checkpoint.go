@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/protocol-go/schema/filter"
-	"github.com/rss3-network/serving-node/internal/engine"
 )
 
 var _ engine.CheckpointTransformer = (*Checkpoint)(nil)

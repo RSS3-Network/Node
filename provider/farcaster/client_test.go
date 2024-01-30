@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/rss3-network/serving-node/provider/farcaster"
+	"github.com/rss3-network/node/provider/farcaster"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )

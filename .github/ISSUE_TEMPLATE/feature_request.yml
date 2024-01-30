@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Please ensure the feature requested is not listed in [issue](https://github.com/rss3-network/serving-node/issues), and is not a [New Worker](https://github.com/rss3-network/serving-node/issues/new?assignees=&labels=worker&projects=&template=worker_coverage.yml), and provide all the information required by this template.
+        Please ensure the feature requested is not listed in [issue](https://github.com/rss3-network/node/issues), and is not a [New Worker](https://github.com/rss3-network/node/issues/new?assignees=&labels=worker&projects=&template=worker_coverage.yml), and provide all the information required by this template.
         Otherwise the issue will be closed immediately.
 
   - type: textarea
@@ -35,7 +35,7 @@ body:
   - type: checkboxes
     id: terms
     attributes:
-      label: This is not a duplicated feature request or new RSS proposal
+      label: This is not a duplicated feature request or new worker proposal
       options:
-        - label: I have searched [existing issues](https://github.com/rss3-network/serving-node/issues) to ensure this feature has not already been requested and this is not a [New Worker](https://github.com/rss3-network/serving-node/issues/new?assignees=&labels=worker&projects=&template=worker_coverage.yml).
+        - label: I have searched [existing issues](https://github.com/rss3-network/node/issues) to ensure this feature has not already been requested and this is not a [New Worker](https://github.com/rss3-network/node/issues/new?assignees=&labels=worker&projects=&template=worker_coverage.yml).
           required: true

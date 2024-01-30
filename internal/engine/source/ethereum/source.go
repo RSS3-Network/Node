@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/internal/engine"
+	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/protocol-go/schema/filter"
-	"github.com/rss3-network/serving-node/config"
-	"github.com/rss3-network/serving-node/internal/engine"
-	"github.com/rss3-network/serving-node/provider/ethereum"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )

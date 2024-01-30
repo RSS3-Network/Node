@@ -6,7 +6,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/rss3-network/serving-node/provider/arweave"
+	"github.com/rss3-network/node/provider/arweave"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )

@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	"github.com/robfig/cron/v3"
-	"github.com/rss3-network/serving-node/config"
+	"github.com/rss3-network/node/config"
 )
 
 type Broadcaster struct {

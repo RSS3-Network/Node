@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/rss3-network/serving-node/internal/constant"
-	"github.com/rss3-network/serving-node/internal/database"
+	"github.com/rss3-network/node/internal/constant"
+	"github.com/rss3-network/node/internal/database"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
