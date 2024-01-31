@@ -3,6 +3,7 @@ package broadcaster
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"net"
 	"net/http"
 	"os"
@@ -31,20 +32,11 @@ func (b *Broadcaster) Run(ctx context.Context) error {
 	// run api server
 	address := net.JoinHostPort(DefaultHost, DefaultPort)
 
-	errChan := make(chan error, 1)
-
 	go func() {
 		if err := b.httpServer.Start(address); err != nil {
-			errChan <- fmt.Errorf("start http server: %w", err)
+			zap.L().Error("failed to run http server", zap.Error(err))
 		}
 	}()
-
-	// check error
-	select {
-	case err := <-errChan:
-		return err
-	default:
-	}
 
 	// run register cron job
 	if err := b.Register(ctx); err != nil {
