@@ -46,16 +46,6 @@ var command = cobra.Command{
 			return fmt.Errorf("set open telemetry: %w", err)
 		}
 
-		// Dial and migrate database.
-		databaseClient, err := dialer.Dial(cmd.Context(), config.Database)
-		if err != nil {
-			return fmt.Errorf("dial database: %w", err)
-		}
-
-		if err := databaseClient.Migrate(cmd.Context()); err != nil {
-			return fmt.Errorf("migrate database: %w", err)
-		}
-
 		// Init stream client.
 		var streamClient stream.Client
 
@@ -66,7 +56,23 @@ var command = cobra.Command{
 			}
 		}
 
-		switch lo.Must(flags.GetString(flag.KeyModule)) {
+		var databaseClient database.Client
+
+		module := lo.Must(flags.GetString(flag.KeyModule))
+
+		if module != node.Broadcaster {
+			// Dial and migrate database.
+			databaseClient, err = dialer.Dial(cmd.Context(), config.Database)
+			if err != nil {
+				return fmt.Errorf("dial database: %w", err)
+			}
+
+			if err := databaseClient.Migrate(cmd.Context()); err != nil {
+				return fmt.Errorf("migrate database: %w", err)
+			}
+		}
+
+		switch module {
 		case node.Hub:
 			return runHub(cmd.Context(), config, databaseClient)
 		case node.Indexer:
