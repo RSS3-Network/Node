@@ -3,22 +3,50 @@ package broadcaster
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/robfig/cron/v3"
 	"github.com/rss3-network/node/config"
+)
+
+const (
+	DefaultHost = "0.0.0.0"
+	DefaultPort = "80"
 )
 
 type Broadcaster struct {
 	config     *config.File
 	cron       *cron.Cron
 	httpClient *http.Client
+	httpServer *echo.Echo
 }
 
 func (b *Broadcaster) Run(ctx context.Context) error {
+	// run api server
+	address := net.JoinHostPort(DefaultHost, DefaultPort)
+
+	errChan := make(chan error, 1)
+
+	go func() {
+		if err := b.httpServer.Start(address); err != nil {
+			errChan <- fmt.Errorf("start http server: %w", err)
+		}
+	}()
+
+	// check error
+	select {
+	case err := <-errChan:
+		return err
+	default:
+	}
+
+	// run register cron job
 	if err := b.Register(ctx); err != nil {
 		return fmt.Errorf("register: %w", err)
 	}
@@ -43,9 +71,20 @@ func (b *Broadcaster) Run(ctx context.Context) error {
 }
 
 func NewBroadcaster(_ context.Context, config *config.File) (*Broadcaster, error) {
-	return &Broadcaster{
+	instance := &Broadcaster{
 		config:     config,
 		cron:       cron.New(),
 		httpClient: http.DefaultClient,
-	}, nil
+		httpServer: echo.New(),
+	}
+
+	instance.httpServer.HideBanner = true
+	instance.httpServer.HidePort = true
+
+	instance.httpServer.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
+
+	// register router
+	instance.httpServer.GET("/", instance.GetNodeInfo)
+
+	return instance, nil
 }
