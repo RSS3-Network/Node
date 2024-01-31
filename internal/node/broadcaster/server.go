@@ -3,7 +3,6 @@ package broadcaster
 import (
 	"context"
 	"fmt"
-	"go.uber.org/zap"
 	"net"
 	"net/http"
 	"os"
@@ -14,6 +13,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/robfig/cron/v3"
 	"github.com/rss3-network/node/config"
+	"go.uber.org/zap"
 )
 
 const (
