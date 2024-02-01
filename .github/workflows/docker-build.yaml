@@ -17,6 +17,8 @@ jobs:
       - ${{ matrix.arch }}
     strategy:
       matrix:
+        os:
+          - linux
         arch:
           - amd64
           - arm64
@@ -67,6 +69,6 @@ jobs:
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.os }}/${{ matrix.arch }}
           cache-from: type=gha,scope=docker-release
           cache-to: type=gha,mode=max,scope=docker-release
