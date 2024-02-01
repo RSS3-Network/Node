@@ -107,13 +107,14 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 		// nolint:prealloc
 		var receipts []*ethereum.Receipt
 
-		// handle crossbell blockchain cause lack of `eth_getBlockReceipts` implementation
-		if s.config.Network == filter.NetworkCrossbell {
+		// handle crossbell, fantom and arbitrum blockchain cause lack of `eth_getBlockReceipts` implementation
+		switch s.config.Network {
+		case filter.NetworkCrossbell, filter.NetworkFantom, filter.NetworkArbitrum:
 			receipts, err = s.getBlockReceipts(ctx, block)
 			if err != nil {
 				return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
 			}
-		} else {
+		default:
 			// Before being able to handle block reorganization, correctly handle canonical.
 			receipts, err = s.ethereumClient.BlockReceipts(ctx, block.Number)
 			if err != nil {
@@ -205,13 +206,15 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 			// nolint:prealloc
 			var receipts []*ethereum.Receipt
 
-			// handle crossbell blockchain cause lack of `eth_getBlockReceipts` implementation
-			if s.config.Network == filter.NetworkCrossbell {
+			// handle crossbell, fantom and arbitrum blockchain cause lack of `eth_getBlockReceipts` implementation
+			switch s.config.Network {
+			case filter.NetworkCrossbell, filter.NetworkFantom, filter.NetworkArbitrum:
 				receipts, err = s.getBlockReceipts(ctx, block)
 				if err != nil {
 					return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
 				}
-			} else {
+			default:
+				// Before being able to handle block reorganization, correctly handle canonical.
 				receipts, err = s.ethereumClient.BlockReceipts(ctx, block.Number)
 				if err != nil {
 					return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
