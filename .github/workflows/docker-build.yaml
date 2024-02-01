@@ -9,7 +9,9 @@ on:
 
 jobs:
   build:
-    runs-on: [self-hosted, ${{ matrix. arch}}]
+    runs-on:
+      - self-hosted
+      - ${{ matrix.arch }}
     strategy:
       matrix:
         arch:
