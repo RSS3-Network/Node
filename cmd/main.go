@@ -182,7 +182,7 @@ func initializeLogger() {
 func init() {
 	initializeLogger()
 
-	command.PersistentFlags().String(flag.KeyConfig, "config.development.yaml", "config file name")
+	command.PersistentFlags().String(flag.KeyConfig, "config.yaml", "config file name")
 	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")
 	command.PersistentFlags().String(flag.KeyIndexerNetwork, filter.NetworkEthereum.String(), "indexer network")
 	command.PersistentFlags().String(flag.KeyIndexerWorker, filter.Fallback.String(), "indexer worker")

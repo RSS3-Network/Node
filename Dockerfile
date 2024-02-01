@@ -23,6 +23,6 @@ WORKDIR /root/node
 RUN apk add --no-cache ca-certificates tzdata
 
 COPY --from=builder /root/node/build/node .
-COPY deploy/config.development.yaml /etc/rss3/node/config.development.yaml
+COPY deploy/config.yaml /etc/rss3/node/config.yaml
 
 ENTRYPOINT ["./node"]

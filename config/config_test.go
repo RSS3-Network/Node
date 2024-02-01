@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	configName        = "config.development.yaml"
+	configName        = "config.yaml"
 	configExampleYaml = `environment: development
 discovery:
     maintainer:
@@ -396,7 +396,7 @@ func TestConfigFileType(t *testing.T) {
 				err := fs.Mkdir(configDir, 0o777)
 				assert.NoError(t, err)
 
-				configName := fmt.Sprintf("config.development.%s", _type)
+				configName := fmt.Sprintf("config.%s", _type)
 
 				file, err := fs.Create(path.Join(configDir, configName))
 				assert.NoError(t, err)
