@@ -1,4 +1,4 @@
-environment: development
+environment: production
 
 discovery:
     maintainer:
