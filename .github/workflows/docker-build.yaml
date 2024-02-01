@@ -3,7 +3,7 @@ name: build & deploy
 on:
   push:
     branches:
-      - "*"
+      - develop
     tags:
       - "*"
   pull_request:
@@ -58,7 +58,7 @@ jobs:
             type=semver,pattern=v{{major}}
             type=ref,event=branch
             type=ref,event=pr
-            type=sha,prefix={{branch}}-,enable=${{ !startsWith(github.ref, 'refs/tags') }},event=branch
+            type=sha,prefix={{branch}}-,enable=${{ !startsWith(github.ref, 'refs/tags') && github.event_name != 'pull_request' }},event=branch
 
       - name: Build and push
         uses: docker/build-push-action@v4
