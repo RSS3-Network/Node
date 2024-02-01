@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/config"
@@ -99,6 +100,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		}
 
 		if err != nil {
+			if isInvalidTokenErr(err) {
+				return schema.NewUnknownFeed(feed), nil
+			}
+
 			return nil, err
 		}
 
@@ -317,6 +322,11 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 	}
 
 	return &action, nil
+}
+
+// Handle invalid token error.
+func isInvalidTokenErr(err error) bool {
+	return err != nil && strings.HasPrefix(err.Error(), "lookup collectible token metadata")
 }
 
 // NewWorker creates a new OpenSea worker.

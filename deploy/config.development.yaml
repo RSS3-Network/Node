@@ -6,7 +6,7 @@ discovery:
       signature:
     server:
       endpoint:
-      global_indexer_endpoint: https://gi.rss3.dev/
+      global_indexer_endpoint:
 
 database:
   driver: cockroachdb
@@ -104,7 +104,7 @@ component:
         rpc_thread_blocks:
     - network: arweave
       worker: paragraph
-      endpoint: https://arweave.net
+      endpoint: https://arweave.net/
       ipfs_gateways:
       parameters:
         block_height_start:
@@ -164,7 +164,7 @@ component:
       worker: iqwiki
       endpoint: https://rpc.ankr.com/polygon
       parameters:
-        block_number_start: 29909376
+        block_number_start:
     - network: ethereum
       endpoint: https://rpc.ankr.com/eth
       worker: lido
