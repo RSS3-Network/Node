@@ -12,7 +12,7 @@ COPY . .
 
 FROM base AS builder
 
-ENV CGO_ENABLED=1
+ENV CGO_ENABLED=0
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     make build
 

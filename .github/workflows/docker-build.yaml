@@ -16,10 +16,6 @@ jobs:
         platform:
           - linux/amd64
           - linux/arm64
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
     steps:
       - name: Prepare
         run: |
@@ -63,6 +59,10 @@ jobs:
           retention-days: 1
   merge:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
     needs:
       - build
     steps:
