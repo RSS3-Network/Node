@@ -10,7 +10,9 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - ${{ matrix.platform }}
     strategy:
       fail-fast: false
       matrix:
@@ -115,6 +117,7 @@ jobs:
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf 'rss3/node@sha256:%s ' *) $ARGS
       - name: Inspect image
+        if: github.ref == 'refs/heads/develop'
         run: |
           docker buildx imagetools inspect rss3/node:${{ steps.meta.outputs.version }}
 
