@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 )
@@ -80,4 +81,15 @@ func (w *worker) checkValidLabel(name string) bool {
 	}
 
 	return true
+}
+
+// CompressPubkey encodes a public key to 33-byte compressed format.
+func CompressPubkey(x, y *big.Int) []byte {
+	fx := new(secp256k1.FieldVal)
+	fy := new(secp256k1.FieldVal)
+
+	fx.SetBytes((*[32]byte)(x.Bytes()))
+	fy.SetBytes((*[32]byte)(y.Bytes()))
+
+	return secp256k1.NewPublicKey(fx, fy).SerializeCompressed()
 }
