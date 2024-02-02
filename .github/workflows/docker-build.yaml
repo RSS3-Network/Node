@@ -6,6 +6,7 @@ on:
       - develop
     tags:
       - "*"
+  pull_request:
 
 jobs:
   build:
@@ -108,8 +109,11 @@ jobs:
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
+          if [ ${{ github.ref }} != 'refs/heads/develop' ]; then
+            ARGS="--dry-run"
+          fi
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf 'rss3/node@sha256:%s ' *)
+            $(printf 'rss3/node@sha256:%s ' *) $ARGS
       - name: Inspect image
         run: |
           docker buildx imagetools inspect rss3/node:${{ steps.meta.outputs.version }}
