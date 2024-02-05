@@ -14,7 +14,10 @@ import (
 	"github.com/rss3-network/node/internal/engine/source"
 	"github.com/rss3-network/node/internal/engine/worker"
 	"github.com/rss3-network/node/internal/stream"
+	"github.com/rss3-network/node/provider/arweave"
+	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.opentelemetry.io/otel"
@@ -30,8 +33,11 @@ type Server struct {
 	worker            engine.Worker
 	databaseClient    database.Client
 	streamClient      stream.Client
+	ethereumClient    ethereum.Client
+	arweaveClient     arweave.Client
 	meterTasksCounter metric.Int64Counter
 	meterCurrentBlock metric.Int64ObservableGauge
+	meterLatestBlock  metric.Int64ObservableGauge
 }
 
 func (s *Server) Run(ctx context.Context) error {
@@ -165,8 +171,48 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 	return nil
 }
 
-func (s *Server) metricHandler(ctx context.Context, observer metric.Int64Observer) error {
+func (s *Server) initializeMeter() (err error) {
+	// init ethereum client
+	switch s.config.Network {
+	case filter.NetworkArweave:
+		arweaveClient, err := arweave.NewClient()
+		if err != nil {
+			return fmt.Errorf("new arweave client: %w", err)
+		}
+
+		s.arweaveClient = arweaveClient
+	case filter.NetworkFarcaster:
+		break
+	default:
+		ethereumClient, err := ethereum.Dial(context.Background(), s.config.Endpoint)
+		if err != nil {
+			return fmt.Errorf("dial ethereum: %w", err)
+		}
+
+		s.ethereumClient = ethereumClient
+	}
+
+	// init meter
+	meter := otel.GetMeterProvider().Meter(constant.Name)
+
+	if s.meterTasksCounter, err = meter.Int64Counter("rss3_node_tasks"); err != nil {
+		return fmt.Errorf("create meter of tasks counter: %w", err)
+	}
+
+	if s.meterCurrentBlock, err = meter.Int64ObservableGauge("rss3_node_current_block", metric.WithInt64Callback(s.currentBlockMetricHandler)); err != nil {
+		return fmt.Errorf("failed to observe meter CurrentBlock: %w", err)
+	}
+
+	if s.meterLatestBlock, err = meter.Int64ObservableGauge("rss3_node_latest_block", metric.WithInt64Callback(s.latestBlockMetricHandler)); err != nil {
+		return fmt.Errorf("failed to observe meter LatestBlock: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.Int64Observer) error {
 	go func() {
+		// get current block height state
 		tx, err := s.databaseClient.Begin(ctx, &sql.TxOptions{ReadOnly: true})
 		if err != nil {
 			zap.L().Error("begin transaction", zap.Error(err))
@@ -216,16 +262,37 @@ func (s *Server) metricHandler(ctx context.Context, observer metric.Int64Observe
 	return nil
 }
 
-func (s *Server) initializeMeter() (err error) {
-	meter := otel.GetMeterProvider().Meter(constant.Name)
+func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.Int64Observer) error {
+	go func() {
+		// get latest block height
+		var latestBlockHeight int64
 
-	if s.meterTasksCounter, err = meter.Int64Counter("rss3_node_tasks"); err != nil {
-		return fmt.Errorf("create meter of tasks counter: %w", err)
-	}
+		switch s.config.Network {
+		case filter.NetworkArweave:
+			//get arweave client
+			latestHeight, err := s.arweaveClient.GetBlockHeight(ctx)
+			if err != nil {
+				zap.L().Error("get latest block height", zap.Error(err))
+				return
+			}
 
-	if s.meterCurrentBlock, err = meter.Int64ObservableGauge("rss3_node_current_block", metric.WithInt64Callback(s.metricHandler)); err != nil {
-		return fmt.Errorf("failed to observe meter CurrentBlock: %w", err)
-	}
+			latestBlockHeight = latestHeight
+		case filter.NetworkFarcaster:
+			break
+		default:
+			latestBlock, err := s.ethereumClient.BlockNumber(ctx)
+			if err != nil {
+				zap.L().Error("get latest block number", zap.Error(err))
+				return
+			}
+
+			latestBlockHeight = latestBlock.Int64()
+		}
+
+		observer.Observe(latestBlockHeight, metric.WithAttributes(
+			attribute.String("service", constant.Name),
+			attribute.String("worker", s.worker.Name())))
+	}()
 
 	return nil
 }
