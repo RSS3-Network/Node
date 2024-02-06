@@ -2,6 +2,7 @@ package worker
 
 import (
 	"fmt"
+	"github.com/rss3-network/node/internal/engine/worker/contract/oneinch"
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
@@ -68,6 +69,8 @@ func New(config *config.Module, databaseClient database.Client) (engine.Worker, 
 		return crossbell.NewWorker(config)
 	case filter.ENS:
 		return ens.NewWorker(config, databaseClient)
+	case filter.Oneinch:
+		return oneinch.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}

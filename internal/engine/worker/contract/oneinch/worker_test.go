@@ -1,4 +1,4 @@
-package matters_test
+package oneinch_test
 
 import (
 	"context"

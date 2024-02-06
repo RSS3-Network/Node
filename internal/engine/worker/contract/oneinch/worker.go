@@ -1,4 +1,4 @@
-package matters
+package oneinch
 
 import (
 	"context"
@@ -40,7 +40,7 @@ type worker struct {
 
 func (w *worker) Name() string {
 	//return filter.Oneinch.String()
-	return "Oneinch"
+	return filter.Oneinch.String()
 }
 
 // Filter returns a filter for source.
@@ -66,16 +66,16 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
 }
 
-// Transform matters task to feed.
+// Transform 1inch task to feed.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
-	// Cast the task to a matters task.
+	// Cast the task to a 1inch task.
 	oneinchTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
 	// Build the feed.
-	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.PlatformMatters)) //todo: platform 1inch
+	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.PlatformOneinch))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -825,10 +825,10 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
 
 	action := schema.Action{
-		Type: filter.TypeExchangeSwap,
-		//Platform: filter.Platform1inch.String(), todo: platform 1inch
-		From: from.String(),
-		To:   to.String(),
+		Type:     filter.TypeExchangeSwap,
+		Platform: filter.PlatformOneinch.String(),
+		From:     from.String(),
+		To:       to.String(),
 		Metadata: metadata.ExchangeSwap{
 			From: *tokenInMetadata,
 			To:   *tokenOutMetadata,
