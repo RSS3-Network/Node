@@ -9,13 +9,16 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/go-playground/form/v4"
+	"go.uber.org/zap"
 )
 
 const (
 	EndpointMainnet = "https://nemes.farcaster.xyz:2281" // Public Instances https://www.thehubble.xyz/intro/hubble.html
 
-	DefaultTimeout = 5 * time.Second
+	DefaultTimeout  = 5 * time.Second
+	DefaultAttempts = 5
 )
 
 var _ Client = (*client)(nil)
@@ -37,6 +40,7 @@ type client struct {
 	endpointURL *url.URL
 	httpClient  *http.Client
 	encoder     *form.Encoder
+	attempts    uint
 }
 
 // GetCastsByFid Fetch all casts for authored by an fid.
@@ -196,7 +200,15 @@ func (c *client) call(ctx context.Context, path string, query farcasterQuery, re
 		return fmt.Errorf("build params %w", err)
 	}
 
-	if err = c.fetch(ctx, fmt.Sprintf("%s?%s", path, values.Encode()), &response); err != nil {
+	onRetry := retry.OnRetry(func(n uint, err error) {
+		zap.L().Error("fetch farcaster request", zap.Error(err), zap.Uint("attempts", n))
+	})
+
+	retryableFunc := func() error {
+		return c.fetch(ctx, fmt.Sprintf("%s?%s", path, values.Encode()), &response)
+	}
+
+	if err = retry.Do(retryableFunc, retry.Delay(time.Second), retry.Attempts(c.attempts), onRetry); err != nil {
 		return fmt.Errorf("call: %w", err)
 	}
 
@@ -242,7 +254,8 @@ func NewClient(endpoint string, options ...ClientOption) (Client, error) {
 			httpClient: &http.Client{
 				Timeout: DefaultTimeout,
 			},
-			encoder: form.NewEncoder(),
+			encoder:  form.NewEncoder(),
+			attempts: DefaultAttempts,
 		}
 
 		err error
