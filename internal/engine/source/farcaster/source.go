@@ -26,6 +26,7 @@ var _ engine.Source = (*source)(nil)
 
 type source struct {
 	config          *config.Module
+	option          *Option
 	farcasterClient farcaster.Client
 	databaseClient  database.Client
 	state           State
@@ -73,7 +74,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 }
 
 func (s *source) initialize() (err error) {
-	client, err := farcaster.NewClient(s.config.Endpoint)
+	client, err := farcaster.NewClient(s.config.Endpoint, farcaster.WithAPIKey(s.option.APIKey))
 	if err != nil {
 		return fmt.Errorf("create farcaster client: %w", err)
 	}
@@ -491,7 +492,11 @@ func (s *source) fillReactionParams(ctx context.Context, message *farcaster.Mess
 }
 
 func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.Source, error) {
-	var state State
+	var (
+		state State
+
+		err error
+	)
 
 	// Initialize state from checkpoint.
 	if checkpoint != nil {
@@ -506,6 +511,12 @@ func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseCli
 		state:          state,
 		pendingState:   state, // Default pending state is equal to current state.
 	}
+
+	if instance.option, err = NewOption(config.Parameters); err != nil {
+		return nil, fmt.Errorf("parse config: %w", err)
+	}
+
+	zap.L().Info("apply option", zap.Any("option", instance.option))
 
 	return &instance, nil
 }
