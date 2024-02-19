@@ -46,15 +46,32 @@ func (w *worker) Name() string {
 
 // Filter contract address and event hash.
 func (w *worker) Filter() engine.SourceFilter {
+	var aaveV2LendingAddress, aaveV3PoolAddress common.Address
+
+	switch w.config.Network {
+	case filter.NetworkEthereum:
+		aaveV2LendingAddress = aave.AddressV2LendingPoolMainnet
+		aaveV3PoolAddress = aave.AddressV3PoolMainnet
+	case filter.NetworkPolygon:
+		aaveV2LendingAddress = aave.AddressV2LendingPoolPolygon
+		aaveV3PoolAddress = aave.AddressV3PoolOthers
+	case filter.NetworkAvalanche:
+		aaveV2LendingAddress = aave.AddressV2LendingPoolAvalanche
+		aaveV3PoolAddress = aave.AddressV3PoolOthers
+	case filter.NetworkBase:
+		aaveV3PoolAddress = aave.AddressV3PoolBase
+	case filter.NetworkOptimism, filter.NetworkFantom, filter.NetworkArbitrum:
+		aaveV3PoolAddress = aave.AddressV3PoolOthers
+	default:
+		aaveV2LendingAddress = aave.AddressV2LendingPoolMainnet
+		aaveV3PoolAddress = aave.AddressV3PoolMainnet
+	}
+
 	return &source.Filter{
 		LogAddresses: []common.Address{
 			aave.AddressV1LendingPool,
-			aave.AddressV2LendingPoolMainnet,
-			aave.AddressV2LendingPoolPolygon,
-			aave.AddressV2LendingPoolAvalanche,
-			aave.AddressV3PoolMainnet,
-			aave.AddressV3PoolBase,
-			aave.AddressV3PoolOthers,
+			aaveV2LendingAddress,
+			aaveV3PoolAddress,
 		},
 		LogTopics: []common.Hash{
 			aave.EventHashV1LendingPoolDeposit,
@@ -83,32 +100,40 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	if ethereumTask.Transaction.To == nil {
+		return nil, fmt.Errorf("invalid transaction to: %s", ethereumTask.Transaction.Hash)
+	}
+
 	// Build feed base from task.
 	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformAAVE))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
 
-	// Match and handle ethereum logs.
-	var actions []*schema.Action
+	for _, log := range ethereumTask.Receipt.Logs {
+		var (
+			actions []*schema.Action
+			err     error
+		)
 
-	switch {
-	case w.matchLiquidityV1Pool(ethereumTask):
-		actions, err = w.handleV1LendingPool(ctx, ethereumTask)
-	case w.matchLiquidityV2LendingPool(ethereumTask):
-		actions, err = w.handleV2LendingPool(ctx, ethereumTask)
-	case w.matchLiquidityV3Pool(ethereumTask):
-		actions, err = w.handleV3Pool(ctx, ethereumTask)
-	default:
-		return nil, fmt.Errorf("unsupported transaction: %w", err)
+		switch {
+		case w.matchLiquidityV1Pool(ethereumTask, log):
+			actions, err = w.handleV1LendingPool(ctx, ethereumTask)
+		case w.matchLiquidityV2LendingPool(ethereumTask, log):
+			actions, err = w.handleV2LendingPool(ctx, ethereumTask)
+		case w.matchLiquidityV3Pool(ethereumTask, log):
+			actions, err = w.handleV3Pool(ctx, ethereumTask)
+		default:
+			continue
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		feed.Type = filter.TypeExchangeLiquidity
+		feed.Actions = append(feed.Actions, actions...)
 	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	feed.Type = filter.TypeExchangeLiquidity
-	feed.Actions = append(feed.Actions, actions...)
 
 	return feed, nil
 }
@@ -142,30 +167,16 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	return &instance, nil
 }
 
-func (w *worker) matchLiquidityV1Pool(task *source.Task) bool {
-	if task.Network != filter.NetworkEthereum {
-		return false
-	}
-
-	if *task.Transaction.To != aave.AddressV1LendingPool {
-		return false
-	}
-
-	return lo.ContainsBy(task.Receipt.Logs, func(log *ethereum.Log) bool {
-		if len(log.Topics) == 0 {
-			return false
-		}
-
-		return contract.MatchEventHashes(
-			log.Topics[0],
-			aave.EventHashV1LendingPoolDeposit,
-			aave.EventHashV1LendingPoolBorrow,
-			aave.EventHashV1LendingPoolRepay,
-		)
-	})
+func (w *worker) matchLiquidityV1Pool(_ *source.Task, log *ethereum.Log) bool {
+	return contract.MatchEventHashes(
+		log.Topics[0],
+		aave.EventHashV1LendingPoolDeposit,
+		aave.EventHashV1LendingPoolBorrow,
+		aave.EventHashV1LendingPoolRepay,
+	)
 }
 
-func (w *worker) matchLiquidityV2LendingPool(task *source.Task) bool {
+func (w *worker) matchLiquidityV2LendingPool(task *source.Task, log *ethereum.Log) bool {
 	switch task.Network {
 	case filter.NetworkEthereum:
 		if *task.Transaction.To != aave.AddressV2LendingPoolMainnet {
@@ -183,22 +194,16 @@ func (w *worker) matchLiquidityV2LendingPool(task *source.Task) bool {
 		return false
 	}
 
-	return lo.ContainsBy(task.Receipt.Logs, func(log *ethereum.Log) bool {
-		if len(log.Topics) == 0 {
-			return false
-		}
-
-		return contract.MatchEventHashes(
-			log.Topics[0],
-			aave.EventHashV2LendingPoolDeposit,
-			aave.EventHashV2LendingPoolWithdraw,
-			aave.EventHashV2LendingPoolBorrow,
-			aave.EventHashV2LendingPoolRepay,
-		)
-	})
+	return contract.MatchEventHashes(
+		log.Topics[0],
+		aave.EventHashV2LendingPoolDeposit,
+		aave.EventHashV2LendingPoolWithdraw,
+		aave.EventHashV2LendingPoolBorrow,
+		aave.EventHashV2LendingPoolRepay,
+	)
 }
 
-func (w *worker) matchLiquidityV3Pool(task *source.Task) bool {
+func (w *worker) matchLiquidityV3Pool(task *source.Task, log *ethereum.Log) bool {
 	switch task.Network {
 	case filter.NetworkEthereum:
 		if *task.Transaction.To != aave.AddressV3PoolMainnet {
@@ -221,19 +226,13 @@ func (w *worker) matchLiquidityV3Pool(task *source.Task) bool {
 		return false
 	}
 
-	return lo.ContainsBy(task.Receipt.Logs, func(log *ethereum.Log) bool {
-		if len(log.Topics) == 0 {
-			return false
-		}
-
-		return contract.MatchEventHashes(
-			log.Topics[0],
-			aave.EventHashV3PoolSupply,
-			aave.EventHashV3PoolWithdraw,
-			aave.EventHashV3PoolBorrow,
-			aave.EventHashV3PoolRepay,
-		)
-	})
+	return contract.MatchEventHashes(
+		log.Topics[0],
+		aave.EventHashV3PoolSupply,
+		aave.EventHashV3PoolWithdraw,
+		aave.EventHashV3PoolBorrow,
+		aave.EventHashV3PoolRepay,
+	)
 }
 
 func (w *worker) handleV1LendingPool(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
