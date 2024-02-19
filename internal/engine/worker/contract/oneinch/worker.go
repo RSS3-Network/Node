@@ -105,6 +105,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 	feed.TotalActions = uint(totalActions)
 	feed.Tag = filter.TagExchange
+
 	return feed, nil
 }
 func (w *worker) handleEthereumExchangeSwapTransaction(ctx context.Context, task *source.Task, feed *schema.Feed) error {

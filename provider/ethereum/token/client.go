@@ -403,7 +403,7 @@ func (c *client) lookupENS(_ context.Context, _ uint64, address *common.Address,
 	return &tokenMetadata, nil
 }
 
-func (e *client) lookupMaker(_ context.Context, _ uint64, address *common.Address, id, _ *big.Int) (*metadata.Token, error) {
+func (c *client) lookupMaker(_ context.Context, _ uint64, address *common.Address, _, _ *big.Int) (*metadata.Token, error) {
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
 		Name:     "Maker",
