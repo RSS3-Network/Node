@@ -97,7 +97,13 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 		return nil, err
 	}
-	feed.TotalActions = uint(len(feed.Actions))
+
+	totalActions := len(feed.Actions)
+	if totalActions == 0 {
+		return nil, nil
+	}
+
+	feed.TotalActions = uint(totalActions)
 	feed.Tag = filter.TagExchange
 	return feed, nil
 }
