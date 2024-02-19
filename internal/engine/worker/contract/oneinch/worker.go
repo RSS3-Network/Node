@@ -75,7 +75,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	}
 
 	// Build the feed.
-	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.PlatformOneinch))
+	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.Platform1inch))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -828,7 +828,7 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 	action := schema.Action{
 		Tag:      filter.TagExchange,
 		Type:     filter.TypeExchangeSwap,
-		Platform: filter.PlatformOneinch.String(),
+		Platform: filter.Platform1inch.String(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeSwap{

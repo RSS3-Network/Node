@@ -163,7 +163,7 @@ func TestWorker_Oneinch(t *testing.T) {
 				To:       oneinch.AddressExchange2.String(),
 				Type:     filter.TypeExchangeSwap,
 				Tag:      filter.TagExchange,
-				Platform: lo.ToPtr(filter.PlatformOneinch),
+				Platform: lo.ToPtr(filter.Platform1inch),
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("6547499311493148")),
 					Decimal: 18,
@@ -173,7 +173,7 @@ func TestWorker_Oneinch(t *testing.T) {
 					{
 						Type:     filter.TypeExchangeSwap,
 						Tag:      filter.TagExchange,
-						Platform: filter.PlatformOneinch.String(),
+						Platform: filter.Platform1inch.String(),
 						From:     "0x940E5a9f9695b4A9EBab4821aBb075041336eeE0",
 						To:       "0x940E5a9f9695b4A9EBab4821aBb075041336eeE0",
 						Metadata: metadata.ExchangeSwap{
@@ -326,7 +326,7 @@ func TestWorker_Oneinch(t *testing.T) {
 				To:       oneinch.AddressAggregationRouterV2.String(),
 				Type:     filter.TypeExchangeSwap,
 				Tag:      filter.TagExchange,
-				Platform: lo.ToPtr(filter.PlatformOneinch),
+				Platform: lo.ToPtr(filter.Platform1inch),
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3241020025025094")),
 					Decimal: 18,
@@ -336,7 +336,7 @@ func TestWorker_Oneinch(t *testing.T) {
 					{
 						Type:     filter.TypeExchangeSwap,
 						Tag:      filter.TagExchange,
-						Platform: filter.PlatformOneinch.String(),
+						Platform: filter.Platform1inch.String(),
 						From:     "0x3d8eB64C1CBFa5Bba1d8217D6c6AE3e40460D8f4",
 						To:       "0x3d8eB64C1CBFa5Bba1d8217D6c6AE3e40460D8f4",
 						Metadata: metadata.ExchangeSwap{
@@ -488,7 +488,7 @@ func TestWorker_Oneinch(t *testing.T) {
 				To:       oneinch.AddressAggregationRouterV3.String(),
 				Type:     filter.TypeExchangeSwap,
 				Tag:      filter.TagExchange,
-				Platform: lo.ToPtr(filter.PlatformOneinch),
+				Platform: lo.ToPtr(filter.Platform1inch),
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3440729848760508")),
 					Decimal: 18,
@@ -498,7 +498,7 @@ func TestWorker_Oneinch(t *testing.T) {
 					{
 						Type:     filter.TypeExchangeSwap,
 						Tag:      filter.TagExchange,
-						Platform: filter.PlatformOneinch.String(),
+						Platform: filter.Platform1inch.String(),
 						From:     "0x2A0a81e257a2f5D6eD4F07b81DbDa09F107bd027",
 						To:       "0x550F589100E379C8530c0564566D6e270ff13457",
 						Metadata: metadata.ExchangeSwap{
@@ -796,7 +796,7 @@ func TestWorker_Oneinch(t *testing.T) {
 				To:       oneinch.AddressAggregationRouterV4.String(),
 				Type:     filter.TypeExchangeSwap,
 				Tag:      filter.TagExchange,
-				Platform: lo.ToPtr(filter.PlatformOneinch),
+				Platform: lo.ToPtr(filter.Platform1inch),
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("20429607000000000")),
 					Decimal: 18,
@@ -806,7 +806,7 @@ func TestWorker_Oneinch(t *testing.T) {
 					{
 						Type:     filter.TypeExchangeSwap,
 						Tag:      filter.TagExchange,
-						Platform: filter.PlatformOneinch.String(),
+						Platform: filter.Platform1inch.String(),
 						From:     "0x09c149843fd6a6085e1E677f744314ab9eC768Cb",
 						To:       "0x09c149843fd6a6085e1E677f744314ab9eC768Cb",
 						Metadata: metadata.ExchangeSwap{
@@ -1008,7 +1008,7 @@ func TestWorker_Oneinch(t *testing.T) {
 				To:       oneinch.AddressAggregationRouterV5.String(),
 				Type:     filter.TypeExchangeSwap,
 				Tag:      filter.TagExchange,
-				Platform: lo.ToPtr(filter.PlatformOneinch),
+				Platform: lo.ToPtr(filter.Platform1inch),
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("5071818383704171")),
 					Decimal: 18,
@@ -1018,7 +1018,7 @@ func TestWorker_Oneinch(t *testing.T) {
 					{
 						Type:     filter.TypeExchangeSwap,
 						Tag:      filter.TagExchange,
-						Platform: filter.PlatformOneinch.String(),
+						Platform: filter.Platform1inch.String(),
 						From:     "0xd0B8DfCF9dA999db981A60a8DA6584E8e52b757c",
 						To:       "0xd0B8DfCF9dA999db981A60a8DA6584E8e52b757c",
 						Metadata: metadata.ExchangeSwap{
@@ -1146,7 +1146,7 @@ func TestWorker_Oneinch(t *testing.T) {
 				To:       oneinch.AddressAggregationRouterV4.String(),
 				Type:     filter.TypeExchangeSwap,
 				Tag:      filter.TagExchange,
-				Platform: lo.ToPtr(filter.PlatformOneinch),
+				Platform: lo.ToPtr(filter.Platform1inch),
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1819505775044528")),
 					Decimal: 18,
@@ -1156,7 +1156,7 @@ func TestWorker_Oneinch(t *testing.T) {
 					{
 						Type:     filter.TypeExchangeSwap,
 						Tag:      filter.TagExchange,
-						Platform: filter.PlatformOneinch.String(),
+						Platform: filter.Platform1inch.String(),
 						From:     "0x6Db2acbA03f08897D6286358632126ddF81d7597",
 						To:       "0x6Db2acbA03f08897D6286358632126ddF81d7597",
 						Metadata: metadata.ExchangeSwap{
@@ -1296,7 +1296,7 @@ func TestWorker_Oneinch(t *testing.T) {
 				To:       oneinch.AddressAggregationRouterV4.String(),
 				Type:     filter.TypeExchangeSwap,
 				Tag:      filter.TagExchange,
-				Platform: lo.ToPtr(filter.PlatformOneinch),
+				Platform: lo.ToPtr(filter.Platform1inch),
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1537751745634040")),
 					Decimal: 18,
@@ -1306,7 +1306,7 @@ func TestWorker_Oneinch(t *testing.T) {
 					{
 						Type:     filter.TypeExchangeSwap,
 						Tag:      filter.TagExchange,
-						Platform: filter.PlatformOneinch.String(),
+						Platform: filter.Platform1inch.String(),
 						From:     "0x44b184A0C56F926bA3634DAD905690b3438aed77",
 						To:       "0x44b184A0C56F926bA3634DAD905690b3438aed77",
 						Metadata: metadata.ExchangeSwap{
@@ -1436,7 +1436,7 @@ func TestWorker_Oneinch(t *testing.T) {
 				To:       oneinch.AddressAggregationRouterV4.String(),
 				Type:     filter.TypeExchangeSwap,
 				Tag:      filter.TagExchange,
-				Platform: lo.ToPtr(filter.PlatformOneinch),
+				Platform: lo.ToPtr(filter.Platform1inch),
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2291334573991950")),
 					Decimal: 18,
@@ -1446,7 +1446,7 @@ func TestWorker_Oneinch(t *testing.T) {
 					{
 						Type:     filter.TypeExchangeSwap,
 						Tag:      filter.TagExchange,
-						Platform: filter.PlatformOneinch.String(),
+						Platform: filter.Platform1inch.String(),
 						From:     "0x8E2511b43bf95BFd18017FD205EfD6d246526c3A",
 						To:       "0x8E2511b43bf95BFd18017FD205EfD6d246526c3A",
 						Metadata: metadata.ExchangeSwap{
@@ -1552,7 +1552,7 @@ func TestWorker_Oneinch(t *testing.T) {
 				To:       oneinch.AddressAggregationRouterV5.String(),
 				Type:     filter.TypeExchangeSwap,
 				Tag:      filter.TagExchange,
-				Platform: lo.ToPtr(filter.PlatformOneinch),
+				Platform: lo.ToPtr(filter.Platform1inch),
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3353385243784578")),
 					Decimal: 18,
@@ -1562,7 +1562,7 @@ func TestWorker_Oneinch(t *testing.T) {
 					{
 						Type:     filter.TypeExchangeSwap,
 						Tag:      filter.TagExchange,
-						Platform: filter.PlatformOneinch.String(),
+						Platform: filter.Platform1inch.String(),
 						From:     "0x0874D10C8f7C40B45c91d0A8965987653383b697",
 						To:       "0xfccc1d9C2732A7966DE960cEA897f8Be2337E6Ad",
 						Metadata: metadata.ExchangeSwap{
@@ -1702,7 +1702,7 @@ func TestWorker_Oneinch(t *testing.T) {
 				To:       oneinch.AddressAggregationRouterV5.String(),
 				Type:     filter.TypeExchangeSwap,
 				Tag:      filter.TagExchange,
-				Platform: lo.ToPtr(filter.PlatformOneinch),
+				Platform: lo.ToPtr(filter.Platform1inch),
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2286968577290726")),
 					Decimal: 18,
@@ -1712,7 +1712,7 @@ func TestWorker_Oneinch(t *testing.T) {
 					{
 						Type:     filter.TypeExchangeSwap,
 						Tag:      filter.TagExchange,
-						Platform: filter.PlatformOneinch.String(),
+						Platform: filter.Platform1inch.String(),
 						From:     "0x552C8368088541bE1Bf8D4323dc3F73C18D02551",
 						To:       "0x552C8368088541bE1Bf8D4323dc3F73C18D02551",
 						Metadata: metadata.ExchangeSwap{
@@ -1842,7 +1842,7 @@ func TestWorker_Oneinch(t *testing.T) {
 				To:       oneinch.AddressAggregationRouterV5.String(),
 				Type:     filter.TypeExchangeSwap,
 				Tag:      filter.TagExchange,
-				Platform: lo.ToPtr(filter.PlatformOneinch),
+				Platform: lo.ToPtr(filter.Platform1inch),
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3006238000000000")),
 					Decimal: 18,
@@ -1852,7 +1852,7 @@ func TestWorker_Oneinch(t *testing.T) {
 					{
 						Type:     filter.TypeExchangeSwap,
 						Tag:      filter.TagExchange,
-						Platform: filter.PlatformOneinch.String(),
+						Platform: filter.Platform1inch.String(),
 						From:     "0xB63F5Ff16296C57d3aa2340368B73b498E089BF8",
 						To:       "0xB63F5Ff16296C57d3aa2340368B73b498E089BF8",
 						Metadata: metadata.ExchangeSwap{
