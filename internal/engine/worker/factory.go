@@ -12,6 +12,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/contract/ens"
 	"github.com/rss3-network/node/internal/engine/worker/contract/highlight"
 	"github.com/rss3-network/node/internal/engine/worker/contract/iqwiki"
+	"github.com/rss3-network/node/internal/engine/worker/contract/kiwistand"
 	"github.com/rss3-network/node/internal/engine/worker/contract/lens"
 	"github.com/rss3-network/node/internal/engine/worker/contract/lido"
 	"github.com/rss3-network/node/internal/engine/worker/contract/looksrare"
@@ -68,6 +69,8 @@ func New(config *config.Module, databaseClient database.Client) (engine.Worker, 
 		return crossbell.NewWorker(config)
 	case filter.ENS:
 		return ens.NewWorker(config, databaseClient)
+	case filter.KiwiStand:
+		return kiwistand.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}
