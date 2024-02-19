@@ -2,7 +2,6 @@ package worker
 
 import (
 	"fmt"
-	"github.com/rss3-network/node/internal/engine/worker/contract/oneinch"
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
@@ -19,6 +18,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/contract/matters"
 	"github.com/rss3-network/node/internal/engine/worker/contract/mirror"
 	"github.com/rss3-network/node/internal/engine/worker/contract/momoka"
+	"github.com/rss3-network/node/internal/engine/worker/contract/oneinch"
 	"github.com/rss3-network/node/internal/engine/worker/contract/opensea"
 	"github.com/rss3-network/node/internal/engine/worker/contract/optimism"
 	"github.com/rss3-network/node/internal/engine/worker/contract/paragraph"

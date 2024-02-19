@@ -2,7 +2,6 @@ package oneinch_test
 
 import (
 	"context"
-	"github.com/rss3-network/node/provider/ethereum/contract/oneinch"
 	"math/big"
 	"testing"
 
@@ -12,6 +11,7 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/oneinch"
 	"github.com/rss3-network/node/provider/ethereum"
+	"github.com/rss3-network/node/provider/ethereum/contract/oneinch"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/filter"
