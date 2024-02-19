@@ -403,6 +403,18 @@ func (c *client) lookupENS(_ context.Context, _ uint64, address *common.Address,
 	return &tokenMetadata, nil
 }
 
+func (e *client) lookupMaker(_ context.Context, _ uint64, address *common.Address, id, _ *big.Int) (*metadata.Token, error) {
+	tokenMetadata := metadata.Token{
+		Address:  lo.ToPtr(address.String()),
+		Name:     "Maker",
+		Symbol:   "MKR",
+		Decimals: 18,
+		Standard: metadata.StandardERC20,
+	}
+
+	return &tokenMetadata, nil
+}
+
 // buildNonFungibleTokenMetadata builds non-fungible token metadata.
 func (c *client) buildNonFungibleTokenMetadata(ctx context.Context, uri string, id *big.Int) (*metadata.NonFungibleTokenMetadata, error) {
 	var (
@@ -541,6 +553,7 @@ func NewClient(ethereumClient ethereum.Client) Client {
 		uint64(filter.EthereumChainIDMainnet): {
 			// ENS
 			common.HexToAddress("0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85"): instance.lookupENS,
+			common.HexToAddress("0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2"): instance.lookupMaker,
 		},
 	}
 
