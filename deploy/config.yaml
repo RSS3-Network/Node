@@ -177,3 +177,8 @@ component:
       worker: ens
       parameters:
         block_number_start:
+    - network: rss3-testnet
+      endpoint: https://rpc.testnet.rss3.io
+      worker: fallback
+      parameters:
+        block_number_start:

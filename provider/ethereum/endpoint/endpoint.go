@@ -48,6 +48,9 @@ var endpointsMap = map[filter.Network][]string{
 	filter.NetworkCrossbell: {
 		"https://rpc.crossbell.io",
 	},
+	filter.NetworkRSS3Testnet: {
+		"https://rpc.testnet.rss3.io",
+	},
 }
 
 func Get(network filter.Network) ([]string, bool) {
