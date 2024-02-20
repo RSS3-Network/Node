@@ -3,17 +3,21 @@ package kiwistand
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
+	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/kiwistand"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
+	"github.com/shopspring/decimal"
 )
 
 // Worker is the worker for KiwiStand.
@@ -28,7 +32,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Highlight.String()
+	return filter.KiwiStand.String()
 }
 
 // Filter kiwistand contract address and event hash.
@@ -51,7 +55,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 }
 
 // Transform Ethereum task to feed.
-func (w *worker) Transform(_ context.Context, task engine.Task) (*schema.Feed, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -64,34 +68,178 @@ func (w *worker) Transform(_ context.Context, task engine.Task) (*schema.Feed, e
 	}
 
 	// Match and handle ethereum logs.
-	//for _, log := range ethereumTask.Receipt.Logs {
-	//	var (
-	//		actions []*schema.Action
-	//		err     error
-	//	)
-	//
-	//	// Match kiwistand core contract events
-	//	switch {
-	//	case w.matchNumTokenMintMatched(ethereumTask, log):
-	//		feed.Type = filter.TypeCollectibleMint
-	//		actions, err = w.transformKiwiMint(ctx, ethereumTask, log)
-	//	default:
-	//		continue
-	//	}
-	//
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//
-	//	// Change feed type to the first action type.
-	//	for _, action := range actions {
-	//		feed.Type = action.Type
-	//	}
-	//
-	//	feed.Actions = append(feed.Actions, actions...)
-	//}
+	for _, log := range ethereumTask.Receipt.Logs {
+		var (
+			actions []*schema.Action
+			err     error
+		)
+
+		// Match kiwistand core contract events
+		switch {
+		case w.matchRewardsDeposit(ethereumTask, log):
+			actions, err = w.transformRewardsDeposit(ctx, ethereumTask, log)
+		case w.matchTransfer(ethereumTask, log):
+			feed.Type = filter.TypeCollectibleMint
+			actions, err = w.transformKiwiMint(ctx, ethereumTask, log)
+		case w.matchSale(ethereumTask, log):
+			actions, err = w.transformSale(ctx, ethereumTask, log)
+		default:
+			continue
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		// Change feed type to the first action type.
+		for _, action := range actions {
+			feed.Type = action.Type
+		}
+
+		feed.Actions = append(feed.Actions, actions...)
+	}
 
 	return feed, nil
+}
+
+// matchRewardsDeposit matches the rewards deposit event.
+func (w *worker) matchRewardsDeposit(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == kiwistand.AddressProtocolRewards && contract.MatchEventHashes(log.Topics[0], kiwistand.EventHashRewardsDeposit)
+}
+
+// matchTransfer matches the transfer event.
+func (w *worker) matchTransfer(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == kiwistand.AddressKIWI && contract.MatchEventHashes(log.Topics[0], kiwistand.EventHashTransfer)
+}
+
+// matchSale matches the sale event.
+func (w *worker) matchSale(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == kiwistand.AddressKIWI && contract.MatchEventHashes(log.Topics[0], kiwistand.EventHashSale)
+}
+
+// matchMintComment matches the mint comment event.
+//func (w *worker) matchMintComment(_ *source.Task, log *ethereum.Log) bool {
+//	return log.Address == kiwistand.AddressKIWI && contract.MatchEventHashes(log.Topics[0], kiwistand.EventHashMintComment)
+//}
+
+// transformKiwiMint transforms Transfer event.
+func (w *worker) transformKiwiMint(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	// Parse Transfer event.
+	event, err := w.kiwiFilterer.ParseTransfer(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Transfer event: %w", err)
+	}
+
+	action, err := w.buildKiwiMintAction(ctx, task, event.From, event.To, log.Address, event.TokenId, big.NewInt(1))
+	if err != nil {
+		return nil, fmt.Errorf("build KiwiMint action: %w", err)
+	}
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
+// transformRewardsDeposit transforms RewardsDeposit event.
+func (w *worker) transformRewardsDeposit(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.protocolRewardsFilterer.ParseRewardsDeposit(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Transfer event: %w", err)
+	}
+
+	var creatorRewardAction, createReferralRewardAction, mintReferralRewardAction, firstMinterRewardAction *schema.Action
+
+	if event.CreatorReward == nil {
+		creatorRewardAction, err = w.buildKiwiFee(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.CreatorReward)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if event.CreateReferralReward == nil {
+		createReferralRewardAction, err = w.buildKiwiFee(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.CreateReferralReward)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if event.MintReferralReward == nil {
+		mintReferralRewardAction, err = w.buildKiwiFee(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.MintReferralReward)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if event.FirstMinterReward == nil {
+		firstMinterRewardAction, err = w.buildKiwiFee(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.FirstMinterReward)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return []*schema.Action{
+		creatorRewardAction,
+		createReferralRewardAction,
+		mintReferralRewardAction,
+		firstMinterRewardAction,
+	}, nil
+}
+
+// transformSale transforms Sale event.
+func (w *worker) transformSale(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.kiwiFilterer.ParseSale(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse sale event: %w", err)
+	}
+
+	var action *schema.Action
+
+	if event.Quantity.Cmp(big.NewInt(1)) != 0 && event.PricePerToken.Cmp(big.NewInt(0)) != 0 {
+		action, err = w.buildKiwiFee(ctx, task, task.Transaction.From, kiwistand.AddressKIWI, new(big.Int).Mul(event.Quantity, event.PricePerToken))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
+// buildKiwiMintAction builds KiwiMint action.
+func (w *worker) buildKiwiMintAction(ctx context.Context, task *source.Task, from, to common.Address, contract common.Address, id *big.Int, value *big.Int) (*schema.Action, error) {
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &contract, id, task.Header.Number)
+	if err != nil {
+		return nil, fmt.Errorf("lookup token metadata: %w", err)
+	}
+
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
+
+	return &schema.Action{
+		Type:     filter.TypeCollectibleMint,
+		Platform: filter.PlatformKiwiStand.String(),
+		From:     from.String(),
+		To:       to.String(),
+		Metadata: metadata.CollectibleTransfer(*tokenMetadata),
+	}, nil
+}
+
+// buildKiwiFee builds fee
+func (w *worker) buildKiwiFee(ctx context.Context, task *source.Task, from common.Address, to common.Address, amount *big.Int) (*schema.Action, error) {
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, nil, nil, task.Header.Number)
+	if err != nil {
+		return nil, fmt.Errorf("lookup token metadata: %w", err)
+	}
+
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
+
+	return &schema.Action{
+		Type:     filter.TypeTransactionTransfer,
+		Platform: filter.PlatformLooksRare.String(),
+		From:     from.String(),
+		To:       to.String(),
+		Metadata: metadata.TransactionTransfer(*tokenMetadata),
+	}, nil
 }
 
 // NewWorker creates a new KiwiStand worker.
