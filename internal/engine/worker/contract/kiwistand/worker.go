@@ -79,7 +79,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		case w.matchRewardsDeposit(ethereumTask, log):
 			actions, err = w.transformRewardsDeposit(ctx, ethereumTask, log)
 		case w.matchTransfer(ethereumTask, log):
-			feed.Type = filter.TypeCollectibleMint
 			actions, err = w.transformKiwiMint(ctx, ethereumTask, log)
 		case w.matchSale(ethereumTask, log):
 			actions, err = w.transformSale(ctx, ethereumTask, log)
@@ -91,10 +90,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			return nil, err
 		}
 
-		// Change feed type to the first action type.
-		for _, action := range actions {
-			feed.Type = action.Type
-		}
+		feed.Type = filter.TypeCollectibleMint
 
 		feed.Actions = append(feed.Actions, actions...)
 	}
@@ -147,42 +143,57 @@ func (w *worker) transformRewardsDeposit(ctx context.Context, task *source.Task,
 		return nil, fmt.Errorf("parse Transfer event: %w", err)
 	}
 
-	var creatorRewardAction, createReferralRewardAction, mintReferralRewardAction, firstMinterRewardAction *schema.Action
+	var actions []*schema.Action
 
-	if event.CreatorReward == nil {
+	var creatorRewardAction, createReferralRewardAction, mintReferralRewardAction, firstMinterRewardAction, zoraRewardAction *schema.Action
+
+	if event.CreatorReward.Cmp(big.NewInt(0)) > 0 {
 		creatorRewardAction, err = w.buildKiwiFee(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.CreatorReward)
 		if err != nil {
 			return nil, err
 		}
+
+		actions = append(actions, creatorRewardAction)
 	}
 
-	if event.CreateReferralReward == nil {
+	if event.CreateReferralReward.Cmp(big.NewInt(0)) > 0 {
 		createReferralRewardAction, err = w.buildKiwiFee(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.CreateReferralReward)
 		if err != nil {
 			return nil, err
 		}
+
+		actions = append(actions, createReferralRewardAction)
 	}
 
-	if event.MintReferralReward == nil {
+	if event.MintReferralReward.Cmp(big.NewInt(0)) > 0 {
 		mintReferralRewardAction, err = w.buildKiwiFee(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.MintReferralReward)
 		if err != nil {
 			return nil, err
 		}
+
+		actions = append(actions, mintReferralRewardAction)
 	}
 
-	if event.FirstMinterReward == nil {
+	if event.FirstMinterReward.Cmp(big.NewInt(0)) > 0 {
 		firstMinterRewardAction, err = w.buildKiwiFee(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.FirstMinterReward)
 		if err != nil {
 			return nil, err
 		}
+
+		actions = append(actions, firstMinterRewardAction)
 	}
 
-	return []*schema.Action{
-		creatorRewardAction,
-		createReferralRewardAction,
-		mintReferralRewardAction,
-		firstMinterRewardAction,
-	}, nil
+	if event.ZoraReward.Cmp(big.NewInt(0)) > 0 {
+		zoraRewardAction, err = w.buildKiwiFee(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.ZoraReward)
+
+		if err != nil {
+			return nil, err
+		}
+
+		actions = append(actions, zoraRewardAction)
+	}
+
+	return actions, nil
 }
 
 // transformSale transforms Sale event.
@@ -192,13 +203,9 @@ func (w *worker) transformSale(ctx context.Context, task *source.Task, log *ethe
 		return nil, fmt.Errorf("parse sale event: %w", err)
 	}
 
-	var action *schema.Action
-
-	if event.Quantity.Cmp(big.NewInt(1)) != 0 && event.PricePerToken.Cmp(big.NewInt(0)) != 0 {
-		action, err = w.buildKiwiFee(ctx, task, task.Transaction.From, kiwistand.AddressKIWI, new(big.Int).Mul(event.Quantity, event.PricePerToken))
-		if err != nil {
-			return nil, err
-		}
+	action, err := w.buildKiwiFee(ctx, task, task.Transaction.From, kiwistand.AddressKIWI, new(big.Int).Mul(event.Quantity, event.PricePerToken))
+	if err != nil {
+		return nil, err
 	}
 
 	return []*schema.Action{
@@ -235,7 +242,7 @@ func (w *worker) buildKiwiFee(ctx context.Context, task *source.Task, from commo
 
 	return &schema.Action{
 		Type:     filter.TypeTransactionTransfer,
-		Platform: filter.PlatformLooksRare.String(),
+		Platform: filter.PlatformKiwiStand.String(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
