@@ -191,8 +191,19 @@ func (w *worker) matchLiquidityTransaction(task *source.Task, transaction *ether
 	}
 }
 
-func (w *worker) matchNonfungiblePositionManagerTransferLog(_ *source.Task, log *ethereum.Log) bool {
-	if log.Address != uniswap.AddressNonfungiblePositionManager || len(log.Topics) == 0 || log.Topics[0] != erc721.EventHashTransfer {
+func (w *worker) matchNonfungiblePositionManagerTransferLog(task *source.Task, log *ethereum.Log) bool {
+	var managerAddress common.Address
+
+	switch task.Network {
+	case filter.NetworkEthereum:
+		managerAddress = uniswap.AddressNonfungiblePositionManager
+	case filter.NetworkRSS3Testnet:
+		managerAddress = uniswap.AddressNonfungiblePositionManagerRSS3Testnet
+	default:
+		return false
+	}
+
+	if log.Address != managerAddress || len(log.Topics) == 0 || log.Topics[0] != erc721.EventHashTransfer {
 		return false
 	}
 
@@ -707,7 +718,18 @@ func (w *worker) transformNonfungiblePositionManagerIncreaseLiquidityLog(ctx con
 		return nil, fmt.Errorf("parse IncreaseLiquidity event: %w", err)
 	}
 
-	nonfungiblePositionManager, err := uniswap.NewNonfungiblePositionManagerCaller(uniswap.AddressNonfungiblePositionManager, w.ethereumClient)
+	var managerAddress common.Address
+
+	switch task.Network {
+	case filter.NetworkEthereum:
+		managerAddress = uniswap.AddressNonfungiblePositionManager
+	case filter.NetworkRSS3Testnet:
+		managerAddress = uniswap.AddressNonfungiblePositionManagerRSS3Testnet
+	default:
+		return nil, fmt.Errorf("unsupported network: %s", task.Network)
+	}
+
+	nonfungiblePositionManager, err := uniswap.NewNonfungiblePositionManagerCaller(managerAddress, w.ethereumClient)
 	if err != nil {
 		return nil, fmt.Errorf("load nonfungible position manager: %w", err)
 	}
