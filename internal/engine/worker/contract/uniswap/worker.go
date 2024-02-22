@@ -72,7 +72,6 @@ func (w *worker) Filter() engine.SourceFilter {
 			uniswap.EventHashV2PairSwap,
 			uniswap.EventHashV2PairMint,
 			uniswap.EventHashV2PairBurn,
-			uniswap.EventHashV3PoolSwap,
 			uniswap.EventHashNonfungiblePositionManagerCollect,
 		},
 	}
@@ -120,6 +119,7 @@ func (w *worker) matchSwapTransaction(task *source.Task, transaction *ethereum.T
 	case // Uniswap V3
 		uniswap.AddressV3SwapRouter,
 		uniswap.AddressV3SwapRouterCelo,
+		uniswap.AddressV3SwapRouterRSS3Testnet,
 		uniswap.AddressV3SwapRouter02,
 		uniswap.AddressV3SwapRouter02Celo,
 		uniswap.AddressV3SwapRouter02BinanceSmartChain,
@@ -158,6 +158,7 @@ func (w *worker) matchLiquidityTransaction(task *source.Task, transaction *ether
 	switch *task.Transaction.To {
 	case // Uniswap V3
 		uniswap.AddressNonfungiblePositionManager,
+		uniswap.AddressNonfungiblePositionManagerRSS3Testnet,
 		uniswap.AddressV3Migrator:
 		return true
 	case // Uniswap V2
@@ -637,7 +638,18 @@ func (w *worker) transformV3SwapLog(ctx context.Context, task *source.Task, log 
 		return nil, fmt.Errorf("get fee from pool: %w", err)
 	}
 
-	factory, err := uniswap.NewV3FactoryCaller(uniswap.AddressV3Factory, w.ethereumClient)
+	var factoryAddress common.Address
+
+	switch task.Network {
+	case filter.NetworkEthereum:
+		factoryAddress = uniswap.AddressV3Factory
+	case filter.NetworkRSS3Testnet:
+		factoryAddress = uniswap.AddressV3FactoryRSS3Testnet
+	default:
+		return nil, fmt.Errorf("unsupported network: %s", task.Network)
+	}
+
+	factory, err := uniswap.NewV3FactoryCaller(factoryAddress, w.ethereumClient)
 	if err != nil {
 		return nil, fmt.Errorf("load factory: %w", err)
 	}
@@ -827,6 +839,7 @@ func (w *worker) transformNonfungiblePositionManagerTransferLog(ctx context.Cont
 func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task, sender, receipt common.Address, tokenIn, tokenOut *common.Address, amountIn, amountOut *big.Int) (*schema.Action, error) {
 	tokenInMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenIn, nil, task.Header.Number)
 	if err != nil {
+		fmt.Printf("lookup token metadata %s: %s", tokenIn, err)
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenIn, err)
 	}
 

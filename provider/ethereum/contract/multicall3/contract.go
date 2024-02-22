@@ -19,7 +19,20 @@ import (
 
 var (
 	AddressMulticall3 = common.HexToAddress("0xcA11bde05977b3631167028862bE2a173976CA11")
+	// RSS3 testnet
+	AddressMulticall3RSS3Testnet = common.HexToAddress("0xFb9e26Bc21C38CCb9A318AfccE0ea6880d6ca95f")
 )
+
+var contractAt = map[uint64]common.Address{
+	uint64(filter.EthereumChainIDMainnet):     AddressMulticall3,
+	uint64(filter.EthereumChainIDOptimism):    AddressMulticall3,
+	uint64(filter.EthereumChainIDPolygon):     AddressMulticall3,
+	uint64(filter.EthereumChainIDFantom):      AddressMulticall3,
+	uint64(filter.EthereumChainIDArbitrum):    AddressMulticall3,
+	uint64(filter.EthereumChainIDBase):        AddressMulticall3,
+	uint64(filter.EthereumChainIDCrossbell):   AddressMulticall3,
+	uint64(filter.EthereumChainIDRSS3Testnet): AddressMulticall3RSS3Testnet,
+}
 
 var deployedAtMap = map[uint64]uint64{
 	uint64(filter.EthereumChainIDMainnet):     14353601, // https://etherscan.io/tx/0x00d9fcb7848f6f6b0aae4fb709c133d69262b902156c85a473ef23faa60760bd
@@ -86,8 +99,13 @@ func Aggregate3(ctx context.Context, chainID uint64, calls []Multicall3Call3, bl
 		return nil, fmt.Errorf("pack data: %w", err)
 	}
 
+	contractAt, exists := contractAt[chainID]
+	if !exists {
+		return nil, fmt.Errorf("contract not found")
+	}
+
 	message := ethereum.CallMsg{
-		To:   &AddressMulticall3,
+		To:   &contractAt,
 		Data: callData,
 	}
 
