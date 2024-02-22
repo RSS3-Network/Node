@@ -192,14 +192,8 @@ func (w *worker) matchLiquidityTransaction(task *source.Task, transaction *ether
 }
 
 func (w *worker) matchNonfungiblePositionManagerTransferLog(task *source.Task, log *ethereum.Log) bool {
-	var managerAddress common.Address
-
-	switch task.Network {
-	case filter.NetworkEthereum:
-		managerAddress = uniswap.AddressNonfungiblePositionManager
-	case filter.NetworkRSS3Testnet:
-		managerAddress = uniswap.AddressNonfungiblePositionManagerRSS3Testnet
-	default:
+	managerAddress, err := w.getV3NonfungiblePositionManagerAddress(task.Network)
+	if err != nil {
 		return false
 	}
 
@@ -649,15 +643,9 @@ func (w *worker) transformV3SwapLog(ctx context.Context, task *source.Task, log 
 		return nil, fmt.Errorf("get fee from pool: %w", err)
 	}
 
-	var factoryAddress common.Address
-
-	switch task.Network {
-	case filter.NetworkEthereum:
-		factoryAddress = uniswap.AddressV3Factory
-	case filter.NetworkRSS3Testnet:
-		factoryAddress = uniswap.AddressV3FactoryRSS3Testnet
-	default:
-		return nil, fmt.Errorf("unsupported network: %s", task.Network)
+	factoryAddress, err := w.getV3FactoryAddress(task.Network)
+	if err != nil {
+		return nil, fmt.Errorf("get factory address: %w", err)
 	}
 
 	factory, err := uniswap.NewV3FactoryCaller(factoryAddress, w.ethereumClient)
@@ -718,15 +706,9 @@ func (w *worker) transformNonfungiblePositionManagerIncreaseLiquidityLog(ctx con
 		return nil, fmt.Errorf("parse IncreaseLiquidity event: %w", err)
 	}
 
-	var managerAddress common.Address
-
-	switch task.Network {
-	case filter.NetworkEthereum:
-		managerAddress = uniswap.AddressNonfungiblePositionManager
-	case filter.NetworkRSS3Testnet:
-		managerAddress = uniswap.AddressNonfungiblePositionManagerRSS3Testnet
-	default:
-		return nil, fmt.Errorf("unsupported network: %s", task.Network)
+	managerAddress, err := w.getV3NonfungiblePositionManagerAddress(task.Network)
+	if err != nil {
+		return nil, fmt.Errorf("get nonfungible position manager address: %w", err)
 	}
 
 	nonfungiblePositionManager, err := uniswap.NewNonfungiblePositionManagerCaller(managerAddress, w.ethereumClient)
@@ -768,15 +750,9 @@ func (w *worker) transformNonfungiblePositionManagerDecreaseLiquidityLog(ctx con
 		return nil, fmt.Errorf("parse DecreaseLiquidity event: %w", err)
 	}
 
-	var managerAddress common.Address
-
-	switch task.Network {
-	case filter.NetworkEthereum:
-		managerAddress = uniswap.AddressNonfungiblePositionManager
-	case filter.NetworkRSS3Testnet:
-		managerAddress = uniswap.AddressNonfungiblePositionManagerRSS3Testnet
-	default:
-		return nil, fmt.Errorf("unsupported network: %s", task.Network)
+	managerAddress, err := w.getV3NonfungiblePositionManagerAddress(task.Network)
+	if err != nil {
+		return nil, fmt.Errorf("get nonfungible position manager address: %w", err)
 	}
 
 	nonfungiblePositionManager, err := uniswap.NewNonfungiblePositionManagerCaller(managerAddress, w.ethereumClient)
@@ -818,7 +794,12 @@ func (w *worker) transformNonfungiblePositionManagerCollectLog(ctx context.Conte
 		return nil, fmt.Errorf("parse Collect event: %w", err)
 	}
 
-	nonfungiblePositionManager, err := uniswap.NewNonfungiblePositionManagerCaller(uniswap.AddressNonfungiblePositionManager, w.ethereumClient)
+	managerAddress, err := w.getV3NonfungiblePositionManagerAddress(task.Network)
+	if err != nil {
+		return nil, fmt.Errorf("get nonfungible position manager address: %w", err)
+	}
+
+	nonfungiblePositionManager, err := uniswap.NewNonfungiblePositionManagerCaller(managerAddress, w.ethereumClient)
 	if err != nil {
 		return nil, fmt.Errorf("load nonfungible position manager: %w", err)
 	}
@@ -994,6 +975,28 @@ func (w *worker) buildTransactionMintAction(ctx context.Context, task *source.Ta
 	}
 
 	return &action, nil
+}
+
+func (w *worker) getV3NonfungiblePositionManagerAddress(network filter.Network) (common.Address, error) {
+	switch network {
+	case filter.NetworkEthereum:
+		return uniswap.AddressNonfungiblePositionManager, nil
+	case filter.NetworkRSS3Testnet:
+		return uniswap.AddressNonfungiblePositionManagerRSS3Testnet, nil
+	default:
+		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", network)
+	}
+}
+
+func (w *worker) getV3FactoryAddress(network filter.Network) (common.Address, error) {
+	switch network {
+	case filter.NetworkEthereum:
+		return uniswap.AddressV3Factory, nil
+	case filter.NetworkRSS3Testnet:
+		return uniswap.AddressV3FactoryRSS3Testnet, nil
+	default:
+		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", network)
+	}
 }
 
 func NewWorker(config *config.Module) (engine.Worker, error) {
