@@ -52,6 +52,8 @@ require (
 )
 
 require (
+	github.com/cockroachdb/cockroach-go/v2 v2.3.6
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/rss3-network/protocol-go v0.2.1
 	github.com/spf13/afero v1.11.0
@@ -89,6 +91,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-shiori/dom v0.0.0-20210627111528-4e4722cd0d65 // indirect
+	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect

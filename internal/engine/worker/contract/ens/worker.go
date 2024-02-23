@@ -10,7 +10,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/database/model"
@@ -451,7 +450,7 @@ func (w *worker) transformEnsPubkeyChanged(ctx context.Context, log ethereum.Log
 
 	return []*schema.Action{
 		w.buildEthereumENSProfileAction(ctx, task.Transaction.From, log.Address, nil,
-			name, ens.PubkeyChanged.String(), common.Bytes2Hex(secp256k1.CompressPubkey(new(big.Int).SetBytes(event.X[:]), new(big.Int).SetBytes(event.Y[:]))),
+			name, ens.PubkeyChanged.String(), common.Bytes2Hex(CompressPubkey(new(big.Int).SetBytes(event.X[:]), new(big.Int).SetBytes(event.Y[:]))),
 			metadata.ActionSocialProfileUpdate),
 	}, nil
 }

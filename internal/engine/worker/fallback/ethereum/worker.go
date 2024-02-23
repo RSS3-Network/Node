@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -102,6 +103,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		}
 
 		if err != nil {
+			if isInvalidTokenErr(err) {
+				return schema.NewUnknownFeed(feed), nil
+			}
+
 			return nil, fmt.Errorf("handle ERC-20 transfer log: %w", err)
 		}
 
@@ -448,6 +453,11 @@ func (w *worker) buildCollectibleApprovalAction(ctx context.Context, task *sourc
 	}
 
 	return &action, nil
+}
+
+// Handle invalid token error.
+func isInvalidTokenErr(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "unsupported NFT standard")
 }
 
 func NewWorker(config *config.Module) (engine.Worker, error) {

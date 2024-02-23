@@ -1,4 +1,4 @@
-environment: development
+environment: production
 
 discovery:
     maintainer:
@@ -94,6 +94,8 @@ component:
     - network: farcaster
       worker: farcaster
       endpoint: https://nemes.farcaster.xyz:2281
+      parameters:
+        api_key:
     # arweave
     - network: arweave
       worker: mirror
