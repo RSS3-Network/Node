@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/ethereum"
@@ -66,6 +67,13 @@ func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 		return nil, fmt.Errorf("build fee: %w", err)
 	}
 
+	var functionHash string
+
+	if t.Transaction.Input != nil && len(t.Transaction.Input) >= 4 {
+		functionHashBytes := t.Transaction.Input[:4]
+		functionHash = hexutil.Encode(functionHashBytes)
+	}
+
 	feed := schema.Feed{
 		ID:      t.Transaction.Hash.String(),
 		Network: t.Network,
@@ -77,9 +85,10 @@ func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 			Amount:  decimal.NewFromBigInt(feeAmount, 0),
 			Decimal: defaultFeeDecimal,
 		},
-		Actions:   make([]*schema.Action, 0),
-		Status:    t.Receipt.Status == types.ReceiptStatusSuccessful,
-		Timestamp: t.Header.Timestamp,
+		FunctionHash: functionHash,
+		Actions:      make([]*schema.Action, 0),
+		Status:       t.Receipt.Status == types.ReceiptStatusSuccessful,
+		Timestamp:    t.Header.Timestamp,
 	}
 
 	// Apply feed options.
