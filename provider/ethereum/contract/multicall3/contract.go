@@ -19,8 +19,6 @@ import (
 
 var (
 	AddressMulticall3 = common.HexToAddress("0xcA11bde05977b3631167028862bE2a173976CA11")
-	// RSS3 testnet
-	AddressMulticall3RSS3Testnet = common.HexToAddress("0xFb9e26Bc21C38CCb9A318AfccE0ea6880d6ca95f")
 )
 
 var deployedAtMap = map[uint64]uint64{
@@ -31,7 +29,7 @@ var deployedAtMap = map[uint64]uint64{
 	uint64(filter.EthereumChainIDArbitrum):    7654707,  // https://arbiscan.io/tx/0x211f6689adbb0f3fba7392e899d23bde029cef532cbd0ae900920cc09f7d1f32
 	uint64(filter.EthereumChainIDBase):        5022,     // https://basescan.org/tx/0x07471adfe8f4ec553c1199f495be97fc8be8e0626ae307281c22534460184ed1
 	uint64(filter.EthereumChainIDCrossbell):   38246031, // https://scan.crossbell.io/tx/0x0d7367f09c151993f1a7ac32780948fc07d232806e81d0d0c3e7058e4538d7f5
-	uint64(filter.EthereumChainIDRSS3Testnet): 127488,   // https://scan.testnet.rss3.io/tx/0x9052ab294106e6255c496b0ab9c7b78a7f6aa9b936ebc891d537d62a37817f7d
+	uint64(filter.EthereumChainIDRSS3Testnet): 55697,    // https://scan.testnet.rss3.io/tx/0x9052ab294106e6255c496b0ab9c7b78a7f6aa9b936ebc891d537d62a37817f7d
 }
 
 func IsDeployed(chainID uint64, blockNumber *big.Int) bool {
@@ -88,17 +86,8 @@ func Aggregate3(ctx context.Context, chainID uint64, calls []Multicall3Call3, bl
 		return nil, fmt.Errorf("pack data: %w", err)
 	}
 
-	var contractAt common.Address
-
-	switch chainID {
-	case uint64(filter.EthereumChainIDRSS3Testnet):
-		contractAt = AddressMulticall3RSS3Testnet
-	default:
-		contractAt = AddressMulticall3
-	}
-
 	message := ethereum.CallMsg{
-		To:   &contractAt,
+		To:   &AddressMulticall3,
 		Data: callData,
 	}
 
