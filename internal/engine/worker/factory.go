@@ -61,7 +61,7 @@ func New(config *config.Module, databaseClient database.Client) (engine.Worker, 
 	case filter.Aave:
 		return aave.NewWorker(config)
 	case filter.IQWiki:
-		return iqwiki.NewWorker()
+		return iqwiki.NewWorker(config)
 	case filter.Lido:
 		return lido.NewWorker(config)
 	case filter.Crossbell:
