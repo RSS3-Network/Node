@@ -7,9 +7,11 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/rss3-network/node/config"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/iqwiki"
 	"github.com/rss3-network/node/provider/ethereum"
+	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/protocol-go/schema/metadata"
@@ -22,7 +24,8 @@ func TestWorker_Ethereum(t *testing.T) {
 	t.Parallel()
 
 	type arguments struct {
-		task *source.Task
+		task   *source.Task
+		config *config.Module
 	}
 
 	testcases := []struct {
@@ -97,6 +100,10 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionHash:  common.HexToHash("0x43dc470bbec2f3c585ac8f7a8340870b774a5be52ab9cf0836a8d534761be85e"),
 						TransactionIndex: 16,
 					},
+				},
+				config: &config.Module{
+					Network:  filter.NetworkPolygon,
+					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
 				},
 			},
 			want: &schema.Feed{
@@ -216,6 +223,10 @@ func TestWorker_Ethereum(t *testing.T) {
 						TransactionIndex: 3,
 					},
 				},
+				config: &config.Module{
+					Network:  filter.NetworkPolygon,
+					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+				},
 			},
 			want: &schema.Feed{
 				ID:           "0x395a0ea73962d7f6e22cecc7d74c8f489a6707cc65f7cebdb39355bf01e8694a",
@@ -277,7 +288,7 @@ func TestWorker_Ethereum(t *testing.T) {
 
 			ctx := context.Background()
 
-			instance, err := worker.NewWorker()
+			instance, err := worker.NewWorker(testcase.arguments.config)
 			require.NoError(t, err)
 
 			matched, err := instance.Match(ctx, testcase.arguments.task)
