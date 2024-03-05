@@ -63,14 +63,14 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
 
-	if feed.FunctionHash != "" {
+	if feed.Calldata.FunctionHash != "" {
 		// Lookup Function Name
-		functionName, err := w.etherfaceClient.Lookup(ctx, feed.FunctionHash)
+		functionName, err := w.etherfaceClient.Lookup(ctx, feed.Calldata.FunctionHash)
 		if err != nil {
 			zap.L().Warn("lookup function name", zap.Error(err))
 		}
 
-		feed.ParsedFunction = functionName
+		feed.Calldata.ParsedFunction = functionName
 	}
 	// If the transaction is failed, we will not process it.
 	if w.matchFailedTransaction(ethereumTask) {

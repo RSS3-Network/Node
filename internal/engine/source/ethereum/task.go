@@ -85,10 +85,12 @@ func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 			Amount:  decimal.NewFromBigInt(feeAmount, 0),
 			Decimal: defaultFeeDecimal,
 		},
-		FunctionHash: functionHash,
-		Actions:      make([]*schema.Action, 0),
-		Status:       t.Receipt.Status == types.ReceiptStatusSuccessful,
-		Timestamp:    t.Header.Timestamp,
+		Calldata: &schema.Calldata{
+			FunctionHash: functionHash,
+		},
+		Actions:   make([]*schema.Action, 0),
+		Status:    t.Receipt.Status == types.ReceiptStatusSuccessful,
+		Timestamp: t.Header.Timestamp,
 	}
 
 	// Apply feed options.
