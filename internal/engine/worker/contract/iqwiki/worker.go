@@ -8,6 +8,7 @@ import (
 
 	"github.com/Khan/genqlient/graphql"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
@@ -23,9 +24,11 @@ import (
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
-	iqWikiFilterer *iqwiki.IqWikiFilterer
+	config         *config.Module
+	ethereumClient ethereum.Client
 	iqWikiClient   graphql.Client
 	ipfsClient     ipfs.HTTPClient
+	iqWikiFilterer *iqwiki.IqWikiFilterer
 }
 
 func (w *worker) Name() string {
@@ -177,12 +180,31 @@ func (w *worker) getEthereumIPFSContent(ctx context.Context, ipfsID string) ([]b
 }
 
 // NewWorker creates a new IQWiki worker.
-func NewWorker() (engine.Worker, error) {
-	instance := worker{
-		iqWikiFilterer: lo.Must(iqwiki.NewIqWikiFilterer(ethereum.AddressGenesis, nil)),
-		ipfsClient:     lo.Must(ipfs.NewHTTPClient()),
-		iqWikiClient:   lo.Must(iqwiki.NewClient(iqwiki.Endpoint)),
+func NewWorker(config *config.Module) (engine.Worker, error) {
+	var (
+		err      error
+		instance = worker{
+			config: config,
+		}
+	)
+
+	// Initialize ethereum client.
+	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
+		return nil, fmt.Errorf("initialize ethereum client: %w", err)
 	}
+
+	// Initialize ipfs client.
+	if instance.ipfsClient, err = ipfs.NewHTTPClient(ipfs.WithGateways(config.IPFSGateways)); err != nil {
+		return nil, fmt.Errorf("new ipfs client: %w", err)
+	}
+
+	//	Initialize iqwiki client.
+	if instance.iqWikiClient, err = iqwiki.NewClient(iqwiki.Endpoint); err != nil {
+		return nil, fmt.Errorf("initialize iqwiki client: %w", err)
+	}
+
+	// Initialize iqwiki filterer.
+	instance.iqWikiFilterer = lo.Must(iqwiki.NewIqWikiFilterer(ethereum.AddressGenesis, nil))
 
 	return &instance, nil
 }
