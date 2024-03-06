@@ -11,8 +11,8 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
+	"github.com/rss3-network/node/provider/ethereum/contract/1inch"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
-	"github.com/rss3-network/node/provider/ethereum/contract/oneinch"
 	"github.com/rss3-network/node/provider/ethereum/contract/weth"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/protocol-go/schema"
@@ -98,16 +98,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, err
 	}
 
-	totalActions := len(feed.Actions)
-	if totalActions == 0 {
-		return nil, nil
-	}
-
-	feed.TotalActions = uint(totalActions)
-	feed.Tag = filter.TagExchange
-
 	return feed, nil
 }
+
+// handleEthereumExchangeSwapTransaction handles exchange swap transaction.
 func (w *worker) handleEthereumExchangeSwapTransaction(ctx context.Context, task *source.Task, feed *schema.Feed) error {
 	feed.Type = filter.TypeExchangeSwap
 
@@ -138,6 +132,8 @@ func (w *worker) handleEthereumExchangeSwapTransaction(ctx context.Context, task
 
 	return nil
 }
+
+// handleEthereumExplicitAggregationRouterTransaction handles explicit aggregation router transaction.
 func (w *worker) handleEthereumImplicitAggregationRouterTransaction(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
 	var (
 		sender, receipt *common.Address
@@ -225,6 +221,7 @@ func (w *worker) handleEthereumImplicitAggregationRouterTransaction(ctx context.
 	}, nil
 }
 
+// simulationTransfer simulates the transfer of tokens.
 func (w *worker) simulationTransfer(valueMap map[common.Address]*big.Int, transferIn bool, token common.Address, value *big.Int) {
 	if valueMap[token] == nil {
 		valueMap[token] = big.NewInt(0)
@@ -237,6 +234,7 @@ func (w *worker) simulationTransfer(valueMap map[common.Address]*big.Int, transf
 	}
 }
 
+// parseEthereumAggregationRouterV5TransactionInput parses the transaction input of the aggregation router v5.
 func (w *worker) parseEthereumAggregationRouterV5TransactionInput(ctx context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	switch {
 	case contract.MatchMethodIDs(task.Transaction.Input, oneinch.MethodIDAggregationRouterV5ClipperSwapTo):
@@ -277,6 +275,7 @@ func (w *worker) parseEthereumAggregationRouterV5TransactionInput(ctx context.Co
 	}
 }
 
+// parseEthereumAggregationRouterV5TransactionClipperSwapToInput parses the transaction input of the aggregation router v5 clipper swap to.
 func (w *worker) parseEthereumAggregationRouterV5TransactionClipperSwapToInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV5MetaData.GetAbi()
 	if err != nil {
@@ -301,6 +300,7 @@ func (w *worker) parseEthereumAggregationRouterV5TransactionClipperSwapToInput(_
 	return &task.Transaction.From, &input.Recipient, nil
 }
 
+// parseEthereumAggregationRouterV5TransactionClipperSwapToWithPermitInput parses the transaction input of the aggregation router v5 clipper swap to with permit.
 func (w *worker) parseEthereumAggregationRouterV5TransactionClipperSwapToWithPermitInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV5MetaData.GetAbi()
 	if err != nil {
@@ -325,6 +325,7 @@ func (w *worker) parseEthereumAggregationRouterV5TransactionClipperSwapToWithPer
 	return &task.Transaction.From, &input.Recipient, nil
 }
 
+// parseEthereumAggregationRouterV5TransactionFillOrderRFQToInput parses the transaction input of the aggregation router v5 fill order RFQ to.
 func (w *worker) parseEthereumAggregationRouterV5TransactionFillOrderRFQToInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV5MetaData.GetAbi()
 	if err != nil {
@@ -349,6 +350,7 @@ func (w *worker) parseEthereumAggregationRouterV5TransactionFillOrderRFQToInput(
 	return &task.Transaction.From, &input.Target, nil
 }
 
+// parseEthereumAggregationRouterV5TransactionFillOrderRFQToWithPermitInput parses the transaction input of the aggregation router v5 fill order RFQ to with permit.
 func (w *worker) parseEthereumAggregationRouterV5TransactionFillOrderRFQToWithPermitInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV5MetaData.GetAbi()
 	if err != nil {
@@ -373,6 +375,7 @@ func (w *worker) parseEthereumAggregationRouterV5TransactionFillOrderRFQToWithPe
 	return &task.Transaction.From, &input.Target, nil
 }
 
+// parseEthereumAggregationRouterV5TransactionFillOrderToInput parses the transaction input of the aggregation router v5 fill order to.
 func (w *worker) parseEthereumAggregationRouterV5TransactionFillOrderToInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV5MetaData.GetAbi()
 	if err != nil {
@@ -397,6 +400,7 @@ func (w *worker) parseEthereumAggregationRouterV5TransactionFillOrderToInput(_ c
 	return &task.Transaction.From, &input.Target, nil
 }
 
+// parseEthereumAggregationRouterV5TransactionFillOrderToWithPermitInput parses the transaction input of the aggregation router v5 fill order to with permit.
 func (w *worker) parseEthereumAggregationRouterV5TransactionFillOrderToWithPermitInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV5MetaData.GetAbi()
 	if err != nil {
@@ -421,6 +425,7 @@ func (w *worker) parseEthereumAggregationRouterV5TransactionFillOrderToWithPermi
 	return &task.Transaction.From, &input.Target, nil
 }
 
+// parseEthereumAggregationRouterV5TransactionSwapInput parses the transaction input of the aggregation router v5 swap.
 func (w *worker) parseEthereumAggregationRouterV5TransactionSwapInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV5MetaData.GetAbi()
 	if err != nil {
@@ -445,6 +450,7 @@ func (w *worker) parseEthereumAggregationRouterV5TransactionSwapInput(_ context.
 	return &task.Transaction.From, &input.Desc.DstReceiver, nil
 }
 
+// parseEthereumAggregationRouterV5TransactionUniswapV3SwapToInput parses the transaction input of the aggregation router v5 uniswap v3 swap to.
 func (w *worker) parseEthereumAggregationRouterV5TransactionUniswapV3SwapToInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV5MetaData.GetAbi()
 	if err != nil {
@@ -469,6 +475,7 @@ func (w *worker) parseEthereumAggregationRouterV5TransactionUniswapV3SwapToInput
 	return &task.Transaction.From, &input.Recipient, nil
 }
 
+// parseEthereumAggregationRouterV5TransactionUniswapV3SwapToWithPermitInput parses the transaction input of the aggregation router v5 uniswap v3 swap to with permit.
 func (w *worker) parseEthereumAggregationRouterV5TransactionUniswapV3SwapToWithPermitInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV5MetaData.GetAbi()
 	if err != nil {
@@ -493,6 +500,7 @@ func (w *worker) parseEthereumAggregationRouterV5TransactionUniswapV3SwapToWithP
 	return &task.Transaction.From, &input.Recipient, nil
 }
 
+// parseEthereumAggregationRouterV5TransactionUnoswapToInput parses the transaction input of the aggregation router v5 unoswap to.
 func (w *worker) parseEthereumAggregationRouterV5TransactionUnoswapToInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV5MetaData.GetAbi()
 	if err != nil {
@@ -517,6 +525,7 @@ func (w *worker) parseEthereumAggregationRouterV5TransactionUnoswapToInput(_ con
 	return &task.Transaction.From, &input.Recipient, nil
 }
 
+// parseEthereumAggregationRouterV5TransactionUnoswapToWithPermitInput parses the transaction input of the aggregation router v5 unoswap to with permit.
 func (w *worker) parseEthereumAggregationRouterV5TransactionUnoswapToWithPermitInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV5MetaData.GetAbi()
 	if err != nil {
@@ -541,6 +550,7 @@ func (w *worker) parseEthereumAggregationRouterV5TransactionUnoswapToWithPermitI
 	return &task.Transaction.From, &input.Recipient, nil
 }
 
+// parseEthereumAggregationRouterV4TransactionInput parses the transaction input of the aggregation router v4.
 func (w *worker) parseEthereumAggregationRouterV4TransactionInput(ctx context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	switch {
 	case contract.MatchMethodIDs(task.Transaction.Input, oneinch.MethodIDAggregationRouterV4ClipperSwapTo):
@@ -572,6 +582,7 @@ func (w *worker) parseEthereumAggregationRouterV4TransactionInput(ctx context.Co
 	}
 }
 
+// parseEthereumAggregationRouterV4TransactionUniswapV3SwapToWithPermitInput parses the transaction input of the aggregation router v4 uniswap v3 swap to with permit.
 func (w *worker) parseEthereumAggregationRouterV4TransactionUniswapV3SwapToWithPermitInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV4MetaData.GetAbi()
 	if err != nil {
@@ -595,6 +606,8 @@ func (w *worker) parseEthereumAggregationRouterV4TransactionUniswapV3SwapToWithP
 
 	return &task.Transaction.From, &input.Recipient, nil
 }
+
+// parseEthereumAggregationRouterV4TransactionUniswapV3SwapToInput parses the transaction input of the aggregation router v4 uniswap v3 swap to.
 func (w *worker) parseEthereumAggregationRouterV4TransactionUniswapV3SwapToInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV4MetaData.GetAbi()
 	if err != nil {
@@ -619,6 +632,7 @@ func (w *worker) parseEthereumAggregationRouterV4TransactionUniswapV3SwapToInput
 	return &task.Transaction.From, &input.Recipient, nil
 }
 
+// parseEthereumAggregationRouterV4TransactionSwapInput parses the transaction input of the aggregation router v4 swap.
 func (w *worker) parseEthereumAggregationRouterV4TransactionSwapInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV4MetaData.GetAbi()
 	if err != nil {
@@ -643,6 +657,7 @@ func (w *worker) parseEthereumAggregationRouterV4TransactionSwapInput(_ context.
 	return &task.Transaction.From, &input.Desc.DstReceiver, nil
 }
 
+// parseEthereumAggregationRouterV4TransactionFillOrderRFQToWithPermitInput parses the transaction input of the aggregation router v4 fill order RFQ to with permit.
 func (w *worker) parseEthereumAggregationRouterV4TransactionFillOrderRFQToWithPermitInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV4MetaData.GetAbi()
 	if err != nil {
@@ -667,6 +682,7 @@ func (w *worker) parseEthereumAggregationRouterV4TransactionFillOrderRFQToWithPe
 	return &task.Transaction.From, &input.Target, nil
 }
 
+// parseEthereumAggregationRouterV4TransactionFillOrderRFQToInput parses the transaction input of the aggregation router v4 fill order RFQ to.
 func (w *worker) parseEthereumAggregationRouterV4TransactionFillOrderRFQToInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV4MetaData.GetAbi()
 	if err != nil {
@@ -691,6 +707,7 @@ func (w *worker) parseEthereumAggregationRouterV4TransactionFillOrderRFQToInput(
 	return &task.Transaction.From, &input.Target, nil
 }
 
+// parseEthereumAggregationRouterV4TransactionClipperSwapToWithPermitInput parses the transaction input of the aggregation router v4 clipper swap to with permit.
 func (w *worker) parseEthereumAggregationRouterV4TransactionClipperSwapToWithPermitInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV4MetaData.GetAbi()
 	if err != nil {
@@ -715,6 +732,7 @@ func (w *worker) parseEthereumAggregationRouterV4TransactionClipperSwapToWithPer
 	return &task.Transaction.From, &input.Recipient, nil
 }
 
+// parseEthereumAggregationRouterV4TransactionClipperSwapToInput parses the transaction input of the aggregation router v4 clipper swap to.
 func (w *worker) parseEthereumAggregationRouterV4TransactionClipperSwapToInput(_ context.Context, task source.Task) (sender, receiver *common.Address, err error) {
 	abi, err := oneinch.AggregationRouterV4MetaData.GetAbi()
 	if err != nil {
@@ -739,6 +757,7 @@ func (w *worker) parseEthereumAggregationRouterV4TransactionClipperSwapToInput(_
 	return &task.Transaction.From, &input.Recipient, nil
 }
 
+// handleEthereumExplicitAggregationRouterTransaction handles the explicit aggregation router transaction.
 func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
 	actions := make([]*schema.Action, 0)
 
@@ -775,6 +794,7 @@ func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.
 	return actions, nil
 }
 
+// handleEthereumAggregationRouterV3SwappedLog handles the aggregation router v3 swapped log.
 func (w *worker) handleEthereumAggregationRouterV3SwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
 	if log.Address != oneinch.AddressAggregationRouterV3 {
 		return nil, fmt.Errorf("unofficial aggregation router v3 contract %s", log.Address)
@@ -787,6 +807,8 @@ func (w *worker) handleEthereumAggregationRouterV3SwappedLog(ctx context.Context
 
 	return w.buildEthereumExchangeSwapAction(ctx, task.Header.Number, task.ChainID, event.Sender, event.DstReceiver, event.SrcToken, event.DstToken, event.SpentAmount, event.ReturnAmount)
 }
+
+// handleEthereumAggregationRouterV2SwappedLog handles the aggregation router v2 swapped log.
 func (w *worker) handleEthereumAggregationRouterV2SwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
 	if log.Address != oneinch.AddressAggregationRouterV2 {
 		return nil, fmt.Errorf("unofficial aggregation router v2 contract %s", log.Address)
@@ -799,6 +821,8 @@ func (w *worker) handleEthereumAggregationRouterV2SwappedLog(ctx context.Context
 
 	return w.buildEthereumExchangeSwapAction(ctx, task.Header.Number, task.ChainID, event.Sender, event.DstReceiver, event.SrcToken, event.DstToken, event.SpentAmount, event.ReturnAmount)
 }
+
+// handleEthereumExchangeSwappedLog handles the exchange swapped log.
 func (w *worker) handleEthereumExchangeSwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
 	if log.Address != oneinch.AddressExchange2 {
 		return nil, fmt.Errorf("unofficial exchange contract %s", log.Address)
@@ -812,6 +836,7 @@ func (w *worker) handleEthereumExchangeSwappedLog(ctx context.Context, task *sou
 	return w.buildEthereumExchangeSwapAction(ctx, task.Header.Number, task.ChainID, task.Transaction.From, task.Transaction.From, event.FromToken, event.ToToken, event.FromAmount, event.ToAmount)
 }
 
+// buildEthereumExchangeSwapAction builds the exchange swap action.
 func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumber *big.Int, chain uint64, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*schema.Action, error) {
 	var (
 		tokenInAddress  = lo.Ternary(tokenIn != oneinch.AddressEther, lo.ToPtr(tokenIn), nil)
