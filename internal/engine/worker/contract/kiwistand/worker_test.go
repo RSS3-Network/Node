@@ -227,6 +227,16 @@ func TestWorker_Ethereum(t *testing.T) {
 							Decimals: 18,
 						},
 					},
+					{
+						Type:     filter.TypeSocialMint,
+						Platform: filter.PlatformKiwiStand.String(),
+						From:     common.HexToAddress("0xf70da97812CB96acDF810712Aa562db8dfA3dbEF").String(),
+						To:       common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
+						Metadata: &metadata.SocialPost{
+							Title: "LFG",
+							Body:  "LFG",
+						},
+					},
 				},
 				Status:    true,
 				Timestamp: 1706767425,

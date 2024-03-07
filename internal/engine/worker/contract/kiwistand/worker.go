@@ -82,6 +82,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			actions, err = w.transformKiwiMint(ctx, ethereumTask, log)
 		case w.matchSale(ethereumTask, log):
 			actions, err = w.transformSale(ctx, ethereumTask, log)
+		case w.matchMintComment(ethereumTask, log):
+			actions, err = w.transformMintComment(ctx, ethereumTask, log)
 		default:
 			continue
 		}
@@ -114,9 +116,9 @@ func (w *worker) matchSale(_ *source.Task, log *ethereum.Log) bool {
 }
 
 // matchMintComment matches the mint comment event.
-//func (w *worker) matchMintComment(_ *source.Task, log *ethereum.Log) bool {
-//	return log.Address == kiwistand.AddressKIWI && contract.MatchEventHashes(log.Topics[0], kiwistand.EventHashMintComment)
-//}
+func (w *worker) matchMintComment(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == kiwistand.AddressKIWI && contract.MatchEventHashes(log.Topics[0], kiwistand.EventHashMintComment)
+}
 
 // transformKiwiMint transforms Transfer event.
 func (w *worker) transformKiwiMint(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
@@ -148,7 +150,7 @@ func (w *worker) transformRewardsDeposit(ctx context.Context, task *source.Task,
 	var creatorRewardAction, createReferralRewardAction, mintReferralRewardAction, firstMinterRewardAction, zoraRewardAction *schema.Action
 
 	if event.CreatorReward.Cmp(big.NewInt(0)) > 0 {
-		creatorRewardAction, err = w.buildKiwiFee(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.CreatorReward)
+		creatorRewardAction, err = w.buildKiwiFeeAction(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.CreatorReward)
 		if err != nil {
 			return nil, err
 		}
@@ -157,7 +159,7 @@ func (w *worker) transformRewardsDeposit(ctx context.Context, task *source.Task,
 	}
 
 	if event.CreateReferralReward.Cmp(big.NewInt(0)) > 0 {
-		createReferralRewardAction, err = w.buildKiwiFee(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.CreateReferralReward)
+		createReferralRewardAction, err = w.buildKiwiFeeAction(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.CreateReferralReward)
 		if err != nil {
 			return nil, err
 		}
@@ -166,7 +168,7 @@ func (w *worker) transformRewardsDeposit(ctx context.Context, task *source.Task,
 	}
 
 	if event.MintReferralReward.Cmp(big.NewInt(0)) > 0 {
-		mintReferralRewardAction, err = w.buildKiwiFee(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.MintReferralReward)
+		mintReferralRewardAction, err = w.buildKiwiFeeAction(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.MintReferralReward)
 		if err != nil {
 			return nil, err
 		}
@@ -175,7 +177,7 @@ func (w *worker) transformRewardsDeposit(ctx context.Context, task *source.Task,
 	}
 
 	if event.FirstMinterReward.Cmp(big.NewInt(0)) > 0 {
-		firstMinterRewardAction, err = w.buildKiwiFee(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.FirstMinterReward)
+		firstMinterRewardAction, err = w.buildKiwiFeeAction(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.FirstMinterReward)
 		if err != nil {
 			return nil, err
 		}
@@ -184,7 +186,7 @@ func (w *worker) transformRewardsDeposit(ctx context.Context, task *source.Task,
 	}
 
 	if event.ZoraReward.Cmp(big.NewInt(0)) > 0 {
-		zoraRewardAction, err = w.buildKiwiFee(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.ZoraReward)
+		zoraRewardAction, err = w.buildKiwiFeeAction(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.ZoraReward)
 
 		if err != nil {
 			return nil, err
@@ -203,13 +205,25 @@ func (w *worker) transformSale(ctx context.Context, task *source.Task, log *ethe
 		return nil, fmt.Errorf("parse sale event: %w", err)
 	}
 
-	action, err := w.buildKiwiFee(ctx, task, task.Transaction.From, kiwistand.AddressKIWI, new(big.Int).Mul(event.Quantity, event.PricePerToken))
+	action, err := w.buildKiwiFeeAction(ctx, task, task.Transaction.From, kiwistand.AddressKIWI, new(big.Int).Mul(event.Quantity, event.PricePerToken))
 	if err != nil {
 		return nil, err
 	}
 
 	return []*schema.Action{
 		action,
+	}, nil
+}
+
+// transformMintComment transforms MintComment event.
+func (w *worker) transformMintComment(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.kiwiFilterer.ParseMintComment(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse mint comment event: %w", err)
+	}
+
+	return []*schema.Action{
+		w.buildKiwiMintCommentAction(ctx, task.Transaction.From, kiwistand.AddressKIWI, event.Comment),
 	}, nil
 }
 
@@ -231,8 +245,22 @@ func (w *worker) buildKiwiMintAction(ctx context.Context, task *source.Task, fro
 	}, nil
 }
 
+// buildKiwiMintCommentAction builds KiwiMintComment action.
+func (w *worker) buildKiwiMintCommentAction(_ context.Context, from common.Address, to common.Address, comment string) *schema.Action {
+	return &schema.Action{
+		From:     from.String(),
+		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
+		Platform: filter.PlatformKiwiStand.String(),
+		Type:     filter.TypeSocialMint,
+		Metadata: &metadata.SocialPost{
+			Title: comment,
+			Body:  comment,
+		},
+	}
+}
+
 // buildKiwiFee builds fee
-func (w *worker) buildKiwiFee(ctx context.Context, task *source.Task, from common.Address, to common.Address, amount *big.Int) (*schema.Action, error) {
+func (w *worker) buildKiwiFeeAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, amount *big.Int) (*schema.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, nil, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
