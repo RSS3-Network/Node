@@ -8,7 +8,7 @@ require (
 	github.com/avast/retry-go/v4 v4.5.1
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/creasty/defaults v1.7.0
-	github.com/ethereum/go-ethereum v1.13.11
+	github.com/ethereum/go-ethereum v1.13.12
 	github.com/gabriel-vasile/mimetype v1.4.2
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.16.0
@@ -55,7 +55,7 @@ require (
 	github.com/cockroachdb/cockroach-go/v2 v2.3.6
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/rss3-network/protocol-go v0.2.0
+	github.com/rss3-network/protocol-go v0.2.1
 	github.com/spf13/afero v1.11.0
 	github.com/vincent-petithory/dataurl v1.0.0
 	golang.org/x/net v0.20.0
