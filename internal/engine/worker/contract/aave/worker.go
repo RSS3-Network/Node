@@ -111,6 +111,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	}
 
 	for _, log := range ethereumTask.Receipt.Logs {
+		// Ignore anonymous logs.
+		if len(log.Topics) == 0 {
+			continue
+		}
+
 		var (
 			actions []*schema.Action
 			err     error

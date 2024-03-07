@@ -64,7 +64,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 // Transform matters task to feed.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
 	// Cast the task to a matters task.
-	mattersTask, ok := task.(*source.Task)
+	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
@@ -75,7 +75,12 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
 
-	for _, log := range mattersTask.Receipt.Logs {
+	for _, log := range ethereumTask.Receipt.Logs {
+		// Ignore anonymous logs.
+		if len(log.Topics) == 0 {
+			continue
+		}
+
 		var (
 			actions []*schema.Action
 			err     error
@@ -83,7 +88,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 		switch {
 		case w.matchEthereumCurationTransaction(log):
-			actions, err = w.handleEthereumCurationTransaction(ctx, *mattersTask, *log, feed)
+			actions, err = w.handleEthereumCurationTransaction(ctx, *ethereumTask, *log, feed)
 		default:
 			continue
 		}

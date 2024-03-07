@@ -6,6 +6,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/engine"
+	"github.com/rss3-network/node/internal/engine/worker/contract/1inch"
 	"github.com/rss3-network/node/internal/engine/worker/contract/aave"
 	"github.com/rss3-network/node/internal/engine/worker/contract/aavegotchi"
 	"github.com/rss3-network/node/internal/engine/worker/contract/crossbell"
@@ -61,13 +62,15 @@ func New(config *config.Module, databaseClient database.Client) (engine.Worker, 
 	case filter.Aave:
 		return aave.NewWorker(config)
 	case filter.IQWiki:
-		return iqwiki.NewWorker()
+		return iqwiki.NewWorker(config)
 	case filter.Lido:
 		return lido.NewWorker(config)
 	case filter.Crossbell:
 		return crossbell.NewWorker(config)
 	case filter.ENS:
 		return ens.NewWorker(config, databaseClient)
+	case filter.Oneinch:
+		return oneinch.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}
