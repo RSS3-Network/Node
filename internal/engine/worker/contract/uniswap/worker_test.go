@@ -1703,12 +1703,15 @@ func TestWorker_Ethereum(t *testing.T) {
 				},
 			},
 			want: &schema.Feed{
-				ID:       "0xadbe6bce79d27659e22d9ccc730361a20b234a9df0e753a747ff6e33636e6844",
-				Network:  filter.NetworkRSS3Testnet,
-				Index:    1,
-				From:     "0xeB7E951F2D1A38188762dF12E0703aE16F76Ab73",
-				To:       uniswap.AddressV3SwapRouterRSS3Testnet.String(),
-				Type:     filter.TypeExchangeSwap,
+				ID:      "0xadbe6bce79d27659e22d9ccc730361a20b234a9df0e753a747ff6e33636e6844",
+				Network: filter.NetworkRSS3Testnet,
+				Index:   1,
+				From:    "0xeB7E951F2D1A38188762dF12E0703aE16F76Ab73",
+				To:      uniswap.AddressV3SwapRouterRSS3Testnet.String(),
+				Type:    filter.TypeExchangeSwap,
+				Calldata: &schema.Calldata{
+					FunctionHash: "0x414bf389",
+				},
 				Platform: lo.ToPtr(filter.PlatformUniswap),
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2890938546391362000")),
