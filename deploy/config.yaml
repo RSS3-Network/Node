@@ -177,3 +177,8 @@ component:
       worker: ens
       parameters:
         block_number_start:
+    - network: ethereum
+      worker: 1inch
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start: 12888350
