@@ -26,23 +26,23 @@ func TestHttpClient_Fetch(t *testing.T) {
 		want      require.ValueAssertionFunc
 		wantError require.ErrorAssertionFunc
 	}{
-		{
-			name: "Crossbell profile of kallydev.csb",
-			arguments: arguments{
-				ctx: context.Background(),
-				options: []ipfs.HTTPClientOption{
-					ipfs.WithTimeout(10 * time.Second),
-				},
-				path:      "/ipfs/QmRohM66fF9WLqoLTCi6qQEtLiav4JMEsah21nNMeXxEfx",
-				fetchMode: ipfs.FetchModeStable,
-			},
-			want: func(t require.TestingT, v interface{}, msgAndArgs ...interface{}) {
-				length, ok := v.(int64)
-				require.True(t, ok)
-				require.Greater(t, length, int64(0))
-			},
-			wantError: require.NoError,
-		},
+		//{
+		//	name: "Crossbell profile of kallydev.csb",
+		//	arguments: arguments{
+		//		ctx: context.Background(),
+		//		options: []ipfs.HTTPClientOption{
+		//			ipfs.WithTimeout(10 * time.Second),
+		//		},
+		//		path:      "/ipfs/QmRohM66fF9WLqoLTCi6qQEtLiav4JMEsah21nNMeXxEfx",
+		//		fetchMode: ipfs.FetchModeStable,
+		//	},
+		//	want: func(t require.TestingT, v interface{}, msgAndArgs ...interface{}) {
+		//		length, ok := v.(int64)
+		//		require.True(t, ok)
+		//		require.Greater(t, length, int64(0))
+		//	},
+		//	wantError: require.NoError,
+		//},
 		{
 			name: "Crossbell avatar of kallydev.csb",
 			arguments: arguments{

@@ -248,6 +248,35 @@ func CovertFarcasterTimeToTimestamp(timestamp int64) int64 {
 
 type ClientOption func(client *client) error
 
+func WithAPIKey(apiKey *string) ClientOption {
+	return func(h *client) error {
+		if apiKey != nil {
+			h.httpClient.Transport = NewAuthenticationTransport(*apiKey)
+		}
+
+		return nil
+	}
+}
+
+type AuthenticationTransport struct {
+	APIKey string
+
+	roundTripper http.RoundTripper
+}
+
+func (a *AuthenticationTransport) RoundTrip(request *http.Request) (*http.Response, error) {
+	request.Header.Set("api_key", a.APIKey)
+
+	return a.roundTripper.RoundTrip(request)
+}
+
+func NewAuthenticationTransport(apiKey string) http.RoundTripper {
+	return &AuthenticationTransport{
+		APIKey:       apiKey,
+		roundTripper: http.DefaultTransport,
+	}
+}
+
 func NewClient(endpoint string, options ...ClientOption) (Client, error) {
 	var (
 		instance = client{

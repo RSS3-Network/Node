@@ -94,6 +94,8 @@ component:
     - network: farcaster
       worker: farcaster
       endpoint: https://nemes.farcaster.xyz:2281
+      parameters:
+        api_key:
     # arweave
     - network: arweave
       worker: mirror
@@ -173,5 +175,20 @@ component:
     - network: ethereum
       endpoint: https://rpc.ankr.com/eth
       worker: ens
+      parameters:
+        block_number_start:
+    - network: ethereum
+      worker: 1inch
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start: 12888350
+    - network: rss3-testnet
+      endpoint: https://rpc.testnet.rss3.io
+      worker: fallback
+      parameters:
+        block_number_start:
+    - network: rss3-testnet
+      endpoint: https://rpc.testnet.rss3.io
+      worker: uniswap
       parameters:
         block_number_start:
