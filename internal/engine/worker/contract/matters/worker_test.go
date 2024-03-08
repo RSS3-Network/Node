@@ -134,12 +134,15 @@ func TestWorker_Matters(t *testing.T) {
 				},
 			},
 			want: &schema.Feed{
-				ID:       "0x406420c77151dd2779f647967aaee7b2ae25248bbb51b53de4d8912c904dbd34",
-				Network:  filter.NetworkPolygon,
-				Index:    41,
-				From:     "0x18Fb694EbAE03a78f038F54362592Dd89c0e300C",
-				To:       matters.AddressCuration.String(),
-				Type:     filter.TypeSocialReward,
+				ID:      "0x406420c77151dd2779f647967aaee7b2ae25248bbb51b53de4d8912c904dbd34",
+				Network: filter.NetworkPolygon,
+				Index:   41,
+				From:    "0x18Fb694EbAE03a78f038F54362592Dd89c0e300C",
+				To:      matters.AddressCuration.String(),
+				Type:    filter.TypeSocialReward,
+				Calldata: &schema.Calldata{
+					FunctionHash: "0xdbcdaf5b",
+				},
 				Tag:      filter.TagSocial,
 				Platform: lo.ToPtr(filter.PlatformMatters),
 				Fee: &schema.Fee{

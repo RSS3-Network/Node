@@ -16,12 +16,14 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc1155"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
+	"github.com/rss3-network/node/provider/ethereum/etherface"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -29,6 +31,7 @@ var _ engine.Worker = (*worker)(nil)
 type worker struct {
 	config          *config.Module
 	ethereumClient  ethereum.Client
+	etherfaceClient etherface.Client
 	tokenClient     token.Client
 	erc20Filterer   *erc20.ERC20Filterer
 	erc721Filterer  *erc721.ERC721Filterer
@@ -60,6 +63,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
 
+	if feed.Calldata.FunctionHash != "" {
+		// Lookup Function Name
+		functionName, err := w.etherfaceClient.Lookup(ctx, feed.Calldata.FunctionHash)
+		if err != nil {
+			zap.L().Warn("lookup function name", zap.Error(err))
+		}
+
+		feed.Calldata.ParsedFunction = functionName
+	}
 	// If the transaction is failed, we will not process it.
 	if w.matchFailedTransaction(ethereumTask) {
 		return feed, nil
@@ -462,7 +474,8 @@ func isInvalidTokenErr(err error) bool {
 
 func NewWorker(config *config.Module) (engine.Worker, error) {
 	var instance = worker{
-		config: config,
+		config:          config,
+		etherfaceClient: lo.Must(etherface.NewEtherfaceClient()),
 	}
 
 	var err error
