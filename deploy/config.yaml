@@ -182,3 +182,13 @@ component:
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start: 12888350
+    - network: rss3-testnet
+      endpoint: https://rpc.testnet.rss3.io
+      worker: fallback
+      parameters:
+        block_number_start:
+    - network: rss3-testnet
+      endpoint: https://rpc.testnet.rss3.io
+      worker: uniswap
+      parameters:
+        block_number_start:

@@ -78,6 +78,11 @@ var nativeTokenMap = map[uint64]metadata.Token{
 		Symbol:   "AVAX",
 		Decimals: 18,
 	},
+	uint64(filter.EthereumChainIDRSS3Testnet): {
+		Name:     "RSS3",
+		Symbol:   "RSS3",
+		Decimals: 18,
+	},
 }
 
 var _ Client = (*client)(nil)
