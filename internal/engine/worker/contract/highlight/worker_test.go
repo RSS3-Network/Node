@@ -147,12 +147,15 @@ func TestWorker_Ethereum(t *testing.T) {
 				},
 			},
 			want: &schema.Feed{
-				ID:       "0xe278e133786ec1714550361994ad314e6219196d8500eab67cd2df5000898c42",
-				Network:  filter.NetworkEthereum,
-				Index:    79,
-				From:     "0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF",
-				To:       "0x1bf979282181f2b7a640d17aB5D2e25125F2de5e",
-				Type:     filter.TypeCollectibleMint,
+				ID:      "0xe278e133786ec1714550361994ad314e6219196d8500eab67cd2df5000898c42",
+				Network: filter.NetworkEthereum,
+				Index:   79,
+				From:    "0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF",
+				To:      "0x1bf979282181f2b7a640d17aB5D2e25125F2de5e",
+				Type:    filter.TypeCollectibleMint,
+				Calldata: &schema.Calldata{
+					FunctionHash: "0x705dcf34",
+				},
 				Platform: lo.ToPtr(filter.PlatformHighlight),
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("8656626470208573")),

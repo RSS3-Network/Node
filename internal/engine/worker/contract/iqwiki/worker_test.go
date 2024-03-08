@@ -107,12 +107,15 @@ func TestWorker_Ethereum(t *testing.T) {
 				},
 			},
 			want: &schema.Feed{
-				ID:       "0x43dc470bbec2f3c585ac8f7a8340870b774a5be52ab9cf0836a8d534761be85e",
-				Network:  filter.NetworkPolygon,
-				Index:    0x10,
-				From:     "0x191a41c307373211D08613B68df4031977589069",
-				To:       "0xb8aA8CabfBa7eE3ccb218a9969AEF86DFf3b9d2D",
-				Type:     filter.TypeSocialPost,
+				ID:      "0x43dc470bbec2f3c585ac8f7a8340870b774a5be52ab9cf0836a8d534761be85e",
+				Network: filter.NetworkPolygon,
+				Index:   0x10,
+				From:    "0x191a41c307373211D08613B68df4031977589069",
+				To:      "0xb8aA8CabfBa7eE3ccb218a9969AEF86DFf3b9d2D",
+				Type:    filter.TypeSocialPost,
+				Calldata: &schema.Calldata{
+					FunctionHash: "0xed53ddb9",
+				},
 				Tag:      filter.TagSocial,
 				Platform: lo.ToPtr(filter.PlatformIQWiki),
 				Fee: &schema.Fee{
@@ -228,12 +231,15 @@ func TestWorker_Ethereum(t *testing.T) {
 				},
 			},
 			want: &schema.Feed{
-				ID:       "0x395a0ea73962d7f6e22cecc7d74c8f489a6707cc65f7cebdb39355bf01e8694a",
-				Network:  filter.NetworkPolygon,
-				Index:    0x3,
-				From:     "0x191a41c307373211D08613B68df4031977589069",
-				To:       "0xb8aA8CabfBa7eE3ccb218a9969AEF86DFf3b9d2D",
-				Type:     filter.TypeSocialRevise,
+				ID:      "0x395a0ea73962d7f6e22cecc7d74c8f489a6707cc65f7cebdb39355bf01e8694a",
+				Network: filter.NetworkPolygon,
+				Index:   0x3,
+				From:    "0x191a41c307373211D08613B68df4031977589069",
+				To:      "0xb8aA8CabfBa7eE3ccb218a9969AEF86DFf3b9d2D",
+				Type:    filter.TypeSocialRevise,
+				Calldata: &schema.Calldata{
+					FunctionHash: "0xed53ddb9",
+				},
 				Tag:      filter.TagSocial,
 				Platform: lo.ToPtr(filter.PlatformIQWiki),
 				Fee: &schema.Fee{
