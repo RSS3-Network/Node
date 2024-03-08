@@ -147,6 +147,9 @@ func TestWorker_Ethereum(t *testing.T) {
 				To:       "0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45",
 				Type:     filter.TypeCollectibleMint,
 				Platform: lo.ToPtr(filter.PlatformKiwiStand),
+				Calldata: &schema.Calldata{
+					FunctionHash: "0x45368181",
+				},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("42973612821323")),
 					Decimal: 18,
