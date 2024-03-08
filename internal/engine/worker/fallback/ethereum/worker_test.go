@@ -640,12 +640,13 @@ func TestWorker_Ethereum(t *testing.T) {
 				},
 			},
 			want: &schema.Feed{
-				ID:      "0xc5e737b19343d6777fea411243b1e501680ec466703ac339095575041e41c2d3",
-				Network: filter.NetworkRSS3Testnet,
-				Index:   1,
-				From:    "0x3B6D02A24Df681FFdf621D35D70ABa7adaAc07c1",
-				To:      "0xeB7E951F2D1A38188762dF12E0703aE16F76Ab73",
-				Type:    filter.TypeTransactionTransfer,
+				ID:       "0xc5e737b19343d6777fea411243b1e501680ec466703ac339095575041e41c2d3",
+				Network:  filter.NetworkRSS3Testnet,
+				Index:    1,
+				From:     "0x3B6D02A24Df681FFdf621D35D70ABa7adaAc07c1",
+				To:       "0xeB7E951F2D1A38188762dF12E0703aE16F76Ab73",
+				Type:     filter.TypeTransactionTransfer,
+				Calldata: &schema.Calldata{},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("31568554770000")),
 					Decimal: 18,
@@ -775,6 +776,10 @@ func TestWorker_Ethereum(t *testing.T) {
 				From:    "0xeB7E951F2D1A38188762dF12E0703aE16F76Ab73",
 				To:      "0xe8A7aAbb64B446505c7722c4347C6Cc67E0A9a8d",
 				Type:    filter.TypeTransactionTransfer,
+				Calldata: &schema.Calldata{
+					FunctionHash:   "0x414bf389",
+					ParsedFunction: "exactInputSingle",
+				},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2890938546391362000")),
 					Decimal: 18,
