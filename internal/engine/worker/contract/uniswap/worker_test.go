@@ -2,7 +2,6 @@ package uniswap_test
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 	"testing"
 
@@ -1970,7 +1969,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			feed, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
 
 			require.Equal(t, testcase.want, feed)
 		})
