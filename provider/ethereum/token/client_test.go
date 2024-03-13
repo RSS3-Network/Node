@@ -182,6 +182,33 @@ func TestEthereumClient(t *testing.T) {
 				URI:      "data:application/json;base64,eyJuYW1lIjogIktpd2kgUGFzcyA5NzkiLCAiZGVzY3JpcHRpb24iOiAiS2l3aSBQYXNzIG9wZW5zIHRoZSBkb29yIHRvIHRoZSBjb21tdW5pdHkgb2YgY3VyYXRvcnMgd2hvIHNoYXBlIHRoZSBLaXdpIGZlZWQuXG5cbkdvIHRvIGtpd2luZXdzLnh5eiBmb3IgeW91ciBkYWlseSBkb3NlIG9mIGtpd2kg8J+lnVxuXG5EbyBOT1QgYnV5IEtpd2kgUGFzc2VzIG9uIHRoZSBzZWNvbmRhcnkgbWFya2V0LiBUaGV5IHdpbGwgTk9UIHdvcmsuIiwgImltYWdlIjogImlwZnM6Ly9iYWZ5YmVpYzJhcmFqNWtvanVhZ2tqZXJ5aHF5Y2Y3dnZhZmczMmJjdzNsNXUzZ3Q2YXM0MmZseWEyeSIsICJwcm9wZXJ0aWVzIjogeyJudW1iZXIiOiA5NzksICJuYW1lIjogIktpd2kgUGFzcyJ9fQ==",
 			},
 		},
+		{
+			name: "RSS3 Token",
+			arguments: arguments{
+				network: filter.NetworkRSS3,
+				address: lo.ToPtr(common.HexToAddress("0x4200000000000000000000000000000000000042")),
+			},
+			want: metadata.Token{
+				Address:  lo.ToPtr("0x4200000000000000000000000000000000000042"),
+				Name:     "RSS3",
+				Symbol:   "RSS3",
+				Decimals: 18,
+				Standard: metadata.StandardERC20,
+			},
+		},
+		{
+			name: "RSS3 VSL Open Chips",
+			arguments: arguments{
+				network: filter.NetworkRSS3,
+				address: lo.ToPtr(common.HexToAddress("0x849f8F55078dCc69dD857b58Cc04631EBA54E4DE")),
+			},
+			want: metadata.Token{
+				Address:  lo.ToPtr("0x849f8F55078dCc69dD857b58Cc04631EBA54E4DE"),
+				Name:     "Open Chips",
+				Symbol:   "Chips",
+				Standard: metadata.StandardERC721,
+			},
+		},
 	}
 
 	for _, testcase := range testcases {
