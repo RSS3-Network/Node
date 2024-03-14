@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
@@ -716,7 +717,7 @@ func (w *worker) transformNonfungiblePositionManagerIncreaseLiquidityLog(ctx con
 		return nil, fmt.Errorf("load nonfungible position manager: %w", err)
 	}
 
-	positions, err := nonfungiblePositionManager.Positions(nil, event.TokenId)
+	positions, err := nonfungiblePositionManager.Positions(&bind.CallOpts{BlockNumber: log.BlockNumber}, event.TokenId)
 	if err != nil {
 		return nil, fmt.Errorf("get positions from nonfungible position manager: %w", err)
 	}
@@ -760,7 +761,7 @@ func (w *worker) transformNonfungiblePositionManagerDecreaseLiquidityLog(ctx con
 		return nil, fmt.Errorf("load nonfungible position manager: %w", err)
 	}
 
-	positions, err := nonfungiblePositionManager.Positions(nil, event.TokenId)
+	positions, err := nonfungiblePositionManager.Positions(&bind.CallOpts{BlockNumber: log.BlockNumber}, event.TokenId)
 	if err != nil {
 		return nil, fmt.Errorf("get positions from nonfungible position manager: %w", err)
 	}
@@ -804,7 +805,7 @@ func (w *worker) transformNonfungiblePositionManagerCollectLog(ctx context.Conte
 		return nil, fmt.Errorf("load nonfungible position manager: %w", err)
 	}
 
-	positions, err := nonfungiblePositionManager.Positions(nil, event.TokenId)
+	positions, err := nonfungiblePositionManager.Positions(&bind.CallOpts{BlockNumber: log.BlockNumber}, event.TokenId)
 	if err != nil {
 		return nil, fmt.Errorf("get positions from nonfungible position manager: %w", err)
 	}
@@ -853,7 +854,6 @@ func (w *worker) transformNonfungiblePositionManagerTransferLog(ctx context.Cont
 func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task, sender, receipt common.Address, tokenIn, tokenOut *common.Address, amountIn, amountOut *big.Int) (*schema.Action, error) {
 	tokenInMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenIn, nil, task.Header.Number)
 	if err != nil {
-		fmt.Printf("lookup token metadata %s: %s", tokenIn, err)
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenIn, err)
 	}
 
