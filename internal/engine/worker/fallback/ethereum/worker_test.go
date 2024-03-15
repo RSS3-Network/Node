@@ -931,7 +931,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Transfer RSS3 on RSS3 Mainnet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkRSS3,
+					Network: filter.NetworkVSL,
 					ChainID: 12553,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xa77316fd6775123ef7eb4edaa8dd9604227b62c6ea2970fd813ebd38deff3ed7"),
@@ -975,13 +975,13 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkRSS3,
-					Endpoint: endpoint.MustGet(filter.NetworkRSS3),
+					Network:  filter.NetworkVSL,
+					Endpoint: endpoint.MustGet(filter.NetworkVSL),
 				},
 			},
 			want: &schema.Feed{
 				ID:       "0xa2e19137d6164d8a73e031c6ad34dd44f4c6244996e5250485e4c4dbb08e6d06",
-				Network:  filter.NetworkRSS3,
+				Network:  filter.NetworkVSL,
 				Index:    1,
 				From:     "0x27005E931Ea9ff482a3e5deb4c6eFa980305d74a",
 				To:       "0xDBEe696fA4398649DFD6a6B9F474B7Dfd4CAA7e0",
@@ -1013,7 +1013,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Transfer WETH tokens on RSS3 Mainnet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkRSS3,
+					Network: filter.NetworkVSL,
 					ChainID: 12553,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x94150fd1dff8f4353e66e81f48a3e03c2f341d03bd1c3297f30e96b27ed73954"),
@@ -1069,13 +1069,13 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkRSS3,
-					Endpoint: endpoint.MustGet(filter.NetworkRSS3),
+					Network:  filter.NetworkVSL,
+					Endpoint: endpoint.MustGet(filter.NetworkVSL),
 				},
 			},
 			want: &schema.Feed{
 				ID:      "0xdfd0b84e7a7e076f97f69e5027117edc7bc34f849165d9b2adc95f7cae44455b",
-				Network: filter.NetworkRSS3,
+				Network: filter.NetworkVSL,
 				Index:   1,
 				From:    "0xF209b7Bbadf8d9518a822aEaa7119B38b17377A7",
 				To:      "0xB659A97D8ae3c43E91Eafe5dba110a7e799157c4",
@@ -1112,7 +1112,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Mint Open Chips tokens on Ethereum",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkRSS3,
+					Network: filter.NetworkVSL,
 					ChainID: 12553,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xc358a8dc0da6cac588e5a98b805d60cd5d2746eced7606cb153155fccd6ea460"),
@@ -1182,13 +1182,13 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkRSS3,
-					Endpoint: endpoint.MustGet(filter.NetworkRSS3),
+					Network:  filter.NetworkVSL,
+					Endpoint: endpoint.MustGet(filter.NetworkVSL),
 				},
 			},
 			want: &schema.Feed{
 				ID:      "0x26fbdff8a7af1a1917b6dd8a54c636151cb7186a6b3c3a5922df3a98edda54a8",
-				Network: filter.NetworkRSS3,
+				Network: filter.NetworkVSL,
 				Index:   1,
 				From:    "0x30286DD245338292F319809935a1037CcD4573Ea",
 				To:      "0x28F14d917fddbA0c1f2923C406952478DfDA5578",

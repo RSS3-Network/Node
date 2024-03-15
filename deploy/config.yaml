@@ -192,3 +192,13 @@ component:
       worker: uniswap
       parameters:
         block_number_start:
+    - network: vsl
+      endpoint: https://rpc.rss3.io
+      worker: fallback
+      parameters:
+        block_number_start:
+    - network: vsl
+      endpoint: https://rpc.rss3.io
+      worker: rss3
+      parameters:
+        block_number_start:

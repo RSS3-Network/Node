@@ -29,5 +29,6 @@ var (
 	EventHashRewardsClaimed   = contract.EventHash("RewardsClaimed(address,address,uint256)")
 
 	EventHashStakingVSLDeposited = contract.EventHash("Deposited(address,uint256)")
-	EventHashStakedVSLStaked     = contract.EventHash("Staked(address,address,uint256,uint256,uint256)")
+	EventHashStakingVSLStaked    = contract.EventHash("Staked(address,address,uint256,uint256,uint256)")
+	EventHashTransfer            = contract.EventHash("Transfer(address,address,uint256)")
 )
