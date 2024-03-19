@@ -128,7 +128,8 @@ func (w *worker) matchSwapTransaction(task *source.Task, transaction *ethereum.T
 		return true
 	case // Uniswap V2
 		uniswap.AddressV2SwapRouter01,
-		uniswap.AddressV2SwapRouter02:
+		uniswap.AddressV2SwapRouter02,
+		uniswap.AddressV2SwapRouterSAVM:
 		return lo.ContainsBy(task.Receipt.Logs, func(log *ethereum.Log) bool {
 			if len(log.Topics) == 0 {
 				return false
@@ -165,6 +166,7 @@ func (w *worker) matchLiquidityTransaction(task *source.Task, transaction *ether
 	case // Uniswap V2
 		uniswap.AddressV2SwapRouter01,
 		uniswap.AddressV2SwapRouter02,
+		uniswap.AddressV2SwapRouterSAVM,
 		uniswap.AddressV2Migrator:
 		return lo.ContainsBy(task.Receipt.Logs, func(item *ethereum.Log) bool {
 			if len(item.Topics) == 0 {
