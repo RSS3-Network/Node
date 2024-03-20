@@ -41,6 +41,7 @@ var (
 	AddressUniversalRouter                       = common.HexToAddress("0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B")
 	AddressNonfungiblePositionManager            = common.HexToAddress("0xC36442b4a4522E871399CD717aBDD847Ab11FE88")
 	AddressNonfungiblePositionManagerRSS3Testnet = common.HexToAddress("0x0F1d392Fc4a2652dc8224E0BB919643AB3d67370")
+	AddressV2SwapRouterSAVM                      = common.HexToAddress("0xC7c934E224e8567df50058A907904b451bD1c57D")
 
 	EventHashV1ExchangeTokenPurchase                     = contract.EventHash("TokenPurchase(address,uint256,uint256)")
 	EventHashV1ExchangeEthPurchase                       = contract.EventHash("EthPurchase(address,uint256,uint256)")
