@@ -1,0 +1,83 @@
+[
+        {
+            "inputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "dstChainId",
+                    "type": "uint32"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "dstRecipient",
+                    "type": "address"
+                },
+                {
+                    "internalType": "bytes",
+                    "name": "customData",
+                    "type": "bytes"
+                }
+            ],
+            "name": "bridgeOut",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "txUniqueIdentification",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "payable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "bridgeToken",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "dstChainId",
+                    "type": "uint32"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "dstRecipient",
+                    "type": "address"
+                },
+                {
+                    "internalType": "bytes",
+                    "name": "customData",
+                    "type": "bytes"
+                }
+            ],
+            "name": "getBridgeFee",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "fee",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ]

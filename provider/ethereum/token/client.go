@@ -88,6 +88,11 @@ var nativeTokenMap = map[uint64]metadata.Token{
 		Symbol:   "RSS3",
 		Decimals: 18,
 	},
+	uint64(filter.EthereumChainIDSatoshiVM): {
+		Name:     "BTC",
+		Symbol:   "BTC",
+		Decimals: 8,
+	},
 }
 
 var _ Client = (*client)(nil)
