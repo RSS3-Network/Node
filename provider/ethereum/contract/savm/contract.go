@@ -18,4 +18,5 @@ var (
 
 	EventHashBTCBridgeDeposit  = contract.EventHash("Deposit(bytes32,uint256,address)")
 	EventHashBTCBridgeWithdraw = contract.EventHash("Withdraw(bytes32,uint256,address)")
+	EventHashSAVMTransfer      = contract.EventHash("Transfer(address,address,uint256)")
 )

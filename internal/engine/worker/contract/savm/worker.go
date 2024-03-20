@@ -10,6 +10,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
+	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/contract/savm"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/protocol-go/schema"
@@ -28,6 +29,7 @@ type worker struct {
 	tokenClient                token.Client
 	contractSAVMBridgeFilterer *savm.SAVMBridgeFilterer
 	contractBTCBridgeFilterer  *savm.BTCBridgeFilterer
+	erc20Filterer              *erc20.ERC20Filterer
 }
 
 func (w *worker) Name() string {
@@ -78,6 +80,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			actions, err = w.transformBTCBridgeWithdrawLog(ctx, ethereumTask, log)
 		case w.matchBTCBridgeDepositLog(ethereumTask, log):
 			actions, err = w.transformBTCBridgeDepositLog(ctx, ethereumTask, log)
+		case w.matchSAVMTransferLog(ethereumTask, log):
+			actions, err = w.transformSAVMBridgeLog(ctx, ethereumTask, log)
 		default:
 			zap.L().Warn("unsupported log", zap.String("task", task.ID()), zap.Uint("topic.index", log.Index))
 
@@ -105,10 +109,14 @@ func (w *worker) matchBTCBridgeDepositLog(_ *source.Task, log *ethereum.Log) boo
 	return log.Address == savm.AddressBTCBridge && log.Topics[0] == savm.EventHashBTCBridgeDeposit
 }
 
+func (w *worker) matchSAVMTransferLog(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == savm.AddressSAVMToken && log.Topics[0] == savm.EventHashSAVMTransfer
+}
+
 func (w *worker) transformBTCBridgeWithdrawLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.contractBTCBridgeFilterer.ParseWithdraw(log.Export())
 	if err != nil {
-		return nil, fmt.Errorf("parse Deposit event: %w", err)
+		return nil, fmt.Errorf("parse Withdraw event: %w", err)
 	}
 
 	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.Sender, event.Sender, filter.NetworkSatoshiVM, filter.NetworkBTC, metadata.ActionTransactionBridgeWithdraw, nil, event.NormalizedAmount, log.BlockNumber)
@@ -136,6 +144,27 @@ func (w *worker) transformBTCBridgeDepositLog(ctx context.Context, task *source.
 
 	actions := []*schema.Action{
 		action,
+	}
+
+	return actions, nil
+}
+
+func (w *worker) transformSAVMBridgeLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.erc20Filterer.ParseTransfer(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Withdraw event: %w", err)
+	}
+
+	var actions []*schema.Action
+
+	switch event.To {
+	case savm.AddressSAVMBridge:
+		action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.From, event.From, filter.NetworkSatoshiVM, filter.NetworkEthereum, metadata.ActionTransactionBridgeWithdraw, &savm.AddressSAVMToken, event.Value, log.BlockNumber)
+		if err != nil {
+			return nil, fmt.Errorf("build transaction bridge action: %w", err)
+		}
+
+		actions = append(actions, action)
 	}
 
 	return actions, nil
@@ -183,6 +212,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	// Initialize SAVM contract filterers.
 	instance.contractSAVMBridgeFilterer = lo.Must(savm.NewSAVMBridgeFilterer(ethereum.AddressGenesis, nil))
 	instance.contractBTCBridgeFilterer = lo.Must(savm.NewBTCBridgeFilterer(ethereum.AddressGenesis, nil))
+	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
 
 	return &instance, nil
 }
