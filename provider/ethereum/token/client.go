@@ -83,7 +83,7 @@ var nativeTokenMap = map[uint64]metadata.Token{
 		Symbol:   "RSS3",
 		Decimals: 18,
 	},
-	uint64(filter.EthereumChainIDRSS3): {
+	uint64(filter.EthereumChainIDVSL): {
 		Name:     "RSS3",
 		Symbol:   "RSS3",
 		Decimals: 18,
