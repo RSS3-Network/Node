@@ -202,3 +202,18 @@ component:
       worker: rss3
       parameters:
         block_number_start:
+    - network: savm
+      endpoint: https://alpha-rpc-node-http.svmscan.io
+      worker: fallback
+      parameters:
+        block_number_start:
+    - network: savm
+      endpoint: https://alpha-rpc-node-http.svmscan.io
+      worker: uniswap
+      parameters:
+        block_number_start:
+    - network: savm
+      endpoint: https://alpha-rpc-node-http.svmscan.io
+      worker: savm
+      parameters:
+        block_number_start:
