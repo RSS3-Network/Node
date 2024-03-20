@@ -50,7 +50,7 @@ var endpointsMap = map[filter.Network][]string{
 	},
 	filter.NetworkRSS3Testnet: {
 		"https://rpc.testnet.rss3.io",
-	}, filter.NetworkRSS3: {
+	}, filter.NetworkVSL: {
 		"https://rpc.rss3.io",
 	},
 }

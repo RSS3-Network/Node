@@ -185,7 +185,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "RSS3 Token",
 			arguments: arguments{
-				network: filter.NetworkRSS3,
+				network: filter.NetworkVSL,
 				address: lo.ToPtr(common.HexToAddress("0x4200000000000000000000000000000000000042")),
 			},
 			want: metadata.Token{
@@ -199,7 +199,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "RSS3 VSL Open Chips",
 			arguments: arguments{
-				network: filter.NetworkRSS3,
+				network: filter.NetworkVSL,
 				address: lo.ToPtr(common.HexToAddress("0x849f8F55078dCc69dD857b58Cc04631EBA54E4DE")),
 			},
 			want: metadata.Token{
