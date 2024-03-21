@@ -187,6 +187,11 @@ component:
       worker: fallback
       parameters:
         block_number_start:
+    - network: optimism
+      endpoint: https://rpc.ankr.com/optimism
+      worker: kiwistand
+      parameters:
+        block_number_start:
     - network: rss3-testnet
       endpoint: https://rpc.testnet.rss3.io
       worker: uniswap
@@ -207,3 +212,11 @@ component:
       worker: savm
       parameters:
         block_number_start:
+    - network: vsl
+      endpoint: https://rpc.rss3.io
+      worker: fallback
+      parameters:
+        block_number_start:
+    - network: vsl
+      endpoint: https://rpc.rss3.io
+      worker: rss3

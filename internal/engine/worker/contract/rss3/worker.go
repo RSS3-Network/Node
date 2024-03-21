@@ -24,10 +24,12 @@ import (
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
-	config          *config.Module
-	ethereumClient  ethereum.Client
-	tokenClient     token.Client
-	stakingFilterer *rss3.StakingFilterer
+	config             *config.Module
+	ethereumClient     ethereum.Client
+	tokenClient        token.Client
+	stakingFilterer    *rss3.StakingFilterer
+	stakingVSLFilterer *rss3.StakingVSLFilterer
+	chipsFilterer      *rss3.ChipsFilterer
 }
 
 func (w *worker) Name() string {
@@ -37,26 +39,33 @@ func (w *worker) Name() string {
 func (w *worker) Filter() engine.SourceFilter {
 	return &source.Filter{
 		LogAddresses: []common.Address{
+			// Ethereum Mainnet
 			rss3.AddressStaking,
+
+			// RSS3 VSL Mainnet
+			rss3.AddressStakingVSL,
+			rss3.AddressChipsVSL,
+			rss3.AddressSettlementVSL,
 		},
 		LogTopics: []common.Hash{
+			// Ethereum Mainnet
 			rss3.EventHashStakingDeposited,
 			rss3.EventHashStakingWithdrawn,
 			rss3.EventHashRewardsClaimed,
+
+			// RSS3 VSL Mainnet
+			rss3.EventHashStakingVSLDeposited,
+			rss3.EventHashStakingVSLStaked,
 		},
 	}
 }
 
+// Match checks if the task is a RSS3 task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	switch task.GetNetwork() {
-	case filter.NetworkEthereum:
-		task := task.(*source.Task)
-		return task.Transaction.To != nil && *task.Transaction.To == rss3.AddressStaking, nil
-	default:
-		return false, nil
-	}
+	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
 }
 
+// Transform Ethereum task to feed.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
@@ -81,12 +90,21 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		)
 
 		switch {
+		// Ethereum Mainnet
 		case w.matchStakingDeposited(ethereumTask, log):
 			actions, err = w.transformStakingDeposited(ctx, ethereumTask, log)
 		case w.matchStakingWithdrawn(ethereumTask, log):
 			actions, err = w.transformStakingWithdrawn(ctx, ethereumTask, log)
 		case w.matchStakingRewardsClaimed(ethereumTask, log):
 			actions, err = w.transformStakingRewardsClaimed(ctx, ethereumTask, log)
+
+		//	RSS3 VSL Mainnet
+		case w.matchStakingVSLDeposited(ethereumTask, log):
+			actions, err = w.transformStakingVSLDeposited(ctx, ethereumTask, log)
+		case w.matchStakingVSLStaked(ethereumTask, log):
+			actions, err = w.transformStakingVSLStaked(ctx, ethereumTask, log)
+		case w.matchTransfer(ethereumTask, log):
+			actions, err = w.transformChipsMint(ctx, ethereumTask, log)
 		default:
 			continue
 		}
@@ -106,18 +124,37 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	return feed, nil
 }
 
+// matchStakingDeposited matches the staking deposited event.
 func (w *worker) matchStakingDeposited(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == rss3.AddressStaking && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], rss3.EventHashStakingDeposited)
 }
 
+// matchStakingWithdrawn matches the staking withdrawn event.
 func (w *worker) matchStakingWithdrawn(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == rss3.AddressStaking && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], rss3.EventHashStakingWithdrawn)
 }
 
+// matchStakingRewardsClaimed matches the staking rewards claimed event.
 func (w *worker) matchStakingRewardsClaimed(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == rss3.AddressStaking && len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], rss3.EventHashRewardsClaimed)
 }
 
+// matchStakingVSLDeposited matches the staking VSL deposited event.
+func (w *worker) matchStakingVSLDeposited(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == rss3.AddressStakingVSL && contract.MatchEventHashes(log.Topics[0], rss3.EventHashStakingVSLDeposited)
+}
+
+// matchStakingVSLStaked matches the staking VSL staked event.
+func (w *worker) matchStakingVSLStaked(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == rss3.AddressStakingVSL && contract.MatchEventHashes(log.Topics[0], rss3.EventHashStakingVSLStaked)
+}
+
+// matchTransfer matches the transfer event.
+func (w *worker) matchTransfer(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == rss3.AddressChipsVSL && contract.MatchEventHashes(log.Topics[0], rss3.EventHashTransfer)
+}
+
+// transformStakingDeposited transforms the staking deposited event.
 func (w *worker) transformStakingDeposited(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.stakingFilterer.ParseDeposited(log.Export())
 	if err != nil {
@@ -141,6 +178,7 @@ func (w *worker) transformStakingDeposited(ctx context.Context, task *source.Tas
 	return actions, nil
 }
 
+// transformStakingWithdrawn transforms the staking withdrawn event.
 func (w *worker) transformStakingWithdrawn(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.stakingFilterer.ParseWithdrawn(log.Export())
 	if err != nil {
@@ -159,6 +197,7 @@ func (w *worker) transformStakingWithdrawn(ctx context.Context, task *source.Tas
 	return actions, nil
 }
 
+// transformStakingRewardsClaimed transforms the staking rewards claimed event.
 func (w *worker) transformStakingRewardsClaimed(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.stakingFilterer.ParseRewardsClaimed(log.Export())
 	if err != nil {
@@ -177,6 +216,63 @@ func (w *worker) transformStakingRewardsClaimed(ctx context.Context, task *sourc
 	return actions, nil
 }
 
+// transformStakingVSLDeposited transforms the staking VSL deposited event.
+func (w *worker) transformStakingVSLDeposited(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.stakingVSLFilterer.ParseDeposited(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Deposited event: %w", err)
+	}
+
+	action, err := w.buildExchangeStakingVSLAction(ctx, task, task.Transaction.From, event.NodeAddr, event.Amount, metadata.ActionExchangeStakingStake)
+	if err != nil {
+		return nil, fmt.Errorf("build exchange staking action: %w", err)
+	}
+
+	actions := []*schema.Action{
+		action,
+	}
+
+	return actions, nil
+}
+
+// transformStakingVSLStaked transforms the staking VSL staked event.
+func (w *worker) transformStakingVSLStaked(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	event, err := w.stakingVSLFilterer.ParseStaked(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Deposited event: %w", err)
+	}
+
+	stakingAction, err := w.buildExchangeStakingVSLAction(ctx, task, task.Transaction.From, event.NodeAddr, event.Amount, metadata.ActionExchangeStakingStake)
+	if err != nil {
+		return nil, fmt.Errorf("build exchange staking action: %w", err)
+	}
+
+	actions := []*schema.Action{
+		stakingAction,
+	}
+
+	return actions, nil
+}
+
+// transformChipsMint transforms the transfer event.
+func (w *worker) transformChipsMint(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+	// Parse Transfer event.
+	event, err := w.chipsFilterer.ParseTransfer(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Transfer event: %w", err)
+	}
+
+	action, err := w.buildChipsMintAction(ctx, task, event.From, event.To, log.Address, event.TokenId, big.NewInt(1))
+	if err != nil {
+		return nil, fmt.Errorf("build ChipsMint action: %w", err)
+	}
+
+	return []*schema.Action{
+		action,
+	}, nil
+}
+
+// buildExchangeStakingAction builds the exchange staking action.
 func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Task, from, to common.Address, tokenValue *big.Int, stakingAction metadata.ExchangeStakingAction, period *metadata.ExchangeStakingPeriod) (*schema.Action, error) {
 	// The Token always is $RSS3.
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &rss3.AddressToken, nil, task.Header.Number)
@@ -201,6 +297,48 @@ func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Ta
 	return &action, nil
 }
 
+// buildExchangeStakingVSLAction builds the exchange staking VSL action.
+func (w *worker) buildExchangeStakingVSLAction(ctx context.Context, task *source.Task, from, to common.Address, tokenValue *big.Int, stakingAction metadata.ExchangeStakingAction) (*schema.Action, error) {
+	// The Token always is $RSS3.
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, nil, nil, task.Header.Number)
+	if err != nil {
+		return nil, fmt.Errorf("lookup token: %w", err)
+	}
+
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+
+	action := schema.Action{
+		Type:     filter.TypeExchangeStaking,
+		Platform: filter.PlatformRSS3.String(),
+		From:     from.String(),
+		To:       to.String(),
+		Metadata: metadata.ExchangeStaking{
+			Action: stakingAction,
+			Token:  *tokenMetadata,
+		},
+	}
+
+	return &action, nil
+}
+
+// buildChipsMintAction builds the ChipsMint action.
+func (w *worker) buildChipsMintAction(ctx context.Context, task *source.Task, from, to common.Address, contract common.Address, id *big.Int, value *big.Int) (*schema.Action, error) {
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &contract, id, task.Header.Number)
+	if err != nil {
+		return nil, fmt.Errorf("lookup token metadata: %w", err)
+	}
+
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
+
+	return &schema.Action{
+		Type:     filter.TypeCollectibleMint,
+		Platform: filter.PlatformRSS3.String(),
+		From:     from.String(),
+		To:       to.String(),
+		Metadata: metadata.CollectibleTransfer(*tokenMetadata),
+	}, nil
+}
+
 // NewWorker creates a new RSS3 worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
 	var (
@@ -218,6 +356,12 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 
 	// Initialize RSS3 staking filterer.
 	instance.stakingFilterer = lo.Must(rss3.NewStakingFilterer(ethereum.AddressGenesis, nil))
+
+	// Initialize RSS3 VSL staking filterer.
+	instance.stakingVSLFilterer = lo.Must(rss3.NewStakingVSLFilterer(ethereum.AddressGenesis, nil))
+
+	// Initialize RSS3 VSL chips filterer.
+	instance.chipsFilterer = lo.Must(rss3.NewChipsFilterer(ethereum.AddressGenesis, nil))
 
 	return &instance, nil
 }
