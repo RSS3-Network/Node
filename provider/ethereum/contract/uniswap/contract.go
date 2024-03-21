@@ -34,6 +34,7 @@ var (
 	AddressV3SwapRouter02Celo                    = common.HexToAddress("0x5615CDAb10dc425a742d643d949a7F474C01abc4")
 	AddressV3SwapRouter02BinanceSmartChain       = common.HexToAddress("0xB971eF87ede563556b2ED4b1C0b0019111Dd85d2")
 	AddressV2Factory                             = common.HexToAddress("0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f")
+	AddressV2FactorySAVM                         = common.HexToAddress("0x1842c9bD09bCba88b58776c7995A9A9bD220A925")
 	AddressV3Factory                             = common.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
 	AddressV3FactoryCelo                         = common.HexToAddress("0xAfE208a311B21f13EF87E33A90049fC17A7acDEc")
 	AddressV3FactoryBinanceSmartChain            = common.HexToAddress("0xdB1d10011AD0Ff90774D0C6Bb92e5C5c8b4461F7")
@@ -41,6 +42,7 @@ var (
 	AddressUniversalRouter                       = common.HexToAddress("0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B")
 	AddressNonfungiblePositionManager            = common.HexToAddress("0xC36442b4a4522E871399CD717aBDD847Ab11FE88")
 	AddressNonfungiblePositionManagerRSS3Testnet = common.HexToAddress("0x0F1d392Fc4a2652dc8224E0BB919643AB3d67370")
+	AddressV2SwapRouterSAVM                      = common.HexToAddress("0xC7c934E224e8567df50058A907904b451bD1c57D")
 
 	EventHashV1ExchangeTokenPurchase                     = contract.EventHash("TokenPurchase(address,uint256,uint256)")
 	EventHashV1ExchangeEthPurchase                       = contract.EventHash("EthPurchase(address,uint256,uint256)")
