@@ -34,6 +34,7 @@ var (
 	AddressV3SwapRouter02Celo                    = common.HexToAddress("0x5615CDAb10dc425a742d643d949a7F474C01abc4")
 	AddressV3SwapRouter02BinanceSmartChain       = common.HexToAddress("0xB971eF87ede563556b2ED4b1C0b0019111Dd85d2")
 	AddressV2Factory                             = common.HexToAddress("0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f")
+	AddressV2FactorySAVM                         = common.HexToAddress("0x1842c9bD09bCba88b58776c7995A9A9bD220A925")
 	AddressV3Factory                             = common.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
 	AddressV3FactoryCelo                         = common.HexToAddress("0xAfE208a311B21f13EF87E33A90049fC17A7acDEc")
 	AddressV3FactoryBinanceSmartChain            = common.HexToAddress("0xdB1d10011AD0Ff90774D0C6Bb92e5C5c8b4461F7")

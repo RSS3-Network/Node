@@ -525,7 +525,12 @@ func (w *worker) transformV2PairMintLog(ctx context.Context, task *source.Task, 
 		return nil, fmt.Errorf("get token 1 from pair: %w", err)
 	}
 
-	factory, err := uniswap.NewV2FactoryCaller(uniswap.AddressV2Factory, w.ethereumClient)
+	factoryAddress, err := w.getV2FactoryAddress(task.Network)
+	if err != nil {
+		return nil, fmt.Errorf("get factory address: %w", err)
+	}
+
+	factory, err := uniswap.NewV2FactoryCaller(factoryAddress, w.ethereumClient)
 	if err != nil {
 		return nil, fmt.Errorf("load factory: %w", err)
 	}
@@ -583,7 +588,12 @@ func (w *worker) transformV2PairBurnLog(ctx context.Context, task *source.Task, 
 		return nil, fmt.Errorf("get token 1 from pair: %w", err)
 	}
 
-	factory, err := uniswap.NewV2FactoryCaller(uniswap.AddressV2Factory, w.ethereumClient)
+	factoryAddress, err := w.getV2FactoryAddress(task.Network)
+	if err != nil {
+		return nil, fmt.Errorf("get factory address: %w", err)
+	}
+
+	factory, err := uniswap.NewV2FactoryCaller(factoryAddress, w.ethereumClient)
 	if err != nil {
 		return nil, fmt.Errorf("load factory: %w", err)
 	}
@@ -996,6 +1006,17 @@ func (w *worker) getV3FactoryAddress(network filter.Network) (common.Address, er
 		return uniswap.AddressV3Factory, nil
 	case filter.NetworkRSS3Testnet:
 		return uniswap.AddressV3FactoryRSS3Testnet, nil
+	default:
+		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", network)
+	}
+}
+
+func (w *worker) getV2FactoryAddress(network filter.Network) (common.Address, error) {
+	switch network {
+	case filter.NetworkEthereum:
+		return uniswap.AddressV2Factory, nil
+	case filter.NetworkSatoshiVM:
+		return uniswap.AddressV2FactorySAVM, nil
 	default:
 		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", network)
 	}
