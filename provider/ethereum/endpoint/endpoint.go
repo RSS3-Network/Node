@@ -50,8 +50,12 @@ var endpointsMap = map[filter.Network][]string{
 	},
 	filter.NetworkRSS3Testnet: {
 		"https://rpc.testnet.rss3.io",
-	}, filter.NetworkVSL: {
+	},
+	filter.NetworkVSL: {
 		"https://rpc.rss3.io",
+	},
+	filter.NetworkSatoshiVM: {
+		"https://alpha-rpc-node-http.svmscan.io",
 	},
 }
 

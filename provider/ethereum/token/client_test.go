@@ -209,6 +209,34 @@ func TestEthereumClient(t *testing.T) {
 				Standard: metadata.StandardERC721,
 			},
 		},
+		{
+			name: "SAVM Token",
+			arguments: arguments{
+				network: filter.NetworkSatoshiVM,
+				address: lo.ToPtr(common.HexToAddress("0x0E02765992f946397E6d2e65642eABb9cc674928")),
+			},
+			want: metadata.Token{
+				Address:  lo.ToPtr("0x0E02765992f946397E6d2e65642eABb9cc674928"),
+				Name:     "SatoshiVM",
+				Symbol:   "SAVM",
+				Decimals: 18,
+				Standard: metadata.StandardERC20,
+			},
+		},
+		{
+			name: "SAVM WBTC",
+			arguments: arguments{
+				network: filter.NetworkSatoshiVM,
+				address: lo.ToPtr(common.HexToAddress("0x5db252ead05C54B08A83414adCAbF46Eaa9E0337")),
+			},
+			want: metadata.Token{
+				Address:  lo.ToPtr("0x5db252ead05C54B08A83414adCAbF46Eaa9E0337"),
+				Name:     "Wrapped BTC",
+				Symbol:   "WBTC",
+				Decimals: 18,
+				Standard: metadata.StandardERC20,
+			},
+		},
 	}
 
 	for _, testcase := range testcases {
