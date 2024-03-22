@@ -109,7 +109,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 
 		// handle crossbell, fantom and arbitrum blockchain cause lack of `eth_getBlockReceipts` implementation
 		switch s.config.Network {
-		case filter.NetworkCrossbell, filter.NetworkFantom, filter.NetworkArbitrum:
+		case filter.NetworkCrossbell, filter.NetworkFantom, filter.NetworkArbitrum, filter.NetworkSatoshiVM:
 			receipts, err = s.getBlockReceipts(ctx, block)
 			if err != nil {
 				return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
@@ -208,7 +208,7 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 
 			// handle crossbell, fantom and arbitrum blockchain cause lack of `eth_getBlockReceipts` implementation
 			switch s.config.Network {
-			case filter.NetworkCrossbell, filter.NetworkFantom, filter.NetworkArbitrum:
+			case filter.NetworkCrossbell, filter.NetworkFantom, filter.NetworkArbitrum, filter.NetworkSatoshiVM:
 				receipts, err = s.getBlockReceipts(ctx, block)
 				if err != nil {
 					return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
