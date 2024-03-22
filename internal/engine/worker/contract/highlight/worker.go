@@ -49,8 +49,6 @@ func (w *worker) Filter() engine.SourceFilter {
 		hightlightAddress = highlight.AddressMintManagerOptimism
 	case filter.NetworkArbitrum:
 		hightlightAddress = highlight.AddressMintManagerArbitrum
-	case filter.NetworkFantom:
-		hightlightAddress = highlight.AddressMintManagerBase
 	default:
 		hightlightAddress = highlight.AddressMintManagerMainnet
 	}

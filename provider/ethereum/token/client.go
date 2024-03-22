@@ -58,11 +58,6 @@ var nativeTokenMap = map[uint64]metadata.Token{
 		Symbol:   "ETH",
 		Decimals: 18,
 	},
-	uint64(filter.EthereumChainIDFantom): {
-		Name:     "Fantom",
-		Symbol:   "FTM",
-		Decimals: 18,
-	},
 	uint64(filter.EthereumChainIDCrossbell): {
 		Name:     "CSB",
 		Symbol:   "CSB",
@@ -78,11 +73,6 @@ var nativeTokenMap = map[uint64]metadata.Token{
 		Symbol:   "AVAX",
 		Decimals: 18,
 	},
-	uint64(filter.EthereumChainIDRSS3Testnet): {
-		Name:     "RSS3",
-		Symbol:   "RSS3",
-		Decimals: 18,
-	},
 	uint64(filter.EthereumChainIDVSL): {
 		Name:     "RSS3",
 		Symbol:   "RSS3",
@@ -92,6 +82,21 @@ var nativeTokenMap = map[uint64]metadata.Token{
 		Name:     "BTC",
 		Symbol:   "BTC",
 		Decimals: 8,
+	},
+	uint64(filter.EthereumChainIDBinanceSmartChain): {
+		Name:     "BNB",
+		Symbol:   "BNB",
+		Decimals: 18,
+	},
+	uint64(filter.EthereumChainIDGnosis): {
+		Name:     "xDAI",
+		Symbol:   "xDAI",
+		Decimals: 18,
+	},
+	uint64(filter.EthereumChainIDLinea): {
+		Name:     "Ethereum",
+		Symbol:   "ETH",
+		Decimals: 18,
 	},
 }
 

@@ -120,7 +120,6 @@ func (w *worker) matchSwapTransaction(task *source.Task, transaction *ethereum.T
 	case // Uniswap V3
 		uniswap.AddressV3SwapRouter,
 		uniswap.AddressV3SwapRouterCelo,
-		uniswap.AddressV3SwapRouterRSS3Testnet,
 		uniswap.AddressV3SwapRouter02,
 		uniswap.AddressV3SwapRouter02Celo,
 		uniswap.AddressV3SwapRouter02BinanceSmartChain,
@@ -993,8 +992,6 @@ func (w *worker) getV3NonfungiblePositionManagerAddress(network filter.Network) 
 	switch network {
 	case filter.NetworkEthereum:
 		return uniswap.AddressNonfungiblePositionManager, nil
-	case filter.NetworkRSS3Testnet:
-		return uniswap.AddressNonfungiblePositionManagerRSS3Testnet, nil
 	default:
 		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", network)
 	}
@@ -1004,8 +1001,6 @@ func (w *worker) getV3FactoryAddress(network filter.Network) (common.Address, er
 	switch network {
 	case filter.NetworkEthereum:
 		return uniswap.AddressV3Factory, nil
-	case filter.NetworkRSS3Testnet:
-		return uniswap.AddressV3FactoryRSS3Testnet, nil
 	default:
 		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", network)
 	}
