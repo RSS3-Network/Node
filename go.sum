@@ -335,6 +335,8 @@ github.com/rss3-network/protocol-go v0.2.12 h1:hXJN9WOaXxo8sAxbwIQla3rERpdoKHqRE
 github.com/rss3-network/protocol-go v0.2.12/go.mod h1:N0falOlzUgx5q9Zimgyv1lq2XNnVGvY1iYoFdFnA4FA=
 github.com/rss3-network/protocol-go v0.2.13 h1:OBvcAcDcMy7DCGcE+cuBQPZCwAHJ/zeygJ7MJfDF1/k=
 github.com/rss3-network/protocol-go v0.2.13/go.mod h1:N0falOlzUgx5q9Zimgyv1lq2XNnVGvY1iYoFdFnA4FA=
+github.com/rss3-network/protocol-go v0.2.14 h1:4OPBk7qCQ7nKAHFhYMNulvbMiNRb+4D+UP0lQ1N+kIE=
+github.com/rss3-network/protocol-go v0.2.14/go.mod h1:N0falOlzUgx5q9Zimgyv1lq2XNnVGvY1iYoFdFnA4FA=
 github.com/russross/blackfriday v1.6.0 h1:KqfZb0pUVN2lYqZUYRddxF4OR8ZMURnJIG5Y3VRLtww=
 github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf35Ld67mk=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=

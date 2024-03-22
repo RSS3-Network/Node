@@ -55,7 +55,7 @@ require (
 	github.com/cockroachdb/cockroach-go/v2 v2.3.6
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/rss3-network/protocol-go v0.2.13
+	github.com/rss3-network/protocol-go v0.2.14
 	github.com/spf13/afero v1.11.0
 	github.com/vincent-petithory/dataurl v1.0.0
 	golang.org/x/net v0.20.0
