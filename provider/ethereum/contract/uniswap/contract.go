@@ -38,7 +38,6 @@ var (
 	AddressV3Factory                             = common.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
 	AddressV3FactoryCelo                         = common.HexToAddress("0xAfE208a311B21f13EF87E33A90049fC17A7acDEc")
 	AddressV3FactoryBinanceSmartChain            = common.HexToAddress("0xdB1d10011AD0Ff90774D0C6Bb92e5C5c8b4461F7")
-	AddressV3FactoryRSS3Testnet                  = common.HexToAddress("0xCA9a021A7434dA20f7C260325856E1478148dF67")
 	AddressUniversalRouter                       = common.HexToAddress("0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B")
 	AddressNonfungiblePositionManager            = common.HexToAddress("0xC36442b4a4522E871399CD717aBDD847Ab11FE88")
 	AddressNonfungiblePositionManagerRSS3Testnet = common.HexToAddress("0x0F1d392Fc4a2652dc8224E0BB919643AB3d67370")

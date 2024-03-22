@@ -60,7 +60,7 @@ func (w *worker) Filter() engine.SourceFilter {
 		aaveV3PoolAddress = aave.AddressV3PoolOthers
 	case filter.NetworkBase:
 		aaveV3PoolAddress = aave.AddressV3PoolBase
-	case filter.NetworkOptimism, filter.NetworkFantom, filter.NetworkArbitrum:
+	case filter.NetworkOptimism, filter.NetworkArbitrum:
 		aaveV3PoolAddress = aave.AddressV3PoolOthers
 	default:
 		aaveV2LendingAddress = aave.AddressV2LendingPoolMainnet
@@ -222,7 +222,6 @@ func (w *worker) matchLiquidityV3Pool(task *source.Task, log *ethereum.Log) bool
 		filter.NetworkOptimism,
 		filter.NetworkArbitrum,
 		filter.NetworkPolygon,
-		filter.NetworkFantom,
 		filter.NetworkAvalanche:
 		if *task.Transaction.To != aave.AddressV3PoolOthers {
 			return false

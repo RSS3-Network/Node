@@ -85,6 +85,21 @@ component:
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start:
+    - network: arbitrum
+      worker: highlight
+      endpoint: https://rpc.ankr.com/arbitrum
+      parameters:
+        block_number_start:
+    - network: polygon
+      worker: highlight
+      endpoint: https://rpc.ankr.com/polygon
+      parameters:
+          block_number_start:
+    - network: optimism
+      worker: highlight
+      endpoint: https://rpc.ankr.com/optimism
+      parameters:
+        block_number_start:
     - network: crossbell
       worker: crossbell
       endpoint: https://rpc.crossbell.io
@@ -157,11 +172,6 @@ component:
       worker: aave
       parameters:
         block_number_start:
-    - network: fantom
-      endpoint: https://rpc.ankr.com/fantom
-      worker: aave
-      parameters:
-        block_number_start:
     - network: polygon
       worker: iqwiki
       endpoint: https://rpc.ankr.com/polygon
@@ -182,14 +192,9 @@ component:
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start: 12888350
-    - network: rss3-testnet
-      endpoint: https://rpc.testnet.rss3.io
+    - network: vsl
+      endpoint: https://rpc.rss3.io
       worker: fallback
-      parameters:
-        block_number_start:
-    - network: rss3-testnet
-      endpoint: https://rpc.testnet.rss3.io
-      worker: uniswap
       parameters:
         block_number_start:
     - network: savm
@@ -207,3 +212,38 @@ component:
       worker: savm
       parameters:
         block_number_start:
+    - network: optimism
+      endpoint: https://rpc.ankr.com/optimism
+      worker: fallback
+      parameters:
+        block_number_start:
+    - network: polygon
+      endpoint: https://rpc.ankr.com/polygon
+      worker: fallback
+      parameters:
+        block_number_start:
+    - network: arbitrum
+      endpoint: https://rpc.ankr.com/arbitrum
+      worker: fallback
+      parameters:
+        block_number_start:
+    - network: base
+      endpoint: https://developer-access-mainnet.base.orgss
+      worker: fallback
+      parameters:
+        block_number_start:
+    - network: binance_smart_chain
+      endpoint: https://rpc.ankr.com/bsc
+      worker: fallback
+      parameters:
+        block_number_start:
+    - network: gnosis
+      endpoint: https://rpc.ankr.com/gnosis
+      worker: fallback
+      parameters:
+        block_number_start:
+    - network: linea
+      endpoint: https://rpc.linea.build
+      worker: fallback
+      parameters:
+          block_number_start:
