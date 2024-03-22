@@ -232,7 +232,7 @@ component:
       worker: fallback
       parameters:
         block_number_start:
-    - network: binance_smart_chain
+    - network: binance-smart-chain
       endpoint: https://rpc.ankr.com/bsc
       worker: fallback
       parameters:
