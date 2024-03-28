@@ -3,6 +3,7 @@ package farcaster
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -18,7 +19,7 @@ const (
 	EndpointMainnet = "https://nemes.farcaster.xyz:2281" // Public Instances https://www.thehubble.xyz/intro/hubble.html
 
 	DefaultTimeout  = 5 * time.Second
-	DefaultAttempts = 5
+	DefaultAttempts = 3
 )
 
 var _ Client = (*client)(nil)
@@ -201,11 +202,22 @@ func (c *client) call(ctx context.Context, path string, query farcasterQuery, re
 	}
 
 	onRetry := retry.OnRetry(func(n uint, err error) {
-		zap.L().Error("fetch farcaster request", zap.Error(err), zap.Uint("attempts", n))
+		zap.L().Error("fetch farcaster request, retrying", zap.Error(err), zap.Uint("attempts", n))
 	})
 
 	retryableFunc := func() error {
-		return c.fetch(ctx, fmt.Sprintf("%s?%s", path, values.Encode()), &response)
+		err = c.fetch(ctx, fmt.Sprintf("%s?%s", path, values.Encode()), &response)
+		if err != nil {
+			var httpErr *HTTPError
+
+			if errors.As(err, &httpErr) && httpErr.StatusCode >= http.StatusBadRequest && httpErr.StatusCode < http.StatusInternalServerError {
+				zap.L().Warn("fetch farcaster request failed with HTTP 400, will not retry", zap.Error(err), zap.Int("status.code", httpErr.StatusCode))
+
+				return retry.Unrecoverable(err)
+			}
+		}
+
+		return err
 	}
 
 	if err = retry.Do(retryableFunc, retry.Delay(time.Second), retry.Attempts(c.attempts), onRetry); err != nil {
@@ -215,15 +227,29 @@ func (c *client) call(ctx context.Context, path string, query farcasterQuery, re
 	return nil
 }
 
+type HTTPError struct {
+	StatusCode int
+	Message    string
+}
+
+func (e *HTTPError) Error() string {
+	return fmt.Sprintf("HTTP %d: %s", e.StatusCode, e.Message)
+}
 func (c *client) fetch(ctx context.Context, path string, result any) error {
+	httpErr := &HTTPError{}
+
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s%s", c.endpointURL, path), nil)
 	if err != nil {
-		return fmt.Errorf("create request: %w", err)
+		httpErr.Message = fmt.Sprintf("create request: %s", err.Error())
+
+		return httpErr
 	}
 
 	response, err := c.httpClient.Do(request)
 	if err != nil {
-		return fmt.Errorf("do request: %w", err)
+		httpErr.Message = fmt.Sprintf("do request: %s", err.Error())
+
+		return httpErr
 	}
 
 	defer func() {
@@ -231,11 +257,16 @@ func (c *client) fetch(ctx context.Context, path string, result any) error {
 	}()
 
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status: %s", response.Status)
+		httpErr.StatusCode = response.StatusCode
+		httpErr.Message = fmt.Sprintf("unexpected status: %s", response.Status)
+
+		return httpErr
 	}
 
 	if err = json.NewDecoder(response.Body).Decode(&result); err != nil {
-		return fmt.Errorf("decode response: %w", err)
+		httpErr.Message = fmt.Sprintf("failed to decode response: %s", err.Error())
+
+		return httpErr
 	}
 
 	return nil
