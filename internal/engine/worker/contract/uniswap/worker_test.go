@@ -2,6 +2,7 @@ package uniswap_test
 
 import (
 	"context"
+	"encoding/json"
 	"math/big"
 	"testing"
 
@@ -2135,6 +2136,507 @@ func TestWorker_Ethereum(t *testing.T) {
 			},
 			wantError: require.NoError,
 		},
+
+		//	Linea
+		{
+			name: "Swap WETH and USDC on Linea Uniswap V3 Router 2",
+			arguments: arguments{
+				task: &source.Task{
+					Network: filter.NetworkLinea,
+					ChainID: 59144,
+					Header: &ethereum.Header{
+						Hash:         common.HexToHash("0x38ea1b7457420ee27f56a160d6e9498cf95ea1d551c8fc12b22c6e12eb4e907b"),
+						ParentHash:   common.HexToHash("0xbc3acd2c01aeb1040649e8e80bbc786badee743397ff14da095de87a25cb311d"),
+						UncleHash:    common.HexToHash("0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"),
+						Coinbase:     common.HexToAddress("0x0000000000000000000000000000000000000000"),
+						Number:       lo.Must(new(big.Int).SetString("2779792", 0)),
+						GasLimit:     61000000,
+						GasUsed:      9787058,
+						Timestamp:    1709977090,
+						BaseFee:      lo.Must(new(big.Int).SetString("7", 0)),
+						Transactions: nil,
+					},
+					Transaction: &ethereum.Transaction{
+						BlockHash: common.HexToHash("0x288cfdec91d3d590dd2eac108927b9e1b40ea5dc48765717ae1d233425aa9316"),
+						From:      common.HexToAddress("0x576ffCfbD57D9406bBeb7D9CE24751620314858f"),
+						Gas:       168083,
+						GasPrice:  lo.Must(new(big.Int).SetString("1433256209", 10)),
+						Hash:      common.HexToHash("0x288cfdec91d3d590dd2eac108927b9e1b40ea5dc48765717ae1d233425aa9316"),
+						Input:     hexutil.MustDecode("0x5ae401dc0000000000000000000000000000000000000000000000000000000065ec2e370000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000104b858183f00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000080000000000000000000000000576ffcfbd57d9406bbeb7d9ce24751620314858f0000000000000000000000000000000000000000000000000000034630b8a0000000000000000000000000000000000000000000000000000000000000003304000000000000000000000000000000000000000000000000000000000000002be5d7c2a44ffddf6b295a15c148167daaaf5cf34f000bb8176211869ca2b568f2a7d4ee941e073a821ee1ff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+						To:        lo.ToPtr(common.HexToAddress("0x3d4e44Eb1374240CE5F1B871ab261CD16335B76a")),
+						Value:     lo.Must(new(big.Int).SetString("3600000000000", 0)),
+						Type:      2,
+						ChainID:   lo.Must(new(big.Int).SetString("59144", 0)),
+					},
+					Receipt: &ethereum.Receipt{
+						BlockHash:         common.HexToHash("0x38ea1b7457420ee27f56a160d6e9498cf95ea1d551c8fc12b22c6e12eb4e907b"),
+						BlockNumber:       lo.Must(new(big.Int).SetString("2779792", 0)),
+						ContractAddress:   nil,
+						CumulativeGasUsed: 7279276,
+						EffectiveGasPrice: hexutil.MustDecodeBig("0x556dc111"),
+						GasUsed:           128301,
+
+						Logs: []*ethereum.Log{{
+							Address: common.HexToAddress("0x176211869cA2b568f2A7D4EE941E073a821EE1ff"),
+							Topics: []common.Hash{
+								common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+								common.HexToHash("0x00000000000000000000000093f626d0e471279bd8d1420959cc881bdacfdab1"),
+								common.HexToHash("0x000000000000000000000000576ffcfbd57d9406bbeb7d9ce24751620314858f"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000000000000000000000000003346"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2779792", 0)),
+							TransactionHash: common.HexToHash("0x288cfdec91d3d590dd2eac108927b9e1b40ea5dc48765717ae1d233425aa9316"),
+							Index:           89,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f"),
+							Topics: []common.Hash{
+								common.HexToHash("0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c"),
+								common.HexToHash("0x0000000000000000000000003d4e44eb1374240ce5f1b871ab261cd16335b76a"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000000000000000000034630b8a000"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2779792", 0)),
+							TransactionHash: common.HexToHash("0x288cfdec91d3d590dd2eac108927b9e1b40ea5dc48765717ae1d233425aa9316"),
+							Index:           90,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f"),
+							Topics: []common.Hash{
+								common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+								common.HexToHash("0x0000000000000000000000003d4e44eb1374240ce5f1b871ab261cd16335b76a"),
+								common.HexToHash("0x00000000000000000000000093f626d0e471279bd8d1420959cc881bdacfdab1"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000000000000000000034630b8a000"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2779792", 0)),
+							TransactionHash: common.HexToHash("0x288cfdec91d3d590dd2eac108927b9e1b40ea5dc48765717ae1d233425aa9316"),
+							Index:           91,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0x93F626d0E471279bd8d1420959CC881BdacfDAB1"),
+							Topics: []common.Hash{
+								common.HexToHash("0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67"),
+								common.HexToHash("0x0000000000000000000000003d4e44eb1374240ce5f1b871ab261cd16335b76a"),
+								common.HexToHash("0x000000000000000000000000576ffcfbd57d9406bbeb7d9ce24751620314858f"),
+							},
+							Data:            hexutil.MustDecode("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffccba0000000000000000000000000000000000000000000000000000034630b8a00000000000000000000000000000000000000040c9a0783edf7fb2a85c5b5a91fa000000000000000000000000000000000000000000000000000000087180c1d5000000000000000000000000000000000000000000000000000000000002f71f"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2779792", 0)),
+							TransactionHash: common.HexToHash("0x288cfdec91d3d590dd2eac108927b9e1b40ea5dc48765717ae1d233425aa9316"),
+							Index:           92,
+							Removed:         false,
+						}},
+						Status:           1,
+						TransactionHash:  common.HexToHash("0x288cfdec91d3d590dd2eac108927b9e1b40ea5dc48765717ae1d233425aa9316"),
+						TransactionIndex: 82,
+					},
+				},
+				config: &config.Module{
+					Network:  filter.NetworkLinea,
+					Endpoint: endpoint.MustGet(filter.NetworkLinea),
+				},
+			},
+			want: &schema.Feed{
+				ID:      "0x288cfdec91d3d590dd2eac108927b9e1b40ea5dc48765717ae1d233425aa9316",
+				Network: filter.NetworkLinea,
+				Index:   82,
+				From:    "0x576ffCfbD57D9406bBeb7D9CE24751620314858f",
+				To:      uniswap.AddressV3SwapRouter02Linea.String(),
+				Type:    filter.TypeExchangeSwap,
+				Calldata: &schema.Calldata{
+					FunctionHash: "0x5ae401dc",
+				},
+				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Fee: &schema.Fee{
+					Amount:  lo.Must(decimal.NewFromString("183888204870909")),
+					Decimal: 18,
+				},
+				Actions: []*schema.Action{
+					{
+						Type:     filter.TypeExchangeSwap,
+						Platform: filter.PlatformUniswap.String(),
+						From:     "0x576ffCfbD57D9406bBeb7D9CE24751620314858f",
+						To:       "0x576ffCfbD57D9406bBeb7D9CE24751620314858f",
+						Metadata: metadata.ExchangeSwap{
+							From: metadata.Token{
+								Address:  lo.ToPtr("0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f"),
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("3600000000000"))),
+								Name:     "Wrapped Ether",
+								Symbol:   "WETH",
+								Decimals: 18,
+								Standard: metadata.StandardERC20,
+							},
+							To: metadata.Token{
+								Address:  lo.ToPtr("0x176211869cA2b568f2A7D4EE941E073a821EE1ff"),
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("13126"))),
+								Name:     "USDC",
+								Symbol:   "USDC",
+								Decimals: 6,
+								Standard: metadata.StandardERC20,
+							},
+						},
+					},
+				},
+				Status:    true,
+				Timestamp: 1709977090,
+			},
+			wantError: require.NoError,
+		},
+		{
+			name: "Add DAI and USDT liquidity to Linea Uniswap Nonfungible Position Manager",
+			arguments: arguments{
+				task: &source.Task{
+					Network: filter.NetworkLinea,
+					ChainID: 59144,
+					Header: &ethereum.Header{
+						Hash:         common.HexToHash("0x32b6573327f3564bb8cdbc37f6a5636f39c8d7559868d2cdbe0baccbaa169a44"),
+						ParentHash:   common.HexToHash("0x6c53f4bae5ae9168b86a837f2e2cae6e252d957a7407769c0381f315fb0baded"),
+						UncleHash:    common.HexToHash("0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"),
+						Coinbase:     common.HexToAddress("0x0000000000000000000000000000000000000000"),
+						Number:       lo.Must(new(big.Int).SetString("2484565", 0)),
+						GasLimit:     61000000,
+						GasUsed:      6145306,
+						Timestamp:    1708796179,
+						BaseFee:      lo.Must(new(big.Int).SetString("7", 0)),
+						Transactions: nil,
+					},
+					Transaction: &ethereum.Transaction{
+						BlockHash: common.HexToHash("0x18281b269e35e2bbd226ff8f370f3280dbf985ce115d0df37ec999f88c035fba"),
+						From:      common.HexToAddress("0xB2603DBa60e997B4C3dF90B162E9c2D1aF77202C"),
+						Gas:       619767,
+						GasPrice:  lo.Must(new(big.Int).SetString("1214340880", 10)),
+						Hash:      common.HexToHash("0x18281b269e35e2bbd226ff8f370f3280dbf985ce115d0df37ec999f88c035fba"),
+						Input:     hexutil.MustDecode("0x883164560000000000000000000000004af15ec2a0bd43db75dd04e62faa3b8ef36b00d5000000000000000000000000a219439258ca9da29e9cc4ce5596924745e12b930000000000000000000000000000000000000000000000000000000000000bb8fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffbc878fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffbc8b400000000000000000000000000000000000000000000000016a52886ef77b0000000000000000000000000000000000000000000000000000000000000447a6b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b2603dba60e997b4c3df90b162e9c2d1af77202c0000000000000000000000000000000000000000000000000000000065da2946"),
+						To:        lo.ToPtr(common.HexToAddress("0x4615C383F85D0a2BbED973d83ccecf5CB7121463")),
+						Value:     lo.Must(new(big.Int).SetString("0", 0)),
+						Type:      2,
+						ChainID:   lo.Must(new(big.Int).SetString("59144", 0)),
+					},
+					Receipt: &ethereum.Receipt{
+						BlockHash:         common.HexToHash("0x32b6573327f3564bb8cdbc37f6a5636f39c8d7559868d2cdbe0baccbaa169a44"),
+						BlockNumber:       lo.Must(new(big.Int).SetString("2484565", 0)),
+						ContractAddress:   nil,
+						CumulativeGasUsed: 6145306,
+						EffectiveGasPrice: hexutil.MustDecodeBig("0x48615f10"),
+						GasUsed:           504073,
+
+						Logs: []*ethereum.Log{{
+							Address: common.HexToAddress("0x4AF15ec2A0BD43Db75dd04E62FAA3B8EF36b00d5"),
+							Topics: []common.Hash{
+								common.HexToHash("0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"),
+								common.HexToHash("0x000000000000000000000000b2603dba60e997b4c3df90b162e9c2d1af77202c"),
+								common.HexToHash("0x0000000000000000000000004615c383f85d0a2bbed973d83ccecf5cb7121463"),
+							},
+							Data:            hexutil.MustDecode("0x000000000000000000000000000000000000000000000000010fa455bfbe957e"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2484565", 0)),
+							TransactionHash: common.HexToHash("0x18281b269e35e2bbd226ff8f370f3280dbf985ce115d0df37ec999f88c035fba"),
+							Index:           71,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0x4AF15ec2A0BD43Db75dd04E62FAA3B8EF36b00d5"),
+							Topics: []common.Hash{
+								common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+								common.HexToHash("0x000000000000000000000000b2603dba60e997b4c3df90b162e9c2d1af77202c"),
+								common.HexToHash("0x000000000000000000000000f39ea7438c2933221d39c2fb38f39b1793a6ce68"),
+							},
+							Data:            hexutil.MustDecode("0x000000000000000000000000000000000000000000000000159584312fb91a82"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2484565", 0)),
+							TransactionHash: common.HexToHash("0x18281b269e35e2bbd226ff8f370f3280dbf985ce115d0df37ec999f88c035fba"),
+							Index:           72,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xA219439258ca9da29E9Cc4cE5596924745e12B93"),
+							Topics: []common.Hash{
+								common.HexToHash("0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"),
+								common.HexToHash("0x000000000000000000000000b2603dba60e997b4c3df90b162e9c2d1af77202c"),
+								common.HexToHash("0x0000000000000000000000004615c383f85d0a2bbed973d83ccecf5cb7121463"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000000000000000000000000000000"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2484565", 0)),
+							TransactionHash: common.HexToHash("0x18281b269e35e2bbd226ff8f370f3280dbf985ce115d0df37ec999f88c035fba"),
+							Index:           73,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xA219439258ca9da29E9Cc4cE5596924745e12B93"),
+							Topics: []common.Hash{
+								common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+								common.HexToHash("0x000000000000000000000000b2603dba60e997b4c3df90b162e9c2d1af77202c"),
+								common.HexToHash("0x000000000000000000000000f39ea7438c2933221d39c2fb38f39b1793a6ce68"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000000000000000000000000447a6b"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2484565", 0)),
+							TransactionHash: common.HexToHash("0x18281b269e35e2bbd226ff8f370f3280dbf985ce115d0df37ec999f88c035fba"),
+							Index:           74,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xF39eA7438c2933221d39C2fB38f39B1793a6cE68"),
+							Topics: []common.Hash{
+								common.HexToHash("0x7a53080ba414158be7ec69b987b5fb7d07dee101fe85488f0853ae16239d0bde"),
+								common.HexToHash("0x0000000000000000000000004615c383f85d0a2bbed973d83ccecf5cb7121463"),
+								common.HexToHash("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffbc878"),
+								common.HexToHash("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffbc8b4"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000004615c383f85d0a2bbed973d83ccecf5cb71214630000000000000000000000000000000000000000000000000007297543458575000000000000000000000000000000000000000000000000159584312fb91a820000000000000000000000000000000000000000000000000000000000447a6b"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2484565", 0)),
+							TransactionHash: common.HexToHash("0x18281b269e35e2bbd226ff8f370f3280dbf985ce115d0df37ec999f88c035fba"),
+							Index:           75,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0x4615C383F85D0a2BbED973d83ccecf5CB7121463"),
+							Topics: []common.Hash{
+								common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+								common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+								common.HexToHash("0x000000000000000000000000b2603dba60e997b4c3df90b162e9c2d1af77202c"),
+								common.HexToHash("0x000000000000000000000000000000000000000000000000000000000000005e"),
+							},
+							Data:            nil,
+							BlockNumber:     lo.Must(new(big.Int).SetString("2484565", 0)),
+							TransactionHash: common.HexToHash("0x18281b269e35e2bbd226ff8f370f3280dbf985ce115d0df37ec999f88c035fba"),
+							Index:           76,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0x4615C383F85D0a2BbED973d83ccecf5CB7121463"),
+							Topics: []common.Hash{
+								common.HexToHash("0x3067048beee31b25b2f1681f88dac838c8bba36af25bfb2b7cf7473a5847e35f"),
+								common.HexToHash("0x000000000000000000000000000000000000000000000000000000000000005e"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000000000000000007297543458575000000000000000000000000000000000000000000000000159584312fb91a820000000000000000000000000000000000000000000000000000000000447a6b"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2484565", 0)),
+							TransactionHash: common.HexToHash("0x18281b269e35e2bbd226ff8f370f3280dbf985ce115d0df37ec999f88c035fba"),
+							Index:           77,
+							Removed:         false,
+						}},
+						Status:           1,
+						TransactionHash:  common.HexToHash("0x18281b269e35e2bbd226ff8f370f3280dbf985ce115d0df37ec999f88c035fba"),
+						TransactionIndex: 46,
+					},
+				},
+				config: &config.Module{
+					Network:  filter.NetworkLinea,
+					Endpoint: endpoint.MustGet(filter.NetworkLinea),
+				},
+			},
+			want: &schema.Feed{
+				ID:      "0x18281b269e35e2bbd226ff8f370f3280dbf985ce115d0df37ec999f88c035fba",
+				Network: filter.NetworkLinea,
+				Index:   46,
+				From:    "0xB2603DBa60e997B4C3dF90B162E9c2D1aF77202C",
+				To:      uniswap.AddressNonfungiblePositionManagerLinea.String(),
+				Type:    filter.TypeExchangeLiquidity,
+				Calldata: &schema.Calldata{
+					FunctionHash: "0x88316456",
+				},
+				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Fee: &schema.Fee{
+					Amount:  lo.Must(decimal.NewFromString("612116450404240")),
+					Decimal: 18,
+				},
+				Actions: []*schema.Action{
+					{
+						Type:     filter.TypeTransactionMint,
+						Platform: filter.PlatformUniswap.String(),
+						From:     "0x0000000000000000000000000000000000000000",
+						To:       "0xB2603DBa60e997B4C3dF90B162E9c2D1aF77202C",
+						Metadata: metadata.TransactionTransfer{
+							Address:  lo.ToPtr("0x4615C383F85D0a2BbED973d83ccecf5CB7121463"),
+							ID:       lo.ToPtr(decimal.NewFromInt(94)),
+							Value:    lo.ToPtr(decimal.NewFromInt(1)),
+							Name:     "Uniswap V3 Positions NFT-V1",
+							Symbol:   "UNI-V3-POS",
+							Standard: metadata.StandardERC721,
+							URI:      "data:application/json;base64,eyJuYW1lIjoiVW5pc3dhcCAtIDAuMyUgLSBVU0RUL0RBSSAtIDAuOTk2NDE8PjEuMDAyNCIsICJkZXNjcmlwdGlvbiI6IlRoaXMgTkZUIHJlcHJlc2VudHMgYSBsaXF1aWRpdHkgcG9zaXRpb24gaW4gYSBVbmlzd2FwIFYzIFVTRFQtREFJIHBvb2wuIFRoZSBvd25lciBvZiB0aGlzIE5GVCBjYW4gbW9kaWZ5IG9yIHJlZGVlbSB0aGUgcG9zaXRpb24uXG5cblBvb2wgQWRkcmVzczogMHhmMzllYTc0MzhjMjkzMzIyMWQzOWMyZmIzOGYzOWIxNzkzYTZjZTY4XG5VU0RUIEFkZHJlc3M6IDB4YTIxOTQzOTI1OGNhOWRhMjllOWNjNGNlNTU5NjkyNDc0NWUxMmI5M1xuREFJIEFkZHJlc3M6IDB4NGFmMTVlYzJhMGJkNDNkYjc1ZGQwNGU2MmZhYTNiOGVmMzZiMDBkNVxuRmVlIFRpZXI6IDAuMyVcblRva2VuIElEOiA5NFxuXG7imqDvuI8gRElTQ0xBSU1FUjogRHVlIGRpbGlnZW5jZSBpcyBpbXBlcmF0aXZlIHdoZW4gYXNzZXNzaW5nIHRoaXMgTkZULiBNYWtlIHN1cmUgdG9rZW4gYWRkcmVzc2VzIG1hdGNoIHRoZSBleHBlY3RlZCB0b2tlbnMsIGFzIHRva2VuIHN5bWJvbHMgbWF5IGJlIGltaXRhdGVkLiIsICJpbWFnZSI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUIzYVdSMGFEMGlNamt3SWlCb1pXbG5hSFE5SWpVd01DSWdkbWxsZDBKdmVEMGlNQ0F3SURJNU1DQTFNREFpSUhodGJHNXpQU0pvZEhSd09pOHZkM2QzTG5jekxtOXlaeTh5TURBd0wzTjJaeUlnZUcxc2JuTTZlR3hwYm1zOUoyaDBkSEE2THk5M2QzY3Vkek11YjNKbkx6RTVPVGt2ZUd4cGJtc25QanhrWldaelBqeG1hV3gwWlhJZ2FXUTlJbVl4SWo0OFptVkpiV0ZuWlNCeVpYTjFiSFE5SW5Bd0lpQjRiR2x1YXpwb2NtVm1QU0prWVhSaE9tbHRZV2RsTDNOMlp5dDRiV3c3WW1GelpUWTBMRkJJVGpKYWVVSXpZVmRTTUdGRU1HNU5hbXQzU25sQ2IxcFhiRzVoU0ZFNVNucFZkMDFEWTJka2JXeHNaREJLZG1WRU1HNU5RMEYzU1VSSk5VMURRVEZOUkVGdVNVaG9kR0pITlhwUVUyUnZaRWhTZDA5cE9IWmtNMlF6VEc1amVreHRPWGxhZVRoNVRVUkJkMHd6VGpKYWVXTXJVRWhLYkZrelVXZGtNbXhyWkVkbk9VcDZTVFZOU0VJMFNubENiMXBYYkc1aFNGRTVTbnBWZDAxSVFqUktlVUp0WVZkNGMxQlRZMnBaVkVsNFQxUlJla3A1T0N0UVF6bDZaRzFqS3lJdlBqeG1aVWx0WVdkbElISmxjM1ZzZEQwaWNERWlJSGhzYVc1ck9taHlaV1k5SW1SaGRHRTZhVzFoWjJVdmMzWm5LM2h0YkR0aVlYTmxOalFzVUVoT01scDVRak5oVjFJd1lVUXdiazFxYTNkS2VVSnZXbGRzYm1GSVVUbEtlbFYzVFVOaloyUnRiR3hrTUVwMlpVUXdiazFEUVhkSlJFazFUVU5CTVUxRVFXNUpTR2gwWWtjMWVsQlRaRzlrU0ZKM1QyazRkbVF6WkROTWJtTjZURzA1ZVZwNU9IbE5SRUYzVEROT01scDVZeXRRUjA1d1kyMU9jMXBUUW1wbFJEQnVUV3BWTkVwNVFtcGxWREJ1VFdwamQwcDVRbmxRVTJONFRXcENkMlZEWTJkYWJXeHpZa1F3YmtsNlVtaGFha1V4V2xOamRsQnFkM1pqTTFwdVVHYzlQU0l2UGp4bVpVbHRZV2RsSUhKbGMzVnNkRDBpY0RJaUlIaHNhVzVyT21oeVpXWTlJbVJoZEdFNmFXMWhaMlV2YzNabkszaHRiRHRpWVhObE5qUXNVRWhPTWxwNVFqTmhWMUl3WVVRd2JrMXFhM2RLZVVKdldsZHNibUZJVVRsS2VsVjNUVU5qWjJSdGJHeGtNRXAyWlVRd2JrMURRWGRKUkVrMVRVTkJNVTFFUVc1SlNHaDBZa2MxZWxCVFpHOWtTRkozVDJrNGRtUXpaRE5NYm1ONlRHMDVlVnA1T0hsTlJFRjNURE5PTWxwNVl5dFFSMDV3WTIxT2MxcFRRbXBsUkRCdVRtcEJia2xIVGpWUVUyTjVUWHBKYmtsSVNUbEtla1Y1VFVoQ05FcDVRbTFoVjNoelVGTmphbHBVUlhsWmFtdDZTbms0SzFCRE9YcGtiV01ySWlBdlBqeG1aVWx0WVdkbElISmxjM1ZzZEQwaWNETWlJSGhzYVc1ck9taHlaV1k5SW1SaGRHRTZhVzFoWjJVdmMzWm5LM2h0YkR0aVlYTmxOalFzVUVoT01scDVRak5oVjFJd1lVUXdiazFxYTNkS2VVSnZXbGRzYm1GSVVUbEtlbFYzVFVOaloyUnRiR3hrTUVwMlpVUXdiazFEUVhkSlJFazFUVU5CTVUxRVFXNUpTR2gwWWtjMWVsQlRaRzlrU0ZKM1QyazRkbVF6WkROTWJtTjZURzA1ZVZwNU9IbE5SRUYzVEROT01scDVZeXRRUjA1d1kyMU9jMXBUUW1wbFJEQnVUMVJGYmtsSFRqVlFVMk42VGxSWmJrbElTVGxLZWtWM1RVaENORXA1UW0xaFYzaHpVRk5qYWs1dFNYZE5SMUV4U25rNEsxQkRPWHBrYldNcklpQXZQanhtWlVKc1pXNWtJRzF2WkdVOUltOTJaWEpzWVhraUlHbHVQU0p3TUNJZ2FXNHlQU0p3TVNJZ0x6NDhabVZDYkdWdVpDQnRiMlJsUFNKbGVHTnNkWE5wYjI0aUlHbHVNajBpY0RJaUlDOCtQR1psUW14bGJtUWdiVzlrWlQwaWIzWmxjbXhoZVNJZ2FXNHlQU0p3TXlJZ2NtVnpkV3gwUFNKaWJHVnVaRTkxZENJZ0x6NDhabVZIWVhWemMybGhia0pzZFhJZ2FXNDlJbUpzWlc1a1QzVjBJaUJ6ZEdSRVpYWnBZWFJwYjI0OUlqUXlJaUF2UGp3dlptbHNkR1Z5UGlBOFkyeHBjRkJoZEdnZ2FXUTlJbU52Y201bGNuTWlQanh5WldOMElIZHBaSFJvUFNJeU9UQWlJR2hsYVdkb2REMGlOVEF3SWlCeWVEMGlORElpSUhKNVBTSTBNaUlnTHo0OEwyTnNhWEJRWVhSb1BqeHdZWFJvSUdsa1BTSjBaWGgwTFhCaGRHZ3RZU0lnWkQwaVRUUXdJREV5SUVneU5UQWdRVEk0SURJNElEQWdNQ0F4SURJM09DQTBNQ0JXTkRZd0lFRXlPQ0F5T0NBd0lEQWdNU0F5TlRBZ05EZzRJRWcwTUNCQk1qZ2dNamdnTUNBd0lERWdNVElnTkRZd0lGWTBNQ0JCTWpnZ01qZ2dNQ0F3SURFZ05EQWdNVElnZWlJZ0x6NDhjR0YwYUNCcFpEMGliV2x1YVcxaGNDSWdaRDBpVFRJek5DQTBORFJETWpNMElEUTFOeTQ1TkRrZ01qUXlMakl4SURRMk15QXlOVE1nTkRZeklpQXZQanhtYVd4MFpYSWdhV1E5SW5SdmNDMXlaV2RwYjI0dFlteDFjaUkrUEdabFIyRjFjM05wWVc1Q2JIVnlJR2x1UFNKVGIzVnlZMlZIY21Gd2FHbGpJaUJ6ZEdSRVpYWnBZWFJwYjI0OUlqSTBJaUF2UGp3dlptbHNkR1Z5UGp4c2FXNWxZWEpIY21Ga2FXVnVkQ0JwWkQwaVozSmhaQzExY0NJZ2VERTlJakVpSUhneVBTSXdJaUI1TVQwaU1TSWdlVEk5SWpBaVBqeHpkRzl3SUc5bVpuTmxkRDBpTUM0d0lpQnpkRzl3TFdOdmJHOXlQU0ozYUdsMFpTSWdjM1J2Y0MxdmNHRmphWFI1UFNJeElpQXZQanh6ZEc5d0lHOW1abk5sZEQwaUxqa2lJSE4wYjNBdFkyOXNiM0k5SW5kb2FYUmxJaUJ6ZEc5d0xXOXdZV05wZEhrOUlqQWlJQzgrUEM5c2FXNWxZWEpIY21Ga2FXVnVkRDQ4YkdsdVpXRnlSM0poWkdsbGJuUWdhV1E5SW1keVlXUXRaRzkzYmlJZ2VERTlJakFpSUhneVBTSXhJaUI1TVQwaU1DSWdlVEk5SWpFaVBqeHpkRzl3SUc5bVpuTmxkRDBpTUM0d0lpQnpkRzl3TFdOdmJHOXlQU0ozYUdsMFpTSWdjM1J2Y0MxdmNHRmphWFI1UFNJeElpQXZQanh6ZEc5d0lHOW1abk5sZEQwaU1DNDVJaUJ6ZEc5d0xXTnZiRzl5UFNKM2FHbDBaU0lnYzNSdmNDMXZjR0ZqYVhSNVBTSXdJaUF2UGp3dmJHbHVaV0Z5UjNKaFpHbGxiblErUEcxaGMyc2dhV1E5SW1aaFpHVXRkWEFpSUcxaGMydERiMjUwWlc1MFZXNXBkSE05SW05aWFtVmpkRUp2ZFc1a2FXNW5RbTk0SWo0OGNtVmpkQ0IzYVdSMGFEMGlNU0lnYUdWcFoyaDBQU0l4SWlCbWFXeHNQU0oxY213b0kyZHlZV1F0ZFhBcElpQXZQand2YldGemF6NDhiV0Z6YXlCcFpEMGlabUZrWlMxa2IzZHVJaUJ0WVhOclEyOXVkR1Z1ZEZWdWFYUnpQU0p2WW1wbFkzUkNiM1Z1WkdsdVowSnZlQ0krUEhKbFkzUWdkMmxrZEdnOUlqRWlJR2hsYVdkb2REMGlNU0lnWm1sc2JEMGlkWEpzS0NObmNtRmtMV1J2ZDI0cElpQXZQand2YldGemF6NDhiV0Z6YXlCcFpEMGlibTl1WlNJZ2JXRnphME52Ym5SbGJuUlZibWwwY3owaWIySnFaV04wUW05MWJtUnBibWRDYjNnaVBqeHlaV04wSUhkcFpIUm9QU0l4SWlCb1pXbG5hSFE5SWpFaUlHWnBiR3c5SW5kb2FYUmxJaUF2UGp3dmJXRnphejQ4YkdsdVpXRnlSM0poWkdsbGJuUWdhV1E5SW1keVlXUXRjM2x0WW05c0lqNDhjM1J2Y0NCdlptWnpaWFE5SWpBdU55SWdjM1J2Y0MxamIyeHZjajBpZDJocGRHVWlJSE4wYjNBdGIzQmhZMmwwZVQwaU1TSWdMejQ4YzNSdmNDQnZabVp6WlhROUlpNDVOU0lnYzNSdmNDMWpiMnh2Y2owaWQyaHBkR1VpSUhOMGIzQXRiM0JoWTJsMGVUMGlNQ0lnTHo0OEwyeHBibVZoY2tkeVlXUnBaVzUwUGp4dFlYTnJJR2xrUFNKbVlXUmxMWE41YldKdmJDSWdiV0Z6YTBOdmJuUmxiblJWYm1sMGN6MGlkWE5sY2xOd1lXTmxUMjVWYzJVaVBqeHlaV04wSUhkcFpIUm9QU0l5T1RCd2VDSWdhR1ZwWjJoMFBTSXlNREJ3ZUNJZ1ptbHNiRDBpZFhKc0tDTm5jbUZrTFhONWJXSnZiQ2tpSUM4K1BDOXRZWE5yUGp3dlpHVm1jejQ4WnlCamJHbHdMWEJoZEdnOUluVnliQ2dqWTI5eWJtVnljeWtpUGp4eVpXTjBJR1pwYkd3OUltRXlNVGswTXlJZ2VEMGlNSEI0SWlCNVBTSXdjSGdpSUhkcFpIUm9QU0l5T1RCd2VDSWdhR1ZwWjJoMFBTSTFNREJ3ZUNJZ0x6NDhjbVZqZENCemRIbHNaVDBpWm1sc2RHVnlPaUIxY213b0kyWXhLU0lnZUQwaU1IQjRJaUI1UFNJd2NIZ2lJSGRwWkhSb1BTSXlPVEJ3ZUNJZ2FHVnBaMmgwUFNJMU1EQndlQ0lnTHo0Z1BHY2djM1I1YkdVOUltWnBiSFJsY2pwMWNtd29JM1J2Y0MxeVpXZHBiMjR0WW14MWNpazdJSFJ5WVc1elptOXliVHB6WTJGc1pTZ3hMalVwT3lCMGNtRnVjMlp2Y20wdGIzSnBaMmx1T21ObGJuUmxjaUIwYjNBN0lqNDhjbVZqZENCbWFXeHNQU0p1YjI1bElpQjRQU0l3Y0hnaUlIazlJakJ3ZUNJZ2QybGtkR2c5SWpJNU1IQjRJaUJvWldsbmFIUTlJalV3TUhCNElpQXZQanhsYkd4cGNITmxJR040UFNJMU1DVWlJR041UFNJd2NIZ2lJSEo0UFNJeE9EQndlQ0lnY25rOUlqRXlNSEI0SWlCbWFXeHNQU0lqTURBd0lpQnZjR0ZqYVhSNVBTSXdMamcxSWlBdlBqd3ZaejQ4Y21WamRDQjRQU0l3SWlCNVBTSXdJaUIzYVdSMGFEMGlNamt3SWlCb1pXbG5hSFE5SWpVd01DSWdjbmc5SWpReUlpQnllVDBpTkRJaUlHWnBiR3c5SW5KblltRW9NQ3d3TERBc01Da2lJSE4wY205clpUMGljbWRpWVNneU5UVXNNalUxTERJMU5Td3dMaklwSWlBdlBqd3ZaejQ4ZEdWNGRDQjBaWGgwTFhKbGJtUmxjbWx1WnowaWIzQjBhVzFwZW1WVGNHVmxaQ0krUEhSbGVIUlFZWFJvSUhOMFlYSjBUMlptYzJWMFBTSXRNVEF3SlNJZ1ptbHNiRDBpZDJocGRHVWlJR1p2Ym5RdFptRnRhV3g1UFNJblEyOTFjbWxsY2lCT1pYY25MQ0J0YjI1dmMzQmhZMlVpSUdadmJuUXRjMmw2WlQwaU1UQndlQ0lnZUd4cGJtczZhSEpsWmowaUkzUmxlSFF0Y0dGMGFDMWhJajR3ZURSaFpqRTFaV015WVRCaVpEUXpaR0kzTldSa01EUmxOakptWVdFellqaGxaak0yWWpBd1pEVWc0b0NpSUVSQlNTQThZVzVwYldGMFpTQmhaR1JwZEdsMlpUMGljM1Z0SWlCaGRIUnlhV0oxZEdWT1lXMWxQU0p6ZEdGeWRFOW1abk5sZENJZ1puSnZiVDBpTUNVaUlIUnZQU0l4TURBbElpQmlaV2RwYmowaU1ITWlJR1IxY2owaU16QnpJaUJ5WlhCbFlYUkRiM1Z1ZEQwaWFXNWtaV1pwYm1sMFpTSWdMejQ4TDNSbGVIUlFZWFJvUGlBOGRHVjRkRkJoZEdnZ2MzUmhjblJQWm1aelpYUTlJakFsSWlCbWFXeHNQU0ozYUdsMFpTSWdabTl1ZEMxbVlXMXBiSGs5SWlkRGIzVnlhV1Z5SUU1bGR5Y3NJRzF2Ym05emNHRmpaU0lnWm05dWRDMXphWHBsUFNJeE1IQjRJaUI0YkdsdWF6cG9jbVZtUFNJamRHVjRkQzF3WVhSb0xXRWlQakI0TkdGbU1UVmxZekpoTUdKa05ETmtZamMxWkdRd05HVTJNbVpoWVROaU9HVm1NelppTURCa05TRGlnS0lnUkVGSklEeGhibWx0WVhSbElHRmtaR2wwYVhabFBTSnpkVzBpSUdGMGRISnBZblYwWlU1aGJXVTlJbk4wWVhKMFQyWm1jMlYwSWlCbWNtOXRQU0l3SlNJZ2RHODlJakV3TUNVaUlHSmxaMmx1UFNJd2N5SWdaSFZ5UFNJek1ITWlJSEpsY0dWaGRFTnZkVzUwUFNKcGJtUmxabWx1YVhSbElpQXZQaUE4TDNSbGVIUlFZWFJvUGp4MFpYaDBVR0YwYUNCemRHRnlkRTltWm5ObGREMGlOVEFsSWlCbWFXeHNQU0ozYUdsMFpTSWdabTl1ZEMxbVlXMXBiSGs5SWlkRGIzVnlhV1Z5SUU1bGR5Y3NJRzF2Ym05emNHRmpaU0lnWm05dWRDMXphWHBsUFNJeE1IQjRJaUI0YkdsdWF6cG9jbVZtUFNJamRHVjRkQzF3WVhSb0xXRWlQakI0WVRJeE9UUXpPVEkxT0dOaE9XUmhNamxsT1dOak5HTmxOVFU1TmpreU5EYzBOV1V4TW1JNU15RGlnS0lnVlZORVZDQThZVzVwYldGMFpTQmhaR1JwZEdsMlpUMGljM1Z0SWlCaGRIUnlhV0oxZEdWT1lXMWxQU0p6ZEdGeWRFOW1abk5sZENJZ1puSnZiVDBpTUNVaUlIUnZQU0l4TURBbElpQmlaV2RwYmowaU1ITWlJR1IxY2owaU16QnpJaUJ5WlhCbFlYUkRiM1Z1ZEQwaWFXNWtaV1pwYm1sMFpTSWdMejQ4TDNSbGVIUlFZWFJvUGp4MFpYaDBVR0YwYUNCemRHRnlkRTltWm5ObGREMGlMVFV3SlNJZ1ptbHNiRDBpZDJocGRHVWlJR1p2Ym5RdFptRnRhV3g1UFNJblEyOTFjbWxsY2lCT1pYY25MQ0J0YjI1dmMzQmhZMlVpSUdadmJuUXRjMmw2WlQwaU1UQndlQ0lnZUd4cGJtczZhSEpsWmowaUkzUmxlSFF0Y0dGMGFDMWhJajR3ZUdFeU1UazBNemt5TlRoallUbGtZVEk1WlRsall6UmpaVFUxT1RZNU1qUTNORFZsTVRKaU9UTWc0b0NpSUZWVFJGUWdQR0Z1YVcxaGRHVWdZV1JrYVhScGRtVTlJbk4xYlNJZ1lYUjBjbWxpZFhSbFRtRnRaVDBpYzNSaGNuUlBabVp6WlhRaUlHWnliMjA5SWpBbElpQjBiejBpTVRBd0pTSWdZbVZuYVc0OUlqQnpJaUJrZFhJOUlqTXdjeUlnY21Wd1pXRjBRMjkxYm5ROUltbHVaR1ZtYVc1cGRHVWlJQzgrUEM5MFpYaDBVR0YwYUQ0OEwzUmxlSFErUEdjZ2JXRnphejBpZFhKc0tDTm1ZV1JsTFhONWJXSnZiQ2tpUGp4eVpXTjBJR1pwYkd3OUltNXZibVVpSUhnOUlqQndlQ0lnZVQwaU1IQjRJaUIzYVdSMGFEMGlNamt3Y0hnaUlHaGxhV2RvZEQwaU1qQXdjSGdpSUM4K0lEeDBaWGgwSUhrOUlqY3djSGdpSUhnOUlqTXljSGdpSUdacGJHdzlJbmRvYVhSbElpQm1iMjUwTFdaaGJXbHNlVDBpSjBOdmRYSnBaWElnVG1WM0p5d2diVzl1YjNOd1lXTmxJaUJtYjI1MExYZGxhV2RvZEQwaU1qQXdJaUJtYjI1MExYTnBlbVU5SWpNMmNIZ2lQbFZUUkZRdlJFRkpQQzkwWlhoMFBqeDBaWGgwSUhrOUlqRXhOWEI0SWlCNFBTSXpNbkI0SWlCbWFXeHNQU0ozYUdsMFpTSWdabTl1ZEMxbVlXMXBiSGs5SWlkRGIzVnlhV1Z5SUU1bGR5Y3NJRzF2Ym05emNHRmpaU0lnWm05dWRDMTNaV2xuYUhROUlqSXdNQ0lnWm05dWRDMXphWHBsUFNJek5uQjRJajR3TGpNbFBDOTBaWGgwUGp3dlp6NDhjbVZqZENCNFBTSXhOaUlnZVQwaU1UWWlJSGRwWkhSb1BTSXlOVGdpSUdobGFXZG9kRDBpTkRZNElpQnllRDBpTWpZaUlISjVQU0l5TmlJZ1ptbHNiRDBpY21kaVlTZ3dMREFzTUN3d0tTSWdjM1J5YjJ0bFBTSnlaMkpoS0RJMU5Td3lOVFVzTWpVMUxEQXVNaWtpSUM4K1BHY2diV0Z6YXowaWRYSnNLQ051YjI1bEtTSWdjM1I1YkdVOUluUnlZVzV6Wm05eWJUcDBjbUZ1YzJ4aGRHVW9Oekp3ZUN3eE9EbHdlQ2tpUGp4eVpXTjBJSGc5SWkweE5uQjRJaUI1UFNJdE1UWndlQ0lnZDJsa2RHZzlJakU0TUhCNElpQm9aV2xuYUhROUlqRTRNSEI0SWlCbWFXeHNQU0p1YjI1bElpQXZQanh3WVhSb0lHUTlJazB4SURGRE5ERWdOREVnTVRBMUlERXdOU0F4TkRVZ01UUTFJaUJ6ZEhKdmEyVTlJbkpuWW1Fb01Dd3dMREFzTUM0ektTSWdjM1J5YjJ0bExYZHBaSFJvUFNJek1uQjRJaUJtYVd4c1BTSnViMjVsSWlCemRISnZhMlV0YkdsdVpXTmhjRDBpY205MWJtUWlJQzgrUEM5blBqeG5JRzFoYzJzOUluVnliQ2dqYm05dVpTa2lJSE4wZVd4bFBTSjBjbUZ1YzJadmNtMDZkSEpoYm5Oc1lYUmxLRGN5Y0hnc01UZzVjSGdwSWo0OGNtVmpkQ0I0UFNJdE1UWndlQ0lnZVQwaUxURTJjSGdpSUhkcFpIUm9QU0l4T0RCd2VDSWdhR1ZwWjJoMFBTSXhPREJ3ZUNJZ1ptbHNiRDBpYm05dVpTSWdMejQ4Y0dGMGFDQmtQU0pOTVNBeFF6UXhJRFF4SURFd05TQXhNRFVnTVRRMUlERTBOU0lnYzNSeWIydGxQU0p5WjJKaEtESTFOU3d5TlRVc01qVTFMREVwSWlCbWFXeHNQU0p1YjI1bElpQnpkSEp2YTJVdGJHbHVaV05oY0QwaWNtOTFibVFpSUM4K1BDOW5QanhqYVhKamJHVWdZM2c5SWpjemNIZ2lJR041UFNJeE9UQndlQ0lnY2owaU5IQjRJaUJtYVd4c1BTSjNhR2wwWlNJZ0x6NDhZMmx5WTJ4bElHTjRQU0l5TVRkd2VDSWdZM2s5SWpNek5IQjRJaUJ5UFNJMGNIZ2lJR1pwYkd3OUluZG9hWFJsSWlBdlBpQThaeUJ6ZEhsc1pUMGlkSEpoYm5ObWIzSnRPblJ5WVc1emJHRjBaU2d5T1hCNExDQXpPRFJ3ZUNraVBqeHlaV04wSUhkcFpIUm9QU0kzTUhCNElpQm9aV2xuYUhROUlqSTJjSGdpSUhKNFBTSTRjSGdpSUhKNVBTSTRjSGdpSUdacGJHdzlJbkpuWW1Fb01Dd3dMREFzTUM0MktTSWdMejQ4ZEdWNGRDQjRQU0l4TW5CNElpQjVQU0l4TjNCNElpQm1iMjUwTFdaaGJXbHNlVDBpSjBOdmRYSnBaWElnVG1WM0p5d2diVzl1YjNOd1lXTmxJaUJtYjI1MExYTnBlbVU5SWpFeWNIZ2lJR1pwYkd3OUluZG9hWFJsSWo0OGRITndZVzRnWm1sc2JEMGljbWRpWVNneU5UVXNNalUxTERJMU5Td3dMallwSWo1SlJEb2dQQzkwYzNCaGJqNDVORHd2ZEdWNGRENDhMMmMrSUR4bklITjBlV3hsUFNKMGNtRnVjMlp2Y20wNmRISmhibk5zWVhSbEtESTVjSGdzSURReE5IQjRLU0krUEhKbFkzUWdkMmxrZEdnOUlqRTBOM0I0SWlCb1pXbG5hSFE5SWpJMmNIZ2lJSEo0UFNJNGNIZ2lJSEo1UFNJNGNIZ2lJR1pwYkd3OUluSm5ZbUVvTUN3d0xEQXNNQzQyS1NJZ0x6NDhkR1Y0ZENCNFBTSXhNbkI0SWlCNVBTSXhOM0I0SWlCbWIyNTBMV1poYldsc2VUMGlKME52ZFhKcFpYSWdUbVYzSnl3Z2JXOXViM053WVdObElpQm1iMjUwTFhOcGVtVTlJakV5Y0hnaUlHWnBiR3c5SW5kb2FYUmxJajQ4ZEhOd1lXNGdabWxzYkQwaWNtZGlZU2d5TlRVc01qVTFMREkxTlN3d0xqWXBJajVOYVc0Z1ZHbGphem9nUEM5MGMzQmhiajR0TWpjMk16WXdQQzkwWlhoMFBqd3ZaejRnUEdjZ2MzUjViR1U5SW5SeVlXNXpabTl5YlRwMGNtRnVjMnhoZEdVb01qbHdlQ3dnTkRRMGNIZ3BJajQ4Y21WamRDQjNhV1IwYUQwaU1UUTNjSGdpSUdobGFXZG9kRDBpTWpad2VDSWdjbmc5SWpod2VDSWdjbms5SWpod2VDSWdabWxzYkQwaWNtZGlZU2d3TERBc01Dd3dMallwSWlBdlBqeDBaWGgwSUhnOUlqRXljSGdpSUhrOUlqRTNjSGdpSUdadmJuUXRabUZ0YVd4NVBTSW5RMjkxY21sbGNpQk9aWGNuTENCdGIyNXZjM0JoWTJVaUlHWnZiblF0YzJsNlpUMGlNVEp3ZUNJZ1ptbHNiRDBpZDJocGRHVWlQangwYzNCaGJpQm1hV3hzUFNKeVoySmhLREkxTlN3eU5UVXNNalUxTERBdU5pa2lQazFoZUNCVWFXTnJPaUE4TDNSemNHRnVQaTB5TnpZek1EQThMM1JsZUhRK1BDOW5QanhuSUhOMGVXeGxQU0owY21GdWMyWnZjbTA2ZEhKaGJuTnNZWFJsS0RJeU5uQjRMQ0EwTXpOd2VDa2lQanh5WldOMElIZHBaSFJvUFNJek5uQjRJaUJvWldsbmFIUTlJak0yY0hnaUlISjRQU0k0Y0hnaUlISjVQU0k0Y0hnaUlHWnBiR3c5SW01dmJtVWlJSE4wY205clpUMGljbWRpWVNneU5UVXNNalUxTERJMU5Td3dMaklwSWlBdlBqeHdZWFJvSUhOMGNtOXJaUzFzYVc1bFkyRndQU0p5YjNWdVpDSWdaRDBpVFRnZ09VTTRMakF3TURBMElESXlMamswT1RRZ01UWXVNakE1T1NBeU9DQXlOeUF5T0NJZ1ptbHNiRDBpYm05dVpTSWdjM1J5YjJ0bFBTSjNhR2wwWlNJZ0x6NDhZMmx5WTJ4bElITjBlV3hsUFNKMGNtRnVjMlp2Y20wNmRISmhibk5zWVhSbE0yUW9PSEI0TENBM2NIZ3NJREJ3ZUNraUlHTjRQU0l3Y0hnaUlHTjVQU0l3Y0hnaUlISTlJalJ3ZUNJZ1ptbHNiRDBpZDJocGRHVWlMejQ4TDJjK1BHY2djM1I1YkdVOUluUnlZVzV6Wm05eWJUcDBjbUZ1YzJ4aGRHVW9NakkyY0hnc0lETTVNbkI0S1NJK1BISmxZM1FnZDJsa2RHZzlJak0yY0hnaUlHaGxhV2RvZEQwaU16WndlQ0lnY25nOUlqaHdlQ0lnY25rOUlqaHdlQ0lnWm1sc2JEMGlibTl1WlNJZ2MzUnliMnRsUFNKeVoySmhLREkxTlN3eU5UVXNNalUxTERBdU1pa2lJQzgrUEdjK1BIQmhkR2dnYzNSNWJHVTlJblJ5WVc1elptOXliVHAwY21GdWMyeGhkR1VvTm5CNExEWndlQ2tpSUdROUlrMHhNaUF3VERFeUxqWTFNaklnT1M0MU5qVTROMHd4T0NBeExqWXdOemRNTVRNdU56Z3hPU0F4TUM0eU1UZ3hUREl5TGpNNU1qTWdOa3d4TkM0ME16UXhJREV4TGpNME56aE1NalFnTVRKTU1UUXVORE0wTVNBeE1pNDJOVEl5VERJeUxqTTVNak1nTVRoTU1UTXVOemd4T1NBeE15NDNPREU1VERFNElESXlMak01TWpOTU1USXVOalV5TWlBeE5DNDBNelF4VERFeUlESTBUREV4TGpNME56Z2dNVFF1TkRNME1VdzJJREl5TGpNNU1qTk1NVEF1TWpFNE1TQXhNeTQzT0RFNVRERXVOakEzTnlBeE9FdzVMalUyTlRnM0lERXlMalkxTWpKTU1DQXhNa3c1TGpVMk5UZzNJREV4TGpNME56aE1NUzQyTURjM0lEWk1NVEF1TWpFNE1TQXhNQzR5TVRneFREWWdNUzQyTURjM1RERXhMak0wTnpnZ09TNDFOalU0TjB3eE1pQXdXaUlnWm1sc2JEMGlkMmhwZEdVaUlDOCtQR0Z1YVcxaGRHVlVjbUZ1YzJadmNtMGdZWFIwY21saWRYUmxUbUZ0WlQwaWRISmhibk5tYjNKdElpQjBlWEJsUFNKeWIzUmhkR1VpSUdaeWIyMDlJakFnTVRnZ01UZ2lJSFJ2UFNJek5qQWdNVGdnTVRnaUlHUjFjajBpTVRCeklpQnlaWEJsWVhSRGIzVnVkRDBpYVc1a1pXWnBibWwwWlNJdlBqd3ZaejQ4TDJjK1BDOXpkbWMrIn0=",
+						},
+					},
+					{
+						Type:     filter.TypeExchangeLiquidity,
+						Platform: filter.PlatformUniswap.String(),
+						From:     "0xB2603DBa60e997B4C3dF90B162E9c2D1aF77202C",
+						To:       uniswap.AddressNonfungiblePositionManagerLinea.String(),
+						Metadata: metadata.ExchangeLiquidity{
+							Action: metadata.ActionExchangeLiquidityAdd,
+							Tokens: []metadata.Token{
+								{
+									Address:  lo.ToPtr("0x4AF15ec2A0BD43Db75dd04E62FAA3B8EF36b00d5"),
+									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1555294593115298434"))),
+									Name:     "Dai Stablecoin",
+									Symbol:   "DAI",
+									Decimals: 18,
+									Standard: metadata.StandardERC20,
+								},
+								{
+									Address:  lo.ToPtr("0xA219439258ca9da29E9Cc4cE5596924745e12B93"),
+									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("4487787"))),
+									Name:     "Tether USD",
+									Symbol:   "USDT",
+									Decimals: 6,
+									Standard: metadata.StandardERC20,
+								},
+							},
+						},
+					},
+				},
+				Status:    true,
+				Timestamp: 1708796179,
+			},
+			wantError: require.NoError,
+		},
+		{
+			name: "Collect USDC and WETH liquidity from Linea Uniswap Nonfungible Position Manager",
+			arguments: arguments{
+				task: &source.Task{
+					Network: filter.NetworkLinea,
+					ChainID: 59144,
+					Header: &ethereum.Header{
+						Hash:         common.HexToHash("0xa0813b3c869629efae316f60be55960c3d9182428bc5044ed580046b97c4d4f5"),
+						ParentHash:   common.HexToHash("0x5e35560be35cd8c37cb740e50eb4d7cda695b84cbdbe4f351bd05dc13824817f"),
+						UncleHash:    common.HexToHash("0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"),
+						Coinbase:     common.HexToAddress("0x0000000000000000000000000000000000000000"),
+						Number:       lo.Must(new(big.Int).SetString("2905138", 0)),
+						GasLimit:     61000000,
+						GasUsed:      3690007,
+						Timestamp:    1710478474,
+						BaseFee:      lo.Must(new(big.Int).SetString("7", 0)),
+						Transactions: nil,
+					},
+					Transaction: &ethereum.Transaction{
+						BlockHash: common.HexToHash("0xf84880b33363ca37be90566b9ae532a1c9f7fe99b5732fa73e300fbe9b7c769c"),
+						From:      common.HexToAddress("0x97d35D3F6B7a303B8F40C7f61Ab90CAe5Bf71acB"),
+						Gas:       209560,
+						GasPrice:  lo.Must(new(big.Int).SetString("1658138409", 10)),
+						Hash:      common.HexToHash("0xf84880b33363ca37be90566b9ae532a1c9f7fe99b5732fa73e300fbe9b7c769c"),
+						Input:     hexutil.MustDecode("0xfc6f7865000000000000000000000000000000000000000000000000000000000000004e00000000000000000000000097d35d3f6b7a303b8f40c7f61ab90cae5bf71acb00000000000000000000000000000000ffffffffffffffffffffffffffffffff00000000000000000000000000000000ffffffffffffffffffffffffffffffff"),
+						To:        lo.ToPtr(common.HexToAddress("0x4615C383F85D0a2BbED973d83ccecf5CB7121463")),
+						Value:     lo.Must(new(big.Int).SetString("0", 0)),
+						Type:      2,
+						ChainID:   lo.Must(new(big.Int).SetString("59144", 0)),
+					},
+					Receipt: &ethereum.Receipt{
+						BlockHash:         common.HexToHash("0xa0813b3c869629efae316f60be55960c3d9182428bc5044ed580046b97c4d4f5"),
+						BlockNumber:       lo.Must(new(big.Int).SetString("2905138", 0)),
+						ContractAddress:   nil,
+						CumulativeGasUsed: 3014183,
+						EffectiveGasPrice: hexutil.MustDecodeBig("0x62d52f29"),
+						GasUsed:           202576,
+
+						Logs: []*ethereum.Log{{
+							Address: common.HexToAddress("0xA0c5684512c63B87025D004199Ed7e7358261f15"),
+							Topics: []common.Hash{
+								common.HexToHash("0x0c396cd989a39f4459b5fa1aed6a9a8dcdbc45908acfd67e028cd568da98982c"),
+								common.HexToHash("0x0000000000000000000000004615c383f85d0a2bbed973d83ccecf5cb7121463"),
+								common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000030250"),
+								common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000030318"),
+							},
+							Data:            hexutil.MustDecode("0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2905138", 0)),
+							TransactionHash: common.HexToHash("0xf84880b33363ca37be90566b9ae532a1c9f7fe99b5732fa73e300fbe9b7c769c"),
+							Index:           34,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0x176211869cA2b568f2A7D4EE941E073a821EE1ff"),
+							Topics: []common.Hash{
+								common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+								common.HexToHash("0x000000000000000000000000a0c5684512c63b87025d004199ed7e7358261f15"),
+								common.HexToHash("0x00000000000000000000000097d35d3f6b7a303b8f40c7f61ab90cae5bf71acb"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000000000000000000000000330497"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2905138", 0)),
+							TransactionHash: common.HexToHash("0xf84880b33363ca37be90566b9ae532a1c9f7fe99b5732fa73e300fbe9b7c769c"),
+							Index:           35,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f"),
+							Topics: []common.Hash{
+								common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+								common.HexToHash("0x000000000000000000000000a0c5684512c63b87025d004199ed7e7358261f15"),
+								common.HexToHash("0x00000000000000000000000097d35d3f6b7a303b8f40c7f61ab90cae5bf71acb"),
+							},
+							Data:            hexutil.MustDecode("0x00000000000000000000000000000000000000000000000000038f9913406bf8"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2905138", 0)),
+							TransactionHash: common.HexToHash("0xf84880b33363ca37be90566b9ae532a1c9f7fe99b5732fa73e300fbe9b7c769c"),
+							Index:           36,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xA0c5684512c63B87025D004199Ed7e7358261f15"),
+							Topics: []common.Hash{
+								common.HexToHash("0x70935338e69775456a85ddef226c395fb668b63fa0115f5f20610b388e6ca9c0"),
+								common.HexToHash("0x0000000000000000000000004615c383f85d0a2bbed973d83ccecf5cb7121463"),
+								common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000030250"),
+								common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000030318"),
+							},
+							Data:            hexutil.MustDecode("0x00000000000000000000000097d35d3f6b7a303b8f40c7f61ab90cae5bf71acb000000000000000000000000000000000000000000000000000000000033049700000000000000000000000000000000000000000000000000038f9913406bf8"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2905138", 0)),
+							TransactionHash: common.HexToHash("0xf84880b33363ca37be90566b9ae532a1c9f7fe99b5732fa73e300fbe9b7c769c"),
+							Index:           37,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0x4615C383F85D0a2BbED973d83ccecf5CB7121463"),
+							Topics: []common.Hash{
+								common.HexToHash("0x40d0efd1a53d60ecbf40971b9daf7dc90178c3aadc7aab1765632738fa8b8f01"),
+								common.HexToHash("0x000000000000000000000000000000000000000000000000000000000000004e"),
+							},
+							Data:            hexutil.MustDecode("0x00000000000000000000000097d35d3f6b7a303b8f40c7f61ab90cae5bf71acb000000000000000000000000000000000000000000000000000000000033049700000000000000000000000000000000000000000000000000038f9913406bf8"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("2905138", 0)),
+							TransactionHash: common.HexToHash("0xf84880b33363ca37be90566b9ae532a1c9f7fe99b5732fa73e300fbe9b7c769c"),
+							Index:           38,
+							Removed:         false,
+						}},
+						Status:           1,
+						TransactionHash:  common.HexToHash("0xf84880b33363ca37be90566b9ae532a1c9f7fe99b5732fa73e300fbe9b7c769c"),
+						TransactionIndex: 19,
+					},
+				},
+				config: &config.Module{
+					Network:  filter.NetworkLinea,
+					Endpoint: endpoint.MustGet(filter.NetworkLinea),
+				},
+			},
+			want: &schema.Feed{
+				ID:      "0xf84880b33363ca37be90566b9ae532a1c9f7fe99b5732fa73e300fbe9b7c769c",
+				Network: filter.NetworkLinea,
+				Index:   19,
+				From:    "0x97d35D3F6B7a303B8F40C7f61Ab90CAe5Bf71acB",
+				To:      uniswap.AddressNonfungiblePositionManagerLinea.String(),
+				Type:    filter.TypeExchangeLiquidity,
+				Calldata: &schema.Calldata{
+					FunctionHash: "0xfc6f7865",
+				},
+				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Fee: &schema.Fee{
+					Amount:  lo.Must(decimal.NewFromString("335899046341584")),
+					Decimal: 18,
+				},
+				Actions: []*schema.Action{
+					{
+						Type:     filter.TypeExchangeLiquidity,
+						Platform: filter.PlatformUniswap.String(),
+						From:     uniswap.AddressNonfungiblePositionManagerLinea.String(),
+						To:       "0x97d35D3F6B7a303B8F40C7f61Ab90CAe5Bf71acB",
+						Metadata: metadata.ExchangeLiquidity{
+							Action: metadata.ActionExchangeLiquidityCollect,
+							Tokens: []metadata.Token{
+								{
+									Address:  lo.ToPtr("0x176211869cA2b568f2A7D4EE941E073a821EE1ff"),
+									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("3343511"))),
+									Name:     "USDC",
+									Symbol:   "USDC",
+									Decimals: 6,
+									Standard: metadata.StandardERC20,
+								},
+								{
+									Address:  lo.ToPtr("0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f"),
+									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1002312545889272"))),
+									Name:     "Wrapped Ether",
+									Symbol:   "WETH",
+									Decimals: 18,
+									Standard: metadata.StandardERC20,
+								},
+							},
+						},
+					},
+				},
+				Status:    true,
+				Timestamp: 1710478474,
+			},
+			wantError: require.NoError,
+		},
 	}
 
 	for _, testcase := range testcases {
@@ -2155,7 +2657,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			feed, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
 
 			require.Equal(t, testcase.want, feed)
 		})
