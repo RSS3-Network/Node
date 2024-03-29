@@ -270,3 +270,8 @@ component:
     - network: vsl
       endpoint: https://rpc.rss3.io
       worker: rss3
+    - network: ethereum
+      worker: vsl
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
