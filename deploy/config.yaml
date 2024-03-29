@@ -202,11 +202,6 @@ component:
       worker: kiwistand
       parameters:
         block_number_start:
-    - network: rss3-testnet
-      endpoint: https://rpc.testnet.rss3.io
-      worker: uniswap
-      parameters:
-        block_number_start:
     - network: savm
       endpoint: https://alpha-rpc-node-http.svmscan.io
       worker: fallback
