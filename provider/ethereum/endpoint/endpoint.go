@@ -35,11 +35,6 @@ var endpointsMap = map[filter.Network][]string{
 		"https://arbitrum.blockpi.network/v1/rpc/public",
 		"https://arbitrum.llamarpc.com",
 	},
-	filter.NetworkFantom: {
-		"https://rpcapi.fantom.network",
-		"https://rpc.ankr.com/fantom",
-		"https://fantom.blockpi.network/v1/rpc/public",
-	},
 	filter.NetworkAvalanche: {
 		"https://api.avax.network/ext/bc/C/rpc",
 		"https://rpc.ankr.com/avalanche",
@@ -48,14 +43,20 @@ var endpointsMap = map[filter.Network][]string{
 	filter.NetworkCrossbell: {
 		"https://rpc.crossbell.io",
 	},
-	filter.NetworkRSS3Testnet: {
-		"https://rpc.testnet.rss3.io",
-	},
 	filter.NetworkVSL: {
 		"https://rpc.rss3.io",
 	},
 	filter.NetworkSatoshiVM: {
 		"https://alpha-rpc-node-http.svmscan.io",
+	},
+	filter.NetworkBinanceSmartChain: {
+		"https://rpc.ankr.com/bsc",
+	},
+	filter.NetworkGnosis: {
+		"https://rpc.ankr.com/gnosis",
+	},
+	filter.NetworkLinea: {
+		"https://rpc.linea.build",
 	},
 }
 

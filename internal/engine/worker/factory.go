@@ -24,6 +24,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/contract/optimism"
 	"github.com/rss3-network/node/internal/engine/worker/contract/paragraph"
 	"github.com/rss3-network/node/internal/engine/worker/contract/rss3"
+	"github.com/rss3-network/node/internal/engine/worker/contract/savm"
 	"github.com/rss3-network/node/internal/engine/worker/contract/uniswap"
 	"github.com/rss3-network/node/internal/engine/worker/fallback"
 	"github.com/rss3-network/node/internal/engine/worker/farcaster"
@@ -74,6 +75,8 @@ func New(config *config.Module, databaseClient database.Client) (engine.Worker, 
 		return oneinch.NewWorker(config)
 	case filter.KiwiStand:
 		return kiwistand.NewWorker(config)
+	case filter.SAVM:
+		return savm.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}

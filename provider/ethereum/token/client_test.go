@@ -153,20 +153,6 @@ func TestEthereumClient(t *testing.T) {
 			},
 		},
 		{
-			name: "RSS3 Testnet Token",
-			arguments: arguments{
-				network: filter.NetworkRSS3Testnet,
-				address: lo.ToPtr(common.HexToAddress("0x05BF18310a20FBAeBA376282B5FC6CC0A404402B")),
-			},
-			want: metadata.Token{
-				Address:  lo.ToPtr("0x05BF18310a20FBAeBA376282B5FC6CC0A404402B"),
-				Name:     "aaa",
-				Symbol:   "a",
-				Decimals: 18,
-				Standard: metadata.StandardERC20,
-			},
-		},
-		{
 			name: "Kiwi #979",
 			arguments: arguments{
 				network: filter.NetworkOptimism,

@@ -149,10 +149,10 @@ func TestWorker_Ethereum(t *testing.T) {
 						Metadata: metadata.TransactionBridge{
 							Action:        metadata.ActionTransactionBridgeWithdraw,
 							SourceNetwork: filter.NetworkSatoshiVM,
-							TargetNetwork: filter.NetworkBTC,
+							TargetNetwork: filter.NetworkBitcoin,
 							Token: metadata.Token{
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("20000"))),
-								Name:     "BTC",
+								Name:     "Bitcoin",
 								Symbol:   "BTC",
 								Decimals: 8,
 							},

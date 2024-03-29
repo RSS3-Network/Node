@@ -23,16 +23,17 @@ var (
 )
 
 var deployedAtMap = map[uint64]uint64{
-	uint64(filter.EthereumChainIDMainnet):     14353601, // https://etherscan.io/tx/0x00d9fcb7848f6f6b0aae4fb709c133d69262b902156c85a473ef23faa60760bd
-	uint64(filter.EthereumChainIDOptimism):    4286263,  // https://optimistic.etherscan.io/tx/0xb62f9191a2cf399c0d2afd33f5b8baf7c6b52af6dd2386e44121b1bab91b80e5
-	uint64(filter.EthereumChainIDPolygon):     25770160, // https://polygonscan.com/tx/0x25d385667b12d6992742127dc7682e570136397806e2773dc47922eba0001989
-	uint64(filter.EthereumChainIDFantom):      33001987, // https://ftmscan.com/tx/0xcd2027fb534d23b4562e8ee6f598a2d82c2452ed4987ba25d863f654dfad97df
-	uint64(filter.EthereumChainIDArbitrum):    7654707,  // https://arbiscan.io/tx/0x211f6689adbb0f3fba7392e899d23bde029cef532cbd0ae900920cc09f7d1f32
-	uint64(filter.EthereumChainIDBase):        5022,     // https://basescan.org/tx/0x07471adfe8f4ec553c1199f495be97fc8be8e0626ae307281c22534460184ed1
-	uint64(filter.EthereumChainIDCrossbell):   38246031, // https://scan.crossbell.io/tx/0x0d7367f09c151993f1a7ac32780948fc07d232806e81d0d0c3e7058e4538d7f5
-	uint64(filter.EthereumChainIDRSS3Testnet): 55697,    // https://scan.testnet.rss3.io/tx/0x9052ab294106e6255c496b0ab9c7b78a7f6aa9b936ebc891d537d62a37817f7d
-	uint64(filter.EthereumChainIDVSL):         14193,    // https://scan.rss3.io/tx/0x07471adfe8f4ec553c1199f495be97fc8be8e0626ae307281c22534460184ed1
-	uint64(filter.EthereumChainIDSatoshiVM):   60740,    // https://svmscan.io/tx/0x3349d0d487c2ba43d19f7ec6a1e2176e3f72ccbfa647ac719a074682346dd40c
+	uint64(filter.EthereumChainIDMainnet):           14353601, // https://etherscan.io/tx/0x00d9fcb7848f6f6b0aae4fb709c133d69262b902156c85a473ef23faa60760bd
+	uint64(filter.EthereumChainIDOptimism):          4286263,  // https://optimistic.etherscan.io/tx/0xb62f9191a2cf399c0d2afd33f5b8baf7c6b52af6dd2386e44121b1bab91b80e5
+	uint64(filter.EthereumChainIDPolygon):           25770160, // https://polygonscan.com/tx/0x25d385667b12d6992742127dc7682e570136397806e2773dc47922eba0001989
+	uint64(filter.EthereumChainIDArbitrum):          7654707,  // https://arbiscan.io/tx/0x211f6689adbb0f3fba7392e899d23bde029cef532cbd0ae900920cc09f7d1f32
+	uint64(filter.EthereumChainIDBase):              5022,     // https://basescan.org/tx/0x07471adfe8f4ec553c1199f495be97fc8be8e0626ae307281c22534460184ed1
+	uint64(filter.EthereumChainIDCrossbell):         38246031, // https://scan.crossbell.io/tx/0x0d7367f09c151993f1a7ac32780948fc07d232806e81d0d0c3e7058e4538d7f5
+	uint64(filter.EthereumChainIDVSL):               14193,    // https://scan.rss3.io/tx/0x07471adfe8f4ec553c1199f495be97fc8be8e0626ae307281c22534460184ed1
+	uint64(filter.EthereumChainIDSatoshiVM):         60740,    // https://svmscan.io/tx/0x3349d0d487c2ba43d19f7ec6a1e2176e3f72ccbfa647ac719a074682346dd40c
+	uint64(filter.EthereumChainIDBinanceSmartChain): 15921452, // https://bscscan.com/tx/0xcc0ddf5f791617ba9befce57995dbcb3a202946a1eefa3469742b01a0decdaf2
+	uint64(filter.EthereumChainIDGnosis):            21022491, // https://gnosis.blockscout.com/tx/0xf528b4398b2961bab9404a943d1da24d6c82b7367b0cc233629fccc94f1ababa
+	uint64(filter.EthereumChainIDLinea):             42,       // https://lineascan.build/tx/0x369305bf856786a160151d3897de2540fc700cf3d6a289b954ca93460f1038b6
 }
 
 func IsDeployed(chainID uint64, blockNumber *big.Int) bool {

@@ -24,9 +24,12 @@ jobs:
             kv/data/network/rss3-node ENDPOINT_POLYGON ;
             kv/data/network/rss3-node ENDPOINT_ARBITRUM ;
             kv/data/network/rss3-node ENDPOINT_OPTIMISM ;
-            kv/data/network/rss3-node ENDPOINT_FANTOM ;
             kv/data/network/rss3-node ENDPOINT_BASE ;
             kv/data/network/rss3-node ENDPOINT_AVALANCHE ;
+            kv/data/network/rss3-node ENDPOINT_SAVM ;
+            kv/data/network/rss3-node ENDPOINT_GNOSIS ;
+            kv/data/network/rss3-node ENDPOINT_BINANCE_SMART_CHAIN ;
+            kv/data/network/rss3-node ENDPOINT_LINEA ;
             kv/data/network/rss3-node FARCASTER_URI
       - name: Setup Go
         uses: actions/setup-go@v3

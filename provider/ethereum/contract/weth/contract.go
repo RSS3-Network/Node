@@ -14,7 +14,6 @@ var (
 	AddressOptimism    = common.HexToAddress("0x4200000000000000000000000000000000000006")
 	AddressGnosis      = common.HexToAddress("0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1")
 	AddressPolygon     = common.HexToAddress("0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619")
-	AddressFantom      = common.HexToAddress("0xA59982c7A272839cBd93e02Bd8978E9a78189AB5")
 	AddressCelo        = common.HexToAddress("0x122013fd7dF1C6F636a5bb8f03108E876548b455")
 	AddressArbitrumOne = common.HexToAddress("0x82aF49447D8a07e3bd95BD0d56f35241523fBab1")
 	AddressAvalanche   = common.HexToAddress("0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB")
