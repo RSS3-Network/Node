@@ -197,6 +197,11 @@ component:
       worker: fallback
       parameters:
         block_number_start:
+    - network: optimism
+      endpoint: https://rpc.ankr.com/optimism
+      worker: kiwistand
+      parameters:
+        block_number_start:
     - network: savm
       endpoint: https://alpha-rpc-node-http.svmscan.io
       worker: fallback
@@ -247,3 +252,21 @@ component:
       worker: fallback
       parameters:
           block_number_start:
+    - network: linea
+      endpoint: https://rpc.linea.build
+      worker: uniswap
+      parameters:
+        block_number_start:
+    - network: vsl
+      endpoint: https://rpc.rss3.io
+      worker: fallback
+      parameters:
+        block_number_start:
+    - network: vsl
+      endpoint: https://rpc.rss3.io
+      worker: rss3
+    - network: ethereum
+      worker: vsl
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
