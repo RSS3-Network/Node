@@ -119,7 +119,7 @@ func (w *worker) transformBTCBridgeWithdrawLog(ctx context.Context, task *source
 		return nil, fmt.Errorf("parse Withdraw event: %w", err)
 	}
 
-	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.Sender, event.Sender, filter.NetworkSatoshiVM, filter.NetworkBTC, metadata.ActionTransactionBridgeWithdraw, nil, event.NormalizedAmount, log.BlockNumber)
+	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.Sender, event.Sender, filter.NetworkSatoshiVM, filter.NetworkBitcoin, metadata.ActionTransactionBridgeWithdraw, nil, event.NormalizedAmount, log.BlockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("build transaction bridge action: %w", err)
 	}
@@ -137,7 +137,7 @@ func (w *worker) transformBTCBridgeDepositLog(ctx context.Context, task *source.
 		return nil, fmt.Errorf("parse Deposit event: %w", err)
 	}
 
-	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.Recipient, event.Recipient, filter.NetworkBTC, filter.NetworkSatoshiVM, metadata.ActionTransactionBridgeDeposit, nil, event.NormalizedAmount, log.BlockNumber)
+	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.Recipient, event.Recipient, filter.NetworkBitcoin, filter.NetworkSatoshiVM, metadata.ActionTransactionBridgeDeposit, nil, event.NormalizedAmount, log.BlockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("build transaction bridge action: %w", err)
 	}
