@@ -79,7 +79,7 @@ var nativeTokenMap = map[uint64]metadata.Token{
 		Decimals: 18,
 	},
 	uint64(filter.EthereumChainIDSatoshiVM): {
-		Name:     "BTC",
+		Name:     "Bitcoin",
 		Symbol:   "BTC",
 		Decimals: 8,
 	},
