@@ -172,11 +172,6 @@ component:
       worker: aave
       parameters:
         block_number_start:
-    - network: fantom
-      endpoint: https://rpc.ankr.com/fantom
-      worker: aave
-      parameters:
-        block_number_start:
     - network: polygon
       worker: iqwiki
       endpoint: https://rpc.ankr.com/polygon
