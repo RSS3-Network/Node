@@ -156,9 +156,6 @@ func (w *worker) transformLPoolSwapLog(ctx context.Context, task *source.Task, l
 		return nil, fmt.Errorf("unsupport chain: %s", task.Network)
 	}
 
-	fmt.Printf("===> task network: %s\n", task.Network)
-	fmt.Printf("===> factoryAddress: %s\n", factoryAddress.String())
-
 	factoryCaller, err := stargate.NewFactoryCaller(factoryAddress, w.ethereumClient)
 	if err != nil {
 		return nil, fmt.Errorf("new factory caller: %w", err)
