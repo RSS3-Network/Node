@@ -191,7 +191,7 @@ component:
       worker: 1inch
       endpoint: https://rpc.ankr.com/eth
       parameters:
-        block_number_start: 12888350
+        block_number_start:
     - network: vsl
       endpoint: https://rpc.rss3.io
       worker: fallback
@@ -268,5 +268,45 @@ component:
     - network: ethereum
       worker: vsl
       endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
+    - network: ethereum
+      worker: stargate
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
+    - network: arbitrum
+      worker: stargate
+      endpoint: https://rpc.ankr.com/arbitrum
+      parameters:
+        block_number_start:
+    - network: linea
+      endpoint: https://rpc.linea.build
+      worker: stargate
+      parameters:
+        block_number_start:
+    - network: binance-smart-chain
+      endpoint: https://rpc.ankr.com/bsc
+      worker: stargate
+      parameters:
+        block_number_start:
+    - network: base
+      endpoint: https://developer-access-mainnet.base.orgss
+      worker: stargate
+      parameters:
+        block_number_start:
+    - network: optimism
+      endpoint: https://rpc.ankr.com/optimism
+      worker: stargate
+      parameters:
+        block_number_start:
+    - network: polygon
+      worker: stargate
+      endpoint: https://rpc.ankr.com/polygon
+      parameters:
+        block_number_start:
+    - network: avax
+      endpoint: https://rpc.ankr.com/avalanche
+      worker: stargate
       parameters:
         block_number_start:
