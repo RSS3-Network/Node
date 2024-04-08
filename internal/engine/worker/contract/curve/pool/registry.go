@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/redis/rueidis"
@@ -24,10 +25,14 @@ var _ Registry = (*registry)(nil)
 type registry struct {
 	redisClient rueidis.Client
 	httpClient  httpx.Client
+	mu          sync.Mutex
 }
 
 // Refresh fetches the pools from the curve endpoint and stores them in the redis.
 func (r *registry) Refresh(ctx context.Context) error {
+	r.mu.Lock()         // Lock the mutex
+	defer r.mu.Unlock() // Unlock the mutex when the function returns
+
 	const Endpoint = "https://api.curve.fi/"
 
 	// Networks to fetch pools for.
@@ -150,6 +155,8 @@ func (r *registry) formatNetwork(network filter.Network) string {
 	switch network {
 	case filter.NetworkGnosis:
 		return "xdai"
+	case filter.NetworkAvalanche:
+		return "avalanche"
 	default:
 		return network.String()
 	}
