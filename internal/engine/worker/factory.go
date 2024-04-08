@@ -77,6 +77,8 @@ func New(config *config.Module, databaseClient database.Client) (engine.Worker, 
 		return kiwistand.NewWorker(config)
 	case filter.SAVM:
 		return savm.NewWorker(config)
+	case filter.Stargate:
+		return stargate.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}
