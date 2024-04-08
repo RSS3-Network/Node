@@ -55,7 +55,8 @@ require (
 	github.com/cockroachdb/cockroach-go/v2 v2.3.6
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/rss3-network/protocol-go v0.3.0
+	github.com/redis/rueidis v1.0.33
+	github.com/rss3-network/protocol-go v0.3.3
 	github.com/spf13/afero v1.11.0
 	github.com/vincent-petithory/dataurl v1.0.0
 	golang.org/x/net v0.20.0
@@ -155,7 +156,7 @@ require (
 	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
 	golang.org/x/mod v0.14.0 // indirect
-	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.17.0 // indirect
