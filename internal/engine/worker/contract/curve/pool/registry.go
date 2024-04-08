@@ -20,6 +20,7 @@ type Registry interface {
 
 var _ Registry = (*registry)(nil)
 
+// client is a client for the curve registry.
 type registry struct {
 	redisClient rueidis.Client
 	httpClient  httpx.Client
@@ -29,6 +30,7 @@ type registry struct {
 func (r *registry) Refresh(ctx context.Context) error {
 	const Endpoint = "https://api.curve.fi/"
 
+	// Networks to fetch pools for.
 	networks := []filter.Network{
 		filter.NetworkArbitrum,
 		filter.NetworkAvalanche,
@@ -38,6 +40,7 @@ func (r *registry) Refresh(ctx context.Context) error {
 		filter.NetworkPolygon,
 	}
 
+	// Registry IDs to fetch pools for.
 	registryIDs := []string{
 		"main",
 		"crypto",
@@ -45,14 +48,17 @@ func (r *registry) Refresh(ctx context.Context) error {
 		"factory-crypto",
 	}
 
+	// Fetch pools from the curve endpoint.
 	resultPool := pool.NewWithResults[[]Pool]().
 		WithContext(ctx).
 		WithFirstError().
 		WithCancelOnError()
 
+	// iterate over networks and registry IDs.
 	for _, network := range networks {
 		network := network
 
+		// iterate over registry IDs.
 		for _, registryID := range registryIDs {
 			resultPool.Go(func(ctx context.Context) ([]Pool, error) {
 				readCloser, err := r.httpClient.Fetch(ctx, fmt.Sprintf("%sapi/getPools/%s/%s", Endpoint, r.formatNetwork(network), registryID))
@@ -87,6 +93,7 @@ func (r *registry) Refresh(ctx context.Context) error {
 
 	commands := make([]rueidis.Completed, 0, len(curvePools))
 
+	// Store the pools in the redis.
 	for _, curvePool := range curvePools {
 		keys := []string{
 			r.formatRedisKey(curvePool.Network, ContractTypePool, curvePool.Address),
@@ -133,6 +140,7 @@ func (r *registry) Validate(ctx context.Context, network filter.Network, contrac
 	return &curvePool, nil
 }
 
+// formatRedisKey formats the redis key.
 func (r *registry) formatRedisKey(network filter.Network, contractType ContractType, address common.Address) string {
 	return fmt.Sprintf("curve:%s:%s:%s", r.formatNetwork(network), contractType, address)
 }

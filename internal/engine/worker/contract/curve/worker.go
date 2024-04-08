@@ -48,6 +48,7 @@ func (w *worker) Name() string {
 // Filter curve contract address and event hash.
 func (w *worker) Filter() engine.SourceFilter {
 	return &source.Filter{
+		// filter curve contract address
 		LogAddresses: []common.Address{
 			curve.AddressRegistryExchangeEthereum,
 			curve.AddressRegistryExchangeArbitrum,
@@ -56,6 +57,7 @@ func (w *worker) Filter() engine.SourceFilter {
 			curve.AddressRegistryExchangeOptimism,
 			curve.AddressRegistryExchangePolygon,
 		},
+		// filter curve event hash
 		LogTopics: []common.Hash{
 			curve.EventHashStableSwapTokenExchange,
 			curve.EventHashStableSwapAddLiquidity2Coins,
@@ -98,6 +100,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		// Match stable swap add liquidity transaction.
 		feed.Type = filter.TypeExchangeLiquidity
 
+		// Transform stable swap add liquidity transaction.
 		actions, err := w.transformStableSwapAddLiquidityTransaction(ctx, ethereumTask)
 		if err != nil {
 			return nil, fmt.Errorf("handle ethereum stable swap add liquidity transaction: %w", err)
@@ -110,6 +113,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		// Match stable swap remove liquidity transaction.
 		feed.Type = filter.TypeExchangeLiquidity
 
+		// Transform stable swap remove liquidity transaction.
 		actions, err := w.transformStableSwapRemoveLiquidityTransaction(ctx, ethereumTask)
 		if err != nil {
 			return nil, fmt.Errorf("handle ethereum stable swap remove liquidity transaction: %w", err)
@@ -166,6 +170,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 // matchStableSwapEventHashStableSwapAddLiquidityTransaction matches stable swap add liquidity transaction.
 func (w *worker) matchStableSwapEventHashStableSwapAddLiquidityTransaction(task *source.Task) bool {
+	// Match stable swap add liquidity transaction.
 	return contract.MatchMethodIDs(
 		task.Transaction.Input,
 		curve.MethodIDStableSwapAddLiquidity2Coins,
@@ -310,6 +315,7 @@ func (w *worker) transformStableSwapRemoveLiquidityTransaction(ctx context.Conte
 		actions     = make([]*schema.Action, 0)
 	)
 
+	// Iterate through logs to find the remove liquidity event.
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
 			continue
