@@ -25,6 +25,7 @@ type registry struct {
 	httpClient  httpx.Client
 }
 
+// Refresh fetches the pools from the curve endpoint and stores them in the redis.
 func (r *registry) Refresh(ctx context.Context) error {
 	const Endpoint = "https://api.curve.fi/"
 
@@ -54,7 +55,7 @@ func (r *registry) Refresh(ctx context.Context) error {
 
 		for _, registryID := range registryIDs {
 			resultPool.Go(func(ctx context.Context) ([]Pool, error) {
-				readCloser, err := r.httpClient.Fetch(ctx, fmt.Sprintf("%sapi/getPools/%s/%s", Endpoint, network.String(), registryID))
+				readCloser, err := r.httpClient.Fetch(ctx, fmt.Sprintf("%sapi/getPools/%s/%s", Endpoint, r.formatNetwork(network), registryID))
 				if err != nil {
 					return nil, fmt.Errorf("fetch request: %w", err)
 				}
@@ -109,6 +110,7 @@ func (r *registry) Refresh(ctx context.Context) error {
 	return nil
 }
 
+// Validate checks if the pool is valid.
 func (r *registry) Validate(ctx context.Context, network filter.Network, contractType ContractType, address common.Address) (*Pool, error) {
 	command := r.redisClient.B().Get().Key(r.formatRedisKey(network, contractType, address)).Build()
 
@@ -132,9 +134,20 @@ func (r *registry) Validate(ctx context.Context, network filter.Network, contrac
 }
 
 func (r *registry) formatRedisKey(network filter.Network, contractType ContractType, address common.Address) string {
-	return fmt.Sprintf("curve:%s:%s:%s", network.String(), contractType, address)
+	return fmt.Sprintf("curve:%s:%s:%s", r.formatNetwork(network), contractType, address)
 }
 
+// formatNetwork handling special network name in curve endpoint like xdai.
+func (r *registry) formatNetwork(network filter.Network) string {
+	switch network {
+	case filter.NetworkGnosis:
+		return "xdai"
+	default:
+		return network.String()
+	}
+}
+
+// NewRegistry creates a new registry.
 func NewRegistry(redisClient rueidis.Client, httpClient httpx.Client) Registry {
 	return &registry{
 		redisClient: redisClient,

@@ -75,6 +75,7 @@ func (w *worker) Filter() engine.SourceFilter {
 	}
 }
 
+// Match Ethereum task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
 }
@@ -94,6 +95,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 	switch {
 	case w.matchStableSwapEventHashStableSwapAddLiquidityTransaction(ethereumTask):
+		// Match stable swap add liquidity transaction.
 		feed.Type = filter.TypeExchangeLiquidity
 
 		actions, err := w.transformStableSwapAddLiquidityTransaction(ctx, ethereumTask)
@@ -105,6 +107,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 		return feed, nil
 	case w.matchStableSwapEventHashStableSwapRemoveLiquidityTransaction(ethereumTask):
+		// Match stable swap remove liquidity transaction.
 		feed.Type = filter.TypeExchangeLiquidity
 
 		actions, err := w.transformStableSwapRemoveLiquidityTransaction(ctx, ethereumTask)
@@ -132,7 +135,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		// Match curve core contract events
 		switch {
 		case w.matchEthereumRegistryExchangeExchangeMultipleLog(ethereumTask, log):
-			// Add ETH liquidity
+			// Add registry exchange multiple
 			feed.Type = filter.TypeExchangeSwap
 			actions, err = w.transformRegistryExchangeExchangeMultipleLog(ctx, ethereumTask, log)
 		case w.matchEthereumStableSwapTokenExchangeLog(ethereumTask, log):
@@ -161,6 +164,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	return feed, nil
 }
 
+// matchStableSwapEventHashStableSwapAddLiquidityTransaction matches stable swap add liquidity transaction.
 func (w *worker) matchStableSwapEventHashStableSwapAddLiquidityTransaction(task *source.Task) bool {
 	return contract.MatchMethodIDs(
 		task.Transaction.Input,
@@ -170,6 +174,7 @@ func (w *worker) matchStableSwapEventHashStableSwapAddLiquidityTransaction(task 
 	)
 }
 
+// matchStableSwapEventHashStableSwapRemoveLiquidityTransaction matches stable swap remove liquidity transaction.
 func (w *worker) matchStableSwapEventHashStableSwapRemoveLiquidityTransaction(task *source.Task) bool {
 	return contract.MatchMethodIDs(
 		task.Transaction.Input,
@@ -183,15 +188,18 @@ func (w *worker) matchStableSwapEventHashStableSwapRemoveLiquidityTransaction(ta
 	)
 }
 
+// matchEthereumRegistryExchangeExchangeMultipleLog matches ethereum registry exchange multiple log.
 func (w *worker) matchEthereumRegistryExchangeExchangeMultipleLog(_ *source.Task, log *ethereum.Log) bool {
 	return len(log.Topics) == 3 && contract.MatchEventHashes(log.Topics[0], curve.EventHashRegistryExchangeExchangeMultiple)
 }
 
+// matchEthereumStableSwapTokenExchangeLog matches ethereum stable swap token exchange log.
 func (w *worker) matchEthereumStableSwapTokenExchangeLog(task *source.Task, log *ethereum.Log) bool {
 	if len(log.Topics) != 2 || !contract.MatchEventHashes(log.Topics[0], curve.EventHashStableSwapTokenExchange) {
 		return false
 	}
 
+	// Validate stable swap pool.
 	validated, err := w.curvePoolRegistry.Validate(context.Background(), task.Network, pool.ContractTypePool, log.Address)
 	if err != nil {
 		zap.L().Error("validate pool", zap.Error(err), zap.Stringer("pool", log.Address))
@@ -200,11 +208,13 @@ func (w *worker) matchEthereumStableSwapTokenExchangeLog(task *source.Task, log 
 	return validated != nil
 }
 
+// matchEthereumLiquidityGaugeDepositLog matches ethereum liquidity gauge deposit log.
 func (w *worker) matchEthereumLiquidityGaugeDepositLog(task *source.Task, log *ethereum.Log) bool {
 	if len(log.Topics) != 2 || !contract.MatchEventHashes(log.Topics[0], curve.EventHashLiquidityGaugeDeposit) {
 		return false
 	}
 
+	// Validate liquidity gauge.
 	validated, err := w.curvePoolRegistry.Validate(context.Background(), task.Network, pool.ContractTypeGauge, log.Address)
 	if err != nil {
 		zap.L().Error("validate gauge", zap.Error(err), zap.Stringer("pool", log.Address))
@@ -213,11 +223,13 @@ func (w *worker) matchEthereumLiquidityGaugeDepositLog(task *source.Task, log *e
 	return validated != nil
 }
 
+// matchEthereumLiquidityGaugeWithdrawLog matches ethereum liquidity gauge withdraw log.
 func (w *worker) matchEthereumLiquidityGaugeWithdrawLog(task *source.Task, log *ethereum.Log) bool {
 	if len(log.Topics) != 2 || !contract.MatchEventHashes(log.Topics[0], curve.EventHashLiquidityGaugeWithdraw) {
 		return false
 	}
 
+	// Validate liquidity gauge.
 	validated, err := w.curvePoolRegistry.Validate(context.Background(), task.Network, pool.ContractTypeGauge, log.Address)
 	if err != nil {
 		zap.L().Error("validate gauge", zap.Error(err), zap.Stringer("pool", log.Address))
@@ -226,6 +238,7 @@ func (w *worker) matchEthereumLiquidityGaugeWithdrawLog(task *source.Task, log *
 	return validated != nil
 }
 
+// transformStableSwapAddLiquidityTransaction transforms stable swap add liquidity transaction.
 func (w *worker) transformStableSwapAddLiquidityTransaction(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
 	addLiquidityLog, _ := lo.Find(task.Receipt.Logs, func(log *ethereum.Log) bool {
 		return len(log.Topics) > 0 && contract.MatchEventHashes(
@@ -257,14 +270,14 @@ func (w *worker) transformStableSwapAddLiquidityTransaction(ctx context.Context,
 
 		switch {
 		case transferEvent.From == task.Transaction.From && transferEvent.To == poolAddress: // Add liquidity
-			action, err := w.buildEthereumExchangeLiquidityAction(ctx, task.Header.Number, task.ChainID, transferEvent.From, transferEvent.To, &transferEvent.Raw.Address, transferEvent.Value, metadata.ActionExchangeLiquidityAdd)
+			action, err := w.buildExchangeLiquidityAction(ctx, task.Header.Number, task.ChainID, transferEvent.From, transferEvent.To, &transferEvent.Raw.Address, transferEvent.Value, metadata.ActionExchangeLiquidityAdd)
 			if err != nil {
 				return nil, fmt.Errorf("build exchange liquidity action: %w", err)
 			}
 
 			actions = append(actions, action)
 		case transferEvent.From == ethereum.AddressGenesis && transferEvent.To == task.Transaction.From: // Mint coin
-			action, err := w.buildEthereumTransactionTransferAction(ctx, task.Header.Number, task.ChainID, transferEvent.From, transferEvent.To, &transferEvent.Raw.Address, transferEvent.Value)
+			action, err := w.buildTransferAction(ctx, task.Header.Number, task.ChainID, transferEvent.From, transferEvent.To, &transferEvent.Raw.Address, transferEvent.Value)
 			if err != nil {
 				return nil, fmt.Errorf("build transaction transfer action: %w", err)
 			}
@@ -276,6 +289,7 @@ func (w *worker) transformStableSwapAddLiquidityTransaction(ctx context.Context,
 	return actions, nil
 }
 
+// transformStableSwapRemoveLiquidityTransaction transforms stable swap remove liquidity transaction.
 func (w *worker) transformStableSwapRemoveLiquidityTransaction(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
 	addLiquidityLog, _ := lo.Find(task.Receipt.Logs, func(log *ethereum.Log) bool {
 		return len(log.Topics) > 0 && contract.MatchEventHashes(
@@ -312,14 +326,14 @@ func (w *worker) transformStableSwapRemoveLiquidityTransaction(ctx context.Conte
 
 		switch {
 		case transferEvent.From == poolAddress && transferEvent.To == task.Transaction.From: // Remove liquidity
-			action, err := w.buildEthereumExchangeLiquidityAction(ctx, task.Header.Number, task.ChainID, transferEvent.From, transferEvent.To, &transferEvent.Raw.Address, transferEvent.Value, metadata.ActionExchangeLiquidityRemove)
+			action, err := w.buildExchangeLiquidityAction(ctx, task.Header.Number, task.ChainID, transferEvent.From, transferEvent.To, &transferEvent.Raw.Address, transferEvent.Value, metadata.ActionExchangeLiquidityRemove)
 			if err != nil {
 				return nil, fmt.Errorf("build exchange liquidity action: %w", err)
 			}
 
 			actions = append(actions, action)
 		case transferEvent.From == task.Transaction.From && transferEvent.To == ethereum.AddressGenesis: // Burn coin
-			action, err := w.buildEthereumTransactionTransferAction(ctx, task.Header.Number, task.ChainID, transferEvent.From, transferEvent.To, &transferEvent.Raw.Address, transferEvent.Value)
+			action, err := w.buildTransferAction(ctx, task.Header.Number, task.ChainID, transferEvent.From, transferEvent.To, &transferEvent.Raw.Address, transferEvent.Value)
 			if err != nil {
 				return nil, fmt.Errorf("build transaction transfer action: %w", err)
 			}
@@ -331,6 +345,7 @@ func (w *worker) transformStableSwapRemoveLiquidityTransaction(ctx context.Conte
 	return actions, nil
 }
 
+// transformRegistryExchangeExchangeMultipleLog transforms registry exchange exchange multiple log.
 func (w *worker) transformRegistryExchangeExchangeMultipleLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.curveRegistryExchangeFilterer.ParseExchangeMultiple(log.Export())
 	if err != nil {
@@ -349,7 +364,7 @@ func (w *worker) transformRegistryExchangeExchangeMultipleLog(ctx context.Contex
 		}
 	}
 
-	action, err := w.buildEthereumExchangeSwapAction(ctx, task.Header.Number, task.ChainID, event.Buyer, event.Receiver, tokenIn, tokenOut, event.AmountSold, event.AmountBought)
+	action, err := w.buildExchangeSwapAction(ctx, task.Header.Number, task.ChainID, event.Buyer, event.Receiver, tokenIn, tokenOut, event.AmountSold, event.AmountBought)
 	if err != nil {
 		return nil, fmt.Errorf("build exchange swap action: %w", err)
 	}
@@ -361,6 +376,7 @@ func (w *worker) transformRegistryExchangeExchangeMultipleLog(ctx context.Contex
 	return actions, nil
 }
 
+// transformStableSwapTokenExchangeLog transforms stable swap token exchange log.
 func (w *worker) transformStableSwapTokenExchangeLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.curveStableSwapFilterer.ParseTokenExchange(log.Export())
 	if err != nil {
@@ -382,7 +398,7 @@ func (w *worker) transformStableSwapTokenExchangeLog(ctx context.Context, task *
 		return nil, fmt.Errorf("get token by bought id: %w", err)
 	}
 
-	action, err := w.buildEthereumExchangeSwapAction(ctx, task.Header.Number, task.ChainID, event.Buyer, event.Buyer, tokenIn, tokenOut, event.TokensSold, event.TokensBought)
+	action, err := w.buildExchangeSwapAction(ctx, task.Header.Number, task.ChainID, event.Buyer, event.Buyer, tokenIn, tokenOut, event.TokensSold, event.TokensBought)
 	if err != nil {
 		return nil, fmt.Errorf("build exchange swap action: %w", err)
 	}
@@ -394,6 +410,7 @@ func (w *worker) transformStableSwapTokenExchangeLog(ctx context.Context, task *
 	return actions, nil
 }
 
+// transformLiquidityGaugeDepositLog transforms liquidity gauge deposit log.
 func (w *worker) transformLiquidityGaugeDepositLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.curveLiquidityGaugeFilterer.ParseDeposit(log.Export())
 	if err != nil {
@@ -426,6 +443,7 @@ func (w *worker) transformLiquidityGaugeDepositLog(ctx context.Context, task *so
 	return actions, nil
 }
 
+// transformLiquidityGaugeWithdrawLog transforms liquidity gauge withdraw log.
 func (w *worker) transformLiquidityGaugeWithdrawLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
 	event, err := w.curveLiquidityGaugeFilterer.ParseWithdraw(log.Export())
 	if err != nil {
@@ -458,7 +476,8 @@ func (w *worker) transformLiquidityGaugeWithdrawLog(ctx context.Context, task *s
 	return actions, nil
 }
 
-func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver common.Address, tokenAddress *common.Address, tokenValue *big.Int, liquidityAction metadata.ExchangeLiquidityAction) (*schema.Action, error) {
+// buildExchangeLiquidityAction builds exchange liquidity action.
+func (w *worker) buildExchangeLiquidityAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver common.Address, tokenAddress *common.Address, tokenValue *big.Int, liquidityAction metadata.ExchangeLiquidityAction) (*schema.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token: %w", err)
@@ -482,7 +501,8 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, block
 	return &action, nil
 }
 
-func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*schema.Action, error) {
+// buildTransferAction
+func (w *worker) buildTransferAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*schema.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token: %w", err)
@@ -511,15 +531,27 @@ func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, blo
 	return &action, nil
 }
 
-func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumber *big.Int, chainID uint64, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*schema.Action, error) {
-	tokenInMetadata, err := w.tokenClient.Lookup(ctx, chainID, &tokenIn, nil, blockNumber)
+// buildExchangeSwapAction builds exchange swap action.
+func (w *worker) buildExchangeSwapAction(ctx context.Context, blockNumber *big.Int, chainID uint64, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*schema.Action, error) {
+	// handle the eth address
+	tokenInAddr := &tokenIn
+	if tokenIn == curve.AddressETH {
+		tokenInAddr = nil
+	}
+
+	tokenOutAddr := &tokenOut
+	if tokenOut == curve.AddressETH {
+		tokenOutAddr = nil
+	}
+
+	tokenInMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenInAddr, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenIn, err)
 	}
 
 	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountIn, 0).Abs())
 
-	tokenOutMetadata, err := w.tokenClient.Lookup(ctx, chainID, &tokenOut, nil, blockNumber)
+	tokenOutMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenOutAddr, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenOut, err)
 	}
@@ -594,6 +626,10 @@ func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker
 	}
 
 	instance.curvePoolRegistry = pool.NewRegistry(redisClient, httpClient)
+
+	if err := instance.curvePoolRegistry.Refresh(context.Background()); err != nil {
+		return nil, fmt.Errorf("refresh curve pool registry: %w", err)
+	}
 
 	return &instance, nil
 }

@@ -278,3 +278,33 @@ component:
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start:
+    - network: ethereum
+      worker: curve
+      endpoint: https://rpc.ankr.com/eth
+      parameters:
+        block_number_start:
+    - network: arbitrum
+      worker: curve
+      endpoint: https://rpc.ankr.com/arbitrum
+      parameters:
+        block_number_start:
+    - network: avax
+      endpoint: https://rpc.ankr.com/avalanche
+      worker: curve
+      parameters:
+        block_number_start:
+    - network: gnosis
+      endpoint: https://rpc.ankr.com/gnosis
+      worker: curve
+      parameters:
+        block_number_start:
+    - network: optimism
+      worker: curve
+      endpoint: https://rpc.ankr.com/optimism
+      parameters:
+        block_number_start:
+    - network: polygon
+      worker: curve
+      endpoint: https://rpc.ankr.com/polygon
+      parameters:
+        block_number_start:
