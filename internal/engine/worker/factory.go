@@ -25,6 +25,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/contract/paragraph"
 	"github.com/rss3-network/node/internal/engine/worker/contract/rss3"
 	"github.com/rss3-network/node/internal/engine/worker/contract/savm"
+	"github.com/rss3-network/node/internal/engine/worker/contract/stargate"
 	"github.com/rss3-network/node/internal/engine/worker/contract/uniswap"
 	"github.com/rss3-network/node/internal/engine/worker/fallback"
 	"github.com/rss3-network/node/internal/engine/worker/farcaster"
