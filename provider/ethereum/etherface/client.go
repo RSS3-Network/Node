@@ -19,7 +19,7 @@ var (
 )
 
 const (
-	EtherfaceEndpoint = "https://api.etherface.io/v1"
+	EtherfaceEndpoint = "https://etherface.rss3.io/v1"
 	DefaultTimeout    = 3 * time.Second
 	DefaultAttempts   = 3
 )
