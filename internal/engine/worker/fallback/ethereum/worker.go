@@ -23,7 +23,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -65,10 +64,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 	if feed.Calldata.FunctionHash != "" {
 		// Lookup Function Name
-		functionName, err := w.etherfaceClient.Lookup(ctx, feed.Calldata.FunctionHash)
-		if err != nil {
-			zap.L().Warn("lookup function name", zap.Error(err))
-		}
+		functionName, _ := w.etherfaceClient.Lookup(ctx, feed.Calldata.FunctionHash)
+		//if err != nil {
+		//	zap.L().Warn("lookup function name", zap.Error(err))
+		//}
 
 		feed.Calldata.ParsedFunction = functionName
 	}
