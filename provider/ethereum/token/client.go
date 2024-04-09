@@ -306,13 +306,13 @@ func (c *client) lookupERC721(ctx context.Context, chainID uint64, address commo
 		}
 	}
 
-	if results[2].Success {
-		if err := abi.UnpackIntoInterface(&tokenMetadata.URI, "tokenURI", results[2].ReturnData); err != nil {
-			return nil, fmt.Errorf("unpack token uri: %w", err)
-		}
-	}
-
 	if c.parseTokenMetadata {
+		if results[2].Success {
+			if err := abi.UnpackIntoInterface(&tokenMetadata.URI, "tokenURI", results[2].ReturnData); err != nil {
+				return nil, fmt.Errorf("unpack token uri: %w", err)
+			}
+		}
+
 		// Ignore invalid URI
 		nonFungibleTokenMetadata, err := c.buildNonFungibleTokenMetadata(ctx, tokenMetadata.URI, id)
 		if err == nil {
@@ -374,13 +374,13 @@ func (c *client) lookupERC1155(ctx context.Context, chainID uint64, address comm
 		}
 	}
 
-	if results[2].Success {
-		if err := abi.UnpackIntoInterface(&tokenMetadata.URI, "uri", results[2].ReturnData); err != nil {
-			return nil, fmt.Errorf("unpack tokenURI: %w", err)
-		}
-	}
-
 	if c.parseTokenMetadata {
+		if results[2].Success {
+			if err := abi.UnpackIntoInterface(&tokenMetadata.URI, "uri", results[2].ReturnData); err != nil {
+				return nil, fmt.Errorf("unpack tokenURI: %w", err)
+			}
+		}
+
 		// Ignore invalid URI
 		nonFungibleTokenMetadata, err := c.buildNonFungibleTokenMetadata(ctx, tokenMetadata.URI, id)
 		if err == nil {

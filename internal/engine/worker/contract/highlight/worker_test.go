@@ -198,7 +198,6 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "R3FUS3",
 							Symbol:   "R3FUS3",
 							Standard: metadata.StandardERC721,
-							URI:      "https://highlight-creator-assets.highlight.xyz/main/base-dir/b0b61e2c-f741-48c4-94ca-f090c9f5817e/onChainDir/696",
 						},
 					},
 					{
@@ -213,7 +212,6 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "R3FUS3",
 							Symbol:   "R3FUS3",
 							Standard: metadata.StandardERC721,
-							URI:      "https://highlight-creator-assets.highlight.xyz/main/base-dir/b0b61e2c-f741-48c4-94ca-f090c9f5817e/onChainDir/697",
 						},
 					},
 					{
@@ -228,7 +226,6 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "R3FUS3",
 							Symbol:   "R3FUS3",
 							Standard: metadata.StandardERC721,
-							URI:      "https://highlight-creator-assets.highlight.xyz/main/base-dir/b0b61e2c-f741-48c4-94ca-f090c9f5817e/onChainDir/698",
 						},
 					},
 				},
