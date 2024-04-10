@@ -300,10 +300,6 @@ func (s *source) getBlocks(ctx context.Context, blockNumbers []*big.Int) ([]*eth
 		return nil, err
 	}
 
-	if lo.Contains(blocks, nil) {
-		return nil, fmt.Errorf("rpc node lost blocks")
-	}
-
 	sort.SliceStable(blocks, func(left, right int) bool {
 		// Sort blocks by block number in ascending order.
 		return blocks[left].Number.Cmp(blocks[right].Number) == -1
