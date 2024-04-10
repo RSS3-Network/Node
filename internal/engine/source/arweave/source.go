@@ -127,15 +127,10 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task,
 			continue
 		}
 
-		// set the default value of RPCThreadBlocks to 1
-		if s.option.RPCThreadBlocks == 0 {
-			s.option.RPCThreadBlocks = 1
-		}
-
 		// Pull blocks
 		blockHeightEnd := lo.Min([]uint64{
 			uint64(blockHeightLatestRemote),
-			s.state.BlockHeight + s.option.RPCThreadBlocks - 1,
+			s.state.BlockHeight + *s.option.RPCThreadBlocks - 1,
 		})
 
 		// Pull blocks by range.
