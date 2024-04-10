@@ -257,8 +257,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				To:      "0xc98D64DA73a6616c42117b582e832812e7B8D57F",
 				Type:    filter.TypeTransactionTransfer,
 				Calldata: &schema.Calldata{
-					FunctionHash:   "0xa9059cbb",
-					ParsedFunction: "transfer",
+					FunctionHash: "0xa9059cbb",
 				},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("811508239167366")),
@@ -368,8 +367,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				To:      "0x5452C7fB99D99fAb3Cc1875E9DA9829Cb50F7A13",
 				Type:    filter.TypeCollectibleTransfer,
 				Calldata: &schema.Calldata{
-					FunctionHash:   "0x23b872dd",
-					ParsedFunction: "transferFrom",
+					FunctionHash: "0x23b872dd",
 				},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("941262359203425")),
@@ -670,8 +668,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					Decimal: 18,
 				},
 				Calldata: &schema.Calldata{
-					FunctionHash:   "0xf6203e35",
-					ParsedFunction: "depositETHFor",
+					FunctionHash: "0xf6203e35",
 				},
 				Actions:   []*schema.Action{},
 				Status:    true,
@@ -833,8 +830,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				To:      "0xB659A97D8ae3c43E91Eafe5dba110a7e799157c4",
 				Type:    filter.TypeTransactionTransfer,
 				Calldata: &schema.Calldata{
-					FunctionHash:   "0xa9059cbb",
-					ParsedFunction: "transfer",
+					FunctionHash: "0xa9059cbb",
 				},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1013690438583071400")),
@@ -946,8 +942,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				To:      "0x28F14d917fddbA0c1f2923C406952478DfDA5578",
 				Type:    filter.TypeCollectibleMint,
 				Calldata: &schema.Calldata{
-					FunctionHash:   "0x26476204",
-					ParsedFunction: "stake",
+					FunctionHash: "0x26476204",
 				},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("772196357569891650")),
@@ -1042,8 +1037,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				To:      "0x5db252ead05C54B08A83414adCAbF46Eaa9E0337",
 				Type:    filter.TypeUnknown,
 				Calldata: &schema.Calldata{
-					FunctionHash:   "0x2e1a7d4d",
-					ParsedFunction: "withdraw",
+					FunctionHash: "0x2e1a7d4d",
 				},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("47757150000000")),
@@ -1124,8 +1118,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				To:      "0x0E02765992f946397E6d2e65642eABb9cc674928",
 				Type:    filter.TypeTransactionApproval,
 				Calldata: &schema.Calldata{
-					FunctionHash:   "0x095ea7b3",
-					ParsedFunction: "approve",
+					FunctionHash: "0x095ea7b3",
 				},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3491250000000")),
