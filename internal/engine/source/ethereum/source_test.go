@@ -58,7 +58,7 @@ func TestSource(t *testing.T) {
 			require.NoError(t, err, "new ethereum source")
 
 			var (
-				tasksChan = make(chan []engine.Task, 1)
+				tasksChan = make(chan []engine.Task)
 				errorChan = make(chan error)
 			)
 

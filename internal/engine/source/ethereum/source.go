@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"sort"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -13,6 +14,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/samber/lo"
+	"github.com/sourcegraph/conc/pool"
 	"go.uber.org/zap"
 )
 
@@ -29,7 +31,6 @@ type source struct {
 	filter         *Filter
 	ethereumClient ethereum.Client
 	state          State
-	pendingState   State
 }
 
 func (s *source) Network() filter.Network {
@@ -66,118 +67,134 @@ func (s *source) initialize(ctx context.Context) (err error) {
 }
 
 func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task) error {
-	var blockNumberLatestLocal uint64
+	// The latest block number of the remote RPC endpoint.
+	var blockNumberLatestRemote uint64
 
+	// Set the block number to the start block number if it is greater than the current block number.
 	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > s.state.BlockNumber {
-		s.pendingState.BlockNumber = s.option.BlockNumberStart.Uint64()
 		s.state.BlockNumber = s.option.BlockNumberStart.Uint64()
 	}
 
 	for {
+		// Stop the source if the block number target is not nil and the current block number is greater than the target
+		// block number. This is useful when the source is used to index a specific range of blocks.
 		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
 			break
 		}
 
-		// The local block number is equal than the remote block number.
-		if s.state.BlockNumber >= blockNumberLatestLocal || blockNumberLatestLocal == 0 {
+		blockNumberStart := s.state.BlockNumber + 1
+
+		// Check if the local block number is greater than or equal to the remote block number, or the remote block
+		// number is zero. If so, sync the remote block number and wait for the new block.
+		if blockNumberStart > blockNumberLatestRemote || blockNumberLatestRemote == 0 {
 			// Refresh the remote block number.
-			blockNumberLatestRemote, err := s.ethereumClient.BlockNumber(ctx)
+			blockNumber, err := s.ethereumClient.BlockNumber(ctx)
 			if err != nil {
 				return fmt.Errorf("get latest block number: %w", err)
 			}
 
+			blockNumberLatestRemote = blockNumber.Uint64()
+
 			// RPC providers may incorrectly shunt the request to a lagging node.
-			if blockNumberLatestRemote.Uint64() <= blockNumberLatestLocal {
-				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestLocal), zap.Duration("block.time", defaultBlockTime))
+			if blockNumberStart > blockNumberLatestRemote {
+				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestRemote), zap.Duration("block.time", defaultBlockTime))
 
 				time.Sleep(defaultBlockTime)
-			} else {
-				// TODO Need to handle block reorganization.
-				blockNumberLatestLocal = blockNumberLatestRemote.Uint64()
 			}
 
 			continue
 		}
 
-		block, err := s.ethereumClient.BlockByNumber(ctx, new(big.Int).SetUint64(s.state.BlockNumber))
+		blockNumbers := lo.Map(lo.Range(int(*s.option.RPCThreadBlocks)), func(item int, _ int) *big.Int {
+			return new(big.Int).SetUint64(blockNumberStart + uint64(item))
+		})
+
+		// Filter block numbers that are less than or equal to the latest remote block number.
+		blockNumbers = lo.Filter(blockNumbers, func(blockNumber *big.Int, _ int) bool {
+			return blockNumber.Uint64() <= blockNumberLatestRemote
+		})
+
+		blocks, err := s.getBlocks(ctx, blockNumbers)
 		if err != nil {
-			return fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
+			return fmt.Errorf("get blocks by block numbers: %w", err)
 		}
 
-		// nolint:prealloc
-		var receipts []*ethereum.Receipt
-
-		// handle crossbell, savm and arbitrum blockchain cause lack of `eth_getBlockReceipts` implementation
-		switch s.config.Network {
-		case filter.NetworkCrossbell, filter.NetworkArbitrum, filter.NetworkSatoshiVM, filter.NetworkLinea, filter.NetworkBinanceSmartChain:
-			receipts, err = s.getBlockReceipts(ctx, block)
-			if err != nil {
-				return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
-			}
-		default:
-			// Before being able to handle block reorganization, correctly handle canonical.
-			receipts, err = s.ethereumClient.BlockReceipts(ctx, block.Number)
-			if err != nil {
-				return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
-			}
-		}
-
-		tasks, err := s.buildTasks(block, receipts)
+		receipts, err := s.getReceipts(ctx, blocks)
 		if err != nil {
-			return fmt.Errorf("build tasks for block hash: %s: %w", block.Hash, err)
+			return fmt.Errorf("get receipts: %w", err)
 		}
 
-		// TODO It might be possible to use generics to avoid manual type assertions.
+		// Build tasks for each block.
+		var tasks []*Task
+
+		for _, block := range blocks {
+			block := block
+
+			blockTasks, err := s.buildTasks(block, receipts)
+			if err != nil {
+				return fmt.Errorf("build tasks for block hash: %s: %w", block.Hash, err)
+			}
+
+			tasks = append(tasks, blockTasks...)
+		}
+
+		// Push tasks to the source.
 		tasksChan <- lo.Map(tasks, func(task *Task, _ int) engine.Task { return task })
 
-		// Update state by two phase commit to avoid data inconsistency.
-		s.state = s.pendingState
+		latestBlock := lo.Must(lo.Last(blocks))
 
-		s.pendingState.BlockHash = block.Hash
-		s.pendingState.BlockNumber++
+		s.state.BlockHash = latestBlock.Hash
+		s.state.BlockNumber = latestBlock.Number.Uint64()
 	}
 
 	return nil
 }
 
 func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) error {
-	var blockNumberLatestLocal uint64
+	// The latest block number of the remote RPC endpoint.
+	var blockNumberLatestRemote uint64
 
+	// Set the block number to the start block number if it is greater than the current block number.
 	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > s.state.BlockNumber {
-		s.pendingState.BlockNumber = s.option.BlockNumberStart.Uint64()
 		s.state.BlockNumber = s.option.BlockNumberStart.Uint64()
 	}
 
 	for {
+		// Stop the source if the block number target is not nil and the current block number is greater than the target
+		// block number. This is useful when the source is used to index a specific range of blocks.
 		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
 			break
 		}
 
-		// The local block number is equal than the remote block number.
-		if s.state.BlockNumber >= blockNumberLatestLocal || blockNumberLatestLocal == 0 {
+		blockNumberStart := s.state.BlockNumber + 1
+
+		// Check if the local block number is greater than or equal to the remote block number, or the remote block
+		// number is zero. If so, sync the remote block number and wait for the new block.
+		if blockNumberStart > blockNumberLatestRemote || blockNumberLatestRemote == 0 {
 			// Refresh the remote block number.
-			blockNumberLatestRemote, err := s.ethereumClient.BlockNumber(ctx)
+			blockNumber, err := s.ethereumClient.BlockNumber(ctx)
 			if err != nil {
 				return fmt.Errorf("get latest block number: %w", err)
 			}
 
+			blockNumberLatestRemote = blockNumber.Uint64()
+
 			// RPC providers may incorrectly shunt the request to a lagging node.
-			if blockNumberLatestRemote.Uint64() <= blockNumberLatestLocal {
-				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestLocal), zap.Duration("block.time", defaultBlockTime))
+			if blockNumberStart > blockNumberLatestRemote {
+				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestRemote), zap.Duration("block.time", defaultBlockTime))
 
 				time.Sleep(defaultBlockTime)
-			} else {
-				// TODO Need to handle block reorganization.
-				blockNumberLatestLocal = blockNumberLatestRemote.Uint64()
 			}
 
 			continue
 		}
 
+		blockNumberEnd := min(blockNumberStart+*s.option.RPCThreadBlocks-1, blockNumberLatestRemote)
+
 		// Build log filter by the filter config.
 		logFilter := ethereum.Filter{
-			FromBlock: new(big.Int).SetUint64(s.state.BlockNumber),
-			ToBlock:   new(big.Int).SetUint64(s.state.BlockNumber),
+			FromBlock: new(big.Int).SetUint64(blockNumberStart),
+			ToBlock:   new(big.Int).SetUint64(blockNumberEnd),
 			Addresses: s.filter.LogAddresses,
 			Topics: [][]common.Hash{
 				s.filter.LogTopics,
@@ -190,100 +207,168 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 			return fmt.Errorf("get logs by filter: %w", err)
 		}
 
-		transactionHashes := lo.Map(logs, func(log *ethereum.Log, _ int) common.Hash {
-			return log.TransactionHash
-		})
+		var latestBlock *ethereum.Block
 
-		var block *ethereum.Block
-
-		if len(logs) != 0 {
-			blockHash := logs[0].BlockHash
-
-			if block, err = s.ethereumClient.BlockByHash(ctx, blockHash); err != nil {
-				return fmt.Errorf("get block by hash %s: %w", blockHash, err)
-			}
-
-			// nolint:prealloc
-			var receipts []*ethereum.Receipt
-
-			// handle crossbell, savm and arbitrum blockchain cause lack of `eth_getBlockReceipts` implementation
-			switch s.config.Network {
-			case filter.NetworkCrossbell, filter.NetworkArbitrum, filter.NetworkSatoshiVM, filter.NetworkLinea, filter.NetworkBinanceSmartChain:
-				receipts, err = s.getBlockReceipts(ctx, block)
-				if err != nil {
-					return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
-				}
-			default:
-				// Before being able to handle block reorganization, correctly handle canonical.
-				receipts, err = s.ethereumClient.BlockReceipts(ctx, block.Number)
-				if err != nil {
-					return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
-				}
-			}
-
-			// Filter receipts by transaction hashes of logs.
-			receipts = lo.Filter(receipts, func(receipt *ethereum.Receipt, _ int) bool {
-				return lo.Contains(transactionHashes, receipt.TransactionHash)
-			})
-
-			// Remove transactions for the block if the receipt has been filtered.
-			block.Transactions = lo.Filter(block.Transactions, func(transaction *ethereum.Transaction, _ int) bool {
-				return lo.ContainsBy(receipts, func(receipt *ethereum.Receipt) bool {
-					return receipt.TransactionHash == transaction.Hash
-				})
-			})
-
-			tasks, err := s.buildTasks(block, receipts)
-			if err != nil {
-				return fmt.Errorf("build tasks for block hash: %s: %w", block.Hash, err)
-			}
-
-			// TODO It might be possible to use generics to avoid manual type assertions.
-			tasksChan <- lo.Map(tasks, func(task *Task, _ int) engine.Task { return task })
-		}
-
-		// If there are no logs, only update the block number.
-		if block == nil {
-			if block, err = s.ethereumClient.BlockByNumber(ctx, new(big.Int).SetUint64(s.state.BlockNumber)); err != nil {
+		if len(logs) == 0 {
+			// If there are no logs in the block range, update the latest block by the block number only.
+			if latestBlock, err = s.ethereumClient.BlockByNumber(ctx, new(big.Int).SetUint64(blockNumberEnd)); err != nil {
 				return fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
 			}
 
-			s.state = s.pendingState
-
-			s.pendingState.BlockHash = block.Hash
-			s.pendingState.BlockNumber++
-
 			// Push an empty task slice to the channel to update the block number.
 			tasksChan <- make([]engine.Task, 0)
+		} else {
+			transactionHashes := lo.Map(logs, func(log *ethereum.Log, _ int) common.Hash {
+				return log.TransactionHash
+			})
 
-			continue
+			// Filter unique transaction hashes.
+			transactionHashes = lo.UniqBy(transactionHashes, func(transactionHash common.Hash) common.Hash {
+				return transactionHash
+			})
+
+			blockNumbers := lo.Map(logs, func(log *ethereum.Log, _ int) *big.Int {
+				return log.BlockNumber
+			})
+
+			// Filter unique block numbers.
+			blockNumbers = lo.UniqBy(blockNumbers, func(blockNumber *big.Int) uint64 {
+				return blockNumber.Uint64()
+			})
+
+			blocks, err := s.getBlocks(ctx, blockNumbers)
+			if err != nil {
+				return fmt.Errorf("get blocks: %w", err)
+			}
+
+			// Filter blocks by transaction hashes of logs.
+			blocks = lo.Map(blocks, func(block *ethereum.Block, _ int) *ethereum.Block {
+				block.Transactions = lo.Filter(block.Transactions, func(transaction *ethereum.Transaction, _ int) bool {
+					return lo.Contains(transactionHashes, transaction.Hash)
+				})
+
+				return block
+			})
+
+			if latestBlock, err = lo.Last(blocks); err != nil {
+				return fmt.Errorf("get latest block: %w", err)
+			}
+
+			receipts, err := s.getReceiptsByTransactionHashes(ctx, transactionHashes)
+			if err != nil {
+				return fmt.Errorf("get receipts: %w", err)
+			}
+
+			tasks := make([]*Task, 0)
+
+			for _, block := range blocks {
+				blockTasks, err := s.buildTasks(block, receipts)
+				if err != nil {
+					return err
+				}
+
+				tasks = append(tasks, blockTasks...)
+			}
+
+			tasksChan <- lo.Map(tasks, func(task *Task, _ int) engine.Task { return task })
 		}
 
-		// Update state by two phase commit to avoid data inconsistency.
-		s.state = s.pendingState
-
-		s.pendingState.BlockHash = block.Hash
-		s.pendingState.BlockNumber++
+		s.state.BlockHash = latestBlock.Hash
+		s.state.BlockNumber = latestBlock.Number.Uint64()
 	}
 
 	return nil
 }
 
-// use `eth_getTransactionReceipt`
-func (s *source) getBlockReceipts(ctx context.Context, block *ethereum.Block) ([]*ethereum.Receipt, error) {
-	// nolint:prealloc
-	var receipts []*ethereum.Receipt
+// getBlocks is used to concurrently get blocks by block number.
+func (s *source) getBlocks(ctx context.Context, blockNumbers []*big.Int) ([]*ethereum.Block, error) {
+	resultPool := pool.NewWithResults[*ethereum.Block]().
+		WithContext(ctx).
+		WithFirstError().
+		WithCancelOnError()
 
-	for _, tx := range block.Transactions {
-		receipt, err := s.ethereumClient.TransactionReceipt(ctx, tx.Hash)
-		if err != nil {
-			return nil, fmt.Errorf("get receipt by transaction hash %s: %w", tx.Hash, err)
-		}
+	for _, blockNumber := range blockNumbers {
+		blockNumber := blockNumber
 
-		receipts = append(receipts, receipt)
+		resultPool.Go(func(ctx context.Context) (*ethereum.Block, error) {
+			return s.ethereumClient.BlockByNumber(ctx, blockNumber)
+		})
 	}
 
-	return receipts, nil
+	blocks, err := resultPool.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	sort.SliceStable(blocks, func(left, right int) bool {
+		// Sort blocks by block number in ascending order.
+		return blocks[left].Number.Cmp(blocks[right].Number) == -1
+	})
+
+	return blocks, nil
+}
+
+func (s *source) getReceipts(ctx context.Context, blocks []*ethereum.Block) ([]*ethereum.Receipt, error) {
+	switch s.config.Network {
+	case
+		filter.NetworkCrossbell,
+		filter.NetworkArbitrum,
+		filter.NetworkSatoshiVM,
+		filter.NetworkLinea,
+		filter.NetworkBinanceSmartChain:
+		transactionHashes := lo.Map(blocks, func(block *ethereum.Block, _ int) []common.Hash {
+			return lo.Map(block.Transactions, func(transaction *ethereum.Transaction, _ int) common.Hash {
+				return transaction.Hash
+			})
+		})
+
+		return s.getReceiptsByTransactionHashes(ctx, lo.Flatten(transactionHashes))
+	default:
+		blockNumbers := lo.Map(blocks, func(block *ethereum.Block, _ int) *big.Int {
+			return block.Number
+		})
+
+		return s.getReceiptsByBlockNumbers(ctx, blockNumbers)
+	}
+}
+
+func (s *source) getReceiptsByBlockNumbers(ctx context.Context, blockNumbers []*big.Int) ([]*ethereum.Receipt, error) {
+	resultPool := pool.NewWithResults[[]*ethereum.Receipt]().
+		WithContext(ctx).
+		WithFirstError().
+		WithCancelOnError()
+
+	for _, blockNumber := range blockNumbers {
+		blockNumber := blockNumber
+
+		resultPool.Go(func(ctx context.Context) ([]*ethereum.Receipt, error) {
+			return s.ethereumClient.BlockReceipts(ctx, blockNumber)
+		})
+	}
+
+	receipts, err := resultPool.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Flatten(receipts), nil
+}
+
+func (s *source) getReceiptsByTransactionHashes(ctx context.Context, transactionHashes []common.Hash) ([]*ethereum.Receipt, error) {
+	resultPool := pool.NewWithResults[*ethereum.Receipt]().
+		WithContext(ctx).
+		WithFirstError().
+		WithCancelOnError()
+
+	for _, transactionHash := range transactionHashes {
+		transactionHash := transactionHash
+
+		resultPool.Go(func(ctx context.Context) (*ethereum.Receipt, error) {
+			return s.ethereumClient.TransactionReceipt(ctx, transactionHash)
+		})
+	}
+
+	return resultPool.Wait()
 }
 
 func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt) ([]*Task, error) {
@@ -335,10 +420,9 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 	}
 
 	instance := source{
-		config:       config,
-		filter:       new(Filter), // Set a default filter for the source.
-		state:        state,
-		pendingState: state, // Default pending state is equal to the current state.
+		config: config,
+		filter: new(Filter), // Set a default filter for the source.
+		state:  state,
 	}
 
 	// Initialize filter.

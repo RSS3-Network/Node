@@ -42,8 +42,8 @@ type Server struct {
 
 func (s *Server) Run(ctx context.Context) error {
 	var (
-		// TODO Develop a more effective solution to implement back pressure.
-		tasksChan = make(chan []engine.Task, 1)
+		// TODO Develop a more effective solution to implement back pressure, and stores source state in a task group.
+		tasksChan = make(chan []engine.Task)
 		errorChan = make(chan error)
 	)
 
