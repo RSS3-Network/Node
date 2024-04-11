@@ -3,12 +3,14 @@ package ethereum_test
 import (
 	"context"
 	"math/big"
+	"sync"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/orlangure/gnomock"
 	"github.com/orlangure/gnomock/preset/redis"
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/fallback/ethereum"
@@ -23,8 +25,40 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	setupOnce   sync.Once
+	redisClient rueidis.Client
+)
+
+func setup(t *testing.T) {
+	setupOnce.Do(func() {
+		var err error
+
+		// Start Redis container
+		preset := redis.Preset(
+			redis.WithVersion("6.0.9"),
+		)
+
+		container, err := gnomock.Start(preset)
+		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			require.NoError(t, gnomock.Stop(container))
+		})
+
+		// Connect to Redis
+		redisClient, err = redisx.NewClient(config.Redis{
+			Endpoints: []string{
+				container.DefaultAddress(),
+			},
+		})
+		require.NoError(t, err)
+	})
+}
+
 func TestWorker_Ethereum(t *testing.T) {
 	t.Parallel()
+	setup(t)
 
 	type arguments struct {
 		task   *source.Task
@@ -1151,26 +1185,6 @@ func TestWorker_Ethereum(t *testing.T) {
 			wantError: require.NoError,
 		},
 	}
-
-	// Start Redis container
-	preset := redis.Preset(
-		redis.WithVersion("6.0.9"),
-	)
-
-	container, err := gnomock.Start(preset)
-	require.NoError(t, err)
-
-	t.Cleanup(func() {
-		require.NoError(t, gnomock.Stop(container))
-	})
-
-	// Connect to Redis
-	redisClient, err := redisx.NewClient(config.Redis{
-		Endpoints: []string{
-			container.DefaultAddress(),
-		},
-	})
-	require.NoError(t, err)
 
 	for _, testcase := range testcases {
 		testcase := testcase
