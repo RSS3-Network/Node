@@ -783,7 +783,7 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 		}
 
 		// Initialize token client.
-		tokenClient = token.NewClient(ethereumClient)
+		tokenClient = token.NewClient(ethereumClient, token.WithParseTokenMetadata(true))
 	} else {
 		tokenClient = w.tokenClient
 	}

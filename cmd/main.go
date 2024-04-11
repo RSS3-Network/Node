@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/tdewolff/minify/v2/minify"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	"go.uber.org/zap"
 )
 
@@ -158,6 +159,7 @@ func setOpenTelemetry(config *config.File) error {
 		}
 
 		otel.SetTracerProvider(tracerProvider)
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}))
 	}
 
 	if observabilityConfig.Metrics.Enable {
