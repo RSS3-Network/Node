@@ -197,7 +197,7 @@ func (w *worker) handleEthereumImplicitAggregationRouterTransaction(ctx context.
 		}
 	}
 
-	tokenIn, exists := lo.FindKeyBy(valueMap, func(token common.Address, value *big.Int) bool {
+	tokenIn, exists := lo.FindKeyBy(valueMap, func(_ common.Address, value *big.Int) bool {
 		return value.Sign() == -1 // value < 0
 	})
 	if !exists {

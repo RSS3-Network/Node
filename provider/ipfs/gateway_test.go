@@ -31,7 +31,7 @@ func TestGetGatewayURLs(t *testing.T) {
 				timeout:     ipfs.DefaultTimeout,
 				gatewayList: ipfs.DefaultGatewayList,
 			},
-			want: func(t require.TestingT, value interface{}, msgAndArgs ...interface{}) {
+			want: func(t require.TestingT, value interface{}, _ ...interface{}) {
 				gatewayURLs, ok := value.([]string)
 				require.True(t, ok)
 

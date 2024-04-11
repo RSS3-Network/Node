@@ -95,9 +95,11 @@ func TestClient(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
-			var container *gnomock.Container
-			var dataSourceName string
-			var err error
+			var (
+				container      *gnomock.Container
+				dataSourceName string
+				err            error
+			)
 
 			for {
 				container, dataSourceName, err = createContainer(context.Background(), testcase.driver, *testcase.partition)

@@ -337,7 +337,7 @@ func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Pro
 	var custodyAddress string
 
 	if len(custodyAddresses.Proofs) > 0 {
-		addresses := lo.Filter(custodyAddresses.Proofs, func(x farcaster.UserNameProof, index int) bool {
+		addresses := lo.Filter(custodyAddresses.Proofs, func(x farcaster.UserNameProof, _ int) bool {
 			return x.Type == farcaster.UsernameTypeFname.String()
 		})
 
@@ -353,7 +353,7 @@ func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Pro
 		return nil, fmt.Errorf("fetch eth address error: %w,%d", err, fid)
 	}
 
-	ethAddresses := lo.Map(verificationsByFidRes.Messages, func(x farcaster.Message, index int) string {
+	ethAddresses := lo.Map(verificationsByFidRes.Messages, func(x farcaster.Message, _ int) string {
 		return common.HexToAddress(x.Data.VerificationAddEthAddressBody.Address).String()
 	})
 

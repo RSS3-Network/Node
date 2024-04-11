@@ -57,7 +57,7 @@ func TestAggregate(t *testing.T) {
 					},
 				},
 			},
-			want: func(t require.TestingT, i any, i2 ...any) {
+			want: func(t require.TestingT, i any, _ ...any) {
 				results, ok := i.([]*multicall3.Multicall3Result)
 				require.True(t, ok)
 
@@ -89,7 +89,7 @@ func TestAggregate(t *testing.T) {
 					},
 				},
 			},
-			want: func(t require.TestingT, i any, i2 ...any) {
+			want: func(t require.TestingT, i any, _ ...any) {
 				results, ok := i.([]*multicall3.Multicall3Result)
 				require.True(t, ok)
 

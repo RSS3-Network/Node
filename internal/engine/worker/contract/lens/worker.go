@@ -729,7 +729,7 @@ func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blo
 	return &metadata.SocialPost{
 		Handle: handle,
 		Body:   publication.Content,
-		Media: lo.Map(publication.Media, func(media PublicationMedia, index int) metadata.Media {
+		Media: lo.Map(publication.Media, func(media PublicationMedia, _ int) metadata.Media {
 			return metadata.Media{
 				MimeType: media.Type,
 				Address:  media.Item,

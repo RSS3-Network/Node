@@ -26,7 +26,7 @@ func TestMethodID(t *testing.T) {
 			arguments: arguments{
 				value: "implementation()",
 			},
-			want: func(t require.TestingT, value interface{}, msgAndArgs ...interface{}) {
+			want: func(t require.TestingT, value interface{}, _ ...interface{}) {
 				methodID, ok := value.(string)
 				require.True(t, ok)
 
@@ -38,7 +38,7 @@ func TestMethodID(t *testing.T) {
 			arguments: arguments{
 				value: "name()",
 			},
-			want: func(t require.TestingT, value interface{}, msgAndArgs ...interface{}) {
+			want: func(t require.TestingT, value interface{}, _ ...interface{}) {
 				methodID, ok := value.(string)
 				require.True(t, ok)
 

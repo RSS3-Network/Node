@@ -27,7 +27,7 @@ var command = &cobra.Command{
 	Use:           "mock",
 	SilenceUsage:  true,
 	SilenceErrors: true,
-	RunE: func(cmd *cobra.Command, args []string) (err error) {
+	RunE: func(cmd *cobra.Command, _ []string) (err error) {
 		var (
 			task engine.Task
 			tmpl = template.New("")

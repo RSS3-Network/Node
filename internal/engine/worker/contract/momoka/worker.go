@@ -298,21 +298,21 @@ func (w *worker) buildArweaveMomokaPostMetadata(ctx context.Context, profileID, 
 	if momokaData.Get("lens").Exists() {
 		content = momokaData.Get("lens.content").String()
 
-		momokaImages := lo.Map(momokaData.Get("lens.image").Array(), func(media gjson.Result, index int) metadata.Media {
+		momokaImages := lo.Map(momokaData.Get("lens.image").Array(), func(media gjson.Result, _ int) metadata.Media {
 			return metadata.Media{
 				MimeType: media.Get("type").String(),
 				Address:  media.Get("item").String(),
 			}
 		})
 
-		momokaAttachments := lo.Map(momokaData.Get("lens.attachments").Array(), func(media gjson.Result, index int) metadata.Media {
+		momokaAttachments := lo.Map(momokaData.Get("lens.attachments").Array(), func(media gjson.Result, _ int) metadata.Media {
 			return metadata.Media{
 				MimeType: media.Get("type").String(),
 				Address:  media.Get("item").String(),
 			}
 		})
 
-		momokaVideos := lo.Map(momokaData.Get("lens.video").Array(), func(media gjson.Result, index int) metadata.Media {
+		momokaVideos := lo.Map(momokaData.Get("lens.video").Array(), func(media gjson.Result, _ int) metadata.Media {
 			return metadata.Media{
 				MimeType: media.Get("type").String(),
 				Address:  media.Get("item").String(),
@@ -325,20 +325,20 @@ func (w *worker) buildArweaveMomokaPostMetadata(ctx context.Context, profileID, 
 
 		momokaMedia = lo.Uniq(momokaMedia)
 
-		momokaTags = lo.Map(momokaData.Get("lens.tags").Array(), func(tag gjson.Result, index int) string {
+		momokaTags = lo.Map(momokaData.Get("lens.tags").Array(), func(tag gjson.Result, _ int) string {
 			return tag.String()
 		})
 	} else {
 		content = momokaData.Get("content").String()
 
-		momokaMedia = lo.Map(momokaData.Get("media").Array(), func(media gjson.Result, index int) metadata.Media {
+		momokaMedia = lo.Map(momokaData.Get("media").Array(), func(media gjson.Result, _ int) metadata.Media {
 			return metadata.Media{
 				MimeType: media.Get("type").String(),
 				Address:  media.Get("item").String(),
 			}
 		})
 
-		momokaTags = lo.Map(momokaData.Get("tags").Array(), func(tag gjson.Result, index int) string {
+		momokaTags = lo.Map(momokaData.Get("tags").Array(), func(tag gjson.Result, _ int) string {
 			return tag.String()
 		})
 	}
