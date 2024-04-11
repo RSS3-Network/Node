@@ -18,6 +18,9 @@ import (
 	mirror_model "github.com/rss3-network/node/internal/engine/worker/contract/mirror/model"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/filter"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -163,6 +166,16 @@ func (c *client) LoadCheckpoints(ctx context.Context, id string, network filter.
 }
 
 func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error {
+	spanStartOptions := []trace.SpanStartOption{
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(
+			attribute.String("checkpoint.id", checkpoint.ID),
+		),
+	}
+
+	ctx, span := otel.Tracer("").Start(ctx, "Database saveCheckpoint", spanStartOptions...)
+	defer span.End()
+
 	clauses := []clause.Expression{
 		clause.OnConflict{
 			Columns: []clause.Column{{Name: "id"}},
@@ -184,6 +197,16 @@ func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoi
 
 // SaveFeeds saves feeds and indexes to the database.
 func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
+	spanStartOptions := []trace.SpanStartOption{
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(
+			attribute.Int("feeds", len(feeds)),
+		),
+	}
+
+	ctx, span := otel.Tracer("").Start(ctx, "Database saveFeeds", spanStartOptions...)
+	defer span.End()
+
 	if c.partition {
 		return c.saveFeedsPartitioned(ctx, feeds)
 	}
