@@ -23,6 +23,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -104,13 +105,14 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		resultPool.Go(func() *schema.Feed {
 			zap.L().Debug("start match task", zap.String("task.id", task.ID()))
 
-			matched, err := s.worker.Match(ctx, task)
+			matched, err := s.matchTask(ctx, task)
 			if err != nil {
-				zap.L().Error("matched task", zap.String("task.id", task.ID()))
+				zap.L().Error("match task", zap.String("task.id", task.ID()), zap.Error(err))
 
 				return nil
 			}
 
+			// If the task does not meet the filter conditions, it will be discarded.
 			if !matched {
 				zap.L().Warn("unmatched task", zap.String("task.id", task.ID()))
 
@@ -119,9 +121,9 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 
 			zap.L().Debug("start transform task", zap.String("task.id", task.ID()))
 
-			feed, err := s.worker.Transform(ctx, task)
+			feed, err := s.transformTask(ctx, task)
 			if err != nil {
-				zap.L().Error("transform task", zap.String("task.id", task.ID()))
+				zap.L().Error("transform task", zap.String("task.id", task.ID()), zap.Error(err))
 
 				return nil
 			}
@@ -169,6 +171,26 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 	}
 
 	return nil
+}
+
+// matchTask checks whether the task meets the filter conditions.
+func (s *Server) matchTask(ctx context.Context, task engine.Task) (bool, error) {
+	traceAttributes := engine.BuildTaskTraceAttributes(task)
+
+	ctx, span := otel.GetTracerProvider().Tracer(constant.Name).Start(ctx, "match", trace.WithAttributes(traceAttributes...))
+	defer span.End()
+
+	return s.worker.Match(ctx, task)
+}
+
+// transformTask transforms the task into a feed.
+func (s *Server) transformTask(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+	traceAttributes := engine.BuildTaskTraceAttributes(task)
+
+	ctx, span := otel.GetTracerProvider().Tracer(constant.Name).Start(ctx, "transform", trace.WithAttributes(traceAttributes...))
+	defer span.End()
+
+	return s.worker.Transform(ctx, task)
 }
 
 func (s *Server) initializeMeter() (err error) {
