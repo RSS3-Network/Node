@@ -7,8 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pressly/goose/v3"
 	"github.com/rss3-network/node/internal/database"
@@ -26,6 +28,10 @@ import (
 )
 
 var _ database.Client = (*client)(nil)
+
+const (
+	DefaultKVClosedTimestampTargetDuration = 3 * time.Second
+)
 
 //go:embed migration/*.sql
 var migrationFS embed.FS
@@ -55,22 +61,38 @@ func (c *client) Migrate(ctx context.Context) error {
 
 // WithTransaction executes a transaction.
 func (c *client) WithTransaction(ctx context.Context, transactionFunction func(ctx context.Context, client database.Client) error, transactionOptions ...*sql.TxOptions) error {
-	transaction, err := c.Begin(ctx, transactionOptions...)
-	if err != nil {
-		return fmt.Errorf("begin transaction: %w", err)
+	transactionFunc := func() error {
+		transaction, err := c.Begin(ctx, transactionOptions...)
+		if err != nil {
+			return fmt.Errorf("begin transaction: %w", err)
+		}
+
+		if err := transactionFunction(ctx, transaction); err != nil {
+			_ = transaction.Rollback()
+
+			return fmt.Errorf("execute transaction: %w", err)
+		}
+
+		if err := transaction.Commit(); err != nil {
+			return fmt.Errorf("commit transaction: %w", err)
+		}
+
+		return nil
 	}
 
-	if err := transactionFunction(ctx, transaction); err != nil {
-		_ = transaction.Rollback()
-
-		return fmt.Errorf("execute transaction: %w", err)
+	retryIfFunc := func(err error) bool {
+		// https://www.cockroachlabs.com/docs/stable/transaction-retry-error-reference#retry_serializable
+		return strings.HasPrefix(err.Error(), "commit transaction: ERROR: restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE - failed preemptive refresh due to a conflict:")
 	}
 
-	if err := transaction.Commit(); err != nil {
-		return fmt.Errorf("commit transaction: %w", err)
+	onRetryFunc := func(n uint, err error) {
+		zap.L().Error("execute transaction", zap.Uint("retry", n), zap.Error(err))
 	}
 
-	return nil
+	return retry.Do(
+		transactionFunc,
+		retry.RetryIf(retryIfFunc), retry.MaxJitter(DefaultKVClosedTimestampTargetDuration), retry.DelayType(retry.RandomDelay), retry.OnRetry(onRetryFunc), retry.Attempts(0),
+	)
 }
 
 // Begin begins a transaction.

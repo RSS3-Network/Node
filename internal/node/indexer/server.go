@@ -121,7 +121,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 
 			feed, err := s.worker.Transform(ctx, task)
 			if err != nil {
-				zap.L().Error("transform task", zap.String("task.id", task.ID()))
+				zap.L().Error("transform task", zap.String("task.id", task.ID()), zap.Error(err))
 
 				return nil
 			}
