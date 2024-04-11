@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/flag"
