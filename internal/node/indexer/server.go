@@ -23,6 +23,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -42,8 +43,8 @@ type Server struct {
 
 func (s *Server) Run(ctx context.Context) error {
 	var (
-		// TODO Develop a more effective solution to implement back pressure, and stores source state in a task group.
-		tasksChan = make(chan []engine.Task)
+		// TODO Develop a more effective solution to implement back pressure.
+		tasksChan = make(chan *engine.Tasks)
 		errorChan = make(chan error)
 	)
 
@@ -67,7 +68,7 @@ func (s *Server) Run(ctx context.Context) error {
 	}
 }
 
-func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
+func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 	checkpoint := engine.Checkpoint{
 		ID:      s.id,
 		Network: s.source.Network(),
@@ -75,18 +76,21 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		State:   s.source.State(),
 	}
 
-	ctx, span := otel.GetTracerProvider().Tracer(constant.Name).Start(ctx, "handleTasks")
+	// Extract the OpenTelemetry context from the tasks.
+	ctx = otel.GetTextMapPropagator().Extract(ctx, tasks)
+
+	ctx, span := otel.Tracer("").Start(ctx, "Indexer handleTasks", trace.WithSpanKind(trace.SpanKindConsumer))
 	defer span.End()
 
 	span.SetAttributes(
 		attribute.String("service", constant.Name),
 		attribute.String("worker", s.worker.Name()),
-		attribute.Int("records", len(tasks)),
+		attribute.Int("tasks", tasks.Len()),
 		attribute.String("state", string(checkpoint.State)),
 	)
 
 	// If no tasks are returned, only save the checkpoint to the database.
-	if len(tasks) == 0 {
+	if tasks.Len() == 0 {
 		zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
 
 		if err := s.databaseClient.SaveCheckpoint(ctx, &checkpoint); err != nil {
@@ -96,9 +100,9 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		return nil
 	}
 
-	resultPool := pool.NewWithResults[*schema.Feed]().WithMaxGoroutines(lo.Ternary(len(tasks) < 20*runtime.NumCPU(), len(tasks), 20*runtime.NumCPU()))
+	resultPool := pool.NewWithResults[*schema.Feed]().WithMaxGoroutines(lo.Ternary(tasks.Len() < 20*runtime.NumCPU(), tasks.Len(), 20*runtime.NumCPU()))
 
-	for _, task := range tasks {
+	for _, task := range tasks.Tasks {
 		task := task
 
 		resultPool.Go(func() *schema.Feed {
@@ -106,11 +110,12 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 
 			matched, err := s.worker.Match(ctx, task)
 			if err != nil {
-				zap.L().Error("matched task", zap.String("task.id", task.ID()))
+				zap.L().Error("match task", zap.String("task.id", task.ID()), zap.Error(err))
 
 				return nil
 			}
 
+			// If the task does not meet the filter conditions, it will be discarded.
 			if !matched {
 				zap.L().Warn("unmatched task", zap.String("task.id", task.ID()))
 
@@ -138,10 +143,10 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 	meterTasksCounterAttributes := metric.WithAttributes(
 		attribute.String("service", constant.Name),
 		attribute.String("worker", s.worker.Name()),
-		attribute.Int("records", len(tasks)),
+		attribute.Int("tasks", tasks.Len()),
 	)
 
-	s.meterTasksCounter.Add(ctx, int64(len(tasks)), meterTasksCounterAttributes)
+	s.meterTasksCounter.Add(ctx, int64(tasks.Len()), meterTasksCounterAttributes)
 	checkpoint.IndexCount = int64(len(feeds))
 
 	// Save feeds and checkpoint to the database.

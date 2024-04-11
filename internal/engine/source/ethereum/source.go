@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/big"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -15,6 +16,9 @@ import (
 	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -41,7 +45,7 @@ func (s *source) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, errorChan chan<- error) {
+func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
 	if err := s.initialize(ctx); err != nil {
 		errorChan <- fmt.Errorf("initialize source: %w", err)
 
@@ -66,7 +70,7 @@ func (s *source) initialize(ctx context.Context) (err error) {
 	return nil
 }
 
-func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task) error {
+func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	// The latest block number of the remote RPC endpoint.
 	var blockNumberLatestRemote uint64
 
@@ -76,6 +80,8 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 	}
 
 	for {
+		ctx, span := otel.Tracer("").Start(ctx, "Source pollBlocks", trace.WithSpanKind(trace.SpanKindProducer))
+
 		// Stop the source if the block number target is not nil and the current block number is greater than the target
 		// block number. This is useful when the source is used to index a specific range of blocks.
 		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
@@ -114,6 +120,11 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 			return blockNumber.Uint64() <= blockNumberLatestRemote
 		})
 
+		span.SetAttributes(
+			attribute.Stringer("block.number.start", blockNumbers[0]),
+			attribute.Stringer("block.number.end", blockNumbers[len(blockNumbers)-1]),
+		)
+
 		blocks, err := s.getBlocks(ctx, blockNumbers)
 		if err != nil {
 			return fmt.Errorf("get blocks by block numbers: %w", err)
@@ -125,7 +136,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 		}
 
 		// Build tasks for each block.
-		var tasks []*Task
+		var tasks engine.Tasks
 
 		for _, block := range blocks {
 			block := block
@@ -135,11 +146,13 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 				return fmt.Errorf("build tasks for block hash: %s: %w", block.Hash, err)
 			}
 
-			tasks = append(tasks, blockTasks...)
+			tasks.Tasks = append(tasks.Tasks, lo.Map(blockTasks, func(blockTask *Task, _ int) engine.Task { return blockTask })...)
 		}
 
+		span.End()
+
 		// Push tasks to the source.
-		tasksChan <- lo.Map(tasks, func(task *Task, _ int) engine.Task { return task })
+		s.pushTasks(ctx, tasksChan, &tasks)
 
 		latestBlock := lo.Must(lo.Last(blocks))
 
@@ -150,7 +163,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task)
 	return nil
 }
 
-func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) error {
+func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	// The latest block number of the remote RPC endpoint.
 	var blockNumberLatestRemote uint64
 
@@ -160,6 +173,8 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 	}
 
 	for {
+		ctx, span := otel.GetTracerProvider().Tracer("").Start(ctx, "Source pollLogs", trace.WithSpanKind(trace.SpanKindProducer))
+
 		// Stop the source if the block number target is not nil and the current block number is greater than the target
 		// block number. This is useful when the source is used to index a specific range of blocks.
 		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
@@ -191,6 +206,11 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 
 		blockNumberEnd := min(blockNumberStart+*s.option.RPCThreadBlocks-1, blockNumberLatestRemote)
 
+		span.SetAttributes(
+			attribute.String("block.number.start", strconv.FormatUint(blockNumberStart, 10)),
+			attribute.String("block.number.end", strconv.FormatUint(blockNumberEnd, 10)),
+		)
+
 		// Build log filter by the filter config.
 		logFilter := ethereum.Filter{
 			FromBlock: new(big.Int).SetUint64(blockNumberStart),
@@ -215,8 +235,10 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 				return fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
 			}
 
+			span.End()
+
 			// Push an empty task slice to the channel to update the block number.
-			tasksChan <- make([]engine.Task, 0)
+			s.pushTasks(ctx, tasksChan, new(engine.Tasks))
 		} else {
 			transactionHashes := lo.Map(logs, func(log *ethereum.Log, _ int) common.Hash {
 				return log.TransactionHash
@@ -259,7 +281,7 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 				return fmt.Errorf("get receipts: %w", err)
 			}
 
-			tasks := make([]*Task, 0)
+			var tasks engine.Tasks
 
 			for _, block := range blocks {
 				blockTasks, err := s.buildTasks(block, receipts)
@@ -267,10 +289,12 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) e
 					return err
 				}
 
-				tasks = append(tasks, blockTasks...)
+				tasks.Tasks = append(tasks.Tasks, lo.Map(blockTasks, func(blockTask *Task, _ int) engine.Task { return blockTask })...)
 			}
 
-			tasksChan <- lo.Map(tasks, func(task *Task, _ int) engine.Task { return task })
+			span.End()
+
+			s.pushTasks(ctx, tasksChan, &tasks)
 		}
 
 		s.state.BlockHash = latestBlock.Hash
@@ -404,6 +428,15 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 	}
 
 	return tasks, nil
+}
+
+func (s *source) pushTasks(ctx context.Context, tasksChan chan<- *engine.Tasks, tasks *engine.Tasks) {
+	otel.GetTextMapPropagator().Inject(ctx, tasks)
+
+	_, span := otel.Tracer("").Start(ctx, "Source pushTasks", trace.WithSpanKind(trace.SpanKindProducer))
+	defer span.End()
+
+	tasksChan <- tasks
 }
 
 func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint) (engine.Source, error) {

@@ -23,6 +23,8 @@ import (
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/sourcegraph/conc/pool"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -45,12 +47,28 @@ func (w *worker) Filter() engine.SourceFilter {
 	return nil
 }
 
-func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
+func (w *worker) Match(ctx context.Context, task engine.Task) (bool, error) {
+	tracerOptions := []trace.SpanStartOption{
+		trace.WithSpanKind(trace.SpanKindConsumer),
+		trace.WithAttributes(engine.BuildTaskTraceAttributes(task)...),
+	}
+
+	_, span := otel.Tracer("").Start(ctx, "Worker match", tracerOptions...)
+	defer span.End()
+
 	// The worker will handle all Ethereum network transactions.
 	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
 }
 
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+	tracerOptions := []trace.SpanStartOption{
+		trace.WithSpanKind(trace.SpanKindConsumer),
+		trace.WithAttributes(engine.BuildTaskTraceAttributes(task)...),
+	}
+
+	ctx, span := otel.Tracer("").Start(ctx, "Worker transform", tracerOptions...)
+	defer span.End()
+
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
