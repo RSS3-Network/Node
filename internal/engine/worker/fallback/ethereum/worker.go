@@ -30,7 +30,6 @@ var _ engine.Worker = (*worker)(nil)
 type worker struct {
 	config          *config.Module
 	ethereumClient  ethereum.Client
-	redisClient     rueidis.Client
 	tokenClient     token.Client
 	erc20Filterer   *erc20.ERC20Filterer
 	erc721Filterer  *erc721.ERC721Filterer
@@ -326,7 +325,7 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("invalid chain id: %w", err)
 	}
 
-	tokenMetadata, err := w.tokenClient.Lookup(ctx, uint64(chainID), tokenAddress, nil, task.Header.Number, token.WithRueidisClient(w.redisClient))
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, uint64(chainID), tokenAddress, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
@@ -360,7 +359,7 @@ func (w *worker) buildTransactionApprovalAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("invalid chain id: %w", err)
 	}
 
-	tokenMetadata, err := w.tokenClient.Lookup(ctx, uint64(chainID), tokenAddress, nil, task.Header.Number, token.WithRueidisClient(w.redisClient))
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, uint64(chainID), tokenAddress, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
@@ -392,7 +391,7 @@ func (w *worker) buildCollectibleTransferAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("invalid chain id: %w", err)
 	}
 
-	tokenMetadata, err := w.tokenClient.Lookup(ctx, uint64(chainID), &tokenAddress, tokenID, task.Header.Number, token.WithRueidisClient(w.redisClient))
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, uint64(chainID), &tokenAddress, tokenID, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
@@ -426,7 +425,7 @@ func (w *worker) buildCollectibleApprovalAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("invalid chain id: %w", err)
 	}
 
-	tokenMetadata, err := w.tokenClient.Lookup(ctx, uint64(chainID), &tokenAddress, id, task.Header.Number, token.WithRueidisClient(w.redisClient))
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, uint64(chainID), &tokenAddress, id, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
@@ -473,8 +472,7 @@ func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker
 		return nil, fmt.Errorf("initialize ethereum client: %w", err)
 	}
 
-	instance.tokenClient = token.NewClient(instance.ethereumClient)
-	instance.redisClient = redisClient
+	instance.tokenClient = token.NewClient(instance.ethereumClient, token.WithRueidisClient(redisClient))
 
 	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
 	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))

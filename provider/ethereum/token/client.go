@@ -39,7 +39,7 @@ type LookupFunc = func(ctx context.Context, chainID uint64, address *common.Addr
 
 // Client is a client to look up token metadata.
 type Client interface {
-	Lookup(ctx context.Context, chainID uint64, address *common.Address, id, blockNumber *big.Int, options ...Option) (*metadata.Token, error)
+	Lookup(ctx context.Context, chainID uint64, address *common.Address, id, blockNumber *big.Int) (*metadata.Token, error)
 }
 
 // nativeTokenMap is a map of native token metadata.
@@ -137,19 +137,13 @@ func WithRueidisClient(rueidisClient rueidis.Client) Option {
 }
 
 // Lookup looks up token metadata, it supports ERC-20, ERC-721, ERC-1155 and native token.
-func (c *client) Lookup(ctx context.Context, chainID uint64, address *common.Address, id, blockNumber *big.Int, options ...Option) (*metadata.Token, error) {
+func (c *client) Lookup(ctx context.Context, chainID uint64, address *common.Address, id, blockNumber *big.Int) (*metadata.Token, error) {
 	// Lookup unexpected token
 	if address != nil {
 		if lookupMap, exists := c.unexpectedTokenMap[chainID]; exists {
 			if lookup, exists := lookupMap[*address]; exists {
 				return lookup(ctx, chainID, address, id, blockNumber)
 			}
-		}
-	}
-
-	for _, option := range options {
-		if err := option(c); err != nil {
-			return nil, fmt.Errorf("apply option: %w", err)
 		}
 	}
 
@@ -656,9 +650,15 @@ func (c *client) buildCacheKey(chainID uint64, address common.Address, id *big.I
 }
 
 // NewClient returns a new client.
-func NewClient(ethereumClient ethereum.Client) Client {
+func NewClient(ethereumClient ethereum.Client, options ...Option) Client {
 	instance := client{
 		ethereumClient: ethereumClient,
+	}
+
+	for _, option := range options {
+		if err := option(&instance); err != nil {
+			panic(err)
+		}
 	}
 
 	instance.unexpectedTokenMap = map[uint64]map[common.Address]LookupFunc{
