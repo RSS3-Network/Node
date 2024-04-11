@@ -15,8 +15,7 @@ type Option struct {
 	BlockHeightStart  *big.Int `json:"block_height_start" mapstructure:"block_height_start"`
 	BlockHeightTarget *big.Int `json:"block_height_target" mapstructure:"block_height_target"`
 
-	// RPCThreadBlocks is the number of concurrent RPC requests associated with the blocks. Changes to this field don't
-	// cause data inconsistencies and therefore don't need to be stored in the id field of the checkpoint.
+	// RPCThreadBlocks is the number of concurrent RPC requests associated with the blocks.
 	RPCThreadBlocks *uint64 `json:"rpc_thread_blocks" mapstructure:"rpc_thread_blocks"`
 }
 
