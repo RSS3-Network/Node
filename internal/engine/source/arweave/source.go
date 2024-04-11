@@ -53,7 +53,7 @@ func (s *source) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, errorChan chan<- error) {
+func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
 	// Initialize source.
 	if err := s.initialize(); err != nil {
 		errorChan <- fmt.Errorf("initialize source: %w", err)
@@ -77,7 +77,7 @@ func (s *source) initialize() (err error) {
 	return nil
 }
 
-func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task, filter *Filter) error {
+func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks, filter *Filter) error {
 	var (
 		blockHeightLatestRemote int64
 		err                     error
@@ -175,7 +175,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task,
 		// Discard the Bundle transaction itself.
 		transactions = s.discardRootBundleTransaction(transactions)
 
-		tasks, err := s.buildTasks(blocks, transactions)
+		tasks, err := s.buildTasks(ctx, blocks, transactions)
 		if err != nil {
 			return fmt.Errorf("build tasks: %w", err)
 		}
@@ -434,22 +434,22 @@ func (s *source) filterOwnerTransaction(transactions []*arweave.Transaction, own
 }
 
 // buildTasks builds tasks from blocks and transactions.
-func (s *source) buildTasks(blocks []*arweave.Block, transactions []*arweave.Transaction) ([]engine.Task, error) {
-	tasks := make([]engine.Task, 0)
+func (s *source) buildTasks(_ context.Context, blocks []*arweave.Block, transactions []*arweave.Transaction) (*engine.Tasks, error) {
+	var tasks engine.Tasks
 
 	for _, transaction := range transactions {
 		block, _ := lo.Find(blocks, func(block *arweave.Block) bool {
 			return lo.Contains(block.Txs, transaction.ID)
 		})
 
-		tasks = append(tasks, &Task{
+		tasks.Tasks = append(tasks.Tasks, &Task{
 			Network:     s.Network(),
 			Block:       *block,
 			Transaction: *transaction,
 		})
 	}
 
-	return tasks, nil
+	return &tasks, nil
 }
 
 // NewSource creates a new arweave source.

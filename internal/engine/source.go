@@ -10,7 +10,7 @@ import (
 type Source interface {
 	Network() filter.Network
 	State() json.RawMessage
-	Start(ctx context.Context, tasksChan chan<- []Task, errorChan chan<- error)
+	Start(ctx context.Context, tasksChan chan<- *Tasks, errorChan chan<- error)
 }
 
 type SourceFilter interface{}
