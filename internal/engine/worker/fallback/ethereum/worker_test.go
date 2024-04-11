@@ -7,11 +7,14 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/orlangure/gnomock"
+	"github.com/orlangure/gnomock/preset/redis"
 	"github.com/rss3-network/node/config"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/fallback/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
+	redisx "github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/protocol-go/schema/metadata"
@@ -1149,6 +1152,26 @@ func TestWorker_Ethereum(t *testing.T) {
 		},
 	}
 
+	// Start Redis container
+	preset := redis.Preset(
+		redis.WithVersion("6.0.9"),
+	)
+
+	container, err := gnomock.Start(preset)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		require.NoError(t, gnomock.Stop(container))
+	})
+
+	// Connect to Redis
+	redisClient, err := redisx.NewClient(config.Redis{
+		Endpoints: []string{
+			container.DefaultAddress(),
+		},
+	})
+	require.NoError(t, err)
+
 	for _, testcase := range testcases {
 		testcase := testcase
 
@@ -1157,7 +1180,7 @@ func TestWorker_Ethereum(t *testing.T) {
 
 			ctx := context.Background()
 
-			instance, err := worker.NewWorker(testcase.arguments.config)
+			instance, err := worker.NewWorker(testcase.arguments.config, redisClient)
 			require.NoError(t, err)
 
 			matched, err := instance.Match(ctx, testcase.arguments.task)
