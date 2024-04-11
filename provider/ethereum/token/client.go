@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -26,6 +27,9 @@ import (
 	"github.com/tdewolff/minify/v2/minify"
 	"github.com/tidwall/gjson"
 	"github.com/vincent-petithory/dataurl"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // LookupFunc is a function to look up token metadata.
@@ -122,6 +126,26 @@ func WithParseTokenMetadata(value bool) Option {
 
 // Lookup looks up token metadata, it supports ERC-20, ERC-721, ERC-1155 and native token.
 func (c *client) Lookup(ctx context.Context, chainID uint64, address *common.Address, id, blockNumber *big.Int, options ...Option) (*metadata.Token, error) {
+	// Start a span to trace the lookup operation.
+	attributes := []attribute.KeyValue{
+		attribute.String("chain.id", strconv.FormatUint(chainID, 10)),
+	}
+
+	if address != nil {
+		attributes = append(attributes, attribute.Stringer("token.address", address))
+	}
+
+	if id != nil {
+		attributes = append(attributes, attribute.Stringer("token.id", id))
+	}
+
+	if blockNumber != nil {
+		attributes = append(attributes, attribute.Stringer("block.number", blockNumber))
+	}
+
+	ctx, span := otel.Tracer("").Start(ctx, "TokenClient lookup", trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attributes...))
+	defer span.End()
+
 	// Lookup unexpected token
 	if address != nil {
 		if lookupMap, exists := c.unexpectedTokenMap[chainID]; exists {
