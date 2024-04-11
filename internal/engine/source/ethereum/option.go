@@ -17,7 +17,7 @@ type Option struct {
 
 	// RPCThreadBlocks is the number of concurrent RPC requests associated with the blocks. Changes to this field don't
 	// cause data inconsistencies and therefore don't need to be stored in the id field of the checkpoint.
-	RPCThreadBlocks *uint64 `json:"-" mapstructure:"rpc_thread_blocks"`
+	RPCThreadBlocks *uint64 `json:"rpc_thread_blocks" mapstructure:"rpc_thread_blocks"`
 }
 
 func NewOption(options *config.Options) (*Option, error) {
