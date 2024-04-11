@@ -15,9 +15,8 @@ type Option struct {
 	BlockNumberStart  *big.Int `json:"block_number_start" mapstructure:"block_number_start"`
 	BlockNumberTarget *big.Int `json:"block_number_target" mapstructure:"block_number_target"`
 
-	// RPCThreadBlocks is the number of concurrent RPC requests associated with the blocks. Changes to this field don't
-	// cause data inconsistencies and therefore don't need to be stored in the id field of the checkpoint.
-	RPCThreadBlocks *uint64 `json:"-" mapstructure:"rpc_thread_blocks"`
+	// RPCThreadBlocks is the number of concurrent RPC requests associated with the blocks.
+	RPCThreadBlocks *uint64 `json:"rpc_thread_blocks" mapstructure:"rpc_thread_blocks"`
 }
 
 func NewOption(options *config.Options) (*Option, error) {
