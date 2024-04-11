@@ -127,7 +127,7 @@ func WithParseTokenMetadata(value bool) Option {
 	}
 }
 
-// WithIPFSClient sets Redis client and enables caching.
+// WithRueidisClient sets Redis client and enables caching.
 func WithRueidisClient(rueidisClient rueidis.Client) Option {
 	return func(c *client) error {
 		c.rueidisClient = rueidisClient
