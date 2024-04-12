@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/flag"
 	"github.com/rss3-network/node/internal/constant"
@@ -17,6 +18,7 @@ import (
 	"github.com/rss3-network/node/internal/node/indexer"
 	"github.com/rss3-network/node/internal/stream"
 	"github.com/rss3-network/node/internal/stream/provider"
+	"github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/provider/telemetry"
 	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/samber/lo"
@@ -57,6 +59,16 @@ var command = cobra.Command{
 			}
 		}
 
+		// Init redis client
+		var redisClient rueidis.Client
+
+		if *config.Redis.Enable {
+			redisClient, err = redis.NewClient(*config.Redis)
+			if err != nil {
+				return fmt.Errorf("new redis client: %w", err)
+			}
+		}
+
 		var databaseClient database.Client
 
 		module := lo.Must(flags.GetString(flag.KeyModule))
@@ -77,7 +89,7 @@ var command = cobra.Command{
 		case node.Hub:
 			return runHub(cmd.Context(), config, databaseClient)
 		case node.Indexer:
-			return runIndexer(cmd.Context(), config, databaseClient, streamClient)
+			return runIndexer(cmd.Context(), config, databaseClient, streamClient, redisClient)
 		case node.Broadcaster:
 			return runBroadcaster(cmd.Context(), config)
 		}
@@ -92,7 +104,7 @@ func runHub(ctx context.Context, config *config.File, databaseClient database.Cl
 	return server.Run(ctx)
 }
 
-func runIndexer(ctx context.Context, config *config.File, databaseClient database.Client, streamClient stream.Client) error {
+func runIndexer(ctx context.Context, config *config.File, databaseClient database.Client, streamClient stream.Client, redisClient rueidis.Client) error {
 	parameters, err := minify.JSON(lo.Must(flags.GetString(flag.KeyIndexerParameters)))
 	if err != nil {
 		return fmt.Errorf("invalid indexer parameters: %w", err)
@@ -111,7 +123,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 	for _, nodeConfig := range config.Node.Decentralized {
 		if nodeConfig.Network == network && nodeConfig.Worker == worker {
 			if nodeConfig.Parameters == nil && parameters == "{}" || *(nodeConfig.Parameters) != nil && strings.EqualFold(nodeConfig.Parameters.String(), parameters) {
-				server, err := indexer.NewServer(ctx, nodeConfig, databaseClient, streamClient)
+				server, err := indexer.NewServer(ctx, nodeConfig, databaseClient, streamClient, redisClient)
 				if err != nil {
 					return fmt.Errorf("new server: %w", err)
 				}

@@ -35,6 +35,13 @@ stream:
   driver: kafka
   topic: rss3.node.feeds
   uri: localhost:9092
+redis:
+  enable: false
+  endpoints:
+    - localhost:6379
+  username:
+  password:
+  disable_cache: true
 observability:
   opentelemetry:
     metrics:
@@ -90,6 +97,15 @@ component:
     "driver": "kafka",
     "topic": "rss3.node.feeds",
     "uri": "localhost:9092"
+  },
+  "redis": {
+	"enable": false,
+	"endpoints": [
+	  "localhost:6379"
+	],
+	"username": "",
+	"password": "",
+	"disable_cache": true
   },
   "observability": {
     "opentelemetry": {
@@ -161,6 +177,13 @@ enable = false
 driver = "kafka"
 topic = "rss3.node.feeds"
 uri = "localhost:9092"
+
+[redis]
+enable = false
+endpoints = ["localhost:6379"]
+username = ""
+password = ""
+disable_cache = true
 
 [observability.opentelemetry.metrics]
 enable = true
@@ -262,6 +285,13 @@ var configFileExcept = &File{
 		Driver: "kafka",
 		Topic:  "rss3.node.feeds",
 		URI:    "localhost:9092",
+	},
+	Redis: &Redis{
+		Enable:       lo.ToPtr(false),
+		Endpoints:    []string{"localhost:6379"},
+		Username:     "",
+		Password:     "",
+		DisableCache: true,
 	},
 	Observability: &Telemetry{
 		OpenTelemetry: &OpenTelemetryConfig{

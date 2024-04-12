@@ -8,6 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
@@ -500,7 +501,7 @@ func isInvalidTokenErr(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "unsupported NFT standard")
 }
 
-func NewWorker(config *config.Module) (engine.Worker, error) {
+func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker, error) {
 	var instance = worker{
 		config: config,
 	}
@@ -511,7 +512,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 		return nil, fmt.Errorf("initialize ethereum client: %w", err)
 	}
 
-	instance.tokenClient = token.NewClient(instance.ethereumClient)
+	instance.tokenClient = token.NewClient(instance.ethereumClient, token.WithRueidisClient(redisClient))
 
 	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
 	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))

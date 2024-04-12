@@ -3,15 +3,20 @@ package ethereum_test
 import (
 	"context"
 	"math/big"
+	"sync"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/orlangure/gnomock"
+	"github.com/orlangure/gnomock/preset/redis"
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/fallback/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
+	redisx "github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/protocol-go/schema/metadata"
@@ -20,8 +25,47 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	setupOnce   sync.Once
+	redisClient rueidis.Client
+)
+
+func setup(t *testing.T) {
+	setupOnce.Do(func() {
+		var err error
+
+		// Start Redis container with TLS
+		preset := redis.Preset(
+			redis.WithVersion("6.0.9"),
+		)
+
+		container, err := gnomock.Start(preset)
+		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			require.NoError(t, gnomock.Stop(container))
+		})
+
+		// Connect to Redis without TLS
+		redisClient, err = redisx.NewClient(config.Redis{
+			Endpoints: []string{
+				container.DefaultAddress(),
+			},
+			TLS: config.RedisTLS{
+				Enabled:            false,
+				CAFile:             "/path/to/ca.crt",
+				CertFile:           "/path/to/client.crt",
+				KeyFile:            "/path/to/client.key",
+				InsecureSkipVerify: false,
+			},
+		})
+		require.NoError(t, err)
+	})
+}
+
 func TestWorker_Ethereum(t *testing.T) {
 	t.Parallel()
+	setup(t)
 
 	type arguments struct {
 		task   *source.Task
@@ -1157,7 +1201,7 @@ func TestWorker_Ethereum(t *testing.T) {
 
 			ctx := context.Background()
 
-			instance, err := worker.NewWorker(testcase.arguments.config)
+			instance, err := worker.NewWorker(testcase.arguments.config, redisClient)
 			require.NoError(t, err)
 
 			matched, err := instance.Match(ctx, testcase.arguments.task)

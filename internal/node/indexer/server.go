@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/database"
@@ -286,7 +287,7 @@ func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.I
 	return nil
 }
 
-func NewServer(ctx context.Context, config *config.Module, databaseClient database.Client, streamClient stream.Client) (server *Server, err error) {
+func NewServer(ctx context.Context, config *config.Module, databaseClient database.Client, streamClient stream.Client, redisClient rueidis.Client) (server *Server, err error) {
 	instance := Server{
 		id:             config.ID(),
 		config:         config,
@@ -295,7 +296,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 	}
 
 	// Initialize worker.
-	if instance.worker, err = worker.New(instance.config, databaseClient); err != nil {
+	if instance.worker, err = worker.New(instance.config, databaseClient, redisClient); err != nil {
 		return nil, fmt.Errorf("new worker: %w", err)
 	}
 

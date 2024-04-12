@@ -783,13 +783,13 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 		}
 
 		// Initialize token client.
-		tokenClient = token.NewClient(ethereumClient)
+		tokenClient = token.NewClient(ethereumClient, token.WithParseTokenMetadata(true))
 	} else {
 		tokenClient = w.tokenClient
 	}
 
 	// parse token metadata
-	tokenMetadata, err := tokenClient.Lookup(ctx, uint64(chainID), lo.ToPtr(common.HexToAddress(asset[0])), tokenID.BigInt(), nil, token.WithParseTokenMetadata(true))
+	tokenMetadata, err := tokenClient.Lookup(ctx, uint64(chainID), lo.ToPtr(common.HexToAddress(asset[0])), tokenID.BigInt(), nil)
 	if err != nil {
 		return "", fmt.Errorf("lookup token metadata %s: %w", asset[0], err)
 	}
@@ -1007,7 +1007,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	}
 
 	// Initialize token client.
-	instance.tokenClient = token.NewClient(instance.ethereumClient)
+	instance.tokenClient = token.NewClient(instance.ethereumClient, token.WithParseTokenMetadata(true))
 
 	// Initialize crossbell callers.
 	characterContract, err := character.NewCharacterCaller(crossbell.AddressWeb3Entry, instance.ethereumClient)
