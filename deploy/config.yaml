@@ -26,6 +26,12 @@ redis:
   username:
   password:
   disable_cache: true
+  tls:
+    enabled: false
+    ca_file: /path/to/ca.crt
+    cert_file: /path/to/client.crt
+    key_file: /path/to/client.key
+    insecure_skip_verify: false
 
 observability:
   opentelemetry:

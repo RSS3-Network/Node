@@ -34,7 +34,7 @@ func setup(t *testing.T) {
 	setupOnce.Do(func() {
 		var err error
 
-		// Start Redis container
+		// Start Redis container with TLS
 		preset := redis.Preset(
 			redis.WithVersion("6.0.9"),
 		)
@@ -46,10 +46,17 @@ func setup(t *testing.T) {
 			require.NoError(t, gnomock.Stop(container))
 		})
 
-		// Connect to Redis
+		// Connect to Redis without TLS
 		redisClient, err = redisx.NewClient(config.Redis{
 			Endpoints: []string{
 				container.DefaultAddress(),
+			},
+			TLS: config.RedisTLS{
+				Enabled:            false,
+				CAFile:             "/path/to/ca.crt",
+				CertFile:           "/path/to/client.crt",
+				KeyFile:            "/path/to/client.key",
+				InsecureSkipVerify: false,
 			},
 		})
 		require.NoError(t, err)

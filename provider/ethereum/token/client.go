@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	defaultCacheDuration = 24 * time.Hour
+	defaultCacheDuration = 7 * 24 * time.Hour
 )
 
 // LookupFunc is a function to look up token metadata.
@@ -120,6 +120,7 @@ type client struct {
 
 type Option func(*client) error
 
+// WithParseTokenMetadata enables parsing token metadata.
 func WithParseTokenMetadata(value bool) Option {
 	return func(c *client) error {
 		c.parseTokenMetadata = value
@@ -177,16 +178,8 @@ func (c *client) lookupERC20(ctx context.Context, chainID uint64, address common
 	}
 
 	// Cache the token metadata to Redis.
-	if c.rueidisClient != nil {
-		if value, err := json.Marshal(tokenMetadata); err == nil {
-			command := c.rueidisClient.B().Setex().
-				Key(c.buildCacheKey(chainID, address, nil)).
-				Seconds(int64(defaultCacheDuration.Seconds())).
-				Value(string(value)).
-				Build()
-
-			c.rueidisClient.Do(ctx, command)
-		}
+	if err := c.cacheTokenMetadata(ctx, chainID, address, nil, tokenMetadata); err != nil {
+		return nil, fmt.Errorf("cache token metadata: %w", err)
 	}
 
 	return tokenMetadata, nil
@@ -248,6 +241,7 @@ func (c *client) lookupERC20ByRPC(ctx context.Context, chainID uint64, address c
 	return &tokenMetadata, nil
 }
 
+// lookupERC20ByRedis looks up ERC-20 token metadata by Redis when it's enabled to reduce RPC calls.
 func (c *client) lookupERC20ByRedis(ctx context.Context, chainID uint64, address common.Address) (*metadata.Token, error) {
 	var tokenMetadata metadata.Token
 
@@ -303,21 +297,36 @@ func (c *client) lookupNFT(ctx context.Context, chainID uint64, address common.A
 	}
 
 	// Cache the token metadata to Redis.
-	if c.rueidisClient != nil {
-		if value, err := json.Marshal(tokenMetadata); err == nil {
-			command := c.rueidisClient.B().Setex().
-				Key(c.buildCacheKey(chainID, address, id)).
-				Seconds(int64(defaultCacheDuration.Seconds())).
-				Value(string(value)).
-				Build()
-
-			c.rueidisClient.Do(ctx, command)
-		}
+	if err := c.cacheTokenMetadata(ctx, chainID, address, id, tokenMetadata); err != nil {
+		return nil, fmt.Errorf("cache token metadata: %w", err)
 	}
 
 	return tokenMetadata, nil
 }
 
+// cacheTokenMetadata caches token metadata to Redis.
+func (c *client) cacheTokenMetadata(ctx context.Context, chainID uint64, address common.Address, id *big.Int, tokenMetadata *metadata.Token) error {
+	if c.rueidisClient == nil {
+		return nil
+	}
+
+	value, err := json.Marshal(tokenMetadata)
+	if err != nil {
+		return fmt.Errorf("marshal token metadata: %w", err)
+	}
+
+	command := c.rueidisClient.B().Setex().
+		Key(c.buildCacheKey(chainID, address, id)).
+		Seconds(int64(defaultCacheDuration.Seconds())).
+		Value(string(value)).
+		Build()
+
+	c.rueidisClient.Do(ctx, command)
+
+	return nil
+}
+
+// lookupNFTByRedis looks up NFT token metadata by Redis when it's enabled to reduce RPC calls.
 func (c *client) lookupNFTByRedis(ctx context.Context, chainID uint64, address common.Address, id *big.Int) (*metadata.Token, error) {
 	var tokenMetadata metadata.Token
 
@@ -495,6 +504,7 @@ func (c *client) lookupENS(_ context.Context, _ uint64, address *common.Address,
 	return &tokenMetadata, nil
 }
 
+// lookupMaker build token metadata.
 func (c *client) lookupMaker(_ context.Context, _ uint64, address *common.Address, _, _ *big.Int) (*metadata.Token, error) {
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
@@ -657,7 +667,7 @@ func NewClient(ethereumClient ethereum.Client, options ...Option) Client {
 
 	for _, option := range options {
 		if err := option(&instance); err != nil {
-			panic(err)
+			return nil
 		}
 	}
 
