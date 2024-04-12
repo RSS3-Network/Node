@@ -3,6 +3,7 @@ package fallback
 import (
 	"fmt"
 
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/internal/engine/worker/fallback/arweave"
@@ -11,10 +12,10 @@ import (
 )
 
 // NewWorker creates a new fallback worker.
-func NewWorker(config *config.Module) (engine.Worker, error) {
+func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker, error) {
 	switch config.Network.Source() {
 	case filter.NetworkEthereumSource:
-		return ethereum.NewWorker(config)
+		return ethereum.NewWorker(config, redisClient)
 	case filter.NetworkArweaveSource:
 		return arweave.NewWorker(config)
 	default:

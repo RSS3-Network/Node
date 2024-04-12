@@ -34,6 +34,7 @@ type File struct {
 	Node          *Node      `mapstructure:"component" validate:"required"`
 	Database      *Database  `mapstructure:"database" validate:"required"`
 	Stream        *Stream    `mapstructure:"stream" validate:"required"`
+	Redis         *Redis     `mapstructure:"redis" validate:"required"`
 	Observability *Telemetry `mapstructure:"observability" validate:"required"`
 }
 
@@ -97,6 +98,23 @@ type OpenTelemetryTracesConfig struct {
 	Enable   bool   `mapstructure:"enable" default:"false"`
 	Insecure bool   `mapstructure:"insecure" default:"false"`
 	Endpoint string `mapstructure:"endpoint" validate:"required" default:"0.0.0.0:4318"`
+}
+
+type Redis struct {
+	Enable       *bool    `mapstructure:"enable" validate:"required" default:"false"`
+	Endpoints    []string `mapstructure:"endpoints" default:"['localhost:6379']" validate:"required"`
+	Username     string   `mapstructure:"username"`
+	Password     string   `mapstructure:"password"`
+	DisableCache bool     `mapstructure:"disable_cache" default:"true"`
+	TLS          RedisTLS `mapstructure:"tls"`
+}
+
+type RedisTLS struct {
+	Enabled            bool   `mapstructure:"enabled" default:"false"`
+	CAFile             string `mapstructure:"ca_file"`
+	CertFile           string `mapstructure:"cert_file"`
+	KeyFile            string `mapstructure:"key_file"`
+	InsecureSkipVerify bool   `mapstructure:"insecure_skip_verify" default:"false"`
 }
 
 // ID returns the unique identifier of the configuration.
