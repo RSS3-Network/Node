@@ -125,10 +125,7 @@ func (s *source) pollCastsByFid(ctx context.Context, fid *int64, pageToken strin
 			return err
 		}
 
-		tasks, err := s.buildFarcasterMessageTasks(ctx, castsByFidResponse.Messages)
-		if err != nil {
-			return fmt.Errorf("build message tasks: %w", err)
-		}
+		tasks := s.buildFarcasterMessageTasks(ctx, castsByFidResponse.Messages)
 
 		tasksChan <- tasks
 
@@ -181,10 +178,7 @@ func (s *source) pollReactionsByFid(ctx context.Context, fid *int64, pageToken s
 			return err
 		}
 
-		tasks, err := s.buildFarcasterMessageTasks(ctx, reactionsByFidResponse.Messages)
-		if err != nil {
-			return fmt.Errorf("build message tasks: %w", err)
-		}
+		tasks := s.buildFarcasterMessageTasks(ctx, reactionsByFidResponse.Messages)
 
 		tasksChan <- tasks
 
@@ -197,7 +191,7 @@ func (s *source) pollReactionsByFid(ctx context.Context, fid *int64, pageToken s
 }
 
 // buildFarcasterMessageTasks filter cast add and recast messages.
-func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farcaster.Message) (*engine.Tasks, error) {
+func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farcaster.Message) *engine.Tasks {
 	var tasks engine.Tasks
 
 	for _, message := range messages {
@@ -223,7 +217,7 @@ func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farc
 		})
 	}
 
-	return &tasks, nil
+	return &tasks
 }
 
 func (s *source) pollEvents(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
@@ -248,10 +242,7 @@ func (s *source) pollEvents(ctx context.Context, tasksChan chan<- *engine.Tasks)
 			continue
 		}
 
-		tasks, err := s.buildFarcasterEventTasks(ctx, eventsResponse.Events, tasksChan)
-		if err != nil {
-			return fmt.Errorf("build event tasks: %w", err)
-		}
+		tasks := s.buildFarcasterEventTasks(ctx, eventsResponse.Events, tasksChan)
 
 		tasksChan <- tasks
 
@@ -263,7 +254,7 @@ func (s *source) pollEvents(ctx context.Context, tasksChan chan<- *engine.Tasks)
 }
 
 // buildFarcasterEventTasks filter cast add, recast and profile update events.
-func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaster.HubEvent, tasksChan chan<- *engine.Tasks) (*engine.Tasks, error) {
+func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaster.HubEvent, tasksChan chan<- *engine.Tasks) *engine.Tasks {
 	var tasks engine.Tasks
 
 	for _, event := range events {
@@ -315,7 +306,7 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 		}
 	}
 
-	return &tasks, nil
+	return &tasks
 }
 
 // updateProfileByFid update profile by fid.

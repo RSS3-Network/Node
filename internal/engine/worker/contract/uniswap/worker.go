@@ -96,10 +96,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	switch {
 	case w.matchSwapTransaction(ethereumTask, ethereumTask.Transaction):
 		feed.Type = filter.TypeExchangeSwap
-		feed.Actions, err = w.transformSwapTransaction(ctx, ethereumTask, ethereumTask.Transaction)
+		feed.Actions = w.transformSwapTransaction(ctx, ethereumTask, ethereumTask.Transaction)
 	case w.matchLiquidityTransaction(ethereumTask, ethereumTask.Transaction):
 		feed.Type = filter.TypeExchangeLiquidity
-		feed.Actions, err = w.transformLiquidityTransaction(ctx, ethereumTask, ethereumTask.Transaction)
+		feed.Actions = w.transformLiquidityTransaction(ctx, ethereumTask, ethereumTask.Transaction)
 	default:
 		return nil, errors.New("unsupported transaction")
 	}
@@ -214,7 +214,9 @@ func (w *worker) matchNonfungiblePositionManagerTransferLog(task *source.Task, l
 	return event.From == ethereum.AddressGenesis
 }
 
-func (w *worker) transformSwapTransaction(ctx context.Context, task *source.Task, _ *ethereum.Transaction) (actions []*schema.Action, err error) {
+func (w *worker) transformSwapTransaction(ctx context.Context, task *source.Task, _ *ethereum.Transaction) (actions []*schema.Action) {
+	var err error
+
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
 			continue
@@ -250,10 +252,12 @@ func (w *worker) transformSwapTransaction(ctx context.Context, task *source.Task
 		actions = append(actions, buffer...)
 	}
 
-	return actions, nil
+	return actions
 }
 
-func (w *worker) transformLiquidityTransaction(ctx context.Context, task *source.Task, _ *ethereum.Transaction) (actions []*schema.Action, err error) {
+func (w *worker) transformLiquidityTransaction(ctx context.Context, task *source.Task, _ *ethereum.Transaction) (actions []*schema.Action) {
+	var err error
+
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
 			continue
@@ -284,20 +288,18 @@ func (w *worker) transformLiquidityTransaction(ctx context.Context, task *source
 			buffer, err = w.transformNonfungiblePositionManagerTransferLog(ctx, task, log)
 		default:
 			zap.L().Debug("unknown event", zap.String("worker", w.Name()), zap.String("task", task.ID()), zap.Stringer("event", log.Export().Topics[0]))
-
 			continue
 		}
 
 		if err != nil {
 			zap.L().Warn("handle ethereum liquidity transaction", zap.Error(err), zap.String("worker", w.Name()), zap.String("task", task.ID()))
-
 			continue
 		}
 
 		actions = append(actions, buffer...)
 	}
 
-	return actions, nil
+	return actions
 }
 
 func (w *worker) transformV1TokenPurchaseLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {

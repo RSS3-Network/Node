@@ -244,19 +244,14 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 		return nil, fmt.Errorf("public key to address: %w", err)
 	}
 
-	action, err := w.buildArweaveMomokaAction(ctx, from.String(), feedFrom, socialType, momokaMetadata)
-	if err != nil {
-		return nil, fmt.Errorf("build arweave momoka action: %w", err)
-	}
-
 	actions := []*schema.Action{
-		action,
+		w.buildArweaveMomokaAction(ctx, from.String(), feedFrom, socialType, momokaMetadata),
 	}
 
 	return actions, nil
 }
 
-func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, filterType filter.SocialType, momokaMetadata *metadata.SocialPost) (*schema.Action, error) {
+func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, filterType filter.SocialType, momokaMetadata *metadata.SocialPost) *schema.Action {
 	action := schema.Action{
 		Type:     filterType,
 		Tag:      filter.TagSocial,
@@ -266,7 +261,7 @@ func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, fi
 		Metadata: momokaMetadata,
 	}
 
-	return &action, nil
+	return &action
 }
 
 func (w *worker) buildArweaveMomokaPostMetadata(ctx context.Context, profileID, handle, pubID string, contentURI string, isTarget bool, timestamp uint64) (*metadata.SocialPost, error) {

@@ -38,7 +38,7 @@ func (c *client) createPartitionTable(ctx context.Context, name, template string
 }
 
 // findIndexesPartitionTable finds partition table names of indexes in the past year.
-func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index) ([]string, error) {
+func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index) []string {
 	partitionedNames := make([]string, 0)
 
 	for i := 0; i <= 4; i++ {
@@ -56,7 +56,7 @@ func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index
 		index.Timestamp = time.Date(lo.Ternary(month < 3, year-1, year), lo.Ternary(month < 3, month+9, month-3), index.Timestamp.Day(), 23, 59, 59, 1e9-1, time.Local)
 	}
 
-	return partitionedNames, nil
+	return partitionedNames
 }
 
 // loadIndexesPartitionTables loads indexes partition tables.
@@ -311,10 +311,7 @@ func (c *client) findIndexPartitioned(ctx context.Context, query model.FeedQuery
 		Timestamp: time.Now(),
 	}
 
-	tables, err := c.findIndexesPartitionTables(ctx, index)
-	if err != nil {
-		return nil, fmt.Errorf("find indexes partition tables: %w", err)
-	}
+	tables := c.findIndexesPartitionTables(ctx, index)
 
 	ctx, cancel := context.WithCancel(ctx)
 	errorGroup, errorContext := errgroup.WithContext(ctx)
@@ -392,12 +389,7 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQu
 		index.Timestamp = time.Unix(int64(query.Cursor.Timestamp), 0)
 	}
 
-	partitionedNames, err := c.findIndexesPartitionTables(ctx, index)
-	if err != nil {
-		zap.L().Error("failed to build partitioned indexes past year", zap.Error(err))
-
-		return nil, err
-	}
+	partitionedNames := c.findIndexesPartitionTables(ctx, index)
 
 	if len(partitionedNames) == 0 {
 		return nil, nil
