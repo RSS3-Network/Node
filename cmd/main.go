@@ -87,10 +87,7 @@ var command = cobra.Command{
 }
 
 func runHub(ctx context.Context, config *config.File, databaseClient database.Client) error {
-	server, err := hub.NewServer(ctx, config, databaseClient)
-	if err != nil {
-		return fmt.Errorf("new server: %w", err)
-	}
+	server := hub.NewServer(ctx, config, databaseClient)
 
 	return server.Run(ctx)
 }

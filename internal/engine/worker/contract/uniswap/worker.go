@@ -313,16 +313,16 @@ func (w *worker) transformV1TokenPurchaseLog(ctx context.Context, task *source.T
 		return nil, fmt.Errorf("load factory: %w", err)
 	}
 
-	token, err := factory.GetToken(nil, event.Raw.Address)
+	tokenAddr, err := factory.GetToken(nil, event.Raw.Address)
 	if err != nil {
 		return nil, fmt.Errorf("get token from factory: %w", err)
 	}
 
-	if token == ethereum.AddressGenesis {
-		return nil, fmt.Errorf("unofficial v1 exhcange: %s", event.Raw.Address)
+	if tokenAddr == ethereum.AddressGenesis {
+		return nil, fmt.Errorf("unofficial v1 exchange: %s", event.Raw.Address)
 	}
 
-	action, err := w.buildExchangeSwapAction(ctx, task, task.Transaction.From, event.Buyer, nil, &token, event.EthSold, event.TokensBought)
+	action, err := w.buildExchangeSwapAction(ctx, task, task.Transaction.From, event.Buyer, nil, &tokenAddr, event.EthSold, event.TokensBought)
 	if err != nil {
 		return nil, fmt.Errorf("build exchange swap action: %w", err)
 	}
@@ -345,16 +345,16 @@ func (w *worker) transformV1EthPurchaseLog(ctx context.Context, task *source.Tas
 		return nil, fmt.Errorf("load factory: %w", err)
 	}
 
-	token, err := factory.GetToken(nil, event.Raw.Address)
+	tokenAddr, err := factory.GetToken(nil, event.Raw.Address)
 	if err != nil {
 		return nil, fmt.Errorf("get token from factory: %w", err)
 	}
 
-	if token == ethereum.AddressGenesis {
+	if tokenAddr == ethereum.AddressGenesis {
 		return nil, fmt.Errorf("unofficial v1 exhcange: %s", event.Raw.Address)
 	}
 
-	action, err := w.buildExchangeSwapAction(ctx, task, task.Transaction.From, event.Buyer, &token, nil, event.TokensSold, event.EthBought)
+	action, err := w.buildExchangeSwapAction(ctx, task, task.Transaction.From, event.Buyer, &tokenAddr, nil, event.TokensSold, event.EthBought)
 	if err != nil {
 		return nil, fmt.Errorf("build exchange swap action: %w", err)
 	}
@@ -419,12 +419,12 @@ func (w *worker) transformV1ExchangeRemoveLiquidityLog(ctx context.Context, task
 		return nil, fmt.Errorf("load factory: %w", err)
 	}
 
-	token, err := factory.GetToken(nil, event.Raw.Address)
+	tokenAddr, err := factory.GetToken(nil, event.Raw.Address)
 	if err != nil {
 		return nil, fmt.Errorf("get token address from factory: %w", err)
 	}
 
-	if token == ethereum.AddressGenesis {
+	if tokenAddr == ethereum.AddressGenesis {
 		return nil, fmt.Errorf("unofficial exhcange contract: %s", event.Raw.Address)
 	}
 
@@ -435,7 +435,7 @@ func (w *worker) transformV1ExchangeRemoveLiquidityLog(ctx context.Context, task
 		},
 		{
 			// ERC-20 token
-			Address: lo.ToPtr(token.String()),
+			Address: lo.ToPtr(tokenAddr.String()),
 			Value:   lo.ToPtr(decimal.NewFromBigInt(event.TokenAmount, 0)),
 		},
 	}
@@ -942,10 +942,10 @@ func (w *worker) transformWETHWithdrawalLog(ctx context.Context, task *source.Ta
 func (w *worker) buildExchangeLiquidityAction(ctx context.Context, task *source.Task, sender, receipt common.Address, liquidityAction metadata.ExchangeLiquidityAction, tokens []metadata.Token) (*schema.Action, error) {
 	tokenMetadataSlice := make([]metadata.Token, 0, len(tokens))
 
-	for _, token := range tokens {
+	for _, t := range tokens {
 		var tokenAddress *common.Address
-		if token.Address != nil {
-			tokenAddress = lo.ToPtr(common.HexToAddress(*token.Address))
+		if t.Address != nil {
+			tokenAddress = lo.ToPtr(common.HexToAddress(*t.Address))
 		}
 
 		tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenAddress, nil, task.Header.Number)
@@ -953,7 +953,7 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, task *source.
 			return nil, fmt.Errorf("lookup token metadata %s: %w", tokenAddress, err)
 		}
 
-		tokenMetadata.Value = token.Value
+		tokenMetadata.Value = t.Value
 
 		tokenMetadataSlice = append(tokenMetadataSlice, *tokenMetadata)
 	}

@@ -501,19 +501,19 @@ func (c *client) buildFindIndexStatement(ctx context.Context, partitionedName st
 func (c *client) buildFindIndexesStatement(ctx context.Context, partition string, query model.FeedsQuery) *gorm.DB {
 	databaseStatement := c.database.WithContext(ctx).Table(partition)
 
-	var table *string
+	var tbl *string
 
 	if query.Distinct != nil && lo.FromPtr(query.Distinct) {
 		databaseStatement = databaseStatement.Select("DISTINCT (id) id, timestamp, index, network")
 	}
 
 	if query.Owner != nil {
-		table = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
+		tbl = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
 		databaseStatement = databaseStatement.Where("owner = ?", query.Owner)
 	}
 
 	if len(query.Owners) > 0 {
-		table = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
+		tbl = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
 		databaseStatement = databaseStatement.Where("owner IN ?", query.Owners)
 	}
 
@@ -557,8 +557,8 @@ func (c *client) buildFindIndexesStatement(ctx context.Context, partition string
 		databaseStatement = databaseStatement.Where("timestamp < ? OR (timestamp = ? AND index < ?)", time.Unix(int64(query.Cursor.Timestamp), 0), time.Unix(int64(query.Cursor.Timestamp), 0), query.Cursor.Index)
 	}
 
-	if table != nil {
-		databaseStatement.Statement.TableExpr.SQL = *table
+	if tbl != nil {
+		databaseStatement.Statement.TableExpr.SQL = *tbl
 	}
 
 	return databaseStatement.Order("timestamp DESC, index DESC").Limit(query.Limit)

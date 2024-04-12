@@ -2,7 +2,6 @@ package indexer
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"runtime"
@@ -218,23 +217,9 @@ func (s *Server) initializeMeter() (err error) {
 func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.Int64Observer) error {
 	go func() {
 		// get current block height state
-		tx, err := s.databaseClient.Begin(ctx, &sql.TxOptions{ReadOnly: true})
-		if err != nil {
-			zap.L().Error("begin transaction", zap.Error(err))
-
-			return
-		}
-
-		defer func() {
-			if err := tx.Rollback(); err != nil {
-				zap.L().Error("rollback transaction", zap.Error(err))
-			}
-		}()
-
 		latestCheckpoint, err := s.databaseClient.LoadCheckpoint(ctx, s.id, s.source.Network(), s.worker.Name())
 		if err != nil {
 			zap.L().Error("find latest checkpoint", zap.Error(err))
-
 			return
 		}
 
@@ -248,19 +233,18 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 			var state CheckpointState
 			if err := json.Unmarshal(latestCheckpoint.State, &state); err != nil {
 				zap.L().Error("unmarshal checkpoint state", zap.Error(err))
-
 				return
 			}
 
 			currentBlockHeight := state.BlockNumber
-
 			if currentBlockHeight == 0 {
 				currentBlockHeight = state.BlockHeight
 			}
 
 			observer.Observe(int64(currentBlockHeight), metric.WithAttributes(
 				attribute.String("service", constant.Name),
-				attribute.String("worker", s.worker.Name())))
+				attribute.String("worker", s.worker.Name()),
+			))
 		}
 	}()
 
