@@ -521,7 +521,7 @@ func (c *client) lookupMaker(_ context.Context, _ uint64, address *common.Addres
 func (c *client) buildNonFungibleTokenMetadata(ctx context.Context, uri string, id *big.Int) (*metadata.NonFungibleTokenMetadata, error) {
 	var (
 		nonFungibleTokenMetadata metadata.NonFungibleTokenMetadata
-		metadata                 json.RawMessage
+		tokenMetadata            json.RawMessage
 	)
 
 	if uri == "" {
@@ -533,7 +533,7 @@ func (c *client) buildNonFungibleTokenMetadata(ctx context.Context, uri string, 
 	dataURI, err := dataurl.DecodeString(uri)
 
 	if err == nil {
-		metadata, isDataURI = dataURI.Data, true
+		tokenMetadata, isDataURI = dataURI.Data, true
 	}
 
 	if isDataURIErr(err) {
@@ -558,7 +558,7 @@ func (c *client) buildNonFungibleTokenMetadata(ctx context.Context, uri string, 
 			return nil, fmt.Errorf("quick fetch %s: %w", path, err)
 		}
 
-		if metadata, err = io.ReadAll(readCloser); err != nil {
+		if tokenMetadata, err = io.ReadAll(readCloser); err != nil {
 			return nil, fmt.Errorf("read metadata from IPFS: %w", err)
 		}
 	case strings.HasPrefix(uri, "ar://"): // Arweave
@@ -571,12 +571,12 @@ func (c *client) buildNonFungibleTokenMetadata(ctx context.Context, uri string, 
 			return nil, fmt.Errorf("fetch metadata from HTTP %s: %w", uri, err)
 		}
 
-		if metadata, err = io.ReadAll(response); err != nil {
+		if tokenMetadata, err = io.ReadAll(response); err != nil {
 			return nil, fmt.Errorf("read metadata from HTTP %s: %w", uri, err)
 		}
 	}
 
-	if err := c.standardizeNonFungibleTokenMetadata(ctx, &nonFungibleTokenMetadata, metadata); err != nil {
+	if err := c.standardizeNonFungibleTokenMetadata(ctx, &nonFungibleTokenMetadata, tokenMetadata); err != nil {
 		return nil, fmt.Errorf("standardize NFT metadata: %w", err)
 	}
 

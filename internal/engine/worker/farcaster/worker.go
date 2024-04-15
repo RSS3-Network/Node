@@ -54,9 +54,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 	// Handle Farcaster message.
 	switch farcasterTask.Message.Data.Type {
 	case farcaster.MessageTypeCastAdd.String():
-		err = w.handleFarcasterAddCast(ctx, farcasterTask.Message, feed)
+		w.handleFarcasterAddCast(ctx, farcasterTask.Message, feed)
 	case farcaster.MessageTypeReactionAdd.String():
-		err = w.handleFarcasterRecastReaction(ctx, farcasterTask.Message, feed)
+		w.handleFarcasterRecastReaction(ctx, farcasterTask.Message, feed)
 	default:
 		zap.L().Debug("unsupported type", zap.String("type", farcasterTask.Message.Data.Type))
 	}
@@ -73,7 +73,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 }
 
 // handleFarcasterAddCast handles farcaster add cast message.
-func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.Message, feed *schema.Feed) error {
+func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.Message, feed *schema.Feed) {
 	fid := int64(message.Data.Fid)
 
 	post := w.buildPost(ctx, int64(message.Data.Fid), message.Hash, message.Data.CastAddBody)
@@ -98,7 +98,7 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 
 			w.buildPostActions(ctx, message.Data.Profile.EthAddresses, feed, post, feed.Type)
 
-			return nil
+			return
 		}
 
 		// this represents a reply to others.
@@ -118,19 +118,17 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 			}
 		}
 
-		return nil
+		return
 	}
 
 	feed.Type = filter.TypeSocialPost
 	feed.To = feed.From
 
 	w.buildPostActions(ctx, message.Data.Profile.EthAddresses, feed, post, feed.Type)
-
-	return nil
 }
 
 // handleFarcasterRecastReaction handles farcaster recast reaction message.
-func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farcaster.Message, feed *schema.Feed) error {
+func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farcaster.Message, feed *schema.Feed) {
 	fid := int64(message.Data.Fid)
 
 	post := w.buildPost(ctx, int64(message.Data.Fid), message.Hash, nil)
@@ -153,7 +151,7 @@ func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farc
 
 		w.buildPostActions(ctx, message.Data.Profile.EthAddresses, feed, post, feed.Type)
 
-		return nil
+		return
 	}
 
 	post.Target.Handle = targetMessage.Data.Profile.Username
@@ -171,8 +169,6 @@ func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farc
 			feed.Actions = append(feed.Actions, &action)
 		}
 	}
-
-	return nil
 }
 
 // buildPostActions builds post actions from message.
@@ -198,7 +194,7 @@ func (w *worker) buildPost(ctx context.Context, fid int64, hash string, body *fa
 
 	if body != nil {
 		text = w.castToString(body)
-		embeds = lo.Map(body.Embeds, func(uri farcaster.Embed, index int) string {
+		embeds = lo.Map(body.Embeds, func(uri farcaster.Embed, _ int) string {
 			return uri.URL
 		})
 

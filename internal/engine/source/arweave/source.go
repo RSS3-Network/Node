@@ -175,10 +175,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 		// Discard the Bundle transaction itself.
 		transactions = s.discardRootBundleTransaction(transactions)
 
-		tasks, err := s.buildTasks(ctx, blocks, transactions)
-		if err != nil {
-			return fmt.Errorf("build tasks: %w", err)
-		}
+		tasks := s.buildTasks(ctx, blocks, transactions)
 
 		// TODO It might be possible to use generics to avoid manual type assertions.
 		tasksChan <- tasks
@@ -434,7 +431,7 @@ func (s *source) filterOwnerTransaction(transactions []*arweave.Transaction, own
 }
 
 // buildTasks builds tasks from blocks and transactions.
-func (s *source) buildTasks(_ context.Context, blocks []*arweave.Block, transactions []*arweave.Transaction) (*engine.Tasks, error) {
+func (s *source) buildTasks(_ context.Context, blocks []*arweave.Block, transactions []*arweave.Transaction) *engine.Tasks {
 	var tasks engine.Tasks
 
 	for _, transaction := range transactions {
@@ -449,7 +446,7 @@ func (s *source) buildTasks(_ context.Context, blocks []*arweave.Block, transact
 		})
 	}
 
-	return &tasks, nil
+	return &tasks
 }
 
 // NewSource creates a new arweave source.

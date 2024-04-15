@@ -383,6 +383,7 @@ func TestConfigFilePath(t *testing.T) {
 		func(_path string) {
 			t.Run(_path, func(t *testing.T) {
 				t.Parallel()
+
 				fs := afero.NewMemMapFs()
 
 				err := fs.Mkdir(_path, 0o777)
@@ -421,6 +422,7 @@ func TestConfigFileType(t *testing.T) {
 		func(_type, context string) {
 			t.Run(_type, func(t *testing.T) {
 				t.Parallel()
+
 				fs := afero.NewMemMapFs()
 
 				err := fs.Mkdir(configDir, 0o777)

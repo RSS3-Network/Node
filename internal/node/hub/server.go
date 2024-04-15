@@ -27,7 +27,7 @@ func (s *Server) Run(_ context.Context) error {
 	return s.httpServer.Start(address)
 }
 
-func NewServer(ctx context.Context, config *config.File, databaseClient database.Client) (*Server, error) {
+func NewServer(ctx context.Context, config *config.File, databaseClient database.Client) *Server {
 	instance := Server{
 		httpServer: echo.New(),
 		hub:        NewHub(ctx, config, databaseClient),
@@ -47,5 +47,5 @@ func NewServer(ctx context.Context, config *config.File, databaseClient database
 	instance.httpServer.GET("/decentralized/:account", instance.hub.Decentralized.GetAccountActivities)
 	instance.httpServer.GET("/decentralized/count", instance.hub.Decentralized.GetActivitiesCount)
 
-	return &instance, nil
+	return &instance
 }
