@@ -150,20 +150,14 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 	checkpoint.IndexCount = int64(len(feeds))
 
 	// Save feeds and checkpoint to the database.
-	if err := s.databaseClient.WithTransaction(ctx, func(ctx context.Context, client database.Client) error {
-		if err := client.SaveFeeds(ctx, feeds); err != nil {
-			return fmt.Errorf("save %d feeds: %w", len(feeds), err)
-		}
+	if err := s.databaseClient.SaveFeeds(ctx, feeds); err != nil {
+		return fmt.Errorf("save %d feeds: %w", len(feeds), err)
+	}
 
-		zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
+	zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
 
-		if err := client.SaveCheckpoint(ctx, &checkpoint); err != nil {
-			return fmt.Errorf("save checkpoint: %w", err)
-		}
-
-		return nil
-	}); err != nil {
-		return err
+	if err := s.databaseClient.SaveCheckpoint(ctx, &checkpoint); err != nil {
+		return fmt.Errorf("save checkpoint: %w", err)
 	}
 
 	// Push feeds to the stream.
