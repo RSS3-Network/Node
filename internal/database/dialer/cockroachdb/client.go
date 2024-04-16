@@ -375,7 +375,8 @@ func Dial(ctx context.Context, dataSourceName string, partition bool) (database.
 	logger.SetAsDefault()
 
 	config := gorm.Config{
-		Logger: logger,
+		Logger:                 logger,
+		SkipDefaultTransaction: true,
 	}
 
 	if instance.database, err = gorm.Open(postgres.Open(dataSourceName), &config); err != nil {
