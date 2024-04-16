@@ -85,7 +85,7 @@ func (c *client) WithTransaction(ctx context.Context, transactionFunction func(c
 
 	retryIfFunc := func(err error) bool {
 		// https://www.cockroachlabs.com/docs/stable/transaction-retry-error-reference#retry_serializable
-		return strings.HasPrefix(err.Error(), "commit transaction: ERROR: restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE - failed preemptive refresh due to") || strings.Contains(err.Error(), "ERROR: restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE - failed preemptive refresh due to encountered recently written committed value")
+		return strings.Contains(err.Error(), "ERROR: restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE - failed preemptive refresh due to")
 	}
 
 	onRetryFunc := func(n uint, err error) {
