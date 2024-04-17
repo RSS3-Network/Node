@@ -273,12 +273,16 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 	})
 
 	// #nosec
-	if err := c.database.WithContext(ctx).
-		Table(indexes[0].PartitionName()).
-		Where("(id, network) IN (?)", conditions).
-		Delete(&table.Indexes{}).
-		Error; err != nil {
-		return fmt.Errorf("delete indexes: %w", err)
+	chunk := lo.Chunk(conditions, math.MaxUint8)
+
+	for _, conditions := range chunk {
+		if err := c.database.WithContext(ctx).
+			Table(indexes[0].PartitionName()).
+			Where("(id, network) IN (?)", conditions).
+			Delete(&table.Indexes{}).
+			Error; err != nil {
+			return fmt.Errorf("delete indexes: %w", err)
+		}
 	}
 
 	// Save indexes.
