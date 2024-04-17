@@ -60,10 +60,10 @@ var endpointsMap = map[network.Network][]string{
 	},
 }
 
-func Get(network network.Network) ([]string, bool) {
-	endpoints, exists := endpointsMap[network]
+func Get(n network.Network) ([]string, bool) {
+	endpoints, exists := endpointsMap[n]
 	if exists && len(endpoints) == 0 {
-		return nil, !exists
+		return nil, false
 	}
 
 	if !exists {
@@ -73,8 +73,8 @@ func Get(network network.Network) ([]string, bool) {
 	return endpoints, exists
 }
 
-func MustGet(network network.Network) string {
-	return lo.Must(Get(network))[0]
+func MustGet(n network.Network) string {
+	return lo.Must(Get(n))[0]
 }
 
 func init() {
@@ -90,16 +90,16 @@ func init() {
 			splits := strings.Split(key, "_")
 
 			if len(splits) == 2 {
-				network, err := network.String(splits[1])
+				_network, err := network.NetworkString(splits[1])
 				if err != nil {
 					continue
 				}
 
-				if _, exists := endpointsMap[network]; !exists {
-					endpointsMap[network] = make([]string, 0)
+				if _, exists := endpointsMap[_network]; !exists {
+					endpointsMap[_network] = make([]string, 0)
 				}
 
-				endpointsMap[network] = append([]string{value}, endpointsMap[network]...)
+				endpointsMap[_network] = append([]string{value}, endpointsMap[_network]...)
 			}
 		}
 	}

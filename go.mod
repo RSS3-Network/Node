@@ -8,14 +8,14 @@ require (
 	github.com/avast/retry-go/v4 v4.5.1
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/creasty/defaults v1.7.0
-	github.com/ethereum/go-ethereum v1.13.14
+	github.com/ethereum/go-ethereum v1.13.15
 	github.com/gabriel-vasile/mimetype v1.4.2
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.16.0
 	github.com/go-shiori/go-readability v0.0.0-20231029095239-6b97d5aba789
 	github.com/hamba/avro v1.8.0
 	github.com/ipfs/go-cid v0.4.1
-	github.com/labstack/echo/v4 v4.11.4
+	github.com/labstack/echo/v4 v4.12.0
 	github.com/lib/pq v1.10.9
 	github.com/multiformats/go-multicodec v0.9.0
 	github.com/multiformats/go-varint v0.0.7
@@ -56,10 +56,10 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/redis/rueidis v1.0.34
-	github.com/rss3-network/protocol-go v0.4.0
+	github.com/rss3-network/protocol-go v0.4.1
 	github.com/spf13/afero v1.11.0
 	github.com/vincent-petithory/dataurl v1.0.0
-	golang.org/x/net v0.20.0
+	golang.org/x/net v0.24.0
 )
 
 require (
@@ -155,10 +155,10 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.18.0 // indirect
+	golang.org/x/crypto v0.22.0 // indirect
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
 	golang.org/x/mod v0.14.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.17.0 // indirect
