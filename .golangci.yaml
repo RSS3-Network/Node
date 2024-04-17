@@ -3,27 +3,30 @@ run:
 
 linters:
   enable:
-    # Enabled by default
-    - errcheck
-    - gosimple
-    - govet
-    - ineffassign
-    - staticcheck
-    - unused
-    # Disabled by default
     - asasalint
     - asciicheck
     - bodyclose
+    - durationcheck
+    - errcheck
     - errorlint
     - gci
     - gocyclo
     - gosec
+    - govet
+    - ineffassign
     - makezero
+    - nakedret
     - noctx
     - paralleltest
     - prealloc
+    - predeclared
     - reassign
     - revive
+    - staticcheck
+    - stylecheck
+    - unconvert
+    - unparam
+    - unused
     - whitespace
     - wsl
 

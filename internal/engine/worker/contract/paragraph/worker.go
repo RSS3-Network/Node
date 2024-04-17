@@ -129,10 +129,7 @@ func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task
 
 	if contributor != "" && postID != "" && contentType == "application/json" {
 		// Build the post or revise action
-		action, err = w.buildParagraphAction(ctx, contributor, paragraph.AddressParagraph, paragraphMetadata, updated)
-		if err != nil {
-			return nil, fmt.Errorf("build post action: %w", err)
-		}
+		action = w.buildParagraphAction(ctx, contributor, paragraph.AddressParagraph, paragraphMetadata, updated)
 	}
 
 	actions := []*schema.Action{
@@ -143,7 +140,7 @@ func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task
 }
 
 // buildArweaveTransactionTransferAction Returns the native transfer transaction action.
-func (w *worker) buildParagraphAction(_ context.Context, from, to string, paragraphMetadata *metadata.SocialPost, updated bool) (*schema.Action, error) {
+func (w *worker) buildParagraphAction(_ context.Context, from, to string, paragraphMetadata *metadata.SocialPost, updated bool) *schema.Action {
 	// Default action type is post.
 	filterType := filter.TypeSocialPost
 
@@ -161,7 +158,7 @@ func (w *worker) buildParagraphAction(_ context.Context, from, to string, paragr
 		Metadata: paragraphMetadata,
 	}
 
-	return &action, nil
+	return &action
 }
 
 // buildParagraphMetadata Returns the metadata of the paragraph post.
@@ -205,7 +202,7 @@ func (w *worker) buildParagraphMetadata(ctx context.Context, handle, contentURI 
 		}
 	}
 
-	paragraphTags := lo.Map(paragraphData.Get("categories").Array(), func(tag gjson.Result, index int) string {
+	paragraphTags := lo.Map(paragraphData.Get("categories").Array(), func(tag gjson.Result, _ int) string {
 		return tag.String()
 	})
 

@@ -23,7 +23,7 @@ func OpenTelemetryTracer(config *config.OpenTelemetryConfig) (trace.TracerProvid
 		tracerEndpoint = config.Traces.Endpoint
 	)
 
-	spanExporter, err := tracerx.Open(tracerx.Driver(tracerDriver), tracerEndpoint, tracerInsecure)
+	spanExporter, err := tracerx.Open(tracerDriver, tracerEndpoint, tracerInsecure)
 	if err != nil {
 		return nil, fmt.Errorf("open tracer: %w", err)
 	}
@@ -57,5 +57,5 @@ func OpenTelemetryMeter() (metric.MeterProvider, error) {
 }
 
 func OpenTelemetryMeterServer() (meterx.Server, error) {
-	return meterx.New(meterx.Driver(meterx.DriverPrometheus))
+	return meterx.New(meterx.DriverPrometheus)
 }
