@@ -204,7 +204,7 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 			continue
 		}
 
-		blockNumberEnd := min(blockNumberStart+*s.option.RPCThreadBlocks-1, blockNumberLatestRemote)
+		blockNumberEnd := min(blockNumberStart+uint64(*s.option.RPCThreadBlocks)-1, blockNumberLatestRemote)
 
 		span.SetAttributes(
 			attribute.String("block.number.start", strconv.FormatUint(blockNumberStart, 10)),
@@ -306,26 +306,28 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 
 // getBlocks is used to concurrently get blocks by block number.
 func (s *source) getBlocks(ctx context.Context, blockNumbers []*big.Int) ([]*ethereum.Block, error) {
-	resultPool := pool.NewWithResults[*ethereum.Block]().
+	resultPool := pool.NewWithResults[[]*ethereum.Block]().
 		WithContext(ctx).
 		WithFirstError().
 		WithCancelOnError()
 
-	for _, blockNumber := range blockNumbers {
-		blockNumber := blockNumber
+	for _, blockNumbers := range lo.Chunk(blockNumbers, int(*s.option.RPCBatchBlocks)) {
+		blockNumbers := blockNumbers
 
-		resultPool.Go(func(ctx context.Context) (*ethereum.Block, error) {
-			return s.ethereumClient.BlockByNumber(ctx, blockNumber)
+		resultPool.Go(func(ctx context.Context) ([]*ethereum.Block, error) {
+			return s.ethereumClient.BatchBlockByNumbers(ctx, blockNumbers)
 		})
 	}
 
-	blocks, err := resultPool.Wait()
+	batchResults, err := resultPool.Wait()
 	if err != nil {
 		return nil, err
 	}
 
+	blocks := lo.Flatten(batchResults)
+
+	// Sort blocks by block number in ascending order.
 	sort.SliceStable(blocks, func(left, right int) bool {
-		// Sort blocks by block number in ascending order.
 		return blocks[left].Number.Cmp(blocks[right].Number) == -1
 	})
 
@@ -362,37 +364,47 @@ func (s *source) getReceiptsByBlockNumbers(ctx context.Context, blockNumbers []*
 		WithFirstError().
 		WithCancelOnError()
 
-	for _, blockNumber := range blockNumbers {
-		blockNumber := blockNumber
+	for _, blockNumbers := range lo.Chunk(blockNumbers, int(*s.option.RPCBatchBlockReceipts)) {
+		blockNumbers := blockNumbers
 
 		resultPool.Go(func(ctx context.Context) ([]*ethereum.Receipt, error) {
-			return s.ethereumClient.BlockReceipts(ctx, blockNumber)
+			batchReceipts, err := s.ethereumClient.BatchBlockReceipts(ctx, blockNumbers)
+			if err != nil {
+				return nil, err
+			}
+
+			return lo.Flatten(batchReceipts), nil
 		})
 	}
 
-	receipts, err := resultPool.Wait()
+	batchResults, err := resultPool.Wait()
 	if err != nil {
 		return nil, err
 	}
 
-	return lo.Flatten(receipts), nil
+	return lo.Flatten(batchResults), nil
 }
 
 func (s *source) getReceiptsByTransactionHashes(ctx context.Context, transactionHashes []common.Hash) ([]*ethereum.Receipt, error) {
-	resultPool := pool.NewWithResults[*ethereum.Receipt]().
+	resultPool := pool.NewWithResults[[]*ethereum.Receipt]().
 		WithContext(ctx).
 		WithFirstError().
 		WithCancelOnError()
 
-	for _, transactionHash := range transactionHashes {
-		transactionHash := transactionHash
+	for _, transactionHashes := range lo.Chunk(transactionHashes, int(*s.option.RPCBatchBlockReceipts)) {
+		transactionHashes := transactionHashes
 
-		resultPool.Go(func(ctx context.Context) (*ethereum.Receipt, error) {
-			return s.ethereumClient.TransactionReceipt(ctx, transactionHash)
+		resultPool.Go(func(ctx context.Context) ([]*ethereum.Receipt, error) {
+			return s.ethereumClient.BatchTransactionReceipt(ctx, transactionHashes)
 		})
 	}
 
-	return resultPool.Wait()
+	batchResults, err := resultPool.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Flatten(batchResults), nil
 }
 
 func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt) ([]*Task, error) {
