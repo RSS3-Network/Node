@@ -140,7 +140,7 @@ func (c *client) BlockByNumber(ctx context.Context, number *big.Int) (*Block, er
 func (c *client) BatchBlockByNumbers(ctx context.Context, numbers []*big.Int) ([]*Block, error) {
 	batchElements := make([]rpc.BatchElem, 0, len(numbers))
 
-	for _, num := range numbers {
+	for _, number := range numbers {
 		batchElement := rpc.BatchElem{
 			Method: "eth_getBlockByNumber",
 			Args: []any{
