@@ -37,7 +37,7 @@ import (
 func New(config *config.Module, databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {
 	switch config.Worker {
 	case filter.Fallback:
-		return fallback.NewWorker(config)
+		return fallback.NewWorker(config, redisClient)
 	case filter.Mirror:
 		return mirror.NewWorker(config, databaseClient)
 	case filter.Farcaster:

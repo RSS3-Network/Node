@@ -247,7 +247,7 @@ func (w *worker) transformProfileCreated(ctx context.Context, _ *source.Task, lo
 		return nil, err
 	}
 
-	action := w.buildProfileAction(ctx, event.Creator, event.To, filter.TypeSocialProfile, *profile)
+	action := w.buildProfileAction(ctx, event.Creator, event.To, *profile)
 
 	return []*schema.Action{
 		action,
@@ -266,7 +266,7 @@ func (w *worker) transformSetProfileURI(ctx context.Context, task *source.Task, 
 		return nil, err
 	}
 
-	action := w.buildProfileAction(ctx, profile.Address, *task.Transaction.To, filter.TypeSocialProfile, *profile)
+	action := w.buildProfileAction(ctx, profile.Address, *task.Transaction.To, *profile)
 
 	return []*schema.Action{
 		action,
@@ -285,7 +285,7 @@ func (w *worker) transformCharacterCreated(ctx context.Context, _ *source.Task, 
 		return nil, err
 	}
 
-	action := w.buildProfileAction(ctx, event.Creator, profile.Address, filter.TypeSocialProfile, *profile)
+	action := w.buildProfileAction(ctx, event.Creator, profile.Address, *profile)
 
 	return []*schema.Action{
 		action,
@@ -304,7 +304,7 @@ func (w *worker) transformCharacterSetHandle(ctx context.Context, task *source.T
 		return nil, err
 	}
 
-	action := w.buildProfileAction(ctx, profile.Address, *task.Transaction.To, filter.TypeSocialProfile, *profile)
+	action := w.buildProfileAction(ctx, profile.Address, *task.Transaction.To, *profile)
 
 	return []*schema.Action{
 		action,
@@ -323,7 +323,7 @@ func (w *worker) transformSetCharacterURI(ctx context.Context, task *source.Task
 		return nil, err
 	}
 
-	action := w.buildProfileAction(ctx, profile.Address, *task.Transaction.To, filter.TypeSocialProfile, *profile)
+	action := w.buildProfileAction(ctx, profile.Address, *task.Transaction.To, *profile)
 
 	return []*schema.Action{
 		action,
@@ -507,7 +507,7 @@ func (w *worker) transformSetOperator(ctx context.Context, _ *source.Task, log *
 		return nil, err
 	}
 
-	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, filter.TypeSocialProxy, *proxy)
+	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, *proxy)
 
 	return []*schema.Action{
 		action,
@@ -526,7 +526,7 @@ func (w *worker) transformAddOperator(ctx context.Context, _ *source.Task, log *
 		return nil, err
 	}
 
-	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, filter.TypeSocialProxy, *proxy)
+	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, *proxy)
 
 	return []*schema.Action{
 		action,
@@ -545,7 +545,7 @@ func (w *worker) transformRemoveOperator(ctx context.Context, _ *source.Task, lo
 		return nil, err
 	}
 
-	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, filter.TypeSocialProxy, *proxy)
+	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, *proxy)
 
 	return []*schema.Action{
 		action,
@@ -566,7 +566,7 @@ func (w *worker) transformGrantOperatorPermissions(ctx context.Context, _ *sourc
 		return nil, err
 	}
 
-	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, filter.TypeSocialProxy, *proxy)
+	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, *proxy)
 
 	return []*schema.Action{
 		action,
@@ -574,12 +574,12 @@ func (w *worker) transformGrantOperatorPermissions(ctx context.Context, _ *sourc
 }
 
 // buildProfileAction builds profile action.
-func (w *worker) buildProfileAction(_ context.Context, from, to common.Address, actionType filter.Type, profile metadata.SocialProfile) *schema.Action {
+func (w *worker) buildProfileAction(_ context.Context, from, to common.Address, profile metadata.SocialProfile) *schema.Action {
 	return &schema.Action{
 		From:     from.String(),
 		To:       to.String(),
 		Platform: filter.PlatformCrossbell.String(),
-		Type:     actionType,
+		Type:     filter.TypeSocialProfile,
 		Metadata: profile,
 	}
 }
@@ -659,12 +659,12 @@ func (w *worker) buildPostMetadata(ctx context.Context, blockNumber, characterID
 }
 
 // buildProxyAction builds proxy action.
-func (w *worker) buildProxyAction(_ context.Context, from common.Address, to common.Address, actionType filter.Type, proxy metadata.SocialProxy) *schema.Action {
+func (w *worker) buildProxyAction(_ context.Context, from common.Address, to common.Address, proxy metadata.SocialProxy) *schema.Action {
 	return &schema.Action{
 		From:     from.String(),
 		To:       to.String(),
 		Platform: filter.PlatformCrossbell.String(),
-		Type:     actionType,
+		Type:     filter.TypeSocialProxy,
 		Metadata: proxy,
 	}
 }
@@ -783,13 +783,13 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 		}
 
 		// Initialize token client.
-		tokenClient = token.NewClient(ethereumClient)
+		tokenClient = token.NewClient(ethereumClient, token.WithParseTokenMetadata(true))
 	} else {
 		tokenClient = w.tokenClient
 	}
 
 	// parse token metadata
-	tokenMetadata, err := tokenClient.Lookup(ctx, uint64(chainID), lo.ToPtr(common.HexToAddress(asset[0])), tokenID.BigInt(), nil, token.WithParseTokenMetadata(true))
+	tokenMetadata, err := tokenClient.Lookup(ctx, uint64(chainID), lo.ToPtr(common.HexToAddress(asset[0])), tokenID.BigInt(), nil)
 	if err != nil {
 		return "", fmt.Errorf("lookup token metadata %s: %w", asset[0], err)
 	}
@@ -1007,7 +1007,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	}
 
 	// Initialize token client.
-	instance.tokenClient = token.NewClient(instance.ethereumClient)
+	instance.tokenClient = token.NewClient(instance.ethereumClient, token.WithParseTokenMetadata(true))
 
 	// Initialize crossbell callers.
 	characterContract, err := character.NewCharacterCaller(crossbell.AddressWeb3Entry, instance.ethereumClient)

@@ -351,7 +351,7 @@ func (w *worker) transformEthereumV1ProfileCreated(ctx context.Context, _ *sourc
 		ImageURI:  event.ImageURI,
 	}
 
-	action := w.buildEthereumTransactionProfileAction(ctx, event.Creator, event.To, filter.TypeSocialProfile, profile)
+	action := w.buildEthereumTransactionProfileAction(ctx, event.Creator, event.To, profile)
 
 	return []*schema.Action{
 		action,
@@ -385,7 +385,7 @@ func (w *worker) transformEthereumV1ProfileSet(ctx context.Context, task *source
 		return nil, err
 	}
 
-	action := w.buildEthereumTransactionProfileAction(ctx, task.Transaction.From, task.Transaction.From, filter.TypeSocialProfile, profile)
+	action := w.buildEthereumTransactionProfileAction(ctx, task.Transaction.From, task.Transaction.From, profile)
 
 	return []*schema.Action{
 		action,
@@ -406,7 +406,7 @@ func (w *worker) transformEthereumV1ProfileImageURISet(ctx context.Context, task
 		ImageURI:  event.ImageURI,
 	}
 
-	action := w.buildEthereumTransactionProfileAction(ctx, task.Transaction.From, task.Transaction.From, filter.TypeSocialProfile, profile)
+	action := w.buildEthereumTransactionProfileAction(ctx, task.Transaction.From, task.Transaction.From, profile)
 
 	return []*schema.Action{
 		action,
@@ -658,7 +658,7 @@ func (w *worker) transformEthereumV2ProfileCreated(ctx context.Context, _ *sourc
 		return nil, err
 	}
 
-	action := w.buildEthereumTransactionProfileAction(ctx, event.Creator, event.To, filter.TypeSocialProfile, profile)
+	action := w.buildEthereumTransactionProfileAction(ctx, event.Creator, event.To, profile)
 
 	return []*schema.Action{
 		action,
@@ -693,7 +693,7 @@ func (w *worker) transformEthereumV2ProfileSet(ctx context.Context, task *source
 		return nil, err
 	}
 
-	action := w.buildEthereumTransactionProfileAction(ctx, task.Transaction.From, task.Transaction.From, filter.TypeSocialProfile, profile)
+	action := w.buildEthereumTransactionProfileAction(ctx, task.Transaction.From, task.Transaction.From, profile)
 
 	return []*schema.Action{
 		action,
@@ -729,7 +729,7 @@ func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blo
 	return &metadata.SocialPost{
 		Handle: handle,
 		Body:   publication.Content,
-		Media: lo.Map(publication.Media, func(media PublicationMedia, index int) metadata.Media {
+		Media: lo.Map(publication.Media, func(media PublicationMedia, _ int) metadata.Media {
 			return metadata.Media{
 				MimeType: media.Type,
 				Address:  media.Item,
@@ -844,12 +844,12 @@ func (w *worker) getEthereumPublicationContentURI(_ context.Context, blockNumber
 }
 
 // buildEthereumTransactionProfileAction builds profile action.
-func (w *worker) buildEthereumTransactionProfileAction(_ context.Context, from common.Address, to common.Address, socialType filter.Type, profile metadata.SocialProfile) *schema.Action {
+func (w *worker) buildEthereumTransactionProfileAction(_ context.Context, from common.Address, to common.Address, profile metadata.SocialProfile) *schema.Action {
 	return &schema.Action{
 		From:     from.String(),
 		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
 		Platform: filter.PlatformLens.String(),
-		Type:     socialType,
+		Type:     filter.TypeSocialProfile,
 		Metadata: profile,
 	}
 }

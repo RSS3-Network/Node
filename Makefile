@@ -10,7 +10,7 @@ generate:
 
 lint: generate
 	go mod tidy
-	go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2 run
+	go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run
 
 test:
 	go test -cover -race -v ./...

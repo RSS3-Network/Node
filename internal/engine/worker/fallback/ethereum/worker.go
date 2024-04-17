@@ -8,6 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
@@ -16,13 +17,15 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc1155"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
-	"github.com/rss3-network/node/provider/ethereum/etherface"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
+	"github.com/sourcegraph/conc/pool"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -30,7 +33,6 @@ var _ engine.Worker = (*worker)(nil)
 type worker struct {
 	config          *config.Module
 	ethereumClient  ethereum.Client
-	etherfaceClient etherface.Client
 	tokenClient     token.Client
 	erc20Filterer   *erc20.ERC20Filterer
 	erc721Filterer  *erc721.ERC721Filterer
@@ -46,12 +48,28 @@ func (w *worker) Filter() engine.SourceFilter {
 	return nil
 }
 
-func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
+func (w *worker) Match(ctx context.Context, task engine.Task) (bool, error) {
+	tracerOptions := []trace.SpanStartOption{
+		trace.WithSpanKind(trace.SpanKindConsumer),
+		trace.WithAttributes(engine.BuildTaskTraceAttributes(task)...),
+	}
+
+	_, span := otel.Tracer("").Start(ctx, "Worker match", tracerOptions...)
+	defer span.End()
+
 	// The worker will handle all Ethereum network transactions.
 	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
 }
 
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+	tracerOptions := []trace.SpanStartOption{
+		trace.WithSpanKind(trace.SpanKindConsumer),
+		trace.WithAttributes(engine.BuildTaskTraceAttributes(task)...),
+	}
+
+	ctx, span := otel.Tracer("").Start(ctx, "Worker transform", tracerOptions...)
+	defer span.End()
+
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -62,15 +80,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
 
-	if feed.Calldata.FunctionHash != "" {
-		// Lookup Function Name
-		functionName, _ := w.etherfaceClient.Lookup(ctx, feed.Calldata.FunctionHash)
-		//if err != nil {
-		//	zap.L().Warn("lookup function name", zap.Error(err))
-		//}
+	actions := make([][]*schema.Action, len(ethereumTask.Receipt.Logs)+1)
 
-		feed.Calldata.ParsedFunction = functionName
-	}
 	// If the transaction is failed, we will not process it.
 	if w.matchFailedTransaction(ethereumTask) {
 		return feed, nil
@@ -86,44 +97,63 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		feed.Actions = append(feed.Actions, action)
 	}
 
+	contextPool := pool.New().
+		WithContext(ctx).
+		WithFirstError().
+		WithCancelOnError()
+
 	// Handle ERC-20 token transfer logs.
-	for _, log := range ethereumTask.Receipt.Logs {
+	for index, log := range ethereumTask.Receipt.Logs {
+		index, log := index, log
+
 		// Ignore the log if it is removed or is anonymous event.
 		if log.Removed || len(log.Topics) == 0 {
 			continue
 		}
 
-		var (
-			actions []*schema.Action
-			err     error
-		)
+		contextPool.Go(func(ctx context.Context) error {
+			var (
+				logActions []*schema.Action
+				err        error
+			)
 
-		switch {
-		case w.matchERC20TransferLog(ethereumTask, log):
-			actions, err = w.handleERC20TransferLog(ctx, ethereumTask, log)
-		case w.matchERC20ApprovalLog(ethereumTask, log):
-			actions, err = w.handleERC20ApproveLog(ctx, ethereumTask, log)
-		case w.matchERC721TransferLog(ethereumTask, log):
-			actions, err = w.handleERC721TransferLog(ctx, ethereumTask, log)
-		case w.matchERC721ApprovalLog(ethereumTask, log):
-			actions, err = w.handleERC721ApproveLog(ctx, ethereumTask, log)
-		case w.matchERC1155TransferLog(ethereumTask, log):
-			actions, err = w.handleERC1155TransferLog(ctx, ethereumTask, log)
-		case w.matchERC1155ApprovalLog(ethereumTask, log):
-			actions, err = w.handleERC1155ApproveLog(ctx, ethereumTask, log)
-		}
-
-		if err != nil {
-			if isInvalidTokenErr(err) {
-				return schema.NewUnknownFeed(feed), nil
+			switch {
+			case w.matchERC20TransferLog(ethereumTask, log):
+				logActions, err = w.handleERC20TransferLog(ctx, ethereumTask, log)
+			case w.matchERC20ApprovalLog(ethereumTask, log):
+				logActions, err = w.handleERC20ApproveLog(ctx, ethereumTask, log)
+			case w.matchERC721TransferLog(ethereumTask, log):
+				logActions, err = w.handleERC721TransferLog(ctx, ethereumTask, log)
+			case w.matchERC721ApprovalLog(ethereumTask, log):
+				logActions, err = w.handleERC721ApproveLog(ctx, ethereumTask, log)
+			case w.matchERC1155TransferLog(ethereumTask, log):
+				logActions, err = w.handleERC1155TransferLog(ctx, ethereumTask, log)
+			case w.matchERC1155ApprovalLog(ethereumTask, log):
+				logActions, err = w.handleERC1155ApproveLog(ctx, ethereumTask, log)
 			}
 
-			return nil, fmt.Errorf("handle ERC-20 transfer log: %w", err)
+			if err != nil {
+				return err
+			}
+
+			actions[index] = logActions
+
+			return nil
+		})
+	}
+
+	if err := contextPool.Wait(); err != nil {
+		if isInvalidTokenErr(err) {
+			return schema.NewUnknownFeed(feed), nil
 		}
 
-		if len(actions) > 0 {
-			feed.Type, feed.Actions = actions[0].Type, append(feed.Actions, actions...)
-		}
+		return nil, fmt.Errorf("handle log: %w", err)
+	}
+
+	feed.Actions = append(feed.Actions, lo.Flatten(actions)...)
+
+	for _, action := range feed.Actions {
+		feed.Type = action.Type
 	}
 
 	return feed, nil
@@ -471,10 +501,9 @@ func isInvalidTokenErr(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "unsupported NFT standard")
 }
 
-func NewWorker(config *config.Module) (engine.Worker, error) {
+func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker, error) {
 	var instance = worker{
-		config:          config,
-		etherfaceClient: lo.Must(etherface.NewEtherfaceClient()),
+		config: config,
 	}
 
 	var err error
@@ -483,7 +512,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 		return nil, fmt.Errorf("initialize ethereum client: %w", err)
 	}
 
-	instance.tokenClient = token.NewClient(instance.ethereumClient)
+	instance.tokenClient = token.NewClient(instance.ethereumClient, token.WithRueidisClient(redisClient))
 
 	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
 	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))

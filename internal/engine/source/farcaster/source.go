@@ -41,7 +41,7 @@ func (s *source) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, errorChan chan<- error) {
+func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
 	if err := s.initialize(); err != nil {
 		errorChan <- fmt.Errorf("initialize source: %w", err)
 
@@ -84,7 +84,7 @@ func (s *source) initialize() (err error) {
 	return nil
 }
 
-func (s *source) pollCasts(ctx context.Context, tasksChan chan<- []engine.Task) error {
+func (s *source) pollCasts(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	if s.state.CastsBackfill {
 		return nil
 	}
@@ -117,7 +117,7 @@ func (s *source) pollCasts(ctx context.Context, tasksChan chan<- []engine.Task) 
 	return nil
 }
 
-func (s *source) pollCastsByFid(ctx context.Context, fid *int64, pageToken string, tasksChan chan<- []engine.Task) error {
+func (s *source) pollCastsByFid(ctx context.Context, fid *int64, pageToken string, tasksChan chan<- *engine.Tasks) error {
 	for {
 		castsByFidResponse, err := s.farcasterClient.GetCastsByFid(ctx, fid, true, nil, pageToken)
 
@@ -125,12 +125,9 @@ func (s *source) pollCastsByFid(ctx context.Context, fid *int64, pageToken strin
 			return err
 		}
 
-		tasks, err := s.buildFarcasterMessageTasks(ctx, castsByFidResponse.Messages)
-		if err != nil {
-			return fmt.Errorf("build message tasks: %w", err)
-		}
+		tasks := s.buildFarcasterMessageTasks(ctx, castsByFidResponse.Messages)
 
-		tasksChan <- lo.Map(tasks, func(task *Task, _ int) engine.Task { return task })
+		tasksChan <- tasks
 
 		if castsByFidResponse.NextPageToken == "" {
 			return nil
@@ -140,7 +137,7 @@ func (s *source) pollCastsByFid(ctx context.Context, fid *int64, pageToken strin
 	}
 }
 
-func (s *source) pollReactions(ctx context.Context, tasksChan chan<- []engine.Task) error {
+func (s *source) pollReactions(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	if s.state.ReactionsBackfill {
 		return nil
 	}
@@ -173,7 +170,7 @@ func (s *source) pollReactions(ctx context.Context, tasksChan chan<- []engine.Ta
 	return nil
 }
 
-func (s *source) pollReactionsByFid(ctx context.Context, fid *int64, pageToken string, tasksChan chan<- []engine.Task) error {
+func (s *source) pollReactionsByFid(ctx context.Context, fid *int64, pageToken string, tasksChan chan<- *engine.Tasks) error {
 	for {
 		reactionsByFidResponse, err := s.farcasterClient.GetReactionsByFid(ctx, fid, true, nil, pageToken, farcaster.ReactionTypeRecast.String())
 
@@ -181,12 +178,9 @@ func (s *source) pollReactionsByFid(ctx context.Context, fid *int64, pageToken s
 			return err
 		}
 
-		tasks, err := s.buildFarcasterMessageTasks(ctx, reactionsByFidResponse.Messages)
-		if err != nil {
-			return fmt.Errorf("build message tasks: %w", err)
-		}
+		tasks := s.buildFarcasterMessageTasks(ctx, reactionsByFidResponse.Messages)
 
-		tasksChan <- lo.Map(tasks, func(task *Task, _ int) engine.Task { return task })
+		tasksChan <- tasks
 
 		if reactionsByFidResponse.NextPageToken == "" {
 			return nil
@@ -197,8 +191,8 @@ func (s *source) pollReactionsByFid(ctx context.Context, fid *int64, pageToken s
 }
 
 // buildFarcasterMessageTasks filter cast add and recast messages.
-func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farcaster.Message) ([]*Task, error) {
-	tasks := make([]*Task, 0)
+func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farcaster.Message) *engine.Tasks {
+	var tasks engine.Tasks
 
 	for _, message := range messages {
 		message := message
@@ -217,16 +211,16 @@ func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farc
 			}
 		}
 
-		tasks = append(tasks, &Task{
+		tasks.Tasks = append(tasks.Tasks, &Task{
 			Network: s.Network(),
 			Message: message,
 		})
 	}
 
-	return tasks, nil
+	return &tasks
 }
 
-func (s *source) pollEvents(ctx context.Context, tasksChan chan<- []engine.Task) error {
+func (s *source) pollEvents(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	cursor := s.state.EventID
 
 	for {
@@ -248,11 +242,9 @@ func (s *source) pollEvents(ctx context.Context, tasksChan chan<- []engine.Task)
 			continue
 		}
 
-		tasks, err := s.buildFarcasterEventTasks(ctx, eventsResponse.Events, tasksChan)
-		if err != nil {
-			return fmt.Errorf("build event tasks: %w", err)
-		}
-		tasksChan <- lo.Map(tasks, func(task *Task, _ int) engine.Task { return task })
+		tasks := s.buildFarcasterEventTasks(ctx, eventsResponse.Events, tasksChan)
+
+		tasksChan <- tasks
 
 		s.state = s.pendingState
 		s.pendingState.EventID = eventsResponse.NextPageEventID
@@ -262,8 +254,8 @@ func (s *source) pollEvents(ctx context.Context, tasksChan chan<- []engine.Task)
 }
 
 // buildFarcasterEventTasks filter cast add, recast and profile update events.
-func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaster.HubEvent, tasksChan chan<- []engine.Task) ([]*Task, error) {
-	tasks := make([]*Task, 0)
+func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaster.HubEvent, tasksChan chan<- *engine.Tasks) *engine.Tasks {
+	var tasks engine.Tasks
 
 	for _, event := range events {
 		if event.Type == farcaster.HubEventTypeMergeMessage.String() {
@@ -276,7 +268,7 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 					continue
 				}
 
-				tasks = append(tasks, &Task{
+				tasks.Tasks = append(tasks.Tasks, &Task{
 					Network: s.Network(),
 					Message: message,
 				})
@@ -289,7 +281,7 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 						continue
 					}
 
-					tasks = append(tasks, &Task{
+					tasks.Tasks = append(tasks.Tasks, &Task{
 						Network: s.Network(),
 						Message: message,
 					})
@@ -314,7 +306,7 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 		}
 	}
 
-	return tasks, nil
+	return &tasks
 }
 
 // updateProfileByFid update profile by fid.
@@ -336,7 +328,7 @@ func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Pro
 	var custodyAddress string
 
 	if len(custodyAddresses.Proofs) > 0 {
-		addresses := lo.Filter(custodyAddresses.Proofs, func(x farcaster.UserNameProof, index int) bool {
+		addresses := lo.Filter(custodyAddresses.Proofs, func(x farcaster.UserNameProof, _ int) bool {
 			return x.Type == farcaster.UsernameTypeFname.String()
 		})
 
@@ -352,7 +344,7 @@ func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Pro
 		return nil, fmt.Errorf("fetch eth address error: %w,%d", err, fid)
 	}
 
-	ethAddresses := lo.Map(verificationsByFidRes.Messages, func(x farcaster.Message, index int) string {
+	ethAddresses := lo.Map(verificationsByFidRes.Messages, func(x farcaster.Message, _ int) string {
 		return common.HexToAddress(x.Data.VerificationAddEthAddressBody.Address).String()
 	})
 

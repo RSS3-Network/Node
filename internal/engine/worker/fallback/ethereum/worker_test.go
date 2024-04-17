@@ -3,15 +3,20 @@ package ethereum_test
 import (
 	"context"
 	"math/big"
+	"sync"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/orlangure/gnomock"
+	"github.com/orlangure/gnomock/preset/redis"
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/fallback/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
+	redisx "github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/protocol-go/schema/metadata"
@@ -20,8 +25,47 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	setupOnce   sync.Once
+	redisClient rueidis.Client
+)
+
+func setup(t *testing.T) {
+	setupOnce.Do(func() {
+		var err error
+
+		// Start Redis container with TLS
+		preset := redis.Preset(
+			redis.WithVersion("6.0.9"),
+		)
+
+		container, err := gnomock.Start(preset)
+		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			require.NoError(t, gnomock.Stop(container))
+		})
+
+		// Connect to Redis without TLS
+		redisClient, err = redisx.NewClient(config.Redis{
+			Endpoints: []string{
+				container.DefaultAddress(),
+			},
+			TLS: config.RedisTLS{
+				Enabled:            false,
+				CAFile:             "/path/to/ca.crt",
+				CertFile:           "/path/to/client.crt",
+				KeyFile:            "/path/to/client.key",
+				InsecureSkipVerify: false,
+			},
+		})
+		require.NoError(t, err)
+	})
+}
+
 func TestWorker_Ethereum(t *testing.T) {
 	t.Parallel()
+	setup(t)
 
 	type arguments struct {
 		task   *source.Task
@@ -257,8 +301,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				To:      "0xc98D64DA73a6616c42117b582e832812e7B8D57F",
 				Type:    filter.TypeTransactionTransfer,
 				Calldata: &schema.Calldata{
-					FunctionHash:   "0xa9059cbb",
-					ParsedFunction: "transfer",
+					FunctionHash: "0xa9059cbb",
 				},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("811508239167366")),
@@ -368,8 +411,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				To:      "0x5452C7fB99D99fAb3Cc1875E9DA9829Cb50F7A13",
 				Type:    filter.TypeCollectibleTransfer,
 				Calldata: &schema.Calldata{
-					FunctionHash:   "0x23b872dd",
-					ParsedFunction: "transferFrom",
+					FunctionHash: "0x23b872dd",
 				},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("941262359203425")),
@@ -670,8 +712,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					Decimal: 18,
 				},
 				Calldata: &schema.Calldata{
-					FunctionHash:   "0xf6203e35",
-					ParsedFunction: "depositETHFor",
+					FunctionHash: "0xf6203e35",
 				},
 				Actions:   []*schema.Action{},
 				Status:    true,
@@ -833,8 +874,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				To:      "0xB659A97D8ae3c43E91Eafe5dba110a7e799157c4",
 				Type:    filter.TypeTransactionTransfer,
 				Calldata: &schema.Calldata{
-					FunctionHash:   "0xa9059cbb",
-					ParsedFunction: "transfer",
+					FunctionHash: "0xa9059cbb",
 				},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1013690438583071400")),
@@ -946,8 +986,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				To:      "0x28F14d917fddbA0c1f2923C406952478DfDA5578",
 				Type:    filter.TypeCollectibleMint,
 				Calldata: &schema.Calldata{
-					FunctionHash:   "0x26476204",
-					ParsedFunction: "stake",
+					FunctionHash: "0x26476204",
 				},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("772196357569891650")),
@@ -1042,8 +1081,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				To:      "0x5db252ead05C54B08A83414adCAbF46Eaa9E0337",
 				Type:    filter.TypeUnknown,
 				Calldata: &schema.Calldata{
-					FunctionHash:   "0x2e1a7d4d",
-					ParsedFunction: "withdraw",
+					FunctionHash: "0x2e1a7d4d",
 				},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("47757150000000")),
@@ -1124,8 +1162,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				To:      "0x0E02765992f946397E6d2e65642eABb9cc674928",
 				Type:    filter.TypeTransactionApproval,
 				Calldata: &schema.Calldata{
-					FunctionHash:   "0x095ea7b3",
-					ParsedFunction: "approve",
+					FunctionHash: "0x095ea7b3",
 				},
 				Fee: &schema.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3491250000000")),
@@ -1164,7 +1201,7 @@ func TestWorker_Ethereum(t *testing.T) {
 
 			ctx := context.Background()
 
-			instance, err := worker.NewWorker(testcase.arguments.config)
+			instance, err := worker.NewWorker(testcase.arguments.config, redisClient)
 			require.NoError(t, err)
 
 			matched, err := instance.Match(ctx, testcase.arguments.task)

@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/tdewolff/minify/v2/minify"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	"go.uber.org/zap"
 )
 
@@ -98,10 +99,7 @@ var command = cobra.Command{
 }
 
 func runHub(ctx context.Context, config *config.File, databaseClient database.Client) error {
-	server, err := hub.NewServer(ctx, config, databaseClient)
-	if err != nil {
-		return fmt.Errorf("new server: %w", err)
-	}
+	server := hub.NewServer(ctx, config, databaseClient)
 
 	return server.Run(ctx)
 }
@@ -158,6 +156,7 @@ func setOpenTelemetry(config *config.File) error {
 		}
 
 		otel.SetTracerProvider(tracerProvider)
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}))
 	}
 
 	if observabilityConfig.Metrics.Enable {

@@ -38,7 +38,7 @@ func (c *client) createPartitionTable(ctx context.Context, name, template string
 }
 
 // findIndexesPartitionTable finds partition table names of indexes in the past year.
-func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index) ([]string, error) {
+func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index) []string {
 	partitionedNames := make([]string, 0)
 
 	for i := 0; i <= 4; i++ {
@@ -56,7 +56,7 @@ func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index
 		index.Timestamp = time.Date(lo.Ternary(month < 3, year-1, year), lo.Ternary(month < 3, month+9, month-3), index.Timestamp.Day(), 23, 59, 59, 1e9-1, time.Local)
 	}
 
-	return partitionedNames, nil
+	return partitionedNames
 }
 
 // loadIndexesPartitionTables loads indexes partition tables.
@@ -273,12 +273,16 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 	})
 
 	// #nosec
-	if err := c.database.WithContext(ctx).
-		Table(indexes[0].PartitionName()).
-		Where("(id, network) IN (?)", conditions).
-		Delete(&table.Indexes{}).
-		Error; err != nil {
-		return fmt.Errorf("delete indexes: %w", err)
+	chunk := lo.Chunk(conditions, math.MaxUint8)
+
+	for _, conditions := range chunk {
+		if err := c.database.WithContext(ctx).
+			Table(indexes[0].PartitionName()).
+			Where("(id, network) IN (?)", conditions).
+			Delete(&table.Indexes{}).
+			Error; err != nil {
+			return fmt.Errorf("delete indexes: %w", err)
+		}
 	}
 
 	// Save indexes.
@@ -311,10 +315,7 @@ func (c *client) findIndexPartitioned(ctx context.Context, query model.FeedQuery
 		Timestamp: time.Now(),
 	}
 
-	tables, err := c.findIndexesPartitionTables(ctx, index)
-	if err != nil {
-		return nil, fmt.Errorf("find indexes partition tables: %w", err)
-	}
+	tables := c.findIndexesPartitionTables(ctx, index)
 
 	ctx, cancel := context.WithCancel(ctx)
 	errorGroup, errorContext := errgroup.WithContext(ctx)
@@ -392,12 +393,7 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQu
 		index.Timestamp = time.Unix(int64(query.Cursor.Timestamp), 0)
 	}
 
-	partitionedNames, err := c.findIndexesPartitionTables(ctx, index)
-	if err != nil {
-		zap.L().Error("failed to build partitioned indexes past year", zap.Error(err))
-
-		return nil, err
-	}
+	partitionedNames := c.findIndexesPartitionTables(ctx, index)
 
 	if len(partitionedNames) == 0 {
 		return nil, nil
@@ -509,19 +505,19 @@ func (c *client) buildFindIndexStatement(ctx context.Context, partitionedName st
 func (c *client) buildFindIndexesStatement(ctx context.Context, partition string, query model.FeedsQuery) *gorm.DB {
 	databaseStatement := c.database.WithContext(ctx).Table(partition)
 
-	var table *string
+	var tbl *string
 
 	if query.Distinct != nil && lo.FromPtr(query.Distinct) {
 		databaseStatement = databaseStatement.Select("DISTINCT (id) id, timestamp, index, network")
 	}
 
 	if query.Owner != nil {
-		table = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
+		tbl = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
 		databaseStatement = databaseStatement.Where("owner = ?", query.Owner)
 	}
 
 	if len(query.Owners) > 0 {
-		table = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
+		tbl = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
 		databaseStatement = databaseStatement.Where("owner IN ?", query.Owners)
 	}
 
@@ -565,8 +561,8 @@ func (c *client) buildFindIndexesStatement(ctx context.Context, partition string
 		databaseStatement = databaseStatement.Where("timestamp < ? OR (timestamp = ? AND index < ?)", time.Unix(int64(query.Cursor.Timestamp), 0), time.Unix(int64(query.Cursor.Timestamp), 0), query.Cursor.Index)
 	}
 
-	if table != nil {
-		databaseStatement.Statement.TableExpr.SQL = *table
+	if tbl != nil {
+		databaseStatement.Statement.TableExpr.SQL = *tbl
 	}
 
 	return databaseStatement.Order("timestamp DESC, index DESC").Limit(query.Limit)
