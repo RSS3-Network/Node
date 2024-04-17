@@ -1,0 +1,12 @@
+version: "3.9"
+name: node_mig
+services:
+  # CRDB for Atlas' temporary migration use
+  cockroach2:
+    image: cockroachdb/cockroach:v23.1.8
+    ports:
+      - "26258:26257"
+    command:
+      - start-single-node
+      - --cluster-name=rss3-gateway
+      - --insecure
