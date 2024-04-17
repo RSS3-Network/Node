@@ -137,7 +137,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 
 	// Filter failed feeds.
 	feeds := lo.Filter(resultPool.Wait(), func(_activity *activity.Activity, _ int) bool {
-		return feed != nil
+		return _activity != nil
 	})
 
 	meterTasksCounterAttributes := metric.WithAttributes(

@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/samber/lo"
 )
 
@@ -92,7 +93,7 @@ func (h *Hub) parseRSSHubAuthentication(_ context.Context, request *url.URL) err
 
 func (h *Hub) transformRSSHubToActivities(_ context.Context, data []byte) ([]*activity.Activity, error) {
 	type response struct {
-		Data schema.Feeds `json:"data"`
+		Data activity.Activities `json:"data"`
 	}
 
 	var resp response

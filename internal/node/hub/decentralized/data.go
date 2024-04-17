@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/rss3-network/node/internal/database/model"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 )
@@ -39,12 +40,12 @@ func (h *Hub) getCursor(ctx context.Context, cursor *string) (*activity.Activity
 		return nil, fmt.Errorf("invalid cursor")
 	}
 
-	network, err := network.String(str[1])
+	_network, err := network.NetworkString(str[1])
 	if err != nil {
 		return nil, fmt.Errorf("invalid cursor: %w", err)
 	}
 
-	data, _, err := h.getFeed(ctx, model.ActivityQuery{ID: lo.ToPtr(str[0]), Network: lo.ToPtr(network)})
+	data, _, err := h.getFeed(ctx, model.ActivityQuery{ID: lo.ToPtr(str[0]), Network: lo.ToPtr(_network)})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cursor: %w", err)
 	}
@@ -53,11 +54,11 @@ func (h *Hub) getCursor(ctx context.Context, cursor *string) (*activity.Activity
 }
 
 func (h *Hub) transformCursor(_ context.Context, _activity *activity.Activity) string {
-	if feed == nil {
+	if _activity == nil {
 		return ""
 	}
 
-	return fmt.Sprintf("%s:%s", _activity.ID, _activityNetwork)
+	return fmt.Sprintf("%s:%s", _activity.ID, _activity.Network)
 }
 
 func (h *Hub) getIndexCount(ctx context.Context) (int64, *time.Time, error) {

@@ -5,7 +5,10 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/rss3-network/protocol-go/schema/"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 )
 
 type ActivityRequest struct {
@@ -25,8 +28,8 @@ type AccountActivitiesRequest struct {
 	Direction      *activity.Direction `query:"direction"`
 	Network        []network.Network   `query:"network"`
 	Tag            []tag.Tag           `query:"tag"`
-	Type[]typex.`query:"-"`
-	Platform       []Platform   `query:"platform"`
+	Type           []schema.Type       `query:"-"`
+	Platform       []string            `query:"platform"`
 }
 
 type ActivityResponse struct {
@@ -52,33 +55,32 @@ type StatisticResponse struct {
 	LastUpdate *time.Time `json:"last_update,omitempty"`
 }
 
-func (h *Hub) parseParams(params url.Values, tags []tag.Tag) ([]
-typex., error) {
-if len(tags) == 0 {
-return nil, nil
-}
+func (h *Hub) parseParams(params url.Values, tags []tag.Tag) ([]schema.Type, error) {
+	if len(tags) == 0 {
+		return nil, nil
+	}
 
-types := make([]typex., 0)
+	types := make([]schema.Type, 0)
 
-for _, typex := range params["type"] {
-var (
-value typex.
-err   error
-)
+	for _, typex := range params["type"] {
+		var (
+			value schema.Type
+			err   error
+		)
 
-for _, tag := range tags {
-value, err = schema.TypeString(tag, typex)
-if err == nil {
-types = append(types, value)
+		for _, tag := range tags {
+			value, err = schema.TypeString(tag, typex)
+			if err == nil {
+				types = append(types, value)
 
-break
-}
-}
+				break
+			}
+		}
 
-if err != nil {
-return nil, fmt.Errorf("invalid type: %s", typex)
-}
-}
+		if err != nil {
+			return nil, fmt.Errorf("invalid type: %s", typex)
+		}
+	}
 
-return types, nil
+	return types, nil
 }
