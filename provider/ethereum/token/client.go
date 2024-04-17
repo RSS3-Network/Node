@@ -363,11 +363,14 @@ func (c *client) lookupERC721(ctx context.Context, chainID uint64, address commo
 			AllowFailure: true,
 			CallData:     lo.Must(abi.Pack("symbol")),
 		},
-		{
+	}
+
+	if c.parseTokenMetadata {
+		calls = append(calls, multicall3.Multicall3Call3{
 			Target:       address,
 			AllowFailure: true,
 			CallData:     lo.Must(abi.Pack("tokenURI", id)),
-		},
+		})
 	}
 
 	results, err := multicall3.Aggregate3(ctx, chainID, calls, blockNumber, c.ethereumClient)
@@ -432,10 +435,13 @@ func (c *client) lookupERC1155(ctx context.Context, chainID uint64, address comm
 			AllowFailure: true,
 			CallData:     lo.Must(abi.Pack("symbol")),
 		},
-		{
+	}
+
+	if c.parseTokenMetadata {
+		calls = append(calls, multicall3.Multicall3Call3{
 			Target:   address,
 			CallData: lo.Must(abi.Pack("uri", id)),
-		},
+		})
 	}
 
 	results, err := multicall3.Aggregate3(ctx, chainID, calls, blockNumber, c.ethereumClient)
