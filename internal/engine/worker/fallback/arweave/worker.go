@@ -9,7 +9,8 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
 	"github.com/rss3-network/node/provider/arweave"
-	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/activity"
+
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
@@ -45,7 +46,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the feed.
-	feed, err := task.BuildFeed()
+	feed, err := task.BuildActivity()
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -97,7 +98,7 @@ func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, tas
 // buildArweaveTransactionTransferAction returns the native transfer transaction action.
 func (w *worker) buildArweaveTransactionTransferAction(_ context.Context, from, to string, tokenValue *big.Int) (*activity.Action, error) {
 	action := activity.Action{
-		Type: type.TransactionTransfer,
+		Type: typex.TransactionTransfer,
 		From: from,
 		To:   to,
 		Metadata: metadata.TransactionTransfer{

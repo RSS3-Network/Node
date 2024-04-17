@@ -27,7 +27,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/node/provider/ipfs"
-	"github.com/rss3-network/protocol-go/schema"
+	
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
@@ -95,7 +95,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default crossbell feed from task.
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformCrossbell))
+	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformCrossbell))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -333,7 +333,7 @@ func (w *worker) transformSetCharacterURI(ctx context.Context, task *source.Task
 // transformPostCreated transforms PostCreated event.
 func (w *worker) transformPostCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	feedType :=
-	type.SocialPost
+	typex.SocialPost
 
 	event, err := w.eventFilterer.ParsePostNote(log.Export())
 	if err != nil {
@@ -356,8 +356,7 @@ func (w *worker) transformPostCreated(ctx context.Context, task *source.Task, lo
 	}
 
 	if targetCharacterID != nil && targetCharacterID.Int64() != 0 {
-		feedType =
-		type.SocialComment
+		feedType = typex.SocialComment
 
 		post.Target, _, _, err = w.buildPostMetadata(ctx, log.BlockNumber, targetCharacterID, targetNoteID, "")
 		if err != nil {
@@ -389,8 +388,7 @@ func (w *worker) transformSetNoteURI(ctx context.Context, task *source.Task, log
 		return nil, err
 	}
 
-	action := w.buildPostAction(ctx, fromAddress, *task.Transaction.To, platform,
-	type.SocialRevise, *post)
+	action := w.buildPostAction(ctx, fromAddress, *task.Transaction.To, platform, typex.SocialRevise, *post)
 
 	return []*activity.Action{
 		action,
@@ -414,8 +412,7 @@ func (w *worker) transformDeleteNote(ctx context.Context, task *source.Task, log
 		return nil, err
 	}
 
-	action := w.buildPostAction(ctx, fromAddress, *task.Transaction.To, platform,
-	type.SocialDelete, *post)
+	action := w.buildPostAction(ctx, fromAddress, *task.Transaction.To, platform, typex.SocialDelete, *post)
 
 	return []*activity.Action{
 		action,
@@ -434,8 +431,7 @@ func (w *worker) transformMintNote(ctx context.Context, task *source.Task, log *
 		return nil, err
 	}
 
-	action := w.buildPostAction(ctx, event.To, *task.Transaction.To, platform,
-	type.SocialMint, *post)
+	action := w.buildPostAction(ctx, event.To, *task.Transaction.To, platform, typex.SocialMint, *post)
 
 	return []*activity.Action{
 		action,
@@ -491,8 +487,7 @@ func (w *worker) transformTipsCharacterForNote(ctx context.Context, task *source
 		}
 	}
 
-	action := w.buildPostRewardAction(ctx, task.Transaction.From, to, platform,
-	type.SocialReward, *post)
+	action := w.buildPostRewardAction(ctx, task.Transaction.From, to, platform, typex.SocialReward, *post)
 
 	return []*activity.Action{
 		action,
@@ -585,7 +580,7 @@ func (w *worker) buildProfileAction(_ context.Context, from, to common.Address, 
 		From:     from.String(),
 		To:       to.String(),
 		Platform: filter.PlatformCrossbell.String(),
-		Type:     type.SocialProfile,
+		Type:     typex.SocialProfile,
 		Metadata: profile,
 	}
 }
@@ -674,7 +669,7 @@ func (w *worker) buildProxyAction(_ context.Context, from common.Address, to com
 		From:     from.String(),
 		To:       to.String(),
 		Platform: filter.PlatformCrossbell.String(),
-		Type:     type.SocialProxy,
+		Type:     typex.SocialProxy,
 		Metadata: proxy,
 	}
 }

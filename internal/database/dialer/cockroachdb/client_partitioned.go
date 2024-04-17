@@ -78,7 +78,7 @@ func (c *client) saveFeedsPartitioned(ctx context.Context, feeds []*activity.Act
 
 	// Group feeds by partition name.
 	for _, feed := range feeds {
-		var feedTable table.Feed
+		var feedTable table.Activity
 
 		name := feedTable.PartitionName(feed)
 
@@ -146,7 +146,7 @@ func (c *client) findFeedPartitioned(ctx context.Context, query model.ActivityQu
 		return nil, nil, nil
 	}
 
-	feed := &table.Feed{
+	feed := &table.Activity{
 		ID:        index.ID,
 		Network:   index.Network,
 		Timestamp: index.Timestamp,
@@ -161,9 +161,9 @@ func (c *client) findFeedPartitioned(ctx context.Context, query model.ActivityQu
 		return nil, nil, fmt.Errorf("export feed: %w", err)
 	}
 
-	page := math.Ceil(float64(len(_activityActions)) / float64(query.ActionLimit))
+	page := math.Ceil(float64(len(_activity.Actions)) / float64(query.ActionLimit))
 
-	_activityActions = lo.Slice(_activityActions, query.ActionLimit*(query.ActionPage-1), query.ActionLimit*query.ActionPage)
+	_activity.Actions = lo.Slice(_activity.Actions, query.ActionLimit*(query.ActionPage-1), query.ActionLimit*query.ActionPage)
 
 	return result, lo.ToPtr(int(page)), nil
 }
@@ -176,7 +176,7 @@ func (c *client) findFeedsPartitioned(ctx context.Context, query model.Activitie
 	}
 
 	partition := lo.GroupBy(indexes, func(query *table.Index) string {
-		feed := table.Feed{
+		feed := table.Activity{
 			ID:        query.ID,
 			Network:   query.Network,
 			Timestamp: query.Timestamp,
@@ -227,7 +227,7 @@ func (c *client) findFeedsPartitioned(ctx context.Context, query model.Activitie
 	}
 
 	lo.ForEach(result, func(_activity *activity.Activity, i int) {
-		result[i].Actions = lo.Slice(_activityActions, 0, query.ActionLimit)
+		result[i].Actions = lo.Slice(_activity.Actions, 0, query.ActionLimit)
 	})
 
 	sort.SliceStable(result, func(i, j int) bool {

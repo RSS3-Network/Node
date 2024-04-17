@@ -13,7 +13,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/aavegotchi"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	"github.com/rss3-network/protocol-go/schema"
+	
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
@@ -63,7 +63,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the feed.
-	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.PlatformAavegotchi))
+	feed, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformAavegotchi))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}

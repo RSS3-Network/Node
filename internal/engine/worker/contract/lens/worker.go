@@ -19,9 +19,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/lens"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/ipfs"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
 )
@@ -96,7 +97,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default lens feed from task.
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformLens))
+	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformLens))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -249,8 +250,7 @@ func (w *worker) transformEthereumV1PostCreated(ctx context.Context, task *sourc
 	}
 
 	// Build post created action.
-	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform,
-	type.SocialPost, *post)
+	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform, typex.SocialPost, *post)
 
 	return []*activity.Action{
 		action,
@@ -292,8 +292,7 @@ func (w *worker) transformEthereumV1CommentCreated(ctx context.Context, _ *sourc
 	}
 
 	// Build post created action.
-	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), lo.FromPtr(actionTo), platform,
-	type.SocialComment, *post)
+	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), lo.FromPtr(actionTo), platform, typex.SocialComment, *post)
 
 	return []*activity.Action{
 		action,
@@ -331,8 +330,7 @@ func (w *worker) transformEthereumV1MirrorCreated(ctx context.Context, task *sou
 		return nil, err
 	}
 
-	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform,
-	type.SocialShare, *post)
+	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform, typex.SocialShare, *post)
 
 	return []*activity.Action{
 		action,
@@ -461,8 +459,7 @@ func (w *worker) transformEthereumV1CollectNFTTransferred(ctx context.Context, t
 		}
 	}
 
-	action := w.buildEthereumTransactionPostAction(ctx, from, *task.Transaction.To, platform,
-	type.SocialMint, *post)
+	action := w.buildEthereumTransactionPostAction(ctx, from, *task.Transaction.To, platform, typex.SocialMint, *post)
 
 	return []*activity.Action{
 		action,
@@ -487,8 +484,7 @@ func (w *worker) transformEthereumV2PostCreated(ctx context.Context, task *sourc
 		return nil, err
 	}
 
-	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform,
-	type.SocialPost, *post)
+	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform, typex.SocialPost, *post)
 
 	return []*activity.Action{
 		action,
@@ -529,8 +525,7 @@ func (w *worker) transformEthereumV2CommentCreated(ctx context.Context, _ *sourc
 		return nil, err
 	}
 
-	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), lo.FromPtr(actionTo), platform,
-	type.SocialComment, *post)
+	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), lo.FromPtr(actionTo), platform, typex.SocialComment, *post)
 
 	return []*activity.Action{
 		action,
@@ -568,8 +563,7 @@ func (w *worker) transformEthereumV2MirrorCreated(ctx context.Context, task *sou
 		return nil, err
 	}
 
-	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform,
-	type.SocialShare, *post)
+	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform, typex.SocialShare, *post)
 
 	return []*activity.Action{
 		action,
@@ -605,8 +599,7 @@ func (w *worker) transformEthereumV2QuoteCreated(ctx context.Context, task *sour
 		return nil, err
 	}
 
-	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform,
-	type.SocialShare, *post)
+	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), *task.Transaction.To, platform, typex.SocialShare, *post)
 
 	return []*activity.Action{
 		action,
@@ -641,8 +634,7 @@ func (w *worker) transformEthereumV2Collected(ctx context.Context, _ *source.Tas
 		return nil, err
 	}
 
-	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), lo.FromPtr(actionTo), platform,
-	type.SocialMint, *post)
+	action := w.buildEthereumTransactionPostAction(ctx, lo.FromPtr(actionFrom), lo.FromPtr(actionTo), platform, typex.SocialMint, *post)
 
 	return []*activity.Action{
 		action,
@@ -709,9 +701,7 @@ func (w *worker) transformEthereumV2ProfileSet(ctx context.Context, task *source
 	}, nil
 }
 
-func (w *worker) buildEthereumTransactionPostAction(_ context.Context, from common.Address, to common.Address, platform string, socialType
-
-type., post metadata.SocialPost) *activity.Action {
+func (w *worker) buildEthereumTransactionPostAction(_ context.Context, from common.Address, to common.Address, platform string, socialType typex.SocialType, post metadata.SocialPost) *activity.Action {
 return &activity.Action{
 From:     from.String(),
 To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
@@ -860,7 +850,7 @@ func (w *worker) buildEthereumTransactionProfileAction(_ context.Context, from c
 		From:     from.String(),
 		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
 		Platform: filter.PlatformLens.String(),
-		Type:     type.SocialProfile,
+		Type:     typex.SocialProfile,
 		Metadata: profile,
 	}
 }

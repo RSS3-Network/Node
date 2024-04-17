@@ -14,9 +14,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/rss3"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -155,38 +156,38 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   140,
 				From:    "0x1B861760AdE296aBE523C594118EF812208194CE",
 				To:      rss3.AddressStaking.String(),
-				Type:    type.ExchangeStaking,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0x383c7d87",
-			},
+				Type:    typex.ExchangeStaking,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0x383c7d87",
+				},
 				Platform: lo.ToPtr(filter.PlatformRSS3),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("5479491821006616")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("5479491821006616")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.ExchangeStaking,
-				Platform: filter.PlatformRSS3.String(),
-				From:     "0x1B861760AdE296aBE523C594118EF812208194CE",
-				To:       "0x1B861760AdE296aBE523C594118EF812208194CE",
-				Metadata: metadata.ExchangeStaking{
-				Action: metadata.ActionExchangeStakingStake,
-				Token: metadata.Token{
-				Address:  lo.ToPtr("0xc98D64DA73a6616c42117b582e832812e7B8D57F"),
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("20000000000000000000000"))),
-				Name:     "RSS3",
-				Symbol:   "RSS3",
-				Decimals: 18,
-				Standard: metadata.StandardERC20,
-			},
-				Period: &metadata.ExchangeStakingPeriod{
-				Start: time.Unix(1675784915, 0),
-				End:   time.Unix(1675784915+7776000, 0),
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.ExchangeStaking,
+						Platform: filter.PlatformRSS3.String(),
+						From:     "0x1B861760AdE296aBE523C594118EF812208194CE",
+						To:       "0x1B861760AdE296aBE523C594118EF812208194CE",
+						Metadata: metadata.ExchangeStaking{
+							Action: metadata.ActionExchangeStakingStake,
+							Token: metadata.Token{
+								Address:  lo.ToPtr("0xc98D64DA73a6616c42117b582e832812e7B8D57F"),
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("20000000000000000000000"))),
+								Name:     "RSS3",
+								Symbol:   "RSS3",
+								Decimals: 18,
+								Standard: metadata.StandardERC20,
+							},
+							Period: &metadata.ExchangeStakingPeriod{
+								Start: time.Unix(1675784915, 0),
+								End:   time.Unix(1675784915+7776000, 0),
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1675784915,
 			},
@@ -298,34 +299,34 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   305,
 				From:    "0xE0BA908Be2f52063B0bD210544e67FCD76bd0b56",
 				To:      rss3.AddressStaking.String(),
-				Type:    type.ExchangeStaking,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0x00f714ce",
-			},
+				Type:    typex.ExchangeStaking,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0x00f714ce",
+				},
 				Platform: lo.ToPtr(filter.PlatformRSS3),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("2321450000000000")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("2321450000000000")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.ExchangeStaking,
-				Platform: filter.PlatformRSS3.String(),
-				From:     "0xE0BA908Be2f52063B0bD210544e67FCD76bd0b56",
-				To:       "0xE0BA908Be2f52063B0bD210544e67FCD76bd0b56",
-				Metadata: metadata.ExchangeStaking{
-				Action: metadata.ActionExchangeStakingUnstake,
-				Token: metadata.Token{
-				Address:  lo.ToPtr("0xc98D64DA73a6616c42117b582e832812e7B8D57F"),
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("4253510000000000000000"))),
-				Name:     "RSS3",
-				Symbol:   "RSS3",
-				Decimals: 18,
-				Standard: metadata.StandardERC20,
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.ExchangeStaking,
+						Platform: filter.PlatformRSS3.String(),
+						From:     "0xE0BA908Be2f52063B0bD210544e67FCD76bd0b56",
+						To:       "0xE0BA908Be2f52063B0bD210544e67FCD76bd0b56",
+						Metadata: metadata.ExchangeStaking{
+							Action: metadata.ActionExchangeStakingUnstake,
+							Token: metadata.Token{
+								Address:  lo.ToPtr("0xc98D64DA73a6616c42117b582e832812e7B8D57F"),
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("4253510000000000000000"))),
+								Name:     "RSS3",
+								Symbol:   "RSS3",
+								Decimals: 18,
+								Standard: metadata.StandardERC20,
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1681315199,
 			},
@@ -436,34 +437,34 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   49,
 				From:    "0x2a03278590cd1962De28F9AbC855CF3774fe3eb6",
 				To:      rss3.AddressStaking.String(),
-				Type:    type.ExchangeStaking,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0xef5cfb8c",
-			},
+				Type:    typex.ExchangeStaking,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0xef5cfb8c",
+				},
 				Platform: lo.ToPtr(filter.PlatformRSS3),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("1332888122256200")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("1332888122256200")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.ExchangeStaking,
-				Platform: filter.PlatformRSS3.String(),
-				From:     "0x2a03278590cd1962De28F9AbC855CF3774fe3eb6",
-				To:       "0x2a03278590cd1962De28F9AbC855CF3774fe3eb6",
-				Metadata: metadata.ExchangeStaking{
-				Action: metadata.ActionExchangeStakingClaim,
-				Token: metadata.Token{
-				Address:  lo.ToPtr("0xc98D64DA73a6616c42117b582e832812e7B8D57F"),
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("494372654311400241636"))),
-				Name:     "RSS3",
-				Symbol:   "RSS3",
-				Decimals: 18,
-				Standard: metadata.StandardERC20,
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.ExchangeStaking,
+						Platform: filter.PlatformRSS3.String(),
+						From:     "0x2a03278590cd1962De28F9AbC855CF3774fe3eb6",
+						To:       "0x2a03278590cd1962De28F9AbC855CF3774fe3eb6",
+						Metadata: metadata.ExchangeStaking{
+							Action: metadata.ActionExchangeStakingClaim,
+							Token: metadata.Token{
+								Address:  lo.ToPtr("0xc98D64DA73a6616c42117b582e832812e7B8D57F"),
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("494372654311400241636"))),
+								Name:     "RSS3",
+								Symbol:   "RSS3",
+								Decimals: 18,
+								Standard: metadata.StandardERC20,
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1676265671,
 			},
@@ -552,32 +553,32 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   1,
 				From:    "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
 				To:      rss3.AddressStakingVSL.String(),
-				Type:    type.ExchangeStaking,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0x96531623",
-			},
+				Type:    typex.ExchangeStaking,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0x96531623",
+				},
 				Platform: lo.ToPtr(filter.PlatformRSS3),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("1117542222924365900")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("1117542222924365900")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.ExchangeStaking,
-				Platform: filter.PlatformRSS3.String(),
-				From:     "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
-				To:       "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
-				Metadata: metadata.ExchangeStaking{
-				Action: metadata.ActionExchangeStakingStake,
-				Token: metadata.Token{
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("10000000000000000000000"))),
-				Name:     "RSS3",
-				Symbol:   "RSS3",
-				Decimals: 18,
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.ExchangeStaking,
+						Platform: filter.PlatformRSS3.String(),
+						From:     "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
+						To:       "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
+						Metadata: metadata.ExchangeStaking{
+							Action: metadata.ActionExchangeStakingStake,
+							Token: metadata.Token{
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("10000000000000000000000"))),
+								Name:     "RSS3",
+								Symbol:   "RSS3",
+								Decimals: 18,
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1710223859,
 			},
@@ -667,46 +668,46 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   1,
 				From:    "0x30286DD245338292F319809935a1037CcD4573Ea",
 				To:      rss3.AddressStakingVSL.String(),
-				Type:    type.ExchangeStaking,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0x26476204",
-			},
+				Type:    typex.ExchangeStaking,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0x26476204",
+				},
 				Platform: lo.ToPtr(filter.PlatformRSS3),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("772196357569891650")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("772196357569891650")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.CollectibleMint,
-				Platform: filter.PlatformRSS3.String(),
-				From:     ethereum.AddressGenesis.String(),
-				To:       common.HexToAddress("0x30286DD245338292F319809935a1037CcD4573Ea").String(),
-				Metadata: metadata.CollectibleTransfer{
-				Address:  lo.ToPtr("0x849f8F55078dCc69dD857b58Cc04631EBA54E4DE"),
-				ID:       lo.ToPtr(decimal.NewFromBigInt(big.NewInt(162), 0)),
-				Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
-				Name:     "Open Chips",
-				Symbol:   "Chips",
-				Standard: metadata.StandardERC721,
-			},
-			},
-			{
-				Type:     type.ExchangeStaking,
-				Platform: filter.PlatformRSS3.String(),
-				From:     "0x30286DD245338292F319809935a1037CcD4573Ea",
-				To:       "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
-				Metadata: metadata.ExchangeStaking{
-				Action: metadata.ActionExchangeStakingStake,
-				Token: metadata.Token{
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("500000000000000000000"))),
-				Name:     "RSS3",
-				Symbol:   "RSS3",
-				Decimals: 18,
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.CollectibleMint,
+						Platform: filter.PlatformRSS3.String(),
+						From:     ethereum.AddressGenesis.String(),
+						To:       common.HexToAddress("0x30286DD245338292F319809935a1037CcD4573Ea").String(),
+						Metadata: metadata.CollectibleTransfer{
+							Address:  lo.ToPtr("0x849f8F55078dCc69dD857b58Cc04631EBA54E4DE"),
+							ID:       lo.ToPtr(decimal.NewFromBigInt(big.NewInt(162), 0)),
+							Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
+							Name:     "Open Chips",
+							Symbol:   "Chips",
+							Standard: metadata.StandardERC721,
+						},
+					},
+					{
+						Type:     typex.ExchangeStaking,
+						Platform: filter.PlatformRSS3.String(),
+						From:     "0x30286DD245338292F319809935a1037CcD4573Ea",
+						To:       "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
+						Metadata: metadata.ExchangeStaking{
+							Action: metadata.ActionExchangeStakingStake,
+							Token: metadata.Token{
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("500000000000000000000"))),
+								Name:     "RSS3",
+								Symbol:   "RSS3",
+								Decimals: 18,
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1710228453,
 			},

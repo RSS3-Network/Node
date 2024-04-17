@@ -13,9 +13,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/aave"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -184,36 +185,36 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   75,
 				From:    "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
 				To:      aave.AddressV2LendingPoolMainnet.String(),
-				Type:    type.ExchangeLiquidity,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0xe8eda9df",
-			},
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0xe8eda9df",
+				},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("3989675111519265")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("3989675111519265")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.ExchangeLiquidity,
-				Platform: filter.PlatformAAVE.String(),
-				From:     "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
-				To:       aave.AddressV2LendingPoolMainnet.String(),
-				Metadata: metadata.ExchangeLiquidity{
-				Action: metadata.ActionExchangeLiquiditySupply,
-				Tokens: []metadata.Token{
-			{
-				Address:  lo.ToPtr("0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"),
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("119999999999999999999"))),
-				Name:     "Liquid staked Ether 2.0",
-				Symbol:   "stETH",
-				Decimals: 18,
-				Standard: metadata.StandardERC20,
-			},
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.ExchangeLiquidity,
+						Platform: filter.PlatformAAVE.String(),
+						From:     "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
+						To:       aave.AddressV2LendingPoolMainnet.String(),
+						Metadata: metadata.ExchangeLiquidity{
+							Action: metadata.ActionExchangeLiquiditySupply,
+							Tokens: []metadata.Token{
+								{
+									Address:  lo.ToPtr("0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"),
+									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("119999999999999999999"))),
+									Name:     "Liquid staked Ether 2.0",
+									Symbol:   "stETH",
+									Decimals: 18,
+									Standard: metadata.StandardERC20,
+								},
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1691653955,
 			},
@@ -356,36 +357,36 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   100,
 				From:    "0x0f1DfeF1a40557d279d0de6E49aB306891A638b8",
 				To:      aave.AddressV2LendingPoolMainnet.String(),
-				Type:    type.ExchangeLiquidity,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0x69328dec",
-			},
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0x69328dec",
+				},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("3494354289488625")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("3494354289488625")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.ExchangeLiquidity,
-				Platform: filter.PlatformAAVE.String(),
-				From:     "0x0f1DfeF1a40557d279d0de6E49aB306891A638b8",
-				To:       aave.AddressV2LendingPoolMainnet.String(),
-				Metadata: metadata.ExchangeLiquidity{
-				Action: metadata.ActionExchangeLiquidityWithdraw,
-				Tokens: []metadata.Token{
-			{
-				Address:  lo.ToPtr("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("5000000000000"))),
-				Name:     "USD Coin",
-				Symbol:   "USDC",
-				Decimals: 6,
-				Standard: metadata.StandardERC20,
-			},
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.ExchangeLiquidity,
+						Platform: filter.PlatformAAVE.String(),
+						From:     "0x0f1DfeF1a40557d279d0de6E49aB306891A638b8",
+						To:       aave.AddressV2LendingPoolMainnet.String(),
+						Metadata: metadata.ExchangeLiquidity{
+							Action: metadata.ActionExchangeLiquidityWithdraw,
+							Tokens: []metadata.Token{
+								{
+									Address:  lo.ToPtr("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("5000000000000"))),
+									Name:     "USD Coin",
+									Symbol:   "USDC",
+									Decimals: 6,
+									Standard: metadata.StandardERC20,
+								},
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1691655527,
 			},
@@ -540,36 +541,36 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   108,
 				From:    "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
 				To:      aave.AddressV2LendingPoolMainnet.String(),
-				Type:    type.ExchangeLiquidity,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0xa415bcad",
-			},
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0xa415bcad",
+				},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("6575393086576872")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("6575393086576872")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.ExchangeLiquidity,
-				Platform: filter.PlatformAAVE.String(),
-				From:     "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
-				To:       aave.AddressV2LendingPoolMainnet.String(),
-				Metadata: metadata.ExchangeLiquidity{
-				Action: metadata.ActionExchangeLiquidityBorrow,
-				Tokens: []metadata.Token{
-			{
-				Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("50000000000"))),
-				Name:     "Tether USD",
-				Symbol:   "USDT",
-				Decimals: 6,
-				Standard: metadata.StandardERC20,
-			},
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.ExchangeLiquidity,
+						Platform: filter.PlatformAAVE.String(),
+						From:     "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
+						To:       aave.AddressV2LendingPoolMainnet.String(),
+						Metadata: metadata.ExchangeLiquidity{
+							Action: metadata.ActionExchangeLiquidityBorrow,
+							Tokens: []metadata.Token{
+								{
+									Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("50000000000"))),
+									Name:     "Tether USD",
+									Symbol:   "USDT",
+									Decimals: 6,
+									Standard: metadata.StandardERC20,
+								},
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1691654027,
 			},
@@ -711,36 +712,36 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   86,
 				From:    "0xc11E5B31008F3750b43f006c3026beD653888E07",
 				To:      aave.AddressV2LendingPoolMainnet.String(),
-				Type:    type.ExchangeLiquidity,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0x573ade81",
-			},
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0x573ade81",
+				},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("4384289713535145")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("4384289713535145")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.ExchangeLiquidity,
-				Platform: filter.PlatformAAVE.String(),
-				From:     "0xc11E5B31008F3750b43f006c3026beD653888E07",
-				To:       aave.AddressV2LendingPoolMainnet.String(),
-				Metadata: metadata.ExchangeLiquidity{
-				Action: metadata.ActionExchangeLiquidityRepay,
-				Tokens: []metadata.Token{
-			{
-				Address:  lo.ToPtr("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("29527934285"))),
-				Name:     "USD Coin",
-				Symbol:   "USDC",
-				Decimals: 6,
-				Standard: metadata.StandardERC20,
-			},
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.ExchangeLiquidity,
+						Platform: filter.PlatformAAVE.String(),
+						From:     "0xc11E5B31008F3750b43f006c3026beD653888E07",
+						To:       aave.AddressV2LendingPoolMainnet.String(),
+						Metadata: metadata.ExchangeLiquidity{
+							Action: metadata.ActionExchangeLiquidityRepay,
+							Tokens: []metadata.Token{
+								{
+									Address:  lo.ToPtr("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("29527934285"))),
+									Name:     "USD Coin",
+									Symbol:   "USDC",
+									Decimals: 6,
+									Standard: metadata.StandardERC20,
+								},
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1691654759,
 			},
@@ -872,36 +873,36 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   85,
 				From:    "0xf01bb28137121c063D73e7B61DBABE352467292b",
 				To:      aave.AddressV3PoolMainnet.String(),
-				Type:    type.ExchangeLiquidity,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0x617ba037",
-			},
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0x617ba037",
+				},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("2539935492927579")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("2539935492927579")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.ExchangeLiquidity,
-				Platform: filter.PlatformAAVE.String(),
-				From:     "0xf01bb28137121c063D73e7B61DBABE352467292b",
-				To:       aave.AddressV3PoolMainnet.String(),
-				Metadata: metadata.ExchangeLiquidity{
-				Action: metadata.ActionExchangeLiquiditySupply,
-				Tokens: []metadata.Token{
-			{
-				Address:  lo.ToPtr("0xae78736Cd615f374D3085123A210448E74Fc6393"),
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("156465282788593823"))),
-				Name:     "Rocket Pool ETH",
-				Symbol:   "rETH",
-				Decimals: 18,
-				Standard: metadata.StandardERC20,
-			},
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.ExchangeLiquidity,
+						Platform: filter.PlatformAAVE.String(),
+						From:     "0xf01bb28137121c063D73e7B61DBABE352467292b",
+						To:       aave.AddressV3PoolMainnet.String(),
+						Metadata: metadata.ExchangeLiquidity{
+							Action: metadata.ActionExchangeLiquiditySupply,
+							Tokens: []metadata.Token{
+								{
+									Address:  lo.ToPtr("0xae78736Cd615f374D3085123A210448E74Fc6393"),
+									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("156465282788593823"))),
+									Name:     "Rocket Pool ETH",
+									Symbol:   "rETH",
+									Decimals: 18,
+									Standard: metadata.StandardERC20,
+								},
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1691644787,
 			},
@@ -1037,36 +1038,36 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   22,
 				From:    "0x1aEB9F637B88d9c5422E0cb094F3bCDa20fCE37B",
 				To:      aave.AddressV3PoolBase.String(),
-				Type:    type.ExchangeLiquidity,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0x617ba037",
-			},
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0x617ba037",
+				},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("191955009062034")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("191955009062034")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.ExchangeLiquidity,
-				Platform: filter.PlatformAAVE.String(),
-				From:     "0x1aEB9F637B88d9c5422E0cb094F3bCDa20fCE37B",
-				To:       aave.AddressV3PoolBase.String(),
-				Metadata: metadata.ExchangeLiquidity{
-				Action: metadata.ActionExchangeLiquiditySupply,
-				Tokens: []metadata.Token{
-			{
-				Address:  lo.ToPtr("0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA"),
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1000000"))),
-				Name:     "USD Base Coin",
-				Symbol:   "USDbC",
-				Decimals: 6,
-				Standard: metadata.StandardERC20,
-			},
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.ExchangeLiquidity,
+						Platform: filter.PlatformAAVE.String(),
+						From:     "0x1aEB9F637B88d9c5422E0cb094F3bCDa20fCE37B",
+						To:       aave.AddressV3PoolBase.String(),
+						Metadata: metadata.ExchangeLiquidity{
+							Action: metadata.ActionExchangeLiquiditySupply,
+							Tokens: []metadata.Token{
+								{
+									Address:  lo.ToPtr("0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA"),
+									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1000000"))),
+									Name:     "USD Base Coin",
+									Symbol:   "USDbC",
+									Decimals: 6,
+									Standard: metadata.StandardERC20,
+								},
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1692716063,
 			},
@@ -1198,36 +1199,36 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   108,
 				From:    "0x5A0D6d0DE7c74899F09d3509A429bEb7D3b4b1d0",
 				To:      aave.AddressV3PoolMainnet.String(),
-				Type:    type.ExchangeLiquidity,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0x69328dec",
-			},
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0x69328dec",
+				},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("3971841806401938")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("3971841806401938")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.ExchangeLiquidity,
-				Platform: filter.PlatformAAVE.String(),
-				From:     aave.AddressV3PoolMainnet.String(),
-				To:       "0x5A0D6d0DE7c74899F09d3509A429bEb7D3b4b1d0",
-				Metadata: metadata.ExchangeLiquidity{
-				Action: metadata.ActionExchangeLiquidityWithdraw,
-				Tokens: []metadata.Token{
-			{
-				Address:  lo.ToPtr("0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"),
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("199598187"))),
-				Name:     "Wrapped BTC",
-				Symbol:   "WBTC",
-				Decimals: 8,
-				Standard: metadata.StandardERC20,
-			},
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.ExchangeLiquidity,
+						Platform: filter.PlatformAAVE.String(),
+						From:     aave.AddressV3PoolMainnet.String(),
+						To:       "0x5A0D6d0DE7c74899F09d3509A429bEb7D3b4b1d0",
+						Metadata: metadata.ExchangeLiquidity{
+							Action: metadata.ActionExchangeLiquidityWithdraw,
+							Tokens: []metadata.Token{
+								{
+									Address:  lo.ToPtr("0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"),
+									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("199598187"))),
+									Name:     "Wrapped BTC",
+									Symbol:   "WBTC",
+									Decimals: 8,
+									Standard: metadata.StandardERC20,
+								},
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1691645195,
 			},
@@ -1347,36 +1348,36 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   96,
 				From:    "0xC4dBC7D5957dceF7eD2B0778C597c16Ce2769E7d",
 				To:      aave.AddressV3PoolMainnet.String(),
-				Type:    type.ExchangeLiquidity,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0xa415bcad",
-			},
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0xa415bcad",
+				},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("3819556449855740")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("3819556449855740")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.ExchangeLiquidity,
-				Platform: filter.PlatformAAVE.String(),
-				From:     aave.AddressV3PoolMainnet.String(),
-				To:       "0xC4dBC7D5957dceF7eD2B0778C597c16Ce2769E7d",
-				Metadata: metadata.ExchangeLiquidity{
-				Action: metadata.ActionExchangeLiquidityBorrow,
-				Tokens: []metadata.Token{
-			{
-				Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("7000000000"))),
-				Name:     "Tether USD",
-				Symbol:   "USDT",
-				Decimals: 6,
-				Standard: metadata.StandardERC20,
-			},
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.ExchangeLiquidity,
+						Platform: filter.PlatformAAVE.String(),
+						From:     aave.AddressV3PoolMainnet.String(),
+						To:       "0xC4dBC7D5957dceF7eD2B0778C597c16Ce2769E7d",
+						Metadata: metadata.ExchangeLiquidity{
+							Action: metadata.ActionExchangeLiquidityBorrow,
+							Tokens: []metadata.Token{
+								{
+									Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("7000000000"))),
+									Name:     "Tether USD",
+									Symbol:   "USDT",
+									Decimals: 6,
+									Standard: metadata.StandardERC20,
+								},
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1691643779,
 			},
@@ -1496,36 +1497,36 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   158,
 				From:    "0x790c9422839FD93a3A4E31e531f96cC87F397c00",
 				To:      aave.AddressV3PoolMainnet.String(),
-				Type:    type.ExchangeLiquidity,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0x573ade81",
-			},
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0x573ade81",
+				},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("2571456723342402")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("2571456723342402")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.ExchangeLiquidity,
-				Platform: filter.PlatformAAVE.String(),
-				From:     "0x790c9422839FD93a3A4E31e531f96cC87F397c00",
-				To:       aave.AddressV3PoolMainnet.String(),
-				Metadata: metadata.ExchangeLiquidity{
-				Action: metadata.ActionExchangeLiquidityRepay,
-				Tokens: []metadata.Token{
-			{
-				Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("758486000000"))),
-				Name:     "Tether USD",
-				Symbol:   "USDT",
-				Decimals: 6,
-				Standard: metadata.StandardERC20,
-			},
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.ExchangeLiquidity,
+						Platform: filter.PlatformAAVE.String(),
+						From:     "0x790c9422839FD93a3A4E31e531f96cC87F397c00",
+						To:       aave.AddressV3PoolMainnet.String(),
+						Metadata: metadata.ExchangeLiquidity{
+							Action: metadata.ActionExchangeLiquidityRepay,
+							Tokens: []metadata.Token{
+								{
+									Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("758486000000"))),
+									Name:     "Tether USD",
+									Symbol:   "USDT",
+									Decimals: 6,
+									Standard: metadata.StandardERC20,
+								},
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1691650679,
 			},

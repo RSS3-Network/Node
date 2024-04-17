@@ -7,7 +7,7 @@ import (
 	"github.com/rss3-network/node/config"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/matters"
-	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/stretchr/testify/require"
 )
 
@@ -129,11 +129,11 @@ func TestWorker_Matters(t *testing.T) {
 		//		Index:   41,
 		//		From:    "0x18Fb694EbAE03a78f038F54362592Dd89c0e300C",
 		//		To:      matters.AddressCuration.String(),
-		//		Type:    type.SocialReward,
-		//		Calldata: &schema.Calldata{
+		//		Type:    typex.SocialReward,
+		//		Calldata: &activity.Calldata{
 		//			FunctionHash: "0xdbcdaf5b",
 		//		},
-		//		Tag:      filter.TagSocial,
+		//		Tag:      tag.Social,
 		//		Platform: lo.ToPtr(filter.PlatformMatters),
 		//		Fee: &activity.Fee{
 		//			Amount:  lo.Must(decimal.NewFromString("5681706332875290")),
@@ -142,8 +142,8 @@ func TestWorker_Matters(t *testing.T) {
 		//		TotalActions: 1,
 		//		Actions: []*activity.Action{
 		//			{
-		//				Type:     type.SocialReward,
-		//				Tag:      filter.TagSocial,
+		//				Type:     typex.SocialReward,
+		//				Tag:      tag.Social,
 		//				Platform: filter.PlatformMatters.String(),
 		//				From:     "0x18Fb694EbAE03a78f038F54362592Dd89c0e300C",
 		//				To:       "0x099d854cD6F996cD1CB1ffc1Df0E197A774426e2",

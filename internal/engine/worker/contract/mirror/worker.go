@@ -13,9 +13,11 @@ import (
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/arweave/contract/mirror"
 	"github.com/rss3-network/node/provider/ipfs"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
 )
@@ -66,7 +68,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the feed.
-	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.PlatformMirror))
+	feed, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformMirror))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -209,12 +211,12 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, mirrorMetadata *metadata.SocialPost, emptyOriginDigest bool, originContentDigest string) (*activity.Action, error) {
 	// Default action type is post.
 	filterType :=
-	type.SocialPost
+		typex.SocialPost
 
 	// if the origin digest is empty, the action type should be revise.
 	if emptyOriginDigest {
 		filterType =
-		type.SocialRevise
+			typex.SocialRevise
 	}
 
 	// If the origin digest is not empty, check if the origin digest is the first mirror post.
@@ -226,14 +228,14 @@ func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, m
 
 		if post != nil && txID != post.TransactionID {
 			filterType =
-			type.SocialRevise
+				typex.SocialRevise
 		}
 	}
 
 	// Construct action
 	action := activity.Action{
 		Type:     filterType,
-		Tag:      filter.TagSocial,
+		Tag:      tag.Social,
 		Platform: filter.PlatformMirror.String(),
 		From:     from,
 		To:       to,

@@ -8,7 +8,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -21,7 +20,7 @@ const (
 	FeedSpamLimit = 100
 )
 
-type Feed struct {
+type Activity struct {
 	ID           string          `gorm:"column:id"`
 	Network      network.Network `gorm:"column:network"`
 	Platform     string          `gorm:"column:platform"`
@@ -39,11 +38,11 @@ type Feed struct {
 	UpdatedAt    time.Time       `gorm:"column:updated_at;autoUpdateTime"`
 }
 
-func (f *Feed) TableName() string {
+func (f *Activity) TableName() string {
 	return "feeds"
 }
 
-func (f *Feed) PartitionName(_activity *activity.Activity) string {
+func (f *Activity) PartitionName(_activity *activity.Activity) string {
 	if _activity != nil {
 		f.Timestamp = time.Unix(int64(_activity.Timestamp), 0)
 		f.Network = _activity.Network
@@ -53,7 +52,7 @@ func (f *Feed) PartitionName(_activity *activity.Activity) string {
 		f.Timestamp.Year(), int(math.Ceil(float64(f.Timestamp.Month())/3)))
 }
 
-func (f *Feed) Import(_activity *activity.Activity) error {
+func (f *Activity) Import(_activity *activity.Activity) error {
 	f.ID = _activity.ID
 	f.Network = _activity.Network
 	f.Platform = _activity.Platform
@@ -105,8 +104,8 @@ func (f *Feed) Import(_activity *activity.Activity) error {
 	return nil
 }
 
-func (f *Feed) Export(index *Index) (*activity.Activity, error) {
-	feed := activity.Activity{
+func (f *Activity) Export(index *Index) (*activity.Activity, error) {
+	_activity := activity.Activity{
 		ID:           f.ID,
 		From:         f.From,
 		To:           f.To,
@@ -126,9 +125,9 @@ func (f *Feed) Export(index *Index) (*activity.Activity, error) {
 		return nil, err
 	}
 
-	_activityTag = _activity.Typex.Tag()
+	_activity.Tag = _activity.Type.Tag()
 
-	if _activityFee, err = f.Fee.Export(); err != nil {
+	if _activity.Fee, err = f.Fee.Export(); err != nil {
 		return nil, fmt.Errorf("invalid fee: %w", err)
 	}
 
@@ -138,17 +137,17 @@ func (f *Feed) Export(index *Index) (*activity.Activity, error) {
 			return nil, err
 		}
 
-		_activityActions = append(_activityActions, item)
+		_activity.Actions = append(_activity.Actions, item)
 	}
 
-	return &feed, nil
+	return &_activity, nil
 }
 
-type Feeds []*Feed
+type Feeds []*Activity
 
 func (f *Feeds) Import(feeds []*activity.Activity) error {
 	for _, feed := range feeds {
-		item := new(Feed)
+		item := new(Activity)
 
 		if err := item.Import(feed); err != nil {
 			return err
@@ -161,17 +160,17 @@ func (f *Feeds) Import(feeds []*activity.Activity) error {
 }
 
 func (f *Feeds) Export(indexes []*Index) ([]*activity.Activity, error) {
-	feeds := make(map[string]*Feed)
+	activities := make(map[string]*Activity)
 
-	for _, feed := range *f {
-		feeds[_activityID] = feed
+	for _, _activity := range *f {
+		activities[_activity.ID] = _activity
 	}
 
 	result := make([]*activity.Activity, 0, len(indexes))
 
 	for _, index := range indexes {
-		if feed, ok := feeds[index.ID]; ok {
-			data, err := _activityExport(index)
+		if _activity, ok := activities[index.ID]; ok {
+			data, err := _activity.Export(index)
 			if err != nil {
 				return nil, err
 			}
@@ -243,8 +242,8 @@ type FeedAction struct {
 }
 
 func (f *FeedAction) Import(action *activity.Action) (err error) {
-	f.Tag = action.typex.Tag().String()
-	f.Type = action.typex.Name()
+	f.Tag = action.Tag.String()
+	f.Type = action.Type.Name()
 	f.From = action.From
 	f.To = action.To
 	f.Platform = action.Platform

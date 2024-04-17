@@ -17,9 +17,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
 	"github.com/rss3-network/node/provider/ethereum/contract/opensea"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -75,7 +76,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default opensea feed from task.
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformOpenSea))
+	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformOpenSea))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -106,7 +107,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 
 		if err != nil {
 			if isInvalidTokenErr(err) {
-				return schema.NewUnknownFeed(feed), nil
+				return activity.NewUnknownActivity(feed), nil
 			}
 
 			return nil, err
@@ -314,16 +315,16 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(offerValue, 0))
 
 	action := activity.Action{
-		Type:     type.CollectibleTrade,
+		Type:     typex.CollectibleTrade,
 		Platform: filter.PlatformOpenSea.String(),
 		From:     seller.String(),
 		To:       buyer.String(),
 		Metadata: metadata.CollectibleTrade{
-		Action: lo.If(task.Transaction.From == seller,
-		metadata.ActionCollectibleTradeSell).Else(metadata.ActionCollectibleTradeBuy),
-		Token: *collectibleTokenMetadata,
-		Cost:  costTokenMetadata,
-	},
+			Action: lo.If(task.Transaction.From == seller,
+				metadata.ActionCollectibleTradeSell).Else(metadata.ActionCollectibleTradeBuy),
+			Token: *collectibleTokenMetadata,
+			Cost:  costTokenMetadata,
+		},
 	}
 
 	return &action, nil

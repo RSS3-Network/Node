@@ -14,9 +14,11 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/iqwiki"
 	"github.com/rss3-network/node/provider/ipfs"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 )
 
@@ -74,7 +76,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default IQWiki feed from task.
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformIQWiki))
+	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformIQWiki))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -100,7 +102,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 
 	// Set feed type to the first action type & total actions.
 	feed.Type = feed.Actions[0].Type
-	feed.Tag = filter.TagSocial
+	feed.Tag = tag.Social
 	feed.TotalActions = uint(len(feed.Actions))
 
 	return feed, nil
@@ -139,29 +141,29 @@ func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTas
 	}
 
 	action := &activity.Action{
-		Tag:  filter.TagSocial,
-		Type: lo.If(iqwiki.StatusCreated == wikiResponse.ActivityByWikiIdAndBlock.Type, type.SocialPost).Else(type.SocialRevise),
+		Tag:      tag.Social,
+		Type:     lo.If(iqwiki.StatusCreated == wikiResponse.ActivityByWikiIdAndBlock.Type, typex.SocialPost).Else(typex.SocialRevise),
 		Platform: filter.PlatformIQWiki.String(),
 		From:     wikiPosted.From.String(),
 		To:       iqwiki.AddressWiki.String(),
 		Metadata: metadata.SocialPost{
-		Handle:        wikiResponse.ActivityByWikiIdAndBlock.User.Profile.Username,
-		PublicationID: wikiResponse.ActivityByWikiIdAndBlock.WikiId,
-		Body:          wikiResponse.ActivityByWikiIdAndBlock.Content[0].Content,
-		Title:         wikiResponse.ActivityByWikiIdAndBlock.Content[0].Title,
-		Summary:       wikiResponse.ActivityByWikiIdAndBlock.Content[0].Summary,
-		ContentURI:    fmt.Sprintf("https://iq.wiki/wiki/%s", wikiResponse.ActivityByWikiIdAndBlock.WikiId),
-		AuthorURL:     fmt.Sprintf("https://iq.wiki/account/%s", wikiResponse.ActivityByWikiIdAndBlock.User.Id),
-		Tags: lo.Map(wikiResponse.ActivityByWikiIdAndBlock.Content[0].Tags, func (x iqwiki.ActivityByWikiIdAndBlockActivityByWikiIdAndBlockActivityContentWikiTagsTag, _ int) string{
-		return x.Id
-	}),
-		Media: lo.Map(wikiResponse.ActivityByWikiIdAndBlock.Content[0].Images, func (image iqwiki.ActivityByWikiIdAndBlockActivityByWikiIdAndBlockActivityContentWikiImagesImage, _ int) metadata.Media{
-		return metadata.Media{
-		MimeType: "image/png",
-		Address:  fmt.Sprintf("ipfs://%s", image.Id),
-	}
-	}),
-	},
+			Handle:        wikiResponse.ActivityByWikiIdAndBlock.User.Profile.Username,
+			PublicationID: wikiResponse.ActivityByWikiIdAndBlock.WikiId,
+			Body:          wikiResponse.ActivityByWikiIdAndBlock.Content[0].Content,
+			Title:         wikiResponse.ActivityByWikiIdAndBlock.Content[0].Title,
+			Summary:       wikiResponse.ActivityByWikiIdAndBlock.Content[0].Summary,
+			ContentURI:    fmt.Sprintf("https://iq.wiki/wiki/%s", wikiResponse.ActivityByWikiIdAndBlock.WikiId),
+			AuthorURL:     fmt.Sprintf("https://iq.wiki/account/%s", wikiResponse.ActivityByWikiIdAndBlock.User.Id),
+			Tags: lo.Map(wikiResponse.ActivityByWikiIdAndBlock.Content[0].Tags, func(x iqwiki.ActivityByWikiIdAndBlockActivityByWikiIdAndBlockActivityContentWikiTagsTag, _ int) string {
+				return x.Id
+			}),
+			Media: lo.Map(wikiResponse.ActivityByWikiIdAndBlock.Content[0].Images, func(image iqwiki.ActivityByWikiIdAndBlockActivityByWikiIdAndBlockActivityContentWikiImagesImage, _ int) metadata.Media {
+				return metadata.Media{
+					MimeType: "image/png",
+					Address:  fmt.Sprintf("ipfs://%s", image.Id),
+				}
+			}),
+		},
 	}
 
 	return action, nil

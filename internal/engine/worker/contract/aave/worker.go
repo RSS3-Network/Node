@@ -16,9 +16,8 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -105,7 +104,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build feed base from task.
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformAAVE))
+	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformAAVE))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -136,8 +135,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		feed.Type =
-		type.ExchangeLiquidity
+		feed.Type = typex.ExchangeLiquidity
 		feed.Actions = append(feed.Actions, actions...)
 	}
 
@@ -526,16 +524,16 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task 
 	targetToken.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
 	action := activity.Action{
-		Type:     type.ExchangeLiquidity,
+		Type:     typex.ExchangeLiquidity,
 		Platform: filter.PlatformAAVE.String(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeLiquidity{
-		Action: exchangeLiquidityAction,
-		Tokens: []metadata.Token{
-		*targetToken,
-	},
-	},
+			Action: exchangeLiquidityAction,
+			Tokens: []metadata.Token{
+				*targetToken,
+			},
+		},
 	}
 
 	return &action, nil

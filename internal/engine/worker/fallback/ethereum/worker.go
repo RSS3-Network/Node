@@ -18,9 +18,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/sourcegraph/conc/pool"
@@ -75,7 +76,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	feed, err := task.BuildFeed()
+	feed, err := task.BuildActivity()
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -144,7 +145,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 
 	if err := contextPool.Wait(); err != nil {
 		if isInvalidTokenErr(err) {
-			return schema.NewUnknownFeed(feed), nil
+			return activity.NewUnknownActivity(feed), nil
 		}
 
 		return nil, fmt.Errorf("handle log: %w", err)
@@ -372,18 +373,15 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
-	var actionType filter.TransactionType
+	var actionType typex.TransactionType
 
 	switch {
 	case ethereum.IsBurnAddress(to):
-		actionType =
-		type.TransactionBurn
+		actionType = typex.TransactionBurn
 	case ethereum.AddressGenesis == from:
-		actionType =
-		type.TransactionBurn
+		actionType = typex.TransactionBurn
 	default:
-		actionType =
-		type.TransactionTransfer
+		actionType = typex.TransactionTransfer
 	}
 
 	action := activity.Action{
@@ -416,13 +414,13 @@ func (w *worker) buildTransactionApprovalAction(ctx context.Context, task *sourc
 	}
 
 	action := activity.Action{
-		Type: type.TransactionApproval,
+		Type: typex.TransactionApproval,
 		From: from.String(),
 		To:   to.String(),
 		Metadata: metadata.TransactionApproval{
-		Action: metadataAction,
-		Token:  *tokenMetadata,
-	},
+			Action: metadataAction,
+			Token:  *tokenMetadata,
+		},
 	}
 
 	return &action, nil
@@ -441,18 +439,15 @@ func (w *worker) buildCollectibleTransferAction(ctx context.Context, task *sourc
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
-	var actionType filter.CollectibleType
+	var actionType typex.CollectibleType
 
 	switch {
 	case ethereum.IsBurnAddress(to):
-		actionType =
-		type.CollectibleBurn
+		actionType = typex.CollectibleBurn
 	case ethereum.AddressGenesis == from:
-		actionType =
-		type.CollectibleMint
+		actionType = typex.CollectibleMint
 	default:
-		actionType =
-		type.CollectibleTransfer
+		actionType = typex.CollectibleTransfer
 	}
 
 	action := activity.Action{
@@ -490,13 +485,13 @@ func (w *worker) buildCollectibleApprovalAction(ctx context.Context, task *sourc
 	}
 
 	action := activity.Action{
-		Type: type.CollectibleApproval,
+		Type: typex.CollectibleApproval,
 		From: from.String(),
 		To:   to.String(),
 		Metadata: metadata.CollectibleApproval{
-		Action: metadataAction,
-		Token:  *tokenMetadata,
-	},
+			Action: metadataAction,
+			Token:  *tokenMetadata,
+		},
 	}
 
 	return &action, nil

@@ -8,7 +8,7 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
 	worker "github.com/rss3-network/node/internal/engine/worker/fallback/arweave"
 	"github.com/rss3-network/node/provider/arweave"
-	"github.com/rss3-network/protocol-go/schema"
+	
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
@@ -53,14 +53,14 @@ func TestWorker_Arweave(t *testing.T) {
 				Index:   0,
 				From:    "JaUubKRNhJP9i1iDFt-n_s0zzqV97x8d_7ex3ZZv3CE",
 				To:      "4u5gMvlfVhkn_atzuagjO92H_xJLtVNjucSfEYBrL0E",
-				Type:    type.TransactionTransfer,
+				Type:    typex.TransactionTransfer,
 				Fee: &activity.Fee{
 				Amount:  decimal.NewFromInt(3847185),
 				Decimal: 12,
 			},
 				Actions: []*activity.Action{
 			{
-				Type: type.TransactionTransfer,
+				Type: typex.TransactionTransfer,
 				From: "JaUubKRNhJP9i1iDFt-n_s0zzqV97x8d_7ex3ZZv3CE",
 				To:   "4u5gMvlfVhkn_atzuagjO92H_xJLtVNjucSfEYBrL0E",
 				Metadata: metadata.TransactionTransfer{

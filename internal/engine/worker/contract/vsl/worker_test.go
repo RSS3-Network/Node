@@ -14,9 +14,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -151,36 +152,36 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   140,
 				From:    "0x30286DD245338292F319809935a1037CcD4573Ea",
 				To:      vsl.AddressL1OptimismPortal.String(),
-				Type:    type.TransactionBridge,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0x8c3152e9",
-			},
+				Type:    typex.TransactionBridge,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0x8c3152e9",
+				},
 				Platform: lo.ToPtr(filter.PlatformVSL),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("5847904578748375")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("5847904578748375")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.TransactionBridge,
-				Platform: filter.PlatformVSL.String(),
-				From:     "0x30286DD245338292F319809935a1037CcD4573Ea",
-				To:       "0x30286DD245338292F319809935a1037CcD4573Ea",
-				Metadata: metadata.TransactionBridge{
-				Action:        metadata.ActionTransactionBridgeWithdraw,
-				SourceNetwork: network.VSL,
-				TargetNetwork: network.Ethereum,
-				Token: metadata.Token{
-				Address:  lo.ToPtr("0xc98D64DA73a6616c42117b582e832812e7B8D57F"),
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("5000000000000000000000"))),
-				Name:     "RSS3",
-				Symbol:   "RSS3",
-				Decimals: 18,
-				Standard: 20,
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.TransactionBridge,
+						Platform: filter.PlatformVSL.String(),
+						From:     "0x30286DD245338292F319809935a1037CcD4573Ea",
+						To:       "0x30286DD245338292F319809935a1037CcD4573Ea",
+						Metadata: metadata.TransactionBridge{
+							Action:        metadata.ActionTransactionBridgeWithdraw,
+							SourceNetwork: network.VSL,
+							TargetNetwork: network.Ethereum,
+							Token: metadata.Token{
+								Address:  lo.ToPtr("0xc98D64DA73a6616c42117b582e832812e7B8D57F"),
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("5000000000000000000000"))),
+								Name:     "RSS3",
+								Symbol:   "RSS3",
+								Decimals: 18,
+								Standard: 20,
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1711004039,
 			},

@@ -12,9 +12,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/optimism"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -61,7 +62,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformOptimism))
+	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformOptimism))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -102,8 +103,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		feed.Type =
-		type.TransactionBridge
+		feed.Type = typex.TransactionBridge
 		feed.Actions = append(feed.Actions, actions...)
 	}
 
@@ -256,16 +256,16 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
 	action := activity.Action{
-		Type:     type.TransactionBridge,
+		Type:     typex.TransactionBridge,
 		Platform: filter.PlatformOptimism.String(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.TransactionBridge{
-		Action:        bridgeAction,
-		SourceNetwork: source,
-		TargetNetwork: target,
-		Token:         *tokenMetadata,
-	},
+			Action:        bridgeAction,
+			SourceNetwork: source,
+			TargetNetwork: target,
+			Token:         *tokenMetadata,
+		},
 	}
 
 	return &action, nil

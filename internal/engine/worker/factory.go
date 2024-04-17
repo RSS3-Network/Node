@@ -30,11 +30,11 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/contract/vsl"
 	"github.com/rss3-network/node/internal/engine/worker/fallback"
 	"github.com/rss3-network/node/internal/engine/worker/farcaster"
-	"github.com/rss3-network/protocol-go/schema/network"
 )
 
 func New(config *config.Module, databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {
 	switch config.Worker {
+	// FIXME: pending new worker struct
 	case filter.Fallback:
 		return fallback.NewWorker(config, redisClient)
 	case filter.Mirror:

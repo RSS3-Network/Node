@@ -20,9 +20,11 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/lens"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/ipfs"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
 )
@@ -77,7 +79,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the feed.
-	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.PlatformLens))
+	feed, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformLens))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -115,14 +117,14 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 	// Polygon block number
 	blockNumber := transactionData.Get("chainProofs.thisPublication.blockNumber").Uint()
 
-	var socialType filter.SocialType
+	var socialType typex.SocialType
 
 	var contentURI, rawProfileID, rawProfileIDPointed string
 
 	switch transactionData.Get("type").String() {
 	case "POST_CREATED":
 		socialType =
-		type.SocialPost
+			typex.SocialPost
 
 		if transactionData.Get("event.postParams").Exists() {
 			contentURI = transactionData.Get("event.postParams.contentURI").String()
@@ -133,7 +135,7 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 		}
 	case "COMMENT_CREATED":
 		socialType =
-		type.SocialComment
+			typex.SocialComment
 
 		if transactionData.Get("event.commentParams").Exists() {
 			contentURI = transactionData.Get("event.commentParams.contentURI").String()
@@ -146,7 +148,7 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 		}
 	case "MIRROR_CREATED":
 		socialType =
-		type.SocialShare
+			typex.SocialShare
 
 		if transactionData.Get("event.mirrorParams").Exists() {
 			rawProfileID = transactionData.Get("event.mirrorParams.profileId").String()
@@ -157,7 +159,7 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 		}
 	case "QUOTE_CREATED":
 		socialType =
-		type.SocialShare
+			typex.SocialShare
 		contentURI = transactionData.Get("event.quoteParams.contentURI").String()
 		rawProfileID = transactionData.Get("event.quoteParams.profileId").String()
 		rawProfileIDPointed = transactionData.Get("event.quoteParams.pointedProfileId").String()
@@ -258,7 +260,7 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, filterType filter.SocialType, momokaMetadata *metadata.SocialPost) *activity.Action {
 	action := activity.Action{
 		Type:     filterType,
-		Tag:      filter.TagSocial,
+		Tag:      tag.Social,
 		Platform: filter.PlatformLens.String(),
 		From:     from,
 		To:       to,

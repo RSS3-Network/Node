@@ -15,7 +15,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
 	"github.com/rss3-network/node/provider/ethereum/contract/lido"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	"github.com/rss3-network/protocol-go/schema"
+	
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
@@ -78,7 +78,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default lido feed from task.
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformLido))
+	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformLido))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -99,38 +99,31 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		switch {
 		case w.matchStakedETHSubmittedLog(ethereumTask, log):
 			// Add ETH liquidity
-			feed.Type =
-			type.ExchangeLiquidity
+			feed.Type = typex.ExchangeLiquidity
 			actions, err = w.transformStakedETHSubmittedLog(ctx, ethereumTask, log)
 		case w.matchStakedETHWithdrawalNFTWithdrawalRequestedLog(ethereumTask, log):
 			// Mint ETH withdrawal NFT
-			feed.Type =
-			type.ExchangeLiquidity
+			feed.Type = typex.ExchangeLiquidity
 			actions, err = w.transformStakedETHWithdrawalNFTWithdrawalRequestedLog(ctx, ethereumTask, log)
 		case w.matchStakedETHWithdrawalNFTWithdrawalClaimedLog(ethereumTask, log):
 			// Remove ETH liquidity
-			feed.Type =
-			type.CollectibleBurn
+			feed.Type = typex.CollectibleBurn
 			actions, err = w.transformStakedETHWithdrawalNFTWithdrawalClaimedLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICSubmitEventLog(ethereumTask, log):
 			// Add MATIC liquidity
-			feed.Type =
-			type.ExchangeLiquidity
+			feed.Type = typex.ExchangeLiquidity
 			actions, err = w.transformStakedMATICSubmitEventLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICRequestWithdrawEventLog(ethereumTask, log):
 			// Mint MATIC withdrawal NFT
-			feed.Type =
-			type.CollectibleMint
+			feed.Type = typex.CollectibleMint
 			actions, err = w.transformStakedMATICRequestWithdrawEventLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICClaimTokensEventLog(ethereumTask, log):
 			// Remove MATIC liquidity
-			feed.Type =
-			type.CollectibleBurn
+			feed.Type = typex.CollectibleBurn
 			actions, err = w.transformStakedMATICClaimTokensEventLog(ctx, ethereumTask, log)
 		case w.matchStakedETHTransferSharesLog(ethereumTask, log):
 			// Wrap or unwrap wstETH
-			feed.Type =
-			type.ExchangeSwap
+			feed.Type = typex.ExchangeSwap
 			actions, err = w.transformStakedETHTransferSharesLog(ctx, ethereumTask, log)
 		default:
 			continue
@@ -441,7 +434,7 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, block
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
 	action := activity.Action{
-		Type:     type.ExchangeLiquidity,
+		Type:     typex.ExchangeLiquidity,
 		Platform: filter.PlatformLido.String(),
 		From:     sender.String(),
 		To:       receiver.String(),
@@ -468,13 +461,11 @@ func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, blo
 	type.TransactionTransfer
 
 	if sender == ethereum.AddressGenesis {
-		actionType =
-		type.TransactionMint
+		actionType = typex.TransactionMint
 	}
 
 	if receiver == ethereum.AddressGenesis {
-		actionType =
-		type.TransactionBurn
+		actionType = typex.TransactionBurn
 	}
 
 	action := activity.Action{
@@ -500,13 +491,11 @@ func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, blo
 	type.CollectibleTransfer
 
 	if sender == ethereum.AddressGenesis {
-		actionType =
-		type.CollectibleMint
+		actionType = typex.CollectibleMint
 	}
 
 	if receiver == ethereum.AddressGenesis {
-		actionType =
-		type.CollectibleBurn
+		actionType = typex.CollectibleBurn
 	}
 
 	action := activity.Action{
@@ -536,7 +525,7 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
 
 	action := activity.Action{
-		Type:     type.ExchangeSwap,
+		Type:     typex.ExchangeSwap,
 		Platform: filter.PlatformLido.String(),
 		From:     from.String(),
 		To:       to.String(),

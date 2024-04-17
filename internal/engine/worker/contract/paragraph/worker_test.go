@@ -8,9 +8,8 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/paragraph"
 	"github.com/rss3-network/node/provider/arweave"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -62,43 +61,43 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 			},
 			want: &activity.Activity{
-				ID:      "Sz5fY8Loj67fWxLQv98r5U5-h2aIA5x4FMsAVP1N2ig",
-				Network: network.Arweave,
-				Index:   0,
-				From:    "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
-				To:      "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
-				Type:     type.SocialPost,
+				ID:       "Sz5fY8Loj67fWxLQv98r5U5-h2aIA5x4FMsAVP1N2ig",
+				Network:  network.Arweave,
+				Index:    0,
+				From:     "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
+				To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
+				Type:     typex.SocialPost,
 				Platform: lo.ToPtr(filter.PlatformParagraph),
 				Fee: &activity.Fee{
-				Amount:  decimal.NewFromInt(212017846),
-				Decimal: 12,
-			},
+					Amount:  decimal.NewFromInt(212017846),
+					Decimal: 12,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.SocialPost,
-				Tag:      filter.TagSocial,
-				Platform: filter.PlatformParagraph.String(),
-				From:     "0x542E4C3b4a1DCE0A1Eca7BbC14754A867d61878A",
-				To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
-				Metadata: &metadata.SocialPost{
-				Handle:  "yu-test",
-				Title:   "Yu Test Post",
-				Summary: "that's my first post herethat's the content",
-				Body:    "that's my first post here\n=========================\n\n![](https://storage.googleapis.com/papyrus_images/97f37be742252a2da50ab9ac0f3a4851.jpg)\n\nthat's the content",
-				Media: []metadata.Media{
-			{
-				Address:  "https://storage.googleapis.com/papyrus_images/f9d95e6eded4d00a4d752f4d004c1c29.jpg",
-				MimeType: "image/jpeg",
-			},
-			},
-				ProfileID:     "mKwDzWEHQDof8Hpw9pyr",
-				PublicationID: "my-first-content",
-				ContentURI:    "https://arweave.net/Sz5fY8Loj67fWxLQv98r5U5-h2aIA5x4FMsAVP1N2ig",
-				Tags:          []string{"data"},
-				Timestamp:     1697091375,
-			},
-			},
-			},
+					{
+						Type:     typex.SocialPost,
+						Tag:      tag.Social,
+						Platform: filter.PlatformParagraph.String(),
+						From:     "0x542E4C3b4a1DCE0A1Eca7BbC14754A867d61878A",
+						To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
+						Metadata: &metadata.SocialPost{
+							Handle:  "yu-test",
+							Title:   "Yu Test Post",
+							Summary: "that's my first post herethat's the content",
+							Body:    "that's my first post here\n=========================\n\n![](https://storage.googleapis.com/papyrus_images/97f37be742252a2da50ab9ac0f3a4851.jpg)\n\nthat's the content",
+							Media: []metadata.Media{
+								{
+									Address:  "https://storage.googleapis.com/papyrus_images/f9d95e6eded4d00a4d752f4d004c1c29.jpg",
+									MimeType: "image/jpeg",
+								},
+							},
+							ProfileID:     "mKwDzWEHQDof8Hpw9pyr",
+							PublicationID: "my-first-content",
+							ContentURI:    "https://arweave.net/Sz5fY8Loj67fWxLQv98r5U5-h2aIA5x4FMsAVP1N2ig",
+							Tags:          []string{"data"},
+							Timestamp:     1697091375,
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1697091466,
 			},
@@ -135,44 +134,44 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 			},
 			want: &activity.Activity{
-				ID:      "Xf7C--gk4hlH3mG0UnFiISYgOdymfInv2EgeOF0GeNg",
-				Network: network.Arweave,
-				Index:   0,
-				From:    "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
-				To:      "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
-				Type:     type.SocialRevise,
+				ID:       "Xf7C--gk4hlH3mG0UnFiISYgOdymfInv2EgeOF0GeNg",
+				Network:  network.Arweave,
+				Index:    0,
+				From:     "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
+				To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
+				Type:     typex.SocialRevise,
 				Platform: lo.ToPtr(filter.PlatformParagraph),
 				Fee: &activity.Fee{
-				Amount:  decimal.NewFromInt(212017846),
-				Decimal: 12,
-			},
+					Amount:  decimal.NewFromInt(212017846),
+					Decimal: 12,
+				},
 
 				Actions: []*activity.Action{
-			{
-				Type:     type.SocialRevise,
-				Tag:      filter.TagSocial,
-				Platform: filter.PlatformParagraph.String(),
-				From:     "0x542E4C3b4a1DCE0A1Eca7BbC14754A867d61878A",
-				To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
-				Metadata: &metadata.SocialPost{
-				Handle:  "yu-test",
-				Title:   "Yu Test Post",
-				Summary: "that's my first post herethat's the content",
-				Body:    "that's my second post here(revised)\n===================================\n\n![](https://storage.googleapis.com/papyrus_images/97f37be742252a2da50ab9ac0f3a4851.jpg)\n\nthat's the content",
-				Media: []metadata.Media{
-			{
-				Address:  "https://storage.googleapis.com/papyrus_images/f9d95e6eded4d00a4d752f4d004c1c29.jpg",
-				MimeType: "image/jpeg",
-			},
-			},
-				ProfileID:     "mKwDzWEHQDof8Hpw9pyr",
-				PublicationID: "my-first-content",
-				ContentURI:    "https://arweave.net/Xf7C--gk4hlH3mG0UnFiISYgOdymfInv2EgeOF0GeNg",
-				Tags:          []string{"data"},
-				Timestamp:     1697091629,
-			},
-			},
-			},
+					{
+						Type:     typex.SocialRevise,
+						Tag:      tag.Social,
+						Platform: filter.PlatformParagraph.String(),
+						From:     "0x542E4C3b4a1DCE0A1Eca7BbC14754A867d61878A",
+						To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
+						Metadata: &metadata.SocialPost{
+							Handle:  "yu-test",
+							Title:   "Yu Test Post",
+							Summary: "that's my first post herethat's the content",
+							Body:    "that's my second post here(revised)\n===================================\n\n![](https://storage.googleapis.com/papyrus_images/97f37be742252a2da50ab9ac0f3a4851.jpg)\n\nthat's the content",
+							Media: []metadata.Media{
+								{
+									Address:  "https://storage.googleapis.com/papyrus_images/f9d95e6eded4d00a4d752f4d004c1c29.jpg",
+									MimeType: "image/jpeg",
+								},
+							},
+							ProfileID:     "mKwDzWEHQDof8Hpw9pyr",
+							PublicationID: "my-first-content",
+							ContentURI:    "https://arweave.net/Xf7C--gk4hlH3mG0UnFiISYgOdymfInv2EgeOF0GeNg",
+							Tags:          []string{"data"},
+							Timestamp:     1697091629,
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1697092032,
 			},

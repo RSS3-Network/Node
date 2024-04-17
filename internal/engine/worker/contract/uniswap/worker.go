@@ -17,9 +17,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/uniswap"
 	"github.com/rss3-network/node/provider/ethereum/contract/weth"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -88,19 +89,17 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type %T", task)
 	}
 
-	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.PlatformUniswap))
+	feed, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformUniswap))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
 
 	switch {
 	case w.matchSwapTransaction(ethereumTask, ethereumTask.Transaction):
-		feed.Type =
-		type.ExchangeSwap
+		feed.Type = typex.ExchangeSwap
 		feed.Actions = w.transformSwapTransaction(ctx, ethereumTask, ethereumTask.Transaction)
 	case w.matchLiquidityTransaction(ethereumTask, ethereumTask.Transaction):
-		feed.Type =
-		type.ExchangeLiquidity
+		feed.Type = typex.ExchangeLiquidity
 		feed.Actions = w.transformLiquidityTransaction(ctx, ethereumTask, ethereumTask.Transaction)
 	default:
 		return nil, errors.New("unsupported transaction")
@@ -884,14 +883,14 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
 
 	action := activity.Action{
-		Type:     type.ExchangeSwap,
+		Type:     typex.ExchangeSwap,
 		Platform: filter.PlatformUniswap.String(),
 		From:     sender.String(),
 		To:       receipt.String(),
 		Metadata: metadata.ExchangeSwap{
-		From: *tokenInMetadata,
-		To:   *tokenOutMetadata,
-	},
+			From: *tokenInMetadata,
+			To:   *tokenOutMetadata,
+		},
 	}
 
 	return &action, nil
@@ -961,14 +960,14 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, task *source.
 	}
 
 	action := activity.Action{
-		Type:     type.ExchangeLiquidity,
+		Type:     typex.ExchangeLiquidity,
 		Platform: filter.PlatformUniswap.String(),
 		From:     sender.String(),
 		To:       receipt.String(),
 		Metadata: metadata.ExchangeLiquidity{
-		Action: liquidityAction,
-		Tokens: tokenMetadataSlice,
-	},
+			Action: liquidityAction,
+			Tokens: tokenMetadataSlice,
+		},
 	}
 
 	return &action, nil
@@ -984,7 +983,7 @@ func (w *worker) buildTransactionMintAction(ctx context.Context, task *source.Ta
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromInt(1))
 
 	action := activity.Action{
-		Type:     type.TransactionMint,
+		Type:     typex.TransactionMint,
 		Platform: filter.PlatformUniswap.String(),
 		From:     sender.String(),
 		To:       receipt.String(),

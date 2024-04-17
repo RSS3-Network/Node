@@ -13,8 +13,11 @@ import (
 	"github.com/rss3-network/node/provider/farcaster"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/typex"
+
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -46,7 +49,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.PlatformFarcaster))
+	feed, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformFarcaster))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -73,18 +76,17 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 }
 
 // handleFarcasterAddCast handles farcaster add cast message.
-func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.Message, feed *activity.Activity) {
+func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.Message, _activity *activity.Activity) {
 	fid := int64(message.Data.Fid)
 
 	post := w.buildPost(ctx, int64(message.Data.Fid), message.Hash, message.Data.CastAddBody)
 
 	post.Handle = message.Data.Profile.Username
-	feed.From = message.Data.Profile.CustodyAddress
+	_activity.From = message.Data.Profile.CustodyAddress
 
 	// this represents a reply post.
 	if message.Data.CastAddBody.ParentCastID != nil {
-		feed.Type =
-		type.SocialComment
+		_activity.Type = typex.SocialComment
 
 		targetFid := int64(message.Data.CastAddBody.ParentCastID.Fid)
 
@@ -95,51 +97,49 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 		if fid == targetFid {
 			post.Target.Handle = post.Handle
 
-			feed.To = feed.From
+			_activity.To = _activity.From
 
-			w.buildPostActions(ctx, message.Data.Profile.EthAddresses, feed, post, feed.Type)
+			w.buildPostActions(ctx, message.Data.Profile.EthAddresses, _activity, post, _activity.Type)
 
 			return
 		}
 
 		// this represents a reply to others.
 		post.Target.Handle = targetMessage.Data.Profile.Username
-		feed.To = targetMessage.Data.Profile.CustodyAddress
+		_activity.To = targetMessage.Data.Profile.CustodyAddress
 
 		for _, from := range message.Data.Profile.EthAddresses {
 			for _, to := range targetMessage.Data.Profile.EthAddresses {
 				action := activity.Action{
-					Type:     type.SocialComment,
+					Type:     typex.SocialComment,
 					Platform: filter.PlatformFarcaster.String(),
 					From:     from,
 					To:       to,
 					Metadata: *post,
 				}
-				feed.Actions = append(feed.Actions, &action)
+				_activity.Actions = append(_activity.Actions, &action)
 			}
 		}
 
 		return
 	}
 
-	feed.Type =
-	type.SocialPost
-	feed.To = feed.From
+	_activity.Type = typex.SocialPost
+	_activity.To = _activity.From
 
-	w.buildPostActions(ctx, message.Data.Profile.EthAddresses, feed, post, feed.Type)
+	w.buildPostActions(ctx, message.Data.Profile.EthAddresses, _activity, post, _activity.Type)
 }
 
 // handleFarcasterRecastReaction handles farcaster recast reaction message.
-func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farcaster.Message, feed *activity.Activity) {
+func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farcaster.Message, _activity *activity.Activity) {
 	fid := int64(message.Data.Fid)
 
 	post := w.buildPost(ctx, int64(message.Data.Fid), message.Hash, nil)
 
 	post.Handle = message.Data.Profile.Username
-	feed.From = message.Data.Profile.CustodyAddress
+	_activity.From = message.Data.Profile.CustodyAddress
 
-	feed.Type =
-	type.SocialShare
+	_activity.Type = typex.SocialShare
 
 	targetFid := int64(message.Data.ReactionBody.TargetCastID.Fid)
 
@@ -150,44 +150,42 @@ func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farc
 	if fid == targetFid {
 		post.Target.Handle = post.Handle
 
-		feed.To = feed.From
+		_activity.To = _activity.From
 
-		w.buildPostActions(ctx, message.Data.Profile.EthAddresses, feed, post, feed.Type)
+		w.buildPostActions(ctx, message.Data.Profile.EthAddresses, _activity, post, _activity.Type)
 
 		return
 	}
 
 	post.Target.Handle = targetMessage.Data.Profile.Username
-	feed.To = targetMessage.Data.Profile.CustodyAddress
+	_activity.To = targetMessage.Data.Profile.CustodyAddress
 
 	for _, from := range message.Data.Profile.EthAddresses {
 		for _, to := range targetMessage.Data.Profile.EthAddresses {
 			action := activity.Action{
-				Type:     type.SocialShare,
+				Type:     typex.SocialShare,
 				Platform: filter.PlatformFarcaster.String(),
 				From:     from,
 				To:       to,
 				Metadata: *post,
 			}
-			feed.Actions = append(feed.Actions, &action)
+			_activity.Actions = append(_activity.Actions, &action)
 		}
 	}
 }
 
 // buildPostActions builds post actions from message.
-func (w *worker) buildPostActions(_ context.Context, ethAddresses []string, feed *activity.Activity, post *metadata.SocialPost, socialType
-
-type.) {
-for _, from := range ethAddresses {
-action := activity.Action{
-Type:     socialType,
-Platform: filter.PlatformFarcaster.String(),
-From:     from,
-To:       from,
-Metadata: *post,
-}
-feed.Actions = append(feed.Actions, &action)
-}
+func (w *worker) buildPostActions(_ context.Context, ethAddresses []string, feed *activity.Activity, post *metadata.SocialPost, socialType schema.Type) {
+	for _, from := range ethAddresses {
+		action := activity.Action{
+			Type:     socialType,
+			Platform: filter.PlatformFarcaster.String(),
+			From:     from,
+			To:       from,
+			Metadata: *post,
+		}
+		feed.Actions = append(feed.Actions, &action)
+	}
 }
 
 // buildPost builds post from message.

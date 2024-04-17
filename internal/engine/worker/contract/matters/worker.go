@@ -19,9 +19,11 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/ipfs"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -70,7 +72,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the feed.
-	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.PlatformMatters))
+	feed, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformMatters))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -103,7 +105,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	feed.TotalActions = uint(len(feed.Actions))
-	feed.Tag = filter.TagSocial
+	feed.Tag = tag.Social
 
 	return feed, nil
 }
@@ -113,8 +115,7 @@ func (w *worker) matchEthereumCurationTransaction(log *ethereum.Log) bool {
 }
 
 func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task source.Task, log ethereum.Log, feed *activity.Activity) ([]*activity.Action, error) {
-	feed.Type =
-	type.SocialReward
+	feed.Type = typex.SocialReward
 
 	export := log.Export()
 
@@ -216,20 +217,20 @@ func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Ta
 	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
 
 	return &activity.Action{
-		Type:     type.SocialReward,
-		Tag:      filter.TagSocial,
+		Type:     typex.SocialReward,
+		Tag:      tag.Social,
 		Platform: filter.PlatformMatters.String(),
 		From:     trigger.String(),
 		To:       recipient.String(),
 		Metadata: &metadata.SocialPost{
-		Reward: rewardTokenMetadata,
-		Target: &metadata.SocialPost{
-		Handle:  article.Byline,
-		Title:   article.Title,
-		Summary: article.Excerpt,
-		Body:    article.Content,
-	},
-	},
+			Reward: rewardTokenMetadata,
+			Target: &metadata.SocialPost{
+				Handle:  article.Byline,
+				Title:   article.Title,
+				Summary: article.Excerpt,
+				Body:    article.Content,
+			},
+		},
 	}, nil
 }
 

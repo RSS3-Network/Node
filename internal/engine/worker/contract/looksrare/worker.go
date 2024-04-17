@@ -15,9 +15,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/looksrare"
 	"github.com/rss3-network/node/provider/ethereum/contract/weth"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -75,7 +76,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default looksrare feed from task.
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformLooksRare))
+	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformLooksRare))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -116,8 +117,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		feed.Type =
-		type.CollectibleTrade
+		feed.Type = typex.CollectibleTrade
 		feed.Actions = append(feed.Actions, actions...)
 	}
 
@@ -447,7 +447,7 @@ func (w *worker) buildCollectibleTradeAction(ctx context.Context, task *source.T
 	}
 
 	return &activity.Action{
-		Type:     type.CollectibleTrade,
+		Type:     typex.CollectibleTrade,
 		Platform: filter.PlatformLooksRare.String(),
 		From:     from,
 		To:       to,
@@ -498,7 +498,7 @@ func (w *worker) buildRoyaltyPaymentAction(ctx context.Context, task *source.Tas
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
 
 	return &activity.Action{
-		Type:     type.TransactionTransfer,
+		Type:     typex.TransactionTransfer,
 		Platform: filter.PlatformLooksRare.String(),
 		From:     from.String(),
 		To:       receipt.String(),
@@ -549,7 +549,7 @@ func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Ta
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(wad, 0))
 
 	return &activity.Action{
-		Type:     type.TransactionTransfer,
+		Type:     typex.TransactionTransfer,
 		Platform: filter.PlatformLooksRare.String(),
 		From:     from.String(),
 		To:       to.String(),
@@ -571,7 +571,7 @@ func (w *worker) buildV2RoyaltyFeeAction(ctx context.Context, task *source.Task,
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
 
 	return &activity.Action{
-		Type:     type.TransactionTransfer,
+		Type:     typex.TransactionTransfer,
 		Platform: filter.PlatformLooksRare.String(),
 		From:     from.String(),
 		To:       to.String(),

@@ -35,12 +35,12 @@ func (i *Index) PartitionName() string {
 }
 
 func (i *Index) Import(_activity *activity.Activity) error {
-	i.ID = _activityID
+	i.ID = _activity.ID
 	i.Network = _activityNetwork
 	i.Platform = _activityPlatform
 	i.Index = _activityIndex
-	i.Tag = _activity.Typex.Tag()
-	i.Type = _activity.Typex.Name()
+	i.Tag = _activity.Type.Tag()
+	i.Type = _activity.Type.Name()
 	i.Status = _activityStatus
 	i.Timestamp = time.Unix(int64(_activityTimestamp), 0)
 
@@ -62,7 +62,7 @@ func (i *Indexes) Import(feed []*activity.Activity) error {
 		addresses := make(map[string]activity.Direction)
 
 		// Judge the direction of the action.
-		for _, action := range _activityActions {
+		for _, action := range _activity.Actions {
 			if action.From == action.To {
 				addresses[action.To] = activity.DirectionSelf
 

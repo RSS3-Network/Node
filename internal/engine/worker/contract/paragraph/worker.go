@@ -12,9 +12,11 @@ import (
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/arweave/contract/paragraph"
 	"github.com/rss3-network/node/provider/httpx"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
 )
@@ -51,7 +53,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the feed.
-	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.PlatformParagraph))
+	feed, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformParagraph))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -143,17 +145,17 @@ func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task
 func (w *worker) buildParagraphAction(_ context.Context, from, to string, paragraphMetadata *metadata.SocialPost, updated bool) *activity.Action {
 	// Default action type is post.
 	filterType :=
-	type.SocialPost
+		typex.SocialPost
 
 	if updated {
 		filterType =
-		type.SocialRevise
+			typex.SocialRevise
 	}
 
 	// Construct action
 	action := activity.Action{
 		Type:     filterType,
-		Tag:      filter.TagSocial,
+		Tag:      tag.Social,
 		Platform: filter.PlatformParagraph.String(),
 		From:     from,
 		To:       to,

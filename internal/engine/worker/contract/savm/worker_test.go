@@ -13,9 +13,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/savm"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -131,34 +132,34 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   0,
 				From:    "0x9e5635611981425B7AcbF827516123143F1d2237",
 				To:      savm.AddressBTCBridge.String(),
-				Type:    type.TransactionBridge,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0x030ba25d",
-			},
+				Type:    typex.TransactionBridge,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0x030ba25d",
+				},
 				Platform: lo.ToPtr(filter.PlatformSAVM),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("13339425000000")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("13339425000000")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.TransactionBridge,
-				Platform: filter.PlatformSAVM.String(),
-				From:     "0x9e5635611981425B7AcbF827516123143F1d2237",
-				To:       "0x9e5635611981425B7AcbF827516123143F1d2237",
-				Metadata: metadata.TransactionBridge{
-				Action:        metadata.ActionTransactionBridgeWithdraw,
-				SourceNetwork: network.SatoshiVM,
-				TargetNetwork: network.Bitcoin,
-				Token: metadata.Token{
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("20000"))),
-				Name:     "Bitcoin",
-				Symbol:   "BTC",
-				Decimals: 8,
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.TransactionBridge,
+						Platform: filter.PlatformSAVM.String(),
+						From:     "0x9e5635611981425B7AcbF827516123143F1d2237",
+						To:       "0x9e5635611981425B7AcbF827516123143F1d2237",
+						Metadata: metadata.TransactionBridge{
+							Action:        metadata.ActionTransactionBridgeWithdraw,
+							SourceNetwork: network.SatoshiVM,
+							TargetNetwork: network.Bitcoin,
+							Token: metadata.Token{
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("20000"))),
+								Name:     "Bitcoin",
+								Symbol:   "BTC",
+								Decimals: 8,
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1710430332,
 			},
@@ -274,36 +275,36 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:   0,
 				From:    "0x9e5635611981425B7AcbF827516123143F1d2237",
 				To:      savm.AddressSAVMBridge.String(),
-				Type:    type.TransactionBridge,
-				Calldata: &schema.Calldata{
-				FunctionHash: "0xe43772fb",
-			},
+				Type:    typex.TransactionBridge,
+				Calldata: &activity.Calldata{
+					FunctionHash: "0xe43772fb",
+				},
 				Platform: lo.ToPtr(filter.PlatformSAVM),
 				Fee: &activity.Fee{
-				Amount:  lo.Must(decimal.NewFromString("10878000000000")),
-				Decimal: 18,
-			},
+					Amount:  lo.Must(decimal.NewFromString("10878000000000")),
+					Decimal: 18,
+				},
 				Actions: []*activity.Action{
-			{
-				Type:     type.TransactionBridge,
-				Platform: filter.PlatformSAVM.String(),
-				From:     "0x9e5635611981425B7AcbF827516123143F1d2237",
-				To:       "0x9e5635611981425B7AcbF827516123143F1d2237",
-				Metadata: metadata.TransactionBridge{
-				Action:        metadata.ActionTransactionBridgeWithdraw,
-				SourceNetwork: network.SatoshiVM,
-				TargetNetwork: network.Ethereum,
-				Token: metadata.Token{
-				Address:  lo.ToPtr(savm.AddressSAVMToken.String()),
-				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("100000000000000000"))),
-				Name:     "SatoshiVM",
-				Symbol:   "SAVM",
-				Decimals: 18,
-				Standard: metadata.StandardERC20,
-			},
-			},
-			},
-			},
+					{
+						Type:     typex.TransactionBridge,
+						Platform: filter.PlatformSAVM.String(),
+						From:     "0x9e5635611981425B7AcbF827516123143F1d2237",
+						To:       "0x9e5635611981425B7AcbF827516123143F1d2237",
+						Metadata: metadata.TransactionBridge{
+							Action:        metadata.ActionTransactionBridgeWithdraw,
+							SourceNetwork: network.SatoshiVM,
+							TargetNetwork: network.Ethereum,
+							Token: metadata.Token{
+								Address:  lo.ToPtr(savm.AddressSAVMToken.String()),
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("100000000000000000"))),
+								Name:     "SatoshiVM",
+								Symbol:   "SAVM",
+								Decimals: 18,
+								Standard: metadata.StandardERC20,
+							},
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1710426768,
 			},

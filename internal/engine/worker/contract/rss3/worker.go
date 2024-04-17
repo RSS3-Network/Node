@@ -14,9 +14,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/rss3"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -72,7 +73,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformRSS3))
+	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformRSS3))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -283,15 +284,15 @@ func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Ta
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
 	action := activity.Action{
-		Type:     type.ExchangeStaking,
+		Type:     typex.ExchangeStaking,
 		Platform: filter.PlatformRSS3.String(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeStaking{
-		Action: stakingAction,
-		Token:  *tokenMetadata,
-		Period: period,
-	},
+			Action: stakingAction,
+			Token:  *tokenMetadata,
+			Period: period,
+		},
 	}
 
 	return &action, nil
@@ -308,14 +309,14 @@ func (w *worker) buildExchangeStakingVSLAction(ctx context.Context, task *source
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
 	action := activity.Action{
-		Type:     type.ExchangeStaking,
+		Type:     typex.ExchangeStaking,
 		Platform: filter.PlatformRSS3.String(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeStaking{
-		Action: stakingAction,
-		Token:  *tokenMetadata,
-	},
+			Action: stakingAction,
+			Token:  *tokenMetadata,
+		},
 	}
 
 	return &action, nil
@@ -331,7 +332,7 @@ func (w *worker) buildChipsMintAction(ctx context.Context, task *source.Task, fr
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
 
 	return &activity.Action{
-		Type:     type.CollectibleMint,
+		Type:     typex.CollectibleMint,
 		Platform: filter.PlatformRSS3.String(),
 		From:     from.String(),
 		To:       to.String(),

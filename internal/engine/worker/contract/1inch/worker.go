@@ -15,7 +15,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/contract/weth"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	"github.com/rss3-network/protocol-go/schema"
+	
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
@@ -75,7 +75,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the feed.
-	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.Platform1inch))
+	feed, err := task.BuildActivity(activity.WithActivityPlatform(filter.Platform1inch))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -859,7 +859,7 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 
 	action := activity.Action{
 		Tag: filter.TagExchange,
-		Type:     type.ExchangeSwap,
+		Type:     typex.ExchangeSwap,
 		Platform: filter.Platform1inch.String(),
 		From:     from.String(),
 		To:       to.String(),

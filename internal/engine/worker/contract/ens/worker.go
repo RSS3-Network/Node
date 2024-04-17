@@ -21,9 +21,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -95,7 +96,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default ens feed from task.
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformENS))
+	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformENS))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -116,8 +117,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		}
 
 		if exist {
-			feed.Type =
-			type.CollectibleTrade
+			feed.Type = typex.CollectibleTrade
 
 			switch {
 			case w.matchEnsNameRegisteredV1(ctx, *log):
@@ -128,8 +128,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 				continue
 			}
 		} else {
-			feed.Type =
-			type.SocialProfile
+			feed.Type = typex.SocialProfile
 
 			switch {
 			case w.matchEnsNameRenewed(ctx, *log):
@@ -482,15 +481,15 @@ func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *sourc
 	}
 
 	return &activity.Action{
-		Type:     type.CollectibleTrade,
+		Type:     typex.CollectibleTrade,
 		Platform: filter.PlatformENS.String(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.CollectibleTrade{
-		Action: metadata.ActionCollectibleTradeBuy,
-		Token:  *tokenMetadata,
-		Cost:   costTokenMetadata,
-	},
+			Action: metadata.ActionCollectibleTradeBuy,
+			Token:  *tokenMetadata,
+			Cost:   costTokenMetadata,
+		},
 	}, nil
 }
 
@@ -513,7 +512,7 @@ func (w *worker) buildEthereumENSProfileAction(_ context.Context, from, to commo
 	}
 
 	return &activity.Action{
-		Type:     type.SocialProfile,
+		Type:     typex.SocialProfile,
 		Platform: filter.PlatformENS.String(),
 		From:     from.String(),
 		To:       to.String(),

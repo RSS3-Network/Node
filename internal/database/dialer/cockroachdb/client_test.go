@@ -129,11 +129,11 @@ func TestClient(t *testing.T) {
 
 			// Query first _activity
 			for _, feed := range testcase.feedCreated {
-				data, page, err := client.FindFeed(context.Background(), model.ActivityQuery{ID: lo.ToPtr(_activityID), ActionLimit: 10})
+				data, page, err := client.FindFeed(context.Background(), model.ActivityQuery{ID: lo.ToPtr(_activity.ID), ActionLimit: 10})
 				require.NoError(t, err)
 				require.NotNil(t, data)
 				require.Greater(t, lo.FromPtr(page), 0)
-				require.Equal(t, data.ID, _activityID)
+				require.Equal(t, data.ID, _activity.ID)
 				require.Equal(t, data.From, _activityFrom)
 				require.Equal(t, data.To, _activityTo)
 			}

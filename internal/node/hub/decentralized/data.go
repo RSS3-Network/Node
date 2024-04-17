@@ -57,7 +57,7 @@ func (h *Hub) transformCursor(_ context.Context, _activity *activity.Activity) s
 		return ""
 	}
 
-	return fmt.Sprintf("%s:%s", _activityID, _activityNetwork)
+	return fmt.Sprintf("%s:%s", _activity.ID, _activityNetwork)
 }
 
 func (h *Hub) getIndexCount(ctx context.Context) (int64, *time.Time, error) {

@@ -13,9 +13,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/kiwistand"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -62,7 +63,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default kiwistand feed from task.
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformKiwiStand))
+	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformKiwiStand))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -92,8 +93,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		feed.Type =
-		type.CollectibleMint
+		feed.Type = typex.CollectibleMint
 
 		feed.Actions = append(feed.Actions, actions...)
 	}
@@ -238,7 +238,7 @@ func (w *worker) buildKiwiMintAction(ctx context.Context, task *source.Task, fro
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
 
 	return &activity.Action{
-		Type:     type.CollectibleMint,
+		Type:     typex.CollectibleMint,
 		Platform: filter.PlatformKiwiStand.String(),
 		From:     from.String(),
 		To:       to.String(),
@@ -252,11 +252,11 @@ func (w *worker) buildKiwiMintCommentAction(_ context.Context, from common.Addre
 		From:     from.String(),
 		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
 		Platform: filter.PlatformKiwiStand.String(),
-		Type:     type.SocialMint,
+		Type:     typex.SocialMint,
 		Metadata: &metadata.SocialPost{
-		Title: comment,
-		Body:  comment,
-	},
+			Title: comment,
+			Body:  comment,
+		},
 	}
 }
 
@@ -270,7 +270,7 @@ func (w *worker) buildKiwiFeeAction(ctx context.Context, task *source.Task, from
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
 
 	return &activity.Action{
-		Type:     type.TransactionTransfer,
+		Type:     typex.TransactionTransfer,
 		Platform: filter.PlatformKiwiStand.String(),
 		From:     from.String(),
 		To:       to.String(),
