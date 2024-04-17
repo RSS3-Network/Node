@@ -14,10 +14,10 @@ import (
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
-	"github.com/rss3-network/protocol-go/schema/typex"
-
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -29,13 +29,26 @@ type worker struct {
 	httpClient httpx.Client
 }
 
+func (w *worker) Name() string {
+	return "farcaster"
+}
+
+func (w *worker) Platform() string {
+	return strings.ToTitle(w.Name())
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Social
+}
+
+func (w *worker) Types() []*schema.Type {
+	//TODO implement me
+	panic("implement me")
+}
+
 // Filter returns a source filter.
 func (w *worker) Filter() engine.SourceFilter {
 	return nil
-}
-
-func (w *worker) Name() string {
-	return filter.Farcaster.String()
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
@@ -49,7 +62,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	feed, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformFarcaster))
+	feed, err := task.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -112,7 +125,7 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 			for _, to := range targetMessage.Data.Profile.EthAddresses {
 				action := activity.Action{
 					Type:     typex.SocialComment,
-					Platform: filter.PlatformFarcaster.String(),
+					Platform: w.Platform(),
 					From:     from,
 					To:       to,
 					Metadata: *post,
@@ -164,7 +177,7 @@ func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farc
 		for _, to := range targetMessage.Data.Profile.EthAddresses {
 			action := activity.Action{
 				Type:     typex.SocialShare,
-				Platform: filter.PlatformFarcaster.String(),
+				Platform: w.Platform(),
 				From:     from,
 				To:       to,
 				Metadata: *post,
@@ -179,7 +192,7 @@ func (w *worker) buildPostActions(_ context.Context, ethAddresses []string, feed
 	for _, from := range ethAddresses {
 		action := activity.Action{
 			Type:     socialType,
-			Platform: filter.PlatformFarcaster.String(),
+			Platform: w.Platform(),
 			From:     from,
 			To:       from,
 			Metadata: *post,
