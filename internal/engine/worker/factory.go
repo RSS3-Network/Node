@@ -3,6 +3,7 @@ package worker
 import (
 	"fmt"
 
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/engine"
@@ -26,15 +27,16 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/contract/rss3"
 	"github.com/rss3-network/node/internal/engine/worker/contract/savm"
 	"github.com/rss3-network/node/internal/engine/worker/contract/uniswap"
+	"github.com/rss3-network/node/internal/engine/worker/contract/vsl"
 	"github.com/rss3-network/node/internal/engine/worker/fallback"
 	"github.com/rss3-network/node/internal/engine/worker/farcaster"
 	"github.com/rss3-network/protocol-go/schema/filter"
 )
 
-func New(config *config.Module, databaseClient database.Client) (engine.Worker, error) {
+func New(config *config.Module, databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {
 	switch config.Worker {
 	case filter.Fallback:
-		return fallback.NewWorker(config)
+		return fallback.NewWorker(config, redisClient)
 	case filter.Mirror:
 		return mirror.NewWorker(config, databaseClient)
 	case filter.Farcaster:
@@ -77,6 +79,8 @@ func New(config *config.Module, databaseClient database.Client) (engine.Worker, 
 		return kiwistand.NewWorker(config)
 	case filter.SAVM:
 		return savm.NewWorker(config)
+	case filter.VSL:
+		return vsl.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}

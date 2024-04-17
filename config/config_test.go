@@ -35,6 +35,13 @@ stream:
   driver: kafka
   topic: rss3.node.feeds
   uri: localhost:9092
+redis:
+  enable: false
+  endpoints:
+    - localhost:6379
+  username:
+  password:
+  disable_cache: true
 observability:
   opentelemetry:
     metrics:
@@ -90,6 +97,15 @@ component:
     "driver": "kafka",
     "topic": "rss3.node.feeds",
     "uri": "localhost:9092"
+  },
+  "redis": {
+	"enable": false,
+	"endpoints": [
+	  "localhost:6379"
+	],
+	"username": "",
+	"password": "",
+	"disable_cache": true
   },
   "observability": {
     "opentelemetry": {
@@ -161,6 +177,13 @@ enable = false
 driver = "kafka"
 topic = "rss3.node.feeds"
 uri = "localhost:9092"
+
+[redis]
+enable = false
+endpoints = ["localhost:6379"]
+username = ""
+password = ""
+disable_cache = true
 
 [observability.opentelemetry.metrics]
 enable = true
@@ -263,6 +286,13 @@ var configFileExcept = &File{
 		Topic:  "rss3.node.feeds",
 		URI:    "localhost:9092",
 	},
+	Redis: &Redis{
+		Enable:       lo.ToPtr(false),
+		Endpoints:    []string{"localhost:6379"},
+		Username:     "",
+		Password:     "",
+		DisableCache: true,
+	},
 	Observability: &Telemetry{
 		OpenTelemetry: &OpenTelemetryConfig{
 			Metrics: &OpenTelemetryMetricsConfig{
@@ -353,6 +383,7 @@ func TestConfigFilePath(t *testing.T) {
 		func(_path string) {
 			t.Run(_path, func(t *testing.T) {
 				t.Parallel()
+
 				fs := afero.NewMemMapFs()
 
 				err := fs.Mkdir(_path, 0o777)
@@ -391,6 +422,7 @@ func TestConfigFileType(t *testing.T) {
 		func(_type, context string) {
 			t.Run(_type, func(t *testing.T) {
 				t.Parallel()
+
 				fs := afero.NewMemMapFs()
 
 				err := fs.Mkdir(configDir, 0o777)

@@ -7,8 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pressly/goose/v3"
 	"github.com/rss3-network/node/internal/database"
@@ -18,6 +20,9 @@ import (
 	mirror_model "github.com/rss3-network/node/internal/engine/worker/contract/mirror/model"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/filter"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -26,6 +31,10 @@ import (
 )
 
 var _ database.Client = (*client)(nil)
+
+const (
+	DefaultKVClosedTimestampTargetDuration = 3 * time.Second
+)
 
 //go:embed migration/*.sql
 var migrationFS embed.FS
@@ -55,22 +64,38 @@ func (c *client) Migrate(ctx context.Context) error {
 
 // WithTransaction executes a transaction.
 func (c *client) WithTransaction(ctx context.Context, transactionFunction func(ctx context.Context, client database.Client) error, transactionOptions ...*sql.TxOptions) error {
-	transaction, err := c.Begin(ctx, transactionOptions...)
-	if err != nil {
-		return fmt.Errorf("begin transaction: %w", err)
+	transactionFunc := func() error {
+		transaction, err := c.Begin(ctx, transactionOptions...)
+		if err != nil {
+			return fmt.Errorf("begin transaction: %w", err)
+		}
+
+		if err := transactionFunction(ctx, transaction); err != nil {
+			_ = transaction.Rollback()
+
+			return fmt.Errorf("execute transaction: %w", err)
+		}
+
+		if err := transaction.Commit(); err != nil {
+			return fmt.Errorf("commit transaction: %w", err)
+		}
+
+		return nil
 	}
 
-	if err := transactionFunction(ctx, transaction); err != nil {
-		_ = transaction.Rollback()
-
-		return fmt.Errorf("execute transaction: %w", err)
+	retryIfFunc := func(err error) bool {
+		// https://www.cockroachlabs.com/docs/stable/transaction-retry-error-reference#retry_serializable
+		return strings.Contains(err.Error(), "TransactionRetryWithProtoRefreshError: TransactionRetryError:")
 	}
 
-	if err := transaction.Commit(); err != nil {
-		return fmt.Errorf("commit transaction: %w", err)
+	onRetryFunc := func(n uint, err error) {
+		zap.L().Error("execute transaction", zap.Uint("retry", n), zap.Error(err))
 	}
 
-	return nil
+	return retry.Do(
+		transactionFunc,
+		retry.RetryIf(retryIfFunc), retry.MaxJitter(DefaultKVClosedTimestampTargetDuration), retry.DelayType(retry.RandomDelay), retry.OnRetry(onRetryFunc), retry.Attempts(0),
+	)
 }
 
 // Begin begins a transaction.
@@ -163,6 +188,16 @@ func (c *client) LoadCheckpoints(ctx context.Context, id string, network filter.
 }
 
 func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error {
+	spanStartOptions := []trace.SpanStartOption{
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(
+			attribute.String("checkpoint.id", checkpoint.ID),
+		),
+	}
+
+	ctx, span := otel.Tracer("").Start(ctx, "Database saveCheckpoint", spanStartOptions...)
+	defer span.End()
+
 	clauses := []clause.Expression{
 		clause.OnConflict{
 			Columns: []clause.Column{{Name: "id"}},
@@ -184,6 +219,16 @@ func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoi
 
 // SaveFeeds saves feeds and indexes to the database.
 func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
+	spanStartOptions := []trace.SpanStartOption{
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(
+			attribute.Int("feeds", len(feeds)),
+		),
+	}
+
+	ctx, span := otel.Tracer("").Start(ctx, "Database saveFeeds", spanStartOptions...)
+	defer span.End()
+
 	if c.partition {
 		return c.saveFeedsPartitioned(ctx, feeds)
 	}
@@ -330,7 +375,8 @@ func Dial(ctx context.Context, dataSourceName string, partition bool) (database.
 	logger.SetAsDefault()
 
 	config := gorm.Config{
-		Logger: logger,
+		Logger:                 logger,
+		SkipDefaultTransaction: true,
 	}
 
 	if instance.database, err = gorm.Open(postgres.Open(dataSourceName), &config); err != nil {

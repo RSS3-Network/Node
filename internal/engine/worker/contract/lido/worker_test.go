@@ -338,7 +338,6 @@ func TestWorker_Ethereum(t *testing.T) {
 							Name:     "Lido: stETH Withdrawal NFT",
 							Symbol:   "unstETH",
 							Standard: metadata.StandardERC721,
-							URI:      "https://wq-api.lido.fi/v1/nft/2427?requested=3018000000000000000&created_at=1686882899",
 						},
 					},
 				},

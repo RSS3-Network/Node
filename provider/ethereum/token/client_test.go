@@ -69,7 +69,6 @@ func TestEthereumClient(t *testing.T) {
 				Name:     "RSS Fruits Token",
 				Symbol:   "RFT",
 				Standard: metadata.StandardERC721,
-				URI:      "https://gateway.pinata.cloud/ipfs/QmRjC25urVAke71UYAV4PoMi4mCACcqG7MizjLVnJuVQyw",
 			},
 		},
 		{
@@ -85,7 +84,6 @@ func TestEthereumClient(t *testing.T) {
 				Name:     "Base, Introduced",
 				Symbol:   "BASEINTRODUCED",
 				Standard: metadata.StandardERC721,
-				URI:      "data:application/json;base64,eyJuYW1lIjogIkJhc2UsIEludHJvZHVjZWQgMSIsICJkZXNjcmlwdGlvbiI6ICJNZWV0IEJhc2UsIGFuIEV0aGVyZXVtIEwyIHRoYXQgb2ZmZXJzIGEgc2VjdXJlLCBsb3ctY29zdCwgZGV2ZWxvcGVyLWZyaWVuZGx5IHdheSBmb3IgYW55b25lLCBhbnl3aGVyZSwgdG8gYnVpbGQgZGVjZW50cmFsaXplZCBhcHBzLlxuXG5XZSBjb2xsZWN0aXZlbHkgbWludGVkIOKAmEJhc2UsIEludHJvZHVjZWTigJkgdG8gY2VsZWJyYXRlIHRoZSB0ZXN0bmV0IGxhdW5jaCBhbmQgZ3JvdyB0aGUgYnJvYWRlciBCYXNlIGNvbW11bml0eS4gV2XigJlyZSBleGNpdGVkIHRvIGJ1aWxkIEJhc2UgdG9nZXRoZXIuIiwgImltYWdlIjogImlwZnM6Ly9iYWZ5YmVpYmh0azIzaDZzYXM0eXVhaHR5eTd2Mmt6dndvd3c3aGU0NHJoaXg3a3E0NHJmMmFmM2ZjcSIsICJwcm9wZXJ0aWVzIjogeyJudW1iZXIiOiAxLCAibmFtZSI6ICJCYXNlLCBJbnRyb2R1Y2VkIn19",
 			},
 		},
 		{
@@ -101,7 +99,6 @@ func TestEthereumClient(t *testing.T) {
 				Name:     "Cheers UP",
 				Symbol:   "CUP",
 				Standard: metadata.StandardERC721,
-				URI:      "ipfs://QmR4fuz6w9oKEo6oqwFdTmuXqWwmrsFwv659tSZr1SJiNR",
 			},
 		},
 		{
@@ -117,7 +114,6 @@ func TestEthereumClient(t *testing.T) {
 				Name:     "RSS3 Whitepaper",
 				Symbol:   "RWP",
 				Standard: metadata.StandardERC721,
-				URI:      "ipfs://QmTMD6sLA7M4iegKDhbdMPBZ4HLi5fjW27w2J16gqc5Cb7/1.json",
 			},
 		},
 		{
@@ -133,7 +129,6 @@ func TestEthereumClient(t *testing.T) {
 				Name:     "OpenSea Shared Storefront",
 				Symbol:   "OPENSTORE",
 				Standard: metadata.StandardERC1155,
-				URI:      "https://api.opensea.io/api/v1/metadata/0x495f947276749Ce646f68AC8c248420045cb7b5e/0x{id}",
 			},
 		},
 		{
@@ -149,7 +144,6 @@ func TestEthereumClient(t *testing.T) {
 				Name:     "Love, Death + Robots",
 				Symbol:   "LDR",
 				Standard: metadata.StandardERC1155,
-				URI:      "ipfs://QmNjmcjL2cz1LrHmTXy3CpVifRNoy3TDh6duo7jxkFFBZH/{id}",
 			},
 		},
 		{
@@ -165,7 +159,6 @@ func TestEthereumClient(t *testing.T) {
 				Name:     "Kiwi Pass",
 				Symbol:   "$KIWI",
 				Standard: metadata.StandardERC721,
-				URI:      "data:application/json;base64,eyJuYW1lIjogIktpd2kgUGFzcyA5NzkiLCAiZGVzY3JpcHRpb24iOiAiS2l3aSBQYXNzIG9wZW5zIHRoZSBkb29yIHRvIHRoZSBjb21tdW5pdHkgb2YgY3VyYXRvcnMgd2hvIHNoYXBlIHRoZSBLaXdpIGZlZWQuXG5cbkdvIHRvIGtpd2luZXdzLnh5eiBmb3IgeW91ciBkYWlseSBkb3NlIG9mIGtpd2kg8J+lnVxuXG5EbyBOT1QgYnV5IEtpd2kgUGFzc2VzIG9uIHRoZSBzZWNvbmRhcnkgbWFya2V0LiBUaGV5IHdpbGwgTk9UIHdvcmsuIiwgImltYWdlIjogImlwZnM6Ly9iYWZ5YmVpYzJhcmFqNWtvanVhZ2tqZXJ5aHF5Y2Y3dnZhZmczMmJjdzNsNXUzZ3Q2YXM0MmZseWEyeSIsICJwcm9wZXJ0aWVzIjogeyJudW1iZXIiOiA5NzksICJuYW1lIjogIktpd2kgUGFzcyJ9fQ==",
 			},
 		},
 		{

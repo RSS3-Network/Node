@@ -53,7 +53,7 @@ func TestHttpClient_Fetch(t *testing.T) {
 				path:      "/ipfs/QmPkTNGYSUDx5n9hzEDgM19xd2aRTZMfwCuvhcPk3Qazhh",
 				fetchMode: ipfs.FetchModeStable,
 			},
-			want: func(t require.TestingT, v interface{}, msgAndArgs ...interface{}) {
+			want: func(t require.TestingT, v interface{}, _ ...interface{}) {
 				length, ok := v.(int64)
 				require.True(t, ok)
 				require.Greater(t, length, int64(0))
@@ -70,7 +70,7 @@ func TestHttpClient_Fetch(t *testing.T) {
 				path:      "/ipns/tokens.uniswap.org",
 				fetchMode: ipfs.FetchModeStable,
 			},
-			want: func(t require.TestingT, v interface{}, msgAndArgs ...interface{}) {
+			want: func(t require.TestingT, v interface{}, _ ...interface{}) {
 				length, ok := v.(int64)
 				require.True(t, ok)
 				require.Greater(t, length, int64(0))

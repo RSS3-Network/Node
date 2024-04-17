@@ -36,7 +36,7 @@ func TestGetImplementation(t *testing.T) {
 				network: filter.NetworkEthereum,
 				address: common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
 			},
-			want: func(t require.TestingT, value interface{}, msgAndArgs ...interface{}) {
+			want: func(t require.TestingT, value interface{}, _ ...interface{}) {
 				address, ok := value.(*common.Address)
 				require.True(t, ok)
 

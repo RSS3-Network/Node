@@ -115,7 +115,7 @@ func (w *worker) handleEthereumExchangeSwapTransaction(ctx context.Context, task
 		oneinch.AddressExchange2,
 		oneinch.AddressAggregationRouterV2,
 		oneinch.AddressAggregationRouterV3:
-		actions, err = w.handleEthereumExplicitAggregationRouterTransaction(ctx, task)
+		actions = w.handleEthereumExplicitAggregationRouterTransaction(ctx, task)
 	case
 		oneinch.AddressAggregationRouterV4,
 		oneinch.AddressAggregationRouterV5:
@@ -197,14 +197,14 @@ func (w *worker) handleEthereumImplicitAggregationRouterTransaction(ctx context.
 		}
 	}
 
-	tokenIn, exists := lo.FindKeyBy(valueMap, func(token common.Address, value *big.Int) bool {
+	tokenIn, exists := lo.FindKeyBy(valueMap, func(_ common.Address, value *big.Int) bool {
 		return value.Sign() == -1 // value < 0
 	})
 	if !exists {
 		return nil, fmt.Errorf("token in not match")
 	}
 
-	tokenOut, exists := lo.FindKeyBy(valueMap, func(token common.Address, value *big.Int) bool {
+	tokenOut, exists := lo.FindKeyBy(valueMap, func(_ common.Address, value *big.Int) bool {
 		return value.Sign() == 1 // value > 0
 	})
 	if !exists {
@@ -758,7 +758,7 @@ func (w *worker) parseEthereumAggregationRouterV4TransactionClipperSwapToInput(_
 }
 
 // handleEthereumExplicitAggregationRouterTransaction handles the explicit aggregation router transaction.
-func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
+func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.Context, task *source.Task) []*schema.Action {
 	actions := make([]*schema.Action, 0)
 
 	for _, log := range task.Receipt.Logs {
@@ -783,15 +783,14 @@ func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.
 		}
 
 		if err != nil {
-			zap.L().Warn("handle ethereum swap transaction", zap.Error(err), zap.String("worker", w.Name()), zap.String("task", task.ID()))
-
+			zap.L().Warn("handle ethereum swap transaction", zap.Error(err), zap.String("worker", w.Name()), zap.String("task", task.ID()), zap.Error(err))
 			continue
 		}
 
 		actions = append(actions, action)
 	}
 
-	return actions, nil
+	return actions
 }
 
 // handleEthereumAggregationRouterV3SwappedLog handles the aggregation router v3 swapped log.

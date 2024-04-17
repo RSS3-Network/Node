@@ -58,7 +58,7 @@ func TestSource(t *testing.T) {
 			require.NoError(t, err, "new ethereum source")
 
 			var (
-				tasksChan = make(chan []engine.Task, 1)
+				tasksChan = make(chan *engine.Tasks)
 				errorChan = make(chan error)
 			)
 
@@ -67,7 +67,7 @@ func TestSource(t *testing.T) {
 			for {
 				select {
 				case tasks := <-tasksChan:
-					for _, task := range tasks {
+					for _, task := range tasks.Tasks {
 						t.Logf("Task %s", task.ID())
 					}
 				case err := <-errorChan:

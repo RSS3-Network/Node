@@ -2,11 +2,11 @@ package indexer
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"runtime"
 
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/database"
@@ -23,6 +23,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -43,7 +44,7 @@ type Server struct {
 func (s *Server) Run(ctx context.Context) error {
 	var (
 		// TODO Develop a more effective solution to implement back pressure.
-		tasksChan = make(chan []engine.Task, 1)
+		tasksChan = make(chan *engine.Tasks)
 		errorChan = make(chan error)
 	)
 
@@ -67,7 +68,7 @@ func (s *Server) Run(ctx context.Context) error {
 	}
 }
 
-func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
+func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 	checkpoint := engine.Checkpoint{
 		ID:      s.id,
 		Network: s.source.Network(),
@@ -75,18 +76,21 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		State:   s.source.State(),
 	}
 
-	ctx, span := otel.GetTracerProvider().Tracer(constant.Name).Start(ctx, "handleTasks")
+	// Extract the OpenTelemetry context from the tasks.
+	ctx = otel.GetTextMapPropagator().Extract(ctx, tasks)
+
+	ctx, span := otel.Tracer("").Start(ctx, "Indexer handleTasks", trace.WithSpanKind(trace.SpanKindConsumer))
 	defer span.End()
 
 	span.SetAttributes(
 		attribute.String("service", constant.Name),
 		attribute.String("worker", s.worker.Name()),
-		attribute.Int("records", len(tasks)),
+		attribute.Int("tasks", tasks.Len()),
 		attribute.String("state", string(checkpoint.State)),
 	)
 
 	// If no tasks are returned, only save the checkpoint to the database.
-	if len(tasks) == 0 {
+	if tasks.Len() == 0 {
 		zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
 
 		if err := s.databaseClient.SaveCheckpoint(ctx, &checkpoint); err != nil {
@@ -96,9 +100,9 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 		return nil
 	}
 
-	resultPool := pool.NewWithResults[*schema.Feed]().WithMaxGoroutines(lo.Ternary(len(tasks) < 20*runtime.NumCPU(), len(tasks), 20*runtime.NumCPU()))
+	resultPool := pool.NewWithResults[*schema.Feed]().WithMaxGoroutines(lo.Ternary(tasks.Len() < 20*runtime.NumCPU(), tasks.Len(), 20*runtime.NumCPU()))
 
-	for _, task := range tasks {
+	for _, task := range tasks.Tasks {
 		task := task
 
 		resultPool.Go(func() *schema.Feed {
@@ -106,11 +110,12 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 
 			matched, err := s.worker.Match(ctx, task)
 			if err != nil {
-				zap.L().Error("matched task", zap.String("task.id", task.ID()))
+				zap.L().Error("match task", zap.String("task.id", task.ID()), zap.Error(err))
 
 				return nil
 			}
 
+			// If the task does not meet the filter conditions, it will be discarded.
 			if !matched {
 				zap.L().Warn("unmatched task", zap.String("task.id", task.ID()))
 
@@ -121,7 +126,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 
 			feed, err := s.worker.Transform(ctx, task)
 			if err != nil {
-				zap.L().Error("transform task", zap.String("task.id", task.ID()))
+				zap.L().Error("transform task", zap.String("task.id", task.ID()), zap.Error(err))
 
 				return nil
 			}
@@ -138,27 +143,21 @@ func (s *Server) handleTasks(ctx context.Context, tasks []engine.Task) error {
 	meterTasksCounterAttributes := metric.WithAttributes(
 		attribute.String("service", constant.Name),
 		attribute.String("worker", s.worker.Name()),
-		attribute.Int("records", len(tasks)),
+		attribute.Int("tasks", tasks.Len()),
 	)
 
-	s.meterTasksCounter.Add(ctx, int64(len(tasks)), meterTasksCounterAttributes)
+	s.meterTasksCounter.Add(ctx, int64(tasks.Len()), meterTasksCounterAttributes)
 	checkpoint.IndexCount = int64(len(feeds))
 
 	// Save feeds and checkpoint to the database.
-	if err := s.databaseClient.WithTransaction(ctx, func(ctx context.Context, client database.Client) error {
-		if err := client.SaveFeeds(ctx, feeds); err != nil {
-			return fmt.Errorf("save %d feeds: %w", len(feeds), err)
-		}
+	if err := s.databaseClient.SaveFeeds(ctx, feeds); err != nil {
+		return fmt.Errorf("save %d feeds: %w", len(feeds), err)
+	}
 
-		zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
+	zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
 
-		if err := client.SaveCheckpoint(ctx, &checkpoint); err != nil {
-			return fmt.Errorf("save checkpoint: %w", err)
-		}
-
-		return nil
-	}); err != nil {
-		return err
+	if err := s.databaseClient.SaveCheckpoint(ctx, &checkpoint); err != nil {
+		return fmt.Errorf("save checkpoint: %w", err)
 	}
 
 	// Push feeds to the stream.
@@ -213,23 +212,9 @@ func (s *Server) initializeMeter() (err error) {
 func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.Int64Observer) error {
 	go func() {
 		// get current block height state
-		tx, err := s.databaseClient.Begin(ctx, &sql.TxOptions{ReadOnly: true})
-		if err != nil {
-			zap.L().Error("begin transaction", zap.Error(err))
-
-			return
-		}
-
-		defer func() {
-			if err := tx.Rollback(); err != nil {
-				zap.L().Error("rollback transaction", zap.Error(err))
-			}
-		}()
-
 		latestCheckpoint, err := s.databaseClient.LoadCheckpoint(ctx, s.id, s.source.Network(), s.worker.Name())
 		if err != nil {
 			zap.L().Error("find latest checkpoint", zap.Error(err))
-
 			return
 		}
 
@@ -243,19 +228,18 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 			var state CheckpointState
 			if err := json.Unmarshal(latestCheckpoint.State, &state); err != nil {
 				zap.L().Error("unmarshal checkpoint state", zap.Error(err))
-
 				return
 			}
 
 			currentBlockHeight := state.BlockNumber
-
 			if currentBlockHeight == 0 {
 				currentBlockHeight = state.BlockHeight
 			}
 
 			observer.Observe(int64(currentBlockHeight), metric.WithAttributes(
 				attribute.String("service", constant.Name),
-				attribute.String("worker", s.worker.Name())))
+				attribute.String("worker", s.worker.Name()),
+			))
 		}
 	}()
 
@@ -297,7 +281,7 @@ func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.I
 	return nil
 }
 
-func NewServer(ctx context.Context, config *config.Module, databaseClient database.Client, streamClient stream.Client) (server *Server, err error) {
+func NewServer(ctx context.Context, config *config.Module, databaseClient database.Client, streamClient stream.Client, redisClient rueidis.Client) (server *Server, err error) {
 	instance := Server{
 		id:             config.ID(),
 		config:         config,
@@ -306,7 +290,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 	}
 
 	// Initialize worker.
-	if instance.worker, err = worker.New(instance.config, databaseClient); err != nil {
+	if instance.worker, err = worker.New(instance.config, databaseClient, redisClient); err != nil {
 		return nil, fmt.Errorf("new worker: %w", err)
 	}
 

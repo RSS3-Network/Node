@@ -147,7 +147,6 @@ func TestWorker_Ethereum(t *testing.T) {
 								Name:     "Zerion Genesis Collection",
 								Symbol:   "ZGC",
 								Standard: metadata.StandardERC1155,
-								URI:      "ipfs://QmXBUGFTXuAeBfK9oB9G1NAhGq7AwosWjHFRHMdahETeRK",
 							},
 
 							Cost: &metadata.Token{
@@ -302,7 +301,6 @@ func TestWorker_Ethereum(t *testing.T) {
 								Name:     "Turtle Case Gang",
 								Symbol:   "TurtlecaseGang",
 								Standard: metadata.StandardERC721,
-								URI:      "ipfs://QmTzkoeQVxjMiAz6GtBzihW2gfgxp4dta21tcEvXwmMUoj/51.json",
 							},
 
 							Cost: &metadata.Token{
@@ -436,7 +434,6 @@ func TestWorker_Ethereum(t *testing.T) {
 								Name:     "Azuki",
 								Symbol:   "AZUKI",
 								Standard: metadata.StandardERC721,
-								URI:      "ipfs://QmZcH4YvBVVRJtdn4RdbaqgspFU8gH6P9vomDpBVpAL3u4/4103",
 							},
 
 							Cost: &metadata.Token{
@@ -606,7 +603,6 @@ func TestWorker_Ethereum(t *testing.T) {
 								Name:     "Frenly Pandas",
 								Symbol:   "FANDAS",
 								Standard: metadata.StandardERC721,
-								URI:      "https://ipfs.io/ipfs/QmNcoaNf9rnyhsDkyt9aB9vvEb5uEdG1bHx62AtfbWpEJF/2892.json",
 							},
 
 							Cost: &metadata.Token{
@@ -631,7 +627,6 @@ func TestWorker_Ethereum(t *testing.T) {
 								Name:     "Frenly Pandas",
 								Symbol:   "FANDAS",
 								Standard: metadata.StandardERC721,
-								URI:      "https://ipfs.io/ipfs/QmNcoaNf9rnyhsDkyt9aB9vvEb5uEdG1bHx62AtfbWpEJF/1788.json",
 							},
 
 							Cost: &metadata.Token{
@@ -893,7 +888,6 @@ func TestWorker_Ethereum(t *testing.T) {
 								Name:     "Women of Crypto",
 								Symbol:   "WOC",
 								Standard: metadata.StandardERC721,
-								URI:      "ipfs://QmWHiAaPXHmk4RJg4f2W2FVtC4vqDXGWCnnUtSRLV3bKcK/7173",
 							},
 
 							Cost: &metadata.Token{
@@ -1023,7 +1017,6 @@ func TestWorker_Ethereum(t *testing.T) {
 								Name:     "Shrapnel Operators Collection",
 								Symbol:   "SOC",
 								Standard: metadata.StandardERC721,
-								URI:      "ipfs://QmTUfSLbqqpwix4WyfnUeMAeLGgdz9NuS7oPnL92MK9oUt/2",
 							},
 
 							Cost: &metadata.Token{
@@ -1168,7 +1161,6 @@ func TestWorker_Ethereum(t *testing.T) {
 								Name:     "Flippr Access Pass",
 								Symbol:   "FLIPPR",
 								Standard: metadata.StandardERC1155,
-								URI:      "ipfs://QmerHKcZLVTxN3Y7S7P2vo2XfN7dGHZnYDQcsrvubvHJKM",
 							},
 
 							Cost: &metadata.Token{
