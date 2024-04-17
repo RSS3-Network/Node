@@ -27,7 +27,7 @@ func (h *Hub) GetActivity(c echo.Context) error {
 		return response.ValidateFailedError(c, err)
 	}
 
-	query := model.FeedQuery{
+	query := model.ActivityQuery{
 		ID:          lo.ToPtr(request.ID),
 		ActionLimit: request.ActionLimit,
 		ActionPage:  request.ActionPage,
@@ -72,7 +72,7 @@ func (h *Hub) GetAccountActivities(c echo.Context) (err error) {
 		return response.InternalError(c, err)
 	}
 
-	databaseRequest := model.FeedsQuery{
+	databaseRequest := model.ActivitiesQuery{
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,

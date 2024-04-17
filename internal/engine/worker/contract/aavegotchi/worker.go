@@ -14,7 +14,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -55,7 +55,7 @@ func (w *worker) Match(_ context.Context, _ engine.Task) (bool, error) {
 }
 
 // Transform transforms the task into an aavegotchi feed.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	// Cast the task to an Ethereum task.
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
@@ -70,7 +70,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 	for _, log := range ethereumTask.Receipt.Logs {
 		var (
-			action *schema.Action
+			action *activity.Action
 			err    error
 		)
 
@@ -100,7 +100,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		feed.Actions = append(feed.Actions, action)
 	}
 
-	if feed.Type == filter.TypeMetaverseTrade {
+	if feed.Type ==
+	type.MetaverseTrade{
 		return w.handleMetaverseTradeCost(ctx, feed)
 	}
 
@@ -133,25 +134,27 @@ func (w *worker) matchERC20TransferLog(_ context.Context, log ethereum.Log) bool
 }
 
 // handleERC721ListingAdd handles the log for adding ERC721 listing.
-func (w *worker) handleERC721ListingAdd(ctx context.Context, task *source.Task, log ethereum.Log, feed *schema.Feed) (*schema.Action, error) {
+func (w *worker) handleERC721ListingAdd(ctx context.Context, task *source.Task, log ethereum.Log, feed *activity.Activity) (*activity.Action, error) {
 	event, err := w.erc721MarketplaceFilterer.ParseERC721ListingAdd(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse erc721 listing add: %w", err)
 	}
 
-	feed.Type = filter.TypeMetaverseTrade
+	feed.Type =
+	type.MetaverseTrade
 
 	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, feed.Type, metadata.ActionMetaverseTradeList, event.Seller, aavegotchi.AddressAavegotchi, event.Erc721TokenAddress, event.Erc721TokenId, nil)
 }
 
 // handleERC721ExecutedListing handles the log for executing ERC721 listing.
-func (w *worker) handleERC721ExecutedListing(ctx context.Context, task *source.Task, log ethereum.Log, feed *schema.Feed) (*schema.Action, error) {
+func (w *worker) handleERC721ExecutedListing(ctx context.Context, task *source.Task, log ethereum.Log, feed *activity.Activity) (*activity.Action, error) {
 	event, err := w.erc721MarketplaceFilterer.ParseERC721ExecutedListing(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse erc721 executed listing: %w", err)
 	}
 
-	feed.Type = filter.TypeMetaverseTrade
+	feed.Type =
+	type.MetaverseTrade
 
 	metadataType := lo.If(feed.From == event.Buyer.String(), metadata.ActionMetaverseTradeBuy).Else(metadata.ActionMetaverseTradeSell)
 
@@ -159,25 +162,27 @@ func (w *worker) handleERC721ExecutedListing(ctx context.Context, task *source.T
 }
 
 // handleERC1155ListingAdd handles the log for adding ERC1155 listing.
-func (w *worker) handleERC1155ListingAdd(ctx context.Context, task *source.Task, log ethereum.Log, feed *schema.Feed) (*schema.Action, error) {
+func (w *worker) handleERC1155ListingAdd(ctx context.Context, task *source.Task, log ethereum.Log, feed *activity.Activity) (*activity.Action, error) {
 	event, err := w.erc1155MarketplaceFilterer.ParseERC1155ListingAdd(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse erc1155 listing add: %w", err)
 	}
 
-	feed.Type = filter.TypeMetaverseTrade
+	feed.Type =
+	type.MetaverseTrade
 
 	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, feed.Type, metadata.ActionMetaverseTradeList, event.Seller, aavegotchi.AddressAavegotchi, event.Erc1155TokenAddress, event.Erc1155TypeId, big.NewInt(1))
 }
 
 // handleERC1155ExecutedListing handles the log for executing ERC1155 listing.
-func (w *worker) handleERC1155ExecutedListing(ctx context.Context, task *source.Task, log ethereum.Log, feed *schema.Feed) (*schema.Action, error) {
+func (w *worker) handleERC1155ExecutedListing(ctx context.Context, task *source.Task, log ethereum.Log, feed *activity.Activity) (*activity.Action, error) {
 	event, err := w.erc1155MarketplaceFilterer.ParseERC1155ExecutedListing(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse erc1155 executed listing: %w", err)
 	}
 
-	feed.Type = filter.TypeMetaverseTrade
+	feed.Type =
+	type.MetaverseTrade
 
 	metadataType := lo.If(feed.From == event.Buyer.String(), metadata.ActionMetaverseTradeBuy).Else(metadata.ActionMetaverseTradeSell)
 
@@ -185,25 +190,29 @@ func (w *worker) handleERC1155ExecutedListing(ctx context.Context, task *source.
 }
 
 // handleERC20TransferLog handles the log for ERC20 transfer.
-func (w *worker) handleERC20TransferLog(ctx context.Context, task *source.Task, log ethereum.Log, feed *schema.Feed) (*schema.Action, error) {
+func (w *worker) handleERC20TransferLog(ctx context.Context, task *source.Task, log ethereum.Log, feed *activity.Activity) (*activity.Action, error) {
 	event, err := w.erc20Filterer.ParseTransfer(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse erc20 transfer: %w", err)
 	}
 
-	actionType := lo.If(event.To == ethereum.AddressGenesis, filter.TypeMetaverseBurn).
-		ElseIf(event.From == ethereum.AddressGenesis, filter.TypeMetaverseMint).
-		Else(filter.TypeMetaverseTransfer)
+	actionType := lo.If(event.To == ethereum.AddressGenesis,
+	type.MetaverseBurn).
+	ElseIf(event.From == ethereum.AddressGenesis,
+	type.MetaverseMint).
+	Else(
+	type.MetaverseTransfer)
 
-	if feed.Type == filter.TypeUnknown {
-		feed.Type = actionType
+	if feed.Type ==
+	type.Unknown{
+		feed.Type, = actionType
 	}
 
 	return w.buildTransferAction(ctx, log.BlockNumber, task.ChainID, actionType, event.From, event.To, event.Raw.Address, nil, event.Value)
 }
 
 // handleMetaverseTradeCost counts the cost of the metaverse trade.
-func (w *worker) handleMetaverseTradeCost(_ context.Context, feed *schema.Feed) (*schema.Feed, error) {
+func (w *worker) handleMetaverseTradeCost(_ context.Context, feed *activity.Activity) (*activity.Activity, error) {
 	// count the cost of the trade
 	cost := metadata.Token{
 		Value: lo.ToPtr(decimal.NewFromInt(0)),
@@ -214,12 +223,13 @@ func (w *worker) handleMetaverseTradeCost(_ context.Context, feed *schema.Feed) 
 			continue
 		}
 
-		if action.Type == filter.TypeMetaverseTransfer && action.Metadata.(metadata.MetaverseTransfer).Value != nil {
-			if cost.Value.IsZero() {
-				cost = metadata.Token(action.Metadata.(metadata.MetaverseTransfer))
-			} else {
-				cost.Value = lo.ToPtr(cost.Value.Add(decimal.NewFromBigInt(action.Metadata.(metadata.MetaverseTransfer).Value.BigInt(), 0)))
-			}
+		if action.Type ==
+		type.MetaverseTransfer && action.Metadata.(metadata.MetaverseTransfer).Value != nil{
+			if cost.Value.IsZero(){
+			cost = metadata.Token(action.Metadata.(metadata.MetaverseTransfer))
+		} else{
+			cost.Value = lo.ToPtr(cost.Value.Add(decimal.NewFromBigInt(action.Metadata.(metadata.MetaverseTransfer).Value.BigInt(), 0)))
+		}
 		}
 	}
 
@@ -231,7 +241,7 @@ func (w *worker) handleMetaverseTradeCost(_ context.Context, feed *schema.Feed) 
 				Cost:   cost,
 			}
 
-			feed.Actions = []*schema.Action{action}
+			feed.Actions = []*activity.Action{action}
 
 			return feed, nil
 		}
@@ -245,30 +255,32 @@ func (w *worker) buildTradeAction(
 	ctx context.Context,
 	blockNumber *big.Int,
 	chainID uint64,
-	actionType filter.Type,
-	metadataAction metadata.MetaverseTradeAction,
-	from, to, tokenAddress common.Address,
-	tokenID, value *big.Int,
-) (*schema.Action, error) {
-	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, lo.ToPtr(tokenAddress), tokenID, blockNumber)
-	if err != nil {
-		return nil, fmt.Errorf("lookup token: %w", err)
-	}
+	actionType
 
-	tokenMetadata.Value = lo.If[*decimal.Decimal](value == nil, nil).ElseF(func() *decimal.Decimal {
-		return lo.ToPtr(decimal.NewFromBigInt(value, 0))
-	})
+type.,
+metadataAction metadata.MetaverseTradeAction,
+from, to, tokenAddress common.Address,
+tokenID, value *big.Int,
+) (*activity.Action, error) {
+tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, lo.ToPtr(tokenAddress), tokenID, blockNumber)
+if err != nil {
+return nil, fmt.Errorf("lookup token: %w", err)
+}
 
-	return &schema.Action{
-		Type:     actionType,
-		Platform: filter.PlatformAavegotchi.String(),
-		From:     from.String(),
-		To:       to.String(),
-		Metadata: metadata.MetaverseTrade{
-			Action: metadataAction,
-			Token:  *tokenMetadata,
-		},
-	}, nil
+tokenMetadata.Value = lo.If[*decimal.Decimal](value == nil, nil).ElseF(func () *decimal.Decimal {
+return lo.ToPtr(decimal.NewFromBigInt(value, 0))
+})
+
+return &activity.Action{
+Type:     actionType,
+Platform: filter.PlatformAavegotchi.String(),
+From:     from.String(),
+To:       to.String(),
+Metadata: metadata.MetaverseTrade{
+Action: metadataAction,
+Token:  *tokenMetadata,
+},
+}, nil
 }
 
 // buildTransferAction builds a metaverse transfer action.
@@ -276,26 +288,28 @@ func (w *worker) buildTransferAction(
 	ctx context.Context,
 	blockNumber *big.Int,
 	chainID uint64,
-	actionType filter.Type,
-	from, to, tokenAddress common.Address,
-	tokenID, value *big.Int,
-) (*schema.Action, error) {
-	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, lo.ToPtr(tokenAddress), tokenID, blockNumber)
-	if err != nil {
-		return nil, fmt.Errorf("lookup token: %w", err)
-	}
+	actionType
 
-	tokenMetadata.Value = lo.If[*decimal.Decimal](value == nil, nil).ElseF(func() *decimal.Decimal {
-		return lo.ToPtr(decimal.NewFromBigInt(value, 0))
-	})
+type.,
+from, to, tokenAddress common.Address,
+tokenID, value *big.Int,
+) (*activity.Action, error) {
+tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, lo.ToPtr(tokenAddress), tokenID, blockNumber)
+if err != nil {
+return nil, fmt.Errorf("lookup token: %w", err)
+}
 
-	return &schema.Action{
-		Type:     actionType,
-		Platform: filter.PlatformAavegotchi.String(),
-		From:     from.String(),
-		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
-		Metadata: metadata.MetaverseTransfer(*tokenMetadata),
-	}, nil
+tokenMetadata.Value = lo.If[*decimal.Decimal](value == nil, nil).ElseF(func () *decimal.Decimal {
+return lo.ToPtr(decimal.NewFromBigInt(value, 0))
+})
+
+return &activity.Action{
+Type:     actionType,
+Platform: filter.PlatformAavegotchi.String(),
+From:     from.String(),
+To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
+Metadata: metadata.MetaverseTransfer(*tokenMetadata),
+}, nil
 }
 
 func NewWorker(config *config.Module) (engine.Worker, error) {

@@ -6,14 +6,15 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/farcaster"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 )
 
 var _ engine.Task = (*Task)(nil)
 
 type Task struct {
-	Network filter.Network
+	Network network.Network
 	Message farcaster.Message
 }
 
@@ -21,7 +22,7 @@ func (t Task) ID() string {
 	return fmt.Sprintf("%s.%s", t.Network, t.Message.Hash)
 }
 
-func (t Task) GetNetwork() filter.Network {
+func (t Task) GetNetwork() network.Network {
 	return t.Network
 }
 
@@ -33,13 +34,13 @@ func (t Task) Validate() error {
 	return nil
 }
 
-func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
-	feed := schema.Feed{
+func (t Task) BuildFeed(options ...activity.Option) (*activity.Activity, error) {
+	feed := activity.Activity{
 		ID:        common.HexToHash(t.Message.Hash).String(),
 		Network:   t.Network,
-		Type:      filter.TypeUnknown,
+		Type:      typex.Unknown,
 		Status:    true,
-		Actions:   make([]*schema.Action, 0),
+		Actions:   make([]*activity.Action, 0),
 		Timestamp: t.GetTimestamp(),
 	}
 

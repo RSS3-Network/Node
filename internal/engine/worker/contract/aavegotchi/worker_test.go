@@ -13,7 +13,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -30,14 +30,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activity.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "List ERC1155",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x46708a88a6f844dfa9e4497324f5d21a1b466a718d7db3c841f80a537bf41688"),
@@ -128,48 +128,48 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      common.HexToHash("0xad7aec56979b5f4bb6e2d216504058b3768c4d8c9a34504e240116b78f993fe9").String(),
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   27,
 				From:    common.HexToAddress("0xa2faa3405a734c04ae713aaa837e6cecc2caee9f").String(),
 				To:      common.HexToAddress("0x86935f11c86623dec8a25696e1c19a8659cbf95d").String(),
-				Type:    filter.TypeMetaverseTrade,
+				Type:    type.MetaverseTrade,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xe8da2bfa",
-				},
+				FunctionHash: "0xe8da2bfa",
+			},
 				Platform: lo.ToPtr(filter.PlatformAavegotchi),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("78236230158761866")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeMetaverseTrade,
-						Platform: filter.PlatformAavegotchi.String(),
-						From:     common.HexToAddress("0xa2faa3405a734c04ae713aaa837e6cecc2caee9f").String(),
-						To:       common.HexToAddress("0x86935f11c86623dec8a25696e1c19a8659cbf95d").String(),
-						Metadata: metadata.MetaverseTrade{
-							Action: metadata.ActionMetaverseTradeList,
-							Token: metadata.Token{
-								Name:     "Aavegotchi",
-								Symbol:   "GOTCHI",
-								Standard: 721,
-								Address:  lo.ToPtr(common.HexToAddress("0x86935F11C86623deC8a25696E1C19a8659CbF95d").String()),
-								Value:    lo.ToPtr(decimal.NewFromInt(1)),
-								ID:       lo.ToPtr(decimal.NewFromInt(240)),
-							},
-							Cost: metadata.Token{
-								Name:     "Aavegotchi GHST Token (PoS)",
-								Symbol:   "GHST",
-								Decimals: 18,
-								Standard: 20,
-								Address:  lo.ToPtr(common.HexToAddress("0x385Eeac5cB85A38A9a07A70c73e0a3271CfB54A7").String()),
-								Value:    lo.ToPtr(decimal.NewFromInt(100000000000000000)),
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("78236230158761866")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.MetaverseTrade,
+				Platform: filter.PlatformAavegotchi.String(),
+				From:     common.HexToAddress("0xa2faa3405a734c04ae713aaa837e6cecc2caee9f").String(),
+				To:       common.HexToAddress("0x86935f11c86623dec8a25696e1c19a8659cbf95d").String(),
+				Metadata: metadata.MetaverseTrade{
+				Action: metadata.ActionMetaverseTradeList,
+				Token: metadata.Token{
+				Name:     "Aavegotchi",
+				Symbol:   "GOTCHI",
+				Standard: 721,
+				Address:  lo.ToPtr(common.HexToAddress("0x86935F11C86623deC8a25696E1C19a8659CbF95d").String()),
+				Value:    lo.ToPtr(decimal.NewFromInt(1)),
+				ID:       lo.ToPtr(decimal.NewFromInt(240)),
+			},
+				Cost: metadata.Token{
+				Name:     "Aavegotchi GHST Token (PoS)",
+				Symbol:   "GHST",
+				Decimals: 18,
+				Standard: 20,
+				Address:  lo.ToPtr(common.HexToAddress("0x385Eeac5cB85A38A9a07A70c73e0a3271CfB54A7").String()),
+				Value:    lo.ToPtr(decimal.NewFromInt(100000000000000000)),
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1686225179,
 			},
@@ -179,7 +179,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Trade ERC1155",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xc4ae62923cbbee8c757490bac85812244f31829d5c53f1d3a65a9dbc8d4d6cbf"),
@@ -365,48 +365,48 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      common.HexToHash("0x05c2ae65d685af45d9e7cac72543931ecc4f6e62a437d804b6e63a3aecb2f40d").String(),
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   39,
 				From:    common.HexToAddress("0xb9ad10b590bcd2b0db23d0005b2db0d53d9a1cf0").String(),
 				To:      common.HexToAddress("0x86935f11c86623dec8a25696e1c19a8659cbf95d").String(),
-				Type:    filter.TypeMetaverseTrade,
+				Type:    type.MetaverseTrade,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x575ae876",
-				},
+				FunctionHash: "0x575ae876",
+			},
 				Platform: lo.ToPtr(filter.PlatformAavegotchi),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("121342301754875840")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeMetaverseTrade,
-						Platform: filter.PlatformAavegotchi.String(),
-						From:     common.HexToAddress("0xcbef46a7cbe1f46a94ab77501eaa32596ab3c538").String(),
-						To:       common.HexToAddress("0xb9ad10b590bcd2b0db23d0005b2db0d53d9a1cf0").String(),
-						Metadata: metadata.MetaverseTrade{
-							Action: metadata.ActionMetaverseTradeBuy,
-							Token: metadata.Token{
-								Name:     "Aavegotchi",
-								Symbol:   "GOTCHI",
-								Standard: 721,
-								Address:  lo.ToPtr(common.HexToAddress("0x86935F11C86623deC8a25696E1C19a8659CbF95d").String()),
-								Value:    lo.ToPtr(decimal.NewFromInt(1)),
-								ID:       lo.ToPtr(decimal.NewFromInt(141)),
-							},
-							Cost: metadata.Token{
-								Name:     "Aavegotchi GHST Token (PoS)",
-								Symbol:   "GHST",
-								Decimals: 18,
-								Standard: 20,
-								Address:  lo.ToPtr(common.HexToAddress("0x385Eeac5cB85A38A9a07A70c73e0a3271CfB54A7").String()),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("35000000000000000000"))),
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("121342301754875840")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.MetaverseTrade,
+				Platform: filter.PlatformAavegotchi.String(),
+				From:     common.HexToAddress("0xcbef46a7cbe1f46a94ab77501eaa32596ab3c538").String(),
+				To:       common.HexToAddress("0xb9ad10b590bcd2b0db23d0005b2db0d53d9a1cf0").String(),
+				Metadata: metadata.MetaverseTrade{
+				Action: metadata.ActionMetaverseTradeBuy,
+				Token: metadata.Token{
+				Name:     "Aavegotchi",
+				Symbol:   "GOTCHI",
+				Standard: 721,
+				Address:  lo.ToPtr(common.HexToAddress("0x86935F11C86623deC8a25696E1C19a8659CbF95d").String()),
+				Value:    lo.ToPtr(decimal.NewFromInt(1)),
+				ID:       lo.ToPtr(decimal.NewFromInt(141)),
+			},
+				Cost: metadata.Token{
+				Name:     "Aavegotchi GHST Token (PoS)",
+				Symbol:   "GHST",
+				Decimals: 18,
+				Standard: 20,
+				Address:  lo.ToPtr(common.HexToAddress("0x385Eeac5cB85A38A9a07A70c73e0a3271CfB54A7").String()),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("35000000000000000000"))),
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1686229535,
 			},
@@ -416,7 +416,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "List ERC721",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xcb95b74b6e727c8991bed5351f1a5d78d0c5251089380e7d6e34be0f74181dca"),
@@ -506,47 +506,47 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      common.HexToHash("0x4e94b27356abebab22b676fc7c9a4018da8dfa102cfdf93434f80529c066c88e").String(),
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   0,
 				From:    common.HexToAddress("0xb7039fbd301cfaa7c66ba43fc10e2c60aa18f785").String(),
 				To:      common.HexToAddress("0x86935f11c86623dec8a25696e1c19a8659cbf95d").String(),
-				Type:    filter.TypeMetaverseTrade,
+				Type:    type.MetaverseTrade,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x31b0b514",
-				},
+				FunctionHash: "0x31b0b514",
+			},
 				Platform: lo.ToPtr(filter.PlatformAavegotchi),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("186070075623690420")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeMetaverseTrade,
-						Platform: filter.PlatformAavegotchi.String(),
-						From:     common.HexToAddress("0xb7039fbd301cfaa7c66ba43fc10e2c60aa18f785").String(),
-						To:       common.HexToAddress("0x86935f11c86623dec8a25696e1c19a8659cbf95d").String(),
-						Metadata: metadata.MetaverseTrade{
-							Action: metadata.ActionMetaverseTradeList,
-							Token: metadata.Token{
-								Name:     "Aavegotchi",
-								Symbol:   "GOTCHI",
-								Standard: 721,
-								Address:  lo.ToPtr(common.HexToAddress("0x86935F11C86623deC8a25696E1C19a8659CbF95d").String()),
-								ID:       lo.ToPtr(decimal.NewFromInt(7302)),
-							},
-							Cost: metadata.Token{
-								Name:     "Aavegotchi GHST Token (PoS)",
-								Symbol:   "GHST",
-								Decimals: 18,
-								Standard: 20,
-								Address:  lo.ToPtr(common.HexToAddress("0x385Eeac5cB85A38A9a07A70c73e0a3271CfB54A7").String()),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("100000000000000000"))),
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("186070075623690420")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.MetaverseTrade,
+				Platform: filter.PlatformAavegotchi.String(),
+				From:     common.HexToAddress("0xb7039fbd301cfaa7c66ba43fc10e2c60aa18f785").String(),
+				To:       common.HexToAddress("0x86935f11c86623dec8a25696e1c19a8659cbf95d").String(),
+				Metadata: metadata.MetaverseTrade{
+				Action: metadata.ActionMetaverseTradeList,
+				Token: metadata.Token{
+				Name:     "Aavegotchi",
+				Symbol:   "GOTCHI",
+				Standard: 721,
+				Address:  lo.ToPtr(common.HexToAddress("0x86935F11C86623deC8a25696E1C19a8659CbF95d").String()),
+				ID:       lo.ToPtr(decimal.NewFromInt(7302)),
+			},
+				Cost: metadata.Token{
+				Name:     "Aavegotchi GHST Token (PoS)",
+				Symbol:   "GHST",
+				Decimals: 18,
+				Standard: 20,
+				Address:  lo.ToPtr(common.HexToAddress("0x385Eeac5cB85A38A9a07A70c73e0a3271CfB54A7").String()),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("100000000000000000"))),
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1686291411,
 			},
@@ -556,7 +556,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Buy ERC721",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x914f2743c948677f68a969587831db27d357492d11c6a4600b2380a065a71906"),
@@ -742,47 +742,47 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      common.HexToHash("0x23d7f6c49c11e947066b7cd65c384a63e34715aaca4f0ed6eb2b876b8b3f74f9").String(),
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   14,
 				From:    common.HexToAddress("0xb9ad10b590bcd2b0db23d0005b2db0d53d9a1cf0").String(),
 				To:      common.HexToAddress("0x86935f11c86623dec8a25696e1c19a8659cbf95d").String(),
-				Type:    filter.TypeMetaverseTrade,
+				Type:    type.MetaverseTrade,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x66609c88",
-				},
+				FunctionHash: "0x66609c88",
+			},
 				Platform: lo.ToPtr(filter.PlatformAavegotchi),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("151529543089805376")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeMetaverseTrade,
-						Platform: filter.PlatformAavegotchi.String(),
-						From:     common.HexToAddress("0xa2faa3405a734c04ae713aaa837e6cecc2caee9f").String(),
-						To:       common.HexToAddress("0xb9ad10b590bcd2b0db23d0005b2db0d53d9a1cf0").String(),
-						Metadata: metadata.MetaverseTrade{
-							Action: metadata.ActionMetaverseTradeBuy,
-							Token: metadata.Token{
-								Name:     "Aavegotchi",
-								Symbol:   "GOTCHI",
-								Standard: 721,
-								Address:  lo.ToPtr(common.HexToAddress("0x86935F11C86623deC8a25696E1C19a8659CbF95d").String()),
-								ID:       lo.ToPtr(decimal.NewFromInt(1123)),
-							},
-							Cost: metadata.Token{
-								Name:     "Aavegotchi GHST Token (PoS)",
-								Symbol:   "GHST",
-								Decimals: 18,
-								Standard: 20,
-								Address:  lo.ToPtr(common.HexToAddress("0x385Eeac5cB85A38A9a07A70c73e0a3271CfB54A7").String()),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("685000000000000000000"))),
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("151529543089805376")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.MetaverseTrade,
+				Platform: filter.PlatformAavegotchi.String(),
+				From:     common.HexToAddress("0xa2faa3405a734c04ae713aaa837e6cecc2caee9f").String(),
+				To:       common.HexToAddress("0xb9ad10b590bcd2b0db23d0005b2db0d53d9a1cf0").String(),
+				Metadata: metadata.MetaverseTrade{
+				Action: metadata.ActionMetaverseTradeBuy,
+				Token: metadata.Token{
+				Name:     "Aavegotchi",
+				Symbol:   "GOTCHI",
+				Standard: 721,
+				Address:  lo.ToPtr(common.HexToAddress("0x86935F11C86623deC8a25696E1C19a8659CbF95d").String()),
+				ID:       lo.ToPtr(decimal.NewFromInt(1123)),
+			},
+				Cost: metadata.Token{
+				Name:     "Aavegotchi GHST Token (PoS)",
+				Symbol:   "GHST",
+				Decimals: 18,
+				Standard: 20,
+				Address:  lo.ToPtr(common.HexToAddress("0x385Eeac5cB85A38A9a07A70c73e0a3271CfB54A7").String()),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("685000000000000000000"))),
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1686229357,
 			},
@@ -791,8 +791,8 @@ func TestWorker_Ethereum(t *testing.T) {
 	}
 
 	config := &config.Module{
-		Network:  filter.NetworkPolygon,
-		Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+		Network:  network.Polygon,
+		Endpoint: endpoint.MustGet(network.Polygon),
 		Worker:   filter.Aavegotchi,
 	}
 

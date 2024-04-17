@@ -18,7 +18,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	redisx "github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -75,14 +75,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activity.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Transfer native token on Ethereum",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xea9d0ecd7a085aa998789e8e9c017a7d45f199873380ecb568218525171165b0"),
@@ -121,35 +121,35 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
-				ID:       "0x0c2f413efbc243f3bb8edac7e70bdc21936e01401a21b0d63e97732aa80f5d99",
-				Network:  filter.NetworkEthereum,
-				Index:    244,
-				From:     "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
-				To:       "0xA1b2DCAC834117F38FB0356b5176B5693E165c90",
-				Type:     filter.TypeTransactionTransfer,
+			want: &activity.Activity{
+				ID:      "0x0c2f413efbc243f3bb8edac7e70bdc21936e01401a21b0d63e97732aa80f5d99",
+				Network: network.Ethereum,
+				Index:   244,
+				From:    "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
+				To:      "0xA1b2DCAC834117F38FB0356b5176B5693E165c90",
+				Type:     type.TransactionTransfer,
 				Calldata: &schema.Calldata{},
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("335686667463000")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type: filter.TypeTransactionTransfer,
-						From: "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
-						To:   "0xA1b2DCAC834117F38FB0356b5176B5693E165c90",
-						Metadata: metadata.TransactionTransfer{
-							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("3739360016119348"))),
-							Name:     "Ethereum",
-							Symbol:   "ETH",
-							Decimals: 18,
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("335686667463000")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type: type.TransactionTransfer,
+				From: "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
+				To:   "0xA1b2DCAC834117F38FB0356b5176B5693E165c90",
+				Metadata: metadata.TransactionTransfer{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("3739360016119348"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1647774927,
 			},
@@ -159,7 +159,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Burn native token on Ethereum",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xd03bf8222ec4fca9dcaf36af91eeb7d97e3693d9560acc90379bee31390cbf83"),
@@ -198,35 +198,35 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
-				ID:       "0x228cab09172d5c01cdb0ad311ff384bfbbc9dc5cd149f9057bc9bd18ae7b491c",
-				Network:  filter.NetworkEthereum,
-				Index:    293,
-				From:     "0xc5750031497c6ae819578016Da83E035964418B8",
-				To:       "0x0000000000000000000000000000000000000000",
-				Type:     filter.TypeTransactionBurn,
+			want: &activity.Activity{
+				ID:      "0x228cab09172d5c01cdb0ad311ff384bfbbc9dc5cd149f9057bc9bd18ae7b491c",
+				Network: network.Ethereum,
+				Index:   293,
+				From:    "0xc5750031497c6ae819578016Da83E035964418B8",
+				To:      "0x0000000000000000000000000000000000000000",
+				Type:     type.TransactionBurn,
 				Calldata: &schema.Calldata{},
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("1155455364252000")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type: filter.TypeTransactionBurn,
-						From: "0xc5750031497c6ae819578016Da83E035964418B8",
-						To:   "0x0000000000000000000000000000000000000000",
-						Metadata: metadata.TransactionTransfer{
-							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1000000000000000000"))),
-							Name:     "Ethereum",
-							Symbol:   "ETH",
-							Decimals: 18,
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("1155455364252000")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type: type.TransactionBurn,
+				From: "0xc5750031497c6ae819578016Da83E035964418B8",
+				To:   "0x0000000000000000000000000000000000000000",
+				Metadata: metadata.TransactionTransfer{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1000000000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1685028899,
 			},
@@ -236,7 +236,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Transfer ERC-20 tokens on Ethereum",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x136e5166e4a3bf7545a6681d711cb661f3e5091d6bcdd30b4462c6bbb78ecd9f"),
@@ -289,39 +289,39 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x4de22d893cd30c987ec54f9d550d9e5fa7e1ce76767a82bc732d49a81cf4e408",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   22,
 				From:    "0xE93381fB4c4F14bDa253907b18faD305D799241a",
 				To:      "0xc98D64DA73a6616c42117b582e832812e7B8D57F",
-				Type:    filter.TypeTransactionTransfer,
+				Type:    type.TransactionTransfer,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xa9059cbb",
-				},
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("811508239167366")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type: filter.TypeTransactionTransfer,
-						From: "0xE93381fB4c4F14bDa253907b18faD305D799241a",
-						To:   "0x1b961e6604A6c830a8D907447F6fc7084dc61328",
-						Metadata: metadata.TransactionTransfer{
-							Address:  lo.ToPtr("0xc98D64DA73a6616c42117b582e832812e7B8D57F"),
-							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("150000000000000000000000"))),
-							Name:     "RSS3",
-							Symbol:   "RSS3",
-							Decimals: 18,
-							Standard: metadata.StandardERC20,
-						},
-					},
-				},
+				FunctionHash: "0xa9059cbb",
+			},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("811508239167366")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type: type.TransactionTransfer,
+				From: "0xE93381fB4c4F14bDa253907b18faD305D799241a",
+				To:   "0x1b961e6604A6c830a8D907447F6fc7084dc61328",
+				Metadata: metadata.TransactionTransfer{
+				Address:  lo.ToPtr("0xc98D64DA73a6616c42117b582e832812e7B8D57F"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("150000000000000000000000"))),
+				Name:     "RSS3",
+				Symbol:   "RSS3",
+				Decimals: 18,
+				Standard: metadata.StandardERC20,
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1692841715,
 			},
@@ -331,7 +331,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Transfer ERC-721 tokens on Ethereum",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xab6414e152d967ec1d7c32799367b7d9c550aac5984707dc4ee891d90fc3f096"),
@@ -399,54 +399,54 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x164b78e31e14e08c2e445050592ae58f1d72b26d541761c2f12f7c511ef89c8a",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   271,
 				From:    "0x123456D72E335b4415b7A5665C254578575a8A0e",
 				To:      "0x5452C7fB99D99fAb3Cc1875E9DA9829Cb50F7A13",
-				Type:    filter.TypeCollectibleTransfer,
+				Type:    type.CollectibleTransfer,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x23b872dd",
-				},
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("941262359203425")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type: filter.TypeCollectibleApproval,
-						From: "0x123456D72E335b4415b7A5665C254578575a8A0e",
-						To:   ethereum.AddressGenesis.String(),
-						Metadata: metadata.CollectibleApproval{
-							Action: metadata.ActionCollectibleApprovalRevoke,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0x5452C7fB99D99fAb3Cc1875E9DA9829Cb50F7A13"),
-								ID:       lo.ToPtr(decimal.NewFromInt(1032)),
-								Name:     "The Genesis RSS3 Avatar NFT",
-								Symbol:   "The Genesis RSS3 Avatar NFT",
-								Standard: metadata.StandardERC721,
-							},
-						},
-					},
-					{
-						Type: filter.TypeCollectibleTransfer,
-						From: "0x123456D72E335b4415b7A5665C254578575a8A0e",
-						To:   "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
-						Metadata: metadata.CollectibleTransfer{
-							Address:  lo.ToPtr("0x5452C7fB99D99fAb3Cc1875E9DA9829Cb50F7A13"),
-							ID:       lo.ToPtr(decimal.NewFromInt(1032)),
-							Value:    lo.ToPtr(decimal.New(1, 0)),
-							Name:     "The Genesis RSS3 Avatar NFT",
-							Symbol:   "The Genesis RSS3 Avatar NFT",
-							Standard: metadata.StandardERC721,
-						},
-					},
-				},
+				FunctionHash: "0x23b872dd",
+			},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("941262359203425")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type: type.CollectibleApproval,
+				From: "0x123456D72E335b4415b7A5665C254578575a8A0e",
+				To:   ethereum.AddressGenesis.String(),
+				Metadata: metadata.CollectibleApproval{
+				Action: metadata.ActionCollectibleApprovalRevoke,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0x5452C7fB99D99fAb3Cc1875E9DA9829Cb50F7A13"),
+				ID:       lo.ToPtr(decimal.NewFromInt(1032)),
+				Name:     "The Genesis RSS3 Avatar NFT",
+				Symbol:   "The Genesis RSS3 Avatar NFT",
+				Standard: metadata.StandardERC721,
+			},
+			},
+			},
+			{
+				Type: type.CollectibleTransfer,
+				From: "0x123456D72E335b4415b7A5665C254578575a8A0e",
+				To:   "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
+				Metadata: metadata.CollectibleTransfer{
+				Address:  lo.ToPtr("0x5452C7fB99D99fAb3Cc1875E9DA9829Cb50F7A13"),
+				ID:       lo.ToPtr(decimal.NewFromInt(1032)),
+				Value:    lo.ToPtr(decimal.New(1, 0)),
+				Name:     "The Genesis RSS3 Avatar NFT",
+				Symbol:   "The Genesis RSS3 Avatar NFT",
+				Standard: metadata.StandardERC721,
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1649557790,
 			},
@@ -456,7 +456,7 @@ func TestWorker_Ethereum(t *testing.T) {
 		// 	name: "Transfer ERC-1155 tokens on Ethereum",
 		// 	arguments: arguments{
 		// 		task: &source.Task{
-		// 			Network: filter.NetworkEthereum,
+		// 			Network: network.Ethereum,
 		// 			ChainID: 1,
 		// 			Header: &ethereum.Header{
 		// 				Hash:         common.HexToHash("0xee79fe890d57acb46271930ea27018fb2701be815d8f2f4c10564b8df520dd76"),
@@ -510,24 +510,24 @@ func TestWorker_Ethereum(t *testing.T) {
 		// 			},
 		// 		},
 		// 		config: &config.Module{
-		// 			Network:  filter.NetworkEthereum,
-		// 			Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+		// 			Network:  network.Ethereum,
+		// 			Endpoint: endpoint.MustGet(network.Ethereum),
 		// 		},
 		// 	},
-		// 	want: &schema.Feed{
+		// 	want: &activity.Activity{
 		// 		ID:      "0x344c70bb46d4ce1cc56a7aacd67092a17e854bf141818c8f0c66df60c61aea92",
-		// 		Network: filter.NetworkEthereum,
+		// 		Network: network.Ethereum,
 		// 		Index:   135,
 		// 		From:    "0x6C9AE8e43AF92BB4CA6E040A610c6eF42C0245C6",
 		// 		To:      "0x8442864d6AB62a9193be2F16580c08E0D7BCda2f",
-		// 		Type:    filter.TypeCollectibleTransfer,
-		// 		Fee: &schema.Fee{
+		// 		Type:    type.CollectibleTransfer,
+		// 		Fee: &activity.Fee{
 		// 			Amount:  lo.Must(decimal.NewFromString("1018675320043040")),
 		// 			Decimal: 18,
 		// 		},
-		// 		Actions: []*schema.Action{
+		// 		Actions: []*activity.Action{
 		// 			{
-		// 				Type: filter.TypeCollectibleTransfer,
+		// 				Type: type.CollectibleTransfer,
 		// 				From: "0x6C9AE8e43AF92BB4CA6E040A610c6eF42C0245C6",
 		// 				To:   "0xBE39b72D425BAe21e547dBE5718b14692011a908",
 		// 				Metadata: metadata.CollectibleTransfer{
@@ -549,7 +549,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Transfer ETH on Base",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 8453,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x24c8559fb47d3a9320c868b30c257255d6ca3430ddb18264f46554578b9665e4"),
@@ -593,35 +593,35 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
-				ID:       "0xc5bb7e79738b494b9742ccc78451e4884304ad22471dbbaaf6fc70d5572ae284",
-				Network:  filter.NetworkEthereum,
-				Index:    8,
-				From:     "0x1d97d5c7d68E03BAe6FBb1ec6E5887d6eAaaAA7d",
-				To:       "0xdd9176eA3E7559D6B68b537eF555D3e89403f742",
-				Type:     filter.TypeTransactionTransfer,
+			want: &activity.Activity{
+				ID:      "0xc5bb7e79738b494b9742ccc78451e4884304ad22471dbbaaf6fc70d5572ae284",
+				Network: network.Ethereum,
+				Index:   8,
+				From:    "0x1d97d5c7d68E03BAe6FBb1ec6E5887d6eAaaAA7d",
+				To:      "0xdd9176eA3E7559D6B68b537eF555D3e89403f742",
+				Type:     type.TransactionTransfer,
 				Calldata: &schema.Calldata{},
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("50290295402717")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type: filter.TypeTransactionTransfer,
-						From: "0x1d97d5c7d68E03BAe6FBb1ec6E5887d6eAaaAA7d",
-						To:   "0xdd9176eA3E7559D6B68b537eF555D3e89403f742",
-						Metadata: metadata.TransactionTransfer{
-							Name:     "Ethereum",
-							Symbol:   "ETH",
-							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("550000000000000000"))),
-							Decimals: 18,
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("50290295402717")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type: type.TransactionTransfer,
+				From: "0x1d97d5c7d68E03BAe6FBb1ec6E5887d6eAaaAA7d",
+				To:   "0xdd9176eA3E7559D6B68b537eF555D3e89403f742",
+				Metadata: metadata.TransactionTransfer{
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("550000000000000000"))),
+				Decimals: 18,
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1691650077,
 			},
@@ -631,7 +631,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Get Function Name From Calldata",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x44b99ccd1008d85a47683a2cdb428751f41441eeed3ad91ec4f621c390f58335"),
@@ -696,25 +696,25 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xded5fd30829d08dcf608539e993c5916f23c19c48ee0ebac8b748e9aec1e6ce5",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   160,
 				From:    "0x38d004aea23c1DC86F9cFF25dcda840Ae9dF8dAe",
 				To:      "0xF047ab4c75cebf0eB9ed34Ae2c186f3611aEAfa6",
-				Type:    filter.TypeUnknown,
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("1995855251931234")),
-					Decimal: 18,
-				},
+				Type:    type.Unknown,
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("1995855251931234")),
+				Decimal: 18,
+			},
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xf6203e35",
-				},
-				Actions:   []*schema.Action{},
+				FunctionHash: "0xf6203e35",
+			},
+				Actions:   []*activity.Action{},
 				Status:    true,
 				Timestamp: 1708946831,
 			},
@@ -724,7 +724,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Transfer RSS3 on RSS3 Mainnet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkVSL,
+					Network: network.VSL,
 					ChainID: 12553,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xa77316fd6775123ef7eb4edaa8dd9604227b62c6ea2970fd813ebd38deff3ed7"),
@@ -768,35 +768,35 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkVSL,
-					Endpoint: endpoint.MustGet(filter.NetworkVSL),
+					Network:  network.VSL,
+					Endpoint: endpoint.MustGet(network.VSL),
 				},
 			},
-			want: &schema.Feed{
-				ID:       "0xa2e19137d6164d8a73e031c6ad34dd44f4c6244996e5250485e4c4dbb08e6d06",
-				Network:  filter.NetworkVSL,
-				Index:    1,
-				From:     "0x27005E931Ea9ff482a3e5deb4c6eFa980305d74a",
-				To:       "0xDBEe696fA4398649DFD6a6B9F474B7Dfd4CAA7e0",
-				Type:     filter.TypeTransactionTransfer,
+			want: &activity.Activity{
+				ID:      "0xa2e19137d6164d8a73e031c6ad34dd44f4c6244996e5250485e4c4dbb08e6d06",
+				Network: network.VSL,
+				Index:   1,
+				From:    "0x27005E931Ea9ff482a3e5deb4c6eFa980305d74a",
+				To:      "0xDBEe696fA4398649DFD6a6B9F474B7Dfd4CAA7e0",
+				Type:     type.TransactionTransfer,
 				Calldata: &schema.Calldata{},
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("654191108761866000")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type: filter.TypeTransactionTransfer,
-						From: "0x27005E931Ea9ff482a3e5deb4c6eFa980305d74a",
-						To:   "0xDBEe696fA4398649DFD6a6B9F474B7Dfd4CAA7e0",
-						Metadata: metadata.TransactionTransfer{
-							Name:     "RSS3",
-							Symbol:   "RSS3",
-							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("10000000000000000000000"))),
-							Decimals: 18,
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("654191108761866000")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type: type.TransactionTransfer,
+				From: "0x27005E931Ea9ff482a3e5deb4c6eFa980305d74a",
+				To:   "0xDBEe696fA4398649DFD6a6B9F474B7Dfd4CAA7e0",
+				Metadata: metadata.TransactionTransfer{
+				Name:     "RSS3",
+				Symbol:   "RSS3",
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("10000000000000000000000"))),
+				Decimals: 18,
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1710223415,
 			},
@@ -806,7 +806,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Transfer WETH tokens on RSS3 Mainnet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkVSL,
+					Network: network.VSL,
 					ChainID: 12553,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x94150fd1dff8f4353e66e81f48a3e03c2f341d03bd1c3297f30e96b27ed73954"),
@@ -862,39 +862,39 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkVSL,
-					Endpoint: endpoint.MustGet(filter.NetworkVSL),
+					Network:  network.VSL,
+					Endpoint: endpoint.MustGet(network.VSL),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xdfd0b84e7a7e076f97f69e5027117edc7bc34f849165d9b2adc95f7cae44455b",
-				Network: filter.NetworkVSL,
+				Network: network.VSL,
 				Index:   1,
 				From:    "0xF209b7Bbadf8d9518a822aEaa7119B38b17377A7",
 				To:      "0xB659A97D8ae3c43E91Eafe5dba110a7e799157c4",
-				Type:    filter.TypeTransactionTransfer,
+				Type:    type.TransactionTransfer,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xa9059cbb",
-				},
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("1013690438583071400")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type: filter.TypeTransactionTransfer,
-						From: "0xF209b7Bbadf8d9518a822aEaa7119B38b17377A7",
-						To:   "0x01D1843CbCFfF37B298a09A03939c90dab191622",
-						Metadata: metadata.TransactionTransfer{
-							Address:  lo.ToPtr("0xB659A97D8ae3c43E91Eafe5dba110a7e799157c4"),
-							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("100000000000000000"))),
-							Name:     "WETH",
-							Symbol:   "WETH",
-							Decimals: 18,
-							Standard: metadata.StandardERC20,
-						},
-					},
-				},
+				FunctionHash: "0xa9059cbb",
+			},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("1013690438583071400")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type: type.TransactionTransfer,
+				From: "0xF209b7Bbadf8d9518a822aEaa7119B38b17377A7",
+				To:   "0x01D1843CbCFfF37B298a09A03939c90dab191622",
+				Metadata: metadata.TransactionTransfer{
+				Address:  lo.ToPtr("0xB659A97D8ae3c43E91Eafe5dba110a7e799157c4"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("100000000000000000"))),
+				Name:     "WETH",
+				Symbol:   "WETH",
+				Decimals: 18,
+				Standard: metadata.StandardERC20,
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1710301039,
 			},
@@ -904,7 +904,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Mint Open Chips tokens on Ethereum",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkVSL,
+					Network: network.VSL,
 					ChainID: 12553,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xc358a8dc0da6cac588e5a98b805d60cd5d2746eced7606cb153155fccd6ea460"),
@@ -974,39 +974,39 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkVSL,
-					Endpoint: endpoint.MustGet(filter.NetworkVSL),
+					Network:  network.VSL,
+					Endpoint: endpoint.MustGet(network.VSL),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x26fbdff8a7af1a1917b6dd8a54c636151cb7186a6b3c3a5922df3a98edda54a8",
-				Network: filter.NetworkVSL,
+				Network: network.VSL,
 				Index:   1,
 				From:    "0x30286DD245338292F319809935a1037CcD4573Ea",
 				To:      "0x28F14d917fddbA0c1f2923C406952478DfDA5578",
-				Type:    filter.TypeCollectibleMint,
+				Type:    type.CollectibleMint,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x26476204",
-				},
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("772196357569891650")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type: filter.TypeCollectibleMint,
-						From: "0x0000000000000000000000000000000000000000",
-						To:   "0x30286DD245338292F319809935a1037CcD4573Ea",
-						Metadata: metadata.CollectibleTransfer{
-							Address:  lo.ToPtr("0x849f8F55078dCc69dD857b58Cc04631EBA54E4DE"),
-							ID:       lo.ToPtr(decimal.NewFromInt(162)),
-							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
-							Name:     "Open Chips",
-							Symbol:   "Chips",
-							Standard: metadata.StandardERC721,
-						},
-					},
-				},
+				FunctionHash: "0x26476204",
+			},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("772196357569891650")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type: type.CollectibleMint,
+				From: "0x0000000000000000000000000000000000000000",
+				To:   "0x30286DD245338292F319809935a1037CcD4573Ea",
+				Metadata: metadata.CollectibleTransfer{
+				Address:  lo.ToPtr("0x849f8F55078dCc69dD857b58Cc04631EBA54E4DE"),
+				ID:       lo.ToPtr(decimal.NewFromInt(162)),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
+				Name:     "Open Chips",
+				Symbol:   "Chips",
+				Standard: metadata.StandardERC721,
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1710228453,
 			},
@@ -1017,7 +1017,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Transfer WBTC tokens on SAVM Alpha Mainnet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkSatoshiVM,
+					Network: network.SatoshiVM,
 					ChainID: 3109,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x67cdef9e2558ebd2d278035a010abd52b617e90c1e588c5a762c2e7b5a837f38"),
@@ -1069,25 +1069,25 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkSatoshiVM,
-					Endpoint: endpoint.MustGet(filter.NetworkSatoshiVM),
+					Network:  network.SatoshiVM,
+					Endpoint: endpoint.MustGet(network.SatoshiVM),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xf0db1d72d78fadc2740d6ab75a8f561ebd81ddaa3a78628afd59320f945150fc",
-				Network: filter.NetworkSatoshiVM,
+				Network: network.SatoshiVM,
 				Index:   0,
 				From:    "0x9Fc5B67633C82607e2e6ab02BA4fd0c4CF8cbFfb",
 				To:      "0x5db252ead05C54B08A83414adCAbF46Eaa9E0337",
-				Type:    filter.TypeUnknown,
+				Type:    type.Unknown,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x2e1a7d4d",
-				},
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("47757150000000")),
-					Decimal: 18,
-				},
-				Actions:   []*schema.Action{},
+				FunctionHash: "0x2e1a7d4d",
+			},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("47757150000000")),
+				Decimal: 18,
+			},
+				Actions:   []*activity.Action{},
 				Status:    true,
 				Timestamp: 1710570057,
 			},
@@ -1097,7 +1097,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Approve SAVM tokens on SAVM Alpha Mainnet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkSatoshiVM,
+					Network: network.SatoshiVM,
 					ChainID: 3109,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x98e90ef0ac2c35830a73294d35787697ee321993fa21d8a715770a68a7ce7011"),
@@ -1150,42 +1150,42 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkSatoshiVM,
-					Endpoint: endpoint.MustGet(filter.NetworkSatoshiVM),
+					Network:  network.SatoshiVM,
+					Endpoint: endpoint.MustGet(network.SatoshiVM),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xf28475ceeb1fc4857012fa9b26d415a137c7d6ccc1e842ebae4aca6d1cf83de9",
-				Network: filter.NetworkSatoshiVM,
+				Network: network.SatoshiVM,
 				Index:   0,
 				From:    "0x5481300cF3632225E833868f120826680E3688d8",
 				To:      "0x0E02765992f946397E6d2e65642eABb9cc674928",
-				Type:    filter.TypeTransactionApproval,
+				Type:    type.TransactionApproval,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x095ea7b3",
-				},
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("3491250000000")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type: filter.TypeTransactionApproval,
-						From: "0x5481300cF3632225E833868f120826680E3688d8",
-						To:   "0x14743ab346b36a3d48bE6842f178dEAdB8A71623",
-						Metadata: metadata.TransactionApproval{
-							Action: metadata.ActionTransactionApprove,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0x0E02765992f946397E6d2e65642eABb9cc674928"),
-								Name:     "SatoshiVM",
-								Symbol:   "SAVM",
-								Decimals: 18,
-								Standard: metadata.StandardERC20,
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("115792089237316195423570985008687907853269984665640564039457584007913129639935"))),
-							},
-						},
-					},
-				},
+				FunctionHash: "0x095ea7b3",
+			},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("3491250000000")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type: type.TransactionApproval,
+				From: "0x5481300cF3632225E833868f120826680E3688d8",
+				To:   "0x14743ab346b36a3d48bE6842f178dEAdB8A71623",
+				Metadata: metadata.TransactionApproval{
+				Action: metadata.ActionTransactionApprove,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0x0E02765992f946397E6d2e65642eABb9cc674928"),
+				Name:     "SatoshiVM",
+				Symbol:   "SAVM",
+				Decimals: 18,
+				Standard: metadata.StandardERC20,
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("115792089237316195423570985008687907853269984665640564039457584007913129639935"))),
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1710749793,
 			},

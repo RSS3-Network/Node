@@ -9,7 +9,7 @@ import (
 	worker "github.com/rss3-network/node/internal/engine/worker/fallback/arweave"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -27,14 +27,14 @@ func TestWorker_Arweave(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activity.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Arweave native transfer",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkArweave,
+					Network: network.Arweave,
 					Transaction: arweave.Transaction{
 						ID:       "mQFakpEtbvv8eAjxmWYLcIO8QJJP2ZFYOhP1imDcnuY",
 						Reward:   "3847185",
@@ -47,27 +47,27 @@ func TestWorker_Arweave(t *testing.T) {
 					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "mQFakpEtbvv8eAjxmWYLcIO8QJJP2ZFYOhP1imDcnuY",
-				Network: filter.NetworkArweave,
+				Network: network.Arweave,
 				Index:   0,
 				From:    "JaUubKRNhJP9i1iDFt-n_s0zzqV97x8d_7ex3ZZv3CE",
 				To:      "4u5gMvlfVhkn_atzuagjO92H_xJLtVNjucSfEYBrL0E",
-				Type:    filter.TypeTransactionTransfer,
-				Fee: &schema.Fee{
-					Amount:  decimal.NewFromInt(3847185),
-					Decimal: 12,
-				},
-				Actions: []*schema.Action{
-					{
-						Type: filter.TypeTransactionTransfer,
-						From: "JaUubKRNhJP9i1iDFt-n_s0zzqV97x8d_7ex3ZZv3CE",
-						To:   "4u5gMvlfVhkn_atzuagjO92H_xJLtVNjucSfEYBrL0E",
-						Metadata: metadata.TransactionTransfer{
-							Value: lo.ToPtr(lo.Must(decimal.NewFromString("14243667552815"))),
-						},
-					},
-				},
+				Type:    type.TransactionTransfer,
+				Fee: &activity.Fee{
+				Amount:  decimal.NewFromInt(3847185),
+				Decimal: 12,
+			},
+				Actions: []*activity.Action{
+			{
+				Type: type.TransactionTransfer,
+				From: "JaUubKRNhJP9i1iDFt-n_s0zzqV97x8d_7ex3ZZv3CE",
+				To:   "4u5gMvlfVhkn_atzuagjO92H_xJLtVNjucSfEYBrL0E",
+				Metadata: metadata.TransactionTransfer{
+				Value: lo.ToPtr(lo.Must(decimal.NewFromString("14243667552815"))),
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1689914323,
 			},

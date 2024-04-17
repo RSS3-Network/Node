@@ -14,7 +14,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/savm"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -53,7 +53,7 @@ func (w *worker) Match(_ context.Context, _ engine.Task) (bool, error) {
 	return true, nil // TODO Remove this function.
 }
 
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -66,7 +66,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 	for _, log := range ethereumTask.Receipt.Logs {
 		var (
-			actions []*schema.Action
+			actions []*activity.Action
 			err     error
 		)
 
@@ -94,7 +94,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			return nil, err
 		}
 
-		feed.Type = filter.TypeTransactionBridge
+		feed.Type =
+		type.TransactionBridge
 		feed.Actions = append(feed.Actions, actions...)
 	}
 
@@ -113,53 +114,53 @@ func (w *worker) matchSAVMTransferLog(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == savm.AddressSAVMToken && log.Topics[0] == savm.EventHashSAVMTransfer
 }
 
-func (w *worker) transformBTCBridgeWithdrawLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformBTCBridgeWithdrawLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	event, err := w.contractBTCBridgeFilterer.ParseWithdraw(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Withdraw event: %w", err)
 	}
 
-	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.Sender, event.Sender, filter.NetworkSatoshiVM, filter.NetworkBitcoin, metadata.ActionTransactionBridgeWithdraw, nil, event.NormalizedAmount, log.BlockNumber)
+	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.Sender, event.Sender, network.SatoshiVM, network.Bitcoin, metadata.ActionTransactionBridgeWithdraw, nil, event.NormalizedAmount, log.BlockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("build transaction bridge action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activity.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) transformBTCBridgeDepositLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformBTCBridgeDepositLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	event, err := w.contractBTCBridgeFilterer.ParseDeposit(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Deposit event: %w", err)
 	}
 
-	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.Recipient, event.Recipient, filter.NetworkBitcoin, filter.NetworkSatoshiVM, metadata.ActionTransactionBridgeDeposit, nil, event.NormalizedAmount, log.BlockNumber)
+	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.Recipient, event.Recipient, network.Bitcoin, network.SatoshiVM, metadata.ActionTransactionBridgeDeposit, nil, event.NormalizedAmount, log.BlockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("build transaction bridge action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activity.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) transformSAVMBridgeLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformSAVMBridgeLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	event, err := w.erc20Filterer.ParseTransfer(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Withdraw event: %w", err)
 	}
 
-	var actions []*schema.Action
+	var actions []*activity.Action
 
 	switch event.To {
 	case savm.AddressSAVMBridge:
-		action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.From, event.From, filter.NetworkSatoshiVM, filter.NetworkEthereum, metadata.ActionTransactionBridgeWithdraw, &savm.AddressSAVMToken, event.Value, log.BlockNumber)
+		action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.From, event.From, network.SatoshiVM, network.Ethereum, metadata.ActionTransactionBridgeWithdraw, &savm.AddressSAVMToken, event.Value, log.BlockNumber)
 		if err != nil {
 			return nil, fmt.Errorf("build transaction bridge action: %w", err)
 		}
@@ -170,7 +171,7 @@ func (w *worker) transformSAVMBridgeLog(ctx context.Context, task *source.Task, 
 	return actions, nil
 }
 
-func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address, source, target filter.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int, blockNumber *big.Int) (*schema.Action, error) {
+func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address, source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int, blockNumber *big.Int) (*activity.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
@@ -178,17 +179,17 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
-	action := schema.Action{
-		Type:     filter.TypeTransactionBridge,
+	action := activity.Action{
+		Type:     type.TransactionBridge,
 		Platform: filter.PlatformSAVM.String(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.TransactionBridge{
-			Action:        bridgeAction,
-			SourceNetwork: source,
-			TargetNetwork: target,
-			Token:         *tokenMetadata,
-		},
+		Action:        bridgeAction,
+		SourceNetwork: source,
+		TargetNetwork: target,
+		Token:         *tokenMetadata,
+	},
 	}
 
 	return &action, nil

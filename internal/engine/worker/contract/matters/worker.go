@@ -20,7 +20,7 @@ import (
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/ipfs"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -58,11 +58,11 @@ func (w *worker) Filter() engine.SourceFilter {
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
+	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
 // Transform matters task to feed.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	// Cast the task to a matters task.
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
@@ -82,7 +82,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		}
 
 		var (
-			actions []*schema.Action
+			actions []*activity.Action
 			err     error
 		)
 
@@ -112,8 +112,9 @@ func (w *worker) matchEthereumCurationTransaction(log *ethereum.Log) bool {
 	return len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], matters.EventCuration)
 }
 
-func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task source.Task, log ethereum.Log, feed *schema.Feed) ([]*schema.Action, error) {
-	feed.Type = filter.TypeSocialReward
+func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task source.Task, log ethereum.Log, feed *activity.Activity) ([]*activity.Action, error) {
+	feed.Type =
+	type.SocialReward
 
 	export := log.Export()
 
@@ -128,7 +129,7 @@ func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task sou
 		return nil, fmt.Errorf("build social reward action: %w", err)
 	}
 
-	return []*schema.Action{action}, nil
+	return []*activity.Action{action}, nil
 }
 func (w *worker) fetchArticle(ctx context.Context, uri string) (*readability.Article, error) {
 	_, path, err := ipfs.ParseURL(uri)
@@ -200,7 +201,7 @@ func (w *worker) removeUnusedHTMLTags(node *html.Node) {
 		}
 	}
 }
-func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Task, trigger, recipient, token common.Address, amount *big.Int, uri string) (*schema.Action, error) {
+func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Task, trigger, recipient, token common.Address, amount *big.Int, uri string) (*activity.Action, error) {
 	article, err := w.fetchArticle(ctx, uri)
 
 	if err != nil || article == nil {
@@ -214,21 +215,21 @@ func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Ta
 
 	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
 
-	return &schema.Action{
-		Type:     filter.TypeSocialReward,
+	return &activity.Action{
+		Type:     type.SocialReward,
 		Tag:      filter.TagSocial,
 		Platform: filter.PlatformMatters.String(),
 		From:     trigger.String(),
 		To:       recipient.String(),
 		Metadata: &metadata.SocialPost{
-			Reward: rewardTokenMetadata,
-			Target: &metadata.SocialPost{
-				Handle:  article.Byline,
-				Title:   article.Title,
-				Summary: article.Excerpt,
-				Body:    article.Content,
-			},
-		},
+		Reward: rewardTokenMetadata,
+		Target: &metadata.SocialPost{
+		Handle:  article.Byline,
+		Title:   article.Title,
+		Summary: article.Excerpt,
+		Body:    article.Content,
+	},
+	},
 	}, nil
 }
 

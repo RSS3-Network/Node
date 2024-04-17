@@ -13,7 +13,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -31,14 +31,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activity.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Kiwistand Mint",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkOptimism,
+					Network: network.Optimism,
 					ChainID: 10,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x34e94a884c38722a326185213fc4b7788c51a0b5bb8fe2b9f1c9127b7f0ad935"),
@@ -134,111 +134,111 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkOptimism,
-					Endpoint: endpoint.MustGet(filter.NetworkOptimism),
+					Network:  network.Optimism,
+					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &schema.Feed{
-				ID:       "0xa4ded3ac75f8aef67c01e836306097b588548fae57d51da376f0acbaa8387557",
-				Network:  filter.NetworkOptimism,
-				Index:    44,
-				From:     "0xf70da97812CB96acDF810712Aa562db8dfA3dbEF",
-				To:       "0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45",
-				Type:     filter.TypeCollectibleMint,
+			want: &activity.Activity{
+				ID:      "0xa4ded3ac75f8aef67c01e836306097b588548fae57d51da376f0acbaa8387557",
+				Network: network.Optimism,
+				Index:   44,
+				From:    "0xf70da97812CB96acDF810712Aa562db8dfA3dbEF",
+				To:      "0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45",
+				Type:     type.CollectibleMint,
 				Platform: lo.ToPtr(filter.PlatformKiwiStand),
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x45368181",
-				},
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("42973612821323")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeTransactionTransfer,
-						Platform: filter.PlatformKiwiStand.String(),
-						From:     common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
-						To:       common.HexToAddress("0x7777777F279eba3d3Ad8F4E708545291A6fDBA8B").String(),
-						Metadata: metadata.TransactionTransfer{
-							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("222000000000000"))),
-							Name:     "Ethereum",
-							Symbol:   "ETH",
-							Decimals: 18,
-						},
-					},
-					{
-						Type:     filter.TypeTransactionTransfer,
-						Platform: filter.PlatformKiwiStand.String(),
-						From:     common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
-						To:       common.HexToAddress("0x7777777F279eba3d3Ad8F4E708545291A6fDBA8B").String(),
-						Metadata: metadata.TransactionTransfer{
-							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("222000000000000"))),
-							Name:     "Ethereum",
-							Symbol:   "ETH",
-							Decimals: 18,
-						},
-					},
-					{
-						Type:     filter.TypeTransactionTransfer,
-						Platform: filter.PlatformKiwiStand.String(),
-						From:     common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
-						To:       common.HexToAddress("0x7777777F279eba3d3Ad8F4E708545291A6fDBA8B").String(),
-						Metadata: metadata.TransactionTransfer{
-							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("111000000000000"))),
-							Name:     "Ethereum",
-							Symbol:   "ETH",
-							Decimals: 18,
-						},
-					},
-					{
-						Type:     filter.TypeTransactionTransfer,
-						Platform: filter.PlatformKiwiStand.String(),
-						From:     common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
-						To:       common.HexToAddress("0x7777777F279eba3d3Ad8F4E708545291A6fDBA8B").String(),
-						Metadata: metadata.TransactionTransfer{
-							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("222000000000000"))),
-							Name:     "Ethereum",
-							Symbol:   "ETH",
-							Decimals: 18,
-						},
-					},
-					{
-						Type:     filter.TypeCollectibleMint,
-						Platform: filter.PlatformKiwiStand.String(),
-						From:     ethereum.AddressGenesis.String(),
-						To:       common.HexToAddress("0x68b885F956e3F0457f39B1d9eFDeD041A99AF915").String(),
-						Metadata: metadata.CollectibleTransfer{
-							Address:  lo.ToPtr("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45"),
-							ID:       lo.ToPtr(decimal.NewFromBigInt(big.NewInt(979), 0)),
-							Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
-							Name:     "Kiwi Pass",
-							Symbol:   "$KIWI",
-							Standard: metadata.StandardERC721,
-						},
-					},
-					{
-						Type:     filter.TypeTransactionTransfer,
-						Platform: filter.PlatformKiwiStand.String(),
-						From:     common.HexToAddress("0xf70da97812CB96acDF810712Aa562db8dfA3dbEF").String(),
-						To:       common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
-						Metadata: metadata.TransactionTransfer{
-							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("2560000000000000"))),
-							Name:     "Ethereum",
-							Symbol:   "ETH",
-							Decimals: 18,
-						},
-					},
-					{
-						Type:     filter.TypeSocialMint,
-						Platform: filter.PlatformKiwiStand.String(),
-						From:     common.HexToAddress("0xf70da97812CB96acDF810712Aa562db8dfA3dbEF").String(),
-						To:       common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
-						Metadata: &metadata.SocialPost{
-							Title: "LFG",
-							Body:  "LFG",
-						},
-					},
-				},
+				FunctionHash: "0x45368181",
+			},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("42973612821323")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.TransactionTransfer,
+				Platform: filter.PlatformKiwiStand.String(),
+				From:     common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
+				To:       common.HexToAddress("0x7777777F279eba3d3Ad8F4E708545291A6fDBA8B").String(),
+				Metadata: metadata.TransactionTransfer{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("222000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			{
+				Type:     type.TransactionTransfer,
+				Platform: filter.PlatformKiwiStand.String(),
+				From:     common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
+				To:       common.HexToAddress("0x7777777F279eba3d3Ad8F4E708545291A6fDBA8B").String(),
+				Metadata: metadata.TransactionTransfer{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("222000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			{
+				Type:     type.TransactionTransfer,
+				Platform: filter.PlatformKiwiStand.String(),
+				From:     common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
+				To:       common.HexToAddress("0x7777777F279eba3d3Ad8F4E708545291A6fDBA8B").String(),
+				Metadata: metadata.TransactionTransfer{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("111000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			{
+				Type:     type.TransactionTransfer,
+				Platform: filter.PlatformKiwiStand.String(),
+				From:     common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
+				To:       common.HexToAddress("0x7777777F279eba3d3Ad8F4E708545291A6fDBA8B").String(),
+				Metadata: metadata.TransactionTransfer{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("222000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			{
+				Type:     type.CollectibleMint,
+				Platform: filter.PlatformKiwiStand.String(),
+				From:     ethereum.AddressGenesis.String(),
+				To:       common.HexToAddress("0x68b885F956e3F0457f39B1d9eFDeD041A99AF915").String(),
+				Metadata: metadata.CollectibleTransfer{
+				Address:  lo.ToPtr("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45"),
+				ID:       lo.ToPtr(decimal.NewFromBigInt(big.NewInt(979), 0)),
+				Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
+				Name:     "Kiwi Pass",
+				Symbol:   "$KIWI",
+				Standard: metadata.StandardERC721,
+			},
+			},
+			{
+				Type:     type.TransactionTransfer,
+				Platform: filter.PlatformKiwiStand.String(),
+				From:     common.HexToAddress("0xf70da97812CB96acDF810712Aa562db8dfA3dbEF").String(),
+				To:       common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
+				Metadata: metadata.TransactionTransfer{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("2560000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			{
+				Type:     type.SocialMint,
+				Platform: filter.PlatformKiwiStand.String(),
+				From:     common.HexToAddress("0xf70da97812CB96acDF810712Aa562db8dfA3dbEF").String(),
+				To:       common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
+				Metadata: &metadata.SocialPost{
+				Title: "LFG",
+				Body:  "LFG",
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1706767425,
 			},

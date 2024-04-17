@@ -10,7 +10,7 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -33,11 +33,11 @@ func (w *worker) Filter() engine.SourceFilter {
 
 // Match returns true if the task is an Arweave task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkArweaveSource, nil
+	return task.GetNetwork().Source() == network.ArweaveSource, nil
 }
 
 // Transform returns a feed with the action of the task.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
@@ -78,7 +78,7 @@ func (w *worker) matchArweaveNativeTransferTransaction(task *source.Task) bool {
 }
 
 // handleArweaveNativeTransferTransaction returns the action of the native transfer transaction.
-func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, task *source.Task) (*schema.Action, error) {
+func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, task *source.Task) (*activity.Action, error) {
 	value, ok := new(big.Int).SetString(task.Transaction.Quantity, 10)
 	if !ok {
 		return nil, fmt.Errorf("parse transaction quantity %s", task.Transaction.Quantity)
@@ -95,14 +95,14 @@ func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, tas
 }
 
 // buildArweaveTransactionTransferAction returns the native transfer transaction action.
-func (w *worker) buildArweaveTransactionTransferAction(_ context.Context, from, to string, tokenValue *big.Int) (*schema.Action, error) {
-	action := schema.Action{
-		Type: filter.TypeTransactionTransfer,
+func (w *worker) buildArweaveTransactionTransferAction(_ context.Context, from, to string, tokenValue *big.Int) (*activity.Action, error) {
+	action := activity.Action{
+		Type: type.TransactionTransfer,
 		From: from,
 		To:   to,
 		Metadata: metadata.TransactionTransfer{
-			Value: lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0)),
-		},
+		Value: lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0)),
+	},
 	}
 
 	return &action, nil

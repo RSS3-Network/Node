@@ -14,7 +14,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/optimism"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -32,14 +32,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activity.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Deposit ETH from L1 to L2",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x7104a8431d9da16cd21385e840508fa7b657a9a6d9ad7b7b43efadbf5abd060c"),
@@ -144,44 +144,44 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x3da542a1670a828838d2916d33be51de1b505e8700ffbb4ef26f31abc4184bc1",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   124,
 				From:    "0x31E7B932C655628fDA6F22f063D550d990dBA726",
 				To:      optimism.AddressL1StandardBridge.String(),
-				Type:    filter.TypeTransactionBridge,
+				Type:    type.TransactionBridge,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xb1a1a882",
-				},
+				FunctionHash: "0xb1a1a882",
+			},
 				Platform: lo.ToPtr(filter.PlatformOptimism),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("2100013493176452")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformOptimism.String(),
-						From:     "0x31E7B932C655628fDA6F22f063D550d990dBA726",
-						To:       "0x31E7B932C655628fDA6F22f063D550d990dBA726",
-						Metadata: metadata.TransactionBridge{
-							Action:        metadata.ActionTransactionBridgeDeposit,
-							SourceNetwork: filter.NetworkEthereum,
-							TargetNetwork: filter.NetworkOptimism,
-							Token: metadata.Token{
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("100857001000000000000"))),
-								Name:     "Ethereum",
-								Symbol:   "ETH",
-								Decimals: 18,
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("2100013493176452")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.TransactionBridge,
+				Platform: filter.PlatformOptimism.String(),
+				From:     "0x31E7B932C655628fDA6F22f063D550d990dBA726",
+				To:       "0x31E7B932C655628fDA6F22f063D550d990dBA726",
+				Metadata: metadata.TransactionBridge{
+				Action:        metadata.ActionTransactionBridgeDeposit,
+				SourceNetwork: network.Ethereum,
+				TargetNetwork: network.Optimism,
+				Token: metadata.Token{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("100857001000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1686520751,
 			},
@@ -191,7 +191,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Deposit USDC from L1 to L2",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x977ee22b35c6a6300d5a9a7e5c5be3ad9e23e7a671c4e67f42abc0160021cb50"),
@@ -311,46 +311,46 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x239293e2a707a187305ab6056ba6bf6fa6279ba05440dce6c3b8f534c4963751",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   143,
 				From:    "0x98389CA467c0199D7379fa1B6992A389b56bCc15",
 				To:      optimism.AddressL1StandardBridge.String(),
-				Type:    filter.TypeTransactionBridge,
+				Type:    type.TransactionBridge,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x58a997f6",
-				},
+				FunctionHash: "0x58a997f6",
+			},
 				Platform: lo.ToPtr(filter.PlatformOptimism),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("2678730832477170")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformOptimism.String(),
-						From:     "0x98389CA467c0199D7379fa1B6992A389b56bCc15",
-						To:       "0x98389CA467c0199D7379fa1B6992A389b56bCc15",
-						Metadata: metadata.TransactionBridge{
-							Action:        metadata.ActionTransactionBridgeDeposit,
-							SourceNetwork: filter.NetworkEthereum,
-							TargetNetwork: filter.NetworkOptimism,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("11590000000"))),
-								Name:     "USD Coin",
-								Symbol:   "USDC",
-								Decimals: 6,
-								Standard: metadata.StandardERC20,
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("2678730832477170")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.TransactionBridge,
+				Platform: filter.PlatformOptimism.String(),
+				From:     "0x98389CA467c0199D7379fa1B6992A389b56bCc15",
+				To:       "0x98389CA467c0199D7379fa1B6992A389b56bCc15",
+				Metadata: metadata.TransactionBridge{
+				Action:        metadata.ActionTransactionBridgeDeposit,
+				SourceNetwork: network.Ethereum,
+				TargetNetwork: network.Optimism,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("11590000000"))),
+				Name:     "USD Coin",
+				Symbol:   "USDC",
+				Decimals: 6,
+				Standard: metadata.StandardERC20,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1686498803,
 			},
@@ -360,7 +360,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Deposit ETH from L2 to L1",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 10,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x785aa867a5a6a44824a11f31010b57c4f86b5f017b87ee3a14e855cb78f3bb36"),
@@ -470,44 +470,44 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkOptimism,
-					Endpoint: endpoint.MustGet(filter.NetworkOptimism),
+					Network:  network.Optimism,
+					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x7831e3145f8ca8ef0922397bcd5e2da2b1847cc515f2ceb4df74ecc8267505c3",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   7,
 				From:    "0x175C0aD71624A537Cf594751A0A98c2FE85F950C",
 				To:      optimism.AddressL2StandardBridge.String(),
-				Type:    filter.TypeTransactionBridge,
+				Type:    type.TransactionBridge,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x32b7006d",
-				},
+				FunctionHash: "0x32b7006d",
+			},
 				Platform: lo.ToPtr(filter.PlatformOptimism),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("34927390040514")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformOptimism.String(),
-						From:     "0x175C0aD71624A537Cf594751A0A98c2FE85F950C",
-						To:       "0x175C0aD71624A537Cf594751A0A98c2FE85F950C",
-						Metadata: metadata.TransactionBridge{
-							Action:        metadata.ActionTransactionBridgeDeposit,
-							SourceNetwork: filter.NetworkOptimism,
-							TargetNetwork: filter.NetworkEthereum,
-							Token: metadata.Token{
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("393114520000000000000"))),
-								Name:     "Ethereum",
-								Symbol:   "ETH",
-								Decimals: 18,
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("34927390040514")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.TransactionBridge,
+				Platform: filter.PlatformOptimism.String(),
+				From:     "0x175C0aD71624A537Cf594751A0A98c2FE85F950C",
+				To:       "0x175C0aD71624A537Cf594751A0A98c2FE85F950C",
+				Metadata: metadata.TransactionBridge{
+				Action:        metadata.ActionTransactionBridgeDeposit,
+				SourceNetwork: network.Optimism,
+				TargetNetwork: network.Ethereum,
+				Token: metadata.Token{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("393114520000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1686351379,
 			},
@@ -517,7 +517,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Deposit CRV from L2 to L1",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkOptimism,
+					Network: network.Optimism,
 					ChainID: 10,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x36a395a20d10db49db868d06f7af1325f3375063fc98eef8015edb0ad9075941"),
@@ -653,46 +653,46 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkOptimism,
-					Endpoint: endpoint.MustGet(filter.NetworkOptimism),
+					Network:  network.Optimism,
+					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xf96590b94c25df375eaa0cece0477d2a3b3fe1756d221f9efa1bf48ae9117701",
-				Network: filter.NetworkOptimism,
+				Network: network.Optimism,
 				Index:   4,
 				From:    "0x7a16fF8270133F063aAb6C9977183D9e72835428",
 				To:      optimism.AddressL2StandardBridge.String(),
-				Type:    filter.TypeTransactionBridge,
+				Type:    type.TransactionBridge,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x32b7006d",
-				},
+				FunctionHash: "0x32b7006d",
+			},
 				Platform: lo.ToPtr(filter.PlatformOptimism),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("31159514096212")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformOptimism.String(),
-						From:     "0x7a16fF8270133F063aAb6C9977183D9e72835428",
-						To:       "0x7a16fF8270133F063aAb6C9977183D9e72835428",
-						Metadata: metadata.TransactionBridge{
-							Action:        metadata.ActionTransactionBridgeDeposit,
-							SourceNetwork: filter.NetworkOptimism,
-							TargetNetwork: filter.NetworkEthereum,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0x0994206dfE8De6Ec6920FF4D779B0d950605Fb53"),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("3690872887087038569213"))),
-								Name:     "Curve DAO Token",
-								Symbol:   "CRV",
-								Decimals: 18,
-								Standard: 20,
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("31159514096212")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.TransactionBridge,
+				Platform: filter.PlatformOptimism.String(),
+				From:     "0x7a16fF8270133F063aAb6C9977183D9e72835428",
+				To:       "0x7a16fF8270133F063aAb6C9977183D9e72835428",
+				Metadata: metadata.TransactionBridge{
+				Action:        metadata.ActionTransactionBridgeDeposit,
+				SourceNetwork: network.Optimism,
+				TargetNetwork: network.Ethereum,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0x0994206dfE8De6Ec6920FF4D779B0d950605Fb53"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("3690872887087038569213"))),
+				Name:     "Curve DAO Token",
+				Symbol:   "CRV",
+				Decimals: 18,
+				Standard: 20,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1686513215,
 			},
@@ -702,7 +702,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Withdraw ETH from L1 to L2",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkOptimism,
+					Network: network.Optimism,
 					ChainID: 10,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x085154c4464955cb8e46541c514667b882681ea4a9cb81d3be29a6d6d1f3ae5c"),
@@ -782,44 +782,44 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkOptimism,
-					Endpoint: endpoint.MustGet(filter.NetworkOptimism),
+					Network:  network.Optimism,
+					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xb0c0b12cc5b5cd67993d4079809c41474ffff2a2de20bbe765f0cec7f07cf9de",
-				Network: filter.NetworkOptimism,
+				Network: network.Optimism,
 				Index:   1,
 				From:    "0x36BDE71C97B33Cc4729cf772aE268934f7AB70B2",
 				To:      optimism.AddressL2ETH.String(),
-				Type:    filter.TypeTransactionBridge,
+				Type:    type.TransactionBridge,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xd764ad0b",
-				},
+				FunctionHash: "0xd764ad0b",
+			},
 				Platform: lo.ToPtr(filter.PlatformOptimism),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("0")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformOptimism.String(),
-						From:     "0xDc548196bA87b19E55D2570d1dC8D4A1dc86238c",
-						To:       "0xDc548196bA87b19E55D2570d1dC8D4A1dc86238c",
-						Metadata: metadata.TransactionBridge{
-							Action:        metadata.ActionTransactionBridgeWithdraw,
-							SourceNetwork: filter.NetworkEthereum,
-							TargetNetwork: filter.NetworkOptimism,
-							Token: metadata.Token{
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("12000000000000000000"))),
-								Name:     "Ethereum",
-								Symbol:   "ETH",
-								Decimals: 18,
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("0")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.TransactionBridge,
+				Platform: filter.PlatformOptimism.String(),
+				From:     "0xDc548196bA87b19E55D2570d1dC8D4A1dc86238c",
+				To:       "0xDc548196bA87b19E55D2570d1dC8D4A1dc86238c",
+				Metadata: metadata.TransactionBridge{
+				Action:        metadata.ActionTransactionBridgeWithdraw,
+				SourceNetwork: network.Ethereum,
+				TargetNetwork: network.Optimism,
+				Token: metadata.Token{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("12000000000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1704287781,
 			},
@@ -829,7 +829,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Withdraw USDC from L1 to L2",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkOptimism,
+					Network: network.Optimism,
 					ChainID: 10,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x749a7d4530b753ed6c614fc38e18518e1155846b157ef48e9119148bb3c1068f"),
@@ -925,46 +925,46 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkOptimism,
-					Endpoint: endpoint.MustGet(filter.NetworkOptimism),
+					Network:  network.Optimism,
+					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xe1a660f3008f200735605f8154e9605a42e9f90687167b2a8f276ead650d850f",
-				Network: filter.NetworkOptimism,
+				Network: network.Optimism,
 				Index:   0,
 				From:    "0x0000000000000000000000000000000000000000",
 				To:      optimism.AddressL2ETH.String(),
-				Type:    filter.TypeTransactionBridge,
+				Type:    type.TransactionBridge,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xcbd4ece9",
-				},
+				FunctionHash: "0xcbd4ece9",
+			},
 				Platform: lo.ToPtr(filter.PlatformOptimism),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("190455017173296")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformOptimism.String(),
-						From:     "0x7a16fF8270133F063aAb6C9977183D9e72835428",
-						To:       "0x7a16fF8270133F063aAb6C9977183D9e72835428",
-						Metadata: metadata.TransactionBridge{
-							Action:        metadata.ActionTransactionBridgeWithdraw,
-							SourceNetwork: filter.NetworkEthereum,
-							TargetNetwork: filter.NetworkOptimism,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0x7F5c764cBc14f9669B88837ca1490cCa17c31607"),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("2000000000"))),
-								Name:     "USD Coin",
-								Symbol:   "USDC",
-								Decimals: 6,
-								Standard: 20,
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("190455017173296")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.TransactionBridge,
+				Platform: filter.PlatformOptimism.String(),
+				From:     "0x7a16fF8270133F063aAb6C9977183D9e72835428",
+				To:       "0x7a16fF8270133F063aAb6C9977183D9e72835428",
+				Metadata: metadata.TransactionBridge{
+				Action:        metadata.ActionTransactionBridgeWithdraw,
+				SourceNetwork: network.Ethereum,
+				TargetNetwork: network.Optimism,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0x7F5c764cBc14f9669B88837ca1490cCa17c31607"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("2000000000"))),
+				Name:     "USD Coin",
+				Symbol:   "USDC",
+				Decimals: 6,
+				Standard: 20,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1673901977,
 			},
@@ -974,7 +974,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Deposit CRV from L2 to L1",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkOptimism,
+					Network: network.Optimism,
 					ChainID: 10,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x36a395a20d10db49db868d06f7af1325f3375063fc98eef8015edb0ad9075941"),
@@ -1110,46 +1110,46 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkOptimism,
-					Endpoint: endpoint.MustGet(filter.NetworkOptimism),
+					Network:  network.Optimism,
+					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xf96590b94c25df375eaa0cece0477d2a3b3fe1756d221f9efa1bf48ae9117701",
-				Network: filter.NetworkOptimism,
+				Network: network.Optimism,
 				Index:   4,
 				From:    "0x7a16fF8270133F063aAb6C9977183D9e72835428",
 				To:      optimism.AddressL2StandardBridge.String(),
-				Type:    filter.TypeTransactionBridge,
+				Type:    type.TransactionBridge,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x32b7006d",
-				},
+				FunctionHash: "0x32b7006d",
+			},
 				Platform: lo.ToPtr(filter.PlatformOptimism),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("31159514096212")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformOptimism.String(),
-						From:     "0x7a16fF8270133F063aAb6C9977183D9e72835428",
-						To:       "0x7a16fF8270133F063aAb6C9977183D9e72835428",
-						Metadata: metadata.TransactionBridge{
-							Action:        metadata.ActionTransactionBridgeDeposit,
-							SourceNetwork: filter.NetworkOptimism,
-							TargetNetwork: filter.NetworkEthereum,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0x0994206dfE8De6Ec6920FF4D779B0d950605Fb53"),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("3690872887087038569213"))),
-								Name:     "Curve DAO Token",
-								Symbol:   "CRV",
-								Decimals: 18,
-								Standard: 20,
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("31159514096212")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.TransactionBridge,
+				Platform: filter.PlatformOptimism.String(),
+				From:     "0x7a16fF8270133F063aAb6C9977183D9e72835428",
+				To:       "0x7a16fF8270133F063aAb6C9977183D9e72835428",
+				Metadata: metadata.TransactionBridge{
+				Action:        metadata.ActionTransactionBridgeDeposit,
+				SourceNetwork: network.Optimism,
+				TargetNetwork: network.Ethereum,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0x0994206dfE8De6Ec6920FF4D779B0d950605Fb53"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("3690872887087038569213"))),
+				Name:     "Curve DAO Token",
+				Symbol:   "CRV",
+				Decimals: 18,
+				Standard: 20,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1686513215,
 			},
@@ -1159,7 +1159,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Withdraw USDT from L2 to L1",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x3a1536f32c7c0d0c9da3e9f5d87c0d38256ccd92a7cad30030d3c394b00c5bb3"),
@@ -1265,46 +1265,46 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x90fd9056fa8b2b2412bb0803509d4f7937b287d205fe3823c7b3a02e46166a84",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   85,
 				From:    "0x2Ce910fBba65B454bBAf6A18c952A70f3bcd8299",
 				To:      optimism.AddressL1OptimismPortal.String(),
-				Type:    filter.TypeTransactionBridge,
+				Type:    type.TransactionBridge,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x8c3152e9",
-				},
+				FunctionHash: "0x8c3152e9",
+			},
 				Platform: lo.ToPtr(filter.PlatformOptimism),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("3936093594104630")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformOptimism.String(),
-						From:     "0x2Ce910fBba65B454bBAf6A18c952A70f3bcd8299",
-						To:       "0x2Ce910fBba65B454bBAf6A18c952A70f3bcd8299",
-						Metadata: metadata.TransactionBridge{
-							Action:        metadata.ActionTransactionBridgeWithdraw,
-							SourceNetwork: filter.NetworkOptimism,
-							TargetNetwork: filter.NetworkEthereum,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1941255260000"))),
-								Name:     "Tether USD",
-								Symbol:   "USDT",
-								Decimals: 6,
-								Standard: 20,
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("3936093594104630")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.TransactionBridge,
+				Platform: filter.PlatformOptimism.String(),
+				From:     "0x2Ce910fBba65B454bBAf6A18c952A70f3bcd8299",
+				To:       "0x2Ce910fBba65B454bBAf6A18c952A70f3bcd8299",
+				Metadata: metadata.TransactionBridge{
+				Action:        metadata.ActionTransactionBridgeWithdraw,
+				SourceNetwork: network.Optimism,
+				TargetNetwork: network.Ethereum,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1941255260000"))),
+				Name:     "Tether USD",
+				Symbol:   "USDT",
+				Decimals: 6,
+				Standard: 20,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1704241355,
 			},
@@ -1314,7 +1314,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Withdraw ETH from L2 to L1",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xa2f39abba7db061bc5653af3f55e72ea79cb4719cbe301523f7c266428ab969d"),
@@ -1405,44 +1405,44 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x7d636b1cbc52a7b9b0836dad3536869f5b4878d8ca250ac4f0ca0687d695c715",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   103,
 				From:    "0x7205A3526Ed4F762B61c804e054A499c0f102e1C",
 				To:      optimism.AddressL1OptimismPortal.String(),
-				Type:    filter.TypeTransactionBridge,
+				Type:    type.TransactionBridge,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x8c3152e9",
-				},
+				FunctionHash: "0x8c3152e9",
+			},
 				Platform: lo.ToPtr(filter.PlatformOptimism),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("3186228206953671")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformOptimism.String(),
-						From:     "0x7205A3526Ed4F762B61c804e054A499c0f102e1C",
-						To:       "0x7205A3526Ed4F762B61c804e054A499c0f102e1C",
-						Metadata: metadata.TransactionBridge{
-							Action:        metadata.ActionTransactionBridgeWithdraw,
-							SourceNetwork: filter.NetworkOptimism,
-							TargetNetwork: filter.NetworkEthereum,
-							Token: metadata.Token{
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("10170341573197414"))),
-								Name:     "Ethereum",
-								Symbol:   "ETH",
-								Decimals: 18,
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("3186228206953671")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.TransactionBridge,
+				Platform: filter.PlatformOptimism.String(),
+				From:     "0x7205A3526Ed4F762B61c804e054A499c0f102e1C",
+				To:       "0x7205A3526Ed4F762B61c804e054A499c0f102e1C",
+				Metadata: metadata.TransactionBridge{
+				Action:        metadata.ActionTransactionBridgeWithdraw,
+				SourceNetwork: network.Optimism,
+				TargetNetwork: network.Ethereum,
+				Token: metadata.Token{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("10170341573197414"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1704236039,
 			},

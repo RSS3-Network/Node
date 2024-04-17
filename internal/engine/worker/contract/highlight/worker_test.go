@@ -13,7 +13,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -31,14 +31,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activity.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Highlight Mint",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x44c76c805bf21b13b29a7acbd0061339a143957cb3a34bfc3c47d95872d07c2a"),
@@ -142,93 +142,93 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xe278e133786ec1714550361994ad314e6219196d8500eab67cd2df5000898c42",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   79,
 				From:    "0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF",
 				To:      "0x1bf979282181f2b7a640d17aB5D2e25125F2de5e",
-				Type:    filter.TypeCollectibleMint,
+				Type:    type.CollectibleMint,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x705dcf34",
-				},
+				FunctionHash: "0x705dcf34",
+			},
 				Platform: lo.ToPtr(filter.PlatformHighlight),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("8656626470208573")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeTransactionTransfer,
-						Platform: filter.PlatformHighlight.String(),
-						From:     common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
-						To:       common.HexToAddress("0xa532Df3Bedc7A30747c45F57603080F37A60df48").String(),
-						Metadata: metadata.TransactionTransfer{
-							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("24000000000000000"))),
-							Name:     "Ethereum",
-							Symbol:   "ETH",
-							Decimals: 18,
-						},
-					},
-					{
-						Type:     filter.TypeTransactionTransfer,
-						Platform: filter.PlatformHighlight.String(),
-						From:     common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
-						To:       common.HexToAddress("0x1bf979282181f2b7a640d17aB5D2e25125F2de5e").String(),
-						Metadata: metadata.TransactionTransfer{
-							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("2400000000000000"))),
-							Name:     "Ethereum",
-							Symbol:   "ETH",
-							Decimals: 18,
-						},
-					},
-					{
-						Type:     filter.TypeCollectibleMint,
-						Platform: filter.PlatformHighlight.String(),
-						From:     ethereum.AddressGenesis.String(),
-						To:       common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
-						Metadata: metadata.CollectibleTransfer{
-							Address:  lo.ToPtr("0xFC19B4536a4b9B9EEc1C362894f7dC505457538D"),
-							ID:       lo.ToPtr(decimal.NewFromBigInt(big.NewInt(696), 0)),
-							Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
-							Name:     "R3FUS3",
-							Symbol:   "R3FUS3",
-							Standard: metadata.StandardERC721,
-						},
-					},
-					{
-						Type:     filter.TypeCollectibleMint,
-						Platform: filter.PlatformHighlight.String(),
-						From:     ethereum.AddressGenesis.String(),
-						To:       common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
-						Metadata: metadata.CollectibleTransfer{
-							Address:  lo.ToPtr("0xFC19B4536a4b9B9EEc1C362894f7dC505457538D"),
-							ID:       lo.ToPtr(decimal.NewFromBigInt(big.NewInt(697), 0)),
-							Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
-							Name:     "R3FUS3",
-							Symbol:   "R3FUS3",
-							Standard: metadata.StandardERC721,
-						},
-					},
-					{
-						Type:     filter.TypeCollectibleMint,
-						Platform: filter.PlatformHighlight.String(),
-						From:     ethereum.AddressGenesis.String(),
-						To:       common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
-						Metadata: metadata.CollectibleTransfer{
-							Address:  lo.ToPtr("0xFC19B4536a4b9B9EEc1C362894f7dC505457538D"),
-							ID:       lo.ToPtr(decimal.NewFromBigInt(big.NewInt(698), 0)),
-							Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
-							Name:     "R3FUS3",
-							Symbol:   "R3FUS3",
-							Standard: metadata.StandardERC721,
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("8656626470208573")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.TransactionTransfer,
+				Platform: filter.PlatformHighlight.String(),
+				From:     common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
+				To:       common.HexToAddress("0xa532Df3Bedc7A30747c45F57603080F37A60df48").String(),
+				Metadata: metadata.TransactionTransfer{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("24000000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			{
+				Type:     type.TransactionTransfer,
+				Platform: filter.PlatformHighlight.String(),
+				From:     common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
+				To:       common.HexToAddress("0x1bf979282181f2b7a640d17aB5D2e25125F2de5e").String(),
+				Metadata: metadata.TransactionTransfer{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("2400000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			{
+				Type:     type.CollectibleMint,
+				Platform: filter.PlatformHighlight.String(),
+				From:     ethereum.AddressGenesis.String(),
+				To:       common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
+				Metadata: metadata.CollectibleTransfer{
+				Address:  lo.ToPtr("0xFC19B4536a4b9B9EEc1C362894f7dC505457538D"),
+				ID:       lo.ToPtr(decimal.NewFromBigInt(big.NewInt(696), 0)),
+				Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
+				Name:     "R3FUS3",
+				Symbol:   "R3FUS3",
+				Standard: metadata.StandardERC721,
+			},
+			},
+			{
+				Type:     type.CollectibleMint,
+				Platform: filter.PlatformHighlight.String(),
+				From:     ethereum.AddressGenesis.String(),
+				To:       common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
+				Metadata: metadata.CollectibleTransfer{
+				Address:  lo.ToPtr("0xFC19B4536a4b9B9EEc1C362894f7dC505457538D"),
+				ID:       lo.ToPtr(decimal.NewFromBigInt(big.NewInt(697), 0)),
+				Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
+				Name:     "R3FUS3",
+				Symbol:   "R3FUS3",
+				Standard: metadata.StandardERC721,
+			},
+			},
+			{
+				Type:     type.CollectibleMint,
+				Platform: filter.PlatformHighlight.String(),
+				From:     ethereum.AddressGenesis.String(),
+				To:       common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
+				Metadata: metadata.CollectibleTransfer{
+				Address:  lo.ToPtr("0xFC19B4536a4b9B9EEc1C362894f7dC505457538D"),
+				ID:       lo.ToPtr(decimal.NewFromBigInt(big.NewInt(698), 0)),
+				Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
+				Name:     "R3FUS3",
+				Symbol:   "R3FUS3",
+				Standard: metadata.StandardERC721,
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1698103355,
 			},

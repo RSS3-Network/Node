@@ -3,7 +3,6 @@ package weth
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/provider/ethereum/contract"
-	"github.com/rss3-network/protocol-go/schema/filter"
 )
 
 // WETH9 https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
@@ -24,7 +23,7 @@ var (
 
 func IsWETH(chainID uint64, address common.Address) bool {
 	switch chainID {
-	case uint64(filter.EthereumChainIDMainnet):
+	case uint64(network.ChainIDMainnet):
 		return address == AddressMainnet
 	default:
 		return false

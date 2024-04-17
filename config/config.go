@@ -14,7 +14,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/stream"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
 )
@@ -60,11 +60,11 @@ type Node struct {
 }
 
 type Module struct {
-	Network      filter.Network `mapstructure:"network" validate:"required"`
-	Endpoint     string         `mapstructure:"endpoint" validate:"required"`
-	IPFSGateways []string       `mapstructure:"ipfs_gateways"`
-	Worker       filter.Name    `mapstructure:"worker"`
-	Parameters   *Options       `mapstructure:"parameters"`
+	Network      network.Network `mapstructure:"network" validate:"required"`
+	Endpoint     string          `mapstructure:"endpoint" validate:"required"`
+	IPFSGateways []string        `mapstructure:"ipfs_gateways"`
+	Worker       string          `mapstructure:"worker"`
+	Parameters   *Parameters     `mapstructure:"parameters"`
 }
 
 type Database struct {
@@ -134,14 +134,14 @@ func (c *Module) ID() string {
 	return id
 }
 
-//var _ fmt.Stringer = (*Options)(nil)
+//var _ fmt.Stringer = (*Parameters)(nil)
 
-type Options map[string]any
+type Parameters map[string]any
 
-func (o *Options) String() string {
+func (p *Parameters) String() string {
 	var buffer map[string]any
 
-	lo.Must0(o.Decode(&buffer))
+	lo.Must0(p.Decode(&buffer))
 
 	if buffer == nil {
 		return "{}"
@@ -156,8 +156,8 @@ func (o *Options) String() string {
 	return string(lo.Must(json.Marshal(buffer)))
 }
 
-func (o *Options) Decode(v interface{}) error {
-	jsonStr, err := json.Marshal(*o)
+func (p *Parameters) Decode(v interface{}) error {
+	jsonStr, err := json.Marshal(*p)
 	if err != nil {
 		return err
 	}
@@ -217,8 +217,9 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	// Unmarshal config file.
 	var configFile File
 	if err := v.Unmarshal(&configFile, viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
-		filter.NetworkHookFunc(),
-		filter.WorkerHookFunc(),
+		network.HookFunc(),
+		// TODO: pending new worker struct, WorkerHookFunc is no longer available
+		// filter.WorkerHookFunc(),
 		EvmAddressHookFunc(),
 	))); err != nil {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)

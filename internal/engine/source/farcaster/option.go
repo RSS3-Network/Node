@@ -8,7 +8,7 @@ type Option struct {
 	APIKey *string `json:"api_key" mapstructure:"api_key"`
 }
 
-func NewOption(options *config.Options) (*Option, error) {
+func NewOption(options *config.Parameters) (*Option, error) {
 	var instance Option
 
 	if options == nil {

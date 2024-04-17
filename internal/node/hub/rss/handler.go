@@ -10,7 +10,7 @@ import (
 )
 
 type Response struct {
-	Data []*schema.Feed `json:"data"`
+	Data []*activity.Activity `json:"data"`
 }
 
 // GetRSSHubHandler get rsshub data from rsshub node

@@ -14,7 +14,7 @@ import (
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/mirror"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -32,14 +32,14 @@ func TestWorker_Arweave(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activity.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Mirror Post",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkArweave,
+					Network: network.Arweave,
 					Block: arweave.Block{
 						Timestamp: 1608772429,
 					},
@@ -60,35 +60,35 @@ func TestWorker_Arweave(t *testing.T) {
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
 				},
 			},
-			want: &schema.Feed{
-				ID:       "lW0AMDN2RgOeqULk-u6Tv0wfZWpx9MfkrmqQQU-Mvuo",
-				Network:  filter.NetworkArweave,
-				Index:    0,
-				From:     "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
-				To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
-				Type:     filter.TypeSocialPost,
+			want: &activity.Activity{
+				ID:      "lW0AMDN2RgOeqULk-u6Tv0wfZWpx9MfkrmqQQU-Mvuo",
+				Network: network.Arweave,
+				Index:   0,
+				From:    "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
+				To:      "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
+				Type:     type.SocialPost,
 				Platform: lo.ToPtr(filter.PlatformMirror),
-				Fee: &schema.Fee{
-					Amount:  decimal.NewFromInt(27798031),
-					Decimal: 12,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeSocialPost,
-						Tag:      filter.TagSocial,
-						Platform: filter.PlatformMirror.String(),
-						From:     "0x4C0a466DF0628FE8699051b3Ac6506653191cc21",
-						To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
-						Metadata: &metadata.SocialPost{
-							Title:         "We're making a book about Eth2!",
-							Body:          "Stateful Works is excited to publicly introduce our first project, a limited run print book focused on the people and teams that brought the Ethereum Beacon Chain to life.\n\n### Who is Stateful Works?\n\nWe are a group of passionate longtime community members interested in exploring and creating Ethereum culture: reach out to [@statefulworks](https://twitter.com/StatefulWorks) on Telegram or Twitter with questions.\n\n### Book Details\n\nThis book will feature profiles, reflections, and stories from Eth2 implementers and researchers. We want to share the stories of the people that made this possible. We have been working on this for the past few months, and have made significant progress towards defining and realizing the vision.\n\nSo far, we have gathered profiles from over **25 Eth2 contributors**, with many more to come. We're anticipating deliveries of the book **Genesis Edition in Q1 2021.**\n\nAs a limited run first print, the book will be a high quality collectors item. We are paying close attention to every aspect, from the overall design, to the features highlighting the uniqueness of each copy. For example, the burn transaction hash of redemption being marked on the physical print. \n\n### Why a Book?\n\nWe think the artifact that frames the work can be as important as the content itself. So much of what we consume exists ephemerally in feeds and chats: the Beacon Book captures a snapshot of sentiment, ported into object-form. This artifact will live on as something to be read, referenced, and carefully stored long into the future.\n\n### How can I get one?\n\nHere are the general details, subject to change. \n\n**NOTE: There is no way to acquire the book at this time. The date and release will be well publicized here and with our partner orgs.**\n\nThe bulk of the Genesis Edition (~100 books) will be distributed on-chain, similar to Unisocks. The main difference is that we plan to use a Balancer Smart pool to allow maximal access for the entire Ethereum community. Learn more about how these mechanisms function through case studies like the [Bankless BAP](https://bankless.substack.com/p/the-ultimate-guide-to-balancer-smart) and [PERP](https://perpetualprotocol.medium.com/why-we-chose-to-distribute-perp-using-a-balancer-liquidity-bootstrapping-pool-aac7f1ab6181). \n\nA few of the benefits include:\n\n- better price discovery: starts high > low, making it harder for whales to corner supply early on\n- fair distribution for humans (bots have no advantage)\n- efficient for bootstrapping liquidity for the pool creator\n\nA portion of the Genesis Edition (~10 books) will be pledged to partner community orgs to give away to their communities. Ethereum culture is nothing if not participatory, and we want to fully embrace this aspect. We will be announcing our partners closer to the complete launch.\n\nThere will be other fun ways to win books, stay tuned for more details! If you end up not getting a book, don't worry: digital versions of the content will be available for free to enjoy, here on this blog.\n\nFinally, an important goal of this project is to promote and support Ethereum Public Goods. Therefore, any net ETH generated by the Genesis sale net of printing, shipping and contributor costs will be donated to the [Open Grants Eth2 stream](https://opengrants.com/grant/0x53e7daa8e3aa23cd30c75b2f599c303bada17064).\n\n---\n\nYou may have noticed this post is hosted on [Mirror.xyz](https://mirror.xyz/), a new web3 protocol for publishing to communities. We're excited to be one of the first projects to publish using it! Check back next week for more info on what Stateful Works is all about - we can't wait to share more about our vision.\n\nMessage us on Telegram or Twitter [@statefulworks](https://twitter.com/StatefulWorks) with questions. ❤️",
-							PublicationID: "a151ee1decb2028a8bb48277f6928c6f38319c32601dc1da1ee82acfcad2e525",
-							ContentURI:    "ar://lW0AMDN2RgOeqULk-u6Tv0wfZWpx9MfkrmqQQU-Mvuo",
-							Target:        nil,
-							Timestamp:     1608766070,
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  decimal.NewFromInt(27798031),
+				Decimal: 12,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.SocialPost,
+				Tag:      filter.TagSocial,
+				Platform: filter.PlatformMirror.String(),
+				From:     "0x4C0a466DF0628FE8699051b3Ac6506653191cc21",
+				To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
+				Metadata: &metadata.SocialPost{
+				Title:         "We're making a book about Eth2!",
+				Body:          "Stateful Works is excited to publicly introduce our first project, a limited run print book focused on the people and teams that brought the Ethereum Beacon Chain to life.\n\n### Who is Stateful Works?\n\nWe are a group of passionate longtime community members interested in exploring and creating Ethereum culture: reach out to [@statefulworks](https://twitter.com/StatefulWorks) on Telegram or Twitter with questions.\n\n### Book Details\n\nThis book will feature profiles, reflections, and stories from Eth2 implementers and researchers. We want to share the stories of the people that made this possible. We have been working on this for the past few months, and have made significant progress towards defining and realizing the vision.\n\nSo far, we have gathered profiles from over **25 Eth2 contributors**, with many more to come. We're anticipating deliveries of the book **Genesis Edition in Q1 2021.**\n\nAs a limited run first print, the book will be a high quality collectors item. We are paying close attention to every aspect, from the overall design, to the features highlighting the uniqueness of each copy. For example, the burn transaction hash of redemption being marked on the physical print. \n\n### Why a Book?\n\nWe think the artifact that frames the work can be as important as the content itself. So much of what we consume exists ephemerally in feeds and chats: the Beacon Book captures a snapshot of sentiment, ported into object-form. This artifact will live on as something to be read, referenced, and carefully stored long into the future.\n\n### How can I get one?\n\nHere are the general details, subject to change. \n\n**NOTE: There is no way to acquire the book at this time. The date and release will be well publicized here and with our partner orgs.**\n\nThe bulk of the Genesis Edition (~100 books) will be distributed on-chain, similar to Unisocks. The main difference is that we plan to use a Balancer Smart pool to allow maximal access for the entire Ethereum community. Learn more about how these mechanisms function through case studies like the [Bankless BAP](https://bankless.substack.com/p/the-ultimate-guide-to-balancer-smart) and [PERP](https://perpetualprotocol.medium.com/why-we-chose-to-distribute-perp-using-a-balancer-liquidity-bootstrapping-pool-aac7f1ab6181). \n\nA few of the benefits include:\n\n- better price discovery: starts high > low, making it harder for whales to corner supply early on\n- fair distribution for humans (bots have no advantage)\n- efficient for bootstrapping liquidity for the pool creator\n\nA portion of the Genesis Edition (~10 books) will be pledged to partner community orgs to give away to their communities. Ethereum culture is nothing if not participatory, and we want to fully embrace this aspect. We will be announcing our partners closer to the complete launch.\n\nThere will be other fun ways to win books, stay tuned for more details! If you end up not getting a book, don't worry: digital versions of the content will be available for free to enjoy, here on this blog.\n\nFinally, an important goal of this project is to promote and support Ethereum Public Goods. Therefore, any net ETH generated by the Genesis sale net of printing, shipping and contributor costs will be donated to the [Open Grants Eth2 stream](https://opengrants.com/grant/0x53e7daa8e3aa23cd30c75b2f599c303bada17064).\n\n---\n\nYou may have noticed this post is hosted on [Mirror.xyz](https://mirror.xyz/), a new web3 protocol for publishing to communities. We're excited to be one of the first projects to publish using it! Check back next week for more info on what Stateful Works is all about - we can't wait to share more about our vision.\n\nMessage us on Telegram or Twitter [@statefulworks](https://twitter.com/StatefulWorks) with questions. ❤️",
+				PublicationID: "a151ee1decb2028a8bb48277f6928c6f38319c32601dc1da1ee82acfcad2e525",
+				ContentURI:    "ar://lW0AMDN2RgOeqULk-u6Tv0wfZWpx9MfkrmqQQU-Mvuo",
+				Target:        nil,
+				Timestamp:     1608766070,
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1608772429,
 			},
@@ -98,7 +98,7 @@ func TestWorker_Arweave(t *testing.T) {
 			name: "Mirror Revise 01",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkArweave,
+					Network: network.Arweave,
 					Block: arweave.Block{
 						Timestamp: 1609360471,
 					},
@@ -121,35 +121,35 @@ func TestWorker_Arweave(t *testing.T) {
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
 				},
 			},
-			want: &schema.Feed{
-				ID:       "CKsUVyAvgDeMyHjTn4kAwLMgv81nCH4xt6dY5xZcYbE",
-				Network:  filter.NetworkArweave,
-				Index:    0,
-				From:     "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
-				To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
-				Type:     filter.TypeSocialRevise,
+			want: &activity.Activity{
+				ID:      "CKsUVyAvgDeMyHjTn4kAwLMgv81nCH4xt6dY5xZcYbE",
+				Network: network.Arweave,
+				Index:   0,
+				From:    "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
+				To:      "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
+				Type:     type.SocialRevise,
 				Platform: lo.ToPtr(filter.PlatformMirror),
-				Fee: &schema.Fee{
-					Amount:  decimal.NewFromInt(17827441),
-					Decimal: 12,
-				},
+				Fee: &activity.Fee{
+				Amount:  decimal.NewFromInt(17827441),
+				Decimal: 12,
+			},
 
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeSocialRevise,
-						Tag:      filter.TagSocial,
-						Platform: filter.PlatformMirror.String(),
-						From:     "0x31b4C292b4639a32A0aCA72B0451499B464c58cb",
-						To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
-						Metadata: &metadata.SocialPost{
-							Title:         "Cohort-based learning for community tokens",
-							Body:          "One thing I've been working on over the holidays is the idea of applying [cohort-based learning](https://www.notion.so/Learn-about-Wes-and-Gagan-s-stealth-startup-bf8ae789fded4753b0f54a85ce5315c0) to a community or social token. \n\n![Our last Personal Talkens meetup, in November](https://images.mirror-media.xyz/publication-images/a8cfd1ad-bee2-40bb-88fb-e1a3bac06ab0.jpeg)\n\nI think we can do it by hosting the cohort on Kickback and getting participants to stake [$xJoon tokens](https://blockscout.com/poa/xdai/tokens/0x5fE9885226677F3Eb5C9ad8aB6c421B4EA38535d/token-transfers), similar to Kickback's fitness challenge in December. \n\nBut a few questions remain:\n\n- What should the task be?\n\n- How much should people stake?\n\n- How does this framework jive with non-tokenised cohort-based learning?\n\n- Can we use tokenised media platforms like Mirror in this experiment?\n\nI would love to hear from you, DM me at [@joonian on Twitter](https://twitter.com/joonian) or ping me on joonian@cryptographic.media. ",
-							PublicationID: "a094bb1f437620acbbbce6f229f24947ab8c6fc37f1ddfa1ae216712e38e3bcc",
-							ContentURI:    "ar://CKsUVyAvgDeMyHjTn4kAwLMgv81nCH4xt6dY5xZcYbE",
-							Timestamp:     1609360392,
-						},
-					},
-				},
+				Actions: []*activity.Action{
+			{
+				Type:     type.SocialRevise,
+				Tag:      filter.TagSocial,
+				Platform: filter.PlatformMirror.String(),
+				From:     "0x31b4C292b4639a32A0aCA72B0451499B464c58cb",
+				To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
+				Metadata: &metadata.SocialPost{
+				Title:         "Cohort-based learning for community tokens",
+				Body:          "One thing I've been working on over the holidays is the idea of applying [cohort-based learning](https://www.notion.so/Learn-about-Wes-and-Gagan-s-stealth-startup-bf8ae789fded4753b0f54a85ce5315c0) to a community or social token. \n\n![Our last Personal Talkens meetup, in November](https://images.mirror-media.xyz/publication-images/a8cfd1ad-bee2-40bb-88fb-e1a3bac06ab0.jpeg)\n\nI think we can do it by hosting the cohort on Kickback and getting participants to stake [$xJoon tokens](https://blockscout.com/poa/xdai/tokens/0x5fE9885226677F3Eb5C9ad8aB6c421B4EA38535d/token-transfers), similar to Kickback's fitness challenge in December. \n\nBut a few questions remain:\n\n- What should the task be?\n\n- How much should people stake?\n\n- How does this framework jive with non-tokenised cohort-based learning?\n\n- Can we use tokenised media platforms like Mirror in this experiment?\n\nI would love to hear from you, DM me at [@joonian on Twitter](https://twitter.com/joonian) or ping me on joonian@cryptographic.media. ",
+				PublicationID: "a094bb1f437620acbbbce6f229f24947ab8c6fc37f1ddfa1ae216712e38e3bcc",
+				ContentURI:    "ar://CKsUVyAvgDeMyHjTn4kAwLMgv81nCH4xt6dY5xZcYbE",
+				Timestamp:     1609360392,
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1609360471,
 			},

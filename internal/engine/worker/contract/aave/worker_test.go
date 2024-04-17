@@ -14,7 +14,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/aave"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -32,14 +32,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activity.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Deposit stETH to AAVE V2 LendingPool on Ethereum Mainnet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x2944e0b4d7a8f8530da13880211eb675bb18de7340bda8c3f703dd371d45e3e9"),
@@ -174,46 +174,46 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x488591689796c234eb6a876be238c67a9092d755070d6992dddccd2f8beee57c",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   75,
 				From:    "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
 				To:      aave.AddressV2LendingPoolMainnet.String(),
-				Type:    filter.TypeExchangeLiquidity,
+				Type:    type.ExchangeLiquidity,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xe8eda9df",
-				},
+				FunctionHash: "0xe8eda9df",
+			},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("3989675111519265")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformAAVE.String(),
-						From:     "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
-						To:       aave.AddressV2LendingPoolMainnet.String(),
-						Metadata: metadata.ExchangeLiquidity{
-							Action: metadata.ActionExchangeLiquiditySupply,
-							Tokens: []metadata.Token{
-								{
-									Address:  lo.ToPtr("0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"),
-									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("119999999999999999999"))),
-									Name:     "Liquid staked Ether 2.0",
-									Symbol:   "stETH",
-									Decimals: 18,
-									Standard: metadata.StandardERC20,
-								},
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("3989675111519265")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.ExchangeLiquidity,
+				Platform: filter.PlatformAAVE.String(),
+				From:     "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
+				To:       aave.AddressV2LendingPoolMainnet.String(),
+				Metadata: metadata.ExchangeLiquidity{
+				Action: metadata.ActionExchangeLiquiditySupply,
+				Tokens: []metadata.Token{
+			{
+				Address:  lo.ToPtr("0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("119999999999999999999"))),
+				Name:     "Liquid staked Ether 2.0",
+				Symbol:   "stETH",
+				Decimals: 18,
+				Standard: metadata.StandardERC20,
+			},
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1691653955,
 			},
@@ -223,7 +223,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Withdraw USDC from AAVE V2 LendingPool on Ethereum Mainnet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x74d8c5cbf1a3df7c45f431553216a7c304a80f3ef4fecb7b5611bb6f282a421a"),
@@ -346,46 +346,46 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x759532f09bd943d6da2964d58d7fc9a6b3f3914ef0643c37cb5f0eb1f3fe03a6",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   100,
 				From:    "0x0f1DfeF1a40557d279d0de6E49aB306891A638b8",
 				To:      aave.AddressV2LendingPoolMainnet.String(),
-				Type:    filter.TypeExchangeLiquidity,
+				Type:    type.ExchangeLiquidity,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x69328dec",
-				},
+				FunctionHash: "0x69328dec",
+			},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("3494354289488625")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformAAVE.String(),
-						From:     "0x0f1DfeF1a40557d279d0de6E49aB306891A638b8",
-						To:       aave.AddressV2LendingPoolMainnet.String(),
-						Metadata: metadata.ExchangeLiquidity{
-							Action: metadata.ActionExchangeLiquidityWithdraw,
-							Tokens: []metadata.Token{
-								{
-									Address:  lo.ToPtr("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
-									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("5000000000000"))),
-									Name:     "USD Coin",
-									Symbol:   "USDC",
-									Decimals: 6,
-									Standard: metadata.StandardERC20,
-								},
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("3494354289488625")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.ExchangeLiquidity,
+				Platform: filter.PlatformAAVE.String(),
+				From:     "0x0f1DfeF1a40557d279d0de6E49aB306891A638b8",
+				To:       aave.AddressV2LendingPoolMainnet.String(),
+				Metadata: metadata.ExchangeLiquidity{
+				Action: metadata.ActionExchangeLiquidityWithdraw,
+				Tokens: []metadata.Token{
+			{
+				Address:  lo.ToPtr("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("5000000000000"))),
+				Name:     "USD Coin",
+				Symbol:   "USDC",
+				Decimals: 6,
+				Standard: metadata.StandardERC20,
+			},
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1691655527,
 			},
@@ -395,7 +395,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Borrow USDT from AAVE V2 LendingPool on Ethereum Mainnet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x644b27dbc2a39e9abacdec00d7347f254531a2a87b997523a50a8a2496fa7393"),
@@ -530,46 +530,46 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xd01b5eab0d6abceb5f21da3dc6c329b35b5f854fd4c0e7d05b2cd81e9a410c9f",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   108,
 				From:    "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
 				To:      aave.AddressV2LendingPoolMainnet.String(),
-				Type:    filter.TypeExchangeLiquidity,
+				Type:    type.ExchangeLiquidity,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xa415bcad",
-				},
+				FunctionHash: "0xa415bcad",
+			},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("6575393086576872")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformAAVE.String(),
-						From:     "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
-						To:       aave.AddressV2LendingPoolMainnet.String(),
-						Metadata: metadata.ExchangeLiquidity{
-							Action: metadata.ActionExchangeLiquidityBorrow,
-							Tokens: []metadata.Token{
-								{
-									Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
-									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("50000000000"))),
-									Name:     "Tether USD",
-									Symbol:   "USDT",
-									Decimals: 6,
-									Standard: metadata.StandardERC20,
-								},
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("6575393086576872")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.ExchangeLiquidity,
+				Platform: filter.PlatformAAVE.String(),
+				From:     "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
+				To:       aave.AddressV2LendingPoolMainnet.String(),
+				Metadata: metadata.ExchangeLiquidity{
+				Action: metadata.ActionExchangeLiquidityBorrow,
+				Tokens: []metadata.Token{
+			{
+				Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("50000000000"))),
+				Name:     "Tether USD",
+				Symbol:   "USDT",
+				Decimals: 6,
+				Standard: metadata.StandardERC20,
+			},
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1691654027,
 			},
@@ -579,7 +579,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Repay USDC to AAVE V2 LendingPool on Ethereum Mainnet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xd05278242892db7a04b060514abd7f5616b3f135acd87a05037edfe42aac0393"),
@@ -701,46 +701,46 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x3c309fa16fb7e995fba8f236d2eb3a20a44f3ce116a13899683f4580154e85ec",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   86,
 				From:    "0xc11E5B31008F3750b43f006c3026beD653888E07",
 				To:      aave.AddressV2LendingPoolMainnet.String(),
-				Type:    filter.TypeExchangeLiquidity,
+				Type:    type.ExchangeLiquidity,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x573ade81",
-				},
+				FunctionHash: "0x573ade81",
+			},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("4384289713535145")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformAAVE.String(),
-						From:     "0xc11E5B31008F3750b43f006c3026beD653888E07",
-						To:       aave.AddressV2LendingPoolMainnet.String(),
-						Metadata: metadata.ExchangeLiquidity{
-							Action: metadata.ActionExchangeLiquidityRepay,
-							Tokens: []metadata.Token{
-								{
-									Address:  lo.ToPtr("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
-									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("29527934285"))),
-									Name:     "USD Coin",
-									Symbol:   "USDC",
-									Decimals: 6,
-									Standard: metadata.StandardERC20,
-								},
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("4384289713535145")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.ExchangeLiquidity,
+				Platform: filter.PlatformAAVE.String(),
+				From:     "0xc11E5B31008F3750b43f006c3026beD653888E07",
+				To:       aave.AddressV2LendingPoolMainnet.String(),
+				Metadata: metadata.ExchangeLiquidity{
+				Action: metadata.ActionExchangeLiquidityRepay,
+				Tokens: []metadata.Token{
+			{
+				Address:  lo.ToPtr("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("29527934285"))),
+				Name:     "USD Coin",
+				Symbol:   "USDC",
+				Decimals: 6,
+				Standard: metadata.StandardERC20,
+			},
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1691654759,
 			},
@@ -750,7 +750,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Supply rETH to AAVE V3 Pool on Ethereum Mainnet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x06745b2b0c2f4ab248de64f1f744217ccbc68003012e0e50e85970a1b3b36d28"),
@@ -862,46 +862,46 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x2626b06195b4e7699495b1ea542a954a7b164195f3fa2dbd1c063882cf697bce",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   85,
 				From:    "0xf01bb28137121c063D73e7B61DBABE352467292b",
 				To:      aave.AddressV3PoolMainnet.String(),
-				Type:    filter.TypeExchangeLiquidity,
+				Type:    type.ExchangeLiquidity,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x617ba037",
-				},
+				FunctionHash: "0x617ba037",
+			},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("2539935492927579")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformAAVE.String(),
-						From:     "0xf01bb28137121c063D73e7B61DBABE352467292b",
-						To:       aave.AddressV3PoolMainnet.String(),
-						Metadata: metadata.ExchangeLiquidity{
-							Action: metadata.ActionExchangeLiquiditySupply,
-							Tokens: []metadata.Token{
-								{
-									Address:  lo.ToPtr("0xae78736Cd615f374D3085123A210448E74Fc6393"),
-									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("156465282788593823"))),
-									Name:     "Rocket Pool ETH",
-									Symbol:   "rETH",
-									Decimals: 18,
-									Standard: metadata.StandardERC20,
-								},
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("2539935492927579")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.ExchangeLiquidity,
+				Platform: filter.PlatformAAVE.String(),
+				From:     "0xf01bb28137121c063D73e7B61DBABE352467292b",
+				To:       aave.AddressV3PoolMainnet.String(),
+				Metadata: metadata.ExchangeLiquidity{
+				Action: metadata.ActionExchangeLiquiditySupply,
+				Tokens: []metadata.Token{
+			{
+				Address:  lo.ToPtr("0xae78736Cd615f374D3085123A210448E74Fc6393"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("156465282788593823"))),
+				Name:     "Rocket Pool ETH",
+				Symbol:   "rETH",
+				Decimals: 18,
+				Standard: metadata.StandardERC20,
+			},
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1691644787,
 			},
@@ -911,7 +911,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Supply USDCbC to AAVE V3 Pool on Ethereum Base",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkBase,
+					Network: network.Base,
 					ChainID: 8453,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x8b5d7e878bf84a83fc537a05154461d33906c7e470b6f58ea233d8a3b3de288c"),
@@ -1027,46 +1027,46 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkBase,
-					Endpoint: endpoint.MustGet(filter.NetworkBase),
+					Network:  network.Base,
+					Endpoint: endpoint.MustGet(network.Base),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x3ee309226dfd6a4d26be87082e5e1ce6c8769f130c9495b2e44684ad5cc2682a",
-				Network: filter.NetworkBase,
+				Network: network.Base,
 				Index:   22,
 				From:    "0x1aEB9F637B88d9c5422E0cb094F3bCDa20fCE37B",
 				To:      aave.AddressV3PoolBase.String(),
-				Type:    filter.TypeExchangeLiquidity,
+				Type:    type.ExchangeLiquidity,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x617ba037",
-				},
+				FunctionHash: "0x617ba037",
+			},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("191955009062034")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformAAVE.String(),
-						From:     "0x1aEB9F637B88d9c5422E0cb094F3bCDa20fCE37B",
-						To:       aave.AddressV3PoolBase.String(),
-						Metadata: metadata.ExchangeLiquidity{
-							Action: metadata.ActionExchangeLiquiditySupply,
-							Tokens: []metadata.Token{
-								{
-									Address:  lo.ToPtr("0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA"),
-									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1000000"))),
-									Name:     "USD Base Coin",
-									Symbol:   "USDbC",
-									Decimals: 6,
-									Standard: metadata.StandardERC20,
-								},
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("191955009062034")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.ExchangeLiquidity,
+				Platform: filter.PlatformAAVE.String(),
+				From:     "0x1aEB9F637B88d9c5422E0cb094F3bCDa20fCE37B",
+				To:       aave.AddressV3PoolBase.String(),
+				Metadata: metadata.ExchangeLiquidity{
+				Action: metadata.ActionExchangeLiquiditySupply,
+				Tokens: []metadata.Token{
+			{
+				Address:  lo.ToPtr("0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1000000"))),
+				Name:     "USD Base Coin",
+				Symbol:   "USDbC",
+				Decimals: 6,
+				Standard: metadata.StandardERC20,
+			},
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1692716063,
 			},
@@ -1076,7 +1076,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Withdraw WBTC from AAVE V3 Pool on Ethereum Mainnet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x2ac43f77fc58845ceec77c3f91dc7e582c6d0fbe1b414527ebaaba0de35c7114"),
@@ -1188,46 +1188,46 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xef6e2adee0defc810147847b2c3c5255e5e5e75cbc7a4e6ff009444f0aa53f11",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   108,
 				From:    "0x5A0D6d0DE7c74899F09d3509A429bEb7D3b4b1d0",
 				To:      aave.AddressV3PoolMainnet.String(),
-				Type:    filter.TypeExchangeLiquidity,
+				Type:    type.ExchangeLiquidity,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x69328dec",
-				},
+				FunctionHash: "0x69328dec",
+			},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("3971841806401938")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformAAVE.String(),
-						From:     aave.AddressV3PoolMainnet.String(),
-						To:       "0x5A0D6d0DE7c74899F09d3509A429bEb7D3b4b1d0",
-						Metadata: metadata.ExchangeLiquidity{
-							Action: metadata.ActionExchangeLiquidityWithdraw,
-							Tokens: []metadata.Token{
-								{
-									Address:  lo.ToPtr("0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"),
-									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("199598187"))),
-									Name:     "Wrapped BTC",
-									Symbol:   "WBTC",
-									Decimals: 8,
-									Standard: metadata.StandardERC20,
-								},
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("3971841806401938")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.ExchangeLiquidity,
+				Platform: filter.PlatformAAVE.String(),
+				From:     aave.AddressV3PoolMainnet.String(),
+				To:       "0x5A0D6d0DE7c74899F09d3509A429bEb7D3b4b1d0",
+				Metadata: metadata.ExchangeLiquidity{
+				Action: metadata.ActionExchangeLiquidityWithdraw,
+				Tokens: []metadata.Token{
+			{
+				Address:  lo.ToPtr("0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("199598187"))),
+				Name:     "Wrapped BTC",
+				Symbol:   "WBTC",
+				Decimals: 8,
+				Standard: metadata.StandardERC20,
+			},
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1691645195,
 			},
@@ -1237,7 +1237,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Borrow USDT from AAVE V3 Pool on Ethereum Mainnet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x931bea6a782b8f18027759b250a73d17fc32f3a6c3d1fd115419335bcb177e6d"),
@@ -1337,46 +1337,46 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x060a2a7e1db5be295f14171e98a39dec1a7282101c148833333409b99dad4295",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   96,
 				From:    "0xC4dBC7D5957dceF7eD2B0778C597c16Ce2769E7d",
 				To:      aave.AddressV3PoolMainnet.String(),
-				Type:    filter.TypeExchangeLiquidity,
+				Type:    type.ExchangeLiquidity,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xa415bcad",
-				},
+				FunctionHash: "0xa415bcad",
+			},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("3819556449855740")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformAAVE.String(),
-						From:     aave.AddressV3PoolMainnet.String(),
-						To:       "0xC4dBC7D5957dceF7eD2B0778C597c16Ce2769E7d",
-						Metadata: metadata.ExchangeLiquidity{
-							Action: metadata.ActionExchangeLiquidityBorrow,
-							Tokens: []metadata.Token{
-								{
-									Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
-									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("7000000000"))),
-									Name:     "Tether USD",
-									Symbol:   "USDT",
-									Decimals: 6,
-									Standard: metadata.StandardERC20,
-								},
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("3819556449855740")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.ExchangeLiquidity,
+				Platform: filter.PlatformAAVE.String(),
+				From:     aave.AddressV3PoolMainnet.String(),
+				To:       "0xC4dBC7D5957dceF7eD2B0778C597c16Ce2769E7d",
+				Metadata: metadata.ExchangeLiquidity{
+				Action: metadata.ActionExchangeLiquidityBorrow,
+				Tokens: []metadata.Token{
+			{
+				Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("7000000000"))),
+				Name:     "Tether USD",
+				Symbol:   "USDT",
+				Decimals: 6,
+				Standard: metadata.StandardERC20,
+			},
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1691643779,
 			},
@@ -1386,7 +1386,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Repay USDT to AAVE V3 Pool on Ethereum Mainnet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x744f4914a79e72159e11169076fc6cf1db483d6f2c318f2f98cb95e94f535fec"),
@@ -1486,46 +1486,46 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xdc2cd838127a068db79c70508ac87b73d083a2ea22d230ae6f1d8b27001e58d0",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   158,
 				From:    "0x790c9422839FD93a3A4E31e531f96cC87F397c00",
 				To:      aave.AddressV3PoolMainnet.String(),
-				Type:    filter.TypeExchangeLiquidity,
+				Type:    type.ExchangeLiquidity,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x573ade81",
-				},
+				FunctionHash: "0x573ade81",
+			},
 				Platform: lo.ToPtr(filter.PlatformAAVE),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("2571456723342402")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformAAVE.String(),
-						From:     "0x790c9422839FD93a3A4E31e531f96cC87F397c00",
-						To:       aave.AddressV3PoolMainnet.String(),
-						Metadata: metadata.ExchangeLiquidity{
-							Action: metadata.ActionExchangeLiquidityRepay,
-							Tokens: []metadata.Token{
-								{
-									Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
-									Value:    lo.ToPtr(lo.Must(decimal.NewFromString("758486000000"))),
-									Name:     "Tether USD",
-									Symbol:   "USDT",
-									Decimals: 6,
-									Standard: metadata.StandardERC20,
-								},
-							},
-						},
-					},
-				},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("2571456723342402")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.ExchangeLiquidity,
+				Platform: filter.PlatformAAVE.String(),
+				From:     "0x790c9422839FD93a3A4E31e531f96cC87F397c00",
+				To:       aave.AddressV3PoolMainnet.String(),
+				Metadata: metadata.ExchangeLiquidity{
+				Action: metadata.ActionExchangeLiquidityRepay,
+				Tokens: []metadata.Token{
+			{
+				Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("758486000000"))),
+				Name:     "Tether USD",
+				Symbol:   "USDT",
+				Decimals: 6,
+				Standard: metadata.StandardERC20,
+			},
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1691650679,
 			},

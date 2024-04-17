@@ -17,7 +17,7 @@ const (
 	RSSHubUMSPath = "format=ums"
 )
 
-func (h *Hub) getRSSHubData(ctx context.Context, path string, rawQuery string) ([]*schema.Feed, error) {
+func (h *Hub) getRSSHubData(ctx context.Context, path string, rawQuery string) ([]*activity.Activity, error) {
 	request, err := url.Parse(h.rsshub.Endpoint)
 	if err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func (h *Hub) parseRSSHubAuthentication(_ context.Context, request *url.URL) err
 	return nil
 }
 
-func (h *Hub) transformRSSHubToActivities(_ context.Context, data []byte) ([]*schema.Feed, error) {
+func (h *Hub) transformRSSHubToActivities(_ context.Context, data []byte) ([]*activity.Activity, error) {
 	type response struct {
 		Data schema.Feeds `json:"data"`
 	}

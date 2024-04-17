@@ -3,12 +3,12 @@ package engine
 import (
 	"context"
 
-	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/activity"
 )
 
 type Worker interface {
 	Name() string
 	Filter() SourceFilter
 	Match(ctx context.Context, task Task) (bool, error)
-	Transform(ctx context.Context, task Task) (*schema.Feed, error)
+	Transform(ctx context.Context, task Task) (*activity.Activity, error)
 }

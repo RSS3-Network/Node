@@ -13,7 +13,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -31,14 +31,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activity.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Buy ZGC #5 on Seaport V1.1",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x3958c2c95e2048e95344dd4846d387b309edafbf96e0a9ac4c4f4152ff253c59"),
@@ -113,51 +113,51 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xab3b7cc0bdbe6bde86855c82adc59e65fef6b9fe5abc5ccd4966076637a90781",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   96,
 				From:    "0x934B510D4C9103E6a87AEf13b816fb080286D649",
 				To:      "0x00000000006c3852cbEf3e08E8dF289169EdE581",
-				Type:    filter.TypeCollectibleTrade,
+				Type:    type.CollectibleTrade,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xfb0f3ee1",
-				},
+				FunctionHash: "0xfb0f3ee1",
+			},
 				Platform: lo.ToPtr(filter.PlatformOpenSea),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("1799863423694410")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeCollectibleTrade,
-						Platform: filter.PlatformOpenSea.String(),
-						From:     "0x6FEC7E57A21C3594619ae3CCc72330D5C71e6d11",
-						To:       "0x934B510D4C9103E6a87AEf13b816fb080286D649",
-						Metadata: metadata.CollectibleTrade{
-							Action: metadata.ActionCollectibleTradeBuy,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0x74EE68a33f6c9f113e22B3B77418B75f85d07D22"),
-								ID:       lo.ToPtr(lo.Must(decimal.NewFromString("5"))),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
-								Name:     "Zerion Genesis Collection",
-								Symbol:   "ZGC",
-								Standard: metadata.StandardERC1155,
-							},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("1799863423694410")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.CollectibleTrade,
+				Platform: filter.PlatformOpenSea.String(),
+				From:     "0x6FEC7E57A21C3594619ae3CCc72330D5C71e6d11",
+				To:       "0x934B510D4C9103E6a87AEf13b816fb080286D649",
+				Metadata: metadata.CollectibleTrade{
+				Action: metadata.ActionCollectibleTradeBuy,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0x74EE68a33f6c9f113e22B3B77418B75f85d07D22"),
+				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("5"))),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
+				Name:     "Zerion Genesis Collection",
+				Symbol:   "ZGC",
+				Standard: metadata.StandardERC1155,
+			},
 
-							Cost: &metadata.Token{
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("14525000000000000"))),
-								Name:     "Ethereum",
-								Symbol:   "ETH",
-								Decimals: 18,
-							},
-						},
-					},
-				},
+				Cost: &metadata.Token{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("14525000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1671429323,
 			},
@@ -167,7 +167,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Sell TurtlecaseGang #51 on Seaport V1.1",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x0a8b4de8221564ed79194421a709d84be2d333521bb43e53c244f3c41f132752"),
@@ -267,53 +267,53 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x097c15e4ebe2cbaa8d0b565999795e5fefb71e3c5c7ef42e9ab7d92c2a25980d",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   94,
 				From:    "0x934B510D4C9103E6a87AEf13b816fb080286D649",
 				To:      "0x00000000006c3852cbEf3e08E8dF289169EdE581",
-				Type:    filter.TypeCollectibleTrade,
+				Type:    type.CollectibleTrade,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xe7acab24",
-				},
+				FunctionHash: "0xe7acab24",
+			},
 				Platform: lo.ToPtr(filter.PlatformOpenSea),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("2685574746297498")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeCollectibleTrade,
-						Platform: filter.PlatformOpenSea.String(),
-						From:     "0x934B510D4C9103E6a87AEf13b816fb080286D649",
-						To:       "0xDae889230c6a20359d9AfF984700c8A115eF8681",
-						Metadata: metadata.CollectibleTrade{
-							Action: metadata.ActionCollectibleTradeSell,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0xB6d241C6CB1E8d2Fc65a012D51406138CB42801D"),
-								ID:       lo.ToPtr(lo.Must(decimal.NewFromString("51"))),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
-								Name:     "Turtle Case Gang",
-								Symbol:   "TurtlecaseGang",
-								Standard: metadata.StandardERC721,
-							},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("2685574746297498")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.CollectibleTrade,
+				Platform: filter.PlatformOpenSea.String(),
+				From:     "0x934B510D4C9103E6a87AEf13b816fb080286D649",
+				To:       "0xDae889230c6a20359d9AfF984700c8A115eF8681",
+				Metadata: metadata.CollectibleTrade{
+				Action: metadata.ActionCollectibleTradeSell,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0xB6d241C6CB1E8d2Fc65a012D51406138CB42801D"),
+				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("51"))),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
+				Name:     "Turtle Case Gang",
+				Symbol:   "TurtlecaseGang",
+				Standard: metadata.StandardERC721,
+			},
 
-							Cost: &metadata.Token{
-								Address:  lo.ToPtr("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("99400000000000000"))),
-								Name:     "Wrapped Ether",
-								Symbol:   "WETH",
-								Standard: metadata.StandardERC20,
-								Decimals: 18,
-							},
-						},
-					},
-				},
+				Cost: &metadata.Token{
+				Address:  lo.ToPtr("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("99400000000000000"))),
+				Name:     "Wrapped Ether",
+				Symbol:   "WETH",
+				Standard: metadata.StandardERC20,
+				Decimals: 18,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1666508723,
 			},
@@ -323,7 +323,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Buy AZUKI #4103 on Seaport V1.5",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x3c2a381bb4e4986f8a9192da83a92ee8d73a4d62da043f78000bc2d724c8ab13"),
@@ -400,51 +400,51 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x0be33034ac7e329c544df6c26872444955e76a3d0c68e8446f2276a191bcda1c",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   172,
 				From:    "0xc5037734E8AcD41A4dB7A3A8FE8153b7eC920212",
 				To:      "0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC",
-				Type:    filter.TypeCollectibleTrade,
+				Type:    type.CollectibleTrade,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xb3a34c4c",
-				},
+				FunctionHash: "0xb3a34c4c",
+			},
 				Platform: lo.ToPtr(filter.PlatformOpenSea),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("3951707971003272")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeCollectibleTrade,
-						Platform: filter.PlatformOpenSea.String(),
-						From:     "0x887578F7CeC7291a957a38710073b1a2770e2C1F",
-						To:       "0xc5037734E8AcD41A4dB7A3A8FE8153b7eC920212",
-						Metadata: metadata.CollectibleTrade{
-							Action: metadata.ActionCollectibleTradeBuy,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0xED5AF388653567Af2F388E6224dC7C4b3241C544"),
-								ID:       lo.ToPtr(lo.Must(decimal.NewFromString("4103"))),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
-								Name:     "Azuki",
-								Symbol:   "AZUKI",
-								Standard: metadata.StandardERC721,
-							},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("3951707971003272")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.CollectibleTrade,
+				Platform: filter.PlatformOpenSea.String(),
+				From:     "0x887578F7CeC7291a957a38710073b1a2770e2C1F",
+				To:       "0xc5037734E8AcD41A4dB7A3A8FE8153b7eC920212",
+				Metadata: metadata.CollectibleTrade{
+				Action: metadata.ActionCollectibleTradeBuy,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0xED5AF388653567Af2F388E6224dC7C4b3241C544"),
+				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("4103"))),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
+				Name:     "Azuki",
+				Symbol:   "AZUKI",
+				Standard: metadata.StandardERC721,
+			},
 
-							Cost: &metadata.Token{
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("14625000000000000000"))),
-								Name:     "Ethereum",
-								Symbol:   "ETH",
-								Decimals: 18,
-							},
-						},
-					},
-				},
+				Cost: &metadata.Token{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("14625000000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1685502779,
 			},
@@ -454,7 +454,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Buy FANDAS #2892 and #1788 on Seaport V1.5",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xf9fb789dd716f5cc9b492857a81a3f65a41bbbbe79bf2aa2a416b3846257181b"),
@@ -569,75 +569,75 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x6f2092bde5f2f64c6d085c379a861ea482783cd5868c0de02186a0fa79ee0c00",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   57,
 				From:    "0x2d368d6A84B791D634E6f9f81908D884849fd43d",
 				To:      "0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC",
-				Type:    filter.TypeCollectibleTrade,
+				Type:    type.CollectibleTrade,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0x87201b41",
-				},
+				FunctionHash: "0x87201b41",
+			},
 				Platform: lo.ToPtr(filter.PlatformOpenSea),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("11285727142279668")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeCollectibleTrade,
-						Platform: filter.PlatformOpenSea.String(),
-						From:     "0xb34E4285DE1a6D06e15964f84783cE1978df26A3",
-						To:       "0x2d368d6A84B791D634E6f9f81908D884849fd43d",
-						Metadata: metadata.CollectibleTrade{
-							Action: metadata.ActionCollectibleTradeBuy,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0x4BB08998a697d0db666783Ba5B56E85B33ba262f"),
-								ID:       lo.ToPtr(lo.Must(decimal.NewFromString("2892"))),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
-								Name:     "Frenly Pandas",
-								Symbol:   "FANDAS",
-								Standard: metadata.StandardERC721,
-							},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("11285727142279668")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.CollectibleTrade,
+				Platform: filter.PlatformOpenSea.String(),
+				From:     "0xb34E4285DE1a6D06e15964f84783cE1978df26A3",
+				To:       "0x2d368d6A84B791D634E6f9f81908D884849fd43d",
+				Metadata: metadata.CollectibleTrade{
+				Action: metadata.ActionCollectibleTradeBuy,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0x4BB08998a697d0db666783Ba5B56E85B33ba262f"),
+				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("2892"))),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
+				Name:     "Frenly Pandas",
+				Symbol:   "FANDAS",
+				Standard: metadata.StandardERC721,
+			},
 
-							Cost: &metadata.Token{
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("53172000000000000"))),
-								Name:     "Ethereum",
-								Symbol:   "ETH",
-								Decimals: 18,
-							},
-						},
-					},
-					{
-						Type:     filter.TypeCollectibleTrade,
-						Platform: filter.PlatformOpenSea.String(),
-						From:     "0xb34E4285DE1a6D06e15964f84783cE1978df26A3",
-						To:       "0x2d368d6A84B791D634E6f9f81908D884849fd43d",
-						Metadata: metadata.CollectibleTrade{
-							Action: metadata.ActionCollectibleTradeBuy,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0x4BB08998a697d0db666783Ba5B56E85B33ba262f"),
-								ID:       lo.ToPtr(lo.Must(decimal.NewFromString("1788"))),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
-								Name:     "Frenly Pandas",
-								Symbol:   "FANDAS",
-								Standard: metadata.StandardERC721,
-							},
+				Cost: &metadata.Token{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("53172000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			},
+			{
+				Type:     type.CollectibleTrade,
+				Platform: filter.PlatformOpenSea.String(),
+				From:     "0xb34E4285DE1a6D06e15964f84783cE1978df26A3",
+				To:       "0x2d368d6A84B791D634E6f9f81908D884849fd43d",
+				Metadata: metadata.CollectibleTrade{
+				Action: metadata.ActionCollectibleTradeBuy,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0x4BB08998a697d0db666783Ba5B56E85B33ba262f"),
+				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("1788"))),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
+				Name:     "Frenly Pandas",
+				Symbol:   "FANDAS",
+				Standard: metadata.StandardERC721,
+			},
 
-							Cost: &metadata.Token{
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("53172000000000000"))),
-								Name:     "Ethereum",
-								Symbol:   "ETH",
-								Decimals: 18,
-							},
-						},
-					},
-				},
+				Cost: &metadata.Token{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("53172000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1685586287,
 			},
@@ -647,7 +647,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Zero-dollar purchase on Seaport V1.1",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xe07d4ff758e9174812ec4f5f7d081f74e92e3543a4254de9b8400b49cdd96700"),
@@ -854,51 +854,51 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x04492eb7d380588f7a8f00221e51f8fbbec738b53e50bbcdcb14c2e21a12547b",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   167,
 				From:    "0x45719eCcE878E7E2d376F7dfA6f4Bd20fdA55458",
 				To:      "0x00000000006c3852cbEf3e08E8dF289169EdE581",
-				Type:    filter.TypeCollectibleTrade,
+				Type:    type.CollectibleTrade,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xb3a34c4c",
-				},
+				FunctionHash: "0xb3a34c4c",
+			},
 				Platform: lo.ToPtr(filter.PlatformOpenSea),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("8451590861124860")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeCollectibleTrade,
-						Platform: filter.PlatformOpenSea.String(),
-						From:     "0x7645D76b91806f6F2796F0A901C2Eeba7Ade3A2c",
-						To:       "0x45719eCcE878E7E2d376F7dfA6f4Bd20fdA55458",
-						Metadata: metadata.CollectibleTrade{
-							Action: metadata.ActionCollectibleTradeBuy,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0x5Ff0a71977584d9CBE5d5F56E9843cD672672dDD"),
-								ID:       lo.ToPtr(lo.Must(decimal.NewFromString("7173"))),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
-								Name:     "Women of Crypto",
-								Symbol:   "WOC",
-								Standard: metadata.StandardERC721,
-							},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("8451590861124860")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.CollectibleTrade,
+				Platform: filter.PlatformOpenSea.String(),
+				From:     "0x7645D76b91806f6F2796F0A901C2Eeba7Ade3A2c",
+				To:       "0x45719eCcE878E7E2d376F7dfA6f4Bd20fdA55458",
+				Metadata: metadata.CollectibleTrade{
+				Action: metadata.ActionCollectibleTradeBuy,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0x5Ff0a71977584d9CBE5d5F56E9843cD672672dDD"),
+				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("7173"))),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
+				Name:     "Women of Crypto",
+				Symbol:   "WOC",
+				Standard: metadata.StandardERC721,
+			},
 
-							Cost: &metadata.Token{
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("0"))),
-								Name:     "Ethereum",
-								Symbol:   "ETH",
-								Decimals: 18,
-							},
-						},
-					},
-				},
+				Cost: &metadata.Token{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("0"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1662989818,
 			},
@@ -908,7 +908,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Buy and mint a NFT on WyvernExchange v2",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x7d38d0bffb9cafad24aeadd09feca7e7f9b1588907039bad7e1897f8ba7abd7e"),
@@ -983,51 +983,51 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x0004f3ee70968d7df86e198ff7c3d6df6b30751a821c701c302b83a71ec72858",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   133,
 				From:    "0x535B76436bE15c70DE947585672df01c25a6e966",
 				To:      "0x7f268357A8c2552623316e2562D90e642bB538E5",
-				Type:    filter.TypeCollectibleTrade,
+				Type:    type.CollectibleTrade,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xab834bab",
-				},
+				FunctionHash: "0xab834bab",
+			},
 				Platform: lo.ToPtr(filter.PlatformOpenSea),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("19592761679751556")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeCollectibleTrade,
-						Platform: filter.PlatformOpenSea.String(),
-						From:     "0xfb3AEefE6fb1645C3c8B5f6db50BE812E746C21F",
-						To:       "0x535B76436bE15c70DE947585672df01c25a6e966",
-						Metadata: metadata.CollectibleTrade{
-							Action: metadata.ActionCollectibleTradeBuy,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0xFC8a98C22A9E32948aB028414d67C62c49B16864"),
-								ID:       lo.ToPtr(lo.Must(decimal.NewFromString("2402"))),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
-								Name:     "Shrapnel Operators Collection",
-								Symbol:   "SOC",
-								Standard: metadata.StandardERC721,
-							},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("19592761679751556")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.CollectibleTrade,
+				Platform: filter.PlatformOpenSea.String(),
+				From:     "0xfb3AEefE6fb1645C3c8B5f6db50BE812E746C21F",
+				To:       "0x535B76436bE15c70DE947585672df01c25a6e966",
+				Metadata: metadata.CollectibleTrade{
+				Action: metadata.ActionCollectibleTradeBuy,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0xFC8a98C22A9E32948aB028414d67C62c49B16864"),
+				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("2402"))),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
+				Name:     "Shrapnel Operators Collection",
+				Symbol:   "SOC",
+				Standard: metadata.StandardERC721,
+			},
 
-							Cost: &metadata.Token{
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("50000000000000000"))),
-								Name:     "Ethereum",
-								Symbol:   "ETH",
-								Decimals: 18,
-							},
-						},
-					},
-				},
+				Cost: &metadata.Token{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("50000000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1655340374,
 			},
@@ -1037,7 +1037,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Accept a offer on WyvernExchange",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x4d9605c5d32553dc62b3452ad84eb0cb6abed38eaaeecaac46e7b25499e504d0"),
@@ -1127,51 +1127,51 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x0003e5c7e62d982552a6ae3b15c4035872747cb07e72f5fb9d2f690942e7d36e",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   21,
 				From:    "0x93167077B4a072F939323AE8c9B0dCB23EDb3789",
 				To:      "0x7f268357A8c2552623316e2562D90e642bB538E5",
-				Type:    filter.TypeCollectibleTrade,
+				Type:    type.CollectibleTrade,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xab834bab",
-				},
+				FunctionHash: "0xab834bab",
+			},
 				Platform: lo.ToPtr(filter.PlatformOpenSea),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("9175555000000000")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeCollectibleTrade,
-						Platform: filter.PlatformOpenSea.String(),
-						From:     "0x93167077B4a072F939323AE8c9B0dCB23EDb3789",
-						To:       "0x6Ed6629101989283a1f01fdF9178ad6F34435672",
-						Metadata: metadata.CollectibleTrade{
-							Action: metadata.ActionCollectibleTradeSell,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0x9cC05Bdc13dC65223623FECD20Fa1F34109f8206"),
-								ID:       lo.ToPtr(lo.Must(decimal.NewFromString("0"))),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
-								Name:     "Flippr Access Pass",
-								Symbol:   "FLIPPR",
-								Standard: metadata.StandardERC1155,
-							},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("9175555000000000")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.CollectibleTrade,
+				Platform: filter.PlatformOpenSea.String(),
+				From:     "0x93167077B4a072F939323AE8c9B0dCB23EDb3789",
+				To:       "0x6Ed6629101989283a1f01fdF9178ad6F34435672",
+				Metadata: metadata.CollectibleTrade{
+				Action: metadata.ActionCollectibleTradeSell,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0x9cC05Bdc13dC65223623FECD20Fa1F34109f8206"),
+				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("0"))),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
+				Name:     "Flippr Access Pass",
+				Symbol:   "FLIPPR",
+				Standard: metadata.StandardERC1155,
+			},
 
-							Cost: &metadata.Token{
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("129500000000000000"))),
-								Name:     "Ethereum",
-								Symbol:   "ETH",
-								Decimals: 18,
-							},
-						},
-					},
-				},
+				Cost: &metadata.Token{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("129500000000000000"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1654079903,
 			},
@@ -1181,7 +1181,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Buy ENS #74423267982534601206598717130436619001173770632196343728263400099197042616208 on WyvernExchange V2",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x53f7b5ddac580ec4c3a68b4c35cbe07bc36257ca0ae90287f1e44d28761f8823"),
@@ -1247,51 +1247,51 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x6f567e52bcd8af7ea89718b3141896b9c32f5436994d0de4c348fc749d6b5ce4",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   304,
 				From:    "0xa1aafb06268f3396c4683e3F635A4AFf0E040e46",
 				To:      "0x7f268357A8c2552623316e2562D90e642bB538E5",
-				Type:    filter.TypeCollectibleTrade,
+				Type:    type.CollectibleTrade,
 				Calldata: &schema.Calldata{
-					FunctionHash: "0xab834bab",
-				},
+				FunctionHash: "0xab834bab",
+			},
 				Platform: lo.ToPtr(filter.PlatformOpenSea),
-				Fee: &schema.Fee{
-					Amount:  lo.Must(decimal.NewFromString("4878860114106745")),
-					Decimal: 18,
-				},
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeCollectibleTrade,
-						Platform: filter.PlatformOpenSea.String(),
-						From:     "0x7E4Bb04f32207Cb4FB06A8AcD97EE90d9756ff58",
-						To:       "0xa1aafb06268f3396c4683e3F635A4AFf0E040e46",
-						Metadata: metadata.CollectibleTrade{
-							Action: metadata.ActionCollectibleTradeBuy,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85"),
-								ID:       lo.ToPtr(lo.Must(decimal.NewFromString("74423267982534601206598717130436619001173770632196343728263400099197042616208"))),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
-								Symbol:   "ENS",
-								Standard: metadata.StandardERC721,
-								URI:      "https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/74423267982534601206598717130436619001173770632196343728263400099197042616208",
-							},
+				Fee: &activity.Fee{
+				Amount:  lo.Must(decimal.NewFromString("4878860114106745")),
+				Decimal: 18,
+			},
+				Actions: []*activity.Action{
+			{
+				Type:     type.CollectibleTrade,
+				Platform: filter.PlatformOpenSea.String(),
+				From:     "0x7E4Bb04f32207Cb4FB06A8AcD97EE90d9756ff58",
+				To:       "0xa1aafb06268f3396c4683e3F635A4AFf0E040e46",
+				Metadata: metadata.CollectibleTrade{
+				Action: metadata.ActionCollectibleTradeBuy,
+				Token: metadata.Token{
+				Address:  lo.ToPtr("0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85"),
+				ID:       lo.ToPtr(lo.Must(decimal.NewFromString("74423267982534601206598717130436619001173770632196343728263400099197042616208"))),
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("1"))),
+				Symbol:   "ENS",
+				Standard: metadata.StandardERC721,
+				URI:      "https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/74423267982534601206598717130436619001173770632196343728263400099197042616208",
+			},
 
-							Cost: &metadata.Token{
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("6752752024743047208"))),
-								Name:     "Ethereum",
-								Symbol:   "ETH",
-								Decimals: 18,
-							},
-						},
-					},
-				},
+				Cost: &metadata.Token{
+				Value:    lo.ToPtr(lo.Must(decimal.NewFromString("6752752024743047208"))),
+				Name:     "Ethereum",
+				Symbol:   "ETH",
+				Decimals: 18,
+			},
+			},
+			},
+			},
 				Status:    true,
 				Timestamp: 1658503200,
 			},

@@ -5,8 +5,7 @@ import (
 
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/arweave"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/shopspring/decimal"
 )
 
@@ -15,7 +14,7 @@ const defaultFeeDecimal = 12
 var _ engine.Task = (*Task)(nil)
 
 type Task struct {
-	Network     filter.Network
+	Network     network.Network
 	Block       arweave.Block
 	Transaction arweave.Transaction
 }
@@ -24,7 +23,7 @@ func (t Task) ID() string {
 	return fmt.Sprintf("%s-%s", t.Network, t.Transaction.ID)
 }
 
-func (t Task) GetNetwork() filter.Network {
+func (t Task) GetNetwork() network.Network {
 	return t.Network
 }
 
@@ -37,7 +36,7 @@ func (t Task) Validate() error {
 }
 
 // BuildFeed builds a feed from the task.
-func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
+func (t Task) BuildFeed(options ...activity.Option) (*activity.Activity, error) {
 	var feeValue decimal.Decimal
 
 	// Set fee value if the reward is not empty.
@@ -58,18 +57,18 @@ func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 		return nil, fmt.Errorf("parse transaction owner: %w", err)
 	}
 
-	feed := schema.Feed{
+	feed := activity.Activity{
 		ID:      t.Transaction.ID,
 		Network: t.Network,
 		From:    from,
 		To:      t.Transaction.Target,
-		Type:    filter.TypeUnknown,
+		Type:    type.Unknown,
 		Status:  true,
-		Fee: &schema.Fee{
-			Amount:  feeValue,
-			Decimal: defaultFeeDecimal,
-		},
-		Actions:   make([]*schema.Action, 0),
+		Fee: &activity.Fee{
+		Amount:  feeValue,
+		Decimal: defaultFeeDecimal,
+	},
+		Actions:   make([]*activity.Action, 0),
 		Timestamp: uint64(t.Block.Timestamp),
 	}
 

@@ -22,14 +22,14 @@ func TestWorker_Matters(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activity.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		//{
 		//	name: "Curation",
 		//	arguments: arguments{
 		//		task: &source.Task{
-		//			Network: filter.NetworkPolygon,
+		//			Network: network.Polygon,
 		//			ChainID: 137,
 		//			Header: &ethereum.Header{
 		//				Hash:         common.HexToHash("0xd287e85c28567ff5e0ecde319f9e9d3cd39c399c3cd97015af10adfc0b971427"),
@@ -119,30 +119,30 @@ func TestWorker_Matters(t *testing.T) {
 		//			},
 		//		},
 		//		config: &config.Module{
-		//			Network:  filter.NetworkPolygon,
-		//			Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+		//			Network:  network.Polygon,
+		//			Endpoint: endpoint.MustGet(network.Polygon),
 		//		},
 		//	},
-		//	want: &schema.Feed{
+		//	want: &activity.Activity{
 		//		ID:      "0x406420c77151dd2779f647967aaee7b2ae25248bbb51b53de4d8912c904dbd34",
-		//		Network: filter.NetworkPolygon,
+		//		Network: network.Polygon,
 		//		Index:   41,
 		//		From:    "0x18Fb694EbAE03a78f038F54362592Dd89c0e300C",
 		//		To:      matters.AddressCuration.String(),
-		//		Type:    filter.TypeSocialReward,
+		//		Type:    type.SocialReward,
 		//		Calldata: &schema.Calldata{
 		//			FunctionHash: "0xdbcdaf5b",
 		//		},
 		//		Tag:      filter.TagSocial,
 		//		Platform: lo.ToPtr(filter.PlatformMatters),
-		//		Fee: &schema.Fee{
+		//		Fee: &activity.Fee{
 		//			Amount:  lo.Must(decimal.NewFromString("5681706332875290")),
 		//			Decimal: 18,
 		//		},
 		//		TotalActions: 1,
-		//		Actions: []*schema.Action{
+		//		Actions: []*activity.Action{
 		//			{
-		//				Type:     filter.TypeSocialReward,
+		//				Type:     type.SocialReward,
 		//				Tag:      filter.TagSocial,
 		//				Platform: filter.PlatformMatters.String(),
 		//				From:     "0x18Fb694EbAE03a78f038F54362592Dd89c0e300C",

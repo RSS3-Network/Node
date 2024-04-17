@@ -51,7 +51,7 @@ func New(ctx context.Context, uri, topic string) (stream.Client, error) {
 	}, nil
 }
 
-func (c *Client) PushFeeds(ctx context.Context, feeds []*schema.Feed) error {
+func (c *Client) PushFeeds(ctx context.Context, feeds []*activity.Activity) error {
 	records := make([]*kgo.Record, 0, len(feeds))
 
 	for _, feed := range feeds {
@@ -74,7 +74,7 @@ func (c *Client) PushFeeds(ctx context.Context, feeds []*schema.Feed) error {
 	return nil
 }
 
-func (c *Client) encodeFeed(feed *schema.Feed) (*kgo.Record, error) {
+func (c *Client) encodeFeed(feed *activity.Activity) (*kgo.Record, error) {
 	value, err := json.Marshal(feed)
 	if err != nil {
 		return nil, err

@@ -17,7 +17,7 @@ import (
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.opentelemetry.io/otel"
@@ -100,12 +100,12 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		return nil
 	}
 
-	resultPool := pool.NewWithResults[*schema.Feed]().WithMaxGoroutines(lo.Ternary(tasks.Len() < 20*runtime.NumCPU(), tasks.Len(), 20*runtime.NumCPU()))
+	resultPool := pool.NewWithResults[*activity.Activity]().WithMaxGoroutines(lo.Ternary(tasks.Len() < 20*runtime.NumCPU(), tasks.Len(), 20*runtime.NumCPU()))
 
 	for _, task := range tasks.Tasks {
 		task := task
 
-		resultPool.Go(func() *schema.Feed {
+		resultPool.Go(func() *activity.Activity {
 			zap.L().Debug("start match task", zap.String("task.id", task.ID()))
 
 			matched, err := s.worker.Match(ctx, task)
@@ -136,7 +136,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 	}
 
 	// Filter failed feeds.
-	feeds := lo.Filter(resultPool.Wait(), func(feed *schema.Feed, _ int) bool {
+	feeds := lo.Filter(resultPool.Wait(), func(feed *activity.Activity, _ int) bool {
 		return feed != nil
 	})
 
@@ -173,14 +173,14 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 func (s *Server) initializeMeter() (err error) {
 	// init ethereum client
 	switch s.config.Network {
-	case filter.NetworkArweave:
+	case network.Arweave:
 		arweaveClient, err := arweave.NewClient()
 		if err != nil {
 			return fmt.Errorf("new arweave client: %w", err)
 		}
 
 		s.arweaveClient = arweaveClient
-	case filter.NetworkFarcaster:
+	case network.Farcaster:
 		break
 	default:
 		ethereumClient, err := ethereum.Dial(context.Background(), s.config.Endpoint)
@@ -252,7 +252,7 @@ func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.I
 		var latestBlockHeight int64
 
 		switch s.config.Network {
-		case filter.NetworkArweave:
+		case network.Arweave:
 			//get arweave client
 			latestHeight, err := s.arweaveClient.GetBlockHeight(ctx)
 			if err != nil {
@@ -261,7 +261,7 @@ func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.I
 			}
 
 			latestBlockHeight = latestHeight
-		case filter.NetworkFarcaster:
+		case network.Farcaster:
 			break
 		default:
 			latestBlock, err := s.ethereumClient.BlockNumber(ctx)

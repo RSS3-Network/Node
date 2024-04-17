@@ -16,7 +16,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/weth"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -63,11 +63,11 @@ func (w *worker) Filter() engine.SourceFilter {
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
+	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
 // Transform 1inch task to feed.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	// Cast the task to a 1inch task.
 	oneinchTask, ok := task.(*source.Task)
 	if !ok {
@@ -102,11 +102,12 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 }
 
 // handleEthereumExchangeSwapTransaction handles exchange swap transaction.
-func (w *worker) handleEthereumExchangeSwapTransaction(ctx context.Context, task *source.Task, feed *schema.Feed) error {
-	feed.Type = filter.TypeExchangeSwap
+func (w *worker) handleEthereumExchangeSwapTransaction(ctx context.Context, task *source.Task, feed *activity.Activity) error {
+	feed.Type =
+	type.ExchangeSwap
 
 	var (
-		actions []*schema.Action
+		actions []*activity.Action
 		err     error
 	)
 
@@ -134,7 +135,7 @@ func (w *worker) handleEthereumExchangeSwapTransaction(ctx context.Context, task
 }
 
 // handleEthereumExplicitAggregationRouterTransaction handles explicit aggregation router transaction.
-func (w *worker) handleEthereumImplicitAggregationRouterTransaction(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
+func (w *worker) handleEthereumImplicitAggregationRouterTransaction(ctx context.Context, task *source.Task) ([]*activity.Action, error) {
 	var (
 		sender, receipt *common.Address
 		err             error
@@ -216,7 +217,7 @@ func (w *worker) handleEthereumImplicitAggregationRouterTransaction(ctx context.
 		return nil, fmt.Errorf("build action: %w", err)
 	}
 
-	return []*schema.Action{
+	return []*activity.Action{
 		action,
 	}, nil
 }
@@ -758,8 +759,8 @@ func (w *worker) parseEthereumAggregationRouterV4TransactionClipperSwapToInput(_
 }
 
 // handleEthereumExplicitAggregationRouterTransaction handles the explicit aggregation router transaction.
-func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.Context, task *source.Task) []*schema.Action {
-	actions := make([]*schema.Action, 0)
+func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.Context, task *source.Task) []*activity.Action {
+	actions := make([]*activity.Action, 0)
 
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
@@ -767,7 +768,7 @@ func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.
 		}
 
 		var (
-			action *schema.Action
+			action *activity.Action
 			err    error
 		)
 
@@ -794,7 +795,7 @@ func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.
 }
 
 // handleEthereumAggregationRouterV3SwappedLog handles the aggregation router v3 swapped log.
-func (w *worker) handleEthereumAggregationRouterV3SwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+func (w *worker) handleEthereumAggregationRouterV3SwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activity.Action, error) {
 	if log.Address != oneinch.AddressAggregationRouterV3 {
 		return nil, fmt.Errorf("unofficial aggregation router v3 contract %s", log.Address)
 	}
@@ -808,7 +809,7 @@ func (w *worker) handleEthereumAggregationRouterV3SwappedLog(ctx context.Context
 }
 
 // handleEthereumAggregationRouterV2SwappedLog handles the aggregation router v2 swapped log.
-func (w *worker) handleEthereumAggregationRouterV2SwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+func (w *worker) handleEthereumAggregationRouterV2SwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activity.Action, error) {
 	if log.Address != oneinch.AddressAggregationRouterV2 {
 		return nil, fmt.Errorf("unofficial aggregation router v2 contract %s", log.Address)
 	}
@@ -822,7 +823,7 @@ func (w *worker) handleEthereumAggregationRouterV2SwappedLog(ctx context.Context
 }
 
 // handleEthereumExchangeSwappedLog handles the exchange swapped log.
-func (w *worker) handleEthereumExchangeSwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+func (w *worker) handleEthereumExchangeSwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activity.Action, error) {
 	if log.Address != oneinch.AddressExchange2 {
 		return nil, fmt.Errorf("unofficial exchange contract %s", log.Address)
 	}
@@ -836,7 +837,7 @@ func (w *worker) handleEthereumExchangeSwappedLog(ctx context.Context, task *sou
 }
 
 // buildEthereumExchangeSwapAction builds the exchange swap action.
-func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumber *big.Int, chain uint64, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*schema.Action, error) {
+func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumber *big.Int, chain uint64, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*activity.Action, error) {
 	var (
 		tokenInAddress  = lo.Ternary(tokenIn != oneinch.AddressEther, lo.ToPtr(tokenIn), nil)
 		tokenOutAddress = lo.Ternary(tokenOut != oneinch.AddressEther, lo.ToPtr(tokenOut), nil)
@@ -856,16 +857,16 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 
 	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
 
-	action := schema.Action{
-		Tag:      filter.TagExchange,
-		Type:     filter.TypeExchangeSwap,
+	action := activity.Action{
+		Tag: filter.TagExchange,
+		Type:     type.ExchangeSwap,
 		Platform: filter.Platform1inch.String(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeSwap{
-			From: *tokenInMetadata,
-			To:   *tokenOutMetadata,
-		},
+		From: *tokenInMetadata,
+		To:   *tokenOutMetadata,
+	},
 	}
 
 	return &action, nil

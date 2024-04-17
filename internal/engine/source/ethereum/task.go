@@ -10,7 +10,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/shopspring/decimal"
 )
 
@@ -19,7 +19,7 @@ const defaultFeeDecimal = 18
 var _ engine.Task = (*Task)(nil)
 
 type Task struct {
-	Network     filter.Network
+	Network     network.Network
 	ChainID     uint64
 	Header      *ethereum.Header
 	Transaction *ethereum.Transaction
@@ -30,7 +30,7 @@ func (t Task) ID() string {
 	return fmt.Sprintf("%s.%s", t.Network, t.Transaction.Hash)
 }
 
-func (t Task) GetNetwork() filter.Network {
+func (t Task) GetNetwork() network.Network {
 	return t.Network
 }
 
@@ -43,7 +43,7 @@ func (t Task) Validate() error {
 	return nil
 }
 
-func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
+func (t Task) BuildFeed(options ...activity.Option) (*activity.Activity, error) {
 	var to, from common.Address
 
 	if t.Transaction.To == nil {
@@ -74,21 +74,21 @@ func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 		functionHash = hexutil.Encode(functionHashBytes)
 	}
 
-	feed := schema.Feed{
+	feed := activity.Activity{
 		ID:      t.Transaction.Hash.String(),
 		Network: t.Network,
 		Index:   t.Receipt.TransactionIndex,
 		From:    from.String(),
 		To:      to.String(),
-		Type:    filter.TypeUnknown,
-		Fee: &schema.Fee{
-			Amount:  decimal.NewFromBigInt(feeAmount, 0),
-			Decimal: defaultFeeDecimal,
-		},
+		Type:    type.Unknown,
+		Fee: &activity.Fee{
+		Amount:  decimal.NewFromBigInt(feeAmount, 0),
+		Decimal: defaultFeeDecimal,
+	},
 		Calldata: &schema.Calldata{
-			FunctionHash: functionHash,
-		},
-		Actions:   make([]*schema.Action, 0),
+		FunctionHash: functionHash,
+	},
+		Actions:   make([]*activity.Action, 0),
 		Status:    t.Receipt.Status == types.ReceiptStatusSuccessful,
 		Timestamp: t.Header.Timestamp,
 	}

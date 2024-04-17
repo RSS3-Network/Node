@@ -14,7 +14,7 @@ import (
 	"github.com/rss3-network/node/provider/arweave/contract/mirror"
 	"github.com/rss3-network/node/provider/ipfs"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
@@ -42,7 +42,7 @@ func (w *worker) Filter() engine.SourceFilter {
 // Match returns true if the task is an Arweave task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	switch task.GetNetwork().Source() {
-	case filter.NetworkArweaveSource:
+	case network.ArweaveSource:
 		task := task.(*source.Task)
 
 		// Check if the transaction belongs to the mirror contract.
@@ -58,7 +58,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 }
 
 // Transform returns a feed with the action of the task.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
@@ -89,7 +89,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 }
 
 // transformPostOrReviseAction Returns the actions of mirror post or revise.
-func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
+func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) ([]*activity.Action, error) {
 	var (
 		contentDigest       string
 		originContentDigest string
@@ -198,7 +198,7 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 		return nil, fmt.Errorf("save dataset mirror post: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activity.Action{
 		action,
 	}
 
@@ -206,13 +206,15 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 }
 
 // buildArweaveTransactionTransferAction Returns the native transfer transaction action.
-func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, mirrorMetadata *metadata.SocialPost, emptyOriginDigest bool, originContentDigest string) (*schema.Action, error) {
+func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, mirrorMetadata *metadata.SocialPost, emptyOriginDigest bool, originContentDigest string) (*activity.Action, error) {
 	// Default action type is post.
-	filterType := filter.TypeSocialPost
+	filterType :=
+	type.SocialPost
 
 	// if the origin digest is empty, the action type should be revise.
 	if emptyOriginDigest {
-		filterType = filter.TypeSocialRevise
+		filterType =
+		type.SocialRevise
 	}
 
 	// If the origin digest is not empty, check if the origin digest is the first mirror post.
@@ -223,12 +225,13 @@ func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, m
 		}
 
 		if post != nil && txID != post.TransactionID {
-			filterType = filter.TypeSocialRevise
+			filterType =
+			type.SocialRevise
 		}
 	}
 
 	// Construct action
-	action := schema.Action{
+	action := activity.Action{
 		Type:     filterType,
 		Tag:      filter.TagSocial,
 		Platform: filter.PlatformMirror.String(),

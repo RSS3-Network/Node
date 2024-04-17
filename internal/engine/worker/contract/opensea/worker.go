@@ -18,7 +18,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/opensea"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -64,11 +64,11 @@ func (w *worker) Filter() engine.SourceFilter {
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
+	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
 // Transform Ethereum task to feed.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -88,7 +88,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		}
 
 		var (
-			actions []*schema.Action
+			actions []*activity.Action
 			err     error
 		)
 
@@ -149,7 +149,7 @@ func (w *worker) matchSeaportV1OrderFulfilled(_ *source.Task, log *ethereum.Log)
 }
 
 // transformWyvernExchangeV1Orders transforms WyvernExchangeV1 OrdersMatched event.
-func (w *worker) transformWyvernExchangeV1Orders(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformWyvernExchangeV1Orders(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	// Parse OrdersMatched event.
 	event, err := w.wyvernExchangeV1Filterer.ParseOrdersMatched(log.Export())
 	if err != nil {
@@ -209,16 +209,16 @@ func (w *worker) transformWyvernExchangeV1Orders(ctx context.Context, task *sour
 		return nil, err
 	}
 
-	return []*schema.Action{
+	return []*activity.Action{
 		action,
 	}, nil
 }
 
-func (w *worker) transformWyvernExchangeV2Orders(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformWyvernExchangeV2Orders(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	return w.transformWyvernExchangeV1Orders(ctx, task, log)
 }
 
-func (w *worker) transformSeaportV1OrderFulfilled(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformSeaportV1OrderFulfilled(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	// Parse OrderFulfilled event.
 	event, err := w.seaportV1Filterer.ParseOrderFulfilled(log.Export())
 	if err != nil {
@@ -280,12 +280,12 @@ func (w *worker) transformSeaportV1OrderFulfilled(ctx context.Context, task *sou
 		return nil, err
 	}
 
-	return []*schema.Action{
+	return []*activity.Action{
 		action,
 	}, nil
 }
 
-func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *source.Task, seller, buyer, nft common.Address, nftID, nftValue *big.Int, offerToken *common.Address, offerValue *big.Int) (*schema.Action, error) {
+func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *source.Task, seller, buyer, nft common.Address, nftID, nftValue *big.Int, offerToken *common.Address, offerValue *big.Int) (*activity.Action, error) {
 	if nftID == nil {
 		return nil, fmt.Errorf("nft id is nil")
 	}
@@ -313,17 +313,17 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 
 	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(offerValue, 0))
 
-	action := schema.Action{
-		Type:     filter.TypeCollectibleTrade,
+	action := activity.Action{
+		Type:     type.CollectibleTrade,
 		Platform: filter.PlatformOpenSea.String(),
 		From:     seller.String(),
 		To:       buyer.String(),
 		Metadata: metadata.CollectibleTrade{
-			Action: lo.If(task.Transaction.From == seller,
-				metadata.ActionCollectibleTradeSell).Else(metadata.ActionCollectibleTradeBuy),
-			Token: *collectibleTokenMetadata,
-			Cost:  costTokenMetadata,
-		},
+		Action: lo.If(task.Transaction.From == seller,
+		metadata.ActionCollectibleTradeSell).Else(metadata.ActionCollectibleTradeBuy),
+		Token: *collectibleTokenMetadata,
+		Cost:  costTokenMetadata,
+	},
 	}
 
 	return &action, nil

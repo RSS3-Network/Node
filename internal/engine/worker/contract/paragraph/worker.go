@@ -13,7 +13,7 @@ import (
 	"github.com/rss3-network/node/provider/arweave/contract/paragraph"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
@@ -39,11 +39,11 @@ func (w *worker) Filter() engine.SourceFilter {
 
 // Match returns true if the task is an Arweave task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkArweaveSource, nil
+	return task.GetNetwork().Source() == network.ArweaveSource, nil
 }
 
 // Transform returns a feed with the action of the task.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
@@ -74,7 +74,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 }
 
 // transformPostOrReviseAction Returns the actions of mirror post or revise.
-func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
+func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task) ([]*activity.Action, error) {
 	var (
 		contributor     string
 		publicationSlug string
@@ -125,14 +125,14 @@ func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task
 		updated = true
 	}
 
-	var action *schema.Action
+	var action *activity.Action
 
 	if contributor != "" && postID != "" && contentType == "application/json" {
 		// Build the post or revise action
 		action = w.buildParagraphAction(ctx, contributor, paragraph.AddressParagraph, paragraphMetadata, updated)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activity.Action{
 		action,
 	}
 
@@ -140,16 +140,18 @@ func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task
 }
 
 // buildArweaveTransactionTransferAction Returns the native transfer transaction action.
-func (w *worker) buildParagraphAction(_ context.Context, from, to string, paragraphMetadata *metadata.SocialPost, updated bool) *schema.Action {
+func (w *worker) buildParagraphAction(_ context.Context, from, to string, paragraphMetadata *metadata.SocialPost, updated bool) *activity.Action {
 	// Default action type is post.
-	filterType := filter.TypeSocialPost
+	filterType :=
+	type.SocialPost
 
 	if updated {
-		filterType = filter.TypeSocialRevise
+		filterType =
+		type.SocialRevise
 	}
 
 	// Construct action
-	action := schema.Action{
+	action := activity.Action{
 		Type:     filterType,
 		Tag:      filter.TagSocial,
 		Platform: filter.PlatformParagraph.String(),

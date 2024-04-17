@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/shopspring/decimal"
 )
 
@@ -20,28 +22,28 @@ const (
 )
 
 type Feed struct {
-	ID           string           `gorm:"column:id"`
-	Network      filter.Network   `gorm:"column:network"`
-	Platform     *filter.Platform `gorm:"column:platform"`
-	Index        uint             `gorm:"column:index"`
-	From         string           `gorm:"column:from"`
-	To           string           `gorm:"column:to"`
-	Tag          filter.Tag       `gorm:"column:tag"`
-	Type         string           `gorm:"column:type"`
-	Status       bool             `gorm:"column:status"`
-	Fee          *Fee             `gorm:"column:fee;type:jsonb"`
-	TotalActions uint             `gorm:"column:total_actions"`
-	Actions      FeedActions      `gorm:"column:actions;type:jsonb"`
-	Timestamp    time.Time        `gorm:"column:timestamp"`
-	CreatedAt    time.Time        `gorm:"column:created_at;autoCreateTime"`
-	UpdatedAt    time.Time        `gorm:"column:updated_at;autoUpdateTime"`
+	ID           string          `gorm:"column:id"`
+	Network      network.Network `gorm:"column:network"`
+	Platform     string          `gorm:"column:platform"`
+	Index        uint            `gorm:"column:index"`
+	From         string          `gorm:"column:from"`
+	To           string          `gorm:"column:to"`
+	Tag          tag.Tag         `gorm:"column:tag"`
+	Type         string          `gorm:"column:type"`
+	Status       bool            `gorm:"column:status"`
+	Fee          *Fee            `gorm:"column:fee;type:jsonb"`
+	TotalActions uint            `gorm:"column:total_actions"`
+	Actions      FeedActions     `gorm:"column:actions;type:jsonb"`
+	Timestamp    time.Time       `gorm:"column:timestamp"`
+	CreatedAt    time.Time       `gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt    time.Time       `gorm:"column:updated_at;autoUpdateTime"`
 }
 
 func (f *Feed) TableName() string {
 	return "feeds"
 }
 
-func (f *Feed) PartitionName(feed *schema.Feed) string {
+func (f *Feed) PartitionName(feed *activity.Activity) string {
 	if feed != nil {
 		f.Timestamp = time.Unix(int64(feed.Timestamp), 0)
 		f.Network = feed.Network
@@ -51,7 +53,7 @@ func (f *Feed) PartitionName(feed *schema.Feed) string {
 		f.Timestamp.Year(), int(math.Ceil(float64(f.Timestamp.Month())/3)))
 }
 
-func (f *Feed) Import(feed *schema.Feed) error {
+func (f *Feed) Import(feed *activity.Activity) error {
 	f.ID = feed.ID
 	f.Network = feed.Network
 	f.Platform = feed.Platform
@@ -103,15 +105,15 @@ func (f *Feed) Import(feed *schema.Feed) error {
 	return nil
 }
 
-func (f *Feed) Export(index *Index) (*schema.Feed, error) {
-	feed := schema.Feed{
+func (f *Feed) Export(index *Index) (*activity.Activity, error) {
+	feed := activity.Activity{
 		ID:           f.ID,
 		From:         f.From,
 		To:           f.To,
 		Network:      f.Network,
 		Platform:     f.Platform,
 		Status:       f.Status,
-		Actions:      make([]*schema.Action, 0, len(f.Actions)),
+		Actions:      make([]*activity.Action, 0, len(f.Actions)),
 		TotalActions: f.TotalActions,
 		Timestamp:    uint64(f.Timestamp.Unix()),
 		Owner:        index.Owner,
@@ -120,7 +122,7 @@ func (f *Feed) Export(index *Index) (*schema.Feed, error) {
 
 	var err error
 
-	if feed.Type, err = filter.TypeString(f.Tag, f.Type); err != nil {
+	if feed.Type, err = schema.TypeString(f.Tag, f.Type); err != nil {
 		return nil, err
 	}
 
@@ -144,7 +146,7 @@ func (f *Feed) Export(index *Index) (*schema.Feed, error) {
 
 type Feeds []*Feed
 
-func (f *Feeds) Import(feeds []*schema.Feed) error {
+func (f *Feeds) Import(feeds []*activity.Activity) error {
 	for _, feed := range feeds {
 		item := new(Feed)
 
@@ -158,14 +160,14 @@ func (f *Feeds) Import(feeds []*schema.Feed) error {
 	return nil
 }
 
-func (f *Feeds) Export(indexes []*Index) ([]*schema.Feed, error) {
+func (f *Feeds) Export(indexes []*Index) ([]*activity.Activity, error) {
 	feeds := make(map[string]*Feed)
 
 	for _, feed := range *f {
 		feeds[feed.ID] = feed
 	}
 
-	result := make([]*schema.Feed, 0, len(indexes))
+	result := make([]*activity.Activity, 0, len(indexes))
 
 	for _, index := range indexes {
 		if feed, ok := feeds[index.ID]; ok {
@@ -188,7 +190,7 @@ type Fee struct {
 }
 
 //goland:noinspection ALL
-func (f *Fee) Import(fee *schema.Fee) error {
+func (f *Fee) Import(fee *activity.Fee) error {
 	if fee != nil {
 		f.Address = fee.Address
 		f.Amount = fee.Amount
@@ -199,12 +201,12 @@ func (f *Fee) Import(fee *schema.Fee) error {
 }
 
 //goland:noinspection ALL
-func (f *Fee) Export() (*schema.Fee, error) {
+func (f *Fee) Export() (*activity.Fee, error) {
 	if f == nil {
 		return nil, nil
 	}
 
-	return &schema.Fee{
+	return &activity.Fee{
 		Address: f.Address,
 		Amount:  f.Amount,
 		Decimal: f.Decimal,
@@ -240,7 +242,7 @@ type FeedAction struct {
 	Metadata json.RawMessage `json:"metadata"`
 }
 
-func (f *FeedAction) Import(action *schema.Action) (err error) {
+func (f *FeedAction) Import(action *activity.Action) (err error) {
 	f.Tag = action.Type.Tag().String()
 	f.Type = action.Type.Name()
 	f.From = action.From
@@ -254,15 +256,15 @@ func (f *FeedAction) Import(action *schema.Action) (err error) {
 	return nil
 }
 
-func (f *FeedAction) Export() (*schema.Action, error) {
-	action := &schema.Action{
+func (f *FeedAction) Export() (*activity.Action, error) {
+	action := &activity.Action{
 		From:     f.From,
 		To:       f.To,
 		Platform: f.Platform,
 	}
 
 	var err error
-	if action.Tag, action.Type, err = filter.TagAndTypeString(f.Tag, f.Type); err != nil {
+	if action.Tag, action.Type, err = schema.TagAndTypeString(f.Tag, f.Type); err != nil {
 		return nil, err
 	}
 

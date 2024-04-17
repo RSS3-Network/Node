@@ -20,7 +20,7 @@ import (
 	"github.com/rss3-network/node/internal/stream/provider"
 	"github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/provider/telemetry"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -110,12 +110,15 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 		return fmt.Errorf("invalid indexer parameters: %w", err)
 	}
 
-	network, err := filter.NetworkString(lo.Must(flags.GetString(flag.KeyIndexerNetwork)))
+	network, err := network.NetworkString(lo.Must(flags.GetString(flag.KeyIndexerNetwork)))
 	if err != nil {
 		return fmt.Errorf("network string: %w", err)
 	}
 
-	worker, err := filter.NameString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
+	// TODO: pending new worker struct
+	//worker, err := filter.NameString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
+	worker := "pending new worker struct"
+
 	if err != nil {
 		return fmt.Errorf("worker string: %w", err)
 	}
@@ -195,8 +198,9 @@ func init() {
 
 	command.PersistentFlags().String(flag.KeyConfig, "config.yaml", "config file name")
 	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")
-	command.PersistentFlags().String(flag.KeyIndexerNetwork, filter.NetworkEthereum.String(), "indexer network")
-	command.PersistentFlags().String(flag.KeyIndexerWorker, filter.Fallback.String(), "indexer worker")
+	command.PersistentFlags().String(flag.KeyIndexerNetwork, network.Ethereum.String(), "indexer network")
+	// TODO: pending new worker struct
+	//command.PersistentFlags().String(flag.KeyIndexerWorker, network.Fallback.String(), "indexer worker")
 	command.PersistentFlags().String(flag.KeyIndexerParameters, "{}", "indexer parameters")
 }
 

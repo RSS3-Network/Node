@@ -18,8 +18,8 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
 	mirror_model "github.com/rss3-network/node/internal/engine/worker/contract/mirror/model"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -121,7 +121,7 @@ func (c *client) Commit() error {
 	return c.database.Commit().Error
 }
 
-func (c *client) LoadCheckpoint(ctx context.Context, id string, network filter.Network, worker string) (*engine.Checkpoint, error) {
+func (c *client) LoadCheckpoint(ctx context.Context, id string, network network.Network, worker string) (*engine.Checkpoint, error) {
 	var value table.Checkpoint
 
 	zap.L().Info("load checkpoint", zap.String("id", id), zap.String("network", network.String()), zap.String("worker", worker))
@@ -148,19 +148,19 @@ func (c *client) LoadCheckpoint(ctx context.Context, id string, network filter.N
 	return value.Export()
 }
 
-func (c *client) LoadCheckpoints(ctx context.Context, id string, network filter.Network, worker string) ([]*engine.Checkpoint, error) {
+func (c *client) LoadCheckpoints(ctx context.Context, id string, _network network.Network, worker string) ([]*engine.Checkpoint, error) {
 	databaseStatement := c.database.WithContext(ctx)
 
 	var checkpoints []*table.Checkpoint
 
-	zap.L().Info("load checkpoints", zap.String("id", id), zap.String("network", network.String()), zap.String("worker", worker))
+	zap.L().Info("load checkpoints", zap.String("id", id), zap.String("_network", _network.String()), zap.String("worker", worker))
 
 	if id != "" {
 		databaseStatement = databaseStatement.Where("id = ?", id)
 	}
 
-	if network != filter.NetworkUnknown {
-		databaseStatement = databaseStatement.Where("network = ?", network)
+	if _network != network.Unknown {
+		databaseStatement = databaseStatement.Where("_network = ?", _network)
 	}
 
 	if worker != "" {
@@ -218,7 +218,7 @@ func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoi
 }
 
 // SaveFeeds saves feeds and indexes to the database.
-func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
+func (c *client) SaveFeeds(ctx context.Context, feeds []*activity.Activity) error {
 	spanStartOptions := []trace.SpanStartOption{
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(
@@ -276,7 +276,7 @@ func (c *client) SaveDatasetMirrorPost(ctx context.Context, post *mirror_model.D
 }
 
 // FindFeed finds a feed by id.
-func (c *client) FindFeed(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error) {
+func (c *client) FindFeed(ctx context.Context, query model.ActivityQuery) (*activity.Activity, *int, error) {
 	if c.partition {
 		return c.findFeedPartitioned(ctx, query)
 	}
@@ -285,7 +285,7 @@ func (c *client) FindFeed(ctx context.Context, query model.FeedQuery) (*schema.F
 }
 
 // FindFeeds finds feeds.
-func (c *client) FindFeeds(ctx context.Context, query model.FeedsQuery) ([]*schema.Feed, error) {
+func (c *client) FindFeeds(ctx context.Context, query model.ActivitiesQuery) ([]*activity.Activity, error) {
 	if c.partition {
 		return c.findFeedsPartitioned(ctx, query)
 	}

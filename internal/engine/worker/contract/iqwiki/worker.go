@@ -15,7 +15,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/iqwiki"
 	"github.com/rss3-network/node/provider/ipfs"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 )
@@ -50,7 +50,7 @@ func (w *worker) Filter() engine.SourceFilter {
 
 // Match Ethereum task to IQWiki.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
+	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
 // Match Ethereum task to IQWiki.
@@ -59,7 +59,7 @@ func matchEthereumIqWiki(task *source.Task) bool {
 }
 
 // Transform Ethereum task to feed.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -107,7 +107,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 }
 
 // Parse action from Ethereum log.
-func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTask *source.Task) (*schema.Action, error) {
+func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTask *source.Task) (*activity.Action, error) {
 	wikiPosted, err := w.iqWikiFilterer.ParsePosted(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse posted: %w", err)
@@ -138,30 +138,30 @@ func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTas
 		return nil, fmt.Errorf("fetch wiki %s, hash %s, %w", wiki.ID, ethereumTask.Transaction.Hash.String(), err)
 	}
 
-	action := &schema.Action{
-		Tag:      filter.TagSocial,
-		Type:     lo.If(iqwiki.StatusCreated == wikiResponse.ActivityByWikiIdAndBlock.Type, filter.TypeSocialPost).Else(filter.TypeSocialRevise),
+	action := &activity.Action{
+		Tag:  filter.TagSocial,
+		Type: lo.If(iqwiki.StatusCreated == wikiResponse.ActivityByWikiIdAndBlock.Type, type.SocialPost).Else(type.SocialRevise),
 		Platform: filter.PlatformIQWiki.String(),
 		From:     wikiPosted.From.String(),
 		To:       iqwiki.AddressWiki.String(),
 		Metadata: metadata.SocialPost{
-			Handle:        wikiResponse.ActivityByWikiIdAndBlock.User.Profile.Username,
-			PublicationID: wikiResponse.ActivityByWikiIdAndBlock.WikiId,
-			Body:          wikiResponse.ActivityByWikiIdAndBlock.Content[0].Content,
-			Title:         wikiResponse.ActivityByWikiIdAndBlock.Content[0].Title,
-			Summary:       wikiResponse.ActivityByWikiIdAndBlock.Content[0].Summary,
-			ContentURI:    fmt.Sprintf("https://iq.wiki/wiki/%s", wikiResponse.ActivityByWikiIdAndBlock.WikiId),
-			AuthorURL:     fmt.Sprintf("https://iq.wiki/account/%s", wikiResponse.ActivityByWikiIdAndBlock.User.Id),
-			Tags: lo.Map(wikiResponse.ActivityByWikiIdAndBlock.Content[0].Tags, func(x iqwiki.ActivityByWikiIdAndBlockActivityByWikiIdAndBlockActivityContentWikiTagsTag, _ int) string {
-				return x.Id
-			}),
-			Media: lo.Map(wikiResponse.ActivityByWikiIdAndBlock.Content[0].Images, func(image iqwiki.ActivityByWikiIdAndBlockActivityByWikiIdAndBlockActivityContentWikiImagesImage, _ int) metadata.Media {
-				return metadata.Media{
-					MimeType: "image/png",
-					Address:  fmt.Sprintf("ipfs://%s", image.Id),
-				}
-			}),
-		},
+		Handle:        wikiResponse.ActivityByWikiIdAndBlock.User.Profile.Username,
+		PublicationID: wikiResponse.ActivityByWikiIdAndBlock.WikiId,
+		Body:          wikiResponse.ActivityByWikiIdAndBlock.Content[0].Content,
+		Title:         wikiResponse.ActivityByWikiIdAndBlock.Content[0].Title,
+		Summary:       wikiResponse.ActivityByWikiIdAndBlock.Content[0].Summary,
+		ContentURI:    fmt.Sprintf("https://iq.wiki/wiki/%s", wikiResponse.ActivityByWikiIdAndBlock.WikiId),
+		AuthorURL:     fmt.Sprintf("https://iq.wiki/account/%s", wikiResponse.ActivityByWikiIdAndBlock.User.Id),
+		Tags: lo.Map(wikiResponse.ActivityByWikiIdAndBlock.Content[0].Tags, func (x iqwiki.ActivityByWikiIdAndBlockActivityByWikiIdAndBlockActivityContentWikiTagsTag, _ int) string{
+		return x.Id
+	}),
+		Media: lo.Map(wikiResponse.ActivityByWikiIdAndBlock.Content[0].Images, func (image iqwiki.ActivityByWikiIdAndBlockActivityByWikiIdAndBlockActivityContentWikiImagesImage, _ int) metadata.Media{
+		return metadata.Media{
+		MimeType: "image/png",
+		Address:  fmt.Sprintf("ipfs://%s", image.Id),
+	}
+	}),
+	},
 	}
 
 	return action, nil

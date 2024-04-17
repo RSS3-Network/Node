@@ -11,7 +11,7 @@ import (
 	worker "github.com/rss3-network/node/internal/engine/worker/farcaster"
 	message "github.com/rss3-network/node/provider/farcaster"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
@@ -27,14 +27,14 @@ func TestWorker(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activity.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Post A Cast",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkFarcaster,
+					Network: network.Farcaster,
 					Message: message.Message{
 						Data: message.MessageData{
 							Type: message.MessageTypeCastAdd.String(),
@@ -71,31 +71,31 @@ func TestWorker(t *testing.T) {
 					},
 				},
 			},
-			want: &schema.Feed{
-				ID:       "0x0000000000000000000000009d72f8030aafa43f4c208b013964a51017a2747c",
-				Network:  filter.NetworkFarcaster,
-				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
-				To:       common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
-				Type:     filter.TypeSocialPost,
+			want: &activity.Activity{
+				ID:      "0x0000000000000000000000009d72f8030aafa43f4c208b013964a51017a2747c",
+				Network: network.Farcaster,
+				From:    common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
+				To:      common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
+				Type:     type.SocialPost,
 				Status:   true,
 				Platform: lo.ToPtr(filter.PlatformFarcaster),
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeSocialPost,
-						Platform: filter.PlatformFarcaster.String(),
-						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
-						To:       common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
-						Metadata: metadata.SocialPost{
-							Handle:    "brucexc.eth",
-							Body:      "Now I’m just posting this to test how fast we can index this post and delivery into various ecosystem projects built on the RSS3 Network (rss3.io). Hopefully it doesn’t take long…",
-							ProfileID: "14142",
-							Media: []metadata.Media{
-								{Address: "http://rss3.io", MimeType: "text/html; charset=utf-8"},
-							},
-							PublicationID: common.HexToAddress("0x0000000000000000000000009d72f8030aafa43f4c208b013964a51017a2747c").String(),
-						},
-					},
-				},
+				Actions: []*activity.Action{
+			{
+				Type:     type.SocialPost,
+				Platform: filter.PlatformFarcaster.String(),
+				From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
+				To:       common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
+				Metadata: metadata.SocialPost{
+				Handle:    "brucexc.eth",
+				Body:      "Now I’m just posting this to test how fast we can index this post and delivery into various ecosystem projects built on the RSS3 Network (rss3.io). Hopefully it doesn’t take long…",
+				ProfileID: "14142",
+				Media: []metadata.Media{
+			{Address: "http://rss3.io", MimeType: "text/html; charset=utf-8"},
+			},
+				PublicationID: common.HexToAddress("0x0000000000000000000000009d72f8030aafa43f4c208b013964a51017a2747c").String(),
+			},
+			},
+			},
 				Timestamp: 1697757125,
 			},
 			wantError: require.NoError,
@@ -104,7 +104,7 @@ func TestWorker(t *testing.T) {
 			name: "Comment A Cast",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkFarcaster,
+					Network: network.Farcaster,
 					Message: message.Message{
 						Data: message.MessageData{
 							Type: message.MessageTypeCastAdd.String(),
@@ -173,37 +173,37 @@ func TestWorker(t *testing.T) {
 					},
 				},
 			},
-			want: &schema.Feed{
-				ID:       "0x00000000000000000000000010ae8f78cbbad692c3b330b8970770406dc785ef",
-				Network:  filter.NetworkFarcaster,
-				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
-				To:       common.HexToAddress("0xe25228a6525A2090be824d66Bdf6DB8836eCc90C").String(),
-				Type:     filter.TypeSocialComment,
+			want: &activity.Activity{
+				ID:      "0x00000000000000000000000010ae8f78cbbad692c3b330b8970770406dc785ef",
+				Network: network.Farcaster,
+				From:    common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
+				To:      common.HexToAddress("0xe25228a6525A2090be824d66Bdf6DB8836eCc90C").String(),
+				Type:     type.SocialComment,
 				Platform: lo.ToPtr(filter.PlatformFarcaster),
 				Status:   true,
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeSocialComment,
-						Platform: filter.PlatformFarcaster.String(),
-						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
-						To:       common.HexToAddress("0x827431510a5D249cE4fdB7F00C83a3353F471848").String(),
-						Metadata: metadata.SocialPost{
-							Handle:        "brucexc.eth",
-							Body:          "about 2 minutes",
-							ProfileID:     "14142",
-							PublicationID: common.HexToAddress("0x00000000000000000000000010AE8F78cbBad692C3B330B8970770406DC785eF").String(),
-							Target: &metadata.SocialPost{
-								Handle:    "henryqw",
-								Body:      "Now I’m just posting this to test how fast we can index this post and delivery into various ecosystem projects built on the RSS3 Network (rss3.io). Hopefully it doesn’t take long…",
-								ProfileID: "23901",
-								Media: []metadata.Media{
-									{Address: "http://rss3.io", MimeType: "text/html; charset=utf-8"},
-								},
-								PublicationID: common.HexToAddress("0x000000000000000000000000e3Fbd4Ca0aC4F89f0524F9f4cEEe49D600D21Fdd").String(),
-							},
-						},
-					},
-				},
+				Actions: []*activity.Action{
+			{
+				Type:     type.SocialComment,
+				Platform: filter.PlatformFarcaster.String(),
+				From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
+				To:       common.HexToAddress("0x827431510a5D249cE4fdB7F00C83a3353F471848").String(),
+				Metadata: metadata.SocialPost{
+				Handle:        "brucexc.eth",
+				Body:          "about 2 minutes",
+				ProfileID:     "14142",
+				PublicationID: common.HexToAddress("0x00000000000000000000000010AE8F78cbBad692C3B330B8970770406DC785eF").String(),
+				Target: &metadata.SocialPost{
+				Handle:    "henryqw",
+				Body:      "Now I’m just posting this to test how fast we can index this post and delivery into various ecosystem projects built on the RSS3 Network (rss3.io). Hopefully it doesn’t take long…",
+				ProfileID: "23901",
+				Media: []metadata.Media{
+			{Address: "http://rss3.io", MimeType: "text/html; charset=utf-8"},
+			},
+				PublicationID: common.HexToAddress("0x000000000000000000000000e3Fbd4Ca0aC4F89f0524F9f4cEEe49D600D21Fdd").String(),
+			},
+			},
+			},
+			},
 				Timestamp: 1697757691,
 			},
 			wantError: require.NoError,
@@ -212,7 +212,7 @@ func TestWorker(t *testing.T) {
 			name: "Share A Cast",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkFarcaster,
+					Network: network.Farcaster,
 					Message: message.Message{
 						Data: message.MessageData{
 							Type: message.MessageTypeReactionAdd.String(),
@@ -275,36 +275,36 @@ func TestWorker(t *testing.T) {
 					},
 				},
 			},
-			want: &schema.Feed{
-				ID:       "0x0000000000000000000000002931794842a5f3a152bff66cc010120cfe9c6102",
-				Network:  filter.NetworkFarcaster,
-				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
-				To:       common.HexToAddress("0xe25228a6525A2090be824d66Bdf6DB8836eCc90C").String(),
-				Type:     filter.TypeSocialShare,
+			want: &activity.Activity{
+				ID:      "0x0000000000000000000000002931794842a5f3a152bff66cc010120cfe9c6102",
+				Network: network.Farcaster,
+				From:    common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
+				To:      common.HexToAddress("0xe25228a6525A2090be824d66Bdf6DB8836eCc90C").String(),
+				Type:     type.SocialShare,
 				Status:   true,
 				Platform: lo.ToPtr(filter.PlatformFarcaster),
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeSocialShare,
-						Platform: filter.PlatformFarcaster.String(),
-						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
-						To:       common.HexToAddress("0x827431510a5D249cE4fdB7F00C83a3353F471848").String(),
-						Metadata: metadata.SocialPost{
-							Handle:        "brucexc.eth",
-							ProfileID:     "14142",
-							PublicationID: common.HexToAddress("0x0000000000000000000000002931794842A5f3A152BFF66cC010120CFE9C6102").String(),
-							Target: &metadata.SocialPost{
-								Handle:    "henryqw",
-								Body:      "If you see a guy wearing this same shirt everyday in Istanbul, he is got shirt ton of them.",
-								ProfileID: "23901",
-								Media: []metadata.Media{
-									{Address: "https://i.imgur.com/fEEn6S1.jpg", MimeType: "image/jpeg"},
-								},
-								PublicationID: common.HexToAddress("0x00000000000000000000000005536f622DbEdAa75ae1Bd8eC9Ff98Bb0dF10894").String(),
-							},
-						},
-					},
-				},
+				Actions: []*activity.Action{
+			{
+				Type:     type.SocialShare,
+				Platform: filter.PlatformFarcaster.String(),
+				From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
+				To:       common.HexToAddress("0x827431510a5D249cE4fdB7F00C83a3353F471848").String(),
+				Metadata: metadata.SocialPost{
+				Handle:        "brucexc.eth",
+				ProfileID:     "14142",
+				PublicationID: common.HexToAddress("0x0000000000000000000000002931794842A5f3A152BFF66cC010120CFE9C6102").String(),
+				Target: &metadata.SocialPost{
+				Handle:    "henryqw",
+				Body:      "If you see a guy wearing this same shirt everyday in Istanbul, he is got shirt ton of them.",
+				ProfileID: "23901",
+				Media: []metadata.Media{
+			{Address: "https://i.imgur.com/fEEn6S1.jpg", MimeType: "image/jpeg"},
+			},
+				PublicationID: common.HexToAddress("0x00000000000000000000000005536f622DbEdAa75ae1Bd8eC9Ff98Bb0dF10894").String(),
+			},
+			},
+			},
+			},
 				Timestamp: 1700007139,
 			},
 			wantError: require.NoError,
@@ -313,7 +313,7 @@ func TestWorker(t *testing.T) {
 			name: "Share Own Cast",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkFarcaster,
+					Network: network.Farcaster,
 					Message: message.Message{
 						Data: message.MessageData{
 							Type: message.MessageTypeReactionAdd.String(),
@@ -376,36 +376,36 @@ func TestWorker(t *testing.T) {
 					},
 				},
 			},
-			want: &schema.Feed{
-				ID:       "0x0000000000000000000000000d62b1610e7dd177363cd3571bfe9a112d6185de",
-				Network:  filter.NetworkFarcaster,
-				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
-				To:       common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
-				Type:     filter.TypeSocialShare,
+			want: &activity.Activity{
+				ID:      "0x0000000000000000000000000d62b1610e7dd177363cd3571bfe9a112d6185de",
+				Network: network.Farcaster,
+				From:    common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
+				To:      common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
+				Type:     type.SocialShare,
 				Status:   true,
 				Platform: lo.ToPtr(filter.PlatformFarcaster),
-				Actions: []*schema.Action{
-					{
-						Type:     filter.TypeSocialShare,
-						Platform: filter.PlatformFarcaster.String(),
-						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
-						To:       common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
-						Metadata: metadata.SocialPost{
-							Handle:        "brucexc.eth",
-							ProfileID:     "14142",
-							PublicationID: common.HexToAddress("0x0000000000000000000000000d62b1610E7Dd177363cD3571bFE9A112D6185DE").String(),
-							Target: &metadata.SocialPost{
-								Handle:    "brucexc.eth",
-								Body:      "Now I’m just posting this to test how fast we can index this post and delivery into various ecosystem projects built on the RSS3 Network (rss3.io). Hopefully it doesn’t take long…",
-								ProfileID: "14142",
-								Media: []metadata.Media{
-									{Address: "http://rss3.io", MimeType: "text/html; charset=utf-8"},
-								},
-								PublicationID: common.HexToAddress("0x00000000000000000000000009d72F8030AAfa43F4c208B013964a51017A2747c").String(),
-							},
-						},
-					},
-				},
+				Actions: []*activity.Action{
+			{
+				Type:     type.SocialShare,
+				Platform: filter.PlatformFarcaster.String(),
+				From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
+				To:       common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
+				Metadata: metadata.SocialPost{
+				Handle:        "brucexc.eth",
+				ProfileID:     "14142",
+				PublicationID: common.HexToAddress("0x0000000000000000000000000d62b1610E7Dd177363cD3571bFE9A112D6185DE").String(),
+				Target: &metadata.SocialPost{
+				Handle:    "brucexc.eth",
+				Body:      "Now I’m just posting this to test how fast we can index this post and delivery into various ecosystem projects built on the RSS3 Network (rss3.io). Hopefully it doesn’t take long…",
+				ProfileID: "14142",
+				Media: []metadata.Media{
+			{Address: "http://rss3.io", MimeType: "text/html; charset=utf-8"},
+			},
+				PublicationID: common.HexToAddress("0x00000000000000000000000009d72F8030AAfa43F4c208B013964a51017A2747c").String(),
+			},
+			},
+			},
+			},
 				Timestamp: 1700007675,
 			},
 			wantError: require.NoError,

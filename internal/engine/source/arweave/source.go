@@ -16,7 +16,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/arweave/bundle"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.uber.org/zap"
@@ -45,7 +45,7 @@ type source struct {
 	pendingState  State
 }
 
-func (s *source) Network() filter.Network {
+func (s *source) Network() network.Network {
 	return s.config.Network
 }
 

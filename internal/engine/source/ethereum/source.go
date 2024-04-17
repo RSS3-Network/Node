@@ -13,7 +13,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/ethereum"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.opentelemetry.io/otel"
@@ -37,7 +37,7 @@ type source struct {
 	state          State
 }
 
-func (s *source) Network() filter.Network {
+func (s *source) Network() network.Network {
 	return s.config.Network
 }
 
@@ -335,11 +335,11 @@ func (s *source) getBlocks(ctx context.Context, blockNumbers []*big.Int) ([]*eth
 func (s *source) getReceipts(ctx context.Context, blocks []*ethereum.Block) ([]*ethereum.Receipt, error) {
 	switch s.config.Network {
 	case
-		filter.NetworkCrossbell,
-		filter.NetworkArbitrum,
-		filter.NetworkSatoshiVM,
-		filter.NetworkLinea,
-		filter.NetworkBinanceSmartChain:
+		network.Crossbell,
+		network.Arbitrum,
+		network.SatoshiVM,
+		network.Linea,
+		network.BinanceSmartChain:
 		transactionHashes := lo.Map(blocks, func(block *ethereum.Block, _ int) []common.Hash {
 			return lo.Map(block.Transactions, func(transaction *ethereum.Transaction, _ int) common.Hash {
 				return transaction.Hash
@@ -411,7 +411,7 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 			return nil, fmt.Errorf("no receipt matched to transaction hash %s", transaction.Hash)
 		}
 
-		chain, err := filter.EthereumChainIDString(s.Network().String())
+		chain, err := network.EthereumChainIDString(s.Network().String())
 		if err != nil {
 			return nil, fmt.Errorf("unsupported chain %s", s.Network())
 		}

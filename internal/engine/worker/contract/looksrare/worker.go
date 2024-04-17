@@ -16,7 +16,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/weth"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -64,11 +64,11 @@ func (w *worker) Filter() engine.SourceFilter {
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
+	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
 // Transform Ethereum task to feed.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -88,7 +88,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		}
 
 		var (
-			actions []*schema.Action
+			actions []*activity.Action
 			err     error
 		)
 
@@ -116,7 +116,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			return nil, err
 		}
 
-		feed.Type = filter.TypeCollectibleTrade
+		feed.Type =
+		type.CollectibleTrade
 		feed.Actions = append(feed.Actions, actions...)
 	}
 
@@ -164,7 +165,7 @@ func (w *worker) matchAggregatorOrderFulfilled(_ *source.Task, log ethereum.Log)
 }
 
 // transformExchangeAsk transforms AddressExchange TakerAsk event.
-func (w *worker) transformExchangeAsk(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformExchangeAsk(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	// Parse TakerAsk event.
 	event, err := w.exchangeFilterer.ParseTakerAsk(log.Export())
 	if err != nil {
@@ -176,13 +177,13 @@ func (w *worker) transformExchangeAsk(ctx context.Context, task *source.Task, lo
 		return nil, err
 	}
 
-	return []*schema.Action{
+	return []*activity.Action{
 		action,
 	}, nil
 }
 
 // transformExchangeBid transforms AddressExchange TakerBid event.
-func (w *worker) transformExchangeBid(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformExchangeBid(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	// Parse TakerAsk event.
 	event, err := w.exchangeFilterer.ParseTakerBid(log.Export())
 	if err != nil {
@@ -199,13 +200,13 @@ func (w *worker) transformExchangeBid(ctx context.Context, task *source.Task, lo
 		return nil, err
 	}
 
-	return []*schema.Action{
+	return []*activity.Action{
 		action,
 	}, nil
 }
 
 // transformExchangeRoyaltyPayment transforms AddressExchange RoyaltyPayment event.
-func (w *worker) transformExchangeRoyaltyPayment(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformExchangeRoyaltyPayment(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	event, err := w.exchangeFilterer.ParseRoyaltyPayment(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse RoyaltyPayment event: %w", err)
@@ -216,13 +217,13 @@ func (w *worker) transformExchangeRoyaltyPayment(ctx context.Context, task *sour
 		return nil, err
 	}
 
-	return []*schema.Action{
+	return []*activity.Action{
 		action,
 	}, nil
 }
 
 // transformRoyaltyTransfer transforms AddressExchangeV2 TakerAsk event.
-func (w *worker) transformRoyaltyTransfer(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformRoyaltyTransfer(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	event, err := w.erc20Filterer.ParseTransfer(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Transfer event: %w", err)
@@ -237,13 +238,13 @@ func (w *worker) transformRoyaltyTransfer(ctx context.Context, task *source.Task
 		return nil, err
 	}
 
-	return []*schema.Action{
+	return []*activity.Action{
 		action,
 	}, nil
 }
 
 // transformExchangeV2Ask transforms AddressExchangeV2 TakerAsk event.
-func (w *worker) transformExchangeV2Ask(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformExchangeV2Ask(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	// Parse TakerAsk event.
 	event, err := w.exchangeV2Filterer.ParseTakerAsk(log.Export())
 	if err != nil {
@@ -260,11 +261,11 @@ func (w *worker) transformExchangeV2Ask(ctx context.Context, task *source.Task, 
 		return nil, err
 	}
 
-	actions := []*schema.Action{
+	actions := []*activity.Action{
 		actionAsk,
 	}
 
-	var creatorFee *schema.Action
+	var creatorFee *activity.Action
 	if event.FeeAmounts[1].Cmp(big.NewInt(0)) != 0 {
 		creatorFee, err = w.buildV2RoyaltyFeeAction(ctx, task, event.BidUser, event.FeeRecipients[1], event.FeeAmounts[1], &event.Currency)
 		if err != nil {
@@ -274,7 +275,7 @@ func (w *worker) transformExchangeV2Ask(ctx context.Context, task *source.Task, 
 		actions = append(actions, creatorFee)
 	}
 
-	var actionRoyaltyFee *schema.Action
+	var actionRoyaltyFee *activity.Action
 	if event.FeeAmounts[2].Cmp(big.NewInt(0)) != 0 {
 		actionRoyaltyFee, err = w.buildV2RoyaltyFeeAction(ctx, task, event.BidUser, looksrare.AddressProtocolFeeRecipient, event.FeeAmounts[2], &event.Currency)
 		if err != nil {
@@ -288,7 +289,7 @@ func (w *worker) transformExchangeV2Ask(ctx context.Context, task *source.Task, 
 }
 
 // transformExchangeV2Bid transforms AddressExchangeV2 TakerBid event.
-func (w *worker) transformExchangeV2Bid(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformExchangeV2Bid(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	// Parse TakerBid event.
 	event, err := w.exchangeV2Filterer.ParseTakerBid(log.Export())
 	if err != nil {
@@ -305,11 +306,11 @@ func (w *worker) transformExchangeV2Bid(ctx context.Context, task *source.Task, 
 		return nil, err
 	}
 
-	actions := []*schema.Action{
+	actions := []*activity.Action{
 		actionBid,
 	}
 
-	var creatorFee *schema.Action
+	var creatorFee *activity.Action
 	if event.FeeAmounts[1].Cmp(big.NewInt(0)) != 0 {
 		creatorFee, err = w.buildV2RoyaltyFeeAction(ctx, task, event.BidUser, event.FeeRecipients[1], event.FeeAmounts[1], &event.Currency)
 		if err != nil {
@@ -319,7 +320,7 @@ func (w *worker) transformExchangeV2Bid(ctx context.Context, task *source.Task, 
 		actions = append(actions, creatorFee)
 	}
 
-	var actionRoyaltyFee *schema.Action
+	var actionRoyaltyFee *activity.Action
 	if event.FeeAmounts[2].Cmp(big.NewInt(0)) != 0 {
 		actionRoyaltyFee, err = w.buildV2RoyaltyFeeAction(ctx, task, event.BidUser, looksrare.AddressProtocolFeeRecipient, event.FeeAmounts[2], &event.Currency)
 		if err != nil {
@@ -333,7 +334,7 @@ func (w *worker) transformExchangeV2Bid(ctx context.Context, task *source.Task, 
 }
 
 // transformV2AggregatedBid transforms AddressAggregator AggregatorSweep event.
-func (w *worker) transformV2AggregatedBid(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformV2AggregatedBid(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	// Parse AggregatorSweep event.
 	event, err := w.aggregatorFilterer.ParseSweep(log.Export())
 	if err != nil {
@@ -366,7 +367,7 @@ func (w *worker) transformV2AggregatedBid(ctx context.Context, task *source.Task
 		}
 	}
 
-	var actions []*schema.Action
+	var actions []*activity.Action
 
 	var tokenAddress common.Address
 
@@ -409,7 +410,7 @@ func (w *worker) transformV2AggregatedBid(ctx context.Context, task *source.Task
 }
 
 // buildEthereumCollectibleTradeAction builds collectible trade action.
-func (w *worker) buildCollectibleTradeAction(ctx context.Context, task *source.Task, maker, taker, nft common.Address, action metadata.CollectibleTradeAction, nftID, nftValue, offerValue *big.Int, currency *common.Address) (*schema.Action, error) {
+func (w *worker) buildCollectibleTradeAction(ctx context.Context, task *source.Task, maker, taker, nft common.Address, action metadata.CollectibleTradeAction, nftID, nftValue, offerValue *big.Int, currency *common.Address) (*activity.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &nft, nftID, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -445,8 +446,8 @@ func (w *worker) buildCollectibleTradeAction(ctx context.Context, task *source.T
 		to = taker.String()
 	}
 
-	return &schema.Action{
-		Type:     filter.TypeCollectibleTrade,
+	return &activity.Action{
+		Type:     type.CollectibleTrade,
 		Platform: filter.PlatformLooksRare.String(),
 		From:     from,
 		To:       to,
@@ -455,7 +456,7 @@ func (w *worker) buildCollectibleTradeAction(ctx context.Context, task *source.T
 }
 
 // buildRoyaltyPaymentAction builds royalty payment action.
-func (w *worker) buildRoyaltyPaymentAction(ctx context.Context, task *source.Task, currency common.Address, amount *big.Int, receipt common.Address) (*schema.Action, error) {
+func (w *worker) buildRoyaltyPaymentAction(ctx context.Context, task *source.Task, currency common.Address, amount *big.Int, receipt common.Address) (*activity.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &currency, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -496,8 +497,8 @@ func (w *worker) buildRoyaltyPaymentAction(ctx context.Context, task *source.Tas
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
 
-	return &schema.Action{
-		Type:     filter.TypeTransactionTransfer,
+	return &activity.Action{
+		Type:     type.TransactionTransfer,
 		Platform: filter.PlatformLooksRare.String(),
 		From:     from.String(),
 		To:       receipt.String(),
@@ -506,7 +507,7 @@ func (w *worker) buildRoyaltyPaymentAction(ctx context.Context, task *source.Tas
 }
 
 // buildRoyaltyTransferAction builds royalty transfer action.
-func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Task, to common.Address, wad *big.Int) (*schema.Action, error) {
+func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Task, to common.Address, wad *big.Int) (*activity.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &weth.AddressMainnet, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -547,8 +548,8 @@ func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Ta
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(wad, 0))
 
-	return &schema.Action{
-		Type:     filter.TypeTransactionTransfer,
+	return &activity.Action{
+		Type:     type.TransactionTransfer,
 		Platform: filter.PlatformLooksRare.String(),
 		From:     from.String(),
 		To:       to.String(),
@@ -557,7 +558,7 @@ func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Ta
 }
 
 // buildV2RoyaltyFeeAction builds royalty fee action.
-func (w *worker) buildV2RoyaltyFeeAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, amount *big.Int, currency *common.Address) (*schema.Action, error) {
+func (w *worker) buildV2RoyaltyFeeAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, amount *big.Int, currency *common.Address) (*activity.Action, error) {
 	if currency.String() == "0x0000000000000000000000000000000000000000" {
 		currency = nil
 	}
@@ -569,8 +570,8 @@ func (w *worker) buildV2RoyaltyFeeAction(ctx context.Context, task *source.Task,
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
 
-	return &schema.Action{
-		Type:     filter.TypeTransactionTransfer,
+	return &activity.Action{
+		Type:     type.TransactionTransfer,
 		Platform: filter.PlatformLooksRare.String(),
 		From:     from.String(),
 		To:       to.String(),

@@ -21,7 +21,7 @@ import (
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/ipfs"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
@@ -54,7 +54,7 @@ func (w *worker) Filter() engine.SourceFilter {
 // Match returns true if the task is an Arweave task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	switch task.GetNetwork() {
-	case filter.NetworkArweave:
+	case network.Arweave:
 		task := task.(*source.Task)
 
 		owner, err := arweave.PublicKeyToAddress(task.Transaction.Owner)
@@ -69,7 +69,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 }
 
 // Transform returns a feed with the action of the task.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
@@ -100,7 +100,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 }
 
 // transformPostOrReviseAction Returns the actions of mirror post or revise.
-func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
+func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) ([]*activity.Action, error) {
 	data, err := base64.RawURLEncoding.DecodeString(task.Transaction.Data)
 	if err != nil {
 		return nil, fmt.Errorf("decode transaction data: %w", err)
@@ -121,7 +121,8 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 
 	switch transactionData.Get("type").String() {
 	case "POST_CREATED":
-		socialType = filter.TypeSocialPost
+		socialType =
+		type.SocialPost
 
 		if transactionData.Get("event.postParams").Exists() {
 			contentURI = transactionData.Get("event.postParams.contentURI").String()
@@ -131,7 +132,8 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 			rawProfileID = transactionData.Get("event.profileId").String()
 		}
 	case "COMMENT_CREATED":
-		socialType = filter.TypeSocialComment
+		socialType =
+		type.SocialComment
 
 		if transactionData.Get("event.commentParams").Exists() {
 			contentURI = transactionData.Get("event.commentParams.contentURI").String()
@@ -143,7 +145,8 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 			rawProfileIDPointed = transactionData.Get("event.profileIdPointed").String()
 		}
 	case "MIRROR_CREATED":
-		socialType = filter.TypeSocialShare
+		socialType =
+		type.SocialShare
 
 		if transactionData.Get("event.mirrorParams").Exists() {
 			rawProfileID = transactionData.Get("event.mirrorParams.profileId").String()
@@ -153,7 +156,8 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 			rawProfileIDPointed = transactionData.Get("event.profileIdPointed").String()
 		}
 	case "QUOTE_CREATED":
-		socialType = filter.TypeSocialShare
+		socialType =
+		type.SocialShare
 		contentURI = transactionData.Get("event.quoteParams.contentURI").String()
 		rawProfileID = transactionData.Get("event.quoteParams.profileId").String()
 		rawProfileIDPointed = transactionData.Get("event.quoteParams.pointedProfileId").String()
@@ -244,15 +248,15 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 		return nil, fmt.Errorf("public key to address: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activity.Action{
 		w.buildArweaveMomokaAction(ctx, from.String(), feedFrom, socialType, momokaMetadata),
 	}
 
 	return actions, nil
 }
 
-func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, filterType filter.SocialType, momokaMetadata *metadata.SocialPost) *schema.Action {
-	action := schema.Action{
+func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, filterType filter.SocialType, momokaMetadata *metadata.SocialPost) *activity.Action {
+	action := activity.Action{
 		Type:     filterType,
 		Tag:      filter.TagSocial,
 		Platform: filter.PlatformLens.String(),

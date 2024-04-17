@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -240,10 +240,10 @@ var configFileExcept = &File{
 	Node: &Node{
 		RSS: []*Module{
 			{
-				Network:  filter.NetworkRSS,
+				Network:  network.RSS,
 				Endpoint: "https://rsshub.app/",
 				Worker:   0,
-				Parameters: &Options{
+				Parameters: &Parameters{
 					"authentication": map[string]any{
 						"access_code": "def",
 						"access_key":  "abc",
@@ -256,19 +256,19 @@ var configFileExcept = &File{
 		Federated: nil,
 		Decentralized: []*Module{
 			{
-				Network:  filter.NetworkEthereum,
+				Network:  network.Ethereum,
 				Worker:   filter.Fallback,
 				Endpoint: "https://rpc.ankr.com/eth",
-				Parameters: &Options{
+				Parameters: &Parameters{
 					"block_number_start":  47370106,
 					"block_number_target": 456,
 				},
 			},
 			{
-				Network:  filter.NetworkEthereum,
+				Network:  network.Ethereum,
 				Worker:   filter.RSS3,
 				Endpoint: "https://rpc.ankr.com/eth",
-				Parameters: &Options{
+				Parameters: &Parameters{
 					"block_height_start": 123,
 					"rpc_thread_blocks":  2,
 				},

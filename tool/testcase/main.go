@@ -15,7 +15,7 @@ import (
 	sourceethereum "github.com/rss3-network/node/internal/engine/source/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 )
@@ -32,13 +32,13 @@ var command = &cobra.Command{
 			task engine.Task
 			tmpl = template.New("")
 
-			source   = filter.NetworkSource(lo.Must(cmd.PersistentFlags().GetString("source")))
+			source   = network.Source(lo.Must(cmd.PersistentFlags().GetString("source")))
 			endpoint = lo.Must(cmd.PersistentFlags().GetString("endpoint"))
 			feed     = lo.Must(cmd.PersistentFlags().GetString("feed"))
 		)
 
 		switch source {
-		case filter.NetworkEthereumSource:
+		case network.EthereumSource:
 			tmpl.Funcs(template.FuncMap{
 				"BytesToHex": func(value []byte) string {
 					return hexutil.Encode(value)
@@ -46,7 +46,7 @@ var command = &cobra.Command{
 				"BigIntToHex": func(value *big.Int) string {
 					return (*hexutil.Big)(value).String()
 				},
-				"UppercaseFirst": func(network filter.Network) string {
+				"UppercaseFirst": func(network network.Network) string {
 					a := []rune(network.String())
 					a[0] = unicode.ToUpper(a[0])
 					return string(a)
@@ -63,12 +63,12 @@ var command = &cobra.Command{
 				return fmt.Errorf("get chain id: %w", err)
 			}
 
-			chain := filter.EthereumChainID(chainID.Uint64())
+			chain := network.ChainID(chainID.Uint64())
 			if !chain.IsAEthereumChainID() {
 				return fmt.Errorf("unsupported chain id %d", chainID.Uint64())
 			}
 
-			network, err := filter.NetworkString(chain.String())
+			network, err := network.String(chain.String())
 			if err != nil {
 				return fmt.Errorf("get network: %w", err)
 			}
@@ -112,8 +112,8 @@ var command = &cobra.Command{
 }
 
 func init() {
-	command.PersistentFlags().String("source", string(filter.NetworkEthereumSource), "")
-	command.PersistentFlags().String("endpoint", endpoint.MustGet(filter.NetworkEthereum), "")
+	command.PersistentFlags().String("source", string(network.EthereumSource), "")
+	command.PersistentFlags().String("endpoint", endpoint.MustGet(network.Ethereum), "")
 	command.PersistentFlags().String("feed", "0xf74008a8fde35012c5bc9c897c1d413fe0befbc9e6fc9b6d8bfab38b7dd3c6bd", "")
 }
 

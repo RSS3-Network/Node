@@ -19,7 +19,7 @@ type Option struct {
 	RPCThreadBlocks *uint64 `json:"rpc_thread_blocks" mapstructure:"rpc_thread_blocks"`
 }
 
-func NewOption(options *config.Options) (*Option, error) {
+func NewOption(options *config.Parameters) (*Option, error) {
 	var instance Option
 
 	if options == nil {
