@@ -152,18 +152,18 @@ func (c *client) findFeedPartitioned(ctx context.Context, query model.ActivityQu
 		Timestamp: index.Timestamp,
 	}
 
-	if err := c.database.WithContext(ctx).Table(feed.PartitionName(nil)).Where("id = ?", index.ID).Limit(1).Find(&feed).Error; err != nil {
+	if err := c.database.WithContext(ctx).Table(_activityPartitionName(nil)).Where("id = ?", index.ID).Limit(1).Find(&feed).Error; err != nil {
 		return nil, nil, fmt.Errorf("find feed: %w", err)
 	}
 
-	result, err := feed.Export(index)
+	result, err := _activityExport(index)
 	if err != nil {
 		return nil, nil, fmt.Errorf("export feed: %w", err)
 	}
 
-	page := math.Ceil(float64(len(feed.Actions)) / float64(query.ActionLimit))
+	page := math.Ceil(float64(len(_activityActions)) / float64(query.ActionLimit))
 
-	feed.Actions = lo.Slice(feed.Actions, query.ActionLimit*(query.ActionPage-1), query.ActionLimit*query.ActionPage)
+	_activityActions = lo.Slice(_activityActions, query.ActionLimit*(query.ActionPage-1), query.ActionLimit*query.ActionPage)
 
 	return result, lo.ToPtr(int(page)), nil
 }
@@ -182,7 +182,7 @@ func (c *client) findFeedsPartitioned(ctx context.Context, query model.Activitie
 			Timestamp: query.Timestamp,
 		}
 
-		return feed.PartitionName(nil)
+		return _activityPartitionName(nil)
 	})
 
 	var (
@@ -226,8 +226,8 @@ func (c *client) findFeedsPartitioned(ctx context.Context, query model.Activitie
 		return nil, err
 	}
 
-	lo.ForEach(result, func(feed *activity.Activity, i int) {
-		result[i].Actions = lo.Slice(feed.Actions, 0, query.ActionLimit)
+	lo.ForEach(result, func(_activity *activity.Activity, i int) {
+		result[i].Actions = lo.Slice(_activityActions, 0, query.ActionLimit)
 	})
 
 	sort.SliceStable(result, func(i, j int) bool {

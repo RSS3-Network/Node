@@ -3,7 +3,7 @@ package stream
 import (
 	"context"
 
-	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/activity"
 )
 
 type Client interface {

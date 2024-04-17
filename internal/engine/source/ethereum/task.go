@@ -9,8 +9,9 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/ethereum"
-	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/shopspring/decimal"
 )
 
@@ -43,7 +44,7 @@ func (t Task) Validate() error {
 	return nil
 }
 
-func (t Task) BuildFeed(options ...activity.Option) (*activity.Activity, error) {
+func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, error) {
 	var to, from common.Address
 
 	if t.Transaction.To == nil {
@@ -80,14 +81,14 @@ func (t Task) BuildFeed(options ...activity.Option) (*activity.Activity, error) 
 		Index:   t.Receipt.TransactionIndex,
 		From:    from.String(),
 		To:      to.String(),
-		Type:    type.Unknown,
+		Type:    typex.Unknown,
 		Fee: &activity.Fee{
-		Amount:  decimal.NewFromBigInt(feeAmount, 0),
-		Decimal: defaultFeeDecimal,
-	},
-		Calldata: &schema.Calldata{
-		FunctionHash: functionHash,
-	},
+			Amount:  decimal.NewFromBigInt(feeAmount, 0),
+			Decimal: defaultFeeDecimal,
+		},
+		Calldata: &activity.Calldata{
+			FunctionHash: functionHash,
+		},
 		Actions:   make([]*activity.Action, 0),
 		Status:    t.Receipt.Status == types.ReceiptStatusSuccessful,
 		Timestamp: t.Header.Timestamp,
@@ -105,14 +106,14 @@ func (t Task) BuildFeed(options ...activity.Option) (*activity.Activity, error) 
 
 func (t Task) buildFee() (*big.Int, error) {
 	switch {
-	case filter.IsOptimismSuperchain(t.ChainID):
+	case network.IsOptimismSuperchain(t.ChainID):
 		return t.buildFeeOptimismSuperchain()
 	default:
-		return t.buildFeeDefault()
+		return t.BuildActivityefault()
 	}
 }
 
-func (t Task) buildFeeDefault() (*big.Int, error) {
+func (t Task) BuildActivityefault() (*big.Int, error) {
 	switch t.Transaction.Type {
 	case types.LegacyTxType, types.AccessListTxType:
 		return new(big.Int).Mul(t.Transaction.GasPrice, new(big.Int).SetUint64(t.Receipt.GasUsed)), nil
@@ -142,7 +143,7 @@ func (t Task) buildFeeDefault() (*big.Int, error) {
 func (t Task) buildFeeOptimismSuperchain() (*big.Int, error) {
 	switch t.Transaction.Type {
 	case types.LegacyTxType, types.AccessListTxType, types.DynamicFeeTxType:
-		fee, err := t.buildFeeDefault()
+		fee, err := t.BuildActivityefault()
 		if err != nil {
 			return nil, err
 		}

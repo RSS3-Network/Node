@@ -35,8 +35,8 @@ func (t Task) Validate() error {
 	return nil
 }
 
-// BuildFeed builds a feed from the task.
-func (t Task) BuildFeed(options ...activity.Option) (*activity.Activity, error) {
+// BuildActivity builds a feed from the task.
+func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, error) {
 	var feeValue decimal.Decimal
 
 	// Set fee value if the reward is not empty.
@@ -62,12 +62,12 @@ func (t Task) BuildFeed(options ...activity.Option) (*activity.Activity, error) 
 		Network: t.Network,
 		From:    from,
 		To:      t.Transaction.Target,
-		Type:    type.Unknown,
+		Type:    typex.Unknown,
 		Status:  true,
 		Fee: &activity.Fee{
-		Amount:  feeValue,
-		Decimal: defaultFeeDecimal,
-	},
+			Amount:  feeValue,
+			Decimal: defaultFeeDecimal,
+		},
 		Actions:   make([]*activity.Action, 0),
 		Timestamp: uint64(t.Block.Timestamp),
 	}

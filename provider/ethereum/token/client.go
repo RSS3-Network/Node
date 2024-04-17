@@ -43,62 +43,62 @@ type Client interface {
 
 // nativeTokenMap is a map of native token metadata.
 var nativeTokenMap = map[uint64]metadata.Token{
-	uint64(network.ChainIDMainnet): {
+	uint64(network.EthereumChainIDMainnet): {
 		Name:     "Ethereum",
 		Symbol:   "ETH",
 		Decimals: 18,
 	},
-	uint64(network.ChainIDOptimism): {
+	uint64(network.EthereumChainIDOptimism): {
 		Name:     "Ethereum",
 		Symbol:   "ETH",
 		Decimals: 18,
 	},
-	uint64(network.ChainIDPolygon): {
+	uint64(network.EthereumChainIDPolygon): {
 		Name:     "Polygon",
 		Symbol:   "MATIC",
 		Decimals: 18,
 	},
-	uint64(network.ChainIDBase): {
+	uint64(network.EthereumChainIDBase): {
 		Name:     "Ethereum",
 		Symbol:   "ETH",
 		Decimals: 18,
 	},
-	uint64(network.ChainIDCrossbell): {
+	uint64(network.EthereumChainIDCrossbell): {
 		Name:     "CSB",
 		Symbol:   "CSB",
 		Decimals: 18,
 	},
-	uint64(network.ChainIDArbitrum): {
+	uint64(network.EthereumChainIDArbitrum): {
 		Name:     "Ethereum",
 		Symbol:   "ETH",
 		Decimals: 18,
 	},
-	uint64(network.ChainIDAvalanche): {
+	uint64(network.EthereumChainIDAvalanche): {
 		Name:     "Avalanche",
 		Symbol:   "AVAX",
 		Decimals: 18,
 	},
-	uint64(network.ChainIDVSL): {
+	uint64(network.EthereumChainIDVSL): {
 		Name:     "RSS3",
 		Symbol:   "RSS3",
 		Decimals: 18,
 	},
-	uint64(network.ChainIDSatoshiVM): {
+	uint64(network.EthereumChainIDSatoshiVM): {
 		Name:     "Bitcoin",
 		Symbol:   "BTC",
 		Decimals: 8,
 	},
-	uint64(network.ChainIDBinanceSmartChain): {
+	uint64(network.EthereumChainIDBinanceSmartChain): {
 		Name:     "BNB",
 		Symbol:   "BNB",
 		Decimals: 18,
 	},
-	uint64(network.ChainIDGnosis): {
+	uint64(network.EthereumChainIDGnosis): {
 		Name:     "xDAI",
 		Symbol:   "xDAI",
 		Decimals: 18,
 	},
-	uint64(network.ChainIDLinea): {
+	uint64(network.EthereumChainIDLinea): {
 		Name:     "Ethereum",
 		Symbol:   "ETH",
 		Decimals: 18,
@@ -677,7 +677,7 @@ func NewClient(ethereumClient ethereum.Client, options ...Option) Client {
 	}
 
 	instance.unexpectedTokenMap = map[uint64]map[common.Address]LookupFunc{
-		uint64(network.ChainIDMainnet): {
+		uint64(network.EthereumChainIDMainnet): {
 			// ENS
 			common.HexToAddress("0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85"): instance.lookupENS,
 			common.HexToAddress("0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2"): instance.lookupMaker,

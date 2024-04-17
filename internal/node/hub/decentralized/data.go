@@ -52,12 +52,12 @@ func (h *Hub) getCursor(ctx context.Context, cursor *string) (*activity.Activity
 	return data, nil
 }
 
-func (h *Hub) transformCursor(_ context.Context, feed *activity.Activity) string {
+func (h *Hub) transformCursor(_ context.Context, _activity *activity.Activity) string {
 	if feed == nil {
 		return ""
 	}
 
-	return fmt.Sprintf("%s:%s", feed.ID, feed.Network)
+	return fmt.Sprintf("%s:%s", _activityID, _activityNetwork)
 }
 
 func (h *Hub) getIndexCount(ctx context.Context) (int64, *time.Time, error) {

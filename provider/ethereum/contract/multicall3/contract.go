@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 )
@@ -22,17 +23,17 @@ var (
 )
 
 var deployedAtMap = map[uint64]uint64{
-	uint64(network.ChainIDMainnet):           14353601, // https://etherscan.io/tx/0x00d9fcb7848f6f6b0aae4fb709c133d69262b902156c85a473ef23faa60760bd
-	uint64(network.ChainIDOptimism):          4286263,  // https://optimistic.etherscan.io/tx/0xb62f9191a2cf399c0d2afd33f5b8baf7c6b52af6dd2386e44121b1bab91b80e5
-	uint64(network.ChainIDPolygon):           25770160, // https://polygonscan.com/tx/0x25d385667b12d6992742127dc7682e570136397806e2773dc47922eba0001989
-	uint64(network.ChainIDArbitrum):          7654707,  // https://arbiscan.io/tx/0x211f6689adbb0f3fba7392e899d23bde029cef532cbd0ae900920cc09f7d1f32
-	uint64(network.ChainIDBase):              5022,     // https://basescan.org/tx/0x07471adfe8f4ec553c1199f495be97fc8be8e0626ae307281c22534460184ed1
-	uint64(network.ChainIDCrossbell):         38246031, // https://scan.crossbell.io/tx/0x0d7367f09c151993f1a7ac32780948fc07d232806e81d0d0c3e7058e4538d7f5
-	uint64(network.ChainIDVSL):               14193,    // https://scan.rss3.io/tx/0x07471adfe8f4ec553c1199f495be97fc8be8e0626ae307281c22534460184ed1
-	uint64(network.ChainIDSatoshiVM):         60740,    // https://svmscan.io/tx/0x3349d0d487c2ba43d19f7ec6a1e2176e3f72ccbfa647ac719a074682346dd40c
-	uint64(network.ChainIDBinanceSmartChain): 15921452, // https://bscscan.com/tx/0xcc0ddf5f791617ba9befce57995dbcb3a202946a1eefa3469742b01a0decdaf2
-	uint64(network.ChainIDGnosis):            21022491, // https://gnosis.blockscout.com/tx/0xf528b4398b2961bab9404a943d1da24d6c82b7367b0cc233629fccc94f1ababa
-	uint64(network.ChainIDLinea):             42,       // https://lineascan.build/tx/0x369305bf856786a160151d3897de2540fc700cf3d6a289b954ca93460f1038b6
+	uint64(network.EthereumChainIDMainnet):           14353601, // https://etherscan.io/tx/0x00d9fcb7848f6f6b0aae4fb709c133d69262b902156c85a473ef23faa60760bd
+	uint64(network.EthereumChainIDOptimism):          4286263,  // https://optimistic.etherscan.io/tx/0xb62f9191a2cf399c0d2afd33f5b8baf7c6b52af6dd2386e44121b1bab91b80e5
+	uint64(network.EthereumChainIDPolygon):           25770160, // https://polygonscan.com/tx/0x25d385667b12d6992742127dc7682e570136397806e2773dc47922eba0001989
+	uint64(network.EthereumChainIDArbitrum):          7654707,  // https://arbiscan.io/tx/0x211f6689adbb0f3fba7392e899d23bde029cef532cbd0ae900920cc09f7d1f32
+	uint64(network.EthereumChainIDBase):              5022,     // https://basescan.org/tx/0x07471adfe8f4ec553c1199f495be97fc8be8e0626ae307281c22534460184ed1
+	uint64(network.EthereumChainIDCrossbell):         38246031, // https://scan.crossbell.io/tx/0x0d7367f09c151993f1a7ac32780948fc07d232806e81d0d0c3e7058e4538d7f5
+	uint64(network.EthereumChainIDVSL):               14193,    // https://scan.rss3.io/tx/0x07471adfe8f4ec553c1199f495be97fc8be8e0626ae307281c22534460184ed1
+	uint64(network.EthereumChainIDSatoshiVM):         60740,    // https://svmscan.io/tx/0x3349d0d487c2ba43d19f7ec6a1e2176e3f72ccbfa647ac719a074682346dd40c
+	uint64(network.EthereumChainIDBinanceSmartChain): 15921452, // https://bscscan.com/tx/0xcc0ddf5f791617ba9befce57995dbcb3a202946a1eefa3469742b01a0decdaf2
+	uint64(network.EthereumChainIDGnosis):            21022491, // https://gnosis.blockscout.com/tx/0xf528b4398b2961bab9404a943d1da24d6c82b7367b0cc233629fccc94f1ababa
+	uint64(network.EthereumChainIDLinea):             42,       // https://lineascan.build/tx/0x369305bf856786a160151d3897de2540fc700cf3d6a289b954ca93460f1038b6
 }
 
 func IsDeployed(chainID uint64, blockNumber *big.Int) bool {
@@ -92,7 +93,7 @@ func Aggregate3(ctx context.Context, chainID uint64, calls []Multicall3Call3, bl
 	var contractAt common.Address
 
 	switch chainID {
-	case uint64(network.ChainIDSatoshiVM):
+	case uint64(network.EthereumChainIDSatoshiVM):
 		contractAt = AddressMulticall3SAVM
 	default:
 		contractAt = AddressMulticall3

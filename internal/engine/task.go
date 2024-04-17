@@ -15,7 +15,7 @@ type Task interface {
 	GetNetwork() network.Network
 	GetTimestamp() uint64
 	Validate() error
-	BuildFeed(options ...activity.Option) (*activity.Activity, error)
+	BuildActivity(options ...activity.Option) (*activity.Activity, error)
 }
 
 func BuildTaskTraceAttributes(task Task) []attribute.KeyValue {

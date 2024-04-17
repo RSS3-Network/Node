@@ -218,8 +218,8 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	var configFile File
 	if err := v.Unmarshal(&configFile, viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
 		network.HookFunc(),
-		// TODO: pending new worker struct, WorkerHookFunc is no longer available
-		// filter.WorkerHookFunc(),
+		// FIXME: pending new worker struct, WorkerHookFunc is no longer available
+		// networkWorkerHookFunc(),
 		EvmAddressHookFunc(),
 	))); err != nil {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)

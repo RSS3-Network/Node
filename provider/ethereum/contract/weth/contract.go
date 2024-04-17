@@ -23,7 +23,7 @@ var (
 
 func IsWETH(chainID uint64, address common.Address) bool {
 	switch chainID {
-	case uint64(network.ChainIDMainnet):
+	case uint64(network.EthereumChainIDMainnet):
 		return address == AddressMainnet
 	default:
 		return false

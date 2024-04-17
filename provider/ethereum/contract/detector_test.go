@@ -166,6 +166,6 @@ func BenchmarkDetectERC20WithCode(b *testing.B) {
 	require.NoError(b, err)
 
 	for i := 0; i < b.N; i++ {
-		require.False(b, contract.DetectERC165WithCode(uint64(network.ChainIDMainnet), address, code))
+		require.False(b, contract.DetectERC165WithCode(uint64(network.EthereumChainIDMainnet), address, code))
 	}
 }

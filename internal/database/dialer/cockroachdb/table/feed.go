@@ -43,44 +43,44 @@ func (f *Feed) TableName() string {
 	return "feeds"
 }
 
-func (f *Feed) PartitionName(feed *activity.Activity) string {
-	if feed != nil {
-		f.Timestamp = time.Unix(int64(feed.Timestamp), 0)
-		f.Network = feed.Network
+func (f *Feed) PartitionName(_activity *activity.Activity) string {
+	if _activity != nil {
+		f.Timestamp = time.Unix(int64(_activity.Timestamp), 0)
+		f.Network = _activity.Network
 	}
 
 	return fmt.Sprintf("%s_%s_%d_q%d", f.TableName(), f.Network,
 		f.Timestamp.Year(), int(math.Ceil(float64(f.Timestamp.Month())/3)))
 }
 
-func (f *Feed) Import(feed *activity.Activity) error {
-	f.ID = feed.ID
-	f.Network = feed.Network
-	f.Platform = feed.Platform
-	f.Index = feed.Index
-	f.From = feed.From
-	f.To = feed.To
-	f.Tag = feed.Type.Tag()
-	f.Type = feed.Type.Name()
-	f.Status = feed.Status
-	f.TotalActions = uint(len(feed.Actions))
+func (f *Feed) Import(_activity *activity.Activity) error {
+	f.ID = _activity.ID
+	f.Network = _activity.Network
+	f.Platform = _activity.Platform
+	f.Index = _activity.Index
+	f.From = _activity.From
+	f.To = _activity.To
+	f.Tag = _activity.Type.Tag()
+	f.Type = _activity.Type.Name()
+	f.Status = _activity.Status
+	f.TotalActions = uint(len(_activity.Actions))
 	f.Actions = make(FeedActions, 0)
-	f.Timestamp = time.Unix(int64(feed.Timestamp), 0)
+	f.Timestamp = time.Unix(int64(_activity.Timestamp), 0)
 
-	if feed.Fee != nil {
+	if _activity.Fee != nil {
 		f.Fee = new(Fee)
 
-		if err := f.Fee.Import(feed.Fee); err != nil {
+		if err := f.Fee.Import(_activity.Fee); err != nil {
 			return fmt.Errorf("invalid fee: %w", err)
 		}
 	}
 
 	// spam transactions only retain last one action
 	if f.TotalActions > FeedSpamLimit {
-		for i := len(feed.Actions) - 1; i >= 0; i-- {
+		for i := len(_activity.Actions) - 1; i >= 0; i-- {
 			item := new(FeedAction)
 
-			if err := item.Import(feed.Actions[i]); err != nil {
+			if err := item.Import(_activity.Actions[i]); err != nil {
 				return err
 			}
 
@@ -92,7 +92,7 @@ func (f *Feed) Import(feed *activity.Activity) error {
 		}
 	}
 
-	for _, action := range feed.Actions {
+	for _, action := range _activity.Actions {
 		item := new(FeedAction)
 
 		if err := item.Import(action); err != nil {
@@ -122,13 +122,13 @@ func (f *Feed) Export(index *Index) (*activity.Activity, error) {
 
 	var err error
 
-	if feed.Type, err = schema.TypeString(f.Tag, f.Type); err != nil {
+	if _activity.Type, err = schema.TypeString(f.Tag, f.Type); err != nil {
 		return nil, err
 	}
 
-	feed.Tag = feed.Type.Tag()
+	_activityTag = _activity.Typex.Tag()
 
-	if feed.Fee, err = f.Fee.Export(); err != nil {
+	if _activityFee, err = f.Fee.Export(); err != nil {
 		return nil, fmt.Errorf("invalid fee: %w", err)
 	}
 
@@ -138,7 +138,7 @@ func (f *Feed) Export(index *Index) (*activity.Activity, error) {
 			return nil, err
 		}
 
-		feed.Actions = append(feed.Actions, item)
+		_activityActions = append(_activityActions, item)
 	}
 
 	return &feed, nil
@@ -164,14 +164,14 @@ func (f *Feeds) Export(indexes []*Index) ([]*activity.Activity, error) {
 	feeds := make(map[string]*Feed)
 
 	for _, feed := range *f {
-		feeds[feed.ID] = feed
+		feeds[_activityID] = feed
 	}
 
 	result := make([]*activity.Activity, 0, len(indexes))
 
 	for _, index := range indexes {
 		if feed, ok := feeds[index.ID]; ok {
-			data, err := feed.Export(index)
+			data, err := _activityExport(index)
 			if err != nil {
 				return nil, err
 			}
@@ -243,8 +243,8 @@ type FeedAction struct {
 }
 
 func (f *FeedAction) Import(action *activity.Action) (err error) {
-	f.Tag = action.Type.Tag().String()
-	f.Type = action.Type.Name()
+	f.Tag = action.typex.Tag().String()
+	f.Type = action.typex.Name()
 	f.From = action.From
 	f.To = action.To
 	f.Platform = action.Platform

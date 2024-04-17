@@ -257,7 +257,7 @@ var configFileExcept = &File{
 		Decentralized: []*Module{
 			{
 				Network:  network.Ethereum,
-				Worker:   filter.Fallback,
+				Worker:   networkFallback,
 				Endpoint: "https://rpc.ankr.com/eth",
 				Parameters: &Parameters{
 					"block_number_start":  47370106,
@@ -266,7 +266,7 @@ var configFileExcept = &File{
 			},
 			{
 				Network:  network.Ethereum,
-				Worker:   filter.RSS3,
+				Worker:   networkRSS3,
 				Endpoint: "https://rpc.ankr.com/eth",
 				Parameters: &Parameters{
 					"block_height_start": 123,

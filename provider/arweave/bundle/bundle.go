@@ -118,7 +118,7 @@ func (d *Decoder) decodeDataItemSignature(dataItem *DataItem) error {
 		return fmt.Errorf("unsupported signature type: %d", dataItem.SignatureType)
 	}
 
-	buffer = make([]byte, signatureType.SignatureLength)
+	buffer = make([]byte, signaturetypex.SignatureLength)
 
 	if _, err := io.ReadFull(d.buffer, buffer); err != nil {
 		return err
@@ -137,7 +137,7 @@ func (d *Decoder) decodeDataItemOwner(dataItem *DataItem) error {
 		return fmt.Errorf("unsupported signature type: %d", dataItem.SignatureType)
 	}
 
-	buffer = make([]byte, signatureType.PublicKeyLength)
+	buffer = make([]byte, signaturetypex.PublicKeyLength)
 
 	if _, err := io.ReadFull(d.buffer, buffer); err != nil {
 		return err

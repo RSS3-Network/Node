@@ -16,7 +16,7 @@ import (
 	"github.com/rss3-network/node/internal/stream"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum"
-	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
@@ -136,7 +136,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 	}
 
 	// Filter failed feeds.
-	feeds := lo.Filter(resultPool.Wait(), func(feed *activity.Activity, _ int) bool {
+	feeds := lo.Filter(resultPool.Wait(), func(_activity *activity.Activity, _ int) bool {
 		return feed != nil
 	})
 

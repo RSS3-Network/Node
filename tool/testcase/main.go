@@ -58,12 +58,12 @@ var command = &cobra.Command{
 				return fmt.Errorf("dial to endpoint: %w", err)
 			}
 
-			chainID, err := ethereumClient.ChainID(cmd.Context())
+			chainID, err := ethereumClient.EthereumChainID(cmd.Context())
 			if err != nil {
 				return fmt.Errorf("get chain id: %w", err)
 			}
 
-			chain := network.ChainID(chainID.Uint64())
+			chain := network.EthereumChainID(chainID.Uint64())
 			if !chain.IsAEthereumChainID() {
 				return fmt.Errorf("unsupported chain id %d", chainID.Uint64())
 			}

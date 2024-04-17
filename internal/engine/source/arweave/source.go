@@ -151,7 +151,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 		}
 
 		// Filter transactions by owner.
-		transactions = s.filterOwnerTransaction(transactions, filter.OwnerAddresses)
+		transactions = s.filterOwnerTransaction(transactions, networkOwnerAddresses)
 
 		// Pull transaction data.
 		if err := s.batchPullData(ctx, transactions); err != nil {
@@ -470,10 +470,10 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 		pendingState: state, // Default pending state is equal to the current state.
 	}
 
-	// Initialize filter.
+	// Initialize network
 	if sourceFilter != nil {
 		var ok bool
-		if instance.filter, ok = sourceFilter.(*Filter); !ok {
+		if instance.filter, ok = sourcenetwork(*Filter); !ok {
 			return nil, fmt.Errorf("invalid source filter type %T", sourceFilter)
 		}
 	}

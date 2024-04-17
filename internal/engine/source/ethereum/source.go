@@ -54,7 +54,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 
 	go func() {
 		switch {
-		case s.filter.LogAddresses != nil || s.filter.LogTopics != nil:
+		case s.networkLogAddresses != nil || s.networkLogTopics != nil:
 			errorChan <- s.pollLogs(ctx, tasksChan)
 		default:
 			errorChan <- s.pollBlocks(ctx, tasksChan)
@@ -215,13 +215,13 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 		logFilter := ethereum.Filter{
 			FromBlock: new(big.Int).SetUint64(blockNumberStart),
 			ToBlock:   new(big.Int).SetUint64(blockNumberEnd),
-			Addresses: s.filter.LogAddresses,
+			Addresses: s.networkLogAddresses,
 			Topics: [][]common.Hash{
-				s.filter.LogTopics,
+				s.networkLogTopics,
 			},
 		}
 
-		// Get logs by filter.
+		// Get logs by network
 		logs, err := s.ethereumClient.FilterLogs(ctx, logFilter)
 		if err != nil {
 			return fmt.Errorf("get logs by filter: %w", err)
@@ -470,10 +470,10 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 		state:  state,
 	}
 
-	// Initialize filter.
+	// Initialize network
 	if sourceFilter != nil {
 		var ok bool
-		if instance.filter, ok = sourceFilter.(*Filter); !ok {
+		if instance.filter, ok = sourcenetwork(*Filter); !ok {
 			return nil, fmt.Errorf("invalid source filter type %T", sourceFilter)
 		}
 	}

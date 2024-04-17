@@ -25,8 +25,8 @@ type AccountActivitiesRequest struct {
 	Direction      *activity.Direction `query:"direction"`
 	Network        []network.Network   `query:"network"`
 	Tag            []tag.Tag           `query:"tag"`
-	Type[]type.`query:"-"`
-	Platform       []filter.Platform   `query:"platform"`
+	Type[]typex.`query:"-"`
+	Platform       []Platform   `query:"platform"`
 }
 
 type ActivityResponse struct {
@@ -53,16 +53,16 @@ type StatisticResponse struct {
 }
 
 func (h *Hub) parseParams(params url.Values, tags []tag.Tag) ([]
-type., error) {
+typex., error) {
 if len(tags) == 0 {
 return nil, nil
 }
 
-types := make([]type., 0)
+types := make([]typex., 0)
 
 for _, typex := range params["type"] {
 var (
-value type.
+value typex.
 err   error
 )
 

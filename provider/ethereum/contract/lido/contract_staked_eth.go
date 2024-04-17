@@ -607,7 +607,7 @@ func (_StakedETH *StakedETHCaller) Eip712Domain(opts *bind.CallOpts) (struct {
 
 	outstruct.Name = *abi.ConvertType(out[0], new(string)).(*string)
 	outstruct.Version = *abi.ConvertType(out[1], new(string)).(*string)
-	outstruct.ChainId = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
+	outstruct.EthereumChainID = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
 	outstruct.VerifyingContract = *abi.ConvertType(out[3], new(common.Address)).(*common.Address)
 
 	return *outstruct, err

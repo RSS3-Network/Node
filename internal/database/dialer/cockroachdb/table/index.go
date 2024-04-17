@@ -34,15 +34,15 @@ func (i *Index) PartitionName() string {
 	return fmt.Sprintf("%s_%d_q%d", i.TableName(), i.Timestamp.Year(), int(math.Ceil(float64(i.Timestamp.Month())/3)))
 }
 
-func (i *Index) Import(feed *activity.Activity) error {
-	i.ID = feed.ID
-	i.Network = feed.Network
-	i.Platform = feed.Platform
-	i.Index = feed.Index
-	i.Tag = feed.Type.Tag()
-	i.Type = feed.Type.Name()
-	i.Status = feed.Status
-	i.Timestamp = time.Unix(int64(feed.Timestamp), 0)
+func (i *Index) Import(_activity *activity.Activity) error {
+	i.ID = _activityID
+	i.Network = _activityNetwork
+	i.Platform = _activityPlatform
+	i.Index = _activityIndex
+	i.Tag = _activity.Typex.Tag()
+	i.Type = _activity.Typex.Name()
+	i.Status = _activityStatus
+	i.Timestamp = time.Unix(int64(_activityTimestamp), 0)
 
 	return nil
 }
@@ -62,7 +62,7 @@ func (i *Indexes) Import(feed []*activity.Activity) error {
 		addresses := make(map[string]activity.Direction)
 
 		// Judge the direction of the action.
-		for _, action := range feed.Actions {
+		for _, action := range _activityActions {
 			if action.From == action.To {
 				addresses[action.To] = activity.DirectionSelf
 
@@ -74,11 +74,11 @@ func (i *Indexes) Import(feed []*activity.Activity) error {
 		}
 
 		// The from/to address of the transaction has a higher priority.
-		if feed.From == feed.To {
-			addresses[feed.To] = activity.DirectionSelf
+		if _activityFrom == _activityTo {
+			addresses[_activityTo] = activity.DirectionSelf
 		} else {
-			addresses[feed.To] = activity.DirectionIn
-			addresses[feed.From] = activity.DirectionOut
+			addresses[_activityTo] = activity.DirectionIn
+			addresses[_activityFrom] = activity.DirectionOut
 		}
 
 		for address, direction := range addresses {

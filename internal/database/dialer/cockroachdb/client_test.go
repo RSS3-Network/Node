@@ -37,14 +37,14 @@ func TestClient(t *testing.T) {
 					Network: network.Ethereum,
 					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
-					Type:    type.TransactionTransfer,
+					Type:    typex.TransactionTransfer,
 					Actions: []*activity.Action{
-				{
-					Type: type.TransactionTransfer,
-					From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-					To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
-				},
-				},
+						{
+							Type: typex.TransactionTransfer,
+							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+							To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
+						},
+					},
 					Timestamp: uint64(time.Now().Unix()),
 				},
 				{
@@ -52,14 +52,14 @@ func TestClient(t *testing.T) {
 					Network: network.Ethereum,
 					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
-					Type:    type.TransactionTransfer,
+					Type:    typex.TransactionTransfer,
 					Actions: []*activity.Action{
-				{
-					Type: type.TransactionTransfer,
-					From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-					To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
-				},
-				},
+						{
+							Type: typex.TransactionTransfer,
+							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+							To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
+						},
+					},
 					Timestamp: uint64(time.Now().Add(-3 * 31 * 24 * time.Hour).Unix()),
 				},
 			},
@@ -69,19 +69,19 @@ func TestClient(t *testing.T) {
 					Network: network.Ethereum,
 					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
-					Type:    type.TransactionTransfer,
+					Type:    typex.TransactionTransfer,
 					Actions: []*activity.Action{
-				{
-					Type: type.TransactionTransfer,
-					From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-					To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
-				},
-				{
-					Type: type.TransactionTransfer,
-					From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-					To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
-				},
-				},
+						{
+							Type: typex.TransactionTransfer,
+							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+							To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
+						},
+						{
+							Type: typex.TransactionTransfer,
+							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+							To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
+						},
+					},
 					Timestamp: uint64(time.Now().Unix()),
 				},
 			},
@@ -127,23 +127,23 @@ func TestClient(t *testing.T) {
 			// Begin a transaction.
 			require.NoError(t, client.SaveFeeds(context.Background(), testcase.feedCreated))
 
-			// Query first feed.
+			// Query first _activity
 			for _, feed := range testcase.feedCreated {
-				data, page, err := client.FindFeed(context.Background(), model.ActivityQuery{ID: lo.ToPtr(feed.ID), ActionLimit: 10})
+				data, page, err := client.FindFeed(context.Background(), model.ActivityQuery{ID: lo.ToPtr(_activityID), ActionLimit: 10})
 				require.NoError(t, err)
 				require.NotNil(t, data)
 				require.Greater(t, lo.FromPtr(page), 0)
-				require.Equal(t, data.ID, feed.ID)
-				require.Equal(t, data.From, feed.From)
-				require.Equal(t, data.To, feed.To)
+				require.Equal(t, data.ID, _activityID)
+				require.Equal(t, data.From, _activityFrom)
+				require.Equal(t, data.To, _activityTo)
 			}
 
 			// Query feeds by account.
 			accounts := make(map[string]int)
 
 			for _, feed := range testcase.feedCreated {
-				accounts[feed.From]++
-				accounts[feed.To]++
+				accounts[_activityFrom]++
+				accounts[_activityTo]++
 			}
 
 			for account, count := range accounts {

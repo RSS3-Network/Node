@@ -25,7 +25,7 @@ func TestAggregate(t *testing.T) {
 	require.NoError(t, err)
 
 	type arguments struct {
-		chainID     network.ChainID
+		chainID     network.EthereumChainID
 		blockNumber *big.Int
 		calls       []multicall3.Multicall3Call3
 	}
@@ -38,7 +38,7 @@ func TestAggregate(t *testing.T) {
 		{
 			name: "Get Lens profile metadata",
 			arguments: arguments{
-				chainID: network.ChainIDPolygon,
+				chainID: network.EthereumChainIDPolygon,
 				calls: []multicall3.Multicall3Call3{
 					{
 						Target:       lens.AddressLensProtocol,
@@ -69,7 +69,7 @@ func TestAggregate(t *testing.T) {
 		{
 			name: "Get WETH token metadata",
 			arguments: arguments{
-				chainID:     network.ChainIDMainnet,
+				chainID:     network.EthereumChainIDMainnet,
 				blockNumber: new(big.Int).SetUint64(4719568),
 				calls: []multicall3.Multicall3Call3{
 					{
@@ -109,10 +109,10 @@ func TestAggregate(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			network, err := network.String(testcase.arguments.chainID.String())
+			_network, err := network.NetworkString(testcase.arguments.chainID.String())
 			require.NoError(t, err)
 
-			ethereumClient, err := ethereum.Dial(ctx, endpoint.MustGet(network))
+			ethereumClient, err := ethereum.Dial(ctx, endpoint.MustGet(_network))
 			require.NoError(t, err)
 
 			results, err := multicall3.Aggregate3(ctx, uint64(testcase.arguments.chainID), testcase.arguments.calls, testcase.arguments.blockNumber, ethereumClient)

@@ -110,13 +110,13 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 		return fmt.Errorf("invalid indexer parameters: %w", err)
 	}
 
-	network, err := network.NetworkString(lo.Must(flags.GetString(flag.KeyIndexerNetwork)))
+	_network, err := network.NetworkString(lo.Must(flags.GetString(flag.KeyIndexerNetwork)))
 	if err != nil {
-		return fmt.Errorf("network string: %w", err)
+		return fmt.Errorf("_network string: %w", err)
 	}
 
-	// TODO: pending new worker struct
-	//worker, err := filter.NameString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
+	// FIXME: pending new worker struct
+	//worker, err := networkNameString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
 	worker := "pending new worker struct"
 
 	if err != nil {
@@ -124,7 +124,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 	}
 
 	for _, nodeConfig := range config.Node.Decentralized {
-		if nodeConfig.Network == network && nodeConfig.Worker == worker {
+		if nodeConfig.Network == _network && nodeConfig.Worker == worker {
 			if nodeConfig.Parameters == nil && parameters == "{}" || *(nodeConfig.Parameters) != nil && strings.EqualFold(nodeConfig.Parameters.String(), parameters) {
 				server, err := indexer.NewServer(ctx, nodeConfig, databaseClient, streamClient, redisClient)
 				if err != nil {
@@ -136,7 +136,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 		}
 	}
 
-	return fmt.Errorf("undefined indexer %s.%s.%s", network, worker, parameters)
+	return fmt.Errorf("undefined indexer %s.%s.%s", _network, worker, parameters)
 }
 
 func runBroadcaster(ctx context.Context, config *config.File) error {
@@ -199,7 +199,7 @@ func init() {
 	command.PersistentFlags().String(flag.KeyConfig, "config.yaml", "config file name")
 	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")
 	command.PersistentFlags().String(flag.KeyIndexerNetwork, network.Ethereum.String(), "indexer network")
-	// TODO: pending new worker struct
+	// FIXME: pending new worker struct
 	//command.PersistentFlags().String(flag.KeyIndexerWorker, network.Fallback.String(), "indexer worker")
 	command.PersistentFlags().String(flag.KeyIndexerParameters, "{}", "indexer parameters")
 }

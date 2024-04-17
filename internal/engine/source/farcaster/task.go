@@ -34,7 +34,7 @@ func (t Task) Validate() error {
 	return nil
 }
 
-func (t Task) BuildFeed(options ...activity.Option) (*activity.Activity, error) {
+func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, error) {
 	feed := activity.Activity{
 		ID:        common.HexToHash(t.Message.Hash).String(),
 		Network:   t.Network,
