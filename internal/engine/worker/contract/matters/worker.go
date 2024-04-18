@@ -63,7 +63,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform matters task to feed.
+// Transform matters task to activity.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	// Cast the task to a matters task.
 	ethereumTask, ok := task.(*source.Task)
@@ -71,10 +71,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build the feed.
-	feed, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformMatters))
+	// Build the _activity.
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformMatters))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	for _, log := range ethereumTask.Receipt.Logs {
@@ -90,7 +90,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 
 		switch {
 		case w.matchEthereumCurationTransaction(log):
-			actions, err = w.handleEthereumCurationTransaction(ctx, *ethereumTask, *log, feed)
+			actions, err = w.handleEthereumCurationTransaction(ctx, *ethereumTask, *log, _activity)
 		default:
 			continue
 		}
@@ -101,21 +101,21 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		feed.Actions = append(feed.Actions, actions...)
+		_activity.Actions = append(_activity.Actions, actions...)
 	}
 
-	feed.TotalActions = uint(len(feed.Actions))
-	feed.Tag = tag.Social
+	_activity.TotalActions = uint(len(_activity.Actions))
+	_activity.Tag = tag.Social
 
-	return feed, nil
+	return _activity, nil
 }
 
 func (w *worker) matchEthereumCurationTransaction(log *ethereum.Log) bool {
 	return len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], matters.EventCuration)
 }
 
-func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task source.Task, log ethereum.Log, feed *activity.Activity) ([]*activity.Action, error) {
-	feed.Type = typex.SocialReward
+func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task source.Task, log ethereum.Log, _activity *activity.Activity) ([]*activity.Action, error) {
+	_activity.Type = typex.SocialReward
 
 	export := log.Export()
 

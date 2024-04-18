@@ -16,7 +16,7 @@ database:
 stream:
   enable: false
   driver: kafka
-  topic: rss3.node.feeds
+  topic: rss3.node.activities
   uri: localhost:9092
 
 redis:

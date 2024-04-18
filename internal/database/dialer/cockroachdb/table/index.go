@@ -36,26 +36,26 @@ func (i *Index) PartitionName() string {
 
 func (i *Index) Import(_activity *activity.Activity) error {
 	i.ID = _activity.ID
-	i.Network = _activityNetwork
-	i.Platform = _activityPlatform
-	i.Index = _activityIndex
+	i.Network = _activity.Network
+	i.Platform = _activity.Platform
+	i.Index = _activity.Index
 	i.Tag = _activity.Type.Tag()
 	i.Type = _activity.Type.Name()
-	i.Status = _activityStatus
-	i.Timestamp = time.Unix(int64(_activityTimestamp), 0)
+	i.Status = _activity.Status
+	i.Timestamp = time.Unix(int64(_activity.Timestamp), 0)
 
 	return nil
 }
 
 type Indexes []*Index
 
-func (i *Indexes) Import(feed []*activity.Activity) error {
-	*i = make([]*Index, 0, len(feed))
+func (i *Indexes) Import(activities []*activity.Activity) error {
+	*i = make([]*Index, 0, len(activities))
 
-	for _, feed := range feed {
+	for _, _activity := range activities {
 		var index Index
 
-		if err := index.Import(feed); err != nil {
+		if err := index.Import(_activity); err != nil {
 			return err
 		}
 
@@ -74,11 +74,11 @@ func (i *Indexes) Import(feed []*activity.Activity) error {
 		}
 
 		// The from/to address of the transaction has a higher priority.
-		if _activityFrom == _activityTo {
-			addresses[_activityTo] = activity.DirectionSelf
+		if _activity.From == _activity.To {
+			addresses[_activity.To] = activity.DirectionSelf
 		} else {
-			addresses[_activityTo] = activity.DirectionIn
-			addresses[_activityFrom] = activity.DirectionOut
+			addresses[_activity.To] = activity.DirectionIn
+			addresses[_activity.From] = activity.DirectionOut
 		}
 
 		for address, direction := range addresses {

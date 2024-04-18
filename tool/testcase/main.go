@@ -32,9 +32,9 @@ var command = &cobra.Command{
 			task engine.Task
 			tmpl = template.New("")
 
-			source   = network.Source(lo.Must(cmd.PersistentFlags().GetString("source")))
-			endpoint = lo.Must(cmd.PersistentFlags().GetString("endpoint"))
-			feed     = lo.Must(cmd.PersistentFlags().GetString("feed"))
+			source    = network.Source(lo.Must(cmd.PersistentFlags().GetString("source")))
+			endpoint  = lo.Must(cmd.PersistentFlags().GetString("endpoint"))
+			_activity = lo.Must(cmd.PersistentFlags().GetString("activity"))
 		)
 
 		switch source {
@@ -58,7 +58,7 @@ var command = &cobra.Command{
 				return fmt.Errorf("dial to endpoint: %w", err)
 			}
 
-			chainID, err := ethereumClient.EthereumChainID(cmd.Context())
+			chainID, err := ethereumClient.ChainID(cmd.Context())
 			if err != nil {
 				return fmt.Errorf("get chain id: %w", err)
 			}
@@ -68,12 +68,12 @@ var command = &cobra.Command{
 				return fmt.Errorf("unsupported chain id %d", chainID.Uint64())
 			}
 
-			network, err := network.String(chain.String())
+			_network, err := network.NetworkString(chain.String())
 			if err != nil {
-				return fmt.Errorf("get network: %w", err)
+				return fmt.Errorf("get _network: %w", err)
 			}
 
-			transaction, err := ethereumClient.TransactionByHash(cmd.Context(), common.HexToHash(feed))
+			transaction, err := ethereumClient.TransactionByHash(cmd.Context(), common.HexToHash(_activity))
 			if err != nil {
 				return fmt.Errorf("get transacion by hash: %w", err)
 			}
@@ -89,7 +89,7 @@ var command = &cobra.Command{
 			}
 
 			task = &sourceethereum.Task{
-				Network:     network,
+				Network:     _network,
 				ChainID:     chainID.Uint64(),
 				Header:      header,
 				Transaction: transaction,
@@ -114,7 +114,7 @@ var command = &cobra.Command{
 func init() {
 	command.PersistentFlags().String("source", string(network.EthereumSource), "")
 	command.PersistentFlags().String("endpoint", endpoint.MustGet(network.Ethereum), "")
-	command.PersistentFlags().String("feed", "0xf74008a8fde35012c5bc9c897c1d413fe0befbc9e6fc9b6d8bfab38b7dd3c6bd", "")
+	command.PersistentFlags().String("activity", "0xf74008a8fde35012c5bc9c897c1d413fe0befbc9e6fc9b6d8bfab38b7dd3c6bd", "")
 }
 
 func main() {

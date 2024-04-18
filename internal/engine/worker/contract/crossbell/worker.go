@@ -88,17 +88,17 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to feed.
+// Transform Ethereum task to activity.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build default crossbell feed from task.
-	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformCrossbell))
+	// Build default crossbell activity from task.
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformCrossbell))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	// Match and handle ethereum logs.
@@ -150,15 +150,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		// Change feed type to the first action type.
+		// Change _activity type to the first action type.
 		for _, action := range actions {
-			feed.Type = action.Type
+			_activity.Type = action.Type
 		}
 
-		feed.Actions = append(feed.Actions, actions...)
+		_activity.Actions = append(_activity.Actions, actions...)
 	}
 
-	return feed, nil
+	return _activity, nil
 }
 
 // matchProfileCreated matches ProfileCreated event.
@@ -333,8 +333,7 @@ func (w *worker) transformSetCharacterURI(ctx context.Context, task *source.Task
 
 // transformPostCreated transforms PostCreated event.
 func (w *worker) transformPostCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
-	feedType :=
-		typex.SocialPost
+	activityType := typex.SocialPost
 
 	event, err := w.eventFilterer.ParsePostNote(log.Export())
 	if err != nil {
@@ -357,7 +356,7 @@ func (w *worker) transformPostCreated(ctx context.Context, task *source.Task, lo
 	}
 
 	if targetCharacterID != nil && targetCharacterID.Int64() != 0 {
-		feedType = typex.SocialComment
+		activityType = typex.SocialComment
 
 		post.Target, _, _, err = w.buildPostMetadata(ctx, log.BlockNumber, targetCharacterID, targetNoteID, "")
 		if err != nil {
@@ -365,7 +364,7 @@ func (w *worker) transformPostCreated(ctx context.Context, task *source.Task, lo
 		}
 	}
 
-	action := w.buildPostAction(ctx, fromAddress, *task.Transaction.To, platform, feedType, *post)
+	action := w.buildPostAction(ctx, fromAddress, *task.Transaction.To, platform, activityType, *post)
 
 	return []*activity.Action{
 		action,

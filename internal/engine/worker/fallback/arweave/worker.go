@@ -11,8 +11,8 @@ import (
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/protocol-go/schema/activity"
 
-	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -37,7 +37,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.ArweaveSource, nil
 }
 
-// Transform returns a feed with the action of the task.
+// Transform returns an activity  with the action of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
@@ -45,10 +45,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build the feed.
-	feed, err := task.BuildActivity()
+	// Build the _activity.
+	_activity, err := task.BuildActivity()
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	// If the task is a native transfer transaction, handle it.
@@ -59,11 +59,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, fmt.Errorf("handle native transfer transaction: %w", err)
 		}
 
-		feed.Type = action.Type
-		feed.Actions = append(feed.Actions, action)
+		_activity.Type = action.Type
+		_activity.Actions = append(_activity.Actions, action)
 	}
 
-	return feed, nil
+	return _activity, nil
 }
 
 // matchArweaveNativeTransferTransaction returns true if the transaction is a native transfer transaction.
@@ -102,8 +102,8 @@ func (w *worker) buildArweaveTransactionTransferAction(_ context.Context, from, 
 		From: from,
 		To:   to,
 		Metadata: metadata.TransactionTransfer{
-		Value: lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0)),
-	},
+			Value: lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0)),
+		},
 	}
 
 	return &action, nil

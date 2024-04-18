@@ -187,12 +187,12 @@ func TestWorker_Matters(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			_activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
-			require.Equal(t, testcase.want, feed)
+			//t.Log(string(lo.Must(json.MarshalIndent(_activity, "", "\x20\x20"))))
+			require.Equal(t, testcase.want, _activity)
 
-			t.Log(feed)
+			t.Log(_activity)
 		})
 	}
 }

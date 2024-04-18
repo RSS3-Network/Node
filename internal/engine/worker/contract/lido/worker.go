@@ -71,17 +71,17 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to feed.
+// Transform Ethereum task to activity.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build default lido feed from task.
-	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformLido))
+	// Build default lido activity from task.
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformLido))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	// Match and handle ethereum logs.
@@ -100,31 +100,31 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		switch {
 		case w.matchStakedETHSubmittedLog(ethereumTask, log):
 			// Add ETH liquidity
-			feed.Type = typex.ExchangeLiquidity
+			_activity.Type = typex.ExchangeLiquidity
 			actions, err = w.transformStakedETHSubmittedLog(ctx, ethereumTask, log)
 		case w.matchStakedETHWithdrawalNFTWithdrawalRequestedLog(ethereumTask, log):
 			// Mint ETH withdrawal NFT
-			feed.Type = typex.ExchangeLiquidity
+			_activity.Type = typex.ExchangeLiquidity
 			actions, err = w.transformStakedETHWithdrawalNFTWithdrawalRequestedLog(ctx, ethereumTask, log)
 		case w.matchStakedETHWithdrawalNFTWithdrawalClaimedLog(ethereumTask, log):
 			// Remove ETH liquidity
-			feed.Type = typex.CollectibleBurn
+			_activity.Type = typex.CollectibleBurn
 			actions, err = w.transformStakedETHWithdrawalNFTWithdrawalClaimedLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICSubmitEventLog(ethereumTask, log):
 			// Add MATIC liquidity
-			feed.Type = typex.ExchangeLiquidity
+			_activity.Type = typex.ExchangeLiquidity
 			actions, err = w.transformStakedMATICSubmitEventLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICRequestWithdrawEventLog(ethereumTask, log):
 			// Mint MATIC withdrawal NFT
-			feed.Type = typex.CollectibleMint
+			_activity.Type = typex.CollectibleMint
 			actions, err = w.transformStakedMATICRequestWithdrawEventLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICClaimTokensEventLog(ethereumTask, log):
 			// Remove MATIC liquidity
-			feed.Type = typex.CollectibleBurn
+			_activity.Type = typex.CollectibleBurn
 			actions, err = w.transformStakedMATICClaimTokensEventLog(ctx, ethereumTask, log)
 		case w.matchStakedETHTransferSharesLog(ethereumTask, log):
 			// Wrap or unwrap wstETH
-			feed.Type = typex.ExchangeSwap
+			_activity.Type = typex.ExchangeSwap
 			actions, err = w.transformStakedETHTransferSharesLog(ctx, ethereumTask, log)
 		default:
 			continue
@@ -134,10 +134,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		feed.Actions = append(feed.Actions, actions...)
+		_activity.Actions = append(_activity.Actions, actions...)
 	}
 
-	return feed, nil
+	return _activity, nil
 }
 
 // matchStakedETHSubmittedLog matches events that Add ETH liquidity

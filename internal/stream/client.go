@@ -7,5 +7,5 @@ import (
 )
 
 type Client interface {
-	PushFeeds(ctx context.Context, feeds []*activity.Activity) error
+	PushActivities(ctx context.Context, activities []*activity.Activity) error
 }

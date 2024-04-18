@@ -62,9 +62,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformVSL))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformVSL))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	for _, log := range ethereumTask.Receipt.Logs {
@@ -103,11 +103,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		feed.Type = typex.TransactionBridge
-		feed.Actions = append(feed.Actions, actions...)
+		_activity.Type = typex.TransactionBridge
+		_activity.Actions = append(_activity.Actions, actions...)
 	}
 
-	return feed, nil
+	return _activity, nil
 }
 
 func (w *worker) matchL1StandardBridgeETHDepositInitiatedLog(_ *source.Task, log *ethereum.Log) bool {

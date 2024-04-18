@@ -60,7 +60,7 @@ func matchEthereumIqWiki(task *source.Task) bool {
 	return task.Transaction.From == iqwiki.AddressSig && iqwiki.AddressWiki == *task.Transaction.To
 }
 
-// Transform Ethereum task to feed.
+// Transform Ethereum task to activity.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
@@ -75,10 +75,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid iqwiki transaction: %s", ethereumTask.Transaction.Hash)
 	}
 
-	// Build default IQWiki feed from task.
-	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformIQWiki))
+	// Build default IQWiki activity from task.
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformIQWiki))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	// Parse actions from task.
@@ -93,19 +93,19 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			continue
 		}
 
-		feed.Actions = append(feed.Actions, action)
+		_activity.Actions = append(_activity.Actions, action)
 	}
 
-	if len(feed.Actions) == 0 {
+	if len(_activity.Actions) == 0 {
 		return nil, fmt.Errorf("no actions in transaction: %s", ethereumTask.Transaction.Hash)
 	}
 
-	// Set feed type to the first action type & total actions.
-	feed.Type = feed.Actions[0].Type
-	feed.Tag = tag.Social
-	feed.TotalActions = uint(len(feed.Actions))
+	// Set _activity type to the first action type & total actions.
+	_activity.Type = _activity.Actions[0].Type
+	_activity.Tag = tag.Social
+	_activity.TotalActions = uint(len(_activity.Actions))
 
-	return feed, nil
+	return _activity, nil
 }
 
 // Parse action from Ethereum log.

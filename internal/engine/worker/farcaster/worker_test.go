@@ -428,15 +428,15 @@ func TestWorker(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			_activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			data, err := json.MarshalIndent(feed, "", "\x20\x20")
+			data, err := json.MarshalIndent(_activity, "", "\x20\x20")
 			require.NoError(t, err)
 
 			t.Log(string(data))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, _activity)
 		})
 	}
 }

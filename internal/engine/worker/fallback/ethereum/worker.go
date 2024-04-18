@@ -76,16 +76,16 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	feed, err := task.BuildActivity()
+	_activity, err := task.BuildActivity()
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	actions := make([][]*activity.Action, len(ethereumTask.Receipt.Logs)+1)
 
 	// If the transaction is failed, we will not process it.
 	if w.matchFailedTransaction(ethereumTask) {
-		return feed, nil
+		return _activity, nil
 	}
 
 	if w.matchNativeTransferTransaction(ethereumTask) {
@@ -94,8 +94,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, fmt.Errorf("handle native transfer transaction: %w", err)
 		}
 
-		feed.Type = action.Type
-		feed.Actions = append(feed.Actions, action)
+		_activity.Type = action.Type
+		_activity.Actions = append(_activity.Actions, action)
 	}
 
 	contextPool := pool.New().
@@ -145,19 +145,19 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 
 	if err := contextPool.Wait(); err != nil {
 		if isInvalidTokenErr(err) {
-			return activity.NewUnknownActivity(feed), nil
+			return activity.NewUnknownActivity(_activity), nil
 		}
 
 		return nil, fmt.Errorf("handle log: %w", err)
 	}
 
-	feed.Actions = append(feed.Actions, lo.Flatten(actions)...)
+	_activity.Actions = append(_activity.Actions, lo.Flatten(actions)...)
 
-	for _, action := range feed.Actions {
-		feed.Type = action.Type
+	for _, action := range _activity.Actions {
+		_activity.Type = action.Type
 	}
 
-	return feed, nil
+	return _activity, nil
 }
 
 func (w *worker) matchFailedTransaction(task *source.Task) bool {

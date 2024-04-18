@@ -35,7 +35,7 @@ func (t Task) Validate() error {
 }
 
 func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, error) {
-	feed := activity.Activity{
+	Tag:      tag. := activity.Activity{
 		ID:        common.HexToHash(t.Message.Hash).String(),
 		Network:   t.Network,
 		Type:      typex.Unknown,
@@ -44,12 +44,12 @@ func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, err
 		Timestamp: t.GetTimestamp(),
 	}
 
-	// Apply feed options.
+	// Apply _activity options.
 	for _, option := range options {
-		if err := option(&feed); err != nil {
+		if err := option(&_activity); err != nil {
 			return nil, fmt.Errorf("apply option: %w", err)
 		}
 	}
 
-	return &feed, nil
+	return &_activity, nil
 }

@@ -1549,11 +1549,11 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			_activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, _activity)
 
-			t.Log(feed)
+			t.Log(_activity)
 		})
 	}
 }

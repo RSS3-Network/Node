@@ -33,7 +33,7 @@ database:
 stream:
   enable: false
   driver: kafka
-  topic: rss3.node.feeds
+  topic: rss3.node.activities
   uri: localhost:9092
 redis:
   enable: false
@@ -95,7 +95,7 @@ component:
   "stream": {
     "enable": false,
     "driver": "kafka",
-    "topic": "rss3.node.feeds",
+    "topic": "rss3.node.activities",
     "uri": "localhost:9092"
   },
   "redis": {
@@ -175,7 +175,7 @@ uri = "postgres://root@localhost:26257/defaultdb"
 [stream]
 enable = false
 driver = "kafka"
-topic = "rss3.node.feeds"
+topic = "rss3.node.activities"
 uri = "localhost:9092"
 
 [redis]
@@ -283,7 +283,7 @@ var configFileExcept = &File{
 	Stream: &Stream{
 		Enable: lo.ToPtr(false),
 		Driver: "kafka",
-		Topic:  "rss3.node.feeds",
+		Topic:  "rss3.node.activities",
 		URI:    "localhost:9092",
 	},
 	Redis: &Redis{

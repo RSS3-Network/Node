@@ -41,9 +41,8 @@ func (w *worker) Tag() tag.Tag {
 	return tag.Social
 }
 
-func (w *worker) Types() []*schema.Type {
-	//TODO implement me
-	panic("implement me")
+func (w *worker) Types() interface{} {
+	return typex.SocialTypeValues()
 }
 
 // Filter returns a source filter.
@@ -62,17 +61,17 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	feed, err := task.BuildActivity(activity.WithActivityPlatform(w.Platform()))
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	// Handle Farcaster message.
 	switch farcasterTask.Message.Data.Type {
 	case farcaster.MessageTypeCastAdd.String():
-		w.handleFarcasterAddCast(ctx, farcasterTask.Message, feed)
+		w.handleFarcasterAddCast(ctx, farcasterTask.Message, _activity)
 	case farcaster.MessageTypeReactionAdd.String():
-		w.handleFarcasterRecastReaction(ctx, farcasterTask.Message, feed)
+		w.handleFarcasterRecastReaction(ctx, farcasterTask.Message, _activity)
 	default:
 		zap.L().Debug("unsupported type", zap.String("type", farcasterTask.Message.Data.Type))
 	}
@@ -81,11 +80,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("handle farcaster message failed: %w", err)
 	}
 
-	if len(feed.Actions) == 0 {
+	if len(_activity.Actions) == 0 {
 		return nil, nil
 	}
 
-	return feed, nil
+	return _activity, nil
 }
 
 // handleFarcasterAddCast handles farcaster add cast message.
@@ -188,7 +187,7 @@ func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farc
 }
 
 // buildPostActions builds post actions from message.
-func (w *worker) buildPostActions(_ context.Context, ethAddresses []string, feed *activity.Activity, post *metadata.SocialPost, socialType schema.Type) {
+func (w *worker) buildPostActions(_ context.Context, ethAddresses []string, _activity *activity.Activity, post *metadata.SocialPost, socialType schema.Type) {
 	for _, from := range ethAddresses {
 		action := activity.Action{
 			Type:     socialType,
@@ -197,7 +196,7 @@ func (w *worker) buildPostActions(_ context.Context, ethAddresses []string, feed
 			To:       from,
 			Metadata: *post,
 		}
-		feed.Actions = append(feed.Actions, &action)
+		_activity.Actions = append(_activity.Actions, &action)
 	}
 }
 

@@ -8,9 +8,11 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
 	worker "github.com/rss3-network/node/internal/engine/worker/fallback/arweave"
 	"github.com/rss3-network/node/provider/arweave"
-	
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/typex"
+
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -55,19 +57,19 @@ func TestWorker_Arweave(t *testing.T) {
 				To:      "4u5gMvlfVhkn_atzuagjO92H_xJLtVNjucSfEYBrL0E",
 				Type:    typex.TransactionTransfer,
 				Fee: &activity.Fee{
-				Amount:  decimal.NewFromInt(3847185),
-				Decimal: 12,
-			},
+					Amount:  decimal.NewFromInt(3847185),
+					Decimal: 12,
+				},
 				Actions: []*activity.Action{
-			{
-				Type: typex.TransactionTransfer,
-				From: "JaUubKRNhJP9i1iDFt-n_s0zzqV97x8d_7ex3ZZv3CE",
-				To:   "4u5gMvlfVhkn_atzuagjO92H_xJLtVNjucSfEYBrL0E",
-				Metadata: metadata.TransactionTransfer{
-				Value: lo.ToPtr(lo.Must(decimal.NewFromString("14243667552815"))),
-			},
-			},
-			},
+					{
+						Type: typex.TransactionTransfer,
+						From: "JaUubKRNhJP9i1iDFt-n_s0zzqV97x8d_7ex3ZZv3CE",
+						To:   "4u5gMvlfVhkn_atzuagjO92H_xJLtVNjucSfEYBrL0E",
+						Metadata: metadata.TransactionTransfer{
+							Value: lo.ToPtr(lo.Must(decimal.NewFromString("14243667552815"))),
+						},
+					},
+				},
 				Status:    true,
 				Timestamp: 1689914323,
 			},
@@ -90,12 +92,12 @@ func TestWorker_Arweave(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			_activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			//t.Log(string(lo.Must(json.MarshalIndent(_activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, _activity)
 		})
 	}
 }

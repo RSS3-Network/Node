@@ -94,7 +94,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to feed.
+// Transform Ethereum task to activity.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
@@ -105,10 +105,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid transaction to: %s", ethereumTask.Transaction.Hash)
 	}
 
-	// Build feed base from task.
-	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformAAVE))
+	// Build _activity base from task.
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformAAVE))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	for _, log := range ethereumTask.Receipt.Logs {
@@ -137,11 +137,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		feed.Type = typex.ExchangeLiquidity
-		feed.Actions = append(feed.Actions, actions...)
+		_activity.Type = typex.ExchangeLiquidity
+		_activity.Actions = append(_activity.Actions, actions...)
 	}
 
-	return feed, nil
+	return _activity, nil
 }
 
 // NewWorker creates a new worker.

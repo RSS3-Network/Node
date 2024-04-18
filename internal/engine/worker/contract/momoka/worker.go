@@ -70,7 +70,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	}
 }
 
-// Transform returns a feed with the action of the task.
+// Transform returns an activity  with the action of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
@@ -78,10 +78,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build the feed.
-	feed, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformLens))
+	// Build the _activity.
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformLens))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	// Get actions and social content timestamp from the transaction.
@@ -90,15 +90,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("handle arweave mirror transaction: %w", err)
 	}
 
-	feed.To = feed.From
+	_activity.To = _activity.From
 
-	// Feed type should be inferred from the action (if it's revise)
+	// Activity type should be inferred from the action (if it's `revise`)
 	if actions[0] != nil {
-		feed.Type = actions[0].Type
-		feed.Actions = append(feed.Actions, actions...)
+		_activity.Type = actions[0].Type
+		_activity.Actions = append(_activity.Actions, actions...)
 	}
 
-	return feed, nil
+	return _activity, nil
 }
 
 // transformPostOrReviseAction Returns the actions of mirror post or revise.
@@ -245,13 +245,13 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 		return nil, fmt.Errorf("get lens owner of: %w", err)
 	}
 
-	feedFrom, err := arweave.PublicKeyToAddress(task.Transaction.Owner)
+	activityFrom, err := arweave.PublicKeyToAddress(task.Transaction.Owner)
 	if err != nil {
 		return nil, fmt.Errorf("public key to address: %w", err)
 	}
 
 	actions := []*activity.Action{
-		w.buildArweaveMomokaAction(ctx, from.String(), feedFrom, socialType, momokaMetadata),
+		w.buildArweaveMomokaAction(ctx, from.String(), activityFrom, socialType, momokaMetadata),
 	}
 
 	return actions, nil

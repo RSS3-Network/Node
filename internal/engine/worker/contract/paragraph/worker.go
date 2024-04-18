@@ -44,7 +44,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.ArweaveSource, nil
 }
 
-// Transform returns a feed with the action of the task.
+// Transform returns an activity  with the action of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
@@ -52,10 +52,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build the feed.
-	feed, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformParagraph))
+	// Build the _activity.
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformParagraph))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	// Get actions and social content timestamp from the transaction.
@@ -64,15 +64,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("handle arweave mirror transaction: %w", err)
 	}
 
-	feed.To = paragraph.AddressParagraph
+	_activity.To = paragraph.AddressParagraph
 
-	// Feed type should be inferred from the action (if it's revise)
+	// Activity type should be inferred from the action (if it's revise)
 	if actions[0] != nil {
-		feed.Type = actions[0].Type
-		feed.Actions = append(feed.Actions, actions...)
+		_activity.Type = actions[0].Type
+		_activity.Actions = append(_activity.Actions, actions...)
 	}
 
-	return feed, nil
+	return _activity, nil
 }
 
 // transformPostOrReviseAction Returns the actions of mirror post or revise.

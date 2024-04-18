@@ -89,18 +89,18 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type %T", task)
 	}
 
-	feed, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformUniswap))
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformUniswap))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	switch {
 	case w.matchSwapTransaction(ethereumTask, ethereumTask.Transaction):
-		feed.Type = typex.ExchangeSwap
-		feed.Actions = w.transformSwapTransaction(ctx, ethereumTask, ethereumTask.Transaction)
+		_activity.Type = typex.ExchangeSwap
+		_activity.Actions = w.transformSwapTransaction(ctx, ethereumTask, ethereumTask.Transaction)
 	case w.matchLiquidityTransaction(ethereumTask, ethereumTask.Transaction):
-		feed.Type = typex.ExchangeLiquidity
-		feed.Actions = w.transformLiquidityTransaction(ctx, ethereumTask, ethereumTask.Transaction)
+		_activity.Type = typex.ExchangeLiquidity
+		_activity.Actions = w.transformLiquidityTransaction(ctx, ethereumTask, ethereumTask.Transaction)
 	default:
 		return nil, errors.New("unsupported transaction")
 	}
@@ -109,7 +109,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("transform transaction: %w", err)
 	}
 
-	return feed, nil
+	return _activity, nil
 }
 
 func (w *worker) matchSwapTransaction(task *source.Task, transaction *ethereum.Transaction) bool {

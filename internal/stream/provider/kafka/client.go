@@ -51,11 +51,11 @@ func New(ctx context.Context, uri, topic string) (stream.Client, error) {
 	}, nil
 }
 
-func (c *Client) PushFeeds(ctx context.Context, activities []*activity.Activity) error {
+func (c *Client) PushActivities(ctx context.Context, activities []*activity.Activity) error {
 	records := make([]*kgo.Record, 0, len(activities))
 
 	for _, _activity := range activities {
-		record, err := c.encodeFeed(_activity)
+		record, err := c.encodeActivity(_activity)
 		if err != nil {
 			return fmt.Errorf("encode _activity %s: %w", _activity.ID, err)
 		}
@@ -74,7 +74,7 @@ func (c *Client) PushFeeds(ctx context.Context, activities []*activity.Activity)
 	return nil
 }
 
-func (c *Client) encodeFeed(activity *activity.Activity) (*kgo.Record, error) {
+func (c *Client) encodeActivity(activity *activity.Activity) (*kgo.Record, error) {
 	value, err := json.Marshal(activity)
 	if err != nil {
 		return nil, err

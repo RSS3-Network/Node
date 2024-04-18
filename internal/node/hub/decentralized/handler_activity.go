@@ -33,7 +33,7 @@ func (h *Hub) GetActivity(c echo.Context) error {
 		ActionPage:  request.ActionPage,
 	}
 
-	activity, page, err := h.getFeed(c.Request().Context(), query)
+	activity, page, err := h.getActivity(c.Request().Context(), query)
 	if err != nil {
 		return response.InternalError(c, err)
 	}
@@ -87,7 +87,7 @@ func (h *Hub) GetAccountActivities(c echo.Context) (err error) {
 		Platforms:      lo.Uniq(request.Platform),
 	}
 
-	activities, last, err := h.getFeeds(c.Request().Context(), databaseRequest)
+	activities, last, err := h.getActivities(c.Request().Context(), databaseRequest)
 	if err != nil {
 		return response.InternalError(c, err)
 	}

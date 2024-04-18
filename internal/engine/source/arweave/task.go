@@ -5,7 +5,9 @@ import (
 
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/arweave"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/shopspring/decimal"
 )
 
@@ -35,7 +37,7 @@ func (t Task) Validate() error {
 	return nil
 }
 
-// BuildActivity builds a feed from the task.
+// BuildActivity builds an activity  from the task.
 func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, error) {
 	var feeValue decimal.Decimal
 
@@ -57,7 +59,7 @@ func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, err
 		return nil, fmt.Errorf("parse transaction owner: %w", err)
 	}
 
-	feed := activity.Activity{
+	_activity := activity.Activity{
 		ID:      t.Transaction.ID,
 		Network: t.Network,
 		From:    from,
@@ -73,10 +75,10 @@ func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, err
 	}
 
 	for _, option := range options {
-		if err := option(&feed); err != nil {
+		if err := option(&_activity); err != nil {
 			return nil, fmt.Errorf("apply option: %w", err)
 		}
 	}
 
-	return &feed, nil
+	return &_activity, nil
 }

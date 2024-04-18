@@ -89,17 +89,17 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to feed.
+// Transform Ethereum task to activity.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build default lens feed from task.
-	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformLens))
+	// Build default lens _activity from task.
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformLens))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	// Match and handle ethereum logs.
@@ -151,15 +151,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		// Change feed type to the first action type.
+		// Change _activity type to the first action type.
 		for _, action := range actions {
-			feed.Type = action.Type
+			_activity.Type = action.Type
 		}
 
-		feed.Actions = append(feed.Actions, actions...)
+		_activity.Actions = append(_activity.Actions, actions...)
 	}
 
-	return feed, nil
+	return _activity, nil
 }
 
 // matchEthereumV1PostCreated matches V1 PostCreated event.
@@ -702,13 +702,13 @@ func (w *worker) transformEthereumV2ProfileSet(ctx context.Context, task *source
 }
 
 func (w *worker) buildEthereumTransactionPostAction(_ context.Context, from common.Address, to common.Address, platform string, socialType typex.SocialType, post metadata.SocialPost) *activity.Action {
-return &activity.Action{
-From:     from.String(),
-To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
-Platform: platform,
-Type:     socialType,
-Metadata: post,
-}
+	return &activity.Action{
+		From:     from.String(),
+		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
+		Platform: platform,
+		Type:     socialType,
+		Metadata: post,
+	}
 }
 
 func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blockNumber *big.Int, profileID, pubID *big.Int, contentURI string, isTarget bool, timestamp uint64) (*metadata.SocialPost, string, error) {

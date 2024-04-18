@@ -217,20 +217,20 @@ func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoi
 	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
-// SaveFeeds saves feeds and indexes to the database.
-func (c *client) SaveFeeds(ctx context.Context, feeds []*activity.Activity) error {
+// SaveActivities saves activities and indexes to the database.
+func (c *client) SaveActivities(ctx context.Context, activities []*activity.Activity) error {
 	spanStartOptions := []trace.SpanStartOption{
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(
-			attribute.Int("feeds", len(feeds)),
+			attribute.Int("activities", len(activities)),
 		),
 	}
 
-	ctx, span := otel.Tracer("").Start(ctx, "Database saveFeeds", spanStartOptions...)
+	ctx, span := otel.Tracer("").Start(ctx, "Database saveActivities", spanStartOptions...)
 	defer span.End()
 
 	if c.partition {
-		return c.saveFeedsPartitioned(ctx, feeds)
+		return c.saveActivitiesPartitioned(ctx, activities)
 	}
 
 	return fmt.Errorf("not implemented")
@@ -275,19 +275,19 @@ func (c *client) SaveDatasetMirrorPost(ctx context.Context, post *mirror_model.D
 	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
-// FindFeed finds a feed by id.
-func (c *client) FindFeed(ctx context.Context, query model.ActivityQuery) (*activity.Activity, *int, error) {
+// FindActivity finds a Activity by id.
+func (c *client) FindActivity(ctx context.Context, query model.ActivityQuery) (*activity.Activity, *int, error) {
 	if c.partition {
-		return c.findFeedPartitioned(ctx, query)
+		return c.findActivityPartitioned(ctx, query)
 	}
 
 	return nil, nil, fmt.Errorf("not implemented")
 }
 
-// FindFeeds finds feeds.
-func (c *client) FindFeeds(ctx context.Context, query model.ActivitiesQuery) ([]*activity.Activity, error) {
+// FindActivities finds Activities.
+func (c *client) FindActivities(ctx context.Context, query model.ActivitiesQuery) ([]*activity.Activity, error) {
 	if c.partition {
-		return c.findFeedsPartitioned(ctx, query)
+		return c.findActivitiesPartitioned(ctx, query)
 	}
 
 	return nil, fmt.Errorf("not implemented")

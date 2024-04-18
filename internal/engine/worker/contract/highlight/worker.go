@@ -69,17 +69,17 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to feed.
+// Transform Ethereum task to activity.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build default highlight feed from task.
-	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformHighlight))
+	// Build default highlight activity from task.
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformHighlight))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	// Match and handle ethereum logs.
@@ -99,7 +99,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		case w.matchNativeGasTokenPaymentMatched(ethereumTask, log):
 			actions, err = w.transformNativeGasTokenPayment(ctx, ethereumTask, log)
 		case w.matchNumTokenMintMatched(ethereumTask, log):
-			feed.Type = typex.CollectibleMint
+			_activity.Type = typex.CollectibleMint
 			actions, err = w.transformNumTokenMint(ctx, ethereumTask, log)
 		default:
 			continue
@@ -109,15 +109,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		// Change feed type to the first action type.
+		// Change _activity type to the first action type.
 		for _, action := range actions {
-			feed.Type = action.Type
+			_activity.Type = action.Type
 		}
 
-		feed.Actions = append(feed.Actions, actions...)
+		_activity.Actions = append(_activity.Actions, actions...)
 	}
 
-	return feed, nil
+	return _activity, nil
 }
 
 // matchNativeGasTokenPaymentMatched matches NativeGasTokenPayment event.

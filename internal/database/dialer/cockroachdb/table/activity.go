@@ -8,6 +8,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -16,8 +17,8 @@ import (
 )
 
 const (
-	// FeedSpamLimit The restriction conditions for judging the feed to be spam cannot be changed at will.
-	FeedSpamLimit = 100
+	// ActivitySpamLimit this limit of actions in a single activity, mark as spam if exceeds.
+	ActivitySpamLimit = 100
 )
 
 type Activity struct {
@@ -32,14 +33,14 @@ type Activity struct {
 	Status       bool            `gorm:"column:status"`
 	Fee          *Fee            `gorm:"column:fee;type:jsonb"`
 	TotalActions uint            `gorm:"column:total_actions"`
-	Actions      FeedActions     `gorm:"column:actions;type:jsonb"`
+	Actions      ActivityActions `gorm:"column:actions;type:jsonb"`
 	Timestamp    time.Time       `gorm:"column:timestamp"`
 	CreatedAt    time.Time       `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt    time.Time       `gorm:"column:updated_at;autoUpdateTime"`
 }
 
 func (f *Activity) TableName() string {
-	return "feeds"
+	return "activities"
 }
 
 func (f *Activity) PartitionName(_activity *activity.Activity) string {
@@ -63,7 +64,7 @@ func (f *Activity) Import(_activity *activity.Activity) error {
 	f.Type = _activity.Type.Name()
 	f.Status = _activity.Status
 	f.TotalActions = uint(len(_activity.Actions))
-	f.Actions = make(FeedActions, 0)
+	f.Actions = make(ActivityActions, 0)
 	f.Timestamp = time.Unix(int64(_activity.Timestamp), 0)
 
 	if _activity.Fee != nil {
@@ -75,9 +76,9 @@ func (f *Activity) Import(_activity *activity.Activity) error {
 	}
 
 	// spam transactions only retain last one action
-	if f.TotalActions > FeedSpamLimit {
+	if f.TotalActions > ActivitySpamLimit {
 		for i := len(_activity.Actions) - 1; i >= 0; i-- {
-			item := new(FeedAction)
+			item := new(ActivityAction)
 
 			if err := item.Import(_activity.Actions[i]); err != nil {
 				return err
@@ -92,7 +93,7 @@ func (f *Activity) Import(_activity *activity.Activity) error {
 	}
 
 	for _, action := range _activity.Actions {
-		item := new(FeedAction)
+		item := new(ActivityAction)
 
 		if err := item.Import(action); err != nil {
 			return fmt.Errorf("invalid action: %w", err)
@@ -143,13 +144,13 @@ func (f *Activity) Export(index *Index) (*activity.Activity, error) {
 	return &_activity, nil
 }
 
-type Feeds []*Activity
+type Activities []*Activity
 
-func (f *Feeds) Import(feeds []*activity.Activity) error {
-	for _, feed := range feeds {
+func (f *Activities) Import(activities []*activity.Activity) error {
+	for _, _activity := range activities {
 		item := new(Activity)
 
-		if err := item.Import(feed); err != nil {
+		if err := item.Import(_activity); err != nil {
 			return err
 		}
 
@@ -159,7 +160,7 @@ func (f *Feeds) Import(feeds []*activity.Activity) error {
 	return nil
 }
 
-func (f *Feeds) Export(indexes []*Index) ([]*activity.Activity, error) {
+func (f *Activities) Export(indexes []*Index) ([]*activity.Activity, error) {
 	activities := make(map[string]*Activity)
 
 	for _, _activity := range *f {
@@ -232,7 +233,7 @@ func (f Fee) Value() (driver.Value, error) {
 	return json.Marshal(f)
 }
 
-type FeedAction struct {
+type ActivityAction struct {
 	Tag      string          `json:"tag"`
 	Type     string          `json:"type"`
 	From     string          `json:"from"`
@@ -241,7 +242,7 @@ type FeedAction struct {
 	Metadata json.RawMessage `json:"metadata"`
 }
 
-func (f *FeedAction) Import(action *activity.Action) (err error) {
+func (f *ActivityAction) Import(action *activity.Action) (err error) {
 	f.Tag = action.Tag.String()
 	f.Type = action.Type.Name()
 	f.From = action.From
@@ -255,7 +256,7 @@ func (f *FeedAction) Import(action *activity.Action) (err error) {
 	return nil
 }
 
-func (f *FeedAction) Export() (*activity.Action, error) {
+func (f *ActivityAction) Export() (*activity.Action, error) {
 	action := &activity.Action{
 		From:     f.From,
 		To:       f.To,
@@ -275,14 +276,14 @@ func (f *FeedAction) Export() (*activity.Action, error) {
 }
 
 var (
-	_ sql.Scanner   = (*FeedActions)(nil)
-	_ driver.Valuer = (*FeedActions)(nil)
+	_ sql.Scanner   = (*ActivityActions)(nil)
+	_ driver.Valuer = (*ActivityActions)(nil)
 )
 
-type FeedActions []*FeedAction
+type ActivityActions []*ActivityAction
 
 //goland:noinspection ALL
-func (f *FeedActions) Scan(value any) error {
+func (f *ActivityActions) Scan(value any) error {
 	data, ok := value.([]byte)
 	if !ok {
 		return fmt.Errorf("invalid type: %T", value)
@@ -292,6 +293,6 @@ func (f *FeedActions) Scan(value any) error {
 }
 
 //goland:noinspection ALL
-func (f FeedActions) Value() (driver.Value, error) {
+func (f ActivityActions) Value() (driver.Value, error) {
 	return json.Marshal(f)
 }

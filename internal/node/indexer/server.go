@@ -124,19 +124,19 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 
 			zap.L().Debug("start transform task", zap.String("task.id", task.ID()))
 
-			feed, err := s.worker.Transform(ctx, task)
+			_activity, err := s.worker.Transform(ctx, task)
 			if err != nil {
 				zap.L().Error("transform task", zap.String("task.id", task.ID()), zap.Error(err))
 
 				return nil
 			}
 
-			return feed
+			return _activity
 		})
 	}
 
-	// Filter failed feeds.
-	feeds := lo.Filter(resultPool.Wait(), func(_activity *activity.Activity, _ int) bool {
+	// Filter failed activities.
+	activities := lo.Filter(resultPool.Wait(), func(_activity *activity.Activity, _ int) bool {
 		return _activity != nil
 	})
 
@@ -147,11 +147,11 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 	)
 
 	s.meterTasksCounter.Add(ctx, int64(tasks.Len()), meterTasksCounterAttributes)
-	checkpoint.IndexCount = int64(len(feeds))
+	checkpoint.IndexCount = int64(len(activities))
 
-	// Save feeds and checkpoint to the database.
-	if err := s.databaseClient.SaveFeeds(ctx, feeds); err != nil {
-		return fmt.Errorf("save %d feeds: %w", len(feeds), err)
+	// Save activities and checkpoint to the database.
+	if err := s.databaseClient.SaveActivities(ctx, activities); err != nil {
+		return fmt.Errorf("save %d activities: %w", len(activities), err)
 	}
 
 	zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
@@ -160,10 +160,10 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		return fmt.Errorf("save checkpoint: %w", err)
 	}
 
-	// Push feeds to the stream.
-	if s.streamClient != nil && len(feeds) > 0 {
-		if err := s.streamClient.PushFeeds(ctx, feeds); err != nil {
-			return fmt.Errorf("publish %d feeds: %w", len(feeds), err)
+	// Push activities to the stream.
+	if s.streamClient != nil && len(activities) > 0 {
+		if err := s.streamClient.PushActivities(ctx, activities); err != nil {
+			return fmt.Errorf("publish %d activities: %w", len(activities), err)
 		}
 	}
 

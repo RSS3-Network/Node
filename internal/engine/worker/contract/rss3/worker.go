@@ -66,16 +66,16 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to feed.
+// Transform Ethereum task to activity.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformRSS3))
+	_activities, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformRSS3))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activities: %w", err)
 	}
 
 	// Match and handle logs.
@@ -114,15 +114,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		// Overwrite the type for feed.
+		// Overwrite the type for _activities.
 		for _, action := range actions {
-			feed.Type = action.Type
+			_activities.Type = action.Type
 		}
 
-		feed.Actions = append(feed.Actions, actions...)
+		_activities.Actions = append(_activities.Actions, actions...)
 	}
 
-	return feed, nil
+	return _activities, nil
 }
 
 // matchStakingDeposited matches the staking deposited event.

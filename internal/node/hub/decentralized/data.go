@@ -12,19 +12,19 @@ import (
 	"github.com/samber/lo"
 )
 
-func (h *Hub) getFeed(ctx context.Context, request model.ActivityQuery) (*activity.Activity, *int, error) {
-	return h.databaseClient.FindFeed(ctx, request)
+func (h *Hub) getActivity(ctx context.Context, request model.ActivityQuery) (*activity.Activity, *int, error) {
+	return h.databaseClient.FindActivity(ctx, request)
 }
 
-func (h *Hub) getFeeds(ctx context.Context, request model.ActivitiesQuery) ([]*activity.Activity, string, error) {
-	feeds, err := h.databaseClient.FindFeeds(ctx, request)
+func (h *Hub) getActivities(ctx context.Context, request model.ActivitiesQuery) ([]*activity.Activity, string, error) {
+	activities, err := h.databaseClient.FindActivities(ctx, request)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to find feeds: %w", err)
+		return nil, "", fmt.Errorf("failed to find activities: %w", err)
 	}
 
-	last, err := lo.Last(feeds)
+	last, err := lo.Last(activities)
 	if err == nil {
-		return feeds, h.transformCursor(ctx, last), nil
+		return activities, h.transformCursor(ctx, last), nil
 	}
 
 	return nil, "", nil
@@ -45,7 +45,7 @@ func (h *Hub) getCursor(ctx context.Context, cursor *string) (*activity.Activity
 		return nil, fmt.Errorf("invalid cursor: %w", err)
 	}
 
-	data, _, err := h.getFeed(ctx, model.ActivityQuery{ID: lo.ToPtr(str[0]), Network: lo.ToPtr(_network)})
+	data, _, err := h.getActivity(ctx, model.ActivityQuery{ID: lo.ToPtr(str[0]), Network: lo.ToPtr(_network)})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cursor: %w", err)
 	}

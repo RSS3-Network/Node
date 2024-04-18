@@ -16,6 +16,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/weth"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 
 	"github.com/rss3-network/protocol-go/schema/metadata"
@@ -68,7 +69,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform 1inch task to feed.
+// Transform 1inch task to activity.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	// Cast the task to a 1inch task.
 	oneinchTask, ok := task.(*source.Task)
@@ -76,10 +77,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build the feed.
-	feed, err := task.BuildActivity(activity.WithActivityPlatform(filter.Platform1inch))
+	// Build the _activity.
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(filter.Platform1inch))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activity: %w", err)
 	}
 
 	switch *oneinchTask.Transaction.To {
@@ -89,7 +90,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		oneinch.AddressAggregationRouterV3,
 		oneinch.AddressAggregationRouterV4,
 		oneinch.AddressAggregationRouterV5:
-		err = w.handleEthereumExchangeSwapTransaction(ctx, oneinchTask, feed)
+		err = w.handleEthereumExchangeSwapTransaction(ctx, oneinchTask, _activity)
 	default:
 		return nil, fmt.Errorf("unknown transaction %s", task.ID())
 	}
@@ -100,12 +101,12 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, err
 	}
 
-	return feed, nil
+	return _activity, nil
 }
 
 // handleEthereumExchangeSwapTransaction handles exchange swap transaction.
-func (w *worker) handleEthereumExchangeSwapTransaction(ctx context.Context, task *source.Task, feed *activity.Activity) error {
-	feed.Type = typex.ExchangeSwap
+func (w *worker) handleEthereumExchangeSwapTransaction(ctx context.Context, task *source.Task, _activity *activity.Activity) error {
+	_activity.Type = typex.ExchangeSwap
 
 	var (
 		actions []*activity.Action
@@ -130,7 +131,7 @@ func (w *worker) handleEthereumExchangeSwapTransaction(ctx context.Context, task
 		return err
 	}
 
-	feed.Actions = append(feed.Actions, actions...)
+	_activity.Actions = append(_activity.Actions, actions...)
 
 	return nil
 }
@@ -859,7 +860,7 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
 
 	action := activity.Action{
-		Tag:      filter.TagExchange,
+		Tag:      tag.Exchange,
 		Type:     typex.ExchangeSwap,
 		Platform: filter.Platform1inch.String(),
 		From:     from.String(),

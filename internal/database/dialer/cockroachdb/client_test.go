@@ -12,7 +12,9 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/database/dialer"
 	"github.com/rss3-network/node/internal/database/model"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )
@@ -21,17 +23,17 @@ func TestClient(t *testing.T) {
 	t.Parallel()
 
 	testcases := []struct {
-		name        string
-		driver      database.Driver
-		partition   *bool
-		feedCreated []*activity.Activity
-		feedUpdated []*activity.Activity
+		name            string
+		driver          database.Driver
+		partition       *bool
+		activityCreated []*activity.Activity
+		activityUpdated []*activity.Activity
 	}{
 		{
 			name:      "cockroach",
 			driver:    database.DriverCockroachDB,
 			partition: lo.ToPtr(true),
-			feedCreated: []*activity.Activity{
+			activityCreated: []*activity.Activity{
 				{
 					ID:      "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
 					Network: network.Ethereum,
@@ -63,7 +65,7 @@ func TestClient(t *testing.T) {
 					Timestamp: uint64(time.Now().Add(-3 * 31 * 24 * time.Hour).Unix()),
 				},
 			},
-			feedUpdated: []*activity.Activity{
+			activityUpdated: []*activity.Activity{
 				{
 					ID:      "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
 					Network: network.Ethereum,
@@ -125,35 +127,35 @@ func TestClient(t *testing.T) {
 			require.NoError(t, client.Migrate(context.Background()))
 
 			// Begin a transaction.
-			require.NoError(t, client.SaveFeeds(context.Background(), testcase.feedCreated))
+			require.NoError(t, client.SaveActivities(context.Background(), testcase.activityCreated))
 
 			// Query first _activity
-			for _, feed := range testcase.feedCreated {
-				data, page, err := client.FindFeed(context.Background(), model.ActivityQuery{ID: lo.ToPtr(_activity.ID), ActionLimit: 10})
+			for _, _activity := range testcase.activityCreated {
+				data, page, err := client.FindActivity(context.Background(), model.ActivityQuery{ID: lo.ToPtr(_activity.ID), ActionLimit: 10})
 				require.NoError(t, err)
 				require.NotNil(t, data)
 				require.Greater(t, lo.FromPtr(page), 0)
 				require.Equal(t, data.ID, _activity.ID)
-				require.Equal(t, data.From, _activityFrom)
-				require.Equal(t, data.To, _activityTo)
+				require.Equal(t, data.From, _activity.From)
+				require.Equal(t, data.To, _activity.To)
 			}
 
-			// Query feeds by account.
+			// Query activities by account.
 			accounts := make(map[string]int)
 
-			for _, feed := range testcase.feedCreated {
-				accounts[_activityFrom]++
-				accounts[_activityTo]++
+			for _, _activity := range testcase.activityCreated {
+				accounts[_activity.From]++
+				accounts[_activity.To]++
 			}
 
 			for account, count := range accounts {
-				feeds, err := client.FindFeeds(context.Background(), model.ActivitiesQuery{Owner: &account, Limit: 100})
+				activities, err := client.FindActivities(context.Background(), model.ActivitiesQuery{Owner: &account, Limit: 100})
 				require.NoError(t, err)
-				require.Len(t, feeds, count)
+				require.Len(t, activities, count)
 			}
 
-			// Update feeds.
-			require.NoError(t, client.SaveFeeds(context.Background(), testcase.feedUpdated))
+			// Update activities.
+			require.NoError(t, client.SaveActivities(context.Background(), testcase.activityUpdated))
 		})
 	}
 }

@@ -88,17 +88,17 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to feed.
+// Transform Ethereum task to activity.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build default ens feed from task.
-	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformENS))
+	// Build default ens _activities from task.
+	_activities, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformENS))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activities: %w", err)
 	}
 
 	exist := lo.ContainsBy(ethereumTask.Receipt.Logs, func(log *ethereum.Log) bool {
@@ -117,7 +117,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		}
 
 		if exist {
-			feed.Type = typex.CollectibleTrade
+			_activities.Type = typex.CollectibleTrade
 
 			switch {
 			case w.matchEnsNameRegisteredV1(ctx, *log):
@@ -128,7 +128,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 				continue
 			}
 		} else {
-			feed.Type = typex.SocialProfile
+			_activities.Type = typex.SocialProfile
 
 			switch {
 			case w.matchEnsNameRenewed(ctx, *log):
@@ -160,15 +160,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		// Change feed type to the first action type.
+		// Change _activities type to the first action type.
 		for _, action := range actions {
-			feed.Type = action.Type
+			_activities.Type = action.Type
 		}
 
-		feed.Actions = append(feed.Actions, actions...)
+		_activities.Actions = append(_activities.Actions, actions...)
 	}
 
-	return feed, nil
+	return _activities, nil
 }
 
 // matchEnsNameRegisteredV1 matches events that ENS name register through V1 contract

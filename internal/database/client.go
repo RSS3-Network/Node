@@ -25,9 +25,9 @@ type Client interface {
 	LoadCheckpoints(ctx context.Context, id string, network network.Network, worker string) ([]*engine.Checkpoint, error)
 	SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error
 
-	SaveFeeds(ctx context.Context, feeds []*activity.Activity) error
-	FindFeed(ctx context.Context, query model.ActivityQuery) (*activity.Activity, *int, error)
-	FindFeeds(ctx context.Context, query model.ActivitiesQuery) ([]*activity.Activity, error)
+	SaveActivities(ctx context.Context, activities []*activity.Activity) error
+	FindActivity(ctx context.Context, query model.ActivityQuery) (*activity.Activity, *int, error)
+	FindActivities(ctx context.Context, query model.ActivitiesQuery) ([]*activity.Activity, error)
 }
 
 type Session interface {

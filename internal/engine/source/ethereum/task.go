@@ -75,7 +75,7 @@ func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, err
 		functionHash = hexutil.Encode(functionHashBytes)
 	}
 
-	feed := activity.Activity{
+	_activity := activity.Activity{
 		ID:      t.Transaction.Hash.String(),
 		Network: t.Network,
 		Index:   t.Receipt.TransactionIndex,
@@ -94,14 +94,14 @@ func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, err
 		Timestamp: t.Header.Timestamp,
 	}
 
-	// Apply feed options.
+	// Apply _activity options.
 	for _, option := range options {
-		if err := option(&feed); err != nil {
+		if err := option(&_activity); err != nil {
 			return nil, fmt.Errorf("apply option: %w", err)
 		}
 	}
 
-	return &feed, nil
+	return &_activity, nil
 }
 
 func (t Task) buildFee() (*big.Int, error) {

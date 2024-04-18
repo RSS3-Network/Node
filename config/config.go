@@ -76,7 +76,7 @@ type Database struct {
 type Stream struct {
 	Enable *bool         `mapstructure:"enable" validate:"required" default:"false"`
 	Driver stream.Driver `mapstructure:"driver" validate:"required" default:"kafka"`
-	Topic  string        `mapstructure:"topic" validate:"required" default:"rss3.node.feeds"`
+	Topic  string        `mapstructure:"topic" validate:"required" default:"rss3.node.activities"`
 	URI    string        `mapstructure:"uri" validate:"required" default:"localhost:9092"`
 }
 
