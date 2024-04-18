@@ -86,7 +86,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the _activity.
-	_activity, err := task.BuildActivity(activity.WithActivityPlatform(workerx.Matters.Platform()))
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -233,7 +233,7 @@ func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Ta
 	return &activity.Action{
 		Type:     typex.SocialReward,
 		Tag:      tag.Social,
-		Platform: workerx.Matters.Platform(),
+		Platform: w.Platform(),
 		From:     trigger.String(),
 		To:       recipient.String(),
 		Metadata: &metadata.SocialPost{

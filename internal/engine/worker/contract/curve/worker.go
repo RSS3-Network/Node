@@ -108,7 +108,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default curve feed from task.
-	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.Curve.Platform()))
+	feed, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build feed: %w", err)
 	}
@@ -512,7 +512,7 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, blockNumber *
 
 	action := activity.Action{
 		Type:     typex.ExchangeLiquidity,
-		Platform: workerx.Curve.Platform(),
+		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.ExchangeLiquidity{
@@ -547,7 +547,7 @@ func (w *worker) buildTransferAction(ctx context.Context, blockNumber *big.Int, 
 
 	action := activity.Action{
 		Type:     actionType,
-		Platform: workerx.Curve.Platform(),
+		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
@@ -585,7 +585,7 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, blockNumber *big.I
 
 	action := activity.Action{
 		Type:     typex.ExchangeSwap,
-		Platform: workerx.Curve.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeSwap{
@@ -608,7 +608,7 @@ func (w *worker) buildEthereumTransactionStakingAction(ctx context.Context, task
 
 	action := activity.Action{
 		Type:     typex.ExchangeStaking,
-		Platform: workerx.Curve.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeStaking{

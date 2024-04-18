@@ -121,7 +121,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build _activity base from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.Aave.Platform()))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -542,7 +542,7 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task 
 
 	action := activity.Action{
 		Type:     typex.ExchangeLiquidity,
-		Platform: workerx.Aave.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeLiquidity{

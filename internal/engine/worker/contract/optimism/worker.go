@@ -77,7 +77,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.Optimism.Platform()))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -272,7 +272,7 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 
 	action := activity.Action{
 		Type:     typex.TransactionBridge,
-		Platform: workerx.Optimism.Platform(),
+		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.TransactionBridge{

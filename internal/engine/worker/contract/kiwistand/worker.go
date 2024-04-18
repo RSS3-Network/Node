@@ -78,7 +78,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default kiwistand activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.KiwiStand.Platform()))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build activity: %w", err)
 	}
@@ -254,7 +254,7 @@ func (w *worker) buildKiwiMintAction(ctx context.Context, task *source.Task, fro
 
 	return &activity.Action{
 		Type:     typex.CollectibleMint,
-		Platform: workerx.KiwiStand.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.CollectibleTransfer(*tokenMetadata),
@@ -266,7 +266,7 @@ func (w *worker) buildKiwiMintCommentAction(_ context.Context, from common.Addre
 	return &activity.Action{
 		From:     from.String(),
 		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
-		Platform: workerx.KiwiStand.Platform(),
+		Platform: w.Platform(),
 		Type:     typex.SocialMint,
 		Metadata: &metadata.SocialPost{
 			Title: comment,
@@ -286,7 +286,7 @@ func (w *worker) buildKiwiFeeAction(ctx context.Context, task *source.Task, from
 
 	return &activity.Action{
 		Type:     typex.TransactionTransfer,
-		Platform: workerx.KiwiStand.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),

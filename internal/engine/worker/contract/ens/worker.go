@@ -111,7 +111,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default ens _activities from task.
-	_activities, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.ENS.Platform()))
+	_activities, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activities: %w", err)
 	}
@@ -497,7 +497,7 @@ func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *sourc
 
 	return &activity.Action{
 		Type:     typex.CollectibleTrade,
-		Platform: workerx.ENS.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.CollectibleTrade{
@@ -528,7 +528,7 @@ func (w *worker) buildEthereumENSProfileAction(_ context.Context, from, to commo
 
 	return &activity.Action{
 		Type:     typex.SocialProfile,
-		Platform: workerx.ENS.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: socialProfile,

@@ -94,7 +94,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default lido activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.Lido.Platform()))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -451,7 +451,7 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, block
 
 	action := activity.Action{
 		Type:     typex.ExchangeLiquidity,
-		Platform: workerx.Lido.Platform(),
+		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.ExchangeLiquidity{
@@ -485,7 +485,7 @@ func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, blo
 
 	action := activity.Action{
 		Type:     actionType,
-		Platform: workerx.Lido.Platform(),
+		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
@@ -514,7 +514,7 @@ func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, blo
 
 	action := activity.Action{
 		Type:     actionType,
-		Platform: workerx.Lido.Platform(),
+		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.CollectibleTransfer(*tokenMetadata),
@@ -540,7 +540,7 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 
 	action := activity.Action{
 		Type:     typex.ExchangeSwap,
-		Platform: workerx.Lido.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeSwap{

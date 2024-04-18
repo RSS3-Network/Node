@@ -92,7 +92,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default highlight activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.Highlight.Platform()))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -222,7 +222,7 @@ func (w *worker) buildTransferAction(ctx context.Context, task *source.Task, fro
 
 	return &activity.Action{
 		Type:     typex.TransactionTransfer,
-		Platform: workerx.Highlight.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
@@ -240,7 +240,7 @@ func (w *worker) buildHighlightMintAction(ctx context.Context, task *source.Task
 
 	return &activity.Action{
 		Type:     typex.CollectibleMint,
-		Platform: workerx.Highlight.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.CollectibleTransfer(*tokenMetadata),

@@ -91,7 +91,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default opensea activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.OpenSea.Platform()))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -331,7 +331,7 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 
 	action := activity.Action{
 		Type:     typex.CollectibleTrade,
-		Platform: workerx.OpenSea.Platform(),
+		Platform: w.Platform(),
 		From:     seller.String(),
 		To:       buyer.String(),
 		Metadata: metadata.CollectibleTrade{

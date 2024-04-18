@@ -3,6 +3,7 @@ package farcaster
 import (
 	"context"
 	"fmt"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"strconv"
 	"strings"
 	"sync"
@@ -30,11 +31,11 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return "farcaster"
+	return workerx.Farcaster.String()
 }
 
 func (w *worker) Platform() string {
-	return strings.ToTitle(w.Name())
+	return workerx.Farcaster.Platform()
 }
 
 func (w *worker) Tag() tag.Tag {

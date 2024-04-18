@@ -91,7 +91,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default looksrare _activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.Looksrare.Platform()))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -463,7 +463,7 @@ func (w *worker) buildCollectibleTradeAction(ctx context.Context, task *source.T
 
 	return &activity.Action{
 		Type:     typex.CollectibleTrade,
-		Platform: workerx.Looksrare.Platform(),
+		Platform: w.Platform(),
 		From:     from,
 		To:       to,
 		Metadata: tradeToken,
@@ -514,7 +514,7 @@ func (w *worker) buildRoyaltyPaymentAction(ctx context.Context, task *source.Tas
 
 	return &activity.Action{
 		Type:     typex.TransactionTransfer,
-		Platform: workerx.Looksrare.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       receipt.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
@@ -565,7 +565,7 @@ func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Ta
 
 	return &activity.Action{
 		Type:     typex.TransactionTransfer,
-		Platform: workerx.Looksrare.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
@@ -587,7 +587,7 @@ func (w *worker) buildV2RoyaltyFeeAction(ctx context.Context, task *source.Task,
 
 	return &activity.Action{
 		Type:     typex.TransactionTransfer,
-		Platform: workerx.Looksrare.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),

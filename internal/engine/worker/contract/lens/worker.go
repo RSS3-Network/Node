@@ -112,7 +112,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default lens _activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.Lens.Platform()))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -864,7 +864,7 @@ func (w *worker) buildEthereumTransactionProfileAction(_ context.Context, from c
 	return &activity.Action{
 		From:     from.String(),
 		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
-		Platform: workerx.Lens.Platform(),
+		Platform: w.Platform(),
 		Type:     typex.SocialProfile,
 		Metadata: profile,
 	}

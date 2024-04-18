@@ -93,7 +93,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the _activity.
-	_activity, err := task.BuildActivity(activity.WithActivityPlatform(workerx.Momoka.Platform()))
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -275,7 +275,7 @@ func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, fi
 	action := activity.Action{
 		Type:     filterType,
 		Tag:      tag.Social,
-		Platform: workerx.Momoka.Platform(),
+		Platform: w.Platform(),
 		From:     from,
 		To:       to,
 		Metadata: momokaMetadata,

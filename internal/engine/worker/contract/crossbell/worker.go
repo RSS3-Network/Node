@@ -111,7 +111,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default crossbell activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.Crossbell.Platform()))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -594,7 +594,7 @@ func (w *worker) buildProfileAction(_ context.Context, from, to common.Address, 
 	return &activity.Action{
 		From:     from.String(),
 		To:       to.String(),
-		Platform: workerx.Crossbell.Platform(),
+		Platform: w.Platform(),
 		Type:     typex.SocialProfile,
 		Metadata: profile,
 	}
@@ -679,7 +679,7 @@ func (w *worker) buildProxyAction(_ context.Context, from common.Address, to com
 	return &activity.Action{
 		From:     from.String(),
 		To:       to.String(),
-		Platform: workerx.Crossbell.Platform(),
+		Platform: w.Platform(),
 		Type:     typex.SocialProxy,
 		Metadata: proxy,
 	}
@@ -947,7 +947,7 @@ func (w *worker) getNotePlatform(_ context.Context, sources []string) string {
 	})
 
 	if len(filtered) == 0 {
-		return workerx.Crossbell.Platform()
+		return w.Platform()
 	}
 
 	return filtered[0]

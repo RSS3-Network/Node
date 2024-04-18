@@ -78,7 +78,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the _activity.
-	_activity, err := task.BuildActivity(activity.WithActivityPlatform(workerx.Aavegotchi.Platform()))
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -279,7 +279,7 @@ func (w *worker) buildTradeAction(
 
 	return &activity.Action{
 		Type:     typex.MetaverseTrade,
-		Platform: workerx.Aavegotchi.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.MetaverseTrade{
@@ -309,7 +309,7 @@ func (w *worker) buildTransferAction(
 
 	return &activity.Action{
 		Type:     actionType,
-		Platform: workerx.Aavegotchi.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
 		Metadata: metadata.MetaverseTransfer(*tokenMetadata),

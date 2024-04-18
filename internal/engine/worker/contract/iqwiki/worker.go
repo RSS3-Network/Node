@@ -90,7 +90,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default IQWiki activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.IQWiki.Platform()))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -157,7 +157,7 @@ func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTas
 	action := &activity.Action{
 		Tag:      tag.Social,
 		Type:     lo.If(iqwiki.StatusCreated == wikiResponse.ActivityByWikiIdAndBlock.Type, typex.SocialPost).Else(typex.SocialRevise),
-		Platform: workerx.IQWiki.Platform(),
+		Platform: w.Platform(),
 		From:     wikiPosted.From.String(),
 		To:       iqwiki.AddressWiki.String(),
 		Metadata: metadata.SocialPost{

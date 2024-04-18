@@ -104,7 +104,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type %T", task)
 	}
 
-	_activity, err := task.BuildActivity(activity.WithActivityPlatform(workerx.Uniswap.Platform()))
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -899,7 +899,7 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 
 	action := activity.Action{
 		Type:     typex.ExchangeSwap,
-		Platform: workerx.Uniswap.Platform(),
+		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receipt.String(),
 		Metadata: metadata.ExchangeSwap{
@@ -976,7 +976,7 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, task *source.
 
 	action := activity.Action{
 		Type:     typex.ExchangeLiquidity,
-		Platform: workerx.Uniswap.Platform(),
+		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receipt.String(),
 		Metadata: metadata.ExchangeLiquidity{
@@ -999,7 +999,7 @@ func (w *worker) buildTransactionMintAction(ctx context.Context, task *source.Ta
 
 	action := activity.Action{
 		Type:     typex.TransactionMint,
-		Platform: workerx.Uniswap.Platform(),
+		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receipt.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),

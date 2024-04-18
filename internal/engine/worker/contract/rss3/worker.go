@@ -88,7 +88,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	_activities, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.RSS3.Platform()))
+	_activities, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activities: %w", err)
 	}
@@ -300,7 +300,7 @@ func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Ta
 
 	action := activity.Action{
 		Type:     typex.ExchangeStaking,
-		Platform: workerx.RSS3.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeStaking{
@@ -325,7 +325,7 @@ func (w *worker) buildExchangeStakingVSLAction(ctx context.Context, task *source
 
 	action := activity.Action{
 		Type:     typex.ExchangeStaking,
-		Platform: workerx.RSS3.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeStaking{
@@ -348,7 +348,7 @@ func (w *worker) buildChipsMintAction(ctx context.Context, task *source.Task, fr
 
 	return &activity.Action{
 		Type:     typex.CollectibleMint,
-		Platform: workerx.RSS3.Platform(),
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.CollectibleTransfer(*tokenMetadata),
