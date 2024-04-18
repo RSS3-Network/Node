@@ -473,7 +473,7 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 	// Initialize network
 	if sourceFilter != nil {
 		var ok bool
-		if instance.filter, ok = sourcenetwork(*Filter); !ok {
+		if instance.filter, ok = sourceFilter(*Filter); !ok {
 			return nil, fmt.Errorf("invalid source filter type %T", sourceFilter)
 		}
 	}

@@ -35,7 +35,7 @@ func (t Task) Validate() error {
 }
 
 func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, error) {
-	Tag:      tag. := activity.Activity{
+	_activity := activity.Activity{
 		ID:        common.HexToHash(t.Message.Hash).String(),
 		Network:   t.Network,
 		Type:      typex.Unknown,
