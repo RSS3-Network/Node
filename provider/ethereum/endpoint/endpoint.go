@@ -4,63 +4,63 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rss3-network/protocol-go/schema/network"
+	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 )
 
-var endpointsMap = map[network.Network][]string{
-	network.Ethereum: {
+var endpointsMap = map[networkx.Network][]string{
+	networkx.Ethereum: {
 		"https://rpc.ankr.com/eth",
 		"https://ethereum.blockpi.network/v1/rpc/public",
 		"https://eth.llamarpc.com",
 	},
-	network.Optimism: {
+	networkx.Optimism: {
 		"https://rpc.ankr.com/optimism",
 		"https://optimism.blockpi.network/v1/rpc/public",
 	},
-	network.Polygon: {
+	networkx.Polygon: {
 		"https://rpc.ankr.com/polygon",
 		"https://polygon.blockpi.network/v1/rpc/public",
 		"https://polygon.llamarpc.com",
 	},
-	network.Base: {
+	networkx.Base: {
 		"https://mainnet.base.org",
 		"https://rpc.ankr.com/base",
 		"https://base.blockpi.network/v1/rpc/public",
 		"https://base.llamarpc.com",
 	},
-	network.Arbitrum: {
+	networkx.Arbitrum: {
 		"https://arb1.arbitrum.io/rpc",
 		"https://rpc.ankr.com/arbitrum",
 		"https://arbitrum.blockpi.network/v1/rpc/public",
 		"https://arbitrum.llamarpc.com",
 	},
-	network.Avalanche: {
+	networkx.Avalanche: {
 		"https://api.avax.network/ext/bc/C/rpc",
 		"https://rpc.ankr.com/avalanche",
 		"https://avalanche.blockpi.network/v1/rpc/public",
 	},
-	network.Crossbell: {
+	networkx.Crossbell: {
 		"https://rpc.crossbell.io",
 	},
-	network.VSL: {
+	networkx.VSL: {
 		"https://rpc.rss3.io",
 	},
-	network.SatoshiVM: {
+	networkx.SatoshiVM: {
 		"https://alpha-rpc-node-http.svmscan.io",
 	},
-	network.BinanceSmartChain: {
+	networkx.BinanceSmartChain: {
 		"https://rpc.ankr.com/bsc",
 	},
-	network.Gnosis: {
+	networkx.Gnosis: {
 		"https://rpc.ankr.com/gnosis",
 	},
-	network.Linea: {
+	networkx.Linea: {
 		"https://rpc.linea.build",
 	},
 }
 
-func Get(n network.Network) ([]string, bool) {
+func Get(n networkx.Network) ([]string, bool) {
 	endpoints, exists := endpointsMap[n]
 	if exists && len(endpoints) == 0 {
 		return nil, false
@@ -73,7 +73,7 @@ func Get(n network.Network) ([]string, bool) {
 	return endpoints, exists
 }
 
-func MustGet(n network.Network) string {
+func MustGet(n networkx.Network) string {
 	return lo.Must(Get(n))[0]
 }
 
@@ -90,16 +90,16 @@ func init() {
 			splits := strings.Split(key, "_")
 
 			if len(splits) == 2 {
-				_network, err := network.NetworkString(splits[1])
+				network, err := networkx.NetworkString(splits[1])
 				if err != nil {
 					continue
 				}
 
-				if _, exists := endpointsMap[_network]; !exists {
-					endpointsMap[_network] = make([]string, 0)
+				if _, exists := endpointsMap[network]; !exists {
+					endpointsMap[network] = make([]string, 0)
 				}
 
-				endpointsMap[_network] = append([]string{value}, endpointsMap[_network]...)
+				endpointsMap[network] = append([]string{value}, endpointsMap[network]...)
 			}
 		}
 	}

@@ -8,7 +8,7 @@ import (
 
 	"github.com/rss3-network/node/internal/database/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
-	"github.com/rss3-network/protocol-go/schema/network"
+	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 )
 
@@ -40,12 +40,12 @@ func (h *Hub) getCursor(ctx context.Context, cursor *string) (*activityx.Activit
 		return nil, fmt.Errorf("invalid cursor")
 	}
 
-	_network, err := network.NetworkString(str[1])
+	network, err := networkx.NetworkString(str[1])
 	if err != nil {
 		return nil, fmt.Errorf("invalid cursor: %w", err)
 	}
 
-	data, _, err := h.getActivity(ctx, model.ActivityQuery{ID: lo.ToPtr(str[0]), Network: lo.ToPtr(_network)})
+	data, _, err := h.getActivity(ctx, model.ActivityQuery{ID: lo.ToPtr(str[0]), Network: lo.ToPtr(network)})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cursor: %w", err)
 	}
@@ -67,7 +67,7 @@ func (h *Hub) getIndexCount(ctx context.Context) (int64, *time.Time, error) {
 		updateTime *time.Time
 	)
 
-	checkpoints, err := h.databaseClient.LoadCheckpoints(ctx, "", network.Unknown, "")
+	checkpoints, err := h.databaseClient.LoadCheckpoints(ctx, "", networkx.Unknown, "")
 	if err != nil {
 		return count, nil, fmt.Errorf("failed to find index count: %w", err)
 	}

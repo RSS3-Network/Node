@@ -19,7 +19,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	mirror_model "github.com/rss3-network/node/internal/engine/worker/contract/mirror/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
-	"github.com/rss3-network/protocol-go/schema/network"
+	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -121,7 +121,7 @@ func (c *client) Commit() error {
 	return c.database.Commit().Error
 }
 
-func (c *client) LoadCheckpoint(ctx context.Context, id string, network network.Network, worker string) (*engine.Checkpoint, error) {
+func (c *client) LoadCheckpoint(ctx context.Context, id string, network networkx.Network, worker string) (*engine.Checkpoint, error) {
 	var value table.Checkpoint
 
 	zap.L().Info("load checkpoint", zap.String("id", id), zap.String("network", network.String()), zap.String("worker", worker))
@@ -148,19 +148,19 @@ func (c *client) LoadCheckpoint(ctx context.Context, id string, network network.
 	return value.Export()
 }
 
-func (c *client) LoadCheckpoints(ctx context.Context, id string, _network network.Network, worker string) ([]*engine.Checkpoint, error) {
+func (c *client) LoadCheckpoints(ctx context.Context, id string, network networkx.Network, worker string) ([]*engine.Checkpoint, error) {
 	databaseStatement := c.database.WithContext(ctx)
 
 	var checkpoints []*table.Checkpoint
 
-	zap.L().Info("load checkpoints", zap.String("id", id), zap.String("_network", _network.String()), zap.String("worker", worker))
+	zap.L().Info("load checkpoints", zap.String("id", id), zap.String("network", network.String()), zap.String("worker", worker))
 
 	if id != "" {
 		databaseStatement = databaseStatement.Where("id = ?", id)
 	}
 
-	if _network != network.Unknown {
-		databaseStatement = databaseStatement.Where("_network = ?", _network)
+	if network != networkx.Unknown {
+		databaseStatement = databaseStatement.Where("network = ?", network)
 	}
 
 	if worker != "" {

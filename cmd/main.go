@@ -21,7 +21,7 @@ import (
 	"github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/provider/telemetry"
 	"github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema/network"
+	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -111,9 +111,9 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 		return fmt.Errorf("invalid indexer parameters: %w", err)
 	}
 
-	_network, err := network.NetworkString(lo.Must(flags.GetString(flag.KeyIndexerNetwork)))
+	network, err := networkx.NetworkString(lo.Must(flags.GetString(flag.KeyIndexerNetwork)))
 	if err != nil {
-		return fmt.Errorf("_network string: %w", err)
+		return fmt.Errorf("network string: %w", err)
 	}
 
 	_worker, err := worker.WorkerString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
@@ -123,7 +123,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 	}
 
 	for _, nodeConfig := range config.Node.Decentralized {
-		if nodeConfig.Network == _network && nodeConfig.Worker == _worker {
+		if nodeConfig.Network == network && nodeConfig.Worker == _worker {
 			if nodeConfig.Parameters == nil && parameters == "{}" || *(nodeConfig.Parameters) != nil && strings.EqualFold(nodeConfig.Parameters.String(), parameters) {
 				server, err := indexer.NewServer(ctx, nodeConfig, databaseClient, streamClient, redisClient)
 				if err != nil {
@@ -135,7 +135,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 		}
 	}
 
-	return fmt.Errorf("undefined indexer %s.%s.%s", _network, _worker, parameters)
+	return fmt.Errorf("undefined indexer %s.%s.%s", network, _worker, parameters)
 }
 
 func runBroadcaster(ctx context.Context, config *config.File) error {
@@ -197,7 +197,7 @@ func init() {
 
 	command.PersistentFlags().String(flag.KeyConfig, "config.yaml", "config file name")
 	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")
-	command.PersistentFlags().String(flag.KeyIndexerNetwork, network.Ethereum.String(), "indexer network")
+	command.PersistentFlags().String(flag.KeyIndexerNetwork, networkx.Ethereum.String(), "indexer network")
 	command.PersistentFlags().String(flag.KeyIndexerWorker, worker.Fallback.String(), "indexer worker")
 	command.PersistentFlags().String(flag.KeyIndexerParameters, "{}", "indexer parameters")
 }

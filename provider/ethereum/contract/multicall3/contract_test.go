@@ -10,7 +10,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/multicall3"
 	"github.com/rss3-network/node/provider/ethereum/contract/weth"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema/network"
+	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )
@@ -25,7 +25,7 @@ func TestAggregate(t *testing.T) {
 	require.NoError(t, err)
 
 	type arguments struct {
-		chainID     network.EthereumChainID
+		chainID     networkx.EthereumChainID
 		blockNumber *big.Int
 		calls       []multicall3.Multicall3Call3
 	}
@@ -38,7 +38,7 @@ func TestAggregate(t *testing.T) {
 		{
 			name: "Get Lens profile metadata",
 			arguments: arguments{
-				chainID: network.EthereumChainIDPolygon,
+				chainID: networkx.EthereumChainIDPolygon,
 				calls: []multicall3.Multicall3Call3{
 					{
 						Target:       lens.AddressLensProtocol,
@@ -69,7 +69,7 @@ func TestAggregate(t *testing.T) {
 		{
 			name: "Get WETH token metadata",
 			arguments: arguments{
-				chainID:     network.EthereumChainIDMainnet,
+				chainID:     networkx.EthereumChainIDMainnet,
 				blockNumber: new(big.Int).SetUint64(4719568),
 				calls: []multicall3.Multicall3Call3{
 					{
@@ -109,10 +109,10 @@ func TestAggregate(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			_network, err := network.NetworkString(testcase.arguments.chainID.String())
+			network, err := networkx.NetworkString(testcase.arguments.chainID.String())
 			require.NoError(t, err)
 
-			ethereumClient, err := ethereum.Dial(ctx, endpoint.MustGet(_network))
+			ethereumClient, err := ethereum.Dial(ctx, endpoint.MustGet(network))
 			require.NoError(t, err)
 
 			results, err := multicall3.Aggregate3(ctx, uint64(testcase.arguments.chainID), testcase.arguments.calls, testcase.arguments.blockNumber, ethereumClient)
