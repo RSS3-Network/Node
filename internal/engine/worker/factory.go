@@ -27,6 +27,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/contract/paragraph"
 	"github.com/rss3-network/node/internal/engine/worker/contract/rss3"
 	"github.com/rss3-network/node/internal/engine/worker/contract/savm"
+	"github.com/rss3-network/node/internal/engine/worker/contract/stargate"
 	"github.com/rss3-network/node/internal/engine/worker/contract/uniswap"
 	"github.com/rss3-network/node/internal/engine/worker/contract/vsl"
 	"github.com/rss3-network/node/internal/engine/worker/fallback"
@@ -82,6 +83,8 @@ func New(config *config.Module, databaseClient database.Client, redisClient ruei
 		return savm.NewWorker(config)
 	case filter.VSL:
 		return vsl.NewWorker(config)
+	case filter.Stargate:
+		return stargate.NewWorker(config)
 	case filter.Curve:
 		return curve.NewWorker(config, redisClient)
 	default:
