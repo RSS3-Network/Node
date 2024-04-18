@@ -3,7 +3,6 @@ package farcaster
 import (
 	"context"
 	"fmt"
-	workerx "github.com/rss3-network/node/schema/worker"
 	"strconv"
 	"strings"
 	"sync"
@@ -13,6 +12,7 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/farcaster"
 	"github.com/rss3-network/node/provider/farcaster"
 	"github.com/rss3-network/node/provider/httpx"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
