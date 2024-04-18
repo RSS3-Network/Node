@@ -1,9 +1,0 @@
-schema: schema.graphql
-documents: "**/*.graphql"
-extensions:
-  endpoints:
-    default:
-      url: https://hub.snapshot.org/graphql
-      headers:
-        user-agent: JS GraphQL
-      introspect: false
