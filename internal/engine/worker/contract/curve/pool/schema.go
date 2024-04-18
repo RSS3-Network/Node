@@ -7,12 +7,14 @@ import (
 
 type ContractType string
 
+// Contract types.
 const (
 	ContractTypePool  ContractType = "pool"
 	ContractTypeToken ContractType = "token"
 	ContractTypeGauge ContractType = "gauge"
 )
 
+// Response is a curve pool.
 type Response[T any] struct {
 	Success   bool  `json:"success"`
 	Data      T     `json:"data"`
@@ -23,6 +25,7 @@ type GetPoolData struct {
 	PoolData []Pool `json:"poolData"`
 }
 
+// Pool is a curve pool.
 type Pool struct {
 	Network                       filter.Network `json:"-"`
 	Name                          string         `json:"name"`

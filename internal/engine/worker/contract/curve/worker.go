@@ -29,6 +29,7 @@ import (
 // Worker is the worker for Curve.
 var _ engine.Worker = (*worker)(nil)
 
+// Worker is a Curve worker.
 type worker struct {
 	config                        *config.Module
 	ethereumClient                ethereum.Client
@@ -41,6 +42,7 @@ type worker struct {
 	erc20ERC20Filterer            *erc20.ERC20Filterer
 }
 
+// Name returns the worker name.
 func (w *worker) Name() string {
 	return filter.Curve.String()
 }
@@ -259,6 +261,7 @@ func (w *worker) transformStableSwapAddLiquidityTransaction(ctx context.Context,
 		actions     = make([]*schema.Action, 0)
 	)
 
+	// Iterate through logs to find the add liquidity event.
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
 			continue
@@ -507,7 +510,7 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, blockNumber *
 	return &action, nil
 }
 
-// buildTransferAction
+// buildTransferAction builds transfer action.
 func (w *worker) buildTransferAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*schema.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
@@ -578,6 +581,7 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, blockNumber *big.I
 	return &action, nil
 }
 
+// buildEthereumTransactionStakingAction builds ethereum transaction staking action.
 func (w *worker) buildEthereumTransactionStakingAction(ctx context.Context, task *source.Task, from, to common.Address, token common.Address, value *big.Int, stakingAction metadata.ExchangeStakingAction, period *metadata.ExchangeStakingPeriod) (*schema.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &token, nil, task.Header.Number)
 	if err != nil {
@@ -631,8 +635,10 @@ func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker
 		return nil, fmt.Errorf("new http client: %w", err)
 	}
 
+	// Initialize curve pool registry.
 	instance.curvePoolRegistry = pool.NewRegistry(redisClient, httpClient)
 
+	// Refresh curve pool registry when worker is created.
 	if err := instance.curvePoolRegistry.Refresh(context.Background()); err != nil {
 		return nil, fmt.Errorf("refresh curve pool registry: %w", err)
 	}

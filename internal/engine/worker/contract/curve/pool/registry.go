@@ -14,6 +14,7 @@ import (
 	"github.com/sourcegraph/conc/pool"
 )
 
+// Registry is a registry for the curve pools.
 type Registry interface {
 	Refresh(ctx context.Context) error
 	Validate(ctx context.Context, chain filter.Network, contractType ContractType, address common.Address) (*Pool, error)
@@ -115,6 +116,7 @@ func (r *registry) Refresh(ctx context.Context) error {
 		}
 	}
 
+	// Execute the redis commands.
 	for _, redisResult := range r.redisClient.DoMulti(ctx, commands...) {
 		if err := redisResult.Error(); err != nil {
 			return fmt.Errorf("redis result: %w", err)
