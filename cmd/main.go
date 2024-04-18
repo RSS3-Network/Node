@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/grafana/pyroscope-go"
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/flag"
@@ -190,8 +191,24 @@ func initializeLogger() {
 	}
 }
 
+func initializePyroscope() {
+	// Only use Pyroscope in development environment.
+	if os.Getenv(config.Environment) == config.EnvironmentDevelopment {
+		// Start Pyroscope agent if the environment variable is set.
+		if serverAddress := os.Getenv(config.EnvironmentPyroscopeEndpoint); serverAddress != "" {
+			_, _ = pyroscope.Start(pyroscope.Config{
+				ApplicationName: constant.Name,
+				ServerAddress:   serverAddress,
+				Logger:          zap.L().Sugar(),
+				ProfileTypes:    append(pyroscope.DefaultProfileTypes, pyroscope.ProfileGoroutines),
+			})
+		}
+	}
+}
+
 func init() {
 	initializeLogger()
+	initializePyroscope()
 
 	command.PersistentFlags().String(flag.KeyConfig, "config.yaml", "config file name")
 	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")

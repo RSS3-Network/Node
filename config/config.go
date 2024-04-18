@@ -26,6 +26,8 @@ const (
 
 	EnvironmentDevelopment = "development"
 	EnvironmentProduction  = "production"
+
+	EnvironmentPyroscopeEndpoint = EnvPrefix + "_PYROSCOPE_ENDPOINT"
 )
 
 type File struct {
