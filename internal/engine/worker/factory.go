@@ -11,6 +11,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/contract/aave"
 	"github.com/rss3-network/node/internal/engine/worker/contract/aavegotchi"
 	"github.com/rss3-network/node/internal/engine/worker/contract/crossbell"
+	"github.com/rss3-network/node/internal/engine/worker/contract/curve"
 	"github.com/rss3-network/node/internal/engine/worker/contract/ens"
 	"github.com/rss3-network/node/internal/engine/worker/contract/highlight"
 	"github.com/rss3-network/node/internal/engine/worker/contract/iqwiki"
@@ -84,6 +85,8 @@ func New(config *config.Module, databaseClient database.Client, redisClient ruei
 		return vsl.NewWorker(config)
 	case filter.Stargate:
 		return stargate.NewWorker(config)
+	case filter.Curve:
+		return curve.NewWorker(config, redisClient)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}
