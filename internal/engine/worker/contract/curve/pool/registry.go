@@ -65,6 +65,8 @@ func (r *registry) Refresh(ctx context.Context) error {
 
 		// iterate over registry IDs.
 		for _, registryID := range registryIDs {
+			registryID := registryID
+
 			resultPool.Go(func(ctx context.Context) ([]Pool, error) {
 				readCloser, err := r.httpClient.Fetch(ctx, fmt.Sprintf("%sapi/getPools/%s/%s", Endpoint, r.formatNetwork(network), registryID))
 				if err != nil {
