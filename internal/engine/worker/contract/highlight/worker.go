@@ -3,6 +3,9 @@ package highlight
 import (
 	"context"
 	"fmt"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -34,7 +37,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Highlight.String()
+	return workerx.Highlight.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.Highlight.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Collectible
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 // Filter highlight contract address and event hash.
@@ -77,7 +92,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default highlight activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformHighlight))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.Highlight.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -207,7 +222,7 @@ func (w *worker) buildTransferAction(ctx context.Context, task *source.Task, fro
 
 	return &activity.Action{
 		Type:     typex.TransactionTransfer,
-		Platform: filter.PlatformHighlight.String(),
+		Platform: workerx.Highlight.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
@@ -225,7 +240,7 @@ func (w *worker) buildHighlightMintAction(ctx context.Context, task *source.Task
 
 	return &activity.Action{
 		Type:     typex.CollectibleMint,
-		Platform: filter.PlatformHighlight.String(),
+		Platform: workerx.Highlight.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.CollectibleTransfer(*tokenMetadata),

@@ -14,6 +14,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/stream"
+	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
@@ -63,7 +64,7 @@ type Module struct {
 	Network      network.Network `mapstructure:"network" validate:"required"`
 	Endpoint     string          `mapstructure:"endpoint" validate:"required"`
 	IPFSGateways []string        `mapstructure:"ipfs_gateways"`
-	Worker       string          `mapstructure:"worker"`
+	Worker       worker.Worker   `mapstructure:"worker"`
 	Parameters   *Parameters     `mapstructure:"parameters"`
 }
 
@@ -218,8 +219,7 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	var configFile File
 	if err := v.Unmarshal(&configFile, viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
 		network.HookFunc(),
-		// FIXME: pending new worker struct, WorkerHookFunc is no longer available
-		// networkWorkerHookFunc(),
+		worker.HookFunc(),
 		EvmAddressHookFunc(),
 	))); err != nil {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)

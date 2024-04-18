@@ -20,6 +20,7 @@ import (
 	"github.com/rss3-network/node/internal/stream/provider"
 	"github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/provider/telemetry"
+	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
@@ -115,16 +116,14 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 		return fmt.Errorf("_network string: %w", err)
 	}
 
-	// FIXME: pending new worker struct
-	//worker, err := networkNameString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
-	worker := "pending new worker struct"
+	_worker, err := worker.WorkerString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
 
 	if err != nil {
 		return fmt.Errorf("worker string: %w", err)
 	}
 
 	for _, nodeConfig := range config.Node.Decentralized {
-		if nodeConfig.Network == _network && nodeConfig.Worker == worker {
+		if nodeConfig.Network == _network && nodeConfig.Worker == _worker {
 			if nodeConfig.Parameters == nil && parameters == "{}" || *(nodeConfig.Parameters) != nil && strings.EqualFold(nodeConfig.Parameters.String(), parameters) {
 				server, err := indexer.NewServer(ctx, nodeConfig, databaseClient, streamClient, redisClient)
 				if err != nil {
@@ -136,7 +135,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 		}
 	}
 
-	return fmt.Errorf("undefined indexer %s.%s.%s", _network, worker, parameters)
+	return fmt.Errorf("undefined indexer %s.%s.%s", _network, _worker, parameters)
 }
 
 func runBroadcaster(ctx context.Context, config *config.File) error {
@@ -199,8 +198,7 @@ func init() {
 	command.PersistentFlags().String(flag.KeyConfig, "config.yaml", "config file name")
 	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")
 	command.PersistentFlags().String(flag.KeyIndexerNetwork, network.Ethereum.String(), "indexer network")
-	// FIXME: pending new worker struct
-	//command.PersistentFlags().String(flag.KeyIndexerWorker, network.Fallback.String(), "indexer worker")
+	command.PersistentFlags().String(flag.KeyIndexerWorker, worker.Fallback.String(), "indexer worker")
 	command.PersistentFlags().String(flag.KeyIndexerParameters, "{}", "indexer parameters")
 }
 

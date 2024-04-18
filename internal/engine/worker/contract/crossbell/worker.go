@@ -27,9 +27,12 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/node/provider/ipfs"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -54,7 +57,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Crossbell.String()
+	return workerx.Crossbell.Platform()
+}
+
+func (w *worker) Platform() string {
+	return workerx.Crossbell.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Social
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 // Filter crossbell contract address and event hash.
@@ -96,7 +111,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default crossbell activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformCrossbell))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.Crossbell.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -579,7 +594,7 @@ func (w *worker) buildProfileAction(_ context.Context, from, to common.Address, 
 	return &activity.Action{
 		From:     from.String(),
 		To:       to.String(),
-		Platform: filter.PlatformCrossbell.String(),
+		Platform: workerx.Crossbell.Platform(),
 		Type:     typex.SocialProfile,
 		Metadata: profile,
 	}
@@ -664,7 +679,7 @@ func (w *worker) buildProxyAction(_ context.Context, from common.Address, to com
 	return &activity.Action{
 		From:     from.String(),
 		To:       to.String(),
-		Platform: filter.PlatformCrossbell.String(),
+		Platform: workerx.Crossbell.Platform(),
 		Type:     typex.SocialProxy,
 		Metadata: proxy,
 	}
@@ -932,7 +947,7 @@ func (w *worker) getNotePlatform(_ context.Context, sources []string) string {
 	})
 
 	if len(filtered) == 0 {
-		return filter.PlatformCrossbell.String()
+		return workerx.Crossbell.Platform()
 	}
 
 	return filtered[0]

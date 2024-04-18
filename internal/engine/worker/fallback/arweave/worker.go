@@ -10,7 +10,6 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/protocol-go/schema/activity"
-
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"

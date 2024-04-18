@@ -15,12 +15,13 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/contract/weth"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
-	"github.com/rss3-network/protocol-go/schema/tag"
-	"github.com/rss3-network/protocol-go/schema/typex"
-
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -42,8 +43,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	//return filter.Oneinch.String()
-	return filter.Oneinch.String()
+	return workerx.Oneinch.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.Oneinch.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Exchange
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 // Filter returns a filter for source.
@@ -78,7 +90,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the _activity.
-	_activity, err := task.BuildActivity(activity.WithActivityPlatform(filter.Platform1inch))
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(workerx.Oneinch.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -860,9 +872,8 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
 
 	action := activity.Action{
-		Tag:      tag.Exchange,
 		Type:     typex.ExchangeSwap,
-		Platform: filter.Platform1inch.String(),
+		Platform: workerx.Oneinch.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeSwap{

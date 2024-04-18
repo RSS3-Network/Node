@@ -12,11 +12,11 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/contract/aavegotchi"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/activity"
-	"github.com/rss3-network/protocol-go/schema/typex"
-
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -140,7 +140,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xe8da2bfa",
 				},
-				Platform: lo.ToPtr(filter.PlatformAavegotchi),
+				Platform: workerx.Aavegotchi.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("78236230158761866")),
 					Decimal: 18,
@@ -148,7 +148,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.MetaverseTrade,
-						Platform: filter.PlatformAavegotchi.String(),
+						Platform: workerx.Aavegotchi.Platform(),
 						From:     common.HexToAddress("0xa2faa3405a734c04ae713aaa837e6cecc2caee9f").String(),
 						To:       common.HexToAddress("0x86935f11c86623dec8a25696e1c19a8659cbf95d").String(),
 						Metadata: metadata.MetaverseTrade{
@@ -377,7 +377,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x575ae876",
 				},
-				Platform: lo.ToPtr(filter.PlatformAavegotchi),
+				Platform: workerx.Aavegotchi.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("121342301754875840")),
 					Decimal: 18,
@@ -385,7 +385,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.MetaverseTrade,
-						Platform: filter.PlatformAavegotchi.String(),
+						Platform: workerx.Aavegotchi.Platform(),
 						From:     common.HexToAddress("0xcbef46a7cbe1f46a94ab77501eaa32596ab3c538").String(),
 						To:       common.HexToAddress("0xb9ad10b590bcd2b0db23d0005b2db0d53d9a1cf0").String(),
 						Metadata: metadata.MetaverseTrade{
@@ -518,7 +518,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x31b0b514",
 				},
-				Platform: lo.ToPtr(filter.PlatformAavegotchi),
+				Platform: workerx.Aavegotchi.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("186070075623690420")),
 					Decimal: 18,
@@ -526,7 +526,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.MetaverseTrade,
-						Platform: filter.PlatformAavegotchi.String(),
+						Platform: workerx.Aavegotchi.Platform(),
 						From:     common.HexToAddress("0xb7039fbd301cfaa7c66ba43fc10e2c60aa18f785").String(),
 						To:       common.HexToAddress("0x86935f11c86623dec8a25696e1c19a8659cbf95d").String(),
 						Metadata: metadata.MetaverseTrade{
@@ -754,7 +754,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x66609c88",
 				},
-				Platform: lo.ToPtr(filter.PlatformAavegotchi),
+				Platform: workerx.Aavegotchi.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("151529543089805376")),
 					Decimal: 18,
@@ -762,7 +762,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.MetaverseTrade,
-						Platform: filter.PlatformAavegotchi.String(),
+						Platform: workerx.Aavegotchi.Platform(),
 						From:     common.HexToAddress("0xa2faa3405a734c04ae713aaa837e6cecc2caee9f").String(),
 						To:       common.HexToAddress("0xb9ad10b590bcd2b0db23d0005b2db0d53d9a1cf0").String(),
 						Metadata: metadata.MetaverseTrade{
@@ -795,7 +795,6 @@ func TestWorker_Ethereum(t *testing.T) {
 	config := &config.Module{
 		Network:  network.Polygon,
 		Endpoint: endpoint.MustGet(network.Polygon),
-		Worker:   filter.Aavegotchi,
 	}
 
 	for _, testcase := range testcases {
@@ -813,12 +812,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			_activity, err := instance.Transform(ctx, testcase.arguments.task)
+			feed, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(_activity, "", "\x20\x20"))))
+			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, _activity)
+			require.Equal(t, testcase.want, feed)
 		})
 	}
 }

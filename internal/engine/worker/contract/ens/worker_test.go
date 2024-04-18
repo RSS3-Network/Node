@@ -18,7 +18,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/ens"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -203,7 +203,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Index:    123,
 				From:     "0x7Da1E64e92094075A6D9b803d948015C993Bb58D",
 				To:       "0x1d6552e8F46fD509f3918A174FE62C34b42564aE",
-				Platform: lo.ToPtr(filter.PlatformENS),
+				Platform: workerx.ENS.Platform(),
 				Type:     typex.CollectibleTrade,
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xf7a16963",
@@ -215,7 +215,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       "0x7Da1E64e92094075A6D9b803d948015C993Bb58D",
 						Metadata: metadata.CollectibleTrade{
@@ -410,11 +410,11 @@ func TestWorker_Ethereum(t *testing.T) {
 					Amount:  lo.Must(decimal.NewFromString("4836538783709927")),
 					Decimal: 18,
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
+				Platform: workerx.ENS.Platform(),
 				Actions: []*activity.Action{
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       "0x4265D230d2D54010d853b107848FC6e0B64c9c24",
 						Metadata: metadata.CollectibleTrade{
@@ -525,11 +525,11 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xe8d6dbb4",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
+				Platform: workerx.ENS.Platform(),
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0xBaDacd66C71448047A3ebf0314DDb5dba046FF53",
 						To:       "0x283Af0B28c62C092C9727F1Ee09c02CA627EB7F5",
 						Metadata: metadata.SocialProfile{
@@ -631,11 +631,11 @@ func TestWorker_Ethereum(t *testing.T) {
 					Amount:  lo.Must(decimal.NewFromString("1504275221075760")),
 					Decimal: 18,
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
+				Platform: workerx.ENS.Platform(),
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0x6F4644485226276868658cC467700e104f2f9689",
 						To:       "0x253553366Da8546fC250F225fe3d25d0C782303b",
 						Metadata: metadata.SocialProfile{
@@ -784,11 +784,11 @@ func TestWorker_Ethereum(t *testing.T) {
 					Amount:  lo.Must(decimal.NewFromString("1405749108579186")),
 					Decimal: 18,
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
+				Platform: workerx.ENS.Platform(),
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0xC4eE38B534CfbD26cB94e282A390eCa0B7e3e7b2",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -802,7 +802,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0xC4eE38B534CfbD26cB94e282A390eCa0B7e3e7b2",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -816,7 +816,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0xC4eE38B534CfbD26cB94e282A390eCa0B7e3e7b2",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -830,7 +830,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0xC4eE38B534CfbD26cB94e282A390eCa0B7e3e7b2",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -845,7 +845,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0xC4eE38B534CfbD26cB94e282A390eCa0B7e3e7b2",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -934,7 +934,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xac9650d8",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
+				Platform: workerx.ENS.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3529175103095238")),
 					Decimal: 18,
@@ -942,7 +942,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0xA60e522c5517B05526eE0F7f3885b82b37CeeB2d",
 						To:       "0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63",
 						Metadata: metadata.SocialProfile{
@@ -1079,7 +1079,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xb88d4fde",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
+				Platform: workerx.ENS.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2221536833800956")),
 					Decimal: 18,
@@ -1087,7 +1087,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0xC59dc5B9906728A19070BeD06F10E31da2313AC6",
 						To:       "0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401",
 						Metadata: metadata.SocialProfile{
@@ -1210,7 +1210,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x8b4dfa75",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
+				Platform: workerx.ENS.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1292564988750885")),
 					Decimal: 18,
@@ -1218,7 +1218,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0x4015e9865cb268E7939220edfbbf623C6A41DaC2",
 						To:       "0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401",
 						Metadata: metadata.SocialProfile{
@@ -1304,7 +1304,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x402906fc",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
+				Platform: workerx.ENS.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1266415647151962")),
 					Decimal: 18,
@@ -1312,7 +1312,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0x6d5601E90220C989111939d9317FCbba27c015ab",
 						To:       "0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401",
 						Metadata: metadata.SocialProfile{
@@ -1400,7 +1400,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x304e6ade",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
+				Platform: workerx.ENS.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("761876041051530")),
 					Decimal: 18,
@@ -1408,7 +1408,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0xDFF917ab602e8508b6907dE1b038dd52B24A2379",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -1496,7 +1496,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x77372213",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
+				Platform: workerx.ENS.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("4207580864183088")),
 					Decimal: 18,
@@ -1504,7 +1504,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0x63A2368F4B509438ca90186cb1C15156713D5834",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -1603,7 +1603,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xac9650d8",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
+				Platform: workerx.ENS.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("783619710684342")),
 					Decimal: 18,
@@ -1611,7 +1611,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0x07bd403d0E4Cd0f2cF5e4b1eF44D8Fb18CF6eCad",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -1699,7 +1699,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x29cd62ea",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
+				Platform: workerx.ENS.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("930494878588516")),
 					Decimal: 18,
@@ -1707,7 +1707,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Platform: workerx.ENS.Platform(),
 						From:     "0x790BEd7B93e14235d8EB153Eb7CF4497906260F4",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{

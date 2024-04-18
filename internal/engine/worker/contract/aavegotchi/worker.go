@@ -13,11 +13,12 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/aavegotchi"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
-	"github.com/rss3-network/protocol-go/schema/typex"
-
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -32,7 +33,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Aavegotchi.String()
+	return workerx.Aavegotchi.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.Aavegotchi.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Metaverse
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 // Filter filters the source for Aavegotchi.
@@ -65,7 +78,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the _activity.
-	_activity, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformAavegotchi))
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(workerx.Aavegotchi.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -143,7 +156,7 @@ func (w *worker) handleERC721ListingAdd(ctx context.Context, task *source.Task, 
 
 	_activity.Type = typex.MetaverseTrade
 
-	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, _activity.Type, metadata.ActionMetaverseTradeList, event.Seller, aavegotchi.AddressAavegotchi, event.Erc721TokenAddress, event.Erc721TokenId, nil)
+	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, typex.MetaverseTrade, metadata.ActionMetaverseTradeList, event.Seller, aavegotchi.AddressAavegotchi, event.Erc721TokenAddress, event.Erc721TokenId, nil)
 }
 
 // handleERC721ExecutedListing handles the log for executing ERC721 listing.
@@ -157,7 +170,7 @@ func (w *worker) handleERC721ExecutedListing(ctx context.Context, task *source.T
 
 	metadataType := lo.If(_activity.From == event.Buyer.String(), metadata.ActionMetaverseTradeBuy).Else(metadata.ActionMetaverseTradeSell)
 
-	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, _activity.Type, metadataType, event.Seller, event.Buyer, event.Erc721TokenAddress, event.Erc721TokenId, nil)
+	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, typex.MetaverseTrade, metadataType, event.Seller, event.Buyer, event.Erc721TokenAddress, event.Erc721TokenId, nil)
 }
 
 // handleERC1155ListingAdd handles the log for adding ERC1155 listing.
@@ -169,7 +182,7 @@ func (w *worker) handleERC1155ListingAdd(ctx context.Context, task *source.Task,
 
 	activity.Type = typex.MetaverseTrade
 
-	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, activity.Type, metadata.ActionMetaverseTradeList, event.Seller, aavegotchi.AddressAavegotchi, event.Erc1155TokenAddress, event.Erc1155TypeId, big.NewInt(1))
+	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, typex.MetaverseTrade, metadata.ActionMetaverseTradeList, event.Seller, aavegotchi.AddressAavegotchi, event.Erc1155TokenAddress, event.Erc1155TypeId, big.NewInt(1))
 }
 
 // handleERC1155ExecutedListing handles the log for executing ERC1155 listing.
@@ -183,7 +196,7 @@ func (w *worker) handleERC1155ExecutedListing(ctx context.Context, task *source.
 
 	metadataType := lo.If(_activity.From == event.Buyer.String(), metadata.ActionMetaverseTradeBuy).Else(metadata.ActionMetaverseTradeSell)
 
-	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, _activity.Type, metadataType, event.Seller, event.Buyer, event.Erc1155TokenAddress, event.Erc1155TypeId, big.NewInt(1))
+	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, typex.MetaverseTrade, metadataType, event.Seller, event.Buyer, event.Erc1155TokenAddress, event.Erc1155TypeId, big.NewInt(1))
 }
 
 // handleERC20TransferLog handles the log for ERC20 transfer.
@@ -267,7 +280,7 @@ func (w *worker) buildTradeAction(
 
 	return &activity.Action{
 		Type:     actionType,
-		Platform: filter.PlatformAavegotchi.String(),
+		Platform: workerx.Aavegotchi.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.MetaverseTrade{
@@ -297,7 +310,7 @@ func (w *worker) buildTransferAction(
 
 	return &activity.Action{
 		Type:     actionType,
-		Platform: filter.PlatformAavegotchi.String(),
+		Platform: workerx.Aavegotchi.Platform(),
 		From:     from.String(),
 		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
 		Metadata: metadata.MetaverseTransfer(*tokenMetadata),

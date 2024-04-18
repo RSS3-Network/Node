@@ -221,7 +221,7 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 			},
 		}
 
-		// Get logs by network
+		// Get logs by filter.
 		logs, err := s.ethereumClient.FilterLogs(ctx, logFilter)
 		if err != nil {
 			return fmt.Errorf("get logs by filter: %w", err)
@@ -340,8 +340,7 @@ func (s *source) getReceipts(ctx context.Context, blocks []*ethereum.Block) ([]*
 		network.Crossbell,
 		network.Arbitrum,
 		network.SatoshiVM,
-		network.Linea,
-		network.BinanceSmartChain:
+		network.Linea:
 		transactionHashes := lo.Map(blocks, func(block *ethereum.Block, _ int) []common.Hash {
 			return lo.Map(block.Transactions, func(transaction *ethereum.Transaction, _ int) common.Hash {
 				return transaction.Hash
@@ -470,7 +469,7 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 		state:  state,
 	}
 
-	// Initialize network
+	// Initialize filter.
 	if sourceFilter != nil {
 		var ok bool
 		if instance.filter, ok = sourceFilter.(*Filter); !ok {
