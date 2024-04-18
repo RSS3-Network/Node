@@ -138,26 +138,26 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 
 // findActivityPartitioned finds an activity  by id.
 func (c *client) findActivityPartitioned(ctx context.Context, query model.ActivityQuery) (*activity.Activity, *int, error) {
-	index, err := c.findIndexPartitioned(ctx, query)
+	matchedActivity, err := c.findIndexPartitioned(ctx, query)
 	if err != nil {
-		return nil, nil, fmt.Errorf("first index: %w", err)
+		return nil, nil, fmt.Errorf("first matchedActivity: %w", err)
 	}
 
-	if index == nil {
+	if matchedActivity == nil {
 		return nil, nil, nil
 	}
 
 	_activity := &table.Activity{
-		ID:        index.ID,
-		Network:   index.Network,
-		Timestamp: index.Timestamp,
+		ID:        matchedActivity.ID,
+		Network:   matchedActivity.Network,
+		Timestamp: matchedActivity.Timestamp,
 	}
 
-	if err := c.database.WithContext(ctx).Table(_activity.PartitionName(nil)).Where("id = ?", index.ID).Limit(1).Find(&_activity).Error; err != nil {
+	if err := c.database.WithContext(ctx).Table(_activity.PartitionName(nil)).Where("id = ?", matchedActivity.ID).Limit(1).Find(&_activity).Error; err != nil {
 		return nil, nil, fmt.Errorf("find activity: %w", err)
 	}
 
-	result, err := _activity.Export(index)
+	result, err := _activity.Export(matchedActivity)
 	if err != nil {
 		return nil, nil, fmt.Errorf("export activity: %w", err)
 	}

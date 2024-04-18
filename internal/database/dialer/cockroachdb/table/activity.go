@@ -243,7 +243,7 @@ type ActivityAction struct {
 }
 
 func (f *ActivityAction) Import(action *activity.Action) (err error) {
-	f.Tag = action.Tag.String()
+	f.Tag = action.Type.Tag().String()
 	f.Type = action.Type.Name()
 	f.From = action.From
 	f.To = action.To
