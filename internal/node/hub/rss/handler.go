@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
+	"github.com/rss3-network/protocol-go/schema/activity"
 )
 
 type Response struct {

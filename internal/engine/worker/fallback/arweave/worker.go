@@ -9,9 +9,13 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
 	"github.com/rss3-network/node/provider/arweave"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -23,7 +27,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Fallback.String()
+	return workerx.Fallback.String()
+}
+
+func (w *worker) Platform() string {
+	return ""
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Unknown
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 // Filter returns a source filter.

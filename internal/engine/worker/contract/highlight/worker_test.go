@@ -2,8 +2,6 @@ package highlight_test
 
 import (
 	"context"
-	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema/typex"
 	"math/big"
 	"testing"
 
@@ -14,9 +12,11 @@ import (
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/highlight"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -253,12 +253,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			_activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			//t.Log(string(lo.Must(json.MarshalIndent(_activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, _activity)
 		})
 	}
 }

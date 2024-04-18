@@ -3,9 +3,6 @@ package highlight
 import (
 	"context"
 	"fmt"
-	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/tag"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -17,9 +14,12 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
 	"github.com/rss3-network/node/provider/ethereum/contract/highlight"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"

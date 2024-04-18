@@ -134,7 +134,7 @@ func TestWorker_Matters(t *testing.T) {
 		//			FunctionHash: "0xdbcdaf5b",
 		//		},
 		//		Tag:      tag.Social,
-		//		Platform: lo.ToPtr(filter.PlatformMatters),
+		//		Platform: workerx.Matters.Platform(),
 		//		Fee: &activity.Fee{
 		//			Amount:  lo.Must(decimal.NewFromString("5681706332875290")),
 		//			Decimal: 18,
@@ -144,7 +144,7 @@ func TestWorker_Matters(t *testing.T) {
 		//			{
 		//				Type:     typex.SocialReward,
 		//				Tag:      tag.Social,
-		//				Platform: filter.PlatformMatters.String(),
+		//				Platform: workerx.Matters.Platform(),
 		//				From:     "0x18Fb694EbAE03a78f038F54362592Dd89c0e300C",
 		//				To:       "0x099d854cD6F996cD1CB1ffc1Df0E197A774426e2",
 		//				Metadata: &metadata.SocialPost{

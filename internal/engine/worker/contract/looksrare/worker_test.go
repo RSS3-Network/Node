@@ -12,6 +12,7 @@ import (
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/looksrare"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -193,7 +194,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xb4e4b296",
 				},
-				Platform: lo.ToPtr(filter.PlatformLooksRare),
+				Platform: workerx.Looksrare.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("10563709980954240")),
 					Decimal: 18,
@@ -201,7 +202,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0xdf2c823E219a0C50b8fdA1338936334003676811",
 						To:       "0x5924A28caAF1cc016617874a2f0C3710d881f3c1",
 						Metadata: metadata.TransactionTransfer{
@@ -215,7 +216,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0xdf2c823E219a0C50b8fdA1338936334003676811",
 						To:       "0x798a07190B529a7bEAA0b64F86865dedE0F33500",
 						Metadata: metadata.TransactionTransfer{
@@ -229,7 +230,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0xdf2c823E219a0C50b8fdA1338936334003676811",
 						To:       "0x71D1988C74A2321a4e71B99490a4D61c72Fe2C96",
 						Metadata: metadata.CollectibleTrade{
@@ -405,7 +406,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x3b6d032e",
 				},
-				Platform: lo.ToPtr(filter.PlatformLooksRare),
+				Platform: workerx.Looksrare.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3154359101765088")),
 					Decimal: 18,
@@ -413,7 +414,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0x9f28152AE399a6f1B9760c04972DE4f9303C0C9f",
 						To:       "0x5924A28caAF1cc016617874a2f0C3710d881f3c1",
 						Metadata: metadata.TransactionTransfer{
@@ -427,7 +428,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0x9f28152AE399a6f1B9760c04972DE4f9303C0C9f",
 						To:       "0x37ceB4bA093D40234c6fB312d9791B67c04eF49A",
 						Metadata: metadata.TransactionTransfer{
@@ -441,7 +442,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0x53b620A822984dE20Bd147319747b314e2A901bA",
 						To:       "0x9f28152AE399a6f1B9760c04972DE4f9303C0C9f",
 						Metadata: metadata.CollectibleTrade{
@@ -663,7 +664,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x12abee12",
 				},
-				Platform: lo.ToPtr(filter.PlatformLooksRare),
+				Platform: workerx.Looksrare.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("6268282762188408")),
 					Decimal: 18,
@@ -671,7 +672,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0x17a511C56473690f7365097726874F8751F5E704",
 						To:       "0x5924A28caAF1cc016617874a2f0C3710d881f3c1",
 						Metadata: metadata.TransactionTransfer{
@@ -685,7 +686,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0x17a511C56473690f7365097726874F8751F5E704",
 						To:       "0x37ceB4bA093D40234c6fB312d9791B67c04eF49A",
 						Metadata: metadata.TransactionTransfer{
@@ -699,7 +700,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0x17a511C56473690f7365097726874F8751F5E704",
 						To:       "0x6d0267156f1c6CE44Caa4BF129B76009d3d41830",
 						Metadata: metadata.CollectibleTrade{
@@ -811,7 +812,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x8585ae03",
 				},
-				Platform: lo.ToPtr(filter.PlatformLooksRare),
+				Platform: workerx.Looksrare.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1212149758594757")),
 					Decimal: 18,
@@ -819,7 +820,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0x06B6422CA906A38159cD741F965f6f4E5d058618",
 						To:       "0x60f0A4747900A24618d0864D06b10F11d89b1d8e",
 						Metadata: metadata.CollectibleTrade{
@@ -843,7 +844,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0x60f0A4747900A24618d0864D06b10F11d89b1d8e",
 						To:       "0x1838De7d4e4e42c8eB7b204A91e28E9fad14F536",
 						Metadata: metadata.TransactionTransfer{
@@ -977,7 +978,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xe72853e1",
 				},
-				Platform: lo.ToPtr(filter.PlatformLooksRare),
+				Platform: workerx.Looksrare.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("968846883200689")),
 					Decimal: 18,
@@ -985,7 +986,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0xE105106F401d5caA68936d595F5D96f7f07D67aC",
 						To:       "0x94e9D73a2aEEC807d85756B84759965b41866450",
 						Metadata: metadata.CollectibleTrade{
@@ -1011,7 +1012,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0x94e9D73a2aEEC807d85756B84759965b41866450",
 						To:       "0x1838De7d4e4e42c8eB7b204A91e28E9fad14F536",
 						Metadata: metadata.TransactionTransfer{
@@ -1147,7 +1148,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x12abee12",
 				},
-				Platform: lo.ToPtr(filter.PlatformLooksRare),
+				Platform: workerx.Looksrare.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2098092423875700")),
 					Decimal: 18,
@@ -1155,7 +1156,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0x5A46Cd7ab0CEEbe787267bEd3Cf368Ac4C240b16",
 						To:       "0xCE49a5B02943335CdB1512eEA1073C28a5d16F55",
 						Metadata: metadata.TransactionTransfer{
@@ -1167,7 +1168,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0x5A46Cd7ab0CEEbe787267bEd3Cf368Ac4C240b16",
 						To:       "0x0000a26b00c1F0DF003000390027140000fAa719",
 						Metadata: metadata.TransactionTransfer{
@@ -1179,7 +1180,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0xCE49a5B02943335CdB1512eEA1073C28a5d16F55",
 						To:       "0x5A46Cd7ab0CEEbe787267bEd3Cf368Ac4C240b16",
 						Metadata: metadata.CollectibleTrade{
@@ -1202,7 +1203,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0x5A46Cd7ab0CEEbe787267bEd3Cf368Ac4C240b16",
 						To:       "0xA86f5324129c34312187CdE5B42Fe283FC493fD8",
 						Metadata: metadata.TransactionTransfer{
@@ -1214,7 +1215,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0x5A46Cd7ab0CEEbe787267bEd3Cf368Ac4C240b16",
 						To:       "0x0000a26b00c1F0DF003000390027140000fAa719",
 						Metadata: metadata.TransactionTransfer{
@@ -1226,7 +1227,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: filter.PlatformLooksRare.String(),
+						Platform: workerx.Looksrare.Platform(),
 						From:     "0xA86f5324129c34312187CdE5B42Fe283FC493fD8",
 						To:       "0x5A46Cd7ab0CEEbe787267bEd3Cf368Ac4C240b16",
 						Metadata: metadata.CollectibleTrade{

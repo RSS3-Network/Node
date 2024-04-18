@@ -20,6 +20,8 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/lens"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/ipfs"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -45,7 +47,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Momoka.String()
+	return workerx.Momoka.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.Momoka.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Social
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 // Filter returns a filter for source.
@@ -79,7 +93,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the _activity.
-	_activity, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformLens))
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(workerx.Momoka.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -257,11 +271,11 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 	return actions, nil
 }
 
-func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, filterType filter.SocialType, momokaMetadata *metadata.SocialPost) *activity.Action {
+func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, filterType typex.SocialType, momokaMetadata *metadata.SocialPost) *activity.Action {
 	action := activity.Action{
 		Type:     filterType,
 		Tag:      tag.Social,
-		Platform: filter.PlatformLens.String(),
+		Platform: workerx.Momoka.Platform(),
 		From:     from,
 		To:       to,
 		Metadata: momokaMetadata,

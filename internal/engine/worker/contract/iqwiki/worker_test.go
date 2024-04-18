@@ -2,7 +2,6 @@ package iqwiki_test
 
 import (
 	"context"
-	workerx "github.com/rss3-network/node/schema/worker"
 	"math/big"
 	"testing"
 
@@ -13,6 +12,7 @@ import (
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/iqwiki"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"

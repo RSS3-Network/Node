@@ -4,7 +4,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 )
 
 // Factory
@@ -50,50 +50,50 @@ var (
 	EventHashPoolCreditChainPath = contract.EventHash("CreditChainPath(uint16,uint256,uint256,uint256)")
 )
 
-func EthereumChain(chainID uint16) (filter.Network, bool) {
-	var chain filter.Network
+func EthereumChain(chainID uint16) (network.Network, bool) {
+	var chain network.Network
 
 	switch chainID {
 	case 101:
-		chain = filter.NetworkEthereum
+		chain = network.Ethereum
 	case 102:
-		chain = filter.NetworkBinanceSmartChain
+		chain = network.BinanceSmartChain
 	case 106:
-		chain = filter.NetworkAvalanche
+		chain = network.Avalanche
 	case 109:
-		chain = filter.NetworkPolygon
+		chain = network.Polygon
 	case 110:
-		chain = filter.NetworkArbitrum
+		chain = network.Arbitrum
 	case 111:
-		chain = filter.NetworkOptimism
+		chain = network.Optimism
 	case 184:
-		chain = filter.NetworkBase
+		chain = network.Base
 	case 183:
-		chain = filter.NetworkLinea
+		chain = network.Linea
 	}
 
 	return chain, chain != 0
 }
 
-func FactoryAddress(network filter.Network) (common.Address, bool) {
+func FactoryAddress(n network.Network) (common.Address, bool) {
 	var address common.Address
 
-	switch network {
-	case filter.NetworkEthereum:
+	switch n {
+	case network.Ethereum:
 		address = AddressFactoryMainnet
-	case filter.NetworkBinanceSmartChain:
+	case network.BinanceSmartChain:
 		address = AddressFactoryBinanceSmartChain
-	case filter.NetworkAvalanche:
+	case network.Avalanche:
 		address = AddressFactoryAvalanche
-	case filter.NetworkPolygon:
+	case network.Polygon:
 		address = AddressFactoryPolygon
-	case filter.NetworkArbitrum:
+	case network.Arbitrum:
 		address = AddressFactoryArbitrumOne
-	case filter.NetworkOptimism:
+	case network.Optimism:
 		address = AddressFactoryOptimism
-	case filter.NetworkBase:
+	case network.Base:
 		address = AddressFactoryBase
-	case filter.NetworkLinea:
+	case network.Linea:
 		address = AddressFactoryLinea
 	}
 

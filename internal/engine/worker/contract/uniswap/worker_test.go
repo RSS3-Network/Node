@@ -13,6 +13,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/uniswap"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -134,7 +135,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x3593564c",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Platform: workerx.Uniswap.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("52461988974038056")),
 					Decimal: 18,
@@ -142,7 +143,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.ExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 						To:       "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 						Metadata: metadata.ExchangeSwap{
@@ -346,7 +347,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x24856bc3",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Platform: workerx.Uniswap.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3838148125415498")),
 					Decimal: 18,
@@ -354,7 +355,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.ExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0xB5A7c3f565f0DFDb4EE63d0ca4b4d59fa69c391C",
 						To:       uniswap.AddressUniversalRouter.String(),
 						Metadata: metadata.ExchangeSwap{
@@ -378,7 +379,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.ExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     uniswap.AddressUniversalRouter.String(),
 						To:       uniswap.AddressUniversalRouter.String(),
 						Metadata: metadata.ExchangeSwap{
@@ -402,7 +403,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.ExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     uniswap.AddressUniversalRouter.String(),
 						To:       "0xB5A7c3f565f0DFDb4EE63d0ca4b4d59fa69c391C",
 						Metadata: metadata.ExchangeSwap{
@@ -549,7 +550,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x18cbafe5",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Platform: workerx.Uniswap.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("11277942633517824")),
 					Decimal: 18,
@@ -557,7 +558,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.ExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0xe18e3F6015840c3675Add0b82dF801Ebb7D621f3",
 						To:       uniswap.AddressV2SwapRouter02.String(),
 						Metadata: metadata.ExchangeSwap{
@@ -581,7 +582,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.ExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     uniswap.AddressV2SwapRouter02.String(),
 						To:       "0xe18e3F6015840c3675Add0b82dF801Ebb7D621f3",
 						Metadata: metadata.ExchangeSwap{
@@ -780,7 +781,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xded9382a",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Platform: workerx.Uniswap.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("6413074183473729")),
 					Decimal: 18,
@@ -788,7 +789,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11",
 						To:       "0x3E07f1C21024c1bdD2217e51E46C13C143B8aC12",
 						Metadata: metadata.ExchangeLiquidity{
@@ -949,7 +950,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xac9650d8",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Platform: workerx.Uniswap.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("11773803096106902")),
 					Decimal: 18,
@@ -957,7 +958,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.TransactionMint,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0x0000000000000000000000000000000000000000",
 						To:       "0x36E5A96c8d01803d2C48756AA7bde1c01d7D9f8A",
 						Metadata: metadata.TransactionTransfer{
@@ -971,7 +972,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0x36E5A96c8d01803d2C48756AA7bde1c01d7D9f8A",
 						To:       uniswap.AddressNonfungiblePositionManager.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -1164,7 +1165,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xac9650d8",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Platform: workerx.Uniswap.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("14454483784358304")),
 					Decimal: 18,
@@ -1172,7 +1173,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     uniswap.AddressNonfungiblePositionManager.String(),
 						To:       "0x8E02247D3eE0E6153495c971FFd45Aa131f4D7cB",
 						Metadata: metadata.ExchangeLiquidity{
@@ -1199,7 +1200,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     uniswap.AddressNonfungiblePositionManager.String(),
 						To:       "0x8E02247D3eE0E6153495c971FFd45Aa131f4D7cB",
 						Metadata: metadata.ExchangeLiquidity{
@@ -1521,7 +1522,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xac9650d8",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Platform: workerx.Uniswap.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("25334331411301152")),
 					Decimal: 18,
@@ -1529,7 +1530,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11",
 						To:       "0xf69A8916669De197E84Cb39A38bA5115e8efCC77",
 						Metadata: metadata.ExchangeLiquidity{
@@ -1556,7 +1557,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionMint,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0x0000000000000000000000000000000000000000",
 						To:       "0xf69A8916669De197E84Cb39A38bA5115e8efCC77",
 						Metadata: metadata.TransactionTransfer{
@@ -1570,7 +1571,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0xf69A8916669De197E84Cb39A38bA5115e8efCC77",
 						To:       uniswap.AddressNonfungiblePositionManager.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -1717,7 +1718,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x9619e4cd",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Platform: workerx.Uniswap.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("11547000000000")),
 					Decimal: 18,
@@ -1725,7 +1726,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.ExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0xC7c934E224e8567df50058A907904b451bD1c57D",
 						To:       "0x34e3FfffB6664DCBF59Ac3b89d13b0014915aE42",
 						Metadata: metadata.ExchangeSwap{
@@ -1892,7 +1893,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xd3d7797d",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Platform: workerx.Uniswap.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("15249300000000")),
 					Decimal: 18,
@@ -1900,7 +1901,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0xC7c934E224e8567df50058A907904b451bD1c57D",
 						To:       "0x0D0f7d92A2f36eAff54d04a0D7aF39D6F352b58c",
 						Metadata: metadata.ExchangeLiquidity{
@@ -2095,7 +2096,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xe4f98102",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Platform: workerx.Uniswap.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("17046000000000")),
 					Decimal: 18,
@@ -2103,7 +2104,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0x0D0f7d92A2f36eAff54d04a0D7aF39D6F352b58c",
 						To:       "0x9e5635611981425B7AcbF827516123143F1d2237",
 						Metadata: metadata.ExchangeLiquidity{
@@ -2242,7 +2243,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x5ae401dc",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Platform: workerx.Uniswap.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("183888204870909")),
 					Decimal: 18,
@@ -2250,7 +2251,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.ExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0x576ffCfbD57D9406bBeb7D9CE24751620314858f",
 						To:       "0x576ffCfbD57D9406bBeb7D9CE24751620314858f",
 						Metadata: metadata.ExchangeSwap{
@@ -2422,7 +2423,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x88316456",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Platform: workerx.Uniswap.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("612116450404240")),
 					Decimal: 18,
@@ -2430,7 +2431,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.TransactionMint,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0x0000000000000000000000000000000000000000",
 						To:       "0xB2603DBa60e997B4C3dF90B162E9c2D1aF77202C",
 						Metadata: metadata.TransactionTransfer{
@@ -2444,7 +2445,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     "0xB2603DBa60e997B4C3dF90B162E9c2D1aF77202C",
 						To:       uniswap.AddressNonfungiblePositionManagerLinea.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -2595,7 +2596,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xfc6f7865",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
+				Platform: workerx.Uniswap.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("335899046341584")),
 					Decimal: 18,
@@ -2603,7 +2604,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Platform: workerx.Uniswap.Platform(),
 						From:     uniswap.AddressNonfungiblePositionManagerLinea.String(),
 						To:       "0x97d35D3F6B7a303B8F40C7f61Ab90CAe5Bf71acB",
 						Metadata: metadata.ExchangeLiquidity{

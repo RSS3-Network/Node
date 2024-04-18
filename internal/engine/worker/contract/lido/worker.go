@@ -15,9 +15,12 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
 	"github.com/rss3-network/node/provider/ethereum/contract/lido"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -41,7 +44,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Lido.String()
+	return workerx.Lido.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.Lido.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Exchange
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 // Filter lido contract address and event hash.
@@ -79,7 +94,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default lido activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformLido))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.Lido.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -436,7 +451,7 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, block
 
 	action := activity.Action{
 		Type:     typex.ExchangeLiquidity,
-		Platform: filter.PlatformLido.String(),
+		Platform: workerx.Lido.Platform(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.ExchangeLiquidity{
@@ -470,7 +485,7 @@ func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, blo
 
 	action := activity.Action{
 		Type:     actionType,
-		Platform: filter.PlatformLido.String(),
+		Platform: workerx.Lido.Platform(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
@@ -499,7 +514,7 @@ func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, blo
 
 	action := activity.Action{
 		Type:     actionType,
-		Platform: filter.PlatformLido.String(),
+		Platform: workerx.Lido.Platform(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.CollectibleTransfer(*tokenMetadata),
@@ -525,7 +540,7 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 
 	action := activity.Action{
 		Type:     typex.ExchangeSwap,
-		Platform: filter.PlatformLido.String(),
+		Platform: workerx.Lido.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeSwap{

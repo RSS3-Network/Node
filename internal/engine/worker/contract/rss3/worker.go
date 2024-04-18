@@ -14,9 +14,12 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/rss3"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -34,7 +37,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.RSS3.String()
+	return workerx.RSS3.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.RSS3.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Exchange
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 func (w *worker) Filter() engine.SourceFilter {
@@ -73,7 +88,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	_activities, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformRSS3))
+	_activities, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.RSS3.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activities: %w", err)
 	}
@@ -285,7 +300,7 @@ func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Ta
 
 	action := activity.Action{
 		Type:     typex.ExchangeStaking,
-		Platform: filter.PlatformRSS3.String(),
+		Platform: workerx.RSS3.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeStaking{
@@ -310,7 +325,7 @@ func (w *worker) buildExchangeStakingVSLAction(ctx context.Context, task *source
 
 	action := activity.Action{
 		Type:     typex.ExchangeStaking,
-		Platform: filter.PlatformRSS3.String(),
+		Platform: workerx.RSS3.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeStaking{
@@ -333,7 +348,7 @@ func (w *worker) buildChipsMintAction(ctx context.Context, task *source.Task, fr
 
 	return &activity.Action{
 		Type:     typex.CollectibleMint,
-		Platform: filter.PlatformRSS3.String(),
+		Platform: workerx.RSS3.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.CollectibleTransfer(*tokenMetadata),

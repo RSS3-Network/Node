@@ -14,6 +14,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -156,7 +157,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x8c3152e9",
 				},
-				Platform: lo.ToPtr(filter.PlatformVSL),
+				Platform: workerx.VSL.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("5847904578748375")),
 					Decimal: 18,
@@ -164,7 +165,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: filter.PlatformVSL.String(),
+						Platform: workerx.VSL.Platform(),
 						From:     "0x30286DD245338292F319809935a1037CcD4573Ea",
 						To:       "0x30286DD245338292F319809935a1037CcD4573Ea",
 						Metadata: metadata.TransactionBridge{

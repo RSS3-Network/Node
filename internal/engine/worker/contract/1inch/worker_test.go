@@ -1897,14 +1897,12 @@ func TestWorker_Oneinch(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			_activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
-			//t.Log(string(lo.Must(json.MarshalIndent(testcase.want, "", "\x20\x20"))))
-			require.Equal(t, testcase.want, feed)
-			//require.Equal(t, string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))), string(lo.Must(json.MarshalIndent(testcase.want, "", "\x20\x20"))))
 
-			t.Log(feed)
+			//t.Log(string(lo.Must(json.MarshalIndent(_activity, "", "\x20\x20"))))
+
+			require.Equal(t, testcase.want, _activity)
 		})
 	}
 }

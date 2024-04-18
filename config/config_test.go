@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
@@ -257,7 +258,7 @@ var configFileExcept = &File{
 		Decentralized: []*Module{
 			{
 				Network:  network.Ethereum,
-				Worker:   networkFallback,
+				Worker:   workerx.Fallback,
 				Endpoint: "https://rpc.ankr.com/eth",
 				Parameters: &Parameters{
 					"block_number_start":  47370106,
@@ -266,7 +267,7 @@ var configFileExcept = &File{
 			},
 			{
 				Network:  network.Ethereum,
-				Worker:   networkRSS3,
+				Worker:   workerx.Fallback,
 				Endpoint: "https://rpc.ankr.com/eth",
 				Parameters: &Parameters{
 					"block_height_start": 123,

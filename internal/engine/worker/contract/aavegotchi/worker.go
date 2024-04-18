@@ -156,7 +156,7 @@ func (w *worker) handleERC721ListingAdd(ctx context.Context, task *source.Task, 
 
 	_activity.Type = typex.MetaverseTrade
 
-	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, typex.MetaverseTrade, metadata.ActionMetaverseTradeList, event.Seller, aavegotchi.AddressAavegotchi, event.Erc721TokenAddress, event.Erc721TokenId, nil)
+	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, metadata.ActionMetaverseTradeList, event.Seller, aavegotchi.AddressAavegotchi, event.Erc721TokenAddress, event.Erc721TokenId, nil)
 }
 
 // handleERC721ExecutedListing handles the log for executing ERC721 listing.
@@ -170,7 +170,7 @@ func (w *worker) handleERC721ExecutedListing(ctx context.Context, task *source.T
 
 	metadataType := lo.If(_activity.From == event.Buyer.String(), metadata.ActionMetaverseTradeBuy).Else(metadata.ActionMetaverseTradeSell)
 
-	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, typex.MetaverseTrade, metadataType, event.Seller, event.Buyer, event.Erc721TokenAddress, event.Erc721TokenId, nil)
+	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, metadataType, event.Seller, event.Buyer, event.Erc721TokenAddress, event.Erc721TokenId, nil)
 }
 
 // handleERC1155ListingAdd handles the log for adding ERC1155 listing.
@@ -182,7 +182,7 @@ func (w *worker) handleERC1155ListingAdd(ctx context.Context, task *source.Task,
 
 	activity.Type = typex.MetaverseTrade
 
-	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, typex.MetaverseTrade, metadata.ActionMetaverseTradeList, event.Seller, aavegotchi.AddressAavegotchi, event.Erc1155TokenAddress, event.Erc1155TypeId, big.NewInt(1))
+	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, metadata.ActionMetaverseTradeList, event.Seller, aavegotchi.AddressAavegotchi, event.Erc1155TokenAddress, event.Erc1155TypeId, big.NewInt(1))
 }
 
 // handleERC1155ExecutedListing handles the log for executing ERC1155 listing.
@@ -196,7 +196,7 @@ func (w *worker) handleERC1155ExecutedListing(ctx context.Context, task *source.
 
 	metadataType := lo.If(_activity.From == event.Buyer.String(), metadata.ActionMetaverseTradeBuy).Else(metadata.ActionMetaverseTradeSell)
 
-	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, typex.MetaverseTrade, metadataType, event.Seller, event.Buyer, event.Erc1155TokenAddress, event.Erc1155TypeId, big.NewInt(1))
+	return w.buildTradeAction(ctx, log.BlockNumber, task.ChainID, metadataType, event.Seller, event.Buyer, event.Erc1155TokenAddress, event.Erc1155TypeId, big.NewInt(1))
 }
 
 // handleERC20TransferLog handles the log for ERC20 transfer.
@@ -264,7 +264,6 @@ func (w *worker) buildTradeAction(
 	ctx context.Context,
 	blockNumber *big.Int,
 	chainID uint64,
-	actionType schema.Type,
 	metadataAction metadata.MetaverseTradeAction,
 	from, to, tokenAddress common.Address,
 	tokenID, value *big.Int,
@@ -279,7 +278,7 @@ func (w *worker) buildTradeAction(
 	})
 
 	return &activity.Action{
-		Type:     actionType,
+		Type:     typex.MetaverseTrade,
 		Platform: workerx.Aavegotchi.Platform(),
 		From:     from.String(),
 		To:       to.String(),

@@ -9,12 +9,12 @@ import (
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/momoka"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
-	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
 )
@@ -61,7 +61,7 @@ func TestWorker_Arweave(t *testing.T) {
 				From:     "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				Type:     typex.SocialPost,
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Momoka.Platform(),
 				Fee: &activity.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
@@ -71,7 +71,7 @@ func TestWorker_Arweave(t *testing.T) {
 					{
 						Type:     typex.SocialPost,
 						Tag:      tag.Social,
-						Platform: filter.PlatformLens.String(),
+						Platform: workerx.Momoka.Platform(),
 						From:     "0xa5c2A34384e38f74181756860DaA48e8C80e991A",
 						To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 						Metadata: &metadata.SocialPost{
@@ -122,7 +122,7 @@ func TestWorker_Arweave(t *testing.T) {
 				From:     "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				Type:     typex.SocialShare,
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Momoka.Platform(),
 				Fee: &activity.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
@@ -132,7 +132,7 @@ func TestWorker_Arweave(t *testing.T) {
 					{
 						Type:     typex.SocialShare,
 						Tag:      tag.Social,
-						Platform: filter.PlatformLens.String(),
+						Platform: workerx.Momoka.Platform(),
 						From:     "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
 						To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 						Metadata: &metadata.SocialPost{
@@ -183,7 +183,7 @@ func TestWorker_Arweave(t *testing.T) {
 				From:     "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				Type:     typex.SocialComment,
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Momoka.Platform(),
 				Fee: &activity.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
@@ -193,7 +193,7 @@ func TestWorker_Arweave(t *testing.T) {
 					{
 						Type:     typex.SocialComment,
 						Tag:      tag.Social,
-						Platform: filter.PlatformLens.String(),
+						Platform: workerx.Momoka.Platform(),
 						From:     "0xE6b532E63F228087e26a5897131f2e1D043e27f2",
 						To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 						Metadata: &metadata.SocialPost{
@@ -257,7 +257,7 @@ func TestWorker_Arweave(t *testing.T) {
 				From:     "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				Type:     typex.SocialPost,
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Momoka.Platform(),
 				Fee: &activity.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
@@ -267,7 +267,7 @@ func TestWorker_Arweave(t *testing.T) {
 					{
 						Type:     typex.SocialPost,
 						Tag:      tag.Social,
-						Platform: filter.PlatformLens.String(),
+						Platform: workerx.Momoka.Platform(),
 						From:     "0x05092cF69BDD435f7Ba4B8eF97c9CAecF2BA69AD",
 						To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 						Metadata: &metadata.SocialPost{
@@ -319,7 +319,7 @@ func TestWorker_Arweave(t *testing.T) {
 				From:     "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				Type:     typex.SocialShare,
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Momoka.Platform(),
 				Fee: &activity.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
@@ -329,7 +329,7 @@ func TestWorker_Arweave(t *testing.T) {
 					{
 						Type:     typex.SocialShare,
 						Tag:      tag.Social,
-						Platform: filter.PlatformLens.String(),
+						Platform: workerx.Momoka.Platform(),
 						From:     "0x5BF64f9EB3BE7b3FBDb4BBf6354aD522B5A28f94",
 						To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 						Metadata: &metadata.SocialPost{
@@ -387,7 +387,7 @@ func TestWorker_Arweave(t *testing.T) {
 				From:     "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				Type:     typex.SocialComment,
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Momoka.Platform(),
 				Fee: &activity.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
@@ -397,7 +397,7 @@ func TestWorker_Arweave(t *testing.T) {
 					{
 						Type:     typex.SocialComment,
 						Tag:      tag.Social,
-						Platform: filter.PlatformLens.String(),
+						Platform: workerx.Momoka.Platform(),
 						From:     "0xad9cC1a85e74Bd1300c57082ba86Ed21E6AAA5e8",
 						To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 						Metadata: &metadata.SocialPost{
@@ -450,7 +450,7 @@ func TestWorker_Arweave(t *testing.T) {
 				From:     "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				Type:     typex.SocialShare,
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Momoka.Platform(),
 				Fee: &activity.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
@@ -460,7 +460,7 @@ func TestWorker_Arweave(t *testing.T) {
 					{
 						Type:     typex.SocialShare,
 						Tag:      tag.Social,
-						Platform: filter.PlatformLens.String(),
+						Platform: workerx.Momoka.Platform(),
 						From:     "0x2b6091da312A3591DF6a94b24dD3c34d2B01Ca22",
 						To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 						Metadata: &metadata.SocialPost{

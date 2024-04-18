@@ -17,9 +17,12 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
 	"github.com/rss3-network/node/provider/ethereum/contract/opensea"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -41,7 +44,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.OpenSea.String()
+	return workerx.OpenSea.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.OpenSea.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Collectible
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 // Filter opensea contract address and event hash.
@@ -76,7 +91,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default opensea activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformOpenSea))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.OpenSea.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -316,7 +331,7 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 
 	action := activity.Action{
 		Type:     typex.CollectibleTrade,
-		Platform: filter.PlatformOpenSea.String(),
+		Platform: workerx.OpenSea.Platform(),
 		From:     seller.String(),
 		To:       buyer.String(),
 		Metadata: metadata.CollectibleTrade{

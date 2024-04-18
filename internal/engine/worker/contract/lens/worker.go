@@ -19,9 +19,12 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/lens"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/ipfs"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
@@ -46,7 +49,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Lens.String()
+	return workerx.Lens.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.Lens.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Social
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 // Filter lens contract address and event hash.
@@ -97,7 +112,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default lens _activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformLens))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.Lens.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -849,7 +864,7 @@ func (w *worker) buildEthereumTransactionProfileAction(_ context.Context, from c
 	return &activity.Action{
 		From:     from.String(),
 		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
-		Platform: filter.PlatformLens.String(),
+		Platform: workerx.Lens.Platform(),
 		Type:     typex.SocialProfile,
 		Metadata: profile,
 	}

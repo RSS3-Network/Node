@@ -13,9 +13,12 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/contract/savm"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -34,7 +37,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.SAVM.String()
+	return workerx.SAVM.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.SAVM.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Transaction
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 func (w *worker) Filter() engine.SourceFilter {
@@ -60,7 +75,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformSAVM))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.SAVM.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -181,7 +196,7 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 
 	action := activity.Action{
 		Type:     typex.TransactionBridge,
-		Platform: filter.PlatformSAVM.String(),
+		Platform: workerx.SAVM.Platform(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.TransactionBridge{

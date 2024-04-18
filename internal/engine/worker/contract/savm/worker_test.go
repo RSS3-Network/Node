@@ -13,6 +13,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/savm"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -136,7 +137,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x030ba25d",
 				},
-				Platform: lo.ToPtr(filter.PlatformSAVM),
+				Platform: workerx.SAVM.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("13339425000000")),
 					Decimal: 18,
@@ -144,7 +145,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: filter.PlatformSAVM.String(),
+						Platform: workerx.SAVM.Platform(),
 						From:     "0x9e5635611981425B7AcbF827516123143F1d2237",
 						To:       "0x9e5635611981425B7AcbF827516123143F1d2237",
 						Metadata: metadata.TransactionBridge{
@@ -279,7 +280,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xe43772fb",
 				},
-				Platform: lo.ToPtr(filter.PlatformSAVM),
+				Platform: workerx.SAVM.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("10878000000000")),
 					Decimal: 18,
@@ -287,7 +288,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: filter.PlatformSAVM.String(),
+						Platform: workerx.SAVM.Platform(),
 						From:     "0x9e5635611981425B7AcbF827516123143F1d2237",
 						To:       "0x9e5635611981425B7AcbF827516123143F1d2237",
 						Metadata: metadata.TransactionBridge{

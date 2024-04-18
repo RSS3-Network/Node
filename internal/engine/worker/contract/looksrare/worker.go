@@ -15,9 +15,12 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/looksrare"
 	"github.com/rss3-network/node/provider/ethereum/contract/weth"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -39,7 +42,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Looksrare.String()
+	return workerx.Looksrare.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.Looksrare.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Collectible
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 // Filter opensea contract address and event hash.
@@ -76,7 +91,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default looksrare _activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformLooksRare))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.Looksrare.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -448,7 +463,7 @@ func (w *worker) buildCollectibleTradeAction(ctx context.Context, task *source.T
 
 	return &activity.Action{
 		Type:     typex.CollectibleTrade,
-		Platform: filter.PlatformLooksRare.String(),
+		Platform: workerx.Looksrare.Platform(),
 		From:     from,
 		To:       to,
 		Metadata: tradeToken,
@@ -499,7 +514,7 @@ func (w *worker) buildRoyaltyPaymentAction(ctx context.Context, task *source.Tas
 
 	return &activity.Action{
 		Type:     typex.TransactionTransfer,
-		Platform: filter.PlatformLooksRare.String(),
+		Platform: workerx.Looksrare.Platform(),
 		From:     from.String(),
 		To:       receipt.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
@@ -550,7 +565,7 @@ func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Ta
 
 	return &activity.Action{
 		Type:     typex.TransactionTransfer,
-		Platform: filter.PlatformLooksRare.String(),
+		Platform: workerx.Looksrare.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
@@ -572,7 +587,7 @@ func (w *worker) buildV2RoyaltyFeeAction(ctx context.Context, task *source.Task,
 
 	return &activity.Action{
 		Type:     typex.TransactionTransfer,
-		Platform: filter.PlatformLooksRare.String(),
+		Platform: workerx.Looksrare.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),

@@ -53,29 +53,28 @@ func (w *Worker) UnmarshalParam(param string) error {
 
 const (
 	platform1Inch      string = "1inch"
-	platformAAVE              = "AAVE"
-	platformAavegotchi        = "Aavegotchi"
-	platformCrossbell         = "Crossbell"
-	platformCurve             = "Curve"
-	platformENS               = "ENS"
-	platformFarcaster         = "Farcaster"
-	platformHighlight         = "Highlight"
-	platformIQWiki            = "IQWiki"
-	platformKiwiStand         = "KiwiStand"
-	platformLens              = "Lens"
-	platformLido              = "Lido"
-	platformLooksRare         = "LooksRare"
-	platformMatters           = "Matters"
-	platformMirror            = "Mirror"
-	platformMomoka            = "Momoka"
-	platformOpenSea           = "OpenSea"
-	platformOptimism          = "Optimism"
-	platformParagraph         = "Paragraph"
-	platformRSS3              = "RSS3"
-	platformSAVM              = "SAVM"
-	platformStargate          = "Stargate"
-	platformUniswap           = "Uniswap"
-	platformVSL               = "VSL"
+	platformAAVE       string = "AAVE"
+	platformAavegotchi string = "Aavegotchi"
+	platformCrossbell  string = "Crossbell"
+	platformCurve      string = "Curve"
+	platformENS        string = "ENS"
+	platformFarcaster  string = "Farcaster"
+	platformHighlight  string = "Highlight"
+	platformIQWiki     string = "IQWiki"
+	platformKiwiStand  string = "KiwiStand"
+	platformLens       string = "Lens"
+	platformLido       string = "Lido"
+	platformLooksRare  string = "LooksRare"
+	platformMatters    string = "Matters"
+	platformMirror     string = "Mirror"
+	platformOpenSea    string = "OpenSea"
+	platformOptimism   string = "Optimism"
+	platformParagraph  string = "Paragraph"
+	platformRSS3       string = "RSS3"
+	platformSAVM       string = "SAVM"
+	platformStargate   string = "Stargate"
+	platformUniswap    string = "Uniswap"
+	platformVSL        string = "VSL"
 )
 
 // Platform returns the display name of the worker.
@@ -104,7 +103,7 @@ func (w Worker) Platform() string {
 	case Matters:
 		return platformMatters
 	case Momoka:
-		return platformMomoka
+		return platformLens
 	case Highlight:
 		return platformHighlight
 	case Aave:

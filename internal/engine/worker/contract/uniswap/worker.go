@@ -17,9 +17,12 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/uniswap"
 	"github.com/rss3-network/node/provider/ethereum/contract/weth"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -40,7 +43,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Uniswap.String()
+	return workerx.Uniswap.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.Uniswap.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Exchange
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 func (w *worker) Filter() engine.SourceFilter {
@@ -89,7 +104,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type %T", task)
 	}
 
-	_activity, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformUniswap))
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(workerx.Uniswap.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -884,7 +899,7 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 
 	action := activity.Action{
 		Type:     typex.ExchangeSwap,
-		Platform: filter.PlatformUniswap.String(),
+		Platform: workerx.Uniswap.Platform(),
 		From:     sender.String(),
 		To:       receipt.String(),
 		Metadata: metadata.ExchangeSwap{
@@ -961,7 +976,7 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, task *source.
 
 	action := activity.Action{
 		Type:     typex.ExchangeLiquidity,
-		Platform: filter.PlatformUniswap.String(),
+		Platform: workerx.Uniswap.Platform(),
 		From:     sender.String(),
 		To:       receipt.String(),
 		Metadata: metadata.ExchangeLiquidity{
@@ -984,7 +999,7 @@ func (w *worker) buildTransactionMintAction(ctx context.Context, task *source.Ta
 
 	action := activity.Action{
 		Type:     typex.TransactionMint,
-		Platform: filter.PlatformUniswap.String(),
+		Platform: workerx.Uniswap.Platform(),
 		From:     sender.String(),
 		To:       receipt.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
@@ -993,36 +1008,36 @@ func (w *worker) buildTransactionMintAction(ctx context.Context, task *source.Ta
 	return &action, nil
 }
 
-func (w *worker) getV3NonfungiblePositionManagerAddress(network network.Network) (common.Address, error) {
-	switch network {
+func (w *worker) getV3NonfungiblePositionManagerAddress(n network.Network) (common.Address, error) {
+	switch n {
 	case network.Ethereum:
 		return uniswap.AddressNonfungiblePositionManager, nil
 	case network.Linea:
 		return uniswap.AddressNonfungiblePositionManagerLinea, nil
 	default:
-		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", network)
+		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", n)
 	}
 }
 
-func (w *worker) getV3FactoryAddress(network network.Network) (common.Address, error) {
-	switch network {
+func (w *worker) getV3FactoryAddress(n network.Network) (common.Address, error) {
+	switch n {
 	case network.Ethereum:
 		return uniswap.AddressV3Factory, nil
 	case network.Linea:
 		return uniswap.AddressV3FactoryLinea, nil
 	default:
-		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", network)
+		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", n)
 	}
 }
 
-func (w *worker) getV2FactoryAddress(network network.Network) (common.Address, error) {
-	switch network {
+func (w *worker) getV2FactoryAddress(n network.Network) (common.Address, error) {
+	switch n {
 	case network.Ethereum:
 		return uniswap.AddressV2Factory, nil
 	case network.SatoshiVM:
 		return uniswap.AddressV2FactorySAVM, nil
 	default:
-		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", network)
+		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", n)
 	}
 }
 

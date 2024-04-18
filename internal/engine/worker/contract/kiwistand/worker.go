@@ -13,9 +13,12 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/kiwistand"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -33,7 +36,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.KiwiStand.String()
+	return workerx.KiwiStand.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.KiwiStand.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Social
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 // Filter kiwistand contract address and event hash.
@@ -63,7 +78,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default kiwistand activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(filter.PlatformKiwiStand))
+	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(workerx.KiwiStand.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build activity: %w", err)
 	}
@@ -239,7 +254,7 @@ func (w *worker) buildKiwiMintAction(ctx context.Context, task *source.Task, fro
 
 	return &activity.Action{
 		Type:     typex.CollectibleMint,
-		Platform: filter.PlatformKiwiStand.String(),
+		Platform: workerx.KiwiStand.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.CollectibleTransfer(*tokenMetadata),
@@ -251,7 +266,7 @@ func (w *worker) buildKiwiMintCommentAction(_ context.Context, from common.Addre
 	return &activity.Action{
 		From:     from.String(),
 		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
-		Platform: filter.PlatformKiwiStand.String(),
+		Platform: workerx.KiwiStand.Platform(),
 		Type:     typex.SocialMint,
 		Metadata: &metadata.SocialPost{
 			Title: comment,
@@ -271,7 +286,7 @@ func (w *worker) buildKiwiFeeAction(ctx context.Context, task *source.Task, from
 
 	return &activity.Action{
 		Type:     typex.TransactionTransfer,
-		Platform: filter.PlatformKiwiStand.String(),
+		Platform: workerx.KiwiStand.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),

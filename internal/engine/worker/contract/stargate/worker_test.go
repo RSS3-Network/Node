@@ -14,9 +14,11 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/layerzero"
 	"github.com/rss3-network/node/provider/ethereum/contract/stargate"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -33,14 +35,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activity.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Deposit ETH from Ethereum Arbitrum One to Ethereum Base on Ethereum Arbitrum",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkArbitrum,
+					Network: network.Arbitrum,
 					ChainID: 42161,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x5958fe64312e0751d5036731682b1ae518f7236efa7608cb73bae6e48cfc88cf"),
@@ -186,28 +188,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkArbitrum,
-					Endpoint: endpoint.MustGet(filter.NetworkArbitrum),
+					Network:  network.Arbitrum,
+					Endpoint: endpoint.MustGet(network.Arbitrum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x9c14874078e6c92eefe807d1b8595ba05295a6a1d5abaa2634ca286e8409b61d",
-				Network: filter.NetworkArbitrum,
+				Network: network.Arbitrum,
 				Index:   2,
 				From:    "0x32C8e4D2Cb2642A29bC06115336AC96Bf0160485",
 				To:      stargate.AddressRouterETHArbitrumOne.String(),
-				Type:    filter.TypeTransactionBridge,
-				Calldata: &schema.Calldata{
+				Type:    typex.TransactionBridge,
+				Calldata: &activity.Calldata{
 					FunctionHash: "0x1114cd2a",
 				},
-				Platform: lo.ToPtr(filter.PlatformStargate),
-				Fee: &schema.Fee{
+				Platform: workerx.Stargate.Platform(),
+				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("70294600000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activity.Action{
 					{
-						Type: filter.TypeTransactionTransfer,
+						Type: typex.TransactionTransfer,
 						From: "0x32C8e4D2Cb2642A29bC06115336AC96Bf0160485",
 						To:   layerzero.AddressUltraLightNodeArbitrumOne.String(),
 						Metadata: metadata.TransactionTransfer{
@@ -218,7 +220,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type: filter.TypeTransactionTransfer,
+						Type: typex.TransactionTransfer,
 						From: "0x32C8e4D2Cb2642A29bC06115336AC96Bf0160485",
 						To:   "0x915A55e36A01285A14f05dE6e81ED9cE89772f8e",
 						Metadata: metadata.TransactionTransfer{
@@ -229,14 +231,14 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformStargate.String(),
+						Type:     typex.TransactionBridge,
+						Platform: workerx.Stargate.Platform(),
 						From:     "0x32C8e4D2Cb2642A29bC06115336AC96Bf0160485",
 						To:       "0x32C8e4D2Cb2642A29bC06115336AC96Bf0160485",
 						Metadata: metadata.TransactionBridge{
 							Action:        metadata.ActionTransactionBridgeDeposit,
-							SourceNetwork: filter.NetworkArbitrum,
-							TargetNetwork: filter.NetworkBase,
+							SourceNetwork: network.Arbitrum,
+							TargetNetwork: network.Base,
 							Token: metadata.Token{
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("15090940000000000000"))),
 								Name:     "Ethereum",
@@ -255,7 +257,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Withdrawal ETH from Ethereum Optimism to Ethereum Avalanche on Ethereum Optimism",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkOptimism,
+					Network: network.Optimism,
 					ChainID: 10,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x86968212025a81726ea274c5ce80e7c4ced9d76daa62802888c59df21861e27d"),
@@ -343,35 +345,35 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkOptimism,
-					Endpoint: endpoint.MustGet(filter.NetworkOptimism),
+					Network:  network.Optimism,
+					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x1ee6eca8ad26a8240e2b83352cb5e642636359aa0bd82a88ce72aba7a988305c",
-				Network: filter.NetworkOptimism,
+				Network: network.Optimism,
 				Index:   1,
 				From:    "0xe93685f3bBA03016F02bD1828BaDD6195988D950",
 				To:      layerzero.AddressRelayerOptimism.String(),
-				Type:    filter.TypeTransactionBridge,
-				Calldata: &schema.Calldata{
+				Type:    typex.TransactionBridge,
+				Calldata: &activity.Calldata{
 					FunctionHash: "0x252f7b01",
 				},
-				Platform: lo.ToPtr(filter.PlatformStargate),
-				Fee: &schema.Fee{
+				Platform: workerx.Stargate.Platform(),
+				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("65275689948467")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activity.Action{
 					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformStargate.String(),
+						Type:     typex.TransactionBridge,
+						Platform: workerx.Stargate.Platform(),
 						From:     "0xd22363e3762cA7339569F3d33EADe20127D5F98C",
 						To:       "0x66d4f4A4A743A6136D32d4c93eA03e839A62Dad7",
 						Metadata: metadata.TransactionBridge{
 							Action:        metadata.ActionTransactionBridgeWithdraw,
-							SourceNetwork: filter.NetworkArbitrum,
-							TargetNetwork: filter.NetworkOptimism,
+							SourceNetwork: network.Arbitrum,
+							TargetNetwork: network.Optimism,
 							Token: metadata.Token{
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("299452683069668249"))),
 								Name:     "Ethereum",
@@ -390,7 +392,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Deposit USDC from Ethereum Optimism to Ethereum Avalanche on Ethereum Optimism",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkOptimism,
+					Network: network.Optimism,
 					ChainID: 10,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x166fff874bf97a5f1fb8add7b06eb78affcb528e9772965101eb2aa36ef3cad3"),
@@ -528,28 +530,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkOptimism,
-					Endpoint: endpoint.MustGet(filter.NetworkOptimism),
+					Network:  network.Optimism,
+					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xa445b44b0d5da6487ff45c951fd3ec1a23c8802f41c53d95203cd8b6658e6e40",
-				Network: filter.NetworkOptimism,
+				Network: network.Optimism,
 				Index:   6,
 				From:    "0xA9fdDD748b21898C7E26E05ad895760FDd2723Bd",
 				To:      stargate.AddressRouterOptimism.String(),
-				Type:    filter.TypeTransactionBridge,
-				Calldata: &schema.Calldata{
+				Type:    typex.TransactionBridge,
+				Calldata: &activity.Calldata{
 					FunctionHash: "0x9fbf10fc",
 				},
-				Platform: lo.ToPtr(filter.PlatformStargate),
-				Fee: &schema.Fee{
+				Platform: workerx.Stargate.Platform(),
+				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("33002802845661")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activity.Action{
 					{
-						Type: filter.TypeTransactionTransfer,
+						Type: typex.TransactionTransfer,
 						From: "0xA9fdDD748b21898C7E26E05ad895760FDd2723Bd",
 						To:   layerzero.AddressUltraLightNodeArbitrumOne.String(),
 						Metadata: metadata.TransactionTransfer{
@@ -560,7 +562,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type: filter.TypeTransactionTransfer,
+						Type: typex.TransactionTransfer,
 						From: "0xA9fdDD748b21898C7E26E05ad895760FDd2723Bd",
 						To:   "0xDecC0c09c3B5f6e92EF4184125D5648a66E35298",
 						Metadata: metadata.TransactionTransfer{
@@ -573,14 +575,14 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformStargate.String(),
+						Type:     typex.TransactionBridge,
+						Platform: workerx.Stargate.Platform(),
 						From:     "0xA9fdDD748b21898C7E26E05ad895760FDd2723Bd",
 						To:       "0xA9fdDD748b21898C7E26E05ad895760FDd2723Bd",
 						Metadata: metadata.TransactionBridge{
 							Action:        metadata.ActionTransactionBridgeDeposit,
-							SourceNetwork: filter.NetworkOptimism,
-							TargetNetwork: filter.NetworkAvalanche,
+							SourceNetwork: network.Optimism,
+							TargetNetwork: network.Avalanche,
 							Token: metadata.Token{
 								Address:  lo.ToPtr("0x7F5c764cBc14f9669B88837ca1490cCa17c31607"),
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("2828169009"))),
@@ -601,7 +603,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Withdrawal USDT from Ethereum Arbitrum One to Ethereum Polygon on Ethereum Polygon",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x1105e484b0308c1ffb3ed86adf3a3895cf36189aadb177a34bcd74c800d61915"),
@@ -699,35 +701,35 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0xd0793bf3462b2764afdefb71716543bcded109439457e65fa848e81d04e4079b",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   18,
 				From:    "0xe93685f3bBA03016F02bD1828BaDD6195988D950",
 				To:      layerzero.AddressRelayerPolygon.String(),
-				Type:    filter.TypeTransactionBridge,
-				Calldata: &schema.Calldata{
+				Type:    typex.TransactionBridge,
+				Calldata: &activity.Calldata{
 					FunctionHash: "0x252f7b01",
 				},
-				Platform: lo.ToPtr(filter.PlatformStargate),
-				Fee: &schema.Fee{
+				Platform: workerx.Stargate.Platform(),
+				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("11249158762384833")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activity.Action{
 					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformStargate.String(),
+						Type:     typex.TransactionBridge,
+						Platform: workerx.Stargate.Platform(),
 						From:     "0x29e38769f23701A2e4A8Ef0492e19dA4604Be62c",
 						To:       "0x536ef5EBB4682981babBAfA29B93E43CA5b28511",
 						Metadata: metadata.TransactionBridge{
 							Action:        metadata.ActionTransactionBridgeWithdraw,
-							SourceNetwork: filter.NetworkArbitrum,
-							TargetNetwork: filter.NetworkPolygon,
+							SourceNetwork: network.Arbitrum,
+							TargetNetwork: network.Polygon,
 							Token: metadata.Token{
 								Address:  lo.ToPtr("0xc2132D05D31c914a87C6611C10748AEb04B58e8F"),
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("114036227"))),
@@ -748,7 +750,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Deposit ETH from Ethereum Linea to Ethereum Base on Ethereum Linea",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkLinea,
+					Network: network.Linea,
 					ChainID: 59144,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x61463d9c64f9f0cf57bb58e9e4f09627070ce61a15a55cc1edce5df69c370539"),
@@ -894,28 +896,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkLinea,
-					Endpoint: endpoint.MustGet(filter.NetworkLinea),
+					Network:  network.Linea,
+					Endpoint: endpoint.MustGet(network.Linea),
 				},
 			},
-			want: &schema.Feed{
+			want: &activity.Activity{
 				ID:      "0x717dd473abb35804f76ddb3b74f395d7e6fe8d09959eb346b6420001735f5e9d",
-				Network: filter.NetworkLinea,
+				Network: network.Linea,
 				Index:   74,
 				From:    "0xD7f9e3e2A28b7D0f0a534511f2a4cAFA7e517a6c",
 				To:      "0x8731d54E9D02c286767d56ac03e8037C07e01e98",
-				Type:    filter.TypeTransactionBridge,
-				Calldata: &schema.Calldata{
+				Type:    typex.TransactionBridge,
+				Calldata: &activity.Calldata{
 					FunctionHash: "0x1114cd2a",
 				},
-				Platform: lo.ToPtr(filter.PlatformStargate),
-				Fee: &schema.Fee{
+				Platform: workerx.Stargate.Platform(),
+				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("289542353189595")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activity.Action{
 					{
-						Type: filter.TypeTransactionTransfer,
+						Type: typex.TransactionTransfer,
 						From: "0xD7f9e3e2A28b7D0f0a534511f2a4cAFA7e517a6c",
 						To:   "0x38dE71124f7a447a01D67945a51eDcE9FF491251",
 						Metadata: metadata.TransactionTransfer{
@@ -926,7 +928,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type: filter.TypeTransactionTransfer,
+						Type: typex.TransactionTransfer,
 						From: "0xD7f9e3e2A28b7D0f0a534511f2a4cAFA7e517a6c",
 						To:   "0xAad094F6A75A14417d39f04E690fC216f080A41a",
 						Metadata: metadata.TransactionTransfer{
@@ -937,14 +939,14 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformStargate.String(),
+						Type:     typex.TransactionBridge,
+						Platform: workerx.Stargate.Platform(),
 						From:     "0xD7f9e3e2A28b7D0f0a534511f2a4cAFA7e517a6c",
 						To:       "0xD7f9e3e2A28b7D0f0a534511f2a4cAFA7e517a6c",
 						Metadata: metadata.TransactionBridge{
 							Action:        metadata.ActionTransactionBridgeDeposit,
-							SourceNetwork: filter.NetworkLinea,
-							TargetNetwork: filter.NetworkBase,
+							SourceNetwork: network.Linea,
+							TargetNetwork: network.Base,
 							Token: metadata.Token{
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("27975579880686228"))),
 								Name:     "Ethereum",
@@ -976,12 +978,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			_activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			//t.Log(string(lo.Must(json.MarshalIndent(_activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, _activity)
 		})
 	}
 }

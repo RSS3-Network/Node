@@ -19,6 +19,8 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/ipfs"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -44,7 +46,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Matters.String()
+	return workerx.Matters.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.Matters.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Social
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 // Filter returns a filter for source.
@@ -72,7 +86,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the _activity.
-	_activity, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformMatters))
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(workerx.Matters.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -219,7 +233,7 @@ func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Ta
 	return &activity.Action{
 		Type:     typex.SocialReward,
 		Tag:      tag.Social,
-		Platform: filter.PlatformMatters.String(),
+		Platform: workerx.Matters.Platform(),
 		From:     trigger.String(),
 		To:       recipient.String(),
 		Metadata: &metadata.SocialPost{

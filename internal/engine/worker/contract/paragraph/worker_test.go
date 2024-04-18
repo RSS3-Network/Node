@@ -8,12 +8,12 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/paragraph"
 	"github.com/rss3-network/node/provider/arweave"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
-	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
 )
@@ -70,7 +70,7 @@ func TestWorker_Arweave(t *testing.T) {
 				From:     "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
 				To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
 				Type:     typex.SocialPost,
-				Platform: lo.ToPtr(filter.PlatformParagraph),
+				Platform: workerx.Paragraph.Platform(),
 				Fee: &activity.Fee{
 					Amount:  decimal.NewFromInt(212017846),
 					Decimal: 12,
@@ -79,7 +79,7 @@ func TestWorker_Arweave(t *testing.T) {
 					{
 						Type:     typex.SocialPost,
 						Tag:      tag.Social,
-						Platform: filter.PlatformParagraph.String(),
+						Platform: workerx.Paragraph.Platform(),
 						From:     "0x542E4C3b4a1DCE0A1Eca7BbC14754A867d61878A",
 						To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
 						Metadata: &metadata.SocialPost{
@@ -143,7 +143,7 @@ func TestWorker_Arweave(t *testing.T) {
 				From:     "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
 				To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
 				Type:     typex.SocialRevise,
-				Platform: lo.ToPtr(filter.PlatformParagraph),
+				Platform: workerx.Paragraph.Platform(),
 				Fee: &activity.Fee{
 					Amount:  decimal.NewFromInt(212017846),
 					Decimal: 12,
@@ -153,7 +153,7 @@ func TestWorker_Arweave(t *testing.T) {
 					{
 						Type:     typex.SocialRevise,
 						Tag:      tag.Social,
-						Platform: filter.PlatformParagraph.String(),
+						Platform: workerx.Paragraph.Platform(),
 						From:     "0x542E4C3b4a1DCE0A1Eca7BbC14754A867d61878A",
 						To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
 						Metadata: &metadata.SocialPost{

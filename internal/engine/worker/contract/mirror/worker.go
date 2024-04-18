@@ -13,6 +13,8 @@ import (
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/arweave/contract/mirror"
 	"github.com/rss3-network/node/provider/ipfs"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -33,7 +35,19 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Mirror.String()
+	return workerx.Mirror.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.Mirror.Platform()
+}
+
+func (w *worker) Tag() tag.Tag {
+	return tag.Social
+}
+
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 // Filter returns a filter for source.
@@ -68,7 +82,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build the _activity.
-	_activity, err := task.BuildActivity(activity.WithActivityPlatform(filter.PlatformMirror))
+	_activity, err := task.BuildActivity(activity.WithActivityPlatform(workerx.Mirror.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activity: %w", err)
 	}
@@ -236,7 +250,7 @@ func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, m
 	action := activity.Action{
 		Type:     filterType,
 		Tag:      tag.Social,
-		Platform: filter.PlatformMirror.String(),
+		Platform: workerx.Mirror.Platform(),
 		From:     from,
 		To:       to,
 		Metadata: mirrorMetadata,

@@ -12,6 +12,7 @@ import (
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/lens"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -119,7 +120,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x963ff141",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Lens.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("40795434750675024")),
 					Decimal: 18,
@@ -235,7 +236,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xb6f32d2b",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Lens.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("52156851468844922")),
 					Decimal: 18,
@@ -360,7 +361,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x2faeed81",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Lens.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("25285808266500040")),
 					Decimal: 18,
@@ -585,7 +586,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x9d6f320e",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Lens.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("127717034497094740")),
 					Decimal: 18,
@@ -710,7 +711,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x07e5f948",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Lens.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("53279683988343285")),
 					Decimal: 18,
@@ -817,7 +818,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xefe4fd83",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Lens.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("110349206349525")),
 					Decimal: 18,
@@ -925,7 +926,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x054871b8",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Lens.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("19454746000332000")),
 					Decimal: 18,
@@ -1032,7 +1033,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x66b0dcd3",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Lens.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("106713627373642400")),
 					Decimal: 18,
@@ -1160,7 +1161,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xb42df51a",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Lens.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("21954343382105066")),
 					Decimal: 18,
@@ -1283,7 +1284,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xf90604d1",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Lens.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("37917421212415536")),
 					Decimal: 18,
@@ -1417,7 +1418,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x65f29f27",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Lens.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("69993292024218310")),
 					Decimal: 18,
@@ -1603,7 +1604,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xa4d3f52e",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Lens.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("78518953728556440")),
 					Decimal: 18,
@@ -1851,7 +1852,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0x50d425f9",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Lens.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("92872457939322314")),
 					Decimal: 18,
@@ -1958,7 +1959,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activity.Calldata{
 					FunctionHash: "0xefe4fd83",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
+				Platform: workerx.Lens.Platform(),
 				Fee: &activity.Fee{
 					Amount:  lo.Must(decimal.NewFromString("5715043291913934")),
 					Decimal: 18,

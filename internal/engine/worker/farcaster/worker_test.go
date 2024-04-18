@@ -10,11 +10,11 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/farcaster"
 	worker "github.com/rss3-network/node/internal/engine/worker/farcaster"
 	message "github.com/rss3-network/node/provider/farcaster"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
-	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )
 
@@ -79,11 +79,11 @@ func TestWorker(t *testing.T) {
 				To:       common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				Type:     typex.SocialPost,
 				Status:   true,
-				Platform: lo.ToPtr(filter.PlatformFarcaster),
+				Platform: workerx.Farcaster.Platform(),
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialPost,
-						Platform: filter.PlatformFarcaster.String(),
+						Platform: workerx.Farcaster.Platform(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						Metadata: metadata.SocialPost{
@@ -180,12 +180,12 @@ func TestWorker(t *testing.T) {
 				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				To:       common.HexToAddress("0xe25228a6525A2090be824d66Bdf6DB8836eCc90C").String(),
 				Type:     typex.SocialComment,
-				Platform: lo.ToPtr(filter.PlatformFarcaster),
+				Platform: workerx.Farcaster.Platform(),
 				Status:   true,
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialComment,
-						Platform: filter.PlatformFarcaster.String(),
+						Platform: workerx.Farcaster.Platform(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x827431510a5D249cE4fdB7F00C83a3353F471848").String(),
 						Metadata: metadata.SocialPost{
@@ -283,11 +283,11 @@ func TestWorker(t *testing.T) {
 				To:       common.HexToAddress("0xe25228a6525A2090be824d66Bdf6DB8836eCc90C").String(),
 				Type:     typex.SocialShare,
 				Status:   true,
-				Platform: lo.ToPtr(filter.PlatformFarcaster),
+				Platform: workerx.Farcaster.Platform(),
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialShare,
-						Platform: filter.PlatformFarcaster.String(),
+						Platform: workerx.Farcaster.Platform(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x827431510a5D249cE4fdB7F00C83a3353F471848").String(),
 						Metadata: metadata.SocialPost{
@@ -384,11 +384,11 @@ func TestWorker(t *testing.T) {
 				To:       common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				Type:     typex.SocialShare,
 				Status:   true,
-				Platform: lo.ToPtr(filter.PlatformFarcaster),
+				Platform: workerx.Farcaster.Platform(),
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialShare,
-						Platform: filter.PlatformFarcaster.String(),
+						Platform: workerx.Farcaster.Platform(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						Metadata: metadata.SocialPost{

@@ -13,6 +13,7 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/mirror"
 	"github.com/rss3-network/node/provider/arweave"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -69,7 +70,7 @@ func TestWorker_Arweave(t *testing.T) {
 				From:     "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 				To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 				Type:     typex.SocialPost,
-				Platform: lo.ToPtr(filter.PlatformMirror),
+				Platform: workerx.Mirror.Platform(),
 				Fee: &activity.Fee{
 					Amount:  decimal.NewFromInt(27798031),
 					Decimal: 12,
@@ -78,7 +79,7 @@ func TestWorker_Arweave(t *testing.T) {
 					{
 						Type:     typex.SocialPost,
 						Tag:      tag.Social,
-						Platform: filter.PlatformMirror.String(),
+						Platform: workerx.Mirror.Platform(),
 						From:     "0x4C0a466DF0628FE8699051b3Ac6506653191cc21",
 						To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 						Metadata: &metadata.SocialPost{
@@ -130,7 +131,7 @@ func TestWorker_Arweave(t *testing.T) {
 				From:     "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 				To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 				Type:     typex.SocialRevise,
-				Platform: lo.ToPtr(filter.PlatformMirror),
+				Platform: workerx.Mirror.Platform(),
 				Fee: &activity.Fee{
 					Amount:  decimal.NewFromInt(17827441),
 					Decimal: 12,
@@ -140,7 +141,7 @@ func TestWorker_Arweave(t *testing.T) {
 					{
 						Type:     typex.SocialRevise,
 						Tag:      tag.Social,
-						Platform: filter.PlatformMirror.String(),
+						Platform: workerx.Mirror.Platform(),
 						From:     "0x31b4C292b4639a32A0aCA72B0451499B464c58cb",
 						To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 						Metadata: &metadata.SocialPost{

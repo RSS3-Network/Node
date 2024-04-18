@@ -57,7 +57,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return workerx.Crossbell.Platform()
+	return workerx.Crossbell.String()
 }
 
 func (w *worker) Platform() string {

@@ -41,8 +41,8 @@ func (w *worker) Tag() tag.Tag {
 	return tag.Social
 }
 
-func (w *worker) Types() interface{} {
-	return typex.SocialTypeValues()
+func (w *worker) Types() []*schema.Type {
+	panic("implement me")
 }
 
 // Filter returns a source filter.

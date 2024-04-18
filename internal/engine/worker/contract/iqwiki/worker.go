@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema"
 	"io"
 
 	"github.com/Khan/genqlient/graphql"
@@ -16,6 +14,8 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/iqwiki"
 	"github.com/rss3-network/node/provider/ipfs"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
