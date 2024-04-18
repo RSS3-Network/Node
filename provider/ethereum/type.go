@@ -227,20 +227,20 @@ type Filter struct {
 
 func formatFilter(filter Filter) map[string]any {
 	result := map[string]interface{}{
-		"address": networkAddresses,
-		"topics":  networkTopics,
+		"address": filter.Addresses,
+		"topics":  filter.Topics,
 	}
 
-	if networkBlockHash == nil {
-		if networkFromBlock == nil {
+	if filter.BlockHash == nil {
+		if filter.FromBlock == nil {
 			result["fromBlock"] = "0x0"
 		} else {
-			result["fromBlock"] = formatBlockNumber(networkFromBlock)
+			result["fromBlock"] = formatBlockNumber(filter.FromBlock)
 		}
 
-		result["toBlock"] = formatBlockNumber(networkToBlock)
+		result["toBlock"] = formatBlockNumber(filter.ToBlock)
 	} else {
-		result["blockHash"] = *networkBlockHash
+		result["blockHash"] = *filter.BlockHash
 	}
 
 	return result

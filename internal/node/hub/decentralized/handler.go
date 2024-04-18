@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/rss3-network/protocol-go/schema/"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"

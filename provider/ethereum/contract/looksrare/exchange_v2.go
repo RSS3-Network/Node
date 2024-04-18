@@ -369,14 +369,14 @@ func (_ExchangeV2 *ExchangeV2Caller) ChainId(opts *bind.CallOpts) (*big.Int, err
 //
 // Solidity: function chainId() view returns(uint256)
 func (_ExchangeV2 *ExchangeV2Session) ChainId() (*big.Int, error) {
-	return _ExchangeV2.Contract.EthereumChainID(&_ExchangeV2.CallOpts)
+	return _ExchangeV2.Contract.ChainId(&_ExchangeV2.CallOpts)
 }
 
 // ChainId is a free data retrieval call binding the contract method 0x9a8a0592.
 //
 // Solidity: function chainId() view returns(uint256)
 func (_ExchangeV2 *ExchangeV2CallerSession) ChainId() (*big.Int, error) {
-	return _ExchangeV2.Contract.EthereumChainID(&_ExchangeV2.CallOpts)
+	return _ExchangeV2.Contract.ChainId(&_ExchangeV2.CallOpts)
 }
 
 // CreatorFeeManager is a free data retrieval call binding the contract method 0x838b8f5c.

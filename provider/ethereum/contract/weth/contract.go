@@ -3,6 +3,7 @@ package weth
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/provider/ethereum/contract"
+	"github.com/rss3-network/protocol-go/schema/network"
 )
 
 // WETH9 https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
