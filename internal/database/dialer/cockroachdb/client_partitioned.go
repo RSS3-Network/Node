@@ -13,6 +13,7 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/samber/lo"
+	"github.com/sourcegraph/conc/pool"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
@@ -272,17 +273,22 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activ
 		return value
 	})
 
-	// #nosec
-	chunk := lo.Chunk(conditions, math.MaxUint8)
+	errorPool := pool.New().WithContext(ctx).WithMaxGoroutines(10).WithCancelOnError().WithFirstError()
 
-	for _, conditions := range chunk {
-		if err := c.database.WithContext(ctx).
-			Table(indexes[0].PartitionName()).
-			Where("(id, network) IN (?)", conditions).
-			Delete(&table.Indexes{}).
-			Error; err != nil {
-			return fmt.Errorf("delete indexes: %w", err)
-		}
+	for _, condition := range lo.Chunk(conditions, math.MaxUint8) {
+		condition := condition
+
+		errorPool.Go(func(ctx context.Context) error {
+			return c.database.WithContext(ctx).
+				Table(indexes[0].PartitionName()).
+				Where("(id, network) IN (?)", condition).
+				Delete(&table.Index{}).
+				Error
+		})
+	}
+
+	if err := errorPool.Wait(); err != nil {
+		return fmt.Errorf("failed to delete indexes: %w", err)
 	}
 
 	// Save indexes.
@@ -301,12 +307,25 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activ
 		UpdateAll: true,
 	}
 
-	// #nosec
-	return c.database.WithContext(ctx).
-		Table(indexes[0].PartitionName()).
-		Clauses(onConflict).
-		CreateInBatches(indexes, math.MaxUint8).
-		Error
+	errorPool = pool.New().WithContext(ctx).WithMaxGoroutines(10).WithCancelOnError().WithFirstError()
+
+	for _, index := range lo.Chunk(indexes, math.MaxUint8) {
+		index := index
+
+		errorPool.Go(func(ctx context.Context) error {
+			return c.database.WithContext(ctx).
+				Table(indexes[0].PartitionName()).
+				Clauses(onConflict).
+				Create(index).
+				Error
+		})
+	}
+
+	if err := errorPool.Wait(); err != nil {
+		return fmt.Errorf("failed to save indexes: %w", err)
+	}
+
+	return nil
 }
 
 // findIndexPartitioned finds an activity  by id.
