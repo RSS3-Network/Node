@@ -8,7 +8,7 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
 	worker "github.com/rss3-network/node/internal/engine/worker/fallback/arweave"
 	"github.com/rss3-network/node/provider/arweave"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
@@ -28,7 +28,7 @@ func TestWorker_Arweave(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *activity.Activity
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
@@ -48,18 +48,18 @@ func TestWorker_Arweave(t *testing.T) {
 					},
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "mQFakpEtbvv8eAjxmWYLcIO8QJJP2ZFYOhP1imDcnuY",
 				Network: network.Arweave,
 				Index:   0,
 				From:    "JaUubKRNhJP9i1iDFt-n_s0zzqV97x8d_7ex3ZZv3CE",
 				To:      "4u5gMvlfVhkn_atzuagjO92H_xJLtVNjucSfEYBrL0E",
 				Type:    typex.TransactionTransfer,
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  decimal.NewFromInt(3847185),
 					Decimal: 12,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type: typex.TransactionTransfer,
 						From: "JaUubKRNhJP9i1iDFt-n_s0zzqV97x8d_7ex3ZZv3CE",

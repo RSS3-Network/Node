@@ -32,9 +32,9 @@ var command = &cobra.Command{
 			task engine.Task
 			tmpl = template.New("")
 
-			source    = network.Source(lo.Must(cmd.PersistentFlags().GetString("source")))
-			endpoint  = lo.Must(cmd.PersistentFlags().GetString("endpoint"))
-			_activity = lo.Must(cmd.PersistentFlags().GetString("activity"))
+			source   = network.Source(lo.Must(cmd.PersistentFlags().GetString("source")))
+			endpoint = lo.Must(cmd.PersistentFlags().GetString("endpoint"))
+			activity = lo.Must(cmd.PersistentFlags().GetString("activity"))
 		)
 
 		switch source {
@@ -73,7 +73,7 @@ var command = &cobra.Command{
 				return fmt.Errorf("get _network: %w", err)
 			}
 
-			transaction, err := ethereumClient.TransactionByHash(cmd.Context(), common.HexToHash(_activity))
+			transaction, err := ethereumClient.TransactionByHash(cmd.Context(), common.HexToHash(activity))
 			if err != nil {
 				return fmt.Errorf("get transacion by hash: %w", err)
 			}

@@ -11,7 +11,7 @@ import (
 	"github.com/rss3-network/node/provider/arweave"
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -53,17 +53,17 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 }
 
 // Transform returns an activity  with the action of the task.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build the _activity.
-	_activity, err := task.BuildActivity()
+	// Build the activity.
+	activity, err := task.BuildActivity()
 	if err != nil {
-		return nil, fmt.Errorf("build _activity: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	// If the task is a native transfer transaction, handle it.
@@ -74,11 +74,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, fmt.Errorf("handle native transfer transaction: %w", err)
 		}
 
-		_activity.Type = action.Type
-		_activity.Actions = append(_activity.Actions, action)
+		activity.Type = action.Type
+		activity.Actions = append(activity.Actions, action)
 	}
 
-	return _activity, nil
+	return activity, nil
 }
 
 // matchArweaveNativeTransferTransaction returns true if the transaction is a native transfer transaction.
@@ -94,7 +94,7 @@ func (w *worker) matchArweaveNativeTransferTransaction(task *source.Task) bool {
 }
 
 // handleArweaveNativeTransferTransaction returns the action of the native transfer transaction.
-func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, task *source.Task) (*activity.Action, error) {
+func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, task *source.Task) (*activityx.Action, error) {
 	value, ok := new(big.Int).SetString(task.Transaction.Quantity, 10)
 	if !ok {
 		return nil, fmt.Errorf("parse transaction quantity %s", task.Transaction.Quantity)
@@ -111,8 +111,8 @@ func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, tas
 }
 
 // buildArweaveTransactionTransferAction returns the native transfer transaction action.
-func (w *worker) buildArweaveTransactionTransferAction(_ context.Context, from, to string, tokenValue *big.Int) (*activity.Action, error) {
-	action := activity.Action{
+func (w *worker) buildArweaveTransactionTransferAction(_ context.Context, from, to string, tokenValue *big.Int) (*activityx.Action, error) {
+	action := activityx.Action{
 		Type: typex.TransactionTransfer,
 		From: from,
 		To:   to,

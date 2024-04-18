@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/ethereum"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/shopspring/decimal"
@@ -44,7 +44,7 @@ func (t Task) Validate() error {
 	return nil
 }
 
-func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, error) {
+func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, error) {
 	var to, from common.Address
 
 	if t.Transaction.To == nil {
@@ -75,33 +75,33 @@ func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, err
 		functionHash = hexutil.Encode(functionHashBytes)
 	}
 
-	_activity := activity.Activity{
+	activity := activityx.Activity{
 		ID:      t.Transaction.Hash.String(),
 		Network: t.Network,
 		Index:   t.Receipt.TransactionIndex,
 		From:    from.String(),
 		To:      to.String(),
 		Type:    typex.Unknown,
-		Fee: &activity.Fee{
+		Fee: &activityx.Fee{
 			Amount:  decimal.NewFromBigInt(feeAmount, 0),
 			Decimal: defaultFeeDecimal,
 		},
-		Calldata: &activity.Calldata{
+		Calldata: &activityx.Calldata{
 			FunctionHash: functionHash,
 		},
-		Actions:   make([]*activity.Action, 0),
+		Actions:   make([]*activityx.Action, 0),
 		Status:    t.Receipt.Status == types.ReceiptStatusSuccessful,
 		Timestamp: t.Header.Timestamp,
 	}
 
-	// Apply _activity options.
+	// Apply activity options.
 	for _, option := range options {
-		if err := option(&_activity); err != nil {
+		if err := option(&activity); err != nil {
 			return nil, fmt.Errorf("apply option: %w", err)
 		}
 	}
 
-	return &_activity, nil
+	return &activity, nil
 }
 
 func (t Task) buildFee() (*big.Int, error) {

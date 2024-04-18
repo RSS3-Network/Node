@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -43,44 +43,44 @@ func (f *Activity) TableName() string {
 	return "activities"
 }
 
-func (f *Activity) PartitionName(_activity *activity.Activity) string {
-	if _activity != nil {
-		f.Timestamp = time.Unix(int64(_activity.Timestamp), 0)
-		f.Network = _activity.Network
+func (f *Activity) PartitionName(activity *activityx.Activity) string {
+	if activity != nil {
+		f.Timestamp = time.Unix(int64(activity.Timestamp), 0)
+		f.Network = activity.Network
 	}
 
 	return fmt.Sprintf("%s_%s_%d_q%d", f.TableName(), f.Network,
 		f.Timestamp.Year(), int(math.Ceil(float64(f.Timestamp.Month())/3)))
 }
 
-func (f *Activity) Import(_activity *activity.Activity) error {
-	f.ID = _activity.ID
-	f.Network = _activity.Network
-	f.Platform = _activity.Platform
-	f.Index = _activity.Index
-	f.From = _activity.From
-	f.To = _activity.To
-	f.Tag = _activity.Type.Tag()
-	f.Type = _activity.Type.Name()
-	f.Status = _activity.Status
-	f.TotalActions = uint(len(_activity.Actions))
+func (f *Activity) Import(activity *activityx.Activity) error {
+	f.ID = activity.ID
+	f.Network = activity.Network
+	f.Platform = activity.Platform
+	f.Index = activity.Index
+	f.From = activity.From
+	f.To = activity.To
+	f.Tag = activity.Type.Tag()
+	f.Type = activity.Type.Name()
+	f.Status = activity.Status
+	f.TotalActions = uint(len(activity.Actions))
 	f.Actions = make(ActivityActions, 0)
-	f.Timestamp = time.Unix(int64(_activity.Timestamp), 0)
+	f.Timestamp = time.Unix(int64(activity.Timestamp), 0)
 
-	if _activity.Fee != nil {
+	if activity.Fee != nil {
 		f.Fee = new(Fee)
 
-		if err := f.Fee.Import(_activity.Fee); err != nil {
+		if err := f.Fee.Import(activity.Fee); err != nil {
 			return fmt.Errorf("invalid fee: %w", err)
 		}
 	}
 
 	// spam transactions only retain last one action
 	if f.TotalActions > ActivitySpamLimit {
-		for i := len(_activity.Actions) - 1; i >= 0; i-- {
+		for i := len(activity.Actions) - 1; i >= 0; i-- {
 			item := new(ActivityAction)
 
-			if err := item.Import(_activity.Actions[i]); err != nil {
+			if err := item.Import(activity.Actions[i]); err != nil {
 				return err
 			}
 
@@ -92,7 +92,7 @@ func (f *Activity) Import(_activity *activity.Activity) error {
 		}
 	}
 
-	for _, action := range _activity.Actions {
+	for _, action := range activity.Actions {
 		item := new(ActivityAction)
 
 		if err := item.Import(action); err != nil {
@@ -105,15 +105,15 @@ func (f *Activity) Import(_activity *activity.Activity) error {
 	return nil
 }
 
-func (f *Activity) Export(index *Index) (*activity.Activity, error) {
-	_activity := activity.Activity{
+func (f *Activity) Export(index *Index) (*activityx.Activity, error) {
+	activity := activityx.Activity{
 		ID:           f.ID,
 		From:         f.From,
 		To:           f.To,
 		Network:      f.Network,
 		Platform:     f.Platform,
 		Status:       f.Status,
-		Actions:      make([]*activity.Action, 0, len(f.Actions)),
+		Actions:      make([]*activityx.Action, 0, len(f.Actions)),
 		TotalActions: f.TotalActions,
 		Timestamp:    uint64(f.Timestamp.Unix()),
 		Owner:        index.Owner,
@@ -122,13 +122,13 @@ func (f *Activity) Export(index *Index) (*activity.Activity, error) {
 
 	var err error
 
-	if _activity.Type, err = schema.TypeString(f.Tag, f.Type); err != nil {
+	if activity.Type, err = schema.TypeString(f.Tag, f.Type); err != nil {
 		return nil, err
 	}
 
-	_activity.Tag = _activity.Type.Tag()
+	activity.Tag = activity.Type.Tag()
 
-	if _activity.Fee, err = f.Fee.Export(); err != nil {
+	if activity.Fee, err = f.Fee.Export(); err != nil {
 		return nil, fmt.Errorf("invalid fee: %w", err)
 	}
 
@@ -138,19 +138,19 @@ func (f *Activity) Export(index *Index) (*activity.Activity, error) {
 			return nil, err
 		}
 
-		_activity.Actions = append(_activity.Actions, item)
+		activity.Actions = append(activity.Actions, item)
 	}
 
-	return &_activity, nil
+	return &activity, nil
 }
 
 type Activities []*Activity
 
-func (f *Activities) Import(activities []*activity.Activity) error {
-	for _, _activity := range activities {
+func (f *Activities) Import(activities []*activityx.Activity) error {
+	for _, activity := range activities {
 		item := new(Activity)
 
-		if err := item.Import(_activity); err != nil {
+		if err := item.Import(activity); err != nil {
 			return err
 		}
 
@@ -160,18 +160,18 @@ func (f *Activities) Import(activities []*activity.Activity) error {
 	return nil
 }
 
-func (f *Activities) Export(indexes []*Index) ([]*activity.Activity, error) {
+func (f *Activities) Export(indexes []*Index) ([]*activityx.Activity, error) {
 	activities := make(map[string]*Activity)
 
-	for _, _activity := range *f {
-		activities[_activity.ID] = _activity
+	for _, activity := range *f {
+		activities[activity.ID] = activity
 	}
 
-	result := make([]*activity.Activity, 0, len(indexes))
+	result := make([]*activityx.Activity, 0, len(indexes))
 
 	for _, index := range indexes {
-		if _activity, ok := activities[index.ID]; ok {
-			data, err := _activity.Export(index)
+		if activity, ok := activities[index.ID]; ok {
+			data, err := activity.Export(index)
 			if err != nil {
 				return nil, err
 			}
@@ -190,7 +190,7 @@ type Fee struct {
 }
 
 //goland:noinspection ALL
-func (f *Fee) Import(fee *activity.Fee) error {
+func (f *Fee) Import(fee *activityx.Fee) error {
 	if fee != nil {
 		f.Address = fee.Address
 		f.Amount = fee.Amount
@@ -201,12 +201,12 @@ func (f *Fee) Import(fee *activity.Fee) error {
 }
 
 //goland:noinspection ALL
-func (f *Fee) Export() (*activity.Fee, error) {
+func (f *Fee) Export() (*activityx.Fee, error) {
 	if f == nil {
 		return nil, nil
 	}
 
-	return &activity.Fee{
+	return &activityx.Fee{
 		Address: f.Address,
 		Amount:  f.Amount,
 		Decimal: f.Decimal,
@@ -242,7 +242,7 @@ type ActivityAction struct {
 	Metadata json.RawMessage `json:"metadata"`
 }
 
-func (f *ActivityAction) Import(action *activity.Action) (err error) {
+func (f *ActivityAction) Import(action *activityx.Action) (err error) {
 	f.Tag = action.Type.Tag().String()
 	f.Type = action.Type.Name()
 	f.From = action.From
@@ -256,8 +256,8 @@ func (f *ActivityAction) Import(action *activity.Action) (err error) {
 	return nil
 }
 
-func (f *ActivityAction) Export() (*activity.Action, error) {
-	action := &activity.Action{
+func (f *ActivityAction) Export() (*activityx.Action, error) {
+	action := &activityx.Action{
 		From:     f.From,
 		To:       f.To,
 		Platform: f.Platform,

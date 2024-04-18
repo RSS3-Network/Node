@@ -11,7 +11,7 @@ import (
 	worker "github.com/rss3-network/node/internal/engine/worker/farcaster"
 	message "github.com/rss3-network/node/provider/farcaster"
 	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
@@ -28,7 +28,7 @@ func TestWorker(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *activity.Activity
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
@@ -72,7 +72,7 @@ func TestWorker(t *testing.T) {
 					},
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "0x0000000000000000000000009d72f8030aafa43f4c208b013964a51017a2747c",
 				Network:  network.Farcaster,
 				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
@@ -80,7 +80,7 @@ func TestWorker(t *testing.T) {
 				Type:     typex.SocialPost,
 				Status:   true,
 				Platform: workerx.Farcaster.Platform(),
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialPost,
 						Platform: workerx.Farcaster.Platform(),
@@ -174,7 +174,7 @@ func TestWorker(t *testing.T) {
 					},
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "0x00000000000000000000000010ae8f78cbbad692c3b330b8970770406dc785ef",
 				Network:  network.Farcaster,
 				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
@@ -182,7 +182,7 @@ func TestWorker(t *testing.T) {
 				Type:     typex.SocialComment,
 				Platform: workerx.Farcaster.Platform(),
 				Status:   true,
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialComment,
 						Platform: workerx.Farcaster.Platform(),
@@ -276,7 +276,7 @@ func TestWorker(t *testing.T) {
 					},
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "0x0000000000000000000000002931794842a5f3a152bff66cc010120cfe9c6102",
 				Network:  network.Farcaster,
 				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
@@ -284,7 +284,7 @@ func TestWorker(t *testing.T) {
 				Type:     typex.SocialShare,
 				Status:   true,
 				Platform: workerx.Farcaster.Platform(),
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialShare,
 						Platform: workerx.Farcaster.Platform(),
@@ -377,7 +377,7 @@ func TestWorker(t *testing.T) {
 					},
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "0x0000000000000000000000000d62b1610e7dd177363cd3571bfe9a112d6185de",
 				Network:  network.Farcaster,
 				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
@@ -385,7 +385,7 @@ func TestWorker(t *testing.T) {
 				Type:     typex.SocialShare,
 				Status:   true,
 				Platform: workerx.Farcaster.Platform(),
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialShare,
 						Platform: workerx.Farcaster.Platform(),
@@ -428,15 +428,15 @@ func TestWorker(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			_activity, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			data, err := json.MarshalIndent(_activity, "", "\x20\x20")
+			data, err := json.MarshalIndent(activity, "", "\x20\x20")
 			require.NoError(t, err)
 
 			t.Log(string(data))
 
-			require.Equal(t, testcase.want, _activity)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

@@ -19,7 +19,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/token"
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -83,17 +83,17 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to activity.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
+// Transform Ethereum task to activityx.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
 	// Build default opensea activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
+	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build _activity: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	// Match and handle ethereum logs.
@@ -104,7 +104,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		}
 
 		var (
-			actions []*activity.Action
+			actions []*activityx.Action
 			err     error
 		)
 
@@ -122,21 +122,21 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 
 		if err != nil {
 			if isInvalidTokenErr(err) {
-				return activity.NewUnknownActivity(_activity), nil
+				return activityx.NewUnknownActivity(activity), nil
 			}
 
 			return nil, err
 		}
 
-		// Change _activity type to the first action type.
+		// Change activity type to the first action type.
 		for _, action := range actions {
-			_activity.Type = action.Type
+			activity.Type = action.Type
 		}
 
-		_activity.Actions = append(_activity.Actions, actions...)
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	return _activity, nil
+	return activity, nil
 }
 
 // matchWyvernExchangeV1Orders matches WyvernExchangeV1 OrdersMatched event.
@@ -165,7 +165,7 @@ func (w *worker) matchSeaportV1OrderFulfilled(_ *source.Task, log *ethereum.Log)
 }
 
 // transformWyvernExchangeV1Orders transforms WyvernExchangeV1 OrdersMatched event.
-func (w *worker) transformWyvernExchangeV1Orders(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformWyvernExchangeV1Orders(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	// Parse OrdersMatched event.
 	event, err := w.wyvernExchangeV1Filterer.ParseOrdersMatched(log.Export())
 	if err != nil {
@@ -225,16 +225,16 @@ func (w *worker) transformWyvernExchangeV1Orders(ctx context.Context, task *sour
 		return nil, err
 	}
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
-func (w *worker) transformWyvernExchangeV2Orders(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformWyvernExchangeV2Orders(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	return w.transformWyvernExchangeV1Orders(ctx, task, log)
 }
 
-func (w *worker) transformSeaportV1OrderFulfilled(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformSeaportV1OrderFulfilled(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	// Parse OrderFulfilled event.
 	event, err := w.seaportV1Filterer.ParseOrderFulfilled(log.Export())
 	if err != nil {
@@ -296,12 +296,12 @@ func (w *worker) transformSeaportV1OrderFulfilled(ctx context.Context, task *sou
 		return nil, err
 	}
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
-func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *source.Task, seller, buyer, nft common.Address, nftID, nftValue *big.Int, offerToken *common.Address, offerValue *big.Int) (*activity.Action, error) {
+func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *source.Task, seller, buyer, nft common.Address, nftID, nftValue *big.Int, offerToken *common.Address, offerValue *big.Int) (*activityx.Action, error) {
 	if nftID == nil {
 		return nil, fmt.Errorf("nft id is nil")
 	}
@@ -329,7 +329,7 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 
 	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(offerValue, 0))
 
-	action := activity.Action{
+	action := activityx.Action{
 		Type:     typex.CollectibleTrade,
 		Platform: w.Platform(),
 		From:     seller.String(),

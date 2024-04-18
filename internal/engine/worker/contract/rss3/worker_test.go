@@ -15,7 +15,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/rss3"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
@@ -35,7 +35,7 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *activity.Activity
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		// Ethereum Mainnet
@@ -151,22 +151,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x85ded9199c3c8a46bcb1e431e3e05f62fe014930c0a13a029a78e3a18061011f",
 				Network: network.Ethereum,
 				Index:   140,
 				From:    "0x1B861760AdE296aBE523C594118EF812208194CE",
 				To:      rss3.AddressStaking.String(),
 				Type:    typex.ExchangeStaking,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x383c7d87",
 				},
 				Platform: workerx.RSS3.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("5479491821006616")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeStaking,
 						Platform: workerx.RSS3.Platform(),
@@ -294,22 +294,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xb3a2c0760f29dba991b8d225a705dbb1785fba7b0e04f4a54c3e91560a1b3227",
 				Network: network.Ethereum,
 				Index:   305,
 				From:    "0xE0BA908Be2f52063B0bD210544e67FCD76bd0b56",
 				To:      rss3.AddressStaking.String(),
 				Type:    typex.ExchangeStaking,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x00f714ce",
 				},
 				Platform: workerx.RSS3.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2321450000000000")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeStaking,
 						Platform: workerx.RSS3.Platform(),
@@ -432,22 +432,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x46cf455d0500f0b0979401ef1192af508890c2f888bc0dc6c006b49f65a37b6b",
 				Network: network.Ethereum,
 				Index:   49,
 				From:    "0x2a03278590cd1962De28F9AbC855CF3774fe3eb6",
 				To:      rss3.AddressStaking.String(),
 				Type:    typex.ExchangeStaking,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xef5cfb8c",
 				},
 				Platform: workerx.RSS3.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1332888122256200")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeStaking,
 						Platform: workerx.RSS3.Platform(),
@@ -548,22 +548,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.VSL),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xb49208a4fb936cf3d73da0b92af0776945a09062af8983cf72c8bd4fffb7f624",
 				Network: network.VSL,
 				Index:   1,
 				From:    "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
 				To:      rss3.AddressStakingVSL.String(),
 				Type:    typex.ExchangeStaking,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x96531623",
 				},
 				Platform: workerx.RSS3.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1117542222924365900")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeStaking,
 						Platform: workerx.RSS3.Platform(),
@@ -663,22 +663,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.VSL),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x26fbdff8a7af1a1917b6dd8a54c636151cb7186a6b3c3a5922df3a98edda54a8",
 				Network: network.VSL,
 				Index:   1,
 				From:    "0x30286DD245338292F319809935a1037CcD4573Ea",
 				To:      rss3.AddressStakingVSL.String(),
 				Type:    typex.ExchangeStaking,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x26476204",
 				},
 				Platform: workerx.RSS3.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("772196357569891650")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.CollectibleMint,
 						Platform: workerx.RSS3.Platform(),
@@ -731,12 +731,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			_activity, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(_activity, "", "\x20\x20"))))
+			//t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, _activity)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

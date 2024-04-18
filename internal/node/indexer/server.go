@@ -16,7 +16,7 @@ import (
 	"github.com/rss3-network/node/internal/stream"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
@@ -100,12 +100,12 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		return nil
 	}
 
-	resultPool := pool.NewWithResults[*activity.Activity]().WithMaxGoroutines(lo.Ternary(tasks.Len() < 20*runtime.NumCPU(), tasks.Len(), 20*runtime.NumCPU()))
+	resultPool := pool.NewWithResults[*activityx.Activity]().WithMaxGoroutines(lo.Ternary(tasks.Len() < 20*runtime.NumCPU(), tasks.Len(), 20*runtime.NumCPU()))
 
 	for _, task := range tasks.Tasks {
 		task := task
 
-		resultPool.Go(func() *activity.Activity {
+		resultPool.Go(func() *activityx.Activity {
 			zap.L().Debug("start match task", zap.String("task.id", task.ID()))
 
 			matched, err := s.worker.Match(ctx, task)
@@ -124,20 +124,20 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 
 			zap.L().Debug("start transform task", zap.String("task.id", task.ID()))
 
-			_activity, err := s.worker.Transform(ctx, task)
+			activity, err := s.worker.Transform(ctx, task)
 			if err != nil {
 				zap.L().Error("transform task", zap.String("task.id", task.ID()), zap.Error(err))
 
 				return nil
 			}
 
-			return _activity
+			return activity
 		})
 	}
 
 	// Filter failed activities.
-	activities := lo.Filter(resultPool.Wait(), func(_activity *activity.Activity, _ int) bool {
-		return _activity != nil
+	activities := lo.Filter(resultPool.Wait(), func(activity *activityx.Activity, _ int) bool {
+		return activity != nil
 	})
 
 	meterTasksCounterAttributes := metric.WithAttributes(

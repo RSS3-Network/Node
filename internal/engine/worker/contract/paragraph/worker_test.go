@@ -9,7 +9,7 @@ import (
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/paragraph"
 	"github.com/rss3-network/node/provider/arweave"
 	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -29,7 +29,7 @@ func TestWorker_Arweave(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *activity.Activity
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
@@ -63,7 +63,7 @@ func TestWorker_Arweave(t *testing.T) {
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "Sz5fY8Loj67fWxLQv98r5U5-h2aIA5x4FMsAVP1N2ig",
 				Network:  network.Arweave,
 				Index:    0,
@@ -71,11 +71,11 @@ func TestWorker_Arweave(t *testing.T) {
 				To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
 				Type:     typex.SocialPost,
 				Platform: workerx.Paragraph.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  decimal.NewFromInt(212017846),
 					Decimal: 12,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialPost,
 						Tag:      tag.Social,
@@ -136,7 +136,7 @@ func TestWorker_Arweave(t *testing.T) {
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "Xf7C--gk4hlH3mG0UnFiISYgOdymfInv2EgeOF0GeNg",
 				Network:  network.Arweave,
 				Index:    0,
@@ -144,12 +144,12 @@ func TestWorker_Arweave(t *testing.T) {
 				To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
 				Type:     typex.SocialRevise,
 				Platform: workerx.Paragraph.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  decimal.NewFromInt(212017846),
 					Decimal: 12,
 				},
 
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialRevise,
 						Tag:      tag.Social,
@@ -197,12 +197,12 @@ func TestWorker_Arweave(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			_activity, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(_activity, "", "\x20\x20"))))
+			//t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, _activity)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

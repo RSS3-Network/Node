@@ -29,7 +29,7 @@ import (
 	"github.com/rss3-network/node/provider/ipfs"
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -103,17 +103,17 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to activity.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
+// Transform Ethereum task to activityx.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
 	// Build default crossbell activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
+	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build _activity: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	// Match and handle ethereum logs.
@@ -124,7 +124,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		}
 
 		var (
-			actions []*activity.Action
+			actions []*activityx.Action
 			err     error
 		)
 		// Match crossbell core contract events
@@ -165,15 +165,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		// Change _activity type to the first action type.
+		// Change activity type to the first action type.
 		for _, action := range actions {
-			_activity.Type = action.Type
+			activity.Type = action.Type
 		}
 
-		_activity.Actions = append(_activity.Actions, actions...)
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	return _activity, nil
+	return activity, nil
 }
 
 // matchProfileCreated matches ProfileCreated event.
@@ -252,7 +252,7 @@ func (w *worker) matchERC20TransferLog(_ *source.Task, log *ethereum.Log) bool {
 }
 
 // transformProfileCreated transforms ProfileCreated event.
-func (w *worker) transformProfileCreated(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformProfileCreated(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.profileFilterer.ParseProfileCreated(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse profile created: %w", err)
@@ -265,13 +265,13 @@ func (w *worker) transformProfileCreated(ctx context.Context, _ *source.Task, lo
 
 	action := w.buildProfileAction(ctx, event.Creator, event.To, *profile)
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformSetProfileURI transforms SetProfileURI event.
-func (w *worker) transformSetProfileURI(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformSetProfileURI(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.profileFilterer.ParseSetProfileUri(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse profile uri set: %w", err)
@@ -284,13 +284,13 @@ func (w *worker) transformSetProfileURI(ctx context.Context, task *source.Task, 
 
 	action := w.buildProfileAction(ctx, profile.Address, *task.Transaction.To, *profile)
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformCharacterCreated transforms CharacterCreated event.
-func (w *worker) transformCharacterCreated(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformCharacterCreated(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.eventFilterer.ParseCharacterCreated(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse character created: %w", err)
@@ -303,13 +303,13 @@ func (w *worker) transformCharacterCreated(ctx context.Context, _ *source.Task, 
 
 	action := w.buildProfileAction(ctx, event.Creator, profile.Address, *profile)
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformCharacterSetHandle transforms SetCharacterHandle event.
-func (w *worker) transformCharacterSetHandle(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformCharacterSetHandle(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.eventFilterer.ParseSetHandle(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse character handle set: %w", err)
@@ -322,13 +322,13 @@ func (w *worker) transformCharacterSetHandle(ctx context.Context, task *source.T
 
 	action := w.buildProfileAction(ctx, profile.Address, *task.Transaction.To, *profile)
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformSetCharacterURI transforms SetCharacterURI event.
-func (w *worker) transformSetCharacterURI(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformSetCharacterURI(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.eventFilterer.ParseSetCharacterUri(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse character uri set: %w", err)
@@ -341,13 +341,13 @@ func (w *worker) transformSetCharacterURI(ctx context.Context, task *source.Task
 
 	action := w.buildProfileAction(ctx, profile.Address, *task.Transaction.To, *profile)
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformPostCreated transforms PostCreated event.
-func (w *worker) transformPostCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformPostCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	activityType := typex.SocialPost
 
 	event, err := w.eventFilterer.ParsePostNote(log.Export())
@@ -381,13 +381,13 @@ func (w *worker) transformPostCreated(ctx context.Context, task *source.Task, lo
 
 	action := w.buildPostAction(ctx, fromAddress, *task.Transaction.To, platform, activityType, *post)
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformSetNoteURI transforms SetNoteURI event.
-func (w *worker) transformSetNoteURI(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformSetNoteURI(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.eventFilterer.ParseSetNoteUri(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse set note uri: %w", err)
@@ -405,13 +405,13 @@ func (w *worker) transformSetNoteURI(ctx context.Context, task *source.Task, log
 
 	action := w.buildPostAction(ctx, fromAddress, *task.Transaction.To, platform, typex.SocialRevise, *post)
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformDeleteNote transforms DeleteNote event.
-func (w *worker) transformDeleteNote(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformDeleteNote(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.eventFilterer.ParseDeleteNote(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse delete note: %w", err)
@@ -429,13 +429,13 @@ func (w *worker) transformDeleteNote(ctx context.Context, task *source.Task, log
 
 	action := w.buildPostAction(ctx, fromAddress, *task.Transaction.To, platform, typex.SocialDelete, *post)
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformMintNote transforms MintNote event.
-func (w *worker) transformMintNote(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformMintNote(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.eventFilterer.ParseMintNote(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse mint note: %w", err)
@@ -448,13 +448,13 @@ func (w *worker) transformMintNote(ctx context.Context, task *source.Task, log *
 
 	action := w.buildPostAction(ctx, event.To, *task.Transaction.To, platform, typex.SocialMint, *post)
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformTipsCharacterForNote transforms TipsCharacterForNote event.
-func (w *worker) transformTipsCharacterForNote(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformTipsCharacterForNote(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.tipsFilterer.ParseTipCharacterForNote(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse tips character for note: %w", err)
@@ -504,13 +504,13 @@ func (w *worker) transformTipsCharacterForNote(ctx context.Context, task *source
 
 	action := w.buildPostRewardAction(ctx, task.Transaction.From, to, platform, typex.SocialReward, *post)
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformSetOperator transforms SetOperator event.
-func (w *worker) transformSetOperator(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformSetOperator(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.eventFilterer.ParseSetOperator(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse set operator: %w", err)
@@ -525,13 +525,13 @@ func (w *worker) transformSetOperator(ctx context.Context, _ *source.Task, log *
 
 	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, *proxy)
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformAddOperator transforms AddOperator event.
-func (w *worker) transformAddOperator(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformAddOperator(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.eventFilterer.ParseAddOperator(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse add operator: %w", err)
@@ -544,13 +544,13 @@ func (w *worker) transformAddOperator(ctx context.Context, _ *source.Task, log *
 
 	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, *proxy)
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformRemoveOperator transforms RemoveOperator event.
-func (w *worker) transformRemoveOperator(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformRemoveOperator(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.eventFilterer.ParseRemoveOperator(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse remove operator: %w", err)
@@ -563,13 +563,13 @@ func (w *worker) transformRemoveOperator(ctx context.Context, _ *source.Task, lo
 
 	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, *proxy)
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformGrantOperatorPermissions transforms GrantOperatorPermissions event.
-func (w *worker) transformGrantOperatorPermissions(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformGrantOperatorPermissions(ctx context.Context, _ *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.eventFilterer.ParseGrantOperatorPermissions(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse grant operator permissions: %w", err)
@@ -584,14 +584,14 @@ func (w *worker) transformGrantOperatorPermissions(ctx context.Context, _ *sourc
 
 	action := w.buildProxyAction(ctx, proxy.Profile.Address, event.Operator, *proxy)
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // buildProfileAction builds profile action.
-func (w *worker) buildProfileAction(_ context.Context, from, to common.Address, profile metadata.SocialProfile) *activity.Action {
-	return &activity.Action{
+func (w *worker) buildProfileAction(_ context.Context, from, to common.Address, profile metadata.SocialProfile) *activityx.Action {
+	return &activityx.Action{
 		From:     from.String(),
 		To:       to.String(),
 		Platform: w.Platform(),
@@ -601,8 +601,8 @@ func (w *worker) buildProfileAction(_ context.Context, from, to common.Address, 
 }
 
 // builPostAction builds post action.
-func (w *worker) buildPostAction(_ context.Context, from common.Address, to common.Address, platform string, actionType typex.SocialType, post metadata.SocialPost) *activity.Action {
-	return &activity.Action{
+func (w *worker) buildPostAction(_ context.Context, from common.Address, to common.Address, platform string, actionType typex.SocialType, post metadata.SocialPost) *activityx.Action {
+	return &activityx.Action{
 		From:     from.String(),
 		To:       to.String(),
 		Platform: platform,
@@ -612,8 +612,8 @@ func (w *worker) buildPostAction(_ context.Context, from common.Address, to comm
 }
 
 // buildPostRewardAction builds post reward action.
-func (w *worker) buildPostRewardAction(_ context.Context, from common.Address, to common.Address, platform string, actionType typex.SocialType, post metadata.SocialPost) *activity.Action {
-	return &activity.Action{
+func (w *worker) buildPostRewardAction(_ context.Context, from common.Address, to common.Address, platform string, actionType typex.SocialType, post metadata.SocialPost) *activityx.Action {
+	return &activityx.Action{
 		From:     from.String(),
 		To:       to.String(),
 		Platform: platform,
@@ -675,8 +675,8 @@ func (w *worker) buildPostMetadata(ctx context.Context, blockNumber, characterID
 }
 
 // buildProxyAction builds proxy action.
-func (w *worker) buildProxyAction(_ context.Context, from common.Address, to common.Address, proxy metadata.SocialProxy) *activity.Action {
-	return &activity.Action{
+func (w *worker) buildProxyAction(_ context.Context, from common.Address, to common.Address, proxy metadata.SocialProxy) *activityx.Action {
+	return &activityx.Action{
 		From:     from.String(),
 		To:       to.String(),
 		Platform: w.Platform(),

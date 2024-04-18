@@ -7,7 +7,7 @@ import (
 	"github.com/rss3-network/node/config"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/matters"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,7 +22,7 @@ func TestWorker_Matters(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *activity.Activity
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		//{
@@ -123,24 +123,24 @@ func TestWorker_Matters(t *testing.T) {
 		//			Endpoint: endpoint.MustGet(network.Polygon),
 		//		},
 		//	},
-		//	want: &activity.Activity{
+		//	want: &activityx.Activity{
 		//		ID:      "0x406420c77151dd2779f647967aaee7b2ae25248bbb51b53de4d8912c904dbd34",
 		//		Network: network.Polygon,
 		//		Index:   41,
 		//		From:    "0x18Fb694EbAE03a78f038F54362592Dd89c0e300C",
 		//		To:      matters.AddressCuration.String(),
 		//		Type:    typex.SocialReward,
-		//		Calldata: &activity.Calldata{
+		//		Calldata: &activityx.Calldata{
 		//			FunctionHash: "0xdbcdaf5b",
 		//		},
 		//		Tag:      tag.Social,
 		//		Platform: workerx.Matters.Platform(),
-		//		Fee: &activity.Fee{
+		//		Fee: &activityx.Fee{
 		//			Amount:  lo.Must(decimal.NewFromString("5681706332875290")),
 		//			Decimal: 18,
 		//		},
 		//		TotalActions: 1,
-		//		Actions: []*activity.Action{
+		//		Actions: []*activityx.Action{
 		//			{
 		//				Type:     typex.SocialReward,
 		//				Tag:      tag.Social,
@@ -187,12 +187,12 @@ func TestWorker_Matters(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			_activity, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
-			//t.Log(string(lo.Must(json.MarshalIndent(_activity, "", "\x20\x20"))))
-			require.Equal(t, testcase.want, _activity)
+			//t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
+			require.Equal(t, testcase.want, activity)
 
-			t.Log(_activity)
+			t.Log(activity)
 		})
 	}
 }

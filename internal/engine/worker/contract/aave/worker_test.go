@@ -14,7 +14,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/aave"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
@@ -34,7 +34,7 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *activity.Activity
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
@@ -180,22 +180,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x488591689796c234eb6a876be238c67a9092d755070d6992dddccd2f8beee57c",
 				Network: network.Ethereum,
 				Index:   75,
 				From:    "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
 				To:      aave.AddressV2LendingPoolMainnet.String(),
 				Type:    typex.ExchangeLiquidity,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xe8eda9df",
 				},
 				Platform: workerx.Aave.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3989675111519265")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
 						Platform: workerx.Aave.Platform(),
@@ -352,22 +352,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x759532f09bd943d6da2964d58d7fc9a6b3f3914ef0643c37cb5f0eb1f3fe03a6",
 				Network: network.Ethereum,
 				Index:   100,
 				From:    "0x0f1DfeF1a40557d279d0de6E49aB306891A638b8",
 				To:      aave.AddressV2LendingPoolMainnet.String(),
 				Type:    typex.ExchangeLiquidity,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x69328dec",
 				},
 				Platform: workerx.Aave.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3494354289488625")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
 						Platform: workerx.Aave.Platform(),
@@ -536,22 +536,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xd01b5eab0d6abceb5f21da3dc6c329b35b5f854fd4c0e7d05b2cd81e9a410c9f",
 				Network: network.Ethereum,
 				Index:   108,
 				From:    "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
 				To:      aave.AddressV2LendingPoolMainnet.String(),
 				Type:    typex.ExchangeLiquidity,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xa415bcad",
 				},
 				Platform: workerx.Aave.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("6575393086576872")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
 						Platform: workerx.Aave.Platform(),
@@ -707,22 +707,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x3c309fa16fb7e995fba8f236d2eb3a20a44f3ce116a13899683f4580154e85ec",
 				Network: network.Ethereum,
 				Index:   86,
 				From:    "0xc11E5B31008F3750b43f006c3026beD653888E07",
 				To:      aave.AddressV2LendingPoolMainnet.String(),
 				Type:    typex.ExchangeLiquidity,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x573ade81",
 				},
 				Platform: workerx.Aave.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("4384289713535145")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
 						Platform: workerx.Aave.Platform(),
@@ -868,22 +868,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x2626b06195b4e7699495b1ea542a954a7b164195f3fa2dbd1c063882cf697bce",
 				Network: network.Ethereum,
 				Index:   85,
 				From:    "0xf01bb28137121c063D73e7B61DBABE352467292b",
 				To:      aave.AddressV3PoolMainnet.String(),
 				Type:    typex.ExchangeLiquidity,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x617ba037",
 				},
 				Platform: workerx.Aave.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2539935492927579")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
 						Platform: workerx.Aave.Platform(),
@@ -1033,22 +1033,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Base),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x3ee309226dfd6a4d26be87082e5e1ce6c8769f130c9495b2e44684ad5cc2682a",
 				Network: network.Base,
 				Index:   22,
 				From:    "0x1aEB9F637B88d9c5422E0cb094F3bCDa20fCE37B",
 				To:      aave.AddressV3PoolBase.String(),
 				Type:    typex.ExchangeLiquidity,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x617ba037",
 				},
 				Platform: workerx.Aave.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("191955009062034")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
 						Platform: workerx.Aave.Platform(),
@@ -1194,22 +1194,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xef6e2adee0defc810147847b2c3c5255e5e5e75cbc7a4e6ff009444f0aa53f11",
 				Network: network.Ethereum,
 				Index:   108,
 				From:    "0x5A0D6d0DE7c74899F09d3509A429bEb7D3b4b1d0",
 				To:      aave.AddressV3PoolMainnet.String(),
 				Type:    typex.ExchangeLiquidity,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x69328dec",
 				},
 				Platform: workerx.Aave.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3971841806401938")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
 						Platform: workerx.Aave.Platform(),
@@ -1343,22 +1343,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x060a2a7e1db5be295f14171e98a39dec1a7282101c148833333409b99dad4295",
 				Network: network.Ethereum,
 				Index:   96,
 				From:    "0xC4dBC7D5957dceF7eD2B0778C597c16Ce2769E7d",
 				To:      aave.AddressV3PoolMainnet.String(),
 				Type:    typex.ExchangeLiquidity,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xa415bcad",
 				},
 				Platform: workerx.Aave.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3819556449855740")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
 						Platform: workerx.Aave.Platform(),
@@ -1492,22 +1492,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xdc2cd838127a068db79c70508ac87b73d083a2ea22d230ae6f1d8b27001e58d0",
 				Network: network.Ethereum,
 				Index:   158,
 				From:    "0x790c9422839FD93a3A4E31e531f96cC87F397c00",
 				To:      aave.AddressV3PoolMainnet.String(),
 				Type:    typex.ExchangeLiquidity,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x573ade81",
 				},
 				Platform: workerx.Aave.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2571456723342402")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
 						Platform: workerx.Aave.Platform(),
@@ -1550,11 +1550,11 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			_activity, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
-			require.Equal(t, testcase.want, _activity)
+			require.Equal(t, testcase.want, activity)
 
-			t.Log(_activity)
+			t.Log(activity)
 		})
 	}
 }

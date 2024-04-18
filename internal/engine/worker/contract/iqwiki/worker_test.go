@@ -13,7 +13,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -34,7 +34,7 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *activity.Activity
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
@@ -109,24 +109,24 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x43dc470bbec2f3c585ac8f7a8340870b774a5be52ab9cf0836a8d534761be85e",
 				Network: network.Polygon,
 				Index:   0x10,
 				From:    "0x191a41c307373211D08613B68df4031977589069",
 				To:      "0xb8aA8CabfBa7eE3ccb218a9969AEF86DFf3b9d2D",
 				Type:    typex.SocialPost,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xed53ddb9",
 				},
 				Tag:      tag.Social,
 				Platform: workerx.IQWiki.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("7792791087169620")),
 					Decimal: 18,
 				},
 				TotalActions: 1,
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Tag:      tag.Social,
 						Type:     typex.SocialPost,
@@ -233,24 +233,24 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x395a0ea73962d7f6e22cecc7d74c8f489a6707cc65f7cebdb39355bf01e8694a",
 				Network: network.Polygon,
 				Index:   0x3,
 				From:    "0x191a41c307373211D08613B68df4031977589069",
 				To:      "0xb8aA8CabfBa7eE3ccb218a9969AEF86DFf3b9d2D",
 				Type:    typex.SocialRevise,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xed53ddb9",
 				},
 				Tag:      tag.Social,
 				Platform: workerx.IQWiki.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("12024190694314407")),
 					Decimal: 18,
 				},
 				TotalActions: 1,
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Tag:      tag.Social,
 						Type:     typex.SocialRevise,
@@ -302,11 +302,11 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			_activity, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			require.Equal(t, testcase.want, _activity)
-			t.Log(_activity)
+			require.Equal(t, testcase.want, activity)
+			t.Log(activity)
 		})
 	}
 }

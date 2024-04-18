@@ -18,7 +18,7 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
 	mirror_model "github.com/rss3-network/node/internal/engine/worker/contract/mirror/model"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -218,7 +218,7 @@ func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoi
 }
 
 // SaveActivities saves activities and indexes to the database.
-func (c *client) SaveActivities(ctx context.Context, activities []*activity.Activity) error {
+func (c *client) SaveActivities(ctx context.Context, activities []*activityx.Activity) error {
 	spanStartOptions := []trace.SpanStartOption{
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(
@@ -276,7 +276,7 @@ func (c *client) SaveDatasetMirrorPost(ctx context.Context, post *mirror_model.D
 }
 
 // FindActivity finds a Activity by id.
-func (c *client) FindActivity(ctx context.Context, query model.ActivityQuery) (*activity.Activity, *int, error) {
+func (c *client) FindActivity(ctx context.Context, query model.ActivityQuery) (*activityx.Activity, *int, error) {
 	if c.partition {
 		return c.findActivityPartitioned(ctx, query)
 	}
@@ -285,7 +285,7 @@ func (c *client) FindActivity(ctx context.Context, query model.ActivityQuery) (*
 }
 
 // FindActivities finds Activities.
-func (c *client) FindActivities(ctx context.Context, query model.ActivitiesQuery) ([]*activity.Activity, error) {
+func (c *client) FindActivities(ctx context.Context, query model.ActivitiesQuery) ([]*activityx.Activity, error) {
 	if c.partition {
 		return c.findActivitiesPartitioned(ctx, query)
 	}

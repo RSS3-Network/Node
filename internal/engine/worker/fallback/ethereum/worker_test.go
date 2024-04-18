@@ -17,7 +17,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	redisx "github.com/rss3-network/node/provider/redis"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
@@ -76,7 +76,7 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *activity.Activity
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
@@ -126,19 +126,19 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "0x0c2f413efbc243f3bb8edac7e70bdc21936e01401a21b0d63e97732aa80f5d99",
 				Network:  network.Ethereum,
 				Index:    244,
 				From:     "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
 				To:       "0xA1b2DCAC834117F38FB0356b5176B5693E165c90",
 				Type:     typex.TransactionTransfer,
-				Calldata: &activity.Calldata{},
-				Fee: &activity.Fee{
+				Calldata: &activityx.Calldata{},
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("335686667463000")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type: typex.TransactionTransfer,
 						From: "0x000000A52a03835517E9d193B3c27626e1Bc96b1",
@@ -203,19 +203,19 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "0x228cab09172d5c01cdb0ad311ff384bfbbc9dc5cd149f9057bc9bd18ae7b491c",
 				Network:  network.Ethereum,
 				Index:    293,
 				From:     "0xc5750031497c6ae819578016Da83E035964418B8",
 				To:       "0x0000000000000000000000000000000000000000",
 				Type:     typex.TransactionBurn,
-				Calldata: &activity.Calldata{},
-				Fee: &activity.Fee{
+				Calldata: &activityx.Calldata{},
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1155455364252000")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type: typex.TransactionBurn,
 						From: "0xc5750031497c6ae819578016Da83E035964418B8",
@@ -294,21 +294,21 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x4de22d893cd30c987ec54f9d550d9e5fa7e1ce76767a82bc732d49a81cf4e408",
 				Network: network.Ethereum,
 				Index:   22,
 				From:    "0xE93381fB4c4F14bDa253907b18faD305D799241a",
 				To:      "0xc98D64DA73a6616c42117b582e832812e7B8D57F",
 				Type:    typex.TransactionTransfer,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xa9059cbb",
 				},
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("811508239167366")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type: typex.TransactionTransfer,
 						From: "0xE93381fB4c4F14bDa253907b18faD305D799241a",
@@ -404,21 +404,21 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x164b78e31e14e08c2e445050592ae58f1d72b26d541761c2f12f7c511ef89c8a",
 				Network: network.Ethereum,
 				Index:   271,
 				From:    "0x123456D72E335b4415b7A5665C254578575a8A0e",
 				To:      "0x5452C7fB99D99fAb3Cc1875E9DA9829Cb50F7A13",
 				Type:    typex.CollectibleTransfer,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x23b872dd",
 				},
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("941262359203425")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type: typex.CollectibleApproval,
 						From: "0x123456D72E335b4415b7A5665C254578575a8A0e",
@@ -515,18 +515,18 @@ func TestWorker_Ethereum(t *testing.T) {
 		// 			Endpoint: endpoint.MustGet(network.Ethereum),
 		// 		},
 		// 	},
-		// 	want: &activity.Activity{
+		// 	want: &activityx.Activity{
 		// 		ID:      "0x344c70bb46d4ce1cc56a7aacd67092a17e854bf141818c8f0c66df60c61aea92",
 		// 		Network: network.Ethereum,
 		// 		Index:   135,
 		// 		From:    "0x6C9AE8e43AF92BB4CA6E040A610c6eF42C0245C6",
 		// 		To:      "0x8442864d6AB62a9193be2F16580c08E0D7BCda2f",
 		// 		Type:    typex.CollectibleTransfer,
-		// 		Fee: &activity.Fee{
+		// 		Fee: &activityx.Fee{
 		// 			Amount:  lo.Must(decimal.NewFromString("1018675320043040")),
 		// 			Decimal: 18,
 		// 		},
-		// 		Actions: []*activity.Action{
+		// 		Actions: []*activityx.Action{
 		// 			{
 		// 				Type: typex.CollectibleTransfer,
 		// 				From: "0x6C9AE8e43AF92BB4CA6E040A610c6eF42C0245C6",
@@ -598,19 +598,19 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "0xc5bb7e79738b494b9742ccc78451e4884304ad22471dbbaaf6fc70d5572ae284",
 				Network:  network.Ethereum,
 				Index:    8,
 				From:     "0x1d97d5c7d68E03BAe6FBb1ec6E5887d6eAaaAA7d",
 				To:       "0xdd9176eA3E7559D6B68b537eF555D3e89403f742",
 				Type:     typex.TransactionTransfer,
-				Calldata: &activity.Calldata{},
-				Fee: &activity.Fee{
+				Calldata: &activityx.Calldata{},
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("50290295402717")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type: typex.TransactionTransfer,
 						From: "0x1d97d5c7d68E03BAe6FBb1ec6E5887d6eAaaAA7d",
@@ -701,21 +701,21 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xded5fd30829d08dcf608539e993c5916f23c19c48ee0ebac8b748e9aec1e6ce5",
 				Network: network.Ethereum,
 				Index:   160,
 				From:    "0x38d004aea23c1DC86F9cFF25dcda840Ae9dF8dAe",
 				To:      "0xF047ab4c75cebf0eB9ed34Ae2c186f3611aEAfa6",
 				Type:    typex.Unknown,
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1995855251931234")),
 					Decimal: 18,
 				},
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xf6203e35",
 				},
-				Actions:   []*activity.Action{},
+				Actions:   []*activityx.Action{},
 				Status:    true,
 				Timestamp: 1708946831,
 			},
@@ -773,19 +773,19 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.VSL),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "0xa2e19137d6164d8a73e031c6ad34dd44f4c6244996e5250485e4c4dbb08e6d06",
 				Network:  network.VSL,
 				Index:    1,
 				From:     "0x27005E931Ea9ff482a3e5deb4c6eFa980305d74a",
 				To:       "0xDBEe696fA4398649DFD6a6B9F474B7Dfd4CAA7e0",
 				Type:     typex.TransactionTransfer,
-				Calldata: &activity.Calldata{},
-				Fee: &activity.Fee{
+				Calldata: &activityx.Calldata{},
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("654191108761866000")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type: typex.TransactionTransfer,
 						From: "0x27005E931Ea9ff482a3e5deb4c6eFa980305d74a",
@@ -867,21 +867,21 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.VSL),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xdfd0b84e7a7e076f97f69e5027117edc7bc34f849165d9b2adc95f7cae44455b",
 				Network: network.VSL,
 				Index:   1,
 				From:    "0xF209b7Bbadf8d9518a822aEaa7119B38b17377A7",
 				To:      "0xB659A97D8ae3c43E91Eafe5dba110a7e799157c4",
 				Type:    typex.TransactionTransfer,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xa9059cbb",
 				},
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1013690438583071400")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type: typex.TransactionTransfer,
 						From: "0xF209b7Bbadf8d9518a822aEaa7119B38b17377A7",
@@ -979,21 +979,21 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.VSL),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x26fbdff8a7af1a1917b6dd8a54c636151cb7186a6b3c3a5922df3a98edda54a8",
 				Network: network.VSL,
 				Index:   1,
 				From:    "0x30286DD245338292F319809935a1037CcD4573Ea",
 				To:      "0x28F14d917fddbA0c1f2923C406952478DfDA5578",
 				Type:    typex.CollectibleMint,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x26476204",
 				},
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("772196357569891650")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type: typex.CollectibleMint,
 						From: "0x0000000000000000000000000000000000000000",
@@ -1074,21 +1074,21 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.SatoshiVM),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xf0db1d72d78fadc2740d6ab75a8f561ebd81ddaa3a78628afd59320f945150fc",
 				Network: network.SatoshiVM,
 				Index:   0,
 				From:    "0x9Fc5B67633C82607e2e6ab02BA4fd0c4CF8cbFfb",
 				To:      "0x5db252ead05C54B08A83414adCAbF46Eaa9E0337",
 				Type:    typex.Unknown,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x2e1a7d4d",
 				},
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("47757150000000")),
 					Decimal: 18,
 				},
-				Actions:   []*activity.Action{},
+				Actions:   []*activityx.Action{},
 				Status:    true,
 				Timestamp: 1710570057,
 			},
@@ -1155,21 +1155,21 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.SatoshiVM),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xf28475ceeb1fc4857012fa9b26d415a137c7d6ccc1e842ebae4aca6d1cf83de9",
 				Network: network.SatoshiVM,
 				Index:   0,
 				From:    "0x5481300cF3632225E833868f120826680E3688d8",
 				To:      "0x0E02765992f946397E6d2e65642eABb9cc674928",
 				Type:    typex.TransactionApproval,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x095ea7b3",
 				},
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3491250000000")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type: typex.TransactionApproval,
 						From: "0x5481300cF3632225E833868f120826680E3688d8",
@@ -1209,12 +1209,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			_activity, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(_activity, "", "\x20\x20"))))
+			//t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, _activity)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

@@ -17,7 +17,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/token"
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -86,17 +86,17 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to activity.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
+// Transform Ethereum task to activityx.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
 	// Build default lido activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
+	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build _activity: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	// Match and handle ethereum logs.
@@ -107,7 +107,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		}
 
 		var (
-			actions []*activity.Action
+			actions []*activityx.Action
 			err     error
 		)
 
@@ -115,31 +115,31 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		switch {
 		case w.matchStakedETHSubmittedLog(ethereumTask, log):
 			// Add ETH liquidity
-			_activity.Type = typex.ExchangeLiquidity
+			activity.Type = typex.ExchangeLiquidity
 			actions, err = w.transformStakedETHSubmittedLog(ctx, ethereumTask, log)
 		case w.matchStakedETHWithdrawalNFTWithdrawalRequestedLog(ethereumTask, log):
 			// Mint ETH withdrawal NFT
-			_activity.Type = typex.ExchangeLiquidity
+			activity.Type = typex.ExchangeLiquidity
 			actions, err = w.transformStakedETHWithdrawalNFTWithdrawalRequestedLog(ctx, ethereumTask, log)
 		case w.matchStakedETHWithdrawalNFTWithdrawalClaimedLog(ethereumTask, log):
 			// Remove ETH liquidity
-			_activity.Type = typex.CollectibleBurn
+			activity.Type = typex.CollectibleBurn
 			actions, err = w.transformStakedETHWithdrawalNFTWithdrawalClaimedLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICSubmitEventLog(ethereumTask, log):
 			// Add MATIC liquidity
-			_activity.Type = typex.ExchangeLiquidity
+			activity.Type = typex.ExchangeLiquidity
 			actions, err = w.transformStakedMATICSubmitEventLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICRequestWithdrawEventLog(ethereumTask, log):
 			// Mint MATIC withdrawal NFT
-			_activity.Type = typex.CollectibleMint
+			activity.Type = typex.CollectibleMint
 			actions, err = w.transformStakedMATICRequestWithdrawEventLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICClaimTokensEventLog(ethereumTask, log):
 			// Remove MATIC liquidity
-			_activity.Type = typex.CollectibleBurn
+			activity.Type = typex.CollectibleBurn
 			actions, err = w.transformStakedMATICClaimTokensEventLog(ctx, ethereumTask, log)
 		case w.matchStakedETHTransferSharesLog(ethereumTask, log):
 			// Wrap or unwrap wstETH
-			_activity.Type = typex.ExchangeSwap
+			activity.Type = typex.ExchangeSwap
 			actions, err = w.transformStakedETHTransferSharesLog(ctx, ethereumTask, log)
 		default:
 			continue
@@ -149,10 +149,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		_activity.Actions = append(_activity.Actions, actions...)
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	return _activity, nil
+	return activity, nil
 }
 
 // matchStakedETHSubmittedLog matches events that Add ETH liquidity
@@ -228,7 +228,7 @@ func (w *worker) matchStakedETHTransferSharesLog(_ *source.Task, log *ethereum.L
 }
 
 // transformStakedETHWithdrawalNFTWithdrawalClaimedLog processes events that Remove ETH liquidity
-func (w *worker) transformStakedETHWithdrawalNFTWithdrawalClaimedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformStakedETHWithdrawalNFTWithdrawalClaimedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.stakedETHWithdrawalNFTFilterer.ParseWithdrawalClaimed(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("ParseWithdrawalClaimed event: %w", err)
@@ -246,14 +246,14 @@ func (w *worker) transformStakedETHWithdrawalNFTWithdrawalClaimedLog(ctx context
 		return nil, fmt.Errorf("build transaction transfer action: %w", err)
 	}
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		collectibleTransferAction,
 		transactionTransferAction,
 	}, nil
 }
 
 // transformStakedETHWithdrawalNFTWithdrawalRequestedLog processes events that Mint ETH withdrawal NFT
-func (w *worker) transformStakedETHWithdrawalNFTWithdrawalRequestedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformStakedETHWithdrawalNFTWithdrawalRequestedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.stakedETHWithdrawalNFTFilterer.ParseWithdrawalRequested(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("ParseWithdrawalRequested event: %w", err)
@@ -269,14 +269,14 @@ func (w *worker) transformStakedETHWithdrawalNFTWithdrawalRequestedLog(ctx conte
 		return nil, fmt.Errorf("build collectible transfer action: %w", err)
 	}
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		exchangeLiquidityAction,
 		collectibleTransferAction,
 	}, nil
 }
 
 // transformStakedETHSubmittedLog processes events that Add ETH liquidity
-func (w *worker) transformStakedETHSubmittedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformStakedETHSubmittedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.stakedETHFilterer.ParseSubmitted(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("ParseSubmitted event: %w", err)
@@ -292,14 +292,14 @@ func (w *worker) transformStakedETHSubmittedLog(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("build transaction transfer action: %w", err)
 	}
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		exchangeLiquidityAction,
 		transactionTransferAction,
 	}, nil
 }
 
 // transformStakedMATICSubmitEventLog processes events that Add MATIC liquidity
-func (w *worker) transformStakedMATICSubmitEventLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformStakedMATICSubmitEventLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.stakedMATICFilterer.ParseSubmitEvent(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("ParseSubmitEvent event: %w", err)
@@ -315,14 +315,14 @@ func (w *worker) transformStakedMATICSubmitEventLog(ctx context.Context, task *s
 		return nil, fmt.Errorf("build transaction transfer action: %w", err)
 	}
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		exchangeLiquidityAction,
 		transactionTransferAction,
 	}, nil
 }
 
 // transformStakedMATICRequestWithdrawEventLog processes events that Mint MATIC withdrawal NFT
-func (w *worker) transformStakedMATICRequestWithdrawEventLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformStakedMATICRequestWithdrawEventLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	withdrawEvent, err := w.stakedMATICFilterer.ParseRequestWithdrawEvent(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("ParseRequestWithdrawEvent event: %w", err)
@@ -351,14 +351,14 @@ func (w *worker) transformStakedMATICRequestWithdrawEventLog(ctx context.Context
 		return nil, fmt.Errorf("build collectible transfer action: %w", err)
 	}
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		exchangeLiquidityAction,
 		collectibleTransferAction,
 	}, nil
 }
 
 // transformStakedMATICClaimTokensEventLog processes events that Remove MATIC liquidity
-func (w *worker) transformStakedMATICClaimTokensEventLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformStakedMATICClaimTokensEventLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.stakedMATICFilterer.ParseClaimTokensEvent(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("ParseClaimTokensEvent event: %w", err)
@@ -376,14 +376,14 @@ func (w *worker) transformStakedMATICClaimTokensEventLog(ctx context.Context, ta
 		return nil, fmt.Errorf("build transaction transfer action: %w", err)
 	}
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		burnNFTAction,
 		withdrawMaticAction,
 	}, nil
 }
 
 // transformStakedETHTransferSharesLog processes events that Wrap or unwrap wstETH
-func (w *worker) transformStakedETHTransferSharesLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformStakedETHTransferSharesLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	transferSharesEvent, err := w.stakedETHFilterer.ParseTransferShares(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("ParseTransferShares event: %w", err)
@@ -415,7 +415,7 @@ func (w *worker) transformStakedETHTransferSharesLog(ctx context.Context, task *
 		return nil, fmt.Errorf("parse wstETH transfer event: %w", err)
 	}
 
-	actions := make([]*activity.Action, 0)
+	actions := make([]*activityx.Action, 0)
 
 	switch {
 	case transferSharesEvent.To == lido.AddressWrappedStakedETH:
@@ -441,7 +441,7 @@ func (w *worker) transformStakedETHTransferSharesLog(ctx context.Context, task *
 	return actions, nil
 }
 
-func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver common.Address, tokenAddress *common.Address, tokenValue *big.Int, liquidityAction metadata.ExchangeLiquidityAction) (*activity.Action, error) {
+func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver common.Address, tokenAddress *common.Address, tokenValue *big.Int, liquidityAction metadata.ExchangeLiquidityAction) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token: %w", err)
@@ -449,7 +449,7 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, block
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
-	action := activity.Action{
+	action := activityx.Action{
 		Type:     typex.ExchangeLiquidity,
 		Platform: w.Platform(),
 		From:     sender.String(),
@@ -465,7 +465,7 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, block
 	return &action, nil
 }
 
-func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*activity.Action, error) {
+func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token: %w", err)
@@ -483,7 +483,7 @@ func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, blo
 		actionType = typex.TransactionBurn
 	}
 
-	action := activity.Action{
+	action := activityx.Action{
 		Type:     actionType,
 		Platform: w.Platform(),
 		From:     sender.String(),
@@ -494,7 +494,7 @@ func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, blo
 	return &action, nil
 }
 
-func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver, tokenAddress common.Address, tokenID, tokenValue *big.Int) (*activity.Action, error) {
+func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver, tokenAddress common.Address, tokenID, tokenValue *big.Int) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, &tokenAddress, tokenID, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token: %w", err)
@@ -512,7 +512,7 @@ func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, blo
 		actionType = typex.CollectibleBurn
 	}
 
-	action := activity.Action{
+	action := activityx.Action{
 		Type:     actionType,
 		Platform: w.Platform(),
 		From:     sender.String(),
@@ -523,7 +523,7 @@ func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, blo
 	return &action, nil
 }
 
-func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumber *big.Int, chainID uint64, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*activity.Action, error) {
+func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumber *big.Int, chainID uint64, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*activityx.Action, error) {
 	tokenInMetadata, err := w.tokenClient.Lookup(ctx, chainID, &tokenIn, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenIn, err)
@@ -538,7 +538,7 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 
 	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
 
-	action := activity.Action{
+	action := activityx.Action{
 		Type:     typex.ExchangeSwap,
 		Platform: w.Platform(),
 		From:     from.String(),

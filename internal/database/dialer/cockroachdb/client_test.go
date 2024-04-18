@@ -12,7 +12,7 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/database/dialer"
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
@@ -26,21 +26,21 @@ func TestClient(t *testing.T) {
 		name            string
 		driver          database.Driver
 		partition       *bool
-		activityCreated []*activity.Activity
-		activityUpdated []*activity.Activity
+		activityCreated []*activityx.Activity
+		activityUpdated []*activityx.Activity
 	}{
 		{
 			name:      "cockroach",
 			driver:    database.DriverCockroachDB,
 			partition: lo.ToPtr(true),
-			activityCreated: []*activity.Activity{
+			activityCreated: []*activityx.Activity{
 				{
 					ID:      "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
 					Network: network.Ethereum,
 					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
 					Type:    typex.TransactionTransfer,
-					Actions: []*activity.Action{
+					Actions: []*activityx.Action{
 						{
 							Type: typex.TransactionTransfer,
 							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
@@ -55,7 +55,7 @@ func TestClient(t *testing.T) {
 					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
 					Type:    typex.TransactionTransfer,
-					Actions: []*activity.Action{
+					Actions: []*activityx.Action{
 						{
 							Type: typex.TransactionTransfer,
 							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
@@ -65,14 +65,14 @@ func TestClient(t *testing.T) {
 					Timestamp: uint64(time.Now().Add(-3 * 31 * 24 * time.Hour).Unix()),
 				},
 			},
-			activityUpdated: []*activity.Activity{
+			activityUpdated: []*activityx.Activity{
 				{
 					ID:      "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
 					Network: network.Ethereum,
 					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
 					Type:    typex.TransactionTransfer,
-					Actions: []*activity.Action{
+					Actions: []*activityx.Action{
 						{
 							Type: typex.TransactionTransfer,
 							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
@@ -129,23 +129,23 @@ func TestClient(t *testing.T) {
 			// Begin a transaction.
 			require.NoError(t, client.SaveActivities(context.Background(), testcase.activityCreated))
 
-			// Query first _activity
-			for _, _activity := range testcase.activityCreated {
-				data, page, err := client.FindActivity(context.Background(), model.ActivityQuery{ID: lo.ToPtr(_activity.ID), ActionLimit: 10})
+			// Query first activity
+			for _, activity := range testcase.activityCreated {
+				data, page, err := client.FindActivity(context.Background(), model.ActivityQuery{ID: lo.ToPtr(activity.ID), ActionLimit: 10})
 				require.NoError(t, err)
 				require.NotNil(t, data)
 				require.Greater(t, lo.FromPtr(page), 0)
-				require.Equal(t, data.ID, _activity.ID)
-				require.Equal(t, data.From, _activity.From)
-				require.Equal(t, data.To, _activity.To)
+				require.Equal(t, data.ID, activity.ID)
+				require.Equal(t, data.From, activity.From)
+				require.Equal(t, data.To, activity.To)
 			}
 
 			// Query activities by account.
 			accounts := make(map[string]int)
 
-			for _, _activity := range testcase.activityCreated {
-				accounts[_activity.From]++
-				accounts[_activity.To]++
+			for _, activity := range testcase.activityCreated {
+				accounts[activity.From]++
+				accounts[activity.To]++
 			}
 
 			for account, count := range accounts {

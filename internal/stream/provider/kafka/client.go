@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/rss3-network/node/internal/stream"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/twmb/franz-go/pkg/kadm"
 	"github.com/twmb/franz-go/pkg/kgo"
 	"go.uber.org/zap"
@@ -51,13 +51,13 @@ func New(ctx context.Context, uri, topic string) (stream.Client, error) {
 	}, nil
 }
 
-func (c *Client) PushActivities(ctx context.Context, activities []*activity.Activity) error {
+func (c *Client) PushActivities(ctx context.Context, activities []*activityx.Activity) error {
 	records := make([]*kgo.Record, 0, len(activities))
 
-	for _, _activity := range activities {
-		record, err := c.encodeActivity(_activity)
+	for _, activity := range activities {
+		record, err := c.encodeActivity(activity)
 		if err != nil {
-			return fmt.Errorf("encode _activity %s: %w", _activity.ID, err)
+			return fmt.Errorf("encode activity %s: %w", activity.ID, err)
 		}
 
 		records = append(records, record)
@@ -74,7 +74,7 @@ func (c *Client) PushActivities(ctx context.Context, activities []*activity.Acti
 	return nil
 }
 
-func (c *Client) encodeActivity(activity *activity.Activity) (*kgo.Record, error) {
+func (c *Client) encodeActivity(activity *activityx.Activity) (*kgo.Record, error) {
 	value, err := json.Marshal(activity)
 	if err != nil {
 		return nil, err

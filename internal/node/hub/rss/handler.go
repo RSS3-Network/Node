@@ -6,11 +6,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 )
 
 type Response struct {
-	Data []*activity.Activity `json:"data"`
+	Data []*activityx.Activity `json:"data"`
 }
 
 // GetRSSHubHandler get rsshub data from rsshub node

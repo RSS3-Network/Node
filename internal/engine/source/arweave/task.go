@@ -5,7 +5,7 @@ import (
 
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/arweave"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/shopspring/decimal"
@@ -38,7 +38,7 @@ func (t Task) Validate() error {
 }
 
 // BuildActivity builds an activity  from the task.
-func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, error) {
+func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, error) {
 	var feeValue decimal.Decimal
 
 	// Set fee value if the reward is not empty.
@@ -59,26 +59,26 @@ func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, err
 		return nil, fmt.Errorf("parse transaction owner: %w", err)
 	}
 
-	_activity := activity.Activity{
+	activity := activityx.Activity{
 		ID:      t.Transaction.ID,
 		Network: t.Network,
 		From:    from,
 		To:      t.Transaction.Target,
 		Type:    typex.Unknown,
 		Status:  true,
-		Fee: &activity.Fee{
+		Fee: &activityx.Fee{
 			Amount:  feeValue,
 			Decimal: defaultFeeDecimal,
 		},
-		Actions:   make([]*activity.Action, 0),
+		Actions:   make([]*activityx.Action, 0),
 		Timestamp: uint64(t.Block.Timestamp),
 	}
 
 	for _, option := range options {
-		if err := option(&_activity); err != nil {
+		if err := option(&activity); err != nil {
 			return nil, fmt.Errorf("apply option: %w", err)
 		}
 	}
 
-	return &_activity, nil
+	return &activity, nil
 }

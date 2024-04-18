@@ -17,7 +17,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/token"
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -81,18 +81,18 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform 1inch task to activity.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
+// Transform 1inch task to activityx.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	// Cast the task to a 1inch task.
 	oneinchTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build the _activity.
-	_activity, err := task.BuildActivity(activity.WithActivityPlatform(w.Platform()))
+	// Build the activity.
+	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build _activity: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	switch *oneinchTask.Transaction.To {
@@ -102,7 +102,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		oneinch.AddressAggregationRouterV3,
 		oneinch.AddressAggregationRouterV4,
 		oneinch.AddressAggregationRouterV5:
-		err = w.handleEthereumExchangeSwapTransaction(ctx, oneinchTask, _activity)
+		err = w.handleEthereumExchangeSwapTransaction(ctx, oneinchTask, activity)
 	default:
 		return nil, fmt.Errorf("unknown transaction %s", task.ID())
 	}
@@ -113,15 +113,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, err
 	}
 
-	return _activity, nil
+	return activity, nil
 }
 
 // handleEthereumExchangeSwapTransaction handles exchange swap transaction.
-func (w *worker) handleEthereumExchangeSwapTransaction(ctx context.Context, task *source.Task, _activity *activity.Activity) error {
-	_activity.Type = typex.ExchangeSwap
+func (w *worker) handleEthereumExchangeSwapTransaction(ctx context.Context, task *source.Task, activity *activityx.Activity) error {
+	activity.Type = typex.ExchangeSwap
 
 	var (
-		actions []*activity.Action
+		actions []*activityx.Action
 		err     error
 	)
 
@@ -143,13 +143,13 @@ func (w *worker) handleEthereumExchangeSwapTransaction(ctx context.Context, task
 		return err
 	}
 
-	_activity.Actions = append(_activity.Actions, actions...)
+	activity.Actions = append(activity.Actions, actions...)
 
 	return nil
 }
 
 // handleEthereumExplicitAggregationRouterTransaction handles explicit aggregation router transaction.
-func (w *worker) handleEthereumImplicitAggregationRouterTransaction(ctx context.Context, task *source.Task) ([]*activity.Action, error) {
+func (w *worker) handleEthereumImplicitAggregationRouterTransaction(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
 	var (
 		sender, receipt *common.Address
 		err             error
@@ -231,7 +231,7 @@ func (w *worker) handleEthereumImplicitAggregationRouterTransaction(ctx context.
 		return nil, fmt.Errorf("build action: %w", err)
 	}
 
-	return []*activity.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
@@ -773,8 +773,8 @@ func (w *worker) parseEthereumAggregationRouterV4TransactionClipperSwapToInput(_
 }
 
 // handleEthereumExplicitAggregationRouterTransaction handles the explicit aggregation router transaction.
-func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.Context, task *source.Task) []*activity.Action {
-	actions := make([]*activity.Action, 0)
+func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.Context, task *source.Task) []*activityx.Action {
+	actions := make([]*activityx.Action, 0)
 
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
@@ -782,7 +782,7 @@ func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.
 		}
 
 		var (
-			action *activity.Action
+			action *activityx.Action
 			err    error
 		)
 
@@ -809,7 +809,7 @@ func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.
 }
 
 // handleEthereumAggregationRouterV3SwappedLog handles the aggregation router v3 swapped log.
-func (w *worker) handleEthereumAggregationRouterV3SwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activity.Action, error) {
+func (w *worker) handleEthereumAggregationRouterV3SwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activityx.Action, error) {
 	if log.Address != oneinch.AddressAggregationRouterV3 {
 		return nil, fmt.Errorf("unofficial aggregation router v3 contract %s", log.Address)
 	}
@@ -823,7 +823,7 @@ func (w *worker) handleEthereumAggregationRouterV3SwappedLog(ctx context.Context
 }
 
 // handleEthereumAggregationRouterV2SwappedLog handles the aggregation router v2 swapped log.
-func (w *worker) handleEthereumAggregationRouterV2SwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activity.Action, error) {
+func (w *worker) handleEthereumAggregationRouterV2SwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activityx.Action, error) {
 	if log.Address != oneinch.AddressAggregationRouterV2 {
 		return nil, fmt.Errorf("unofficial aggregation router v2 contract %s", log.Address)
 	}
@@ -837,7 +837,7 @@ func (w *worker) handleEthereumAggregationRouterV2SwappedLog(ctx context.Context
 }
 
 // handleEthereumExchangeSwappedLog handles the exchange swapped log.
-func (w *worker) handleEthereumExchangeSwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activity.Action, error) {
+func (w *worker) handleEthereumExchangeSwappedLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activityx.Action, error) {
 	if log.Address != oneinch.AddressExchange2 {
 		return nil, fmt.Errorf("unofficial exchange contract %s", log.Address)
 	}
@@ -851,7 +851,7 @@ func (w *worker) handleEthereumExchangeSwappedLog(ctx context.Context, task *sou
 }
 
 // buildEthereumExchangeSwapAction builds the exchange swap action.
-func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumber *big.Int, chain uint64, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*activity.Action, error) {
+func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumber *big.Int, chain uint64, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*activityx.Action, error) {
 	var (
 		tokenInAddress  = lo.Ternary(tokenIn != oneinch.AddressEther, lo.ToPtr(tokenIn), nil)
 		tokenOutAddress = lo.Ternary(tokenOut != oneinch.AddressEther, lo.ToPtr(tokenOut), nil)
@@ -871,7 +871,7 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 
 	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
 
-	action := activity.Action{
+	action := activityx.Action{
 		Type:     typex.ExchangeSwap,
 		Platform: w.Platform(),
 		From:     from.String(),

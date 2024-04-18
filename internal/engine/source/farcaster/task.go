@@ -6,7 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/farcaster"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
 )
@@ -34,22 +34,22 @@ func (t Task) Validate() error {
 	return nil
 }
 
-func (t Task) BuildActivity(options ...activity.Option) (*activity.Activity, error) {
-	_activity := activity.Activity{
+func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, error) {
+	activity := activityx.Activity{
 		ID:        common.HexToHash(t.Message.Hash).String(),
 		Network:   t.Network,
 		Type:      typex.Unknown,
 		Status:    true,
-		Actions:   make([]*activity.Action, 0),
+		Actions:   make([]*activityx.Action, 0),
 		Timestamp: t.GetTimestamp(),
 	}
 
-	// Apply _activity options.
+	// Apply activity options.
 	for _, option := range options {
-		if err := option(&_activity); err != nil {
+		if err := option(&activity); err != nil {
 			return nil, fmt.Errorf("apply option: %w", err)
 		}
 	}
 
-	return &_activity, nil
+	return &activity, nil
 }

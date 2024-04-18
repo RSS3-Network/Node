@@ -11,7 +11,7 @@ import (
 
 	"github.com/rss3-network/node/internal/database/dialer/cockroachdb/table"
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.uber.org/zap"
@@ -74,8 +74,8 @@ func (c *client) loadIndexesPartitionTables(ctx context.Context) {
 }
 
 // saveActivitiesPartitioned saves Activities in partitioned tables.
-func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*activity.Activity) error {
-	partitions := make(map[string][]*activity.Activity)
+func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*activityx.Activity) error {
+	partitions := make(map[string][]*activityx.Activity)
 
 	// Group activities by partition name.
 	for _, a := range activities {
@@ -84,7 +84,7 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 		name := activityTable.PartitionName(a)
 
 		if _, exists := partitions[name]; !exists {
-			partitions[name] = make([]*activity.Activity, 0)
+			partitions[name] = make([]*activityx.Activity, 0)
 		}
 
 		partitions[name] = append(partitions[name], a)
@@ -137,7 +137,7 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 }
 
 // findActivityPartitioned finds an activity  by id.
-func (c *client) findActivityPartitioned(ctx context.Context, query model.ActivityQuery) (*activity.Activity, *int, error) {
+func (c *client) findActivityPartitioned(ctx context.Context, query model.ActivityQuery) (*activityx.Activity, *int, error) {
 	matchedActivity, err := c.findIndexPartitioned(ctx, query)
 	if err != nil {
 		return nil, nil, fmt.Errorf("first matchedActivity: %w", err)
@@ -147,47 +147,47 @@ func (c *client) findActivityPartitioned(ctx context.Context, query model.Activi
 		return nil, nil, nil
 	}
 
-	_activity := &table.Activity{
+	activity := &table.Activity{
 		ID:        matchedActivity.ID,
 		Network:   matchedActivity.Network,
 		Timestamp: matchedActivity.Timestamp,
 	}
 
-	if err := c.database.WithContext(ctx).Table(_activity.PartitionName(nil)).Where("id = ?", matchedActivity.ID).Limit(1).Find(&_activity).Error; err != nil {
+	if err := c.database.WithContext(ctx).Table(activity.PartitionName(nil)).Where("id = ?", matchedActivity.ID).Limit(1).Find(&activity).Error; err != nil {
 		return nil, nil, fmt.Errorf("find activity: %w", err)
 	}
 
-	result, err := _activity.Export(matchedActivity)
+	result, err := activity.Export(matchedActivity)
 	if err != nil {
 		return nil, nil, fmt.Errorf("export activity: %w", err)
 	}
 
-	page := math.Ceil(float64(len(_activity.Actions)) / float64(query.ActionLimit))
+	page := math.Ceil(float64(len(activity.Actions)) / float64(query.ActionLimit))
 
-	_activity.Actions = lo.Slice(_activity.Actions, query.ActionLimit*(query.ActionPage-1), query.ActionLimit*query.ActionPage)
+	activity.Actions = lo.Slice(activity.Actions, query.ActionLimit*(query.ActionPage-1), query.ActionLimit*query.ActionPage)
 
 	return result, lo.ToPtr(int(page)), nil
 }
 
 // findActivitiesPartitioned finds activities.
-func (c *client) findActivitiesPartitioned(ctx context.Context, query model.ActivitiesQuery) ([]*activity.Activity, error) {
+func (c *client) findActivitiesPartitioned(ctx context.Context, query model.ActivitiesQuery) ([]*activityx.Activity, error) {
 	indexes, err := c.findIndexesPartitioned(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("find indexes: %w", err)
 	}
 
 	partition := lo.GroupBy(indexes, func(query *table.Index) string {
-		_activity := table.Activity{
+		activity := table.Activity{
 			ID:        query.ID,
 			Network:   query.Network,
 			Timestamp: query.Timestamp,
 		}
 
-		return _activity.PartitionName(nil)
+		return activity.PartitionName(nil)
 	})
 
 	var (
-		result = make([]*activity.Activity, 0)
+		result = make([]*activityx.Activity, 0)
 		locker sync.Mutex
 	)
 
@@ -227,8 +227,8 @@ func (c *client) findActivitiesPartitioned(ctx context.Context, query model.Acti
 		return nil, err
 	}
 
-	lo.ForEach(result, func(_activity *activity.Activity, i int) {
-		result[i].Actions = lo.Slice(_activity.Actions, 0, query.ActionLimit)
+	lo.ForEach(result, func(activity *activityx.Activity, i int) {
+		result[i].Actions = lo.Slice(activity.Actions, 0, query.ActionLimit)
 	})
 
 	sort.SliceStable(result, func(i, j int) bool {
@@ -239,7 +239,7 @@ func (c *client) findActivitiesPartitioned(ctx context.Context, query model.Acti
 }
 
 // saveIndexesPartitioned saves indexes in partitioned tables.
-func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activity.Activity) error {
+func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activityx.Activity) error {
 	indexes := make(table.Indexes, 0)
 
 	if err := indexes.Import(activities); err != nil {

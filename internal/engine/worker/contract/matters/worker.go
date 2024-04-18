@@ -21,7 +21,7 @@ import (
 	"github.com/rss3-network/node/provider/ipfs"
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -77,18 +77,18 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform matters task to activity.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
+// Transform matters task to activityx.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	// Cast the task to a matters task.
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build the _activity.
-	_activity, err := task.BuildActivity(activity.WithActivityPlatform(w.Platform()))
+	// Build the activity.
+	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build _activity: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	for _, log := range ethereumTask.Receipt.Logs {
@@ -98,13 +98,13 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		}
 
 		var (
-			actions []*activity.Action
+			actions []*activityx.Action
 			err     error
 		)
 
 		switch {
 		case w.matchEthereumCurationTransaction(log):
-			actions, err = w.handleEthereumCurationTransaction(ctx, *ethereumTask, *log, _activity)
+			actions, err = w.handleEthereumCurationTransaction(ctx, *ethereumTask, *log, activity)
 		default:
 			continue
 		}
@@ -115,21 +115,21 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		_activity.Actions = append(_activity.Actions, actions...)
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	_activity.TotalActions = uint(len(_activity.Actions))
-	_activity.Tag = tag.Social
+	activity.TotalActions = uint(len(activity.Actions))
+	activity.Tag = tag.Social
 
-	return _activity, nil
+	return activity, nil
 }
 
 func (w *worker) matchEthereumCurationTransaction(log *ethereum.Log) bool {
 	return len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], matters.EventCuration)
 }
 
-func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task source.Task, log ethereum.Log, _activity *activity.Activity) ([]*activity.Action, error) {
-	_activity.Type = typex.SocialReward
+func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task source.Task, log ethereum.Log, activity *activityx.Activity) ([]*activityx.Action, error) {
+	activity.Type = typex.SocialReward
 
 	export := log.Export()
 
@@ -144,7 +144,7 @@ func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task sou
 		return nil, fmt.Errorf("build social reward action: %w", err)
 	}
 
-	return []*activity.Action{action}, nil
+	return []*activityx.Action{action}, nil
 }
 func (w *worker) fetchArticle(ctx context.Context, uri string) (*readability.Article, error) {
 	_, path, err := ipfs.ParseURL(uri)
@@ -216,7 +216,7 @@ func (w *worker) removeUnusedHTMLTags(node *html.Node) {
 		}
 	}
 }
-func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Task, trigger, recipient, token common.Address, amount *big.Int, uri string) (*activity.Action, error) {
+func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Task, trigger, recipient, token common.Address, amount *big.Int, uri string) (*activityx.Action, error) {
 	article, err := w.fetchArticle(ctx, uri)
 
 	if err != nil || article == nil {
@@ -230,7 +230,7 @@ func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Ta
 
 	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
 
-	return &activity.Action{
+	return &activityx.Action{
 		Type:     typex.SocialReward,
 		Tag:      tag.Social,
 		Platform: w.Platform(),

@@ -9,7 +9,7 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
 	mirror_model "github.com/rss3-network/node/internal/engine/worker/contract/mirror/model"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"go.uber.org/zap"
 )
@@ -25,9 +25,9 @@ type Client interface {
 	LoadCheckpoints(ctx context.Context, id string, network network.Network, worker string) ([]*engine.Checkpoint, error)
 	SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error
 
-	SaveActivities(ctx context.Context, activities []*activity.Activity) error
-	FindActivity(ctx context.Context, query model.ActivityQuery) (*activity.Activity, *int, error)
-	FindActivities(ctx context.Context, query model.ActivitiesQuery) ([]*activity.Activity, error)
+	SaveActivities(ctx context.Context, activities []*activityx.Activity) error
+	FindActivity(ctx context.Context, query model.ActivityQuery) (*activityx.Activity, *int, error)
+	FindActivities(ctx context.Context, query model.ActivitiesQuery) ([]*activityx.Activity, error)
 }
 
 type Session interface {

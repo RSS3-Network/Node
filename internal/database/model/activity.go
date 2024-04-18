@@ -2,7 +2,7 @@ package model
 
 import (
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 )
@@ -17,9 +17,9 @@ type ActivityQuery struct {
 
 type ActivitiesQuery struct {
 	Owner          *string
-	Cursor         *activity.Activity
+	Cursor         *activityx.Activity
 	Status         *bool
-	Direction      *activity.Direction
+	Direction      *activityx.Direction
 	StartTimestamp *uint64
 	EndTimestamp   *uint64
 	Platform       string

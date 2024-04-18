@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/tag"
 )
 
@@ -19,5 +19,5 @@ type Worker interface {
 	Types() []*schema.Type
 	Filter() SourceFilter
 	Match(ctx context.Context, task Task) (bool, error)
-	Transform(ctx context.Context, task Task) (*activity.Activity, error)
+	Transform(ctx context.Context, task Task) (*activityx.Activity, error)
 }

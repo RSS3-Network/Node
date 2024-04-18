@@ -10,7 +10,7 @@ import (
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -30,7 +30,7 @@ func TestWorker_Arweave(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *activity.Activity
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		// V1
@@ -54,7 +54,7 @@ func TestWorker_Arweave(t *testing.T) {
 					Endpoint:     endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "7Nv-EG4QBa0yqwvOfL8vH_mKlj6-VkoobZ9CySDHPqA",
 				Network:  network.Arweave,
 				Index:    0,
@@ -62,12 +62,12 @@ func TestWorker_Arweave(t *testing.T) {
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				Type:     typex.SocialPost,
 				Platform: workerx.Momoka.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
 					Decimal: 12,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialPost,
 						Tag:      tag.Social,
@@ -115,7 +115,7 @@ func TestWorker_Arweave(t *testing.T) {
 					Endpoint:     endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "Hx828fn_nXZM1xCST_Vejz5JSCbz0XfjhCAOiOuugiM",
 				Network:  network.Arweave,
 				Index:    0,
@@ -123,12 +123,12 @@ func TestWorker_Arweave(t *testing.T) {
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				Type:     typex.SocialShare,
 				Platform: workerx.Momoka.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
 					Decimal: 12,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialShare,
 						Tag:      tag.Social,
@@ -176,7 +176,7 @@ func TestWorker_Arweave(t *testing.T) {
 					Endpoint:     endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "0ZDiUg-TX9ne6Q0Bef1Pm1-q2giPUZIdDFDNa4YjEbg",
 				Network:  network.Arweave,
 				Index:    0,
@@ -184,12 +184,12 @@ func TestWorker_Arweave(t *testing.T) {
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				Type:     typex.SocialComment,
 				Platform: workerx.Momoka.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
 					Decimal: 12,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialComment,
 						Tag:      tag.Social,
@@ -250,7 +250,7 @@ func TestWorker_Arweave(t *testing.T) {
 					Endpoint:     endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "XL9qZdAKrBQleCiaVOxy2veWWoUB2mGeTH2D__Ksx6g",
 				Network:  network.Arweave,
 				Index:    0,
@@ -258,12 +258,12 @@ func TestWorker_Arweave(t *testing.T) {
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				Type:     typex.SocialPost,
 				Platform: workerx.Momoka.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
 					Decimal: 12,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialPost,
 						Tag:      tag.Social,
@@ -312,7 +312,7 @@ func TestWorker_Arweave(t *testing.T) {
 					Endpoint:     endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "TwtfazAvUhHOMDt0nRsuTVB_HywfrtJ3IRUX0l2ucns",
 				Network:  network.Arweave,
 				Index:    0,
@@ -320,12 +320,12 @@ func TestWorker_Arweave(t *testing.T) {
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				Type:     typex.SocialShare,
 				Platform: workerx.Momoka.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
 					Decimal: 12,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialShare,
 						Tag:      tag.Social,
@@ -380,7 +380,7 @@ func TestWorker_Arweave(t *testing.T) {
 					Endpoint:     endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "bN4Sf7lUO4TZwpPjtP3BUzBSG92io0McNgMXTxXUOcM",
 				Network:  network.Arweave,
 				Index:    0,
@@ -388,12 +388,12 @@ func TestWorker_Arweave(t *testing.T) {
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				Type:     typex.SocialComment,
 				Platform: workerx.Momoka.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
 					Decimal: 12,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialComment,
 						Tag:      tag.Social,
@@ -443,7 +443,7 @@ func TestWorker_Arweave(t *testing.T) {
 					Endpoint:     endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:       "wJ40YsMEMybIZBXMu5a-lH6RGv7A54B2Lr0vYJCLvAQ",
 				Network:  network.Arweave,
 				Index:    0,
@@ -451,12 +451,12 @@ func TestWorker_Arweave(t *testing.T) {
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				Type:     typex.SocialShare,
 				Platform: workerx.Momoka.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
 					Decimal: 12,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialShare,
 						Tag:      tag.Social,
@@ -503,12 +503,12 @@ func TestWorker_Arweave(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			_activity, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(_activity, "", "\x20\x20"))))
+			//t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, _activity)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

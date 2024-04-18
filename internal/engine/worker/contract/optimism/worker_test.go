@@ -14,7 +14,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/optimism"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
@@ -34,7 +34,7 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *activity.Activity
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
@@ -150,22 +150,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x3da542a1670a828838d2916d33be51de1b505e8700ffbb4ef26f31abc4184bc1",
 				Network: network.Ethereum,
 				Index:   124,
 				From:    "0x31E7B932C655628fDA6F22f063D550d990dBA726",
 				To:      optimism.AddressL1StandardBridge.String(),
 				Type:    typex.TransactionBridge,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xb1a1a882",
 				},
 				Platform: workerx.Optimism.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2100013493176452")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
 						Platform: workerx.Optimism.Platform(),
@@ -317,22 +317,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x239293e2a707a187305ab6056ba6bf6fa6279ba05440dce6c3b8f534c4963751",
 				Network: network.Ethereum,
 				Index:   143,
 				From:    "0x98389CA467c0199D7379fa1B6992A389b56bCc15",
 				To:      optimism.AddressL1StandardBridge.String(),
 				Type:    typex.TransactionBridge,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x58a997f6",
 				},
 				Platform: workerx.Optimism.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2678730832477170")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
 						Platform: workerx.Optimism.Platform(),
@@ -476,22 +476,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x7831e3145f8ca8ef0922397bcd5e2da2b1847cc515f2ceb4df74ecc8267505c3",
 				Network: network.Ethereum,
 				Index:   7,
 				From:    "0x175C0aD71624A537Cf594751A0A98c2FE85F950C",
 				To:      optimism.AddressL2StandardBridge.String(),
 				Type:    typex.TransactionBridge,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x32b7006d",
 				},
 				Platform: workerx.Optimism.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("34927390040514")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
 						Platform: workerx.Optimism.Platform(),
@@ -659,22 +659,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xf96590b94c25df375eaa0cece0477d2a3b3fe1756d221f9efa1bf48ae9117701",
 				Network: network.Optimism,
 				Index:   4,
 				From:    "0x7a16fF8270133F063aAb6C9977183D9e72835428",
 				To:      optimism.AddressL2StandardBridge.String(),
 				Type:    typex.TransactionBridge,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x32b7006d",
 				},
 				Platform: workerx.Optimism.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("31159514096212")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
 						Platform: workerx.Optimism.Platform(),
@@ -788,22 +788,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xb0c0b12cc5b5cd67993d4079809c41474ffff2a2de20bbe765f0cec7f07cf9de",
 				Network: network.Optimism,
 				Index:   1,
 				From:    "0x36BDE71C97B33Cc4729cf772aE268934f7AB70B2",
 				To:      optimism.AddressL2ETH.String(),
 				Type:    typex.TransactionBridge,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xd764ad0b",
 				},
 				Platform: workerx.Optimism.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("0")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
 						Platform: workerx.Optimism.Platform(),
@@ -931,22 +931,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xe1a660f3008f200735605f8154e9605a42e9f90687167b2a8f276ead650d850f",
 				Network: network.Optimism,
 				Index:   0,
 				From:    "0x0000000000000000000000000000000000000000",
 				To:      optimism.AddressL2ETH.String(),
 				Type:    typex.TransactionBridge,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xcbd4ece9",
 				},
 				Platform: workerx.Optimism.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("190455017173296")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
 						Platform: workerx.Optimism.Platform(),
@@ -1116,22 +1116,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xf96590b94c25df375eaa0cece0477d2a3b3fe1756d221f9efa1bf48ae9117701",
 				Network: network.Optimism,
 				Index:   4,
 				From:    "0x7a16fF8270133F063aAb6C9977183D9e72835428",
 				To:      optimism.AddressL2StandardBridge.String(),
 				Type:    typex.TransactionBridge,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x32b7006d",
 				},
 				Platform: workerx.Optimism.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("31159514096212")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
 						Platform: workerx.Optimism.Platform(),
@@ -1271,22 +1271,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x90fd9056fa8b2b2412bb0803509d4f7937b287d205fe3823c7b3a02e46166a84",
 				Network: network.Ethereum,
 				Index:   85,
 				From:    "0x2Ce910fBba65B454bBAf6A18c952A70f3bcd8299",
 				To:      optimism.AddressL1OptimismPortal.String(),
 				Type:    typex.TransactionBridge,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x8c3152e9",
 				},
 				Platform: workerx.Optimism.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3936093594104630")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
 						Platform: workerx.Optimism.Platform(),
@@ -1411,22 +1411,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x7d636b1cbc52a7b9b0836dad3536869f5b4878d8ca250ac4f0ca0687d695c715",
 				Network: network.Ethereum,
 				Index:   103,
 				From:    "0x7205A3526Ed4F762B61c804e054A499c0f102e1C",
 				To:      optimism.AddressL1OptimismPortal.String(),
 				Type:    typex.TransactionBridge,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x8c3152e9",
 				},
 				Platform: workerx.Optimism.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3186228206953671")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
 						Platform: workerx.Optimism.Platform(),
@@ -1467,12 +1467,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			_activity, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(_activity, "", "\x20\x20"))))
+			//t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, _activity)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

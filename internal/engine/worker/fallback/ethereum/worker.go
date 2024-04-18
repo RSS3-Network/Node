@@ -20,7 +20,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/token"
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -77,7 +77,7 @@ func (w *worker) Match(ctx context.Context, task engine.Task) (bool, error) {
 	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	tracerOptions := []trace.SpanStartOption{
 		trace.WithSpanKind(trace.SpanKindConsumer),
 		trace.WithAttributes(engine.BuildTaskTraceAttributes(task)...),
@@ -91,16 +91,16 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	_activity, err := task.BuildActivity()
+	activity, err := task.BuildActivity()
 	if err != nil {
-		return nil, fmt.Errorf("build _activity: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
-	actions := make([][]*activity.Action, len(ethereumTask.Receipt.Logs)+1)
+	actions := make([][]*activityx.Action, len(ethereumTask.Receipt.Logs)+1)
 
 	// If the transaction is failed, we will not process it.
 	if w.matchFailedTransaction(ethereumTask) {
-		return _activity, nil
+		return activity, nil
 	}
 
 	if w.matchNativeTransferTransaction(ethereumTask) {
@@ -109,8 +109,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, fmt.Errorf("handle native transfer transaction: %w", err)
 		}
 
-		_activity.Type = action.Type
-		_activity.Actions = append(_activity.Actions, action)
+		activity.Type = action.Type
+		activity.Actions = append(activity.Actions, action)
 	}
 
 	contextPool := pool.New().
@@ -129,7 +129,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 
 		contextPool.Go(func(ctx context.Context) error {
 			var (
-				logActions []*activity.Action
+				logActions []*activityx.Action
 				err        error
 			)
 
@@ -160,19 +160,19 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 
 	if err := contextPool.Wait(); err != nil {
 		if isInvalidTokenErr(err) {
-			return activity.NewUnknownActivity(_activity), nil
+			return activityx.NewUnknownActivity(activity), nil
 		}
 
 		return nil, fmt.Errorf("handle log: %w", err)
 	}
 
-	_activity.Actions = append(_activity.Actions, lo.Flatten(actions)...)
+	activity.Actions = append(activity.Actions, lo.Flatten(actions)...)
 
-	for _, action := range _activity.Actions {
-		_activity.Type = action.Type
+	for _, action := range activity.Actions {
+		activity.Type = action.Type
 	}
 
-	return _activity, nil
+	return activity, nil
 }
 
 func (w *worker) matchFailedTransaction(task *source.Task) bool {
@@ -208,7 +208,7 @@ func (w *worker) matchERC1155ApprovalLog(_ *source.Task, log *ethereum.Log) bool
 	return len(log.Topics) == 3 && contract.MatchEventHashes(log.Topics[0], erc1155.EventHashApprovalForAll)
 }
 
-func (w *worker) handleNativeTransferTransaction(ctx context.Context, task *source.Task) (*activity.Action, error) {
+func (w *worker) handleNativeTransferTransaction(ctx context.Context, task *source.Task) (*activityx.Action, error) {
 	transactionFrom := task.Transaction.From
 
 	// If the transaction is a contract creation,
@@ -226,7 +226,7 @@ func (w *worker) handleNativeTransferTransaction(ctx context.Context, task *sour
 	return action, nil
 }
 
-func (w *worker) handleERC20TransferLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) handleERC20TransferLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.erc20Filterer.ParseTransfer(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse ERC-20 Transfer event: %w", err)
@@ -237,14 +237,14 @@ func (w *worker) handleERC20TransferLog(ctx context.Context, task *source.Task, 
 		return nil, fmt.Errorf("build transaction transfer action: %w", err)
 	}
 
-	actions := []*activity.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) handleERC20ApproveLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) handleERC20ApproveLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.erc20Filterer.ParseApproval(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse ERC-20 Approval event: %w", err)
@@ -255,14 +255,14 @@ func (w *worker) handleERC20ApproveLog(ctx context.Context, task *source.Task, l
 		return nil, fmt.Errorf("build transaction approval action: %w", err)
 	}
 
-	actions := []*activity.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) handleERC721TransferLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) handleERC721TransferLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.erc721Filterer.ParseTransfer(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse ERC-721 Transfer event: %w", err)
@@ -273,15 +273,15 @@ func (w *worker) handleERC721TransferLog(ctx context.Context, task *source.Task,
 		return nil, fmt.Errorf("build collectible transfer action: %w", err)
 	}
 
-	actions := []*activity.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) handleERC721ApproveLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
-	var action *activity.Action
+func (w *worker) handleERC721ApproveLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+	var action *activityx.Action
 
 	switch {
 	case len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], erc721.EventHashApproval):
@@ -307,15 +307,15 @@ func (w *worker) handleERC721ApproveLog(ctx context.Context, task *source.Task, 
 		return nil, fmt.Errorf("unsupported ERC-721 approval event %s", log.Topics[0])
 	}
 
-	actions := []*activity.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) handleERC1155TransferLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
-	actions := make([]*activity.Action, 0)
+func (w *worker) handleERC1155TransferLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+	actions := make([]*activityx.Action, 0)
 
 	switch {
 	case len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], erc1155.EventHashTransferSingle):
@@ -357,7 +357,7 @@ func (w *worker) handleERC1155TransferLog(ctx context.Context, task *source.Task
 	return actions, nil
 }
 
-func (w *worker) handleERC1155ApproveLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) handleERC1155ApproveLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.erc1155Filterer.ParseApprovalForAll(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse ERC-1155 ApprovalForAll event: %w", err)
@@ -368,14 +368,14 @@ func (w *worker) handleERC1155ApproveLog(ctx context.Context, task *source.Task,
 		return nil, fmt.Errorf("build collectible approval action: %w", err)
 	}
 
-	actions := []*activity.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) buildTransactionTransferAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*activity.Action, error) {
+func (w *worker) buildTransactionTransferAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*activityx.Action, error) {
 	chainID, err := network.EthereumChainIDString(task.GetNetwork().String())
 	if err != nil {
 		return nil, fmt.Errorf("invalid chain id: %w", err)
@@ -399,7 +399,7 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 		actionType = typex.TransactionTransfer
 	}
 
-	action := activity.Action{
+	action := activityx.Action{
 		Type:     actionType,
 		From:     from.String(),
 		To:       to.String(),
@@ -409,7 +409,7 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 	return &action, nil
 }
 
-func (w *worker) buildTransactionApprovalAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*activity.Action, error) {
+func (w *worker) buildTransactionApprovalAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*activityx.Action, error) {
 	chainID, err := network.EthereumChainIDString(task.GetNetwork().String())
 	if err != nil {
 		return nil, fmt.Errorf("invalid chain id: %w", err)
@@ -428,7 +428,7 @@ func (w *worker) buildTransactionApprovalAction(ctx context.Context, task *sourc
 		metadataAction = metadata.ActionTransactionRevoke
 	}
 
-	action := activity.Action{
+	action := activityx.Action{
 		Type: typex.TransactionApproval,
 		From: from.String(),
 		To:   to.String(),
@@ -441,7 +441,7 @@ func (w *worker) buildTransactionApprovalAction(ctx context.Context, task *sourc
 	return &action, nil
 }
 
-func (w *worker) buildCollectibleTransferAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress common.Address, tokenID *big.Int, tokenValue *big.Int) (*activity.Action, error) {
+func (w *worker) buildCollectibleTransferAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress common.Address, tokenID *big.Int, tokenValue *big.Int) (*activityx.Action, error) {
 	chainID, err := network.EthereumChainIDString(task.GetNetwork().String())
 	if err != nil {
 		return nil, fmt.Errorf("invalid chain id: %w", err)
@@ -465,7 +465,7 @@ func (w *worker) buildCollectibleTransferAction(ctx context.Context, task *sourc
 		actionType = typex.CollectibleTransfer
 	}
 
-	action := activity.Action{
+	action := activityx.Action{
 		Type:     actionType,
 		From:     from.String(),
 		To:       to.String(),
@@ -475,7 +475,7 @@ func (w *worker) buildCollectibleTransferAction(ctx context.Context, task *sourc
 	return &action, nil
 }
 
-func (w *worker) buildCollectibleApprovalAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, tokenAddress common.Address, id *big.Int, approved *bool) (*activity.Action, error) {
+func (w *worker) buildCollectibleApprovalAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, tokenAddress common.Address, id *big.Int, approved *bool) (*activityx.Action, error) {
 	chainID, err := network.EthereumChainIDString(task.GetNetwork().String())
 	if err != nil {
 		return nil, fmt.Errorf("invalid chain id: %w", err)
@@ -499,7 +499,7 @@ func (w *worker) buildCollectibleApprovalAction(ctx context.Context, task *sourc
 		metadataAction = metadata.ActionCollectibleApprovalRevoke
 	}
 
-	action := activity.Action{
+	action := activityx.Action{
 		Type: typex.CollectibleApproval,
 		From: from.String(),
 		To:   to.String(),

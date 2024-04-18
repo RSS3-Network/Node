@@ -15,7 +15,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/stargate"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
@@ -35,7 +35,7 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *activity.Activity
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
@@ -192,22 +192,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Arbitrum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x9c14874078e6c92eefe807d1b8595ba05295a6a1d5abaa2634ca286e8409b61d",
 				Network: network.Arbitrum,
 				Index:   2,
 				From:    "0x32C8e4D2Cb2642A29bC06115336AC96Bf0160485",
 				To:      stargate.AddressRouterETHArbitrumOne.String(),
 				Type:    typex.TransactionBridge,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x1114cd2a",
 				},
 				Platform: workerx.Stargate.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("70294600000000")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type: typex.TransactionTransfer,
 						From: "0x32C8e4D2Cb2642A29bC06115336AC96Bf0160485",
@@ -349,22 +349,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x1ee6eca8ad26a8240e2b83352cb5e642636359aa0bd82a88ce72aba7a988305c",
 				Network: network.Optimism,
 				Index:   1,
 				From:    "0xe93685f3bBA03016F02bD1828BaDD6195988D950",
 				To:      layerzero.AddressRelayerOptimism.String(),
 				Type:    typex.TransactionBridge,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x252f7b01",
 				},
 				Platform: workerx.Stargate.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("65275689948467")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
 						Platform: workerx.Stargate.Platform(),
@@ -534,22 +534,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Optimism),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xa445b44b0d5da6487ff45c951fd3ec1a23c8802f41c53d95203cd8b6658e6e40",
 				Network: network.Optimism,
 				Index:   6,
 				From:    "0xA9fdDD748b21898C7E26E05ad895760FDd2723Bd",
 				To:      stargate.AddressRouterOptimism.String(),
 				Type:    typex.TransactionBridge,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x9fbf10fc",
 				},
 				Platform: workerx.Stargate.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("33002802845661")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type: typex.TransactionTransfer,
 						From: "0xA9fdDD748b21898C7E26E05ad895760FDd2723Bd",
@@ -705,22 +705,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xd0793bf3462b2764afdefb71716543bcded109439457e65fa848e81d04e4079b",
 				Network: network.Polygon,
 				Index:   18,
 				From:    "0xe93685f3bBA03016F02bD1828BaDD6195988D950",
 				To:      layerzero.AddressRelayerPolygon.String(),
 				Type:    typex.TransactionBridge,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x252f7b01",
 				},
 				Platform: workerx.Stargate.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("11249158762384833")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
 						Platform: workerx.Stargate.Platform(),
@@ -900,22 +900,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Linea),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x717dd473abb35804f76ddb3b74f395d7e6fe8d09959eb346b6420001735f5e9d",
 				Network: network.Linea,
 				Index:   74,
 				From:    "0xD7f9e3e2A28b7D0f0a534511f2a4cAFA7e517a6c",
 				To:      "0x8731d54E9D02c286767d56ac03e8037C07e01e98",
 				Type:    typex.TransactionBridge,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x1114cd2a",
 				},
 				Platform: workerx.Stargate.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("289542353189595")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type: typex.TransactionTransfer,
 						From: "0xD7f9e3e2A28b7D0f0a534511f2a4cAFA7e517a6c",
@@ -978,12 +978,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			_activity, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(_activity, "", "\x20\x20"))))
+			//t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, _activity)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

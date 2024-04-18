@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 )
@@ -18,28 +18,28 @@ type ActivityRequest struct {
 }
 
 type AccountActivitiesRequest struct {
-	Account        string              `param:"account" validate:"required"`
-	Limit          int                 `query:"limit" validate:"min=1,max=100" default:"100"`
-	ActionLimit    int                 `query:"action_limit" validate:"min=1,max=20" default:"10"`
-	Cursor         *string             `query:"cursor"`
-	SinceTimestamp *uint64             `query:"since_timestamp"`
-	UntilTimestamp *uint64             `query:"until_timestamp"`
-	Status         *bool               `query:"success"`
-	Direction      *activity.Direction `query:"direction"`
-	Network        []network.Network   `query:"network"`
-	Tag            []tag.Tag           `query:"tag"`
-	Type           []schema.Type       `query:"-"`
-	Platform       []string            `query:"platform"`
+	Account        string               `param:"account" validate:"required"`
+	Limit          int                  `query:"limit" validate:"min=1,max=100" default:"100"`
+	ActionLimit    int                  `query:"action_limit" validate:"min=1,max=20" default:"10"`
+	Cursor         *string              `query:"cursor"`
+	SinceTimestamp *uint64              `query:"since_timestamp"`
+	UntilTimestamp *uint64              `query:"until_timestamp"`
+	Status         *bool                `query:"success"`
+	Direction      *activityx.Direction `query:"direction"`
+	Network        []network.Network    `query:"network"`
+	Tag            []tag.Tag            `query:"tag"`
+	Type           []schema.Type        `query:"-"`
+	Platform       []string             `query:"platform"`
 }
 
 type ActivityResponse struct {
-	Data *activity.Activity `json:"data"`
-	Meta *MetaTotalPages    `json:"meta"`
+	Data *activityx.Activity `json:"data"`
+	Meta *MetaTotalPages     `json:"meta"`
 }
 
 type ActivitiesResponse struct {
-	Data []*activity.Activity `json:"data"`
-	Meta *MetaCursor          `json:"meta,omitempty"`
+	Data []*activityx.Activity `json:"data"`
+	Meta *MetaCursor           `json:"meta,omitempty"`
 }
 
 type MetaTotalPages struct {

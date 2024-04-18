@@ -14,7 +14,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/lido"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
@@ -34,7 +34,7 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *activity.Activity
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
@@ -120,22 +120,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xd632e7c240f2636d6f757a23480e27c968ba28ed7240c0f2c7b8206903252b22",
 				Network: network.Ethereum,
 				Index:   56,
 				From:    "0xcF7c2e2283e31984cA3e809e01ee35E80bCdAEea",
 				To:      lido.AddressStakedETH.String(),
 				Type:    typex.ExchangeLiquidity,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xa1903eab",
 				},
 				Platform: workerx.Lido.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1850864577993430")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
 						Platform: workerx.Lido.Platform(),
@@ -295,22 +295,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xe1bc6380c76131ed87a875bd0740f187548c22c1e79eec10d9a7f00c51ad914c",
 				Network: network.Ethereum,
 				Index:   47,
 				From:    "0x64833AEbDB5a39EAD24b7F053DbDA0FE38ad632e",
 				To:      lido.AddressStakedETHWithdrawalNFT.String(),
 				Type:    typex.ExchangeLiquidity,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xacf41e4d",
 				},
 				Platform: workerx.Lido.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("4367891628466576")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
 						Platform: workerx.Lido.Platform(),
@@ -422,22 +422,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xcc70adde277e1f7faff67d5ebda2b8fdae071933f4b751790b5aba4b65b012c8",
 				Network: network.Ethereum,
 				Index:   44,
 				From:    "0x0C71f889D32002bCAC135434cac861Baf17A5f67",
 				To:      lido.AddressStakedETHWithdrawalNFT.String(),
 				Type:    typex.CollectibleBurn,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xe3afe0a3",
 				},
 				Platform: workerx.Lido.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1364545917931882")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.CollectibleBurn,
 						Platform: workerx.Lido.Platform(),
@@ -578,22 +578,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xa8405c2dfb85565b406d5b6b60f0b460f61c211977d967ee546967ae43be2c2f",
 				Network: network.Ethereum,
 				Index:   29,
 				From:    "0xc9fE2F54234c513dbeadbF12Af72a7c1eDB0058f",
 				To:      lido.AddressStakedMATIC.String(),
 				Type:    typex.ExchangeLiquidity,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xf532e86a",
 				},
 				Platform: workerx.Lido.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("11618788820293291")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
 						Platform: workerx.Lido.Platform(),
@@ -791,22 +791,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x9247508d5690e97814a3f32b1f8ffda14c7b3404a7ae280eea6e93df2423dfd2",
 				Network: network.Ethereum,
 				Index:   121,
 				From:    "0x36cc7B13029B5DEe4034745FB4F24034f3F2ffc6",
 				To:      lido.AddressStakedMATIC.String(),
 				Type:    typex.CollectibleMint,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xccc143b8",
 				},
 				Platform: workerx.Lido.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("18695859673908466")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
 						Platform: workerx.Lido.Platform(),
@@ -969,22 +969,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xfb4fc03b79772dc77bf6af4f35eaf1e32746eda8f2fdf89d40ca2d8a06e4225f",
 				Network: network.Ethereum,
 				Index:   83,
 				From:    "0x22510fe99F63aE03BA792c21A29Ec10Fd87cae08",
 				To:      lido.AddressStakedMATIC.String(),
 				Type:    typex.CollectibleBurn,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x46e04a2f",
 				},
 				Platform: workerx.Lido.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3684529000000000")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.CollectibleBurn,
 						Platform: workerx.Lido.Platform(),
@@ -1115,22 +1115,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x89b84ef9d6cd376cffd554d7c63ff3c301eea7ffe19371aae59e7b0e7aeee2b5",
 				Network: network.Ethereum,
 				Index:   47,
 				From:    "0x8F1853b7891955791513A5E1262258D42468005a",
 				To:      lido.AddressWrappedStakedETH.String(),
 				Type:    typex.ExchangeSwap,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xea598cb0",
 				},
 				Platform: workerx.Lido.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2095213918569300")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.Lido.Platform(),
@@ -1245,22 +1245,22 @@ func TestWorker_Ethereum(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xdef8ed7f55480f66ed52be86b9b66c86154e6a5df289e894da9ecdada5b603cb",
 				Network: network.Ethereum,
 				Index:   71,
 				From:    "0x8375eC8bB9902512a63d488C09548e40e13FB81F",
 				To:      lido.AddressWrappedStakedETH.String(),
 				Type:    typex.ExchangeSwap,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xde0e9a3e",
 				},
 				Platform: workerx.Lido.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2101204713592270")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.Lido.Platform(),
@@ -1308,11 +1308,11 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			_activity, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
-			require.Equal(t, testcase.want, _activity)
+			require.Equal(t, testcase.want, activity)
 
-			t.Log(_activity)
+			t.Log(activity)
 		})
 	}
 }

@@ -22,7 +22,7 @@ import (
 	"github.com/rss3-network/node/provider/ipfs"
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -85,17 +85,17 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 }
 
 // Transform returns an activity  with the action of the task.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build the _activity.
-	_activity, err := task.BuildActivity(activity.WithActivityPlatform(w.Platform()))
+	// Build the activity.
+	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build _activity: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	// Get actions and social content timestamp from the transaction.
@@ -104,19 +104,19 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 		return nil, fmt.Errorf("handle arweave mirror transaction: %w", err)
 	}
 
-	_activity.To = _activity.From
+	activity.To = activity.From
 
 	// Activity type should be inferred from the action (if it's `revise`)
 	if actions[0] != nil {
-		_activity.Type = actions[0].Type
-		_activity.Actions = append(_activity.Actions, actions...)
+		activity.Type = actions[0].Type
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	return _activity, nil
+	return activity, nil
 }
 
 // transformPostOrReviseAction Returns the actions of mirror post or revise.
-func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) ([]*activity.Action, error) {
+func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
 	data, err := base64.RawURLEncoding.DecodeString(task.Transaction.Data)
 	if err != nil {
 		return nil, fmt.Errorf("decode transaction data: %w", err)
@@ -264,15 +264,15 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 		return nil, fmt.Errorf("public key to address: %w", err)
 	}
 
-	actions := []*activity.Action{
+	actions := []*activityx.Action{
 		w.buildArweaveMomokaAction(ctx, from.String(), activityFrom, socialType, momokaMetadata),
 	}
 
 	return actions, nil
 }
 
-func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, filterType typex.SocialType, momokaMetadata *metadata.SocialPost) *activity.Action {
-	action := activity.Action{
+func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, filterType typex.SocialType, momokaMetadata *metadata.SocialPost) *activityx.Action {
+	action := activityx.Action{
 		Type:     filterType,
 		Tag:      tag.Social,
 		Platform: w.Platform(),

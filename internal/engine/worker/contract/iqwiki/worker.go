@@ -16,7 +16,7 @@ import (
 	"github.com/rss3-network/node/provider/ipfs"
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -74,8 +74,8 @@ func matchEthereumIqWiki(task *source.Task) bool {
 	return task.Transaction.From == iqwiki.AddressSig && iqwiki.AddressWiki == *task.Transaction.To
 }
 
-// Transform Ethereum task to activity.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
+// Transform Ethereum task to activityx.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -90,9 +90,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 	}
 
 	// Build default IQWiki activity from task.
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
+	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build _activity: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	// Parse actions from task.
@@ -107,23 +107,23 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			continue
 		}
 
-		_activity.Actions = append(_activity.Actions, action)
+		activity.Actions = append(activity.Actions, action)
 	}
 
-	if len(_activity.Actions) == 0 {
+	if len(activity.Actions) == 0 {
 		return nil, fmt.Errorf("no actions in transaction: %s", ethereumTask.Transaction.Hash)
 	}
 
-	// Set _activity type to the first action type & total actions.
-	_activity.Type = _activity.Actions[0].Type
-	_activity.Tag = tag.Social
-	_activity.TotalActions = uint(len(_activity.Actions))
+	// Set activity type to the first action type & total actions.
+	activity.Type = activity.Actions[0].Type
+	activity.Tag = tag.Social
+	activity.TotalActions = uint(len(activity.Actions))
 
-	return _activity, nil
+	return activity, nil
 }
 
 // Parse action from Ethereum log.
-func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTask *source.Task) (*activity.Action, error) {
+func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTask *source.Task) (*activityx.Action, error) {
 	wikiPosted, err := w.iqWikiFilterer.ParsePosted(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse posted: %w", err)
@@ -154,7 +154,7 @@ func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTas
 		return nil, fmt.Errorf("fetch wiki %s, hash %s, %w", wiki.ID, ethereumTask.Transaction.Hash.String(), err)
 	}
 
-	action := &activity.Action{
+	action := &activityx.Action{
 		Tag:      tag.Social,
 		Type:     lo.If(iqwiki.StatusCreated == wikiResponse.ActivityByWikiIdAndBlock.Type, typex.SocialPost).Else(typex.SocialRevise),
 		Platform: w.Platform(),

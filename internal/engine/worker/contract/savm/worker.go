@@ -15,7 +15,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/token"
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -69,20 +69,20 @@ func (w *worker) Match(_ context.Context, _ engine.Task) (bool, error) {
 	return true, nil // TODO Remove this function.
 }
 
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Activity, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	_activity, err := ethereumTask.BuildActivity(activity.WithActivityPlatform(w.Platform()))
+	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build _activity: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	for _, log := range ethereumTask.Receipt.Logs {
 		var (
-			actions []*activity.Action
+			actions []*activityx.Action
 			err     error
 		)
 
@@ -110,11 +110,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 			return nil, err
 		}
 
-		_activity.Type = typex.TransactionBridge
-		_activity.Actions = append(_activity.Actions, actions...)
+		activity.Type = typex.TransactionBridge
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	return _activity, nil
+	return activity, nil
 }
 
 func (w *worker) matchBTCBridgeWithdrawLog(_ *source.Task, log *ethereum.Log) bool {
@@ -129,7 +129,7 @@ func (w *worker) matchSAVMTransferLog(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == savm.AddressSAVMToken && log.Topics[0] == savm.EventHashSAVMTransfer
 }
 
-func (w *worker) transformBTCBridgeWithdrawLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformBTCBridgeWithdrawLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.contractBTCBridgeFilterer.ParseWithdraw(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Withdraw event: %w", err)
@@ -140,14 +140,14 @@ func (w *worker) transformBTCBridgeWithdrawLog(ctx context.Context, task *source
 		return nil, fmt.Errorf("build transaction bridge action: %w", err)
 	}
 
-	actions := []*activity.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) transformBTCBridgeDepositLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformBTCBridgeDepositLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.contractBTCBridgeFilterer.ParseDeposit(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Deposit event: %w", err)
@@ -158,20 +158,20 @@ func (w *worker) transformBTCBridgeDepositLog(ctx context.Context, task *source.
 		return nil, fmt.Errorf("build transaction bridge action: %w", err)
 	}
 
-	actions := []*activity.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) transformSAVMBridgeLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
+func (w *worker) transformSAVMBridgeLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.erc20Filterer.ParseTransfer(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Withdraw event: %w", err)
 	}
 
-	var actions []*activity.Action
+	var actions []*activityx.Action
 
 	switch event.To {
 	case savm.AddressSAVMBridge:
@@ -186,7 +186,7 @@ func (w *worker) transformSAVMBridgeLog(ctx context.Context, task *source.Task, 
 	return actions, nil
 }
 
-func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address, source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int, blockNumber *big.Int) (*activity.Action, error) {
+func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address, source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int, blockNumber *big.Int) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
@@ -194,7 +194,7 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
-	action := activity.Action{
+	action := activityx.Action{
 		Type:     typex.TransactionBridge,
 		Platform: w.Platform(),
 		From:     sender.String(),

@@ -14,7 +14,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/1inch"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
@@ -34,7 +34,7 @@ func TestWorker_Oneinch(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *activity.Activity
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
@@ -157,22 +157,22 @@ func TestWorker_Oneinch(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xb6db808536850dced5557fee043fcea42025c5a84b95939632cf8a6f03505aea",
 				Network: network.Ethereum,
 				Index:   95,
 				From:    "0x940E5a9f9695b4A9EBab4821aBb075041336eeE0",
 				To:      oneinch.AddressExchange2.String(),
 				Type:    typex.ExchangeSwap,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xf88309d7",
 				},
 				Platform: workerx.Oneinch.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("6547499311493148")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.Oneinch.Platform(),
@@ -320,22 +320,22 @@ func TestWorker_Oneinch(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x211ced54b5318c548fe5c1ed89393fd9dafb2ef2b69c1d13cd3724ea34564661",
 				Network: network.Ethereum,
 				Index:   87,
 				From:    "0x3d8eB64C1CBFa5Bba1d8217D6c6AE3e40460D8f4",
 				To:      oneinch.AddressAggregationRouterV2.String(),
 				Type:    typex.ExchangeSwap,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x90411a32",
 				},
 				Platform: workerx.Oneinch.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3241020025025094")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.Oneinch.Platform(),
@@ -482,22 +482,22 @@ func TestWorker_Oneinch(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xd2c37acd588f088402d5f203080c61ac6473f3f4ff09c78d3dd8ecde1cbeb482",
 				Network: network.Ethereum,
 				Index:   59,
 				From:    "0x2A0a81e257a2f5D6eD4F07b81DbDa09F107bd027",
 				To:      oneinch.AddressAggregationRouterV3.String(),
 				Type:    typex.ExchangeSwap,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x7c025200",
 				},
 				Platform: workerx.Oneinch.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3440729848760508")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.Oneinch.Platform(),
@@ -790,22 +790,22 @@ func TestWorker_Oneinch(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xae8fa2b053cf69a80648622620dd84ce2d27c6ca092f6fe049a4712bbea1a205",
 				Network: network.Ethereum,
 				Index:   28,
 				From:    "0x09c149843fd6a6085e1E677f744314ab9eC768Cb",
 				To:      oneinch.AddressAggregationRouterV4.String(),
 				Type:    typex.ExchangeSwap,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x7c025200",
 				},
 				Platform: workerx.Oneinch.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("20429607000000000")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.Oneinch.Platform(),
@@ -1002,22 +1002,22 @@ func TestWorker_Oneinch(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x8e02caa4b60532be5c37bb10bf83a80921a30dfd37093cb44e6cf2f6080aa5e6",
 				Network: network.Ethereum,
 				Index:   220,
 				From:    "0xd0B8DfCF9dA999db981A60a8DA6584E8e52b757c",
 				To:      oneinch.AddressAggregationRouterV5.String(),
 				Type:    typex.ExchangeSwap,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x12aa3caf",
 				},
 				Platform: workerx.Oneinch.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("5071818383704171")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.Oneinch.Platform(),
@@ -1140,22 +1140,22 @@ func TestWorker_Oneinch(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xbd163f0df1e70293e3b8912fd5511ef0df143ea39dc827c85a1a26c6ede12756",
 				Network: network.Ethereum,
 				Index:   62,
 				From:    "0x6Db2acbA03f08897D6286358632126ddF81d7597",
 				To:      oneinch.AddressAggregationRouterV4.String(),
 				Type:    typex.ExchangeSwap,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xd0a3b665",
 				},
 				Platform: workerx.Oneinch.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1819505775044528")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.Oneinch.Platform(),
@@ -1290,22 +1290,22 @@ func TestWorker_Oneinch(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x190e674289665eb553544d59d61db7d8ff87e656604178207bfba0cbcc501b3f",
 				Network: network.Ethereum,
 				Index:   168,
 				From:    "0x44b184A0C56F926bA3634DAD905690b3438aed77",
 				To:      oneinch.AddressAggregationRouterV4.String(),
 				Type:    typex.ExchangeSwap,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x2e95b6c8",
 				},
 				Platform: workerx.Oneinch.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1537751745634040")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.Oneinch.Platform(),
@@ -1430,22 +1430,22 @@ func TestWorker_Oneinch(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x20f1c03b46061f08111601d9fb4f31be68eaa705af0d2d846fa5abbfb657037f",
 				Network: network.Ethereum,
 				Index:   120,
 				From:    "0x8E2511b43bf95BFd18017FD205EfD6d246526c3A",
 				To:      oneinch.AddressAggregationRouterV4.String(),
 				Type:    typex.ExchangeSwap,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xe449022e",
 				},
 				Platform: workerx.Oneinch.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2291334573991950")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.Oneinch.Platform(),
@@ -1546,22 +1546,22 @@ func TestWorker_Oneinch(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xad01bd6113ec89138c8cd64d0730fb201df5fc987463b1f33173481daad95c68",
 				Network: network.Ethereum,
 				Index:   16,
 				From:    "0x0874D10C8f7C40B45c91d0A8965987653383b697",
 				To:      oneinch.AddressAggregationRouterV5.String(),
 				Type:    typex.ExchangeSwap,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x12aa3caf",
 				},
 				Platform: workerx.Oneinch.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3353385243784578")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.Oneinch.Platform(),
@@ -1696,22 +1696,22 @@ func TestWorker_Oneinch(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0xf86953fa953fe8d8762d58b3126946a6c5460f63cea5db9fbef0fa6175660f14",
 				Network: network.Ethereum,
 				Index:   46,
 				From:    "0x552C8368088541bE1Bf8D4323dc3F73C18D02551",
 				To:      oneinch.AddressAggregationRouterV5.String(),
 				Type:    typex.ExchangeSwap,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x0502b1c5",
 				},
 				Platform: workerx.Oneinch.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2286968577290726")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.Oneinch.Platform(),
@@ -1836,22 +1836,22 @@ func TestWorker_Oneinch(t *testing.T) {
 					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &activity.Activity{
+			want: &activityx.Activity{
 				ID:      "0x5c2b5af33c383842f8f4b7cc65aca7cbddadd4815cf852ebdb1e84ac68805738",
 				Network: network.Ethereum,
 				Index:   11,
 				From:    "0xB63F5Ff16296C57d3aa2340368B73b498E089BF8",
 				To:      oneinch.AddressAggregationRouterV5.String(),
 				Type:    typex.ExchangeSwap,
-				Calldata: &activity.Calldata{
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xe449022e",
 				},
 				Platform: workerx.Oneinch.Platform(),
-				Fee: &activity.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3006238000000000")),
 					Decimal: 18,
 				},
-				Actions: []*activity.Action{
+				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.Oneinch.Platform(),
@@ -1897,12 +1897,12 @@ func TestWorker_Oneinch(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			_activity, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(_activity, "", "\x20\x20"))))
+			//t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, _activity)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

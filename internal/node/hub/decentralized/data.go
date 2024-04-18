@@ -7,16 +7,16 @@ import (
 	"time"
 
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/protocol-go/schema/activity"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 )
 
-func (h *Hub) getActivity(ctx context.Context, request model.ActivityQuery) (*activity.Activity, *int, error) {
+func (h *Hub) getActivity(ctx context.Context, request model.ActivityQuery) (*activityx.Activity, *int, error) {
 	return h.databaseClient.FindActivity(ctx, request)
 }
 
-func (h *Hub) getActivities(ctx context.Context, request model.ActivitiesQuery) ([]*activity.Activity, string, error) {
+func (h *Hub) getActivities(ctx context.Context, request model.ActivitiesQuery) ([]*activityx.Activity, string, error) {
 	activities, err := h.databaseClient.FindActivities(ctx, request)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to find activities: %w", err)
@@ -30,7 +30,7 @@ func (h *Hub) getActivities(ctx context.Context, request model.ActivitiesQuery) 
 	return nil, "", nil
 }
 
-func (h *Hub) getCursor(ctx context.Context, cursor *string) (*activity.Activity, error) {
+func (h *Hub) getCursor(ctx context.Context, cursor *string) (*activityx.Activity, error) {
 	if cursor == nil {
 		return nil, nil
 	}
@@ -53,12 +53,12 @@ func (h *Hub) getCursor(ctx context.Context, cursor *string) (*activity.Activity
 	return data, nil
 }
 
-func (h *Hub) transformCursor(_ context.Context, _activity *activity.Activity) string {
-	if _activity == nil {
+func (h *Hub) transformCursor(_ context.Context, activity *activityx.Activity) string {
+	if activity == nil {
 		return ""
 	}
 
-	return fmt.Sprintf("%s:%s", _activity.ID, _activity.Network)
+	return fmt.Sprintf("%s:%s", activity.ID, activity.Network)
 }
 
 func (h *Hub) getIndexCount(ctx context.Context) (int64, *time.Time, error) {
