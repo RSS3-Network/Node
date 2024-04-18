@@ -27,9 +27,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/node/provider/ipfs"
-	
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -333,7 +334,7 @@ func (w *worker) transformSetCharacterURI(ctx context.Context, task *source.Task
 // transformPostCreated transforms PostCreated event.
 func (w *worker) transformPostCreated(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activity.Action, error) {
 	feedType :=
-	typex.SocialPost
+		typex.SocialPost
 
 	event, err := w.eventFilterer.ParsePostNote(log.Export())
 	if err != nil {
@@ -586,31 +587,27 @@ func (w *worker) buildProfileAction(_ context.Context, from, to common.Address, 
 }
 
 // builPostAction builds post action.
-func (w *worker) buildPostAction(_ context.Context, from common.Address, to common.Address, platform string, actionType
-
-type., post metadata.SocialPost) *activity.Action {
-return &activity.Action{
-From:     from.String(),
-To:       to.String(),
-Platform: platform,
-Type:     actionType,
-Metadata: post,
-}
+func (w *worker) buildPostAction(_ context.Context, from common.Address, to common.Address, platform string, actionType typex.SocialType, post metadata.SocialPost) *activity.Action {
+	return &activity.Action{
+		From:     from.String(),
+		To:       to.String(),
+		Platform: platform,
+		Type:     actionType,
+		Metadata: post,
+	}
 }
 
 // buildPostRewardAction builds post reward action.
-func (w *worker) buildPostRewardAction(_ context.Context, from common.Address, to common.Address, platform string, actionType
-
-type., post metadata.SocialPost) *activity.Action {
-return &activity.Action{
-From:     from.String(),
-To:       to.String(),
-Platform: platform,
-Type:     actionType,
-Metadata: &metadata.SocialPost{
-Target: &post,
-},
-}
+func (w *worker) buildPostRewardAction(_ context.Context, from common.Address, to common.Address, platform string, actionType typex.SocialType, post metadata.SocialPost) *activity.Action {
+	return &activity.Action{
+		From:     from.String(),
+		To:       to.String(),
+		Platform: platform,
+		Type:     actionType,
+		Metadata: &metadata.SocialPost{
+			Target: &post,
+		},
+	}
 }
 
 // buildPostMetadata builds post metadata.
@@ -755,7 +752,7 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 		return "", fmt.Errorf("invalid asset uri: %s", assetURI)
 	}
 
-	network, chainID := network.AndChainID(asset[2])
+	_network, chainID := network.NameAndChainID(asset[2])
 	if chainID <= 0 {
 		return "", fmt.Errorf("invalid chain id: %s", asset[2])
 	}
@@ -767,11 +764,11 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 
 	var tokenClient token.Client
 
-	if chainID != network.ChainIDCrossbell {
+	if chainID != network.EthereumChainIDCrossbell {
 		var ethereumClient ethereum.Client
 
 		// Initialize ethereum client.
-		endpoints, exists := endpoint.Get(network)
+		endpoints, exists := endpoint.Get(_network)
 		if !exists {
 			return "", fmt.Errorf("get endpoint: %w", err)
 		}

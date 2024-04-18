@@ -15,9 +15,10 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
 	"github.com/rss3-network/node/provider/ethereum/contract/lido"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -439,11 +440,11 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, block
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.ExchangeLiquidity{
-		Action: liquidityAction,
-		Tokens: []metadata.Token{
-		*tokenMetadata,
-	},
-	},
+			Action: liquidityAction,
+			Tokens: []metadata.Token{
+				*tokenMetadata,
+			},
+		},
 	}
 
 	return &action, nil
@@ -457,8 +458,7 @@ func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, blo
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
-	actionType :=
-	type.TransactionTransfer
+	actionType := typex.TransactionTransfer
 
 	if sender == ethereum.AddressGenesis {
 		actionType = typex.TransactionMint
@@ -487,8 +487,7 @@ func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, blo
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
-	actionType :=
-	type.CollectibleTransfer
+	actionType := typex.CollectibleTransfer
 
 	if sender == ethereum.AddressGenesis {
 		actionType = typex.CollectibleMint
@@ -530,9 +529,9 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeSwap{
-		From: *tokenInMetadata,
-		To:   *tokenOutMetadata,
-	},
+			From: *tokenInMetadata,
+			To:   *tokenOutMetadata,
+		},
 	}
 
 	return &action, nil

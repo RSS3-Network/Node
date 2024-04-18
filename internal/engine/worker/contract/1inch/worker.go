@@ -15,9 +15,11 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/contract/weth"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	
-	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/typex"
+
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -103,8 +105,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activity.Act
 
 // handleEthereumExchangeSwapTransaction handles exchange swap transaction.
 func (w *worker) handleEthereumExchangeSwapTransaction(ctx context.Context, task *source.Task, feed *activity.Activity) error {
-	feed.Type =
-	type.ExchangeSwap
+	feed.Type = typex.ExchangeSwap
 
 	var (
 		actions []*activity.Action
@@ -858,15 +859,15 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
 
 	action := activity.Action{
-		Tag: filter.TagExchange,
+		Tag:      filter.TagExchange,
 		Type:     typex.ExchangeSwap,
 		Platform: filter.Platform1inch.String(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeSwap{
-		From: *tokenInMetadata,
-		To:   *tokenOutMetadata,
-	},
+			From: *tokenInMetadata,
+			To:   *tokenOutMetadata,
+		},
 	}
 
 	return &action, nil
