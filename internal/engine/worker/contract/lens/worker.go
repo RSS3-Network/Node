@@ -60,7 +60,7 @@ func (w *worker) Tag() tag.Tag {
 	return tag.Social
 }
 
-func (w *worker) Types() []*schema.Type {
+func (w *worker) Types() []schema.Type {
 	panic("implement me")
 }
 

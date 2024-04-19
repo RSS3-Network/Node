@@ -13,10 +13,10 @@ type Worker interface {
 	Name() string
 	// Platform returns the display name of the worker as the `platform` in the final Activity response.
 	Platform() string
-	// Tag the `tag` in the final Activity response.
+	// Tag the `tag` of the worker, displayed in the final Activity response.
 	Tag() tag.Tag
-	// Types the possible `type` value in the final Activity response.
-	Types() []*schema.Type
+	// Types the possible `type` of the worker, displayed in the final Activity response.
+	Types() []schema.Type
 	Filter() SourceFilter
 	Match(ctx context.Context, task Task) (bool, error)
 	Transform(ctx context.Context, task Task) (*activityx.Activity, error)

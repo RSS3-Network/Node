@@ -42,8 +42,11 @@ func (w *worker) Tag() tag.Tag {
 	return tag.Social
 }
 
-func (w *worker) Types() []*schema.Type {
-	panic("implement me")
+func (w *worker) Types() []schema.Type {
+	return []schema.Type{
+		typex.SocialComment,
+		typex.SocialPost,
+	}
 }
 
 // Filter returns a source filter.

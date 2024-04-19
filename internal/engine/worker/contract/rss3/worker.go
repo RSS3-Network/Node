@@ -48,7 +48,7 @@ func (w *worker) Tag() tag.Tag {
 	return tag.Exchange
 }
 
-func (w *worker) Types() []*schema.Type {
+func (w *worker) Types() []schema.Type {
 	panic("implement me")
 }
 
