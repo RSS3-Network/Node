@@ -766,7 +766,7 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 		return "", fmt.Errorf("invalid asset uri: %s", assetURI)
 	}
 
-	network, chainID := networkx.NameAndChainID(asset[2])
+	network, chainID := networkx.ParseNetworkAndChainIDFromString(asset[2])
 	if chainID <= 0 {
 		return "", fmt.Errorf("invalid chain id: %s", asset[2])
 	}

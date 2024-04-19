@@ -56,7 +56,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/redis/rueidis v1.0.34
-	github.com/rss3-network/protocol-go v0.4.1
+	github.com/rss3-network/protocol-go v0.4.2
 	github.com/spf13/afero v1.11.0
 	github.com/vincent-petithory/dataurl v1.0.0
 	golang.org/x/net v0.24.0

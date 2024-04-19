@@ -69,7 +69,7 @@ func (h *Hub) parseParams(params url.Values, tags []tag.Tag) ([]schema.Type, err
 		)
 
 		for _, tag := range tags {
-			value, err = schema.TypeString(tag, typex)
+			value, err = schema.ParseTypeFromString(tag, typex)
 			if err == nil {
 				types = append(types, value)
 

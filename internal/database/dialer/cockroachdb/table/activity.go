@@ -122,7 +122,7 @@ func (f *Activity) Export(index *Index) (*activityx.Activity, error) {
 
 	var err error
 
-	if activity.Type, err = schema.TypeString(f.Tag, f.Type); err != nil {
+	if activity.Type, err = schema.ParseTypeFromString(f.Tag, f.Type); err != nil {
 		return nil, err
 	}
 
@@ -264,7 +264,7 @@ func (f *ActivityAction) Export() (*activityx.Action, error) {
 	}
 
 	var err error
-	if action.Tag, action.Type, err = schema.TagAndTypeString(f.Tag, f.Type); err != nil {
+	if action.Tag, action.Type, err = schema.ParseTagAndTypeFromString(f.Tag, f.Type); err != nil {
 		return nil, err
 	}
 
