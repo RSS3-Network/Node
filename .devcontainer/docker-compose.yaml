@@ -69,6 +69,15 @@ services:
       - "6379:6379"
     volumes:
       - redis:/data
+  pyroscope:
+    container_name: pyroscope
+    image: grafana/pyroscope:1.5.0
+    networks:
+      - default
+    ports:
+      - "4040:4040"
+    command:
+      - server
 volumes:
   cockroachdb:
   kafka:
