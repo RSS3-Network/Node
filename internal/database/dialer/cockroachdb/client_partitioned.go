@@ -398,26 +398,10 @@ func (c *client) findIndexPartitioned(ctx context.Context, query model.ActivityQ
 	}
 }
 
+// findIndexesPartitioned finds indexes.
+//
+//nolint:gocognit
 func (c *client) findIndexesPartitioned(ctx context.Context, query model.ActivitiesQuery) ([]*table.Index, error) {
-	index := c.setIndexTimestamp(query)
-	partitionedNames := c.findIndexesPartitionTables(ctx, index)
-
-	if len(partitionedNames) == 0 {
-		return nil, nil
-	}
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	indexes, err := c.fetchIndexes(ctx, partitionedNames, query)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch indexes: %w", err)
-	}
-
-	return c.processResults(ctx, indexes, query)
-}
-
-func (c *client) setIndexTimestamp(query model.ActivitiesQuery) table.Index {
 	index := table.Index{
 		Timestamp: time.Now(),
 	}
@@ -430,10 +414,13 @@ func (c *client) setIndexTimestamp(query model.ActivitiesQuery) table.Index {
 		index.Timestamp = time.Unix(int64(query.Cursor.Timestamp), 0)
 	}
 
-	return index
-}
+	partitionedNames := c.findIndexesPartitionTables(ctx, index)
 
-func (c *client) fetchIndexes(ctx context.Context, partitionedNames []string, query model.ActivitiesQuery) ([][]*table.Index, error) {
+	if len(partitionedNames) == 0 {
+		return nil, nil
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
 	errorGroup, errorContext := errgroup.WithContext(ctx)
 	indexes := make([][]*table.Index, len(partitionedNames))
 	resultChan := make(chan int, len(partitionedNames))
@@ -473,50 +460,47 @@ func (c *client) fetchIndexes(ctx context.Context, partitionedNames []string, qu
 		errorChan <- errorGroup.Wait()
 	}()
 
+	defer func() {
+		cancel()
+	}()
+
 	for {
 		select {
 		case err := <-errorChan:
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to wait result: %w", err)
 			}
 		case <-resultChan:
-			return indexes, nil
-		}
-	}
-}
+			result := make([]*table.Index, 0, query.Limit)
+			flag := true
 
-func (c *client) processResults(_ context.Context, indexes [][]*table.Index, query model.ActivitiesQuery) ([]*table.Index, error) {
-	result := make([]*table.Index, 0, query.Limit)
-	flag := true
+			mutex.RLock()
 
-	var mutex sync.RWMutex
+			for _, data := range indexes {
+				data := data
 
-	mutex.RLock()
+				if data == nil {
+					flag = false
+					break
+				}
 
-	for _, data := range indexes {
-		data := data
+				result = append(result, data...)
 
-		if data == nil {
-			flag = false
-			break
-		}
+				if len(result) >= query.Limit {
+					close(stopChan)
+					mutex.RUnlock()
 
-		result = append(result, data...)
+					return result[:query.Limit], nil
+				}
+			}
 
-		if len(result) >= query.Limit {
 			mutex.RUnlock()
 
-			return result[:query.Limit], nil
+			if flag {
+				return result, nil
+			}
 		}
 	}
-
-	mutex.RUnlock()
-
-	if flag {
-		return result, nil
-	}
-
-	return nil, nil
 }
 
 // buildFindIndexStatement builds the query index statement.
