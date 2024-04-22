@@ -1732,12 +1732,12 @@ func TestWorker_Ethereum(t *testing.T) {
 	partition := true
 
 	testDB, err := testserver.NewTestServer(testserver.CustomVersionOpt("v23.1.8"))
-	//container, dataSourceName, err := createContainer(context.Background(), driver, partition)
+	// container, dataSourceName, err := createContainer(context.Background(), driver, partition)
 	require.NoError(t, err)
 
-	//t.Cleanup(func() {
+	// t.Cleanup(func() {
 	//	require.NoError(t, gnomock.Stop(container))
-	//})
+	// })
 
 	// Dial the database.
 	databaseClient, err := dialer.Dial(context.Background(), &config.Database{
@@ -1797,7 +1797,7 @@ func TestWorker_Ethereum(t *testing.T) {
 	}
 }
 
-//func createContainer(ctx context.Context, driver database.Driver, partition bool) (container *gnomock.Container, dataSourceName string, err error) {
+// func createContainer(ctx context.Context, driver database.Driver, partition bool) (container *gnomock.Container, dataSourceName string, err error) {
 //	cfg := config.Database{
 //		Driver:    driver,
 //		Partition: &partition,
@@ -1838,13 +1838,13 @@ func TestWorker_Ethereum(t *testing.T) {
 //	default:
 //		return nil, "", fmt.Errorf("unsupported driver: %s", driver)
 //	}
-//}
+// }
 //
-//func formatContainerURI(container *gnomock.Container) string {
+// func formatContainerURI(container *gnomock.Container) string {
 //	return fmt.Sprintf(
 //		"postgres://root@%s:%d/%s?sslmode=disable",
 //		container.Host,
 //		container.DefaultPort(),
 //		"test",
 //	)
-//}
+// }

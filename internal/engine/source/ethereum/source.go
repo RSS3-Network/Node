@@ -164,10 +164,8 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks)
 }
 
 func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
-	// The latest block number of the remote RPC endpoint.
 	var blockNumberLatestRemote uint64
 
-	// Set the block number to the start block number if it is greater than the current block number.
 	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > s.state.BlockNumber {
 		s.state.BlockNumber = s.option.BlockNumberStart.Uint64()
 	}
@@ -175,33 +173,19 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 	for {
 		ctx, span := otel.GetTracerProvider().Tracer("").Start(ctx, "Source pollLogs", trace.WithSpanKind(trace.SpanKindProducer))
 
-		// Stop the source if the block number target is not nil and the current block number is greater than the target
-		// block number. This is useful when the source is used to index a specific range of blocks.
 		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
 			break
 		}
 
 		blockNumberStart := s.state.BlockNumber + 1
 
-		// Check if the local block number is greater than or equal to the remote block number, or the remote block
-		// number is zero. If so, sync the remote block number and wait for the new block.
 		if blockNumberStart > blockNumberLatestRemote || blockNumberLatestRemote == 0 {
-			// Refresh the remote block number.
-			blockNumber, err := s.ethereumClient.BlockNumber(ctx)
+			blockNumber, err := s.refreshRemoteBlockNumber(ctx, blockNumberStart)
 			if err != nil {
-				return fmt.Errorf("get latest block number: %w", err)
+				return err
 			}
 
-			blockNumberLatestRemote = blockNumber.Uint64()
-
-			// RPC providers may incorrectly shunt the request to a lagging node.
-			if blockNumberStart > blockNumberLatestRemote {
-				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestRemote), zap.Duration("block.time", defaultBlockTime))
-
-				time.Sleep(defaultBlockTime)
-			}
-
-			continue
+			blockNumberLatestRemote = blockNumber
 		}
 
 		blockNumberEnd := min(blockNumberStart+uint64(*s.option.RPCThreadBlocks)-1, blockNumberLatestRemote)
@@ -211,7 +195,6 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 			attribute.String("block.number.end", strconv.FormatUint(blockNumberEnd, 10)),
 		)
 
-		// Build log filter by the filter config.
 		logFilter := ethereum.Filter{
 			FromBlock: new(big.Int).SetUint64(blockNumberStart),
 			ToBlock:   new(big.Int).SetUint64(blockNumberEnd),
@@ -221,7 +204,6 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 			},
 		}
 
-		// Get logs by filter.
 		logs, err := s.ethereumClient.FilterLogs(ctx, logFilter)
 		if err != nil {
 			return fmt.Errorf("get logs by filter: %w", err)
@@ -230,71 +212,19 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 		var latestBlock *ethereum.Block
 
 		if len(logs) == 0 {
-			// If there are no logs in the block range, update the latest block by the block number only.
-			if latestBlock, err = s.ethereumClient.BlockByNumber(ctx, new(big.Int).SetUint64(blockNumberEnd)); err != nil {
-				return fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
+			latestBlock, err = s.updateLatestBlock(ctx, blockNumberEnd)
+			if err != nil {
+				return err
 			}
 
 			span.End()
 
-			// Push an empty task slice to the channel to update the block number.
 			s.pushTasks(ctx, tasksChan, new(engine.Tasks))
 		} else {
-			transactionHashes := lo.Map(logs, func(log *ethereum.Log, _ int) common.Hash {
-				return log.TransactionHash
-			})
-
-			// Filter unique transaction hashes.
-			transactionHashes = lo.UniqBy(transactionHashes, func(transactionHash common.Hash) common.Hash {
-				return transactionHash
-			})
-
-			blockNumbers := lo.Map(logs, func(log *ethereum.Log, _ int) *big.Int {
-				return log.BlockNumber
-			})
-
-			// Filter unique block numbers.
-			blockNumbers = lo.UniqBy(blockNumbers, func(blockNumber *big.Int) uint64 {
-				return blockNumber.Uint64()
-			})
-
-			blocks, err := s.getBlocks(ctx, blockNumbers)
+			latestBlock, err = s.processLogs(ctx, logs, tasksChan)
 			if err != nil {
-				return fmt.Errorf("get blocks: %w", err)
+				return err
 			}
-
-			// Filter blocks by transaction hashes of logs.
-			blocks = lo.Map(blocks, func(block *ethereum.Block, _ int) *ethereum.Block {
-				block.Transactions = lo.Filter(block.Transactions, func(transaction *ethereum.Transaction, _ int) bool {
-					return lo.Contains(transactionHashes, transaction.Hash)
-				})
-
-				return block
-			})
-
-			if latestBlock, err = lo.Last(blocks); err != nil {
-				return fmt.Errorf("get latest block: %w", err)
-			}
-
-			receipts, err := s.getReceiptsByTransactionHashes(ctx, transactionHashes)
-			if err != nil {
-				return fmt.Errorf("get receipts: %w", err)
-			}
-
-			var tasks engine.Tasks
-
-			for _, block := range blocks {
-				blockTasks, err := s.buildTasks(block, receipts)
-				if err != nil {
-					return err
-				}
-
-				tasks.Tasks = append(tasks.Tasks, lo.Map(blockTasks, func(blockTask *Task, _ int) engine.Task { return blockTask })...)
-			}
-
-			span.End()
-
-			s.pushTasks(ctx, tasksChan, &tasks)
 		}
 
 		s.state.BlockHash = latestBlock.Hash
@@ -302,6 +232,86 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 	}
 
 	return nil
+}
+
+func (s *source) refreshRemoteBlockNumber(ctx context.Context, blockNumberStart uint64) (uint64, error) {
+	blockNumber, err := s.ethereumClient.BlockNumber(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("get latest block number: %w", err)
+	}
+
+	if blockNumberStart > blockNumber.Uint64() {
+		zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumber.Uint64()), zap.Duration("block.time", defaultBlockTime))
+
+		time.Sleep(defaultBlockTime)
+	}
+
+	return blockNumber.Uint64(), nil
+}
+
+func (s *source) updateLatestBlock(ctx context.Context, blockNumberEnd uint64) (*ethereum.Block, error) {
+	latestBlock, err := s.ethereumClient.BlockByNumber(ctx, new(big.Int).SetUint64(blockNumberEnd))
+	if err != nil {
+		return nil, fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
+	}
+
+	return latestBlock, nil
+}
+
+func (s *source) processLogs(ctx context.Context, logs []*ethereum.Log, tasksChan chan<- *engine.Tasks) (*ethereum.Block, error) {
+	transactionHashes := lo.Map(logs, func(log *ethereum.Log, _ int) common.Hash {
+		return log.TransactionHash
+	})
+
+	transactionHashes = lo.UniqBy(transactionHashes, func(transactionHash common.Hash) common.Hash {
+		return transactionHash
+	})
+
+	blockNumbers := lo.Map(logs, func(log *ethereum.Log, _ int) *big.Int {
+		return log.BlockNumber
+	})
+
+	blockNumbers = lo.UniqBy(blockNumbers, func(blockNumber *big.Int) uint64 {
+		return blockNumber.Uint64()
+	})
+
+	blocks, err := s.getBlocks(ctx, blockNumbers)
+	if err != nil {
+		return nil, fmt.Errorf("get blocks: %w", err)
+	}
+
+	blocks = lo.Map(blocks, func(block *ethereum.Block, _ int) *ethereum.Block {
+		block.Transactions = lo.Filter(block.Transactions, func(transaction *ethereum.Transaction, _ int) bool {
+			return lo.Contains(transactionHashes, transaction.Hash)
+		})
+
+		return block
+	})
+
+	latestBlock, err := lo.Last(blocks)
+	if err != nil {
+		return nil, fmt.Errorf("get latest block: %w", err)
+	}
+
+	receipts, err := s.getReceiptsByTransactionHashes(ctx, transactionHashes)
+	if err != nil {
+		return nil, fmt.Errorf("get receipts: %w", err)
+	}
+
+	var tasks engine.Tasks
+
+	for _, block := range blocks {
+		blockTasks, err := s.buildTasks(block, receipts)
+		if err != nil {
+			return nil, err
+		}
+
+		tasks.Tasks = append(tasks.Tasks, lo.Map(blockTasks, func(blockTask *Task, _ int) engine.Task { return blockTask })...)
+	}
+
+	s.pushTasks(ctx, tasksChan, &tasks)
+
+	return latestBlock, nil
 }
 
 // getBlocks is used to concurrently get blocks by block number.

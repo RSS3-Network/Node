@@ -24,7 +24,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 // Worker is the worker for OpenSea.
@@ -374,12 +373,6 @@ func (w *worker) transformV2AggregatedBid(ctx context.Context, task *source.Task
 		default:
 			continue
 		}
-
-		if err != nil {
-			zap.L().Debug("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
-
-			continue
-		}
 	}
 
 	var actions []*activityx.Action
@@ -502,12 +495,6 @@ func (w *worker) buildRoyaltyPaymentAction(ctx context.Context, task *source.Tas
 		default:
 			continue
 		}
-
-		if err != nil {
-			zap.L().Debug("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
-
-			continue
-		}
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
@@ -551,12 +538,6 @@ func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Ta
 
 			from = event.Maker
 		default:
-			continue
-		}
-
-		if err != nil {
-			zap.L().Debug("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
-
 			continue
 		}
 	}

@@ -25,7 +25,7 @@ func TestWorker_Matters(t *testing.T) {
 		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
-		//{
+		// {
 		//	name: "Curation",
 		//	arguments: arguments{
 		//		task: &source.Task{
@@ -169,7 +169,7 @@ func TestWorker_Matters(t *testing.T) {
 		//		Timestamp: 1691743370,
 		//	},
 		//	wantError: require.NoError,
-		//},
+		// },
 	}
 
 	for _, testcase := range testcases {
@@ -189,7 +189,7 @@ func TestWorker_Matters(t *testing.T) {
 
 			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
-			//t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 			require.Equal(t, testcase.want, activity)
 
 			t.Log(activity)

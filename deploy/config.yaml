@@ -273,11 +273,6 @@ component:
         block_number_start:
     - network: vsl
       endpoint: https://rpc.rss3.io
-      worker: fallback
-      parameters:
-        block_number_start:
-    - network: vsl
-      endpoint: https://rpc.rss3.io
       worker: rss3
     - network: ethereum
       worker: vsl

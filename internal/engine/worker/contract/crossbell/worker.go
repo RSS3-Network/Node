@@ -36,7 +36,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 // Worker is the worker for Crossbell.
@@ -493,11 +492,6 @@ func (w *worker) transformTipsCharacterForNote(ctx context.Context, task *source
 			}
 
 		default:
-			continue
-		}
-
-		if err != nil {
-			zap.L().Debug("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
 			continue
 		}
 	}

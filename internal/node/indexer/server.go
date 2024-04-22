@@ -253,7 +253,7 @@ func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.I
 
 		switch s.config.Network {
 		case network.Arweave:
-			//get arweave client
+			// get arweave client
 			latestHeight, err := s.arweaveClient.GetBlockHeight(ctx)
 			if err != nil {
 				zap.L().Error("get latest block height", zap.Error(err))

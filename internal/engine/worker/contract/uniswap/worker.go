@@ -120,10 +120,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, errors.New("unsupported transaction")
 	}
 
-	if err != nil {
-		return nil, fmt.Errorf("transform transaction: %w", err)
-	}
-
 	return activity, nil
 }
 

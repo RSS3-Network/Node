@@ -116,6 +116,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 }
 
 // transformPostOrReviseAction Returns the actions of mirror post or revise.
+//
+//nolint:gocognit
 func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
 	data, err := base64.RawURLEncoding.DecodeString(task.Transaction.Data)
 	if err != nil {
@@ -236,13 +238,14 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 
 		var targetContentURI string
 
-		if targetData.Get("event.postParams").Exists() {
+		switch {
+		case targetData.Get("event.postParams").Exists():
 			targetContentURI = targetData.Get("event.postParams.contentURI").String()
-		} else if targetData.Get("event.commentParams").Exists() {
+		case targetData.Get("event.commentParams").Exists():
 			targetContentURI = targetData.Get("event.commentParams.contentURI").String()
-		} else if targetData.Get("event.quoteParams").Exists() {
+		case targetData.Get("event.quoteParams").Exists():
 			targetContentURI = targetData.Get("event.quoteParams.contentURI").String()
-		} else {
+		default:
 			targetContentURI = targetData.Get("event.contentURI").String()
 		}
 
@@ -334,8 +337,9 @@ func (w *worker) buildArweaveMomokaPostMetadata(ctx context.Context, profileID, 
 			}
 		})
 
-		//append all three types of media
-		momokaMedia = append(momokaImages, momokaVideos...)
+		// append all three types of media
+		momokaMedia = append(momokaMedia, momokaImages...)
+		momokaMedia = append(momokaMedia, momokaVideos...)
 		momokaMedia = append(momokaMedia, momokaAttachments...)
 
 		momokaMedia = lo.Uniq(momokaMedia)

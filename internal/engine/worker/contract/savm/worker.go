@@ -173,8 +173,7 @@ func (w *worker) transformSAVMBridgeLog(ctx context.Context, task *source.Task, 
 
 	var actions []*activityx.Action
 
-	switch event.To {
-	case savm.AddressSAVMBridge:
+	if event.To == savm.AddressSAVMBridge {
 		action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.From, event.From, network.SatoshiVM, network.Ethereum, metadata.ActionTransactionBridgeWithdraw, &savm.AddressSAVMToken, event.Value, log.BlockNumber)
 		if err != nil {
 			return nil, fmt.Errorf("build transaction bridge action: %w", err)

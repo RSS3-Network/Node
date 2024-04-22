@@ -80,10 +80,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		zap.L().Debug("unsupported type", zap.String("type", farcasterTask.Message.Data.Type))
 	}
 
-	if err != nil {
-		return nil, fmt.Errorf("handle farcaster message failed: %w", err)
-	}
-
 	if len(activity.Actions) == 0 {
 		return nil, nil
 	}

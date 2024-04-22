@@ -333,7 +333,7 @@ func TestSetupConfig(t *testing.T) {
 	AssertConfig(t, f, configFileExcept)
 }
 
-//func TestConfigEnvOverride(t *testing.T) {
+// func TestConfigEnvOverride(t *testing.T) {
 //	t.Parallel()
 //
 //	exceptEnvironment := "testing"
@@ -365,7 +365,7 @@ func TestSetupConfig(t *testing.T) {
 //	assert.Equal(t, exceptEnvironment, f.Environment)
 //	assert.Equal(t, exceptDatabaseURI, f.Database.URI)
 //	assert.Equal(t, exceptMetricsEndpoint, f.Observability.OpenTelemetry.Metrics.Endpoint)
-//}
+// }
 
 func TestConfigFilePath(t *testing.T) {
 	t.Parallel()

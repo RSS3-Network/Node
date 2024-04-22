@@ -135,7 +135,7 @@ func (c *Module) ID() string {
 	return id
 }
 
-//var _ fmt.Stringer = (*Parameters)(nil)
+// var _ fmt.Stringer = (*Parameters)(nil)
 
 type Parameters map[string]any
 

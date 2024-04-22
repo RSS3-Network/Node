@@ -40,9 +40,7 @@ var command = &cobra.Command{
 		switch source {
 		case networkx.EthereumSource:
 			tmpl.Funcs(template.FuncMap{
-				"BytesToHex": func(value []byte) string {
-					return hexutil.Encode(value)
-				},
+				"BytesToHex": hexutil.Encode,
 				"BigIntToHex": func(value *big.Int) string {
 					return (*hexutil.Big)(value).String()
 				},

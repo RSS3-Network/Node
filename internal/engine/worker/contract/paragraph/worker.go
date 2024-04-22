@@ -113,7 +113,7 @@ func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task
 		case "Contributor":
 			contributor = string(tagValue)
 		case "PublicationSlug":
-			publicationSlug = strings.Replace(string(tagValue), "@", "", -1)
+			publicationSlug = strings.ReplaceAll(string(tagValue), "@", "")
 		case "Content-Type":
 			contentType = string(tagValue)
 		case "PostId":

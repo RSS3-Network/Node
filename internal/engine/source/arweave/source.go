@@ -83,109 +83,164 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 		err                     error
 	)
 
-	// Get start block height from config
-	// if not set, use default value 0
-	if s.option.BlockHeightStart != nil && s.option.BlockHeightStart.Uint64() > s.state.BlockHeight {
-		s.pendingState.BlockHeight = s.option.BlockHeightStart.Uint64()
-		s.state.BlockHeight = s.option.BlockHeightStart.Uint64()
-	}
+	s.setBlockHeightStart()
 
-	// Get target block height from config
-	// if not set, use the latest block height from arweave network
-	if s.option.BlockHeightTarget != nil {
-		zap.L().Info("block height target", zap.Uint64("block.height.target", s.option.BlockHeightTarget.Uint64()))
-		blockHeightLatestRemote = int64(s.option.BlockHeightTarget.Uint64())
-	} else {
-		// Get remote block height from arweave network.
-		blockHeightLatestRemote, err = s.arweaveClient.GetBlockHeight(ctx)
-		if err != nil {
-			return fmt.Errorf("get latest block height: %w", err)
-		}
-
-		zap.L().Info("get latest block height", zap.Int64("block.height", blockHeightLatestRemote))
+	blockHeightLatestRemote, err = s.getBlockHeightLatestRemote(ctx)
+	if err != nil {
+		return err
 	}
 
 	for {
-		if s.option.BlockHeightTarget != nil && s.option.BlockHeightTarget.Uint64() <= s.state.BlockHeight {
+		if s.reachedTargetBlockHeight() {
 			break
 		}
 
-		// Check if block height is latest.
-		if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {
-			// Get the latest block height from arweave network for reconfirming.
-			if blockHeightLatestRemote, err = s.arweaveClient.GetBlockHeight(ctx); err != nil {
-				return fmt.Errorf("get latest block height: %w", err)
-			}
-
-			zap.L().Info("get latest block height", zap.Int64("block.height", blockHeightLatestRemote))
-
-			if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {
-				// Wait for the next block on arweave network.
-				time.Sleep(defaultBlockTime)
+		if s.isBlockHeightLatest(blockHeightLatestRemote) {
+			blockHeightLatestRemote, err = s.refreshBlockHeightLatestRemote(ctx)
+			if err != nil {
+				return err
 			}
 
 			continue
 		}
 
-		// Pull blocks
-		blockHeightEnd := lo.Min([]uint64{
-			uint64(blockHeightLatestRemote),
-			s.state.BlockHeight + *s.option.RPCThreadBlocks - 1,
-		})
+		blockHeightEnd := s.getBlockHeightEnd(blockHeightLatestRemote)
 
-		// Pull blocks by range.
-		blocks, err := s.batchPullBlocksByRange(ctx, s.state.BlockHeight, blockHeightEnd)
+		blocks, err := s.pullBlocksByRange(ctx, blockHeightEnd)
 		if err != nil {
-			return fmt.Errorf("batch pull blocks: %w", err)
+			return err
 		}
 
-		// Pull transactions.
-		transactionIDs := lo.FlatMap(blocks, func(block *arweave.Block, _ int) []string {
-			return block.Txs
-		})
-
-		// Batch pull transactions by ids.
-		transactions, err := s.batchPullTransactions(ctx, transactionIDs)
+		transactions, err := s.pullAndFilterTransactions(ctx, blocks, filter)
 		if err != nil {
-			return fmt.Errorf("batch pull transactions: %w", err)
+			return err
 		}
 
-		// Filter transactions by owner.
-		transactions = s.filterOwnerTransaction(transactions, filter.OwnerAddresses)
-
-		// Pull transaction data.
-		if err := s.batchPullData(ctx, transactions); err != nil {
-			return fmt.Errorf("batch pull data: %w", err)
+		if err := s.pullTransactionData(ctx, transactions); err != nil {
+			return err
 		}
 
-		// Decode Bundle transactions group by block.
-		for index, block := range blocks {
-			bundleTransactions, err := s.batchPullBundleTransactions(ctx, s.GroupBundleTransactions(transactions, block))
-			if err != nil {
-				return fmt.Errorf("pull bundle transacctions: %w", err)
-			}
-
-			for _, bundleTransaction := range bundleTransactions {
-				blocks[index].Txs = append(block.Txs, bundleTransaction.ID)
-			}
-
-			transactions = append(transactions, bundleTransactions...)
+		if err := s.decodeBundleTransactions(ctx, blocks, transactions); err != nil {
+			return err
 		}
 
-		// Discard the Bundle transaction itself.
 		transactions = s.discardRootBundleTransaction(transactions)
 
 		tasks := s.buildTasks(ctx, blocks, transactions)
 
-		// TODO It might be possible to use generics to avoid manual type assertions.
 		tasksChan <- tasks
 
-		// Update state by two phase commit to avoid data inconsistency.
-		s.state = s.pendingState
-		s.pendingState.BlockHeight++
+		s.updateBlockHeight()
 	}
 
 	return nil
+}
+
+func (s *source) setBlockHeightStart() {
+	if s.option.BlockHeightStart != nil && s.option.BlockHeightStart.Uint64() > s.state.BlockHeight {
+		s.pendingState.BlockHeight = s.option.BlockHeightStart.Uint64()
+		s.state.BlockHeight = s.option.BlockHeightStart.Uint64()
+	}
+}
+
+func (s *source) getBlockHeightLatestRemote(ctx context.Context) (int64, error) {
+	if s.option.BlockHeightTarget != nil {
+		zap.L().Info("block height target", zap.Uint64("block.height.target", s.option.BlockHeightTarget.Uint64()))
+		return int64(s.option.BlockHeightTarget.Uint64()), nil
+	}
+
+	blockHeightLatestRemote, err := s.arweaveClient.GetBlockHeight(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("get latest block height: %w", err)
+	}
+
+	zap.L().Info("get latest block height", zap.Int64("block.height", blockHeightLatestRemote))
+
+	return blockHeightLatestRemote, nil
+}
+
+func (s *source) reachedTargetBlockHeight() bool {
+	return s.option.BlockHeightTarget != nil && s.option.BlockHeightTarget.Uint64() <= s.state.BlockHeight
+}
+
+func (s *source) isBlockHeightLatest(blockHeightLatestRemote int64) bool {
+	return s.state.BlockHeight >= uint64(blockHeightLatestRemote)
+}
+
+func (s *source) refreshBlockHeightLatestRemote(ctx context.Context) (int64, error) {
+	blockHeightLatestRemote, err := s.arweaveClient.GetBlockHeight(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("get latest block height: %w", err)
+	}
+
+	zap.L().Info("get latest block height", zap.Int64("block.height", blockHeightLatestRemote))
+
+	if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {
+		time.Sleep(defaultBlockTime)
+	}
+
+	return blockHeightLatestRemote, nil
+}
+
+func (s *source) getBlockHeightEnd(blockHeightLatestRemote int64) uint64 {
+	return lo.Min([]uint64{
+		uint64(blockHeightLatestRemote),
+		s.state.BlockHeight + *s.option.RPCThreadBlocks - 1,
+	})
+}
+
+func (s *source) pullBlocksByRange(ctx context.Context, blockHeightEnd uint64) ([]*arweave.Block, error) {
+	blocks, err := s.batchPullBlocksByRange(ctx, s.state.BlockHeight, blockHeightEnd)
+	if err != nil {
+		return nil, fmt.Errorf("batch pull blocks: %w", err)
+	}
+
+	return blocks, nil
+}
+
+func (s *source) pullAndFilterTransactions(ctx context.Context, blocks []*arweave.Block, filter *Filter) ([]*arweave.Transaction, error) {
+	transactionIDs := lo.FlatMap(blocks, func(block *arweave.Block, _ int) []string {
+		return block.Txs
+	})
+
+	transactions, err := s.batchPullTransactions(ctx, transactionIDs)
+	if err != nil {
+		return nil, fmt.Errorf("batch pull transactions: %w", err)
+	}
+
+	transactions = s.filterOwnerTransaction(transactions, filter.OwnerAddresses)
+
+	return transactions, nil
+}
+
+func (s *source) pullTransactionData(ctx context.Context, transactions []*arweave.Transaction) error {
+	if err := s.batchPullData(ctx, transactions); err != nil {
+		return fmt.Errorf("batch pull data: %w", err)
+	}
+
+	return nil
+}
+
+func (s *source) decodeBundleTransactions(ctx context.Context, blocks []*arweave.Block, transactions []*arweave.Transaction) error {
+	for index, block := range blocks {
+		bundleTransactions, err := s.batchPullBundleTransactions(ctx, s.GroupBundleTransactions(transactions, block))
+		if err != nil {
+			return fmt.Errorf("pull bundle transacctions: %w", err)
+		}
+
+		for _, bundleTransaction := range bundleTransactions {
+			blocks[index].Txs = append(blocks[index].Txs, bundleTransaction.ID)
+		}
+
+		transactions = append(transactions, bundleTransactions...)
+	}
+
+	return nil
+}
+
+func (s *source) updateBlockHeight() {
+	s.state = s.pendingState
+	s.pendingState.BlockHeight++
 }
 
 // batchPullBlocksByRange pulls blocks by range, from local state block height to remote block height.
