@@ -218,6 +218,9 @@ func init() {
 }
 
 func main() {
+	// Flush the logs before the process exits.
+	defer lo.Try(zap.L().Sync)
+
 	if err := command.ExecuteContext(context.Background()); err != nil {
 		zap.L().Fatal("execute command", zap.Error(err))
 	}
