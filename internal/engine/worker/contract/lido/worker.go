@@ -51,12 +51,22 @@ func (w *worker) Platform() string {
 	return workerx.Lido.Platform()
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Exchange
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Exchange,
+		tag.Transaction,
+		tag.Collectible,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.ExchangeLiquidity,
+		typex.TransactionMint,
+		typex.TransactionTransfer,
+		typex.CollectibleMint,
+		typex.CollectibleBurn,
+	}
 }
 
 // Filter lido contract address and event hash.

@@ -51,12 +51,16 @@ func (w *worker) Platform() string {
 	return workerx.OpenSea.Platform()
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Collectible
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Collectible,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.CollectibleTrade,
+	}
 }
 
 // Filter opensea contract address and event hash.

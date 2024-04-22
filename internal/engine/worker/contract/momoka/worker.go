@@ -54,12 +54,18 @@ func (w *worker) Platform() string {
 	return workerx.Momoka.Platform()
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Social
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Social,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.SocialComment,
+		typex.SocialPost,
+		typex.SocialShare,
+	}
 }
 
 // Filter returns a filter for source.

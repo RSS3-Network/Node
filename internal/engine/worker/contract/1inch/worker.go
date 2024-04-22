@@ -50,12 +50,16 @@ func (w *worker) Platform() string {
 	return workerx.Oneinch.Platform()
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Exchange
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Exchange,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.ExchangeSwap,
+	}
 }
 
 // Filter returns a filter for source.

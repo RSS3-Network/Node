@@ -56,12 +56,20 @@ func (w *worker) Platform() string {
 	return workerx.Lens.Platform()
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Social
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Social,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.SocialComment,
+		typex.SocialPost,
+		typex.SocialShare,
+		typex.SocialMint,
+		typex.SocialProfile,
+	}
 }
 
 // Filter lens contract address and event hash.

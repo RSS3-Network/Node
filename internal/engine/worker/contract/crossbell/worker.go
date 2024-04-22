@@ -63,12 +63,24 @@ func (w *worker) Platform() string {
 	return workerx.Crossbell.Platform()
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Social
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Social,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.SocialProfile,
+		typex.SocialComment,
+		typex.SocialPost,
+		typex.SocialShare,
+		typex.SocialRevise,
+		typex.SocialDelete,
+		typex.SocialMint,
+		typex.SocialReward,
+		typex.SocialProxy,
+	}
 }
 
 // Filter crossbell contract address and event hash.

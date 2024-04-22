@@ -62,12 +62,18 @@ func (w *worker) Platform() string {
 	return workerx.ENS.Platform()
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Social
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Social,
+		tag.Collectible,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.CollectibleTrade,
+		typex.SocialProfile,
+	}
 }
 
 // Filter ens contract address and event hash.

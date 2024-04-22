@@ -13,8 +13,8 @@ type Worker interface {
 	Name() string
 	// Platform returns the display name of the worker as the `platform` in the final Activity response.
 	Platform() string
-	// Tag the `tag` of the worker, displayed in the final Activity response.
-	Tag() tag.Tag
+	// Tags the possible `tag` of the worker, displayed in the final Activity response.
+	Tags() []tag.Tag
 	// Types the possible `type` of the worker, displayed in the final Activity response.
 	Types() []schema.Type
 	Filter() SourceFilter

@@ -44,12 +44,18 @@ func (w *worker) Platform() string {
 	return workerx.Highlight.Platform()
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Collectible
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Collectible,
+		tag.Transaction,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.CollectibleMint,
+		typex.TransactionTransfer,
+	}
 }
 
 // Filter highlight contract address and event hash.

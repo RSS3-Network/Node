@@ -43,12 +43,20 @@ func (w *worker) Platform() string {
 	return workerx.KiwiStand.Platform()
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Social
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Collectible,
+		tag.Transaction,
+		tag.Social,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.CollectibleMint,
+		typex.TransactionTransfer,
+		typex.SocialMint,
+	}
 }
 
 // Filter kiwistand contract address and event hash.

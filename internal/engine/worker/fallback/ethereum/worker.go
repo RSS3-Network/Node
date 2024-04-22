@@ -51,12 +51,25 @@ func (w *worker) Platform() string {
 	return ""
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Unknown
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Unknown,
+		tag.Collectible,
+		tag.Transaction,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.TransactionTransfer,
+		typex.TransactionApproval,
+		typex.TransactionMint,
+		typex.TransactionBurn,
+		typex.CollectibleTransfer,
+		typex.CollectibleApproval,
+		typex.CollectibleMint,
+		typex.TransactionBurn,
+	}
 }
 
 // Filter returns a source filter.

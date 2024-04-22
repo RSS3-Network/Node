@@ -40,12 +40,16 @@ func (w *worker) Platform() string {
 	return workerx.Aavegotchi.Platform()
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Metaverse
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Metaverse,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.MetaverseTrade,
+	}
 }
 
 // Filter filters the source for Aavegotchi.

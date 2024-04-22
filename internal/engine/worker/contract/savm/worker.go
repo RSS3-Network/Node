@@ -44,12 +44,16 @@ func (w *worker) Platform() string {
 	return workerx.SAVM.Platform()
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Transaction
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Transaction,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.TransactionBridge,
+	}
 }
 
 func (w *worker) Filter() engine.SourceFilter {

@@ -55,12 +55,21 @@ func (w *worker) Platform() string {
 	return workerx.Curve.Platform()
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Exchange
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Exchange,
+		tag.Transaction,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.ExchangeSwap,
+		typex.ExchangeLiquidity,
+		typex.TransactionMint,
+		typex.TransactionBurn,
+		typex.ExchangeStaking,
+	}
 }
 
 // Filter curve contract address and event hash.

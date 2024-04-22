@@ -44,12 +44,18 @@ func (w *worker) Platform() string {
 	return workerx.RSS3.Platform()
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Exchange
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Exchange,
+		tag.Collectible,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.ExchangeStaking,
+		typex.CollectibleMint,
+	}
 }
 
 func (w *worker) Filter() engine.SourceFilter {

@@ -34,12 +34,18 @@ func (w *worker) Platform() string {
 	return ""
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Unknown
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Unknown,
+		tag.Transaction,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.Unknown,
+		typex.TransactionTransfer,
+	}
 }
 
 // Filter returns a source filter.

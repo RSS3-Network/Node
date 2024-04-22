@@ -43,12 +43,17 @@ func (w *worker) Platform() string {
 	return workerx.IQWiki.Platform()
 }
 
-func (w *worker) Tag() tag.Tag {
-	return tag.Social
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Social,
+	}
 }
 
 func (w *worker) Types() []schema.Type {
-	panic("implement me")
+	return []schema.Type{
+		typex.SocialPost,
+		typex.SocialRevise,
+	}
 }
 
 // Filter IQWiki contract address and event hash.
