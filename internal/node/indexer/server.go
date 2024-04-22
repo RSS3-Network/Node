@@ -211,7 +211,7 @@ func (s *Server) initializeMeter() (err error) {
 		return fmt.Errorf("create meter of tasks counter: %w", err)
 	}
 
-	if s.meterTasksHistogram, err = meter.Float64Histogram("rss3_node_task_handle_duration_seconds"); err != nil {
+	if s.meterTasksHistogram, err = meter.Float64Histogram("rss3_node_task_handle_duration_seconds", metric.WithUnit("s")); err != nil {
 		return fmt.Errorf("create meter of tasks histogram: %w", err)
 	}
 
