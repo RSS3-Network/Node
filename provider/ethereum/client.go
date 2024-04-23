@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -23,7 +24,7 @@ type Client interface {
 	HeaderByHash(ctx context.Context, hash common.Hash) (*Header, error)
 	HeaderByNumber(ctx context.Context, number *big.Int) (*Header, error)
 	BlockByHash(ctx context.Context, hash common.Hash) (*Block, error)
-	BlockByNumber(ctx context.Context, number *big.Int) (*Block, error)
+	BlockByNumber(ctx context.Context, number *big.Int, callOption CallOption) (*Block, error)
 	BatchBlockByNumbers(ctx context.Context, numbers []*big.Int) ([]*Block, error)
 	BlockReceipts(ctx context.Context, number *big.Int) ([]*Receipt, error)
 	BatchBlockReceipts(ctx context.Context, numbers []*big.Int) ([][]*Receipt, error)
@@ -123,17 +124,21 @@ func (c *client) BlockByHash(ctx context.Context, hash common.Hash) (*Block, err
 }
 
 // BlockByNumber returns the block with the given number.
-func (c *client) BlockByNumber(ctx context.Context, number *big.Int) (*Block, error) {
-	var block *Block
-	if err := c.rpcClient.CallContext(ctx, &block, "eth_getBlockByNumber", formatBlockNumber(number), true); err != nil {
-		return nil, err
+func (c *client) BlockByNumber(ctx context.Context, number *big.Int, callOption CallOption) (*Block, error) {
+	retryableFuncWithData := func() (*Block, error) {
+		var block *Block
+		if err := c.rpcClient.CallContext(ctx, &block, "eth_getBlockByNumber", formatBlockNumber(number), true); err != nil {
+			return nil, err
+		}
+
+		if block == nil {
+			return nil, ethereum.NotFound
+		}
+
+		return block, nil
 	}
 
-	if block == nil {
-		return nil, ethereum.NotFound
-	}
-
-	return block, nil
+	return call(retryableFuncWithData, callOption)
 }
 
 // BatchBlockByNumbers returns the blocks with the given numbers.
@@ -277,6 +282,22 @@ func Dial(ctx context.Context, endpoint string) (Client, error) {
 	}
 
 	return &instance, nil
+}
+
+func call[T any](retryableFuncWithData retry.RetryableFuncWithData[T], callOption CallOption) (T, error) {
+	if callOption.RetryAttempts == 0 {
+		return retryableFuncWithData()
+	}
+
+	return retry.DoWithData(retryableFuncWithData, buildRetryOptions(callOption)...)
+}
+
+func buildRetryOptions(callOption CallOption) []retry.Option {
+	return []retry.Option{
+		retry.Attempts(lo.Ternary(callOption.RetryAttempts == 0, 1, callOption.RetryAttempts)),
+		retry.DelayType(retry.FixedDelay),
+		retry.Delay(callOption.RetryDelay),
+	}
 }
 
 // unwrapBatchElement unwraps the result of a batch call.

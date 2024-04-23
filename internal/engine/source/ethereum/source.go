@@ -231,7 +231,12 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 
 		if len(logs) == 0 {
 			// If there are no logs in the block range, update the latest block by the block number only.
-			if latestBlock, err = s.ethereumClient.BlockByNumber(ctx, new(big.Int).SetUint64(blockNumberEnd)); err != nil {
+			callOption := ethereum.CallOption{
+				RetryAttempts: 3,
+				RetryDelay:    time.Second,
+			}
+
+			if latestBlock, err = s.ethereumClient.BlockByNumber(ctx, new(big.Int).SetUint64(blockNumberEnd), callOption); err != nil {
 				return fmt.Errorf("get block by number %d: %w", blockNumberEnd, err)
 			}
 
