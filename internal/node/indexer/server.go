@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"runtime"
+	"time"
 
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
@@ -28,17 +29,20 @@ import (
 )
 
 type Server struct {
-	id                string
-	config            *config.Module
-	source            engine.Source
-	worker            engine.Worker
-	databaseClient    database.Client
-	streamClient      stream.Client
-	ethereumClient    ethereum.Client
-	arweaveClient     arweave.Client
-	meterTasksCounter metric.Int64Counter
-	meterCurrentBlock metric.Int64ObservableGauge
-	meterLatestBlock  metric.Int64ObservableGauge
+	id             string
+	config         *config.Module
+	source         engine.Source
+	worker         engine.Worker
+	databaseClient database.Client
+	streamClient   stream.Client
+	ethereumClient ethereum.Client
+	arweaveClient  arweave.Client
+	// meterTasksCounter is a counter of the number of tasks processed.
+	// Deprecated: use meterTasksHistogram instead.
+	meterTasksCounter   metric.Int64Counter
+	meterTasksHistogram metric.Float64Histogram
+	meterCurrentBlock   metric.Int64ObservableGauge
+	meterLatestBlock    metric.Int64ObservableGauge
 }
 
 func (s *Server) Run(ctx context.Context) error {
@@ -69,6 +73,16 @@ func (s *Server) Run(ctx context.Context) error {
 }
 
 func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
+	// Initialize the attributes of the meter.
+	meterTasksCounterAttributes := metric.WithAttributes(
+		attribute.String("service", constant.Name),
+		attribute.String("worker", s.worker.Name()),
+		attribute.Int("tasks", tasks.Len()),
+	)
+
+	// Start a new timer to record the time it takes to handle tasks.
+	taskTimer := time.Now()
+
 	checkpoint := engine.Checkpoint{
 		ID:      s.id,
 		Network: s.source.Network(),
@@ -140,12 +154,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		return feed != nil
 	})
 
-	meterTasksCounterAttributes := metric.WithAttributes(
-		attribute.String("service", constant.Name),
-		attribute.String("worker", s.worker.Name()),
-		attribute.Int("tasks", tasks.Len()),
-	)
-
+	// Deprecated: use meterTasksHistogram instead.
 	s.meterTasksCounter.Add(ctx, int64(tasks.Len()), meterTasksCounterAttributes)
 	checkpoint.IndexCount = int64(len(feeds))
 
@@ -159,6 +168,10 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 	if err := s.databaseClient.SaveCheckpoint(ctx, &checkpoint); err != nil {
 		return fmt.Errorf("save checkpoint: %w", err)
 	}
+
+	// Record the time it takes to handle tasks.
+	duration := time.Since(taskTimer).Seconds()
+	s.meterTasksHistogram.Record(ctx, duration, meterTasksCounterAttributes)
 
 	// Push feeds to the stream.
 	if s.streamClient != nil && len(feeds) > 0 {
@@ -196,6 +209,10 @@ func (s *Server) initializeMeter() (err error) {
 
 	if s.meterTasksCounter, err = meter.Int64Counter("rss3_node_tasks"); err != nil {
 		return fmt.Errorf("create meter of tasks counter: %w", err)
+	}
+
+	if s.meterTasksHistogram, err = meter.Float64Histogram("rss3_node_task_handle_duration_seconds", metric.WithUnit("s")); err != nil {
+		return fmt.Errorf("create meter of tasks histogram: %w", err)
 	}
 
 	if s.meterCurrentBlock, err = meter.Int64ObservableGauge("rss3_node_current_block", metric.WithInt64Callback(s.currentBlockMetricHandler)); err != nil {
