@@ -284,6 +284,8 @@ func Dial(ctx context.Context, endpoint string) (Client, error) {
 	return &instance, nil
 }
 
+// call invokes the retryable function with the given option,
+// and if the retry attempts is not set or set to 0, it will not retry.
 func call[T any](retryableFuncWithData retry.RetryableFuncWithData[T], callOption CallOption) (T, error) {
 	if callOption.RetryAttempts == 0 {
 		return retryableFuncWithData()
@@ -292,6 +294,8 @@ func call[T any](retryableFuncWithData retry.RetryableFuncWithData[T], callOptio
 	return retry.DoWithData(retryableFuncWithData, buildRetryOptions(callOption)...)
 }
 
+// buildRetryOptions builds the retry options for the given call option,
+// and if the retry attempts is not set or set to 0, it will return an empty options.
 func buildRetryOptions(callOption CallOption) []retry.Option {
 	return []retry.Option{
 		retry.Attempts(lo.Ternary(callOption.RetryAttempts == 0, 1, callOption.RetryAttempts)),
