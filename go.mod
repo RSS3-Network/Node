@@ -7,25 +7,32 @@ require (
 	github.com/Khan/genqlient v0.6.0
 	github.com/avast/retry-go/v4 v4.5.1
 	github.com/cenkalti/backoff/v4 v4.2.1
+	github.com/cockroachdb/cockroach-go/v2 v2.3.6
 	github.com/creasty/defaults v1.7.0
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/ethereum/go-ethereum v1.13.14
 	github.com/gabriel-vasile/mimetype v1.4.2
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.16.0
 	github.com/go-shiori/go-readability v0.0.0-20231029095239-6b97d5aba789
+	github.com/grafana/pyroscope-go v1.1.1
 	github.com/hamba/avro v1.8.0
 	github.com/ipfs/go-cid v0.4.1
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/lib/pq v1.10.9
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/multiformats/go-multicodec v0.9.0
 	github.com/multiformats/go-varint v0.0.7
 	github.com/orlangure/gnomock v0.30.0
 	github.com/pressly/goose/v3 v3.17.0
 	github.com/prometheus/client_golang v1.17.0
+	github.com/redis/rueidis v1.0.34
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/rss3-network/protocol-go v0.4.0
 	github.com/samber/lo v1.39.0
 	github.com/shopspring/decimal v1.4.0
 	github.com/sourcegraph/conc v0.3.0
+	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.18.0
@@ -34,6 +41,7 @@ require (
 	github.com/tidwall/gjson v1.17.0
 	github.com/twmb/franz-go v1.15.4
 	github.com/twmb/franz-go/pkg/kadm v1.10.0
+	github.com/vincent-petithory/dataurl v1.0.0
 	go.opentelemetry.io/otel v1.21.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.21.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.21.0
@@ -44,23 +52,11 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.21.0
 	go.opentelemetry.io/otel/trace v1.21.0
 	go.uber.org/zap v1.26.0
+	golang.org/x/net v0.20.0
 	golang.org/x/sync v0.6.0
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/postgres v1.5.4
 	gorm.io/gorm v1.25.5
 	moul.io/zapgorm2 v1.3.0
-)
-
-require (
-	github.com/cockroachdb/cockroach-go/v2 v2.3.6
-	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
-	github.com/grafana/pyroscope-go v1.1.1
-	github.com/mitchellh/mapstructure v1.5.0
-	github.com/redis/rueidis v1.0.34
-	github.com/rss3-network/protocol-go v0.4.0
-	github.com/spf13/afero v1.11.0
-	github.com/vincent-petithory/dataurl v1.0.0
-	golang.org/x/net v0.20.0
 )
 
 require (
@@ -169,6 +165,7 @@ require (
 	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
