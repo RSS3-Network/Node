@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -157,7 +158,21 @@ func (c *client) BatchBlockByNumbers(ctx context.Context, numbers []*big.Int) ([
 		return nil, err
 	}
 
-	return unwrapBatchElements[*Block](batchElements)
+	blocks, err := unwrapBatchElements[*Block](batchElements)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if blocks are not found for some block numbers.
+	nullBlockNumbers := lo.FilterMap(blocks, func(block *Block, index int) (string, bool) {
+		return numbers[index].String(), block == nil
+	})
+
+	if len(nullBlockNumbers) > 0 {
+		return nil, fmt.Errorf("blocks of block numbers %s: %w", strings.Join(nullBlockNumbers, ",\x20"), ethereum.NotFound)
+	}
+
+	return blocks, nil
 }
 
 // BlockReceipts returns the receipts of a block by block number.
@@ -199,27 +214,44 @@ func (c *client) BatchBlockReceipts(ctx context.Context, numbers []*big.Int) ([]
 		return nil, err
 	}
 
+	// Check if receipts are not found for some blocks.
+	nullBlockNumbers := lo.FilterMap(batchReceipts, func(receipts *[]*Receipt, index int) (string, bool) {
+		return numbers[index].String(), receipts == nil
+	})
+
+	if len(nullBlockNumbers) > 0 {
+		return nil, fmt.Errorf("receipts of block numbers %s: %w", strings.Join(nullBlockNumbers, ",\x20"), ethereum.NotFound)
+	}
+
 	return lo.Map(batchReceipts, func(receipts *[]*Receipt, _ int) []*Receipt { return *receipts }), nil
 }
 
 // TransactionByHash returns the transaction with the given hash.
 func (c *client) TransactionByHash(ctx context.Context, hash common.Hash) (*Transaction, error) {
-	var transaction Transaction
+	var transaction *Transaction
 	if err := c.rpcClient.CallContext(ctx, &transaction, "eth_getTransactionByHash", hash); err != nil {
 		return nil, err
 	}
 
-	return &transaction, nil
+	if transaction == nil {
+		return nil, ethereum.NotFound
+	}
+
+	return transaction, nil
 }
 
 // TransactionReceipt returns the receipt of a transaction by transaction hash.
 func (c *client) TransactionReceipt(ctx context.Context, hash common.Hash) (*Receipt, error) {
-	var receipt Receipt
+	var receipt *Receipt
 	if err := c.rpcClient.CallContext(ctx, &receipt, "eth_getTransactionReceipt", hash); err != nil {
 		return nil, err
 	}
 
-	return &receipt, nil
+	if receipt == nil {
+		return nil, ethereum.NotFound
+	}
+
+	return receipt, nil
 }
 
 // BatchTransactionReceipt returns the receipts of multiple transactions by transaction hashes.
@@ -242,7 +274,21 @@ func (c *client) BatchTransactionReceipt(ctx context.Context, hashes []common.Ha
 		return nil, err
 	}
 
-	return unwrapBatchElements[*Receipt](batchElements)
+	receipts, err := unwrapBatchElements[*Receipt](batchElements)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if receipts are not found for some transaction hashes.
+	nullTransactionHashes := lo.FilterMap(receipts, func(receipt *Receipt, index int) (string, bool) {
+		return hashes[index].String(), receipt == nil
+	})
+
+	if len(nullTransactionHashes) > 0 {
+		return nil, fmt.Errorf("receipts of transaction hashes %s: %w", strings.Join(nullTransactionHashes, ",\x20"), ethereum.NotFound)
+	}
+
+	return receipts, nil
 }
 
 // StorageAt returns the contract storage of the given account.

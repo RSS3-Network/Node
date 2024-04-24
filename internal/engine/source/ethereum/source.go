@@ -417,7 +417,10 @@ func (s *source) getReceiptsByTransactionHashes(ctx context.Context, transaction
 }
 
 func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt) ([]*Task, error) {
-	tasks := make([]*Task, len(block.Transactions))
+	var (
+		tasks  = make([]*Task, len(block.Transactions))
+		header = block.Header()
+	)
 
 	for index, transaction := range block.Transactions {
 		// There is no guarantee that the receipts provided by RPC will be in the same order as the transactions,
@@ -440,7 +443,7 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 		task := Task{
 			Network:     s.Network(),
 			ChainID:     uint64(chain),
-			Header:      block.Header(),
+			Header:      header,
 			Transaction: transaction,
 			Receipt:     receipt,
 		}
