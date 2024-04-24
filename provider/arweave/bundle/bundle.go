@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/hamba/avro"
+	"github.com/hamba/avro/v2"
 	"github.com/samber/lo"
 )
 
