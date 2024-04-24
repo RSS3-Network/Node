@@ -150,6 +150,9 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 			return fmt.Errorf("batch pull transactions: %w", err)
 		}
 
+		// Filter non batch transactions.
+		transactions = s.filterNonBatchTransaction(transactions)
+
 		// Filter transactions by owner.
 		transactions = s.filterOwnerTransaction(transactions, filter.OwnerAddresses)
 
@@ -331,8 +334,6 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 					Signature: dataItem.Signature,
 				}
 
-				// TODO: Match and filter bundle transactions.
-
 				data, err := io.ReadAll(dataItem)
 				if err != nil {
 					return nil, fmt.Errorf("read data item %s: %w", dataItemInfo.ID, err)
@@ -427,6 +428,18 @@ func (s *source) filterOwnerTransaction(transactions []*arweave.Transaction, own
 		}
 
 		return lo.Contains(ownerAddress, transactionOwner)
+	})
+}
+
+// filterOwnerTransaction filters non batch transactions.
+func (s *source) filterNonBatchTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
+	return lo.Filter(transactions, func(transaction *arweave.Transaction, _ int) bool {
+		transactionOwner, err := arweave.PublicKeyToAddress(transaction.Owner)
+		if err != nil {
+			return false
+		}
+
+		return !lo.Contains(bundlrNodes, transactionOwner)
 	})
 }
 
