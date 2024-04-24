@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,4 +39,31 @@ func TestQuickGroup(t *testing.T) {
 	result, err := quickGroup.Wait()
 	require.NoError(t, err)
 	require.Equal(t, result, 100*time.Millisecond)
+}
+
+// TestQuickGroupDataRace checks if any data race exists for QuickGroup.
+func TestQuickGroupDataRace(t *testing.T) {
+	t.Parallel()
+
+	quickGroup := NewQuickGroup[bool](context.Background())
+
+	for range lo.Range(10000) {
+		task := func(ctx context.Context) (bool, error) {
+			timer := time.NewTimer(time.Second)
+			defer timer.Stop()
+
+			select {
+			case <-ctx.Done():
+				return false, context.Canceled
+			case <-timer.C:
+				return true, nil
+			}
+		}
+
+		quickGroup.Go(task)
+	}
+
+	result, err := quickGroup.Wait()
+	require.NoError(t, err)
+	require.Equal(t, result, true)
 }
