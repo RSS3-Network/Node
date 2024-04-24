@@ -122,8 +122,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 }
 
 // transformPostOrReviseAction Returns the actions of mirror post or revise.
-//
-//nolint:gocognit
 func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
 	data, err := base64.RawURLEncoding.DecodeString(task.Transaction.Data)
 	if err != nil {
@@ -139,55 +137,7 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 	// Polygon block number
 	blockNumber := transactionData.Get("chainProofs.thisPublication.blockNumber").Uint()
 
-	var socialType typex.SocialType
-
-	var contentURI, rawProfileID, rawProfileIDPointed string
-
-	switch transactionData.Get("type").String() {
-	case "POST_CREATED":
-		socialType =
-			typex.SocialPost
-
-		if transactionData.Get("event.postParams").Exists() {
-			contentURI = transactionData.Get("event.postParams.contentURI").String()
-			rawProfileID = transactionData.Get("event.postParams.profileId").String()
-		} else {
-			contentURI = transactionData.Get("event.contentURI").String()
-			rawProfileID = transactionData.Get("event.profileId").String()
-		}
-	case "COMMENT_CREATED":
-		socialType =
-			typex.SocialComment
-
-		if transactionData.Get("event.commentParams").Exists() {
-			contentURI = transactionData.Get("event.commentParams.contentURI").String()
-			rawProfileID = transactionData.Get("event.commentParams.profileId").String()
-			rawProfileIDPointed = transactionData.Get("event.commentParams.pointedProfileId").String()
-		} else {
-			contentURI = transactionData.Get("event.contentURI").String()
-			rawProfileID = transactionData.Get("event.profileId").String()
-			rawProfileIDPointed = transactionData.Get("event.profileIdPointed").String()
-		}
-	case "MIRROR_CREATED":
-		socialType =
-			typex.SocialShare
-
-		if transactionData.Get("event.mirrorParams").Exists() {
-			rawProfileID = transactionData.Get("event.mirrorParams.profileId").String()
-			rawProfileIDPointed = transactionData.Get("event.mirrorParams.pointedProfileId").String()
-		} else {
-			rawProfileID = transactionData.Get("event.profileId").String()
-			rawProfileIDPointed = transactionData.Get("event.profileIdPointed").String()
-		}
-	case "QUOTE_CREATED":
-		socialType =
-			typex.SocialShare
-		contentURI = transactionData.Get("event.quoteParams.contentURI").String()
-		rawProfileID = transactionData.Get("event.quoteParams.profileId").String()
-		rawProfileIDPointed = transactionData.Get("event.quoteParams.pointedProfileId").String()
-	default:
-		return nil, fmt.Errorf("unsupported transaction type: %s", transactionData.Get("type").String())
-	}
+	contentURI, rawProfileID, rawProfileIDPointed, socialType := w.parseTransactionDataByType(transactionData)
 
 	// Discard unsupported transaction type
 	if rawProfileID == "" || rawPublicationID == "" {
@@ -280,9 +230,55 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 	return actions, nil
 }
 
-func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, filterType typex.SocialType, momokaMetadata *metadata.SocialPost) *activityx.Action {
+// parseTransactionDataByType returns the contentURI, profileID, and profileIDPointed of the transaction data.
+func (w *worker) parseTransactionDataByType(transactionData gjson.Result) (contentURI string, profileID string, profileIDPointed string, socialType typex.SocialType) {
+	switch transactionData.Get("type").String() {
+	case "POST_CREATED":
+		socialType = typex.SocialPost
+
+		if transactionData.Get("event.postParams").Exists() {
+			contentURI = transactionData.Get("event.postParams.contentURI").String()
+			profileID = transactionData.Get("event.postParams.profileId").String()
+		} else {
+			contentURI = transactionData.Get("event.contentURI").String()
+			profileID = transactionData.Get("event.profileId").String()
+		}
+	case "COMMENT_CREATED":
+		socialType = typex.SocialComment
+
+		if transactionData.Get("event.commentParams").Exists() {
+			contentURI = transactionData.Get("event.commentParams.contentURI").String()
+			profileID = transactionData.Get("event.commentParams.profileId").String()
+			profileIDPointed = transactionData.Get("event.commentParams.pointedProfileId").String()
+		} else {
+			contentURI = transactionData.Get("event.contentURI").String()
+			profileID = transactionData.Get("event.profileId").String()
+			profileIDPointed = transactionData.Get("event.profileIdPointed").String()
+		}
+	case "MIRROR_CREATED":
+		socialType = typex.SocialShare
+
+		if transactionData.Get("event.mirrorParams").Exists() {
+			profileID = transactionData.Get("event.mirrorParams.profileId").String()
+			profileIDPointed = transactionData.Get("event.mirrorParams.pointedProfileId").String()
+		} else {
+			profileID = transactionData.Get("event.profileId").String()
+			profileIDPointed = transactionData.Get("event.profileIdPointed").String()
+		}
+	case "QUOTE_CREATED":
+		socialType = typex.SocialShare
+
+		contentURI = transactionData.Get("event.quoteParams.contentURI").String()
+		profileID = transactionData.Get("event.quoteParams.profileId").String()
+		profileIDPointed = transactionData.Get("event.quoteParams.pointedProfileId").String()
+	}
+
+	return contentURI, profileID, profileIDPointed, socialType
+}
+
+func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, socialType typex.SocialType, momokaMetadata *metadata.SocialPost) *activityx.Action {
 	action := activityx.Action{
-		Type:     filterType,
+		Type:     socialType,
 		Tag:      tag.Social,
 		Platform: w.Platform(),
 		From:     from,
