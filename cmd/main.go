@@ -25,6 +25,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"github.com/tdewolff/minify/v2/minify"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
@@ -38,6 +39,9 @@ var command = cobra.Command{
 	Version:       constant.BuildVersion(),
 	SilenceUsage:  true,
 	SilenceErrors: true,
+	PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+		return viper.BindPFlags(cmd.Flags())
+	},
 	RunE: func(cmd *cobra.Command, _ []string) error {
 		flags = cmd.PersistentFlags()
 
@@ -215,6 +219,7 @@ func init() {
 	command.PersistentFlags().String(flag.KeyIndexerNetwork, filter.NetworkEthereum.String(), "indexer network")
 	command.PersistentFlags().String(flag.KeyIndexerWorker, filter.Fallback.String(), "indexer worker")
 	command.PersistentFlags().String(flag.KeyIndexerParameters, "{}", "indexer parameters")
+	command.PersistentFlags().Bool(flag.KeyHTTP2Disable, false, "disable HTTP/2")
 }
 
 func main() {
