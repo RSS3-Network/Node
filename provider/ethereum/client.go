@@ -2,8 +2,10 @@ package ethereum
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"math/big"
+	"net/http"
 	"strings"
 
 	"github.com/ethereum/go-ethereum"
@@ -11,7 +13,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/rss3-network/node/config/flag"
 	"github.com/samber/lo"
+	"github.com/spf13/viper"
 )
 
 // Client provides basic RPC methods.
@@ -313,6 +317,18 @@ func (c *client) FilterLogs(ctx context.Context, filter Filter) ([]*Log, error) 
 
 // Dial creates a new client for the given endpoint.
 func Dial(ctx context.Context, endpoint string, options ...Option) (Client, error) {
+	if viper.GetBool(flag.KeyHTTP2Disable) {
+		tr := http.DefaultTransport.(*http.Transport).Clone()
+		tr.ForceAttemptHTTP2 = false
+		tr.TLSNextProto = make(map[string]func(authority string, c *tls.Conn) http.RoundTripper)
+		tr.TLSClientConfig = new(tls.Config)
+
+		httpClient = &http.Client{
+			Transport: tr,
+		}
+	}
+
+
 	rpcClient, err := rpc.DialContext(ctx, endpoint)
 	if err != nil {
 		return nil, err
