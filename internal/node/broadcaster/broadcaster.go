@@ -21,6 +21,7 @@ func (b *Broadcaster) Register(ctx context.Context) error {
 		Endpoint:  b.config.Discovery.Server.Endpoint,
 		Stream:    b.config.Stream,
 		Config:    b.config.Node,
+		Type:      b.config.Type,
 	}
 
 	var response any
@@ -106,6 +107,7 @@ type RegisterNodeRequest struct {
 	Endpoint  string         `json:"endpoint" validate:"required"`
 	Stream    *config.Stream `json:"stream,omitempty"`
 	Config    *config.Node   `json:"config,omitempty"`
+	Type      string         `json:"type" validate:"required"`
 }
 
 type NodeHeartbeatRequest struct {

@@ -1,4 +1,5 @@
 environment: production
+type: beta
 
 discovery:
     maintainer:
