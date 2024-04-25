@@ -4,14 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"strings"
-	"time"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/samber/lo"
-	"github.com/tidwall/gjson"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 var (
@@ -19,9 +15,8 @@ var (
 )
 
 const (
-	EtherfaceEndpoint = "https://etherface.rss3.io/v1"
-	DefaultTimeout    = 3 * time.Second
-	DefaultAttempts   = 3
+	EtherfaceDBPath = "/root/node/etherface"
+	DefaultAttempts = 3
 )
 
 type Client interface {
@@ -30,14 +25,16 @@ type Client interface {
 
 var _ Client = (*etherfaceClient)(nil)
 
+// etherfaceClient is a client for querying the etherface database
 type etherfaceClient struct {
-	httpClient *http.Client
-	attempts   uint
+	db       *leveldb.DB
+	attempts uint
 }
 
+// Lookup queries the etherface database for the function name of a given hash
 func (h *etherfaceClient) Lookup(ctx context.Context, hash string) (functionName string, err error) {
 	retryableFunc := func() error {
-		functionName, err = h.fetch(ctx, hash)
+		functionName, err = h.query(ctx, hash)
 		return err
 	}
 
@@ -52,40 +49,18 @@ func (h *etherfaceClient) Lookup(ctx context.Context, hash string) (functionName
 	return functionName, nil
 }
 
-func (h *etherfaceClient) fetch(ctx context.Context, hash string) (string, error) {
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/signatures/hash/function/%s/1", EtherfaceEndpoint, hash), nil)
+// query queries the etherface database for the function name of a given hash
+func (h *etherfaceClient) query(_ context.Context, hash string) (string, error) {
+	data, err := h.db.Get([]byte(hash), nil)
 	if err != nil {
-		return "", fmt.Errorf("new request: %w", err)
+		if errors.Is(err, leveldb.ErrNotFound) {
+			return "", ErrorNoResults
+		}
+
+		return "", fmt.Errorf("failed to get data from leveldb: %w", err)
 	}
 
-	// nolint:bodyclose // False positive
-	response, err := h.httpClient.Do(request)
-	if err != nil {
-		return "", fmt.Errorf("send request: %w", err)
-	}
-
-	if response.StatusCode != http.StatusOK {
-		defer lo.Try(response.Body.Close)
-
-		return "", fmt.Errorf("unexpected status code: %d", response.StatusCode)
-	}
-
-	defer lo.Try(response.Body.Close)
-
-	respData, err := io.ReadAll(response.Body)
-	if err != nil {
-		return "", fmt.Errorf("read all: %w", err)
-	}
-
-	etherfaceData := gjson.ParseBytes(respData)
-
-	items := etherfaceData.Get("items").Array()
-
-	if len(items) > 0 {
-		return extractFunctionName(items[0].Get("text").String()), nil
-	}
-
-	return "", nil
+	return extractFunctionName(string(data)), nil
 }
 
 // extractFunctionName extracts the function name from a string before the first bracket
@@ -98,18 +73,16 @@ func extractFunctionName(str string) string {
 	return ""
 }
 
-func NewEtherfaceClient(options ...ClientOption) (Client, error) {
-	instance := etherfaceClient{
-		httpClient: &http.Client{
-			Timeout: DefaultTimeout,
-		},
-		attempts: DefaultAttempts,
+// NewEtherfaceClient creates a new Etherface client based on leveldb
+func NewEtherfaceClient() (Client, error) {
+	database, err := leveldb.OpenFile(EtherfaceDBPath, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open leveldb: %w", err)
 	}
 
-	for _, option := range options {
-		if err := option(&instance); err != nil {
-			return nil, fmt.Errorf("apply options: %w", err)
-		}
+	instance := etherfaceClient{
+		db:       database,
+		attempts: DefaultAttempts,
 	}
 
 	return &instance, nil
@@ -117,17 +90,10 @@ func NewEtherfaceClient(options ...ClientOption) (Client, error) {
 
 type ClientOption func(client *etherfaceClient) error
 
+// WithAttempts sets the number of attempts for querying the etherface database
 func WithAttempts(attempts uint) ClientOption {
 	return func(h *etherfaceClient) error {
 		h.attempts = attempts
-
-		return nil
-	}
-}
-
-func WithTimeout(timeout time.Duration) ClientOption {
-	return func(h *etherfaceClient) error {
-		h.httpClient.Timeout = timeout
 
 		return nil
 	}
