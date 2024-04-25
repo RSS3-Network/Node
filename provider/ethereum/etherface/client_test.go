@@ -42,6 +42,12 @@ func TestEtherfaceClient_Lookup(t *testing.T) {
 				hash: "8f283970",
 			},
 		},
+		{
+			name: "Lookup Function Signature with 0x prefix",
+			arguments: arguments{
+				hash: "0x8f283970",
+			},
+		},
 	}
 
 	for _, testcase := range testcases {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/syndtr/goleveldb/leveldb"
 )
@@ -32,7 +33,13 @@ func (h *mockEtherfaceClient) Lookup(ctx context.Context, hash string) (string, 
 
 // query queries the etherface database for the function name of a given hash
 func (h *mockEtherfaceClient) query(_ context.Context, hash string) (string, error) {
-	data, err := h.db.Get([]byte(hash), nil)
+	normalizedHash := hash
+
+	if strings.HasPrefix(hash, "0x") {
+		normalizedHash = hash[2:]
+	}
+
+	data, err := h.db.Get([]byte(normalizedHash), nil)
 	if errors.Is(err, leveldb.ErrNotFound) {
 		return "", ErrorNoResults
 	} else if err != nil {
