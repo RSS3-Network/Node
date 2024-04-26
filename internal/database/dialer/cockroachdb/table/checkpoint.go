@@ -5,14 +5,14 @@ import (
 	"time"
 
 	"github.com/rss3-network/node/internal/engine"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 )
 
 var _ engine.CheckpointTransformer = (*Checkpoint)(nil)
 
 type Checkpoint struct {
 	ID         string          `gorm:"column:id"`
-	Network    filter.Network  `gorm:"column:network"`
+	Network    network.Network `gorm:"column:network"`
 	Worker     string          `gorm:"column:worker"`
 	State      json.RawMessage `gorm:"column:state;type:jsonb"`
 	IndexCount int64           `gorm:"column:index_count"`

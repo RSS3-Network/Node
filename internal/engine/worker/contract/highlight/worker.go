@@ -14,9 +14,13 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
 	"github.com/rss3-network/node/provider/ethereum/contract/highlight"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -33,7 +37,34 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Highlight.String()
+	return workerx.Highlight.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.PlatformHighlight.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Ethereum,
+		network.Polygon,
+		network.Optimism,
+		network.Arbitrum,
+	}
+}
+
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Collectible,
+		tag.Transaction,
+	}
+}
+
+func (w *worker) Types() []schema.Type {
+	return []schema.Type{
+		typex.CollectibleMint,
+		typex.TransactionTransfer,
+	}
 }
 
 // Filter highlight contract address and event hash.
@@ -41,13 +72,13 @@ func (w *worker) Filter() engine.SourceFilter {
 	var hightlightAddress common.Address
 
 	switch w.config.Network {
-	case filter.NetworkEthereum:
+	case network.Ethereum:
 		hightlightAddress = highlight.AddressMintManagerMainnet
-	case filter.NetworkPolygon:
+	case network.Polygon:
 		hightlightAddress = highlight.AddressMintManagerPolygon
-	case filter.NetworkOptimism:
+	case network.Optimism:
 		hightlightAddress = highlight.AddressMintManagerOptimism
-	case filter.NetworkArbitrum:
+	case network.Arbitrum:
 		hightlightAddress = highlight.AddressMintManagerArbitrum
 	default:
 		hightlightAddress = highlight.AddressMintManagerMainnet
@@ -65,20 +96,20 @@ func (w *worker) Filter() engine.SourceFilter {
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
+	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to feed.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+// Transform Ethereum task to activityx.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build default highlight feed from task.
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformHighlight))
+	// Build default highlight activity from task.
+	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	// Match and handle ethereum logs.
@@ -89,7 +120,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		}
 
 		var (
-			actions []*schema.Action
+			actions []*activityx.Action
 			err     error
 		)
 
@@ -98,7 +129,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		case w.matchNativeGasTokenPaymentMatched(ethereumTask, log):
 			actions, err = w.transformNativeGasTokenPayment(ctx, ethereumTask, log)
 		case w.matchNumTokenMintMatched(ethereumTask, log):
-			feed.Type = filter.TypeCollectibleMint
+			activity.Type = typex.CollectibleMint
 			actions, err = w.transformNumTokenMint(ctx, ethereumTask, log)
 		default:
 			continue
@@ -108,15 +139,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			return nil, err
 		}
 
-		// Change feed type to the first action type.
+		// Change activity type to the first action type.
 		for _, action := range actions {
-			feed.Type = action.Type
+			activity.Type = action.Type
 		}
 
-		feed.Actions = append(feed.Actions, actions...)
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	return feed, nil
+	return activity, nil
 }
 
 // matchNativeGasTokenPaymentMatched matches NativeGasTokenPayment event.
@@ -130,7 +161,7 @@ func (w *worker) matchNumTokenMintMatched(_ *source.Task, log *ethereum.Log) boo
 }
 
 // transformNativeGasTokenPayment transforms NativeGasTokenPayment event.
-func (w *worker) transformNativeGasTokenPayment(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformNativeGasTokenPayment(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	// Parse NativeGasTokenPayment event.
 	event, err := w.mintManagerFilterer.ParseNativeGasTokenPayment(log.Export())
 	if err != nil {
@@ -150,14 +181,14 @@ func (w *worker) transformNativeGasTokenPayment(ctx context.Context, task *sourc
 		return nil, err
 	}
 
-	return []*schema.Action{
+	return []*activityx.Action{
 		creatorFeeAction,
 		transactionFeeAction,
 	}, nil
 }
 
 // transformNumTokenMint transforms NumTokenMint event.
-func (w *worker) transformNumTokenMint(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformNumTokenMint(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	// Parse NumTokenMint event.
 	event, err := w.mintManagerFilterer.ParseNumTokenMint(log.Export())
 	if err != nil {
@@ -181,7 +212,7 @@ func (w *worker) transformNumTokenMint(ctx context.Context, task *source.Task, l
 		}
 	}
 
-	actions := make([]*schema.Action, 0, len(tokenIDs))
+	actions := make([]*activityx.Action, 0, len(tokenIDs))
 
 	for _, tokenID := range tokenIDs {
 		action, err := w.buildHighlightMintAction(ctx, task, ethereum.AddressGenesis, task.Transaction.From, event.ContractAddress, tokenID, big.NewInt(1))
@@ -196,7 +227,7 @@ func (w *worker) transformNumTokenMint(ctx context.Context, task *source.Task, l
 }
 
 // buildTransferAction builds transfer action.
-func (w *worker) buildTransferAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, amount *big.Int) (*schema.Action, error) {
+func (w *worker) buildTransferAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, amount *big.Int) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, nil, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -204,9 +235,9 @@ func (w *worker) buildTransferAction(ctx context.Context, task *source.Task, fro
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
 
-	return &schema.Action{
-		Type:     filter.TypeTransactionTransfer,
-		Platform: filter.PlatformHighlight.String(),
+	return &activityx.Action{
+		Type:     typex.TransactionTransfer,
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
@@ -214,7 +245,7 @@ func (w *worker) buildTransferAction(ctx context.Context, task *source.Task, fro
 }
 
 // buildHighlightMintAction builds highlight mint action.
-func (w *worker) buildHighlightMintAction(ctx context.Context, task *source.Task, from, to common.Address, contract common.Address, id *big.Int, value *big.Int) (*schema.Action, error) {
+func (w *worker) buildHighlightMintAction(ctx context.Context, task *source.Task, from, to common.Address, contract common.Address, id *big.Int, value *big.Int) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &contract, id, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -222,9 +253,9 @@ func (w *worker) buildHighlightMintAction(ctx context.Context, task *source.Task
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
 
-	return &schema.Action{
-		Type:     filter.TypeCollectibleMint,
-		Platform: filter.PlatformHighlight.String(),
+	return &activityx.Action{
+		Type:     typex.CollectibleMint,
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.CollectibleTransfer(*tokenMetadata),

@@ -9,8 +9,8 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
 	mirror_model "github.com/rss3-network/node/internal/engine/worker/contract/mirror/model"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"go.uber.org/zap"
 )
 
@@ -21,13 +21,13 @@ type Client interface {
 	DatasetFarcasterProfile
 	DatasetENSNamehash
 
-	LoadCheckpoint(ctx context.Context, id string, network filter.Network, worker string) (*engine.Checkpoint, error)
-	LoadCheckpoints(ctx context.Context, id string, network filter.Network, worker string) ([]*engine.Checkpoint, error)
+	LoadCheckpoint(ctx context.Context, id string, network network.Network, worker string) (*engine.Checkpoint, error)
+	LoadCheckpoints(ctx context.Context, id string, network network.Network, worker string) ([]*engine.Checkpoint, error)
 	SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error
 
-	SaveFeeds(ctx context.Context, feeds []*schema.Feed) error
-	FindFeed(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error)
-	FindFeeds(ctx context.Context, query model.FeedsQuery) ([]*schema.Feed, error)
+	SaveActivities(ctx context.Context, activities []*activityx.Activity) error
+	FindActivity(ctx context.Context, query model.ActivityQuery) (*activityx.Activity, *int, error)
+	FindActivities(ctx context.Context, query model.ActivitiesQuery) ([]*activityx.Activity, error)
 }
 
 type Session interface {

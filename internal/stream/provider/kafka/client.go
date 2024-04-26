@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/rss3-network/node/internal/stream"
-	"github.com/rss3-network/protocol-go/schema"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/twmb/franz-go/pkg/kadm"
 	"github.com/twmb/franz-go/pkg/kgo"
 	"go.uber.org/zap"
@@ -51,13 +51,13 @@ func New(ctx context.Context, uri, topic string) (stream.Client, error) {
 	}, nil
 }
 
-func (c *Client) PushFeeds(ctx context.Context, feeds []*schema.Feed) error {
-	records := make([]*kgo.Record, 0, len(feeds))
+func (c *Client) PushActivities(ctx context.Context, activities []*activityx.Activity) error {
+	records := make([]*kgo.Record, 0, len(activities))
 
-	for _, feed := range feeds {
-		record, err := c.encodeFeed(feed)
+	for _, activity := range activities {
+		record, err := c.encodeActivity(activity)
 		if err != nil {
-			return fmt.Errorf("encode feed %s: %w", feed.ID, err)
+			return fmt.Errorf("encode activity %s: %w", activity.ID, err)
 		}
 
 		records = append(records, record)
@@ -66,23 +66,23 @@ func (c *Client) PushFeeds(ctx context.Context, feeds []*schema.Feed) error {
 	produceResults := c.kafkaClient.ProduceSync(ctx, records...)
 
 	if err := produceResults.FirstErr(); err != nil {
-		return fmt.Errorf("push feeds: %w", err)
+		return fmt.Errorf("push activities: %w", err)
 	}
 
-	zap.L().Info("pushed feeds", zap.Int("records", len(records)))
+	zap.L().Info("pushed activities", zap.Int("records", len(records)))
 
 	return nil
 }
 
-func (c *Client) encodeFeed(feed *schema.Feed) (*kgo.Record, error) {
-	value, err := json.Marshal(feed)
+func (c *Client) encodeActivity(activity *activityx.Activity) (*kgo.Record, error) {
+	value, err := json.Marshal(activity)
 	if err != nil {
 		return nil, err
 	}
 
 	record := kgo.Record{
 		Topic: c.topic,
-		Key:   []byte(feed.ID),
+		Key:   []byte(activity.ID),
 		Value: value,
 	}
 

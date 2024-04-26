@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 )
 
 type ActivityRequest struct {
@@ -16,28 +18,28 @@ type ActivityRequest struct {
 }
 
 type AccountActivitiesRequest struct {
-	Account        string            `param:"account" validate:"required"`
-	Limit          int               `query:"limit" validate:"min=1,max=100" default:"100"`
-	ActionLimit    int               `query:"action_limit" validate:"min=1,max=20" default:"10"`
-	Cursor         *string           `query:"cursor"`
-	SinceTimestamp *uint64           `query:"since_timestamp"`
-	UntilTimestamp *uint64           `query:"until_timestamp"`
-	Status         *bool             `query:"success"`
-	Direction      *filter.Direction `query:"direction"`
-	Network        []filter.Network  `query:"network"`
-	Tag            []filter.Tag      `query:"tag"`
-	Type           []filter.Type     `query:"-"`
-	Platform       []filter.Platform `query:"platform"`
+	Account        string               `param:"account" validate:"required"`
+	Limit          int                  `query:"limit" validate:"min=1,max=100" default:"100"`
+	ActionLimit    int                  `query:"action_limit" validate:"min=1,max=20" default:"10"`
+	Cursor         *string              `query:"cursor"`
+	SinceTimestamp *uint64              `query:"since_timestamp"`
+	UntilTimestamp *uint64              `query:"until_timestamp"`
+	Status         *bool                `query:"success"`
+	Direction      *activityx.Direction `query:"direction"`
+	Network        []network.Network    `query:"network"`
+	Tag            []tag.Tag            `query:"tag"`
+	Type           []schema.Type        `query:"-"`
+	Platform       []string             `query:"platform"`
 }
 
 type ActivityResponse struct {
-	Data *schema.Feed    `json:"data"`
-	Meta *MetaTotalPages `json:"meta"`
+	Data *activityx.Activity `json:"data"`
+	Meta *MetaTotalPages     `json:"meta"`
 }
 
 type ActivitiesResponse struct {
-	Data []*schema.Feed `json:"data"`
-	Meta *MetaCursor    `json:"meta,omitempty"`
+	Data []*activityx.Activity `json:"data"`
+	Meta *MetaCursor           `json:"meta,omitempty"`
 }
 
 type MetaTotalPages struct {
@@ -53,21 +55,21 @@ type StatisticResponse struct {
 	LastUpdate *time.Time `json:"last_update,omitempty"`
 }
 
-func (h *Hub) parseParams(params url.Values, tags []filter.Tag) ([]filter.Type, error) {
+func (h *Hub) parseParams(params url.Values, tags []tag.Tag) ([]schema.Type, error) {
 	if len(tags) == 0 {
 		return nil, nil
 	}
 
-	types := make([]filter.Type, 0)
+	types := make([]schema.Type, 0)
 
 	for _, typex := range params["type"] {
 		var (
-			value filter.Type
+			value schema.Type
 			err   error
 		)
 
 		for _, tag := range tags {
-			value, err = filter.TypeString(tag, typex)
+			value, err = schema.ParseTypeFromString(tag, typex)
 			if err == nil {
 				types = append(types, value)
 

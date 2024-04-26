@@ -7,7 +7,7 @@ import (
 	"github.com/rss3-network/node/config"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/matters"
-	"github.com/rss3-network/protocol-go/schema"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,14 +22,14 @@ func TestWorker_Matters(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
-		//{
+		// {
 		//	name: "Curation",
 		//	arguments: arguments{
 		//		task: &source.Task{
-		//			Network: filter.NetworkPolygon,
+		//			Network: network.Polygon,
 		//			ChainID: 137,
 		//			Header: &ethereum.Header{
 		//				Hash:         common.HexToHash("0xd287e85c28567ff5e0ecde319f9e9d3cd39c399c3cd97015af10adfc0b971427"),
@@ -119,32 +119,32 @@ func TestWorker_Matters(t *testing.T) {
 		//			},
 		//		},
 		//		config: &config.Module{
-		//			Network:  filter.NetworkPolygon,
-		//			Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+		//			Network:  network.Polygon,
+		//			Endpoint: endpoint.MustGet(network.Polygon),
 		//		},
 		//	},
-		//	want: &schema.Feed{
+		//	want: &activityx.Activity{
 		//		ID:      "0x406420c77151dd2779f647967aaee7b2ae25248bbb51b53de4d8912c904dbd34",
-		//		Network: filter.NetworkPolygon,
+		//		Network: network.Polygon,
 		//		Index:   41,
 		//		From:    "0x18Fb694EbAE03a78f038F54362592Dd89c0e300C",
 		//		To:      matters.AddressCuration.String(),
-		//		Type:    filter.TypeSocialReward,
-		//		Calldata: &schema.Calldata{
+		//		Type:    typex.SocialReward,
+		//		Calldata: &activityx.Calldata{
 		//			FunctionHash: "0xdbcdaf5b",
 		//		},
-		//		Tag:      filter.TagSocial,
-		//		Platform: lo.ToPtr(filter.PlatformMatters),
-		//		Fee: &schema.Fee{
+		//		Tag:      tag.Social,
+		//		Platform: workerx.PlatformMatters.String(),
+		//		Fee: &activityx.Fee{
 		//			Amount:  lo.Must(decimal.NewFromString("5681706332875290")),
 		//			Decimal: 18,
 		//		},
 		//		TotalActions: 1,
-		//		Actions: []*schema.Action{
+		//		Actions: []*activityx.Action{
 		//			{
-		//				Type:     filter.TypeSocialReward,
-		//				Tag:      filter.TagSocial,
-		//				Platform: filter.PlatformMatters.String(),
+		//				Type:     typex.SocialReward,
+		//				Tag:      tag.Social,
+		//				Platform: workerx.PlatformMatters.String(),
 		//				From:     "0x18Fb694EbAE03a78f038F54362592Dd89c0e300C",
 		//				To:       "0x099d854cD6F996cD1CB1ffc1Df0E197A774426e2",
 		//				Metadata: &metadata.SocialPost{
@@ -169,7 +169,7 @@ func TestWorker_Matters(t *testing.T) {
 		//		Timestamp: 1691743370,
 		//	},
 		//	wantError: require.NoError,
-		//},
+		// },
 	}
 
 	for _, testcase := range testcases {
@@ -187,12 +187,12 @@ func TestWorker_Matters(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
-			require.Equal(t, testcase.want, feed)
+			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
+			require.Equal(t, testcase.want, activity)
 
-			t.Log(feed)
+			t.Log(activity)
 		})
 	}
 }

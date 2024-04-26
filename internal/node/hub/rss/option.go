@@ -15,7 +15,7 @@ type OptionAuthentication struct {
 	AccessCode string `yaml:"access_code"`
 }
 
-func NewOption(options *config.Options) (*Option, error) {
+func NewOption(options *config.Parameters) (*Option, error) {
 	var instance Option
 
 	if err := options.Decode(&instance); err != nil {

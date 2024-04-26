@@ -26,7 +26,7 @@ func TestHttpClient_Fetch(t *testing.T) {
 		want      require.ValueAssertionFunc
 		wantError require.ErrorAssertionFunc
 	}{
-		//{
+		// {
 		//	name: "Crossbell profile of kallydev.csb",
 		//	arguments: arguments{
 		//		ctx: context.Background(),
@@ -42,7 +42,7 @@ func TestHttpClient_Fetch(t *testing.T) {
 		//		require.Greater(t, length, int64(0))
 		//	},
 		//	wantError: require.NoError,
-		//},
+		// },
 		{
 			name: "Crossbell avatar of kallydev.csb",
 			arguments: arguments{

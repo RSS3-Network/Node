@@ -18,8 +18,8 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
 	mirror_model "github.com/rss3-network/node/internal/engine/worker/contract/mirror/model"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -121,7 +121,7 @@ func (c *client) Commit() error {
 	return c.database.Commit().Error
 }
 
-func (c *client) LoadCheckpoint(ctx context.Context, id string, network filter.Network, worker string) (*engine.Checkpoint, error) {
+func (c *client) LoadCheckpoint(ctx context.Context, id string, network networkx.Network, worker string) (*engine.Checkpoint, error) {
 	var value table.Checkpoint
 
 	zap.L().Info("load checkpoint", zap.String("id", id), zap.String("network", network.String()), zap.String("worker", worker))
@@ -148,7 +148,7 @@ func (c *client) LoadCheckpoint(ctx context.Context, id string, network filter.N
 	return value.Export()
 }
 
-func (c *client) LoadCheckpoints(ctx context.Context, id string, network filter.Network, worker string) ([]*engine.Checkpoint, error) {
+func (c *client) LoadCheckpoints(ctx context.Context, id string, network networkx.Network, worker string) ([]*engine.Checkpoint, error) {
 	databaseStatement := c.database.WithContext(ctx)
 
 	var checkpoints []*table.Checkpoint
@@ -159,7 +159,7 @@ func (c *client) LoadCheckpoints(ctx context.Context, id string, network filter.
 		databaseStatement = databaseStatement.Where("id = ?", id)
 	}
 
-	if network != filter.NetworkUnknown {
+	if network != networkx.Unknown {
 		databaseStatement = databaseStatement.Where("network = ?", network)
 	}
 
@@ -217,20 +217,20 @@ func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoi
 	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
-// SaveFeeds saves feeds and indexes to the database.
-func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
+// SaveActivities saves activities and indexes to the database.
+func (c *client) SaveActivities(ctx context.Context, activities []*activityx.Activity) error {
 	spanStartOptions := []trace.SpanStartOption{
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(
-			attribute.Int("feeds", len(feeds)),
+			attribute.Int("activities", len(activities)),
 		),
 	}
 
-	ctx, span := otel.Tracer("").Start(ctx, "Database saveFeeds", spanStartOptions...)
+	ctx, span := otel.Tracer("").Start(ctx, "Database saveActivities", spanStartOptions...)
 	defer span.End()
 
 	if c.partition {
-		return c.saveFeedsPartitioned(ctx, feeds)
+		return c.saveActivitiesPartitioned(ctx, activities)
 	}
 
 	return fmt.Errorf("not implemented")
@@ -275,19 +275,19 @@ func (c *client) SaveDatasetMirrorPost(ctx context.Context, post *mirror_model.D
 	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
-// FindFeed finds a feed by id.
-func (c *client) FindFeed(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error) {
+// FindActivity finds a Activity by id.
+func (c *client) FindActivity(ctx context.Context, query model.ActivityQuery) (*activityx.Activity, *int, error) {
 	if c.partition {
-		return c.findFeedPartitioned(ctx, query)
+		return c.findActivityPartitioned(ctx, query)
 	}
 
 	return nil, nil, fmt.Errorf("not implemented")
 }
 
-// FindFeeds finds feeds.
-func (c *client) FindFeeds(ctx context.Context, query model.FeedsQuery) ([]*schema.Feed, error) {
+// FindActivities finds Activities.
+func (c *client) FindActivities(ctx context.Context, query model.ActivitiesQuery) ([]*activityx.Activity, error) {
 	if c.partition {
-		return c.findFeedsPartitioned(ctx, query)
+		return c.findActivitiesPartitioned(ctx, query)
 	}
 
 	return nil, fmt.Errorf("not implemented")

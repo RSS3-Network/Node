@@ -17,9 +17,13 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/uniswap"
 	"github.com/rss3-network/node/provider/ethereum/contract/weth"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -39,7 +43,34 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Uniswap.String()
+	return workerx.Uniswap.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.PlatformUniswap.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Ethereum,
+		network.Linea,
+		network.SatoshiVM,
+	}
+}
+
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Exchange,
+		tag.Transaction,
+	}
+}
+
+func (w *worker) Types() []schema.Type {
+	return []schema.Type{
+		typex.ExchangeLiquidity,
+		typex.ExchangeSwap,
+		typex.TransactionMint,
+	}
 }
 
 func (w *worker) Filter() engine.SourceFilter {
@@ -82,33 +113,29 @@ func (w *worker) Match(_ context.Context, _ engine.Task) (bool, error) {
 	return true, nil
 }
 
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type %T", task)
 	}
 
-	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.PlatformUniswap))
+	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	switch {
 	case w.matchSwapTransaction(ethereumTask, ethereumTask.Transaction):
-		feed.Type = filter.TypeExchangeSwap
-		feed.Actions = w.transformSwapTransaction(ctx, ethereumTask, ethereumTask.Transaction)
+		activity.Type = typex.ExchangeSwap
+		activity.Actions = w.transformSwapTransaction(ctx, ethereumTask, ethereumTask.Transaction)
 	case w.matchLiquidityTransaction(ethereumTask, ethereumTask.Transaction):
-		feed.Type = filter.TypeExchangeLiquidity
-		feed.Actions = w.transformLiquidityTransaction(ctx, ethereumTask, ethereumTask.Transaction)
+		activity.Type = typex.ExchangeLiquidity
+		activity.Actions = w.transformLiquidityTransaction(ctx, ethereumTask, ethereumTask.Transaction)
 	default:
 		return nil, errors.New("unsupported transaction")
 	}
 
-	if err != nil {
-		return nil, fmt.Errorf("transform transaction: %w", err)
-	}
-
-	return feed, nil
+	return activity, nil
 }
 
 func (w *worker) matchSwapTransaction(task *source.Task, transaction *ethereum.Transaction) bool {
@@ -214,7 +241,7 @@ func (w *worker) matchNonfungiblePositionManagerTransferLog(task *source.Task, l
 	return event.From == ethereum.AddressGenesis
 }
 
-func (w *worker) transformSwapTransaction(ctx context.Context, task *source.Task, _ *ethereum.Transaction) (actions []*schema.Action) {
+func (w *worker) transformSwapTransaction(ctx context.Context, task *source.Task, _ *ethereum.Transaction) (actions []*activityx.Action) {
 	var err error
 
 	for _, log := range task.Receipt.Logs {
@@ -222,7 +249,7 @@ func (w *worker) transformSwapTransaction(ctx context.Context, task *source.Task
 			continue
 		}
 
-		var buffer []*schema.Action
+		var buffer []*activityx.Action
 
 		switch log.Export().Topics[0] {
 		case uniswap.EventHashV1ExchangeTokenPurchase:
@@ -255,7 +282,7 @@ func (w *worker) transformSwapTransaction(ctx context.Context, task *source.Task
 	return actions
 }
 
-func (w *worker) transformLiquidityTransaction(ctx context.Context, task *source.Task, _ *ethereum.Transaction) (actions []*schema.Action) {
+func (w *worker) transformLiquidityTransaction(ctx context.Context, task *source.Task, _ *ethereum.Transaction) (actions []*activityx.Action) {
 	var err error
 
 	for _, log := range task.Receipt.Logs {
@@ -263,7 +290,7 @@ func (w *worker) transformLiquidityTransaction(ctx context.Context, task *source
 			continue
 		}
 
-		var buffer []*schema.Action
+		var buffer []*activityx.Action
 
 		switch log.Export().Topics[0] {
 		case uniswap.EventHashV1ExchangeAddLiquidity:
@@ -302,7 +329,7 @@ func (w *worker) transformLiquidityTransaction(ctx context.Context, task *source
 	return actions
 }
 
-func (w *worker) transformV1TokenPurchaseLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformV1TokenPurchaseLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.uniswapV1ExchangeFilterer.ParseTokenPurchase(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse TokenPurchase event: %w", err)
@@ -327,14 +354,14 @@ func (w *worker) transformV1TokenPurchaseLog(ctx context.Context, task *source.T
 		return nil, fmt.Errorf("build exchange swap action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) transformV1EthPurchaseLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformV1EthPurchaseLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.uniswapV1ExchangeFilterer.ParseEthPurchase(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse EthPurchase event: %w", err)
@@ -359,14 +386,14 @@ func (w *worker) transformV1EthPurchaseLog(ctx context.Context, task *source.Tas
 		return nil, fmt.Errorf("build exchange swap action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) transformV1ExchangeAddLiquidityLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformV1ExchangeAddLiquidityLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.uniswapV1ExchangeFilterer.ParseAddLiquidity(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse AddLiquidity event: %w", err)
@@ -401,14 +428,14 @@ func (w *worker) transformV1ExchangeAddLiquidityLog(ctx context.Context, task *s
 		return nil, fmt.Errorf("build exchange liquidity action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) transformV1ExchangeRemoveLiquidityLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformV1ExchangeRemoveLiquidityLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.uniswapV1ExchangeFilterer.ParseRemoveLiquidity(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse RemoveLiquidity event: %w", err)
@@ -445,14 +472,14 @@ func (w *worker) transformV1ExchangeRemoveLiquidityLog(ctx context.Context, task
 		return nil, fmt.Errorf("build exchange liquidity action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) transformV2SwapLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformV2SwapLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.uniswapV2PairFilterer.ParseSwap(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Swap event: %w", err)
@@ -485,7 +512,7 @@ func (w *worker) transformV2SwapLog(ctx context.Context, task *source.Task, log 
 		}
 	}
 
-	var actions []*schema.Action
+	var actions []*activityx.Action
 
 	// nolint:revive // False positive
 	if event.Amount1Out.Sign() == 1 {
@@ -507,7 +534,7 @@ func (w *worker) transformV2SwapLog(ctx context.Context, task *source.Task, log 
 	return actions, nil
 }
 
-func (w *worker) transformV2PairMintLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformV2PairMintLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.uniswapV2PairFilterer.ParseMint(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Mint event: %w", err)
@@ -563,14 +590,14 @@ func (w *worker) transformV2PairMintLog(ctx context.Context, task *source.Task, 
 		return nil, fmt.Errorf("build exchange liquidity action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) transformV2PairBurnLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformV2PairBurnLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.uniswapV2PairFilterer.ParseBurn(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Burn event: %w", err)
@@ -626,14 +653,14 @@ func (w *worker) transformV2PairBurnLog(ctx context.Context, task *source.Task, 
 		return nil, fmt.Errorf("build exchange liquidity action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) transformV3SwapLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformV3SwapLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.uniswapV3PoolFilterer.ParseSwap(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Swap event: %w", err)
@@ -693,7 +720,7 @@ func (w *worker) transformV3SwapLog(ctx context.Context, task *source.Task, log 
 		sender = task.Transaction.From
 	}
 
-	var actions []*schema.Action
+	var actions []*activityx.Action
 
 	// nolint:revive // False positive
 	if event.Amount0.Sign() == 1 { // Amount0 is positive
@@ -716,7 +743,7 @@ func (w *worker) transformV3SwapLog(ctx context.Context, task *source.Task, log 
 	return actions, nil
 }
 
-func (w *worker) transformNonfungiblePositionManagerIncreaseLiquidityLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformNonfungiblePositionManagerIncreaseLiquidityLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.uniswapNonfungiblePositionManagerFilterer.ParseIncreaseLiquidity(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse IncreaseLiquidity event: %w", err)
@@ -753,14 +780,14 @@ func (w *worker) transformNonfungiblePositionManagerIncreaseLiquidityLog(ctx con
 		return nil, fmt.Errorf("build exchange liquidity action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) transformNonfungiblePositionManagerDecreaseLiquidityLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformNonfungiblePositionManagerDecreaseLiquidityLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.uniswapNonfungiblePositionManagerFilterer.ParseDecreaseLiquidity(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse DecreaseLiquidity event: %w", err)
@@ -797,14 +824,14 @@ func (w *worker) transformNonfungiblePositionManagerDecreaseLiquidityLog(ctx con
 		return nil, fmt.Errorf("build exchange liquidity action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) transformNonfungiblePositionManagerCollectLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformNonfungiblePositionManagerCollectLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.uniswapNonfungiblePositionManagerFilterer.ParseCollect(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Collect event: %w", err)
@@ -841,14 +868,14 @@ func (w *worker) transformNonfungiblePositionManagerCollectLog(ctx context.Conte
 		return nil, fmt.Errorf("build exchange liquidity action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) transformNonfungiblePositionManagerTransferLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformNonfungiblePositionManagerTransferLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.uniswapNonfungiblePositionManagerFilterer.ParseTransfer(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Transfer event: %w", err)
@@ -859,14 +886,14 @@ func (w *worker) transformNonfungiblePositionManagerTransferLog(ctx context.Cont
 		return nil, fmt.Errorf("build transaction mint action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task, sender, receipt common.Address, tokenIn, tokenOut *common.Address, amountIn, amountOut *big.Int) (*schema.Action, error) {
+func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task, sender, receipt common.Address, tokenIn, tokenOut *common.Address, amountIn, amountOut *big.Int) (*activityx.Action, error) {
 	tokenInMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenIn, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenIn, err)
@@ -881,9 +908,9 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 
 	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
 
-	action := schema.Action{
-		Type:     filter.TypeExchangeSwap,
-		Platform: filter.PlatformUniswap.String(),
+	action := activityx.Action{
+		Type:     typex.ExchangeSwap,
+		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receipt.String(),
 		Metadata: metadata.ExchangeSwap{
@@ -895,7 +922,7 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 	return &action, nil
 }
 
-func (w *worker) transformWETHDepositLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformWETHDepositLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	if !weth.IsWETH(task.ChainID, log.Address) {
 		return nil, fmt.Errorf("unofficial weth contract: %s", log.Address)
 	}
@@ -910,14 +937,14 @@ func (w *worker) transformWETHDepositLog(ctx context.Context, task *source.Task,
 		return nil, fmt.Errorf("build exchange swap action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) transformWETHWithdrawalLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformWETHWithdrawalLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	if !weth.IsWETH(task.ChainID, log.Address) {
 		return nil, fmt.Errorf("unofficial weth contract: %s", log.Address)
 	}
@@ -932,14 +959,14 @@ func (w *worker) transformWETHWithdrawalLog(ctx context.Context, task *source.Ta
 		return nil, fmt.Errorf("build exchange swap action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
 	return actions, nil
 }
 
-func (w *worker) buildExchangeLiquidityAction(ctx context.Context, task *source.Task, sender, receipt common.Address, liquidityAction metadata.ExchangeLiquidityAction, tokens []metadata.Token) (*schema.Action, error) {
+func (w *worker) buildExchangeLiquidityAction(ctx context.Context, task *source.Task, sender, receipt common.Address, liquidityAction metadata.ExchangeLiquidityAction, tokens []metadata.Token) (*activityx.Action, error) {
 	tokenMetadataSlice := make([]metadata.Token, 0, len(tokens))
 
 	for _, t := range tokens {
@@ -958,9 +985,9 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, task *source.
 		tokenMetadataSlice = append(tokenMetadataSlice, *tokenMetadata)
 	}
 
-	action := schema.Action{
-		Type:     filter.TypeExchangeLiquidity,
-		Platform: filter.PlatformUniswap.String(),
+	action := activityx.Action{
+		Type:     typex.ExchangeLiquidity,
+		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receipt.String(),
 		Metadata: metadata.ExchangeLiquidity{
@@ -972,7 +999,7 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, task *source.
 	return &action, nil
 }
 
-func (w *worker) buildTransactionMintAction(ctx context.Context, task *source.Task, sender, receipt, tokenAddress common.Address, tokenID *big.Int) (*schema.Action, error) {
+func (w *worker) buildTransactionMintAction(ctx context.Context, task *source.Task, sender, receipt, tokenAddress common.Address, tokenID *big.Int) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &tokenAddress, tokenID, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s %d: %w", tokenAddress, tokenID, err)
@@ -981,9 +1008,9 @@ func (w *worker) buildTransactionMintAction(ctx context.Context, task *source.Ta
 	tokenMetadata.ID = lo.ToPtr(decimal.NewFromBigInt(tokenID, 0))
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromInt(1))
 
-	action := schema.Action{
-		Type:     filter.TypeTransactionMint,
-		Platform: filter.PlatformUniswap.String(),
+	action := activityx.Action{
+		Type:     typex.TransactionMint,
+		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receipt.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
@@ -992,36 +1019,36 @@ func (w *worker) buildTransactionMintAction(ctx context.Context, task *source.Ta
 	return &action, nil
 }
 
-func (w *worker) getV3NonfungiblePositionManagerAddress(network filter.Network) (common.Address, error) {
-	switch network {
-	case filter.NetworkEthereum:
+func (w *worker) getV3NonfungiblePositionManagerAddress(n network.Network) (common.Address, error) {
+	switch n {
+	case network.Ethereum:
 		return uniswap.AddressNonfungiblePositionManager, nil
-	case filter.NetworkLinea:
+	case network.Linea:
 		return uniswap.AddressNonfungiblePositionManagerLinea, nil
 	default:
-		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", network)
+		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", n)
 	}
 }
 
-func (w *worker) getV3FactoryAddress(network filter.Network) (common.Address, error) {
-	switch network {
-	case filter.NetworkEthereum:
+func (w *worker) getV3FactoryAddress(n network.Network) (common.Address, error) {
+	switch n {
+	case network.Ethereum:
 		return uniswap.AddressV3Factory, nil
-	case filter.NetworkLinea:
+	case network.Linea:
 		return uniswap.AddressV3FactoryLinea, nil
 	default:
-		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", network)
+		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", n)
 	}
 }
 
-func (w *worker) getV2FactoryAddress(network filter.Network) (common.Address, error) {
-	switch network {
-	case filter.NetworkEthereum:
+func (w *worker) getV2FactoryAddress(n network.Network) (common.Address, error) {
+	switch n {
+	case network.Ethereum:
 		return uniswap.AddressV2Factory, nil
-	case filter.NetworkSatoshiVM:
+	case network.SatoshiVM:
 		return uniswap.AddressV2FactorySAVM, nil
 	default:
-		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", network)
+		return ethereum.AddressGenesis, fmt.Errorf("unsupported network: %s", n)
 	}
 }
 

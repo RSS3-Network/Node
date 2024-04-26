@@ -9,9 +9,13 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
 	"github.com/rss3-network/node/provider/arweave"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -23,7 +27,31 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Fallback.String()
+	return workerx.Fallback.String()
+}
+
+func (w *worker) Platform() string {
+	return ""
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Arweave,
+	}
+}
+
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Unknown,
+		tag.Transaction,
+	}
+}
+
+func (w *worker) Types() []schema.Type {
+	return []schema.Type{
+		typex.Unknown,
+		typex.TransactionTransfer,
+	}
 }
 
 // Filter returns a source filter.
@@ -33,21 +61,21 @@ func (w *worker) Filter() engine.SourceFilter {
 
 // Match returns true if the task is an Arweave task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkArweaveSource, nil
+	return task.GetNetwork().Source() == network.ArweaveSource, nil
 }
 
-// Transform returns a feed with the action of the task.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+// Transform returns an activity  with the action of the task.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build the feed.
-	feed, err := task.BuildFeed()
+	// Build the activity.
+	activity, err := task.BuildActivity()
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	// If the task is a native transfer transaction, handle it.
@@ -58,11 +86,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			return nil, fmt.Errorf("handle native transfer transaction: %w", err)
 		}
 
-		feed.Type = action.Type
-		feed.Actions = append(feed.Actions, action)
+		activity.Type = action.Type
+		activity.Actions = append(activity.Actions, action)
 	}
 
-	return feed, nil
+	return activity, nil
 }
 
 // matchArweaveNativeTransferTransaction returns true if the transaction is a native transfer transaction.
@@ -78,7 +106,7 @@ func (w *worker) matchArweaveNativeTransferTransaction(task *source.Task) bool {
 }
 
 // handleArweaveNativeTransferTransaction returns the action of the native transfer transaction.
-func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, task *source.Task) (*schema.Action, error) {
+func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, task *source.Task) (*activityx.Action, error) {
 	value, ok := new(big.Int).SetString(task.Transaction.Quantity, 10)
 	if !ok {
 		return nil, fmt.Errorf("parse transaction quantity %s", task.Transaction.Quantity)
@@ -95,9 +123,9 @@ func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, tas
 }
 
 // buildArweaveTransactionTransferAction returns the native transfer transaction action.
-func (w *worker) buildArweaveTransactionTransferAction(_ context.Context, from, to string, tokenValue *big.Int) (*schema.Action, error) {
-	action := schema.Action{
-		Type: filter.TypeTransactionTransfer,
+func (w *worker) buildArweaveTransactionTransferAction(_ context.Context, from, to string, tokenValue *big.Int) (*activityx.Action, error) {
+	action := activityx.Action{
+		Type: typex.TransactionTransfer,
 		From: from,
 		To:   to,
 		Metadata: metadata.TransactionTransfer{

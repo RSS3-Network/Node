@@ -8,7 +8,8 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -33,7 +34,7 @@ database:
 stream:
   enable: false
   driver: kafka
-  topic: rss3.node.feeds
+  topic: rss3.node.activities
   uri: localhost:9092
 redis:
   enable: false
@@ -95,7 +96,7 @@ component:
   "stream": {
     "enable": false,
     "driver": "kafka",
-    "topic": "rss3.node.feeds",
+    "topic": "rss3.node.activities",
     "uri": "localhost:9092"
   },
   "redis": {
@@ -175,7 +176,7 @@ uri = "postgres://root@localhost:26257/defaultdb"
 [stream]
 enable = false
 driver = "kafka"
-topic = "rss3.node.feeds"
+topic = "rss3.node.activities"
 uri = "localhost:9092"
 
 [redis]
@@ -240,10 +241,10 @@ var configFileExcept = &File{
 	Node: &Node{
 		RSS: []*Module{
 			{
-				Network:  filter.NetworkRSS,
+				Network:  network.RSS,
 				Endpoint: "https://rsshub.app/",
 				Worker:   0,
-				Parameters: &Options{
+				Parameters: &Parameters{
 					"authentication": map[string]any{
 						"access_code": "def",
 						"access_key":  "abc",
@@ -256,19 +257,19 @@ var configFileExcept = &File{
 		Federated: nil,
 		Decentralized: []*Module{
 			{
-				Network:  filter.NetworkEthereum,
-				Worker:   filter.Fallback,
+				Network:  network.Ethereum,
+				Worker:   workerx.Fallback,
 				Endpoint: "https://rpc.ankr.com/eth",
-				Parameters: &Options{
+				Parameters: &Parameters{
 					"block_number_start":  47370106,
 					"block_number_target": 456,
 				},
 			},
 			{
-				Network:  filter.NetworkEthereum,
-				Worker:   filter.RSS3,
+				Network:  network.Ethereum,
+				Worker:   workerx.Fallback,
 				Endpoint: "https://rpc.ankr.com/eth",
-				Parameters: &Options{
+				Parameters: &Parameters{
 					"block_height_start": 123,
 					"rpc_thread_blocks":  2,
 				},
@@ -283,7 +284,7 @@ var configFileExcept = &File{
 	Stream: &Stream{
 		Enable: lo.ToPtr(false),
 		Driver: "kafka",
-		Topic:  "rss3.node.feeds",
+		Topic:  "rss3.node.activities",
 		URI:    "localhost:9092",
 	},
 	Redis: &Redis{
@@ -332,7 +333,7 @@ func TestSetupConfig(t *testing.T) {
 	AssertConfig(t, f, configFileExcept)
 }
 
-//func TestConfigEnvOverride(t *testing.T) {
+// func TestConfigEnvOverride(t *testing.T) {
 //	t.Parallel()
 //
 //	exceptEnvironment := "testing"
@@ -364,7 +365,7 @@ func TestSetupConfig(t *testing.T) {
 //	assert.Equal(t, exceptEnvironment, f.Environment)
 //	assert.Equal(t, exceptDatabaseURI, f.Database.URI)
 //	assert.Equal(t, exceptMetricsEndpoint, f.Observability.OpenTelemetry.Metrics.Endpoint)
-//}
+// }
 
 func TestConfigFilePath(t *testing.T) {
 	t.Parallel()

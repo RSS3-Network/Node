@@ -13,9 +13,11 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/lido"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -32,14 +34,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Add ETH liquidity and mint stETH",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xa6041b2aa1b9099f4ef1b24d50c53f3734cffffb7f117dd9cceb3ad8be9d15e6"),
@@ -114,29 +116,29 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xd632e7c240f2636d6f757a23480e27c968ba28ed7240c0f2c7b8206903252b22",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   56,
 				From:    "0xcF7c2e2283e31984cA3e809e01ee35E80bCdAEea",
 				To:      lido.AddressStakedETH.String(),
-				Type:    filter.TypeExchangeLiquidity,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xa1903eab",
 				},
-				Platform: lo.ToPtr(filter.PlatformLido),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLido.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1850864577993430")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformLido.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformLido.String(),
 						From:     "0xcF7c2e2283e31984cA3e809e01ee35E80bCdAEea",
 						To:       lido.AddressStakedETH.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -152,8 +154,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeTransactionMint,
-						Platform: filter.PlatformLido.String(),
+						Type:     typex.TransactionMint,
+						Platform: workerx.PlatformLido.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       "0xcF7c2e2283e31984cA3e809e01ee35E80bCdAEea",
 						Metadata: metadata.TransactionTransfer{
@@ -175,7 +177,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Remove stETH liquidity and mint unstETH #2427",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x96a4e104794025dfb9bcd92805c24efccf6811a9aea17a6f7d10adef44d02f47"),
@@ -289,29 +291,29 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xe1bc6380c76131ed87a875bd0740f187548c22c1e79eec10d9a7f00c51ad914c",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   47,
 				From:    "0x64833AEbDB5a39EAD24b7F053DbDA0FE38ad632e",
 				To:      lido.AddressStakedETHWithdrawalNFT.String(),
-				Type:    filter.TypeExchangeLiquidity,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xacf41e4d",
 				},
-				Platform: lo.ToPtr(filter.PlatformLido),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLido.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("4367891628466576")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformLido.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformLido.String(),
 						From:     "0x64833AEbDB5a39EAD24b7F053DbDA0FE38ad632e",
 						To:       lido.AddressStakedETHWithdrawalNFT.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -327,8 +329,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeCollectibleMint,
-						Platform: filter.PlatformLido.String(),
+						Type:     typex.CollectibleMint,
+						Platform: workerx.PlatformLido.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       "0x64833AEbDB5a39EAD24b7F053DbDA0FE38ad632e",
 						Metadata: metadata.CollectibleTransfer{
@@ -350,7 +352,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Burn unstETH #1685 and receive ETH",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x5e39c72459101c14e25455f4b8cc92d015c9ef4d8a604710b9c5e885ce26baa4"),
@@ -416,29 +418,29 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xcc70adde277e1f7faff67d5ebda2b8fdae071933f4b751790b5aba4b65b012c8",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   44,
 				From:    "0x0C71f889D32002bCAC135434cac861Baf17A5f67",
 				To:      lido.AddressStakedETHWithdrawalNFT.String(),
-				Type:    filter.TypeCollectibleBurn,
-				Calldata: &schema.Calldata{
+				Type:    typex.CollectibleBurn,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xe3afe0a3",
 				},
-				Platform: lo.ToPtr(filter.PlatformLido),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLido.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1364545917931882")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeCollectibleBurn,
-						Platform: filter.PlatformLido.String(),
+						Type:     typex.CollectibleBurn,
+						Platform: workerx.PlatformLido.String(),
 						From:     "0x0C71f889D32002bCAC135434cac861Baf17A5f67",
 						To:       ethereum.AddressGenesis.String(),
 						Metadata: metadata.CollectibleTransfer{
@@ -451,8 +453,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeTransactionTransfer,
-						Platform: filter.PlatformLido.String(),
+						Type:     typex.TransactionTransfer,
+						Platform: workerx.PlatformLido.String(),
 						From:     lido.AddressStakedETHWithdrawalNFT.String(),
 						To:       "0x0C71f889D32002bCAC135434cac861Baf17A5f67",
 						Metadata: metadata.TransactionTransfer{
@@ -472,7 +474,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Add MATIC liquidity and mint stMATIC",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x5441b85042d561a65fa0f3fb2c030de8cbe6bed4460a079b36ada369015d9511"),
@@ -572,29 +574,29 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xa8405c2dfb85565b406d5b6b60f0b460f61c211977d967ee546967ae43be2c2f",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   29,
 				From:    "0xc9fE2F54234c513dbeadbF12Af72a7c1eDB0058f",
 				To:      lido.AddressStakedMATIC.String(),
-				Type:    filter.TypeExchangeLiquidity,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xf532e86a",
 				},
-				Platform: lo.ToPtr(filter.PlatformLido),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLido.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("11618788820293291")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformLido.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformLido.String(),
 						From:     "0xc9fE2F54234c513dbeadbF12Af72a7c1eDB0058f",
 						To:       lido.AddressStakedMATIC.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -610,8 +612,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeTransactionMint,
-						Platform: filter.PlatformLido.String(),
+						Type:     typex.TransactionMint,
+						Platform: workerx.PlatformLido.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       "0xc9fE2F54234c513dbeadbF12Af72a7c1eDB0058f",
 						Metadata: metadata.TransactionTransfer{
@@ -633,7 +635,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Remove stMATIC liquidity and mint PLO #1376",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x078fa6c6c9d8f68c36647575b16ce012da583aa32579b63e4ff5309e4cd0fc8a"),
@@ -785,29 +787,29 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x9247508d5690e97814a3f32b1f8ffda14c7b3404a7ae280eea6e93df2423dfd2",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   121,
 				From:    "0x36cc7B13029B5DEe4034745FB4F24034f3F2ffc6",
 				To:      lido.AddressStakedMATIC.String(),
-				Type:    filter.TypeCollectibleMint,
-				Calldata: &schema.Calldata{
+				Type:    typex.CollectibleMint,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xccc143b8",
 				},
-				Platform: lo.ToPtr(filter.PlatformLido),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLido.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("18695859673908466")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformLido.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformLido.String(),
 						From:     "0x36cc7B13029B5DEe4034745FB4F24034f3F2ffc6",
 						To:       lido.AddressStakedMATICWithdrawalNFT.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -825,8 +827,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeCollectibleMint,
-						Platform: filter.PlatformLido.String(),
+						Type:     typex.CollectibleMint,
+						Platform: workerx.PlatformLido.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       "0x36cc7B13029B5DEe4034745FB4F24034f3F2ffc6",
 						Metadata: metadata.CollectibleTransfer{
@@ -848,7 +850,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Burn PLO #1371 and receive MATIC",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x16f1f21c611d964651e7d4ca54d719dc028727fd1d85454740f1e3a3b854f95d"),
@@ -963,29 +965,29 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xfb4fc03b79772dc77bf6af4f35eaf1e32746eda8f2fdf89d40ca2d8a06e4225f",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   83,
 				From:    "0x22510fe99F63aE03BA792c21A29Ec10Fd87cae08",
 				To:      lido.AddressStakedMATIC.String(),
-				Type:    filter.TypeCollectibleBurn,
-				Calldata: &schema.Calldata{
+				Type:    typex.CollectibleBurn,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x46e04a2f",
 				},
-				Platform: lo.ToPtr(filter.PlatformLido),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLido.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3684529000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeCollectibleBurn,
-						Platform: filter.PlatformLido.String(),
+						Type:     typex.CollectibleBurn,
+						Platform: workerx.PlatformLido.String(),
 						From:     "0x22510fe99F63aE03BA792c21A29Ec10Fd87cae08",
 						To:       ethereum.AddressGenesis.String(),
 						Metadata: metadata.CollectibleTransfer{
@@ -998,8 +1000,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeTransactionTransfer,
-						Platform: filter.PlatformLido.String(),
+						Type:     typex.TransactionTransfer,
+						Platform: workerx.PlatformLido.String(),
 						From:     lido.AddressStakedMATIC.String(),
 						To:       "0x22510fe99F63aE03BA792c21A29Ec10Fd87cae08",
 						Metadata: metadata.TransactionTransfer{
@@ -1021,7 +1023,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Wrap stETH for wstETH",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xbd8b0c681de0ca40260dd063fff4ccc3e4f60f27980aa3fcb0a3b507dbaa289b"),
@@ -1109,29 +1111,29 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x89b84ef9d6cd376cffd554d7c63ff3c301eea7ffe19371aae59e7b0e7aeee2b5",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   47,
 				From:    "0x8F1853b7891955791513A5E1262258D42468005a",
 				To:      lido.AddressWrappedStakedETH.String(),
-				Type:    filter.TypeExchangeSwap,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeSwap,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xea598cb0",
 				},
-				Platform: lo.ToPtr(filter.PlatformLido),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLido.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2095213918569300")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeSwap,
-						Platform: filter.PlatformLido.String(),
+						Type:     typex.ExchangeSwap,
+						Platform: workerx.PlatformLido.String(),
 						From:     "0x8F1853b7891955791513A5E1262258D42468005a",
 						To:       "0x8F1853b7891955791513A5E1262258D42468005a",
 						Metadata: metadata.ExchangeSwap{
@@ -1163,7 +1165,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Unwrap wstETH for stETH",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x1ea3a25928a89fbd34b60ba327fa4047886cff127791f1fe25533fbcdcd775d5"),
@@ -1239,29 +1241,29 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xdef8ed7f55480f66ed52be86b9b66c86154e6a5df289e894da9ecdada5b603cb",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   71,
 				From:    "0x8375eC8bB9902512a63d488C09548e40e13FB81F",
 				To:      lido.AddressWrappedStakedETH.String(),
-				Type:    filter.TypeExchangeSwap,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeSwap,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xde0e9a3e",
 				},
-				Platform: lo.ToPtr(filter.PlatformLido),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLido.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2101204713592270")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeSwap,
-						Platform: filter.PlatformLido.String(),
+						Type:     typex.ExchangeSwap,
+						Platform: workerx.PlatformLido.String(),
 						From:     "0x8375eC8bB9902512a63d488C09548e40e13FB81F",
 						To:       "0x8375eC8bB9902512a63d488C09548e40e13FB81F",
 						Metadata: metadata.ExchangeSwap{
@@ -1306,11 +1308,11 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, activity)
 
-			t.Log(feed)
+			t.Log(activity)
 		})
 	}
 }

@@ -7,7 +7,7 @@ import (
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -30,7 +30,7 @@ func NewHub(_ context.Context, config *config.File) *Hub {
 	}
 
 	for _, conf := range config.Node.RSS {
-		if conf.Network == filter.NetworkRSS {
+		if conf.Network == network.RSS {
 			hub.rsshub = conf
 		}
 	}

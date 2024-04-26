@@ -12,7 +12,7 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/farcaster"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
@@ -33,7 +33,7 @@ type source struct {
 	pendingState    State
 }
 
-func (s *source) Network() filter.Network {
+func (s *source) Network() network.Network {
 	return s.config.Network
 }
 
@@ -313,14 +313,12 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Profile, error) {
 	// owner username(handle)
 	userDataByFidAndTypeRes, err := s.farcasterClient.GetUserDataByFidAndType(ctx, fid, farcaster.UserDataTypeUsername.String())
-
 	if err != nil {
 		return nil, fmt.Errorf("fetch user data error: %w,%d", err, fid)
 	}
 
 	// custody address
 	custodyAddresses, err := s.farcasterClient.GetUserNameProofsByFid(ctx, fid)
-
 	if err != nil {
 		return nil, fmt.Errorf("fetch custody address error: %w,%d", err, fid)
 	}
@@ -347,10 +345,6 @@ func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Pro
 	ethAddresses := lo.Map(verificationsByFidRes.Messages, func(x farcaster.Message, _ int) string {
 		return common.HexToAddress(x.Data.VerificationAddEthAddressBody.Address).String()
 	})
-
-	if err != nil {
-		return nil, fmt.Errorf("get new farcaster profile %d: %w", fid, err)
-	}
 
 	profile := &model.Profile{
 		Fid:            *fid,

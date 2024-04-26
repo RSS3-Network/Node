@@ -12,9 +12,11 @@ import (
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/highlight"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -31,14 +33,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Highlight Mint",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x44c76c805bf21b13b29a7acbd0061339a143957cb3a34bfc3c47d95872d07c2a"),
@@ -142,29 +144,29 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xe278e133786ec1714550361994ad314e6219196d8500eab67cd2df5000898c42",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   79,
 				From:    "0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF",
 				To:      "0x1bf979282181f2b7a640d17aB5D2e25125F2de5e",
-				Type:    filter.TypeCollectibleMint,
-				Calldata: &schema.Calldata{
+				Type:    typex.CollectibleMint,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x705dcf34",
 				},
-				Platform: lo.ToPtr(filter.PlatformHighlight),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformHighlight.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("8656626470208573")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeTransactionTransfer,
-						Platform: filter.PlatformHighlight.String(),
+						Type:     typex.TransactionTransfer,
+						Platform: workerx.PlatformHighlight.String(),
 						From:     common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
 						To:       common.HexToAddress("0xa532Df3Bedc7A30747c45F57603080F37A60df48").String(),
 						Metadata: metadata.TransactionTransfer{
@@ -175,8 +177,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeTransactionTransfer,
-						Platform: filter.PlatformHighlight.String(),
+						Type:     typex.TransactionTransfer,
+						Platform: workerx.PlatformHighlight.String(),
 						From:     common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
 						To:       common.HexToAddress("0x1bf979282181f2b7a640d17aB5D2e25125F2de5e").String(),
 						Metadata: metadata.TransactionTransfer{
@@ -187,8 +189,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeCollectibleMint,
-						Platform: filter.PlatformHighlight.String(),
+						Type:     typex.CollectibleMint,
+						Platform: workerx.PlatformHighlight.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
 						Metadata: metadata.CollectibleTransfer{
@@ -201,8 +203,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeCollectibleMint,
-						Platform: filter.PlatformHighlight.String(),
+						Type:     typex.CollectibleMint,
+						Platform: workerx.PlatformHighlight.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
 						Metadata: metadata.CollectibleTransfer{
@@ -215,8 +217,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeCollectibleMint,
-						Platform: filter.PlatformHighlight.String(),
+						Type:     typex.CollectibleMint,
+						Platform: workerx.PlatformHighlight.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
 						Metadata: metadata.CollectibleTransfer{
@@ -251,12 +253,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }
