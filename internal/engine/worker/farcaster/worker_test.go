@@ -79,11 +79,11 @@ func TestWorker(t *testing.T) {
 				To:       common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				Type:     typex.SocialPost,
 				Status:   true,
-				Platform: workerx.Farcaster.Platform(),
+				Platform: workerx.PlatformFarcaster.String(),
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialPost,
-						Platform: workerx.Farcaster.Platform(),
+						Platform: workerx.PlatformFarcaster.String(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						Metadata: metadata.SocialPost{
@@ -180,12 +180,12 @@ func TestWorker(t *testing.T) {
 				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				To:       common.HexToAddress("0xe25228a6525A2090be824d66Bdf6DB8836eCc90C").String(),
 				Type:     typex.SocialComment,
-				Platform: workerx.Farcaster.Platform(),
+				Platform: workerx.PlatformFarcaster.String(),
 				Status:   true,
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialComment,
-						Platform: workerx.Farcaster.Platform(),
+						Platform: workerx.PlatformFarcaster.String(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x827431510a5D249cE4fdB7F00C83a3353F471848").String(),
 						Metadata: metadata.SocialPost{
@@ -283,11 +283,11 @@ func TestWorker(t *testing.T) {
 				To:       common.HexToAddress("0xe25228a6525A2090be824d66Bdf6DB8836eCc90C").String(),
 				Type:     typex.SocialShare,
 				Status:   true,
-				Platform: workerx.Farcaster.Platform(),
+				Platform: workerx.PlatformFarcaster.String(),
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialShare,
-						Platform: workerx.Farcaster.Platform(),
+						Platform: workerx.PlatformFarcaster.String(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x827431510a5D249cE4fdB7F00C83a3353F471848").String(),
 						Metadata: metadata.SocialPost{
@@ -384,11 +384,11 @@ func TestWorker(t *testing.T) {
 				To:       common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				Type:     typex.SocialShare,
 				Status:   true,
-				Platform: workerx.Farcaster.Platform(),
+				Platform: workerx.PlatformFarcaster.String(),
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialShare,
-						Platform: workerx.Farcaster.Platform(),
+						Platform: workerx.PlatformFarcaster.String(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						Metadata: metadata.SocialPost{

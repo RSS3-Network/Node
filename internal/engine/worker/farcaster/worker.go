@@ -35,7 +35,7 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.Farcaster.Platform()
+	return workerx.PlatformFarcaster.String()
 }
 
 func (w *worker) Network() []network.Network {
