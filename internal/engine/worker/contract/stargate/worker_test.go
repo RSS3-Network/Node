@@ -202,7 +202,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x1114cd2a",
 				},
-				Platform: workerx.Stargate.Platform(),
+				Platform: workerx.PlatformStargate.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("70294600000000")),
 					Decimal: 18,
@@ -232,7 +232,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.Stargate.Platform(),
+						Platform: workerx.PlatformStargate.String(),
 						From:     "0x32C8e4D2Cb2642A29bC06115336AC96Bf0160485",
 						To:       "0x32C8e4D2Cb2642A29bC06115336AC96Bf0160485",
 						Metadata: metadata.TransactionBridge{
@@ -359,7 +359,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x252f7b01",
 				},
-				Platform: workerx.Stargate.Platform(),
+				Platform: workerx.PlatformStargate.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("65275689948467")),
 					Decimal: 18,
@@ -367,7 +367,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.Stargate.Platform(),
+						Platform: workerx.PlatformStargate.String(),
 						From:     "0xd22363e3762cA7339569F3d33EADe20127D5F98C",
 						To:       "0x66d4f4A4A743A6136D32d4c93eA03e839A62Dad7",
 						Metadata: metadata.TransactionBridge{
@@ -544,7 +544,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x9fbf10fc",
 				},
-				Platform: workerx.Stargate.Platform(),
+				Platform: workerx.PlatformStargate.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("33002802845661")),
 					Decimal: 18,
@@ -576,7 +576,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.Stargate.Platform(),
+						Platform: workerx.PlatformStargate.String(),
 						From:     "0xA9fdDD748b21898C7E26E05ad895760FDd2723Bd",
 						To:       "0xA9fdDD748b21898C7E26E05ad895760FDd2723Bd",
 						Metadata: metadata.TransactionBridge{
@@ -715,7 +715,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x252f7b01",
 				},
-				Platform: workerx.Stargate.Platform(),
+				Platform: workerx.PlatformStargate.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("11249158762384833")),
 					Decimal: 18,
@@ -723,7 +723,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.Stargate.Platform(),
+						Platform: workerx.PlatformStargate.String(),
 						From:     "0x29e38769f23701A2e4A8Ef0492e19dA4604Be62c",
 						To:       "0x536ef5EBB4682981babBAfA29B93E43CA5b28511",
 						Metadata: metadata.TransactionBridge{
@@ -910,7 +910,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x1114cd2a",
 				},
-				Platform: workerx.Stargate.Platform(),
+				Platform: workerx.PlatformStargate.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("289542353189595")),
 					Decimal: 18,
@@ -940,7 +940,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.Stargate.Platform(),
+						Platform: workerx.PlatformStargate.String(),
 						From:     "0xD7f9e3e2A28b7D0f0a534511f2a4cAFA7e517a6c",
 						To:       "0xD7f9e3e2A28b7D0f0a534511f2a4cAFA7e517a6c",
 						Metadata: metadata.TransactionBridge{

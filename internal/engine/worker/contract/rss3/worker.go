@@ -41,7 +41,14 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.RSS3.Platform()
+	return workerx.PlatformRSS3.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Ethereum,
+		network.VSL,
+	}
 }
 
 func (w *worker) Tags() []tag.Tag {

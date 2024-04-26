@@ -190,7 +190,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xe8eda9df",
 				},
-				Platform: workerx.Aave.Platform(),
+				Platform: workerx.PlatformAAVE.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3989675111519265")),
 					Decimal: 18,
@@ -198,7 +198,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: workerx.Aave.Platform(),
+						Platform: workerx.PlatformAAVE.String(),
 						From:     "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
 						To:       aave.AddressV2LendingPoolMainnet.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -362,7 +362,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x69328dec",
 				},
-				Platform: workerx.Aave.Platform(),
+				Platform: workerx.PlatformAAVE.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3494354289488625")),
 					Decimal: 18,
@@ -370,7 +370,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: workerx.Aave.Platform(),
+						Platform: workerx.PlatformAAVE.String(),
 						From:     "0x0f1DfeF1a40557d279d0de6E49aB306891A638b8",
 						To:       aave.AddressV2LendingPoolMainnet.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -546,7 +546,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xa415bcad",
 				},
-				Platform: workerx.Aave.Platform(),
+				Platform: workerx.PlatformAAVE.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("6575393086576872")),
 					Decimal: 18,
@@ -554,7 +554,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: workerx.Aave.Platform(),
+						Platform: workerx.PlatformAAVE.String(),
 						From:     "0xF8E4517dC4fd4bfeF9903336ADB1Ede20803430d",
 						To:       aave.AddressV2LendingPoolMainnet.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -717,7 +717,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x573ade81",
 				},
-				Platform: workerx.Aave.Platform(),
+				Platform: workerx.PlatformAAVE.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("4384289713535145")),
 					Decimal: 18,
@@ -725,7 +725,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: workerx.Aave.Platform(),
+						Platform: workerx.PlatformAAVE.String(),
 						From:     "0xc11E5B31008F3750b43f006c3026beD653888E07",
 						To:       aave.AddressV2LendingPoolMainnet.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -878,7 +878,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x617ba037",
 				},
-				Platform: workerx.Aave.Platform(),
+				Platform: workerx.PlatformAAVE.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2539935492927579")),
 					Decimal: 18,
@@ -886,7 +886,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: workerx.Aave.Platform(),
+						Platform: workerx.PlatformAAVE.String(),
 						From:     "0xf01bb28137121c063D73e7B61DBABE352467292b",
 						To:       aave.AddressV3PoolMainnet.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -1043,7 +1043,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x617ba037",
 				},
-				Platform: workerx.Aave.Platform(),
+				Platform: workerx.PlatformAAVE.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("191955009062034")),
 					Decimal: 18,
@@ -1051,7 +1051,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: workerx.Aave.Platform(),
+						Platform: workerx.PlatformAAVE.String(),
 						From:     "0x1aEB9F637B88d9c5422E0cb094F3bCDa20fCE37B",
 						To:       aave.AddressV3PoolBase.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -1204,7 +1204,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x69328dec",
 				},
-				Platform: workerx.Aave.Platform(),
+				Platform: workerx.PlatformAAVE.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3971841806401938")),
 					Decimal: 18,
@@ -1212,7 +1212,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: workerx.Aave.Platform(),
+						Platform: workerx.PlatformAAVE.String(),
 						From:     aave.AddressV3PoolMainnet.String(),
 						To:       "0x5A0D6d0DE7c74899F09d3509A429bEb7D3b4b1d0",
 						Metadata: metadata.ExchangeLiquidity{
@@ -1353,7 +1353,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xa415bcad",
 				},
-				Platform: workerx.Aave.Platform(),
+				Platform: workerx.PlatformAAVE.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3819556449855740")),
 					Decimal: 18,
@@ -1361,7 +1361,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: workerx.Aave.Platform(),
+						Platform: workerx.PlatformAAVE.String(),
 						From:     aave.AddressV3PoolMainnet.String(),
 						To:       "0xC4dBC7D5957dceF7eD2B0778C597c16Ce2769E7d",
 						Metadata: metadata.ExchangeLiquidity{
@@ -1502,7 +1502,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x573ade81",
 				},
-				Platform: workerx.Aave.Platform(),
+				Platform: workerx.PlatformAAVE.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2571456723342402")),
 					Decimal: 18,
@@ -1510,7 +1510,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: workerx.Aave.Platform(),
+						Platform: workerx.PlatformAAVE.String(),
 						From:     "0x790c9422839FD93a3A4E31e531f96cC87F397c00",
 						To:       aave.AddressV3PoolMainnet.String(),
 						Metadata: metadata.ExchangeLiquidity{

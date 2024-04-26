@@ -50,7 +50,13 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.Matters.Platform()
+	return workerx.PlatformMatters.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Polygon,
+	}
 }
 
 func (w *worker) Tags() []tag.Tag {

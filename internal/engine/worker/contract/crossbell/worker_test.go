@@ -120,7 +120,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xbd5f69cb",
 				},
-				Platform: workerx.Crossbell.Platform(),
+				Platform: workerx.PlatformCrossbell.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("336353000000000")),
 					Decimal: 18,
@@ -128,7 +128,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: workerx.Crossbell.Platform(),
+						Platform: workerx.PlatformCrossbell.String(),
 						From:     "0x3F54953E56A0Fe272F3E1E61615Bda1fd6578101",
 						To:       "0x3F54953E56A0Fe272F3E1E61615Bda1fd6578101",
 						Metadata: metadata.SocialProfile{
@@ -214,7 +214,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x7c392b51",
 				},
-				Platform: workerx.Crossbell.Platform(),
+				Platform: workerx.PlatformCrossbell.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("51306000000000")),
 					Decimal: 18,
@@ -222,7 +222,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: workerx.Crossbell.Platform(),
+						Platform: workerx.PlatformCrossbell.String(),
 						From:     "0x08d66b34054a174841e2361bd4746Ff9F4905cC2",
 						To:       "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
 						Metadata: metadata.SocialProfile{
@@ -323,7 +323,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xcd69fe61",
 				},
-				Platform: workerx.Crossbell.Platform(),
+				Platform: workerx.PlatformCrossbell.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("327967000000000")),
 					Decimal: 18,
@@ -331,7 +331,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: workerx.Crossbell.Platform(),
+						Platform: workerx.PlatformCrossbell.String(),
 						From:     "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
 						To:       "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
 						Metadata: metadata.SocialProfile{
@@ -418,7 +418,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xa6e6178d",
 				},
-				Platform: workerx.Crossbell.Platform(),
+				Platform: workerx.PlatformCrossbell.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("56047000000000")),
 					Decimal: 18,
@@ -426,7 +426,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: workerx.Crossbell.Platform(),
+						Platform: workerx.PlatformCrossbell.String(),
 						From:     "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
 						To:       "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
 						Metadata: metadata.SocialProfile{
@@ -512,7 +512,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x47f94de7",
 				},
-				Platform: workerx.Crossbell.Platform(),
+				Platform: workerx.PlatformCrossbell.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("47651000000000")),
 					Decimal: 18,
@@ -520,7 +520,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.SocialProfile,
-						Platform: workerx.Crossbell.Platform(),
+						Platform: workerx.PlatformCrossbell.String(),
 						From:     "0x0fefeD77Bb715E96f1c35c1a4E0D349563d6f6c0",
 						To:       "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
 						Metadata: metadata.SocialProfile{
@@ -610,7 +610,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xf316bacd",
 				},
-				Platform: workerx.Crossbell.Platform(),
+				Platform: workerx.PlatformCrossbell.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("236812000000000")),
 					Decimal: 18,
@@ -707,7 +707,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x9a4dec18",
 				},
-				Platform: workerx.Crossbell.Platform(),
+				Platform: workerx.PlatformCrossbell.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("175319000000000")),
 					Decimal: 18,
@@ -812,7 +812,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x628b644a",
 				},
-				Platform: workerx.Crossbell.Platform(),
+				Platform: workerx.PlatformCrossbell.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("53229000000000")),
 					Decimal: 18,
@@ -910,7 +910,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xc2a6fe3b",
 				},
-				Platform: workerx.Crossbell.Platform(),
+				Platform: workerx.PlatformCrossbell.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("49945000000000")),
 					Decimal: 18,
@@ -1053,7 +1053,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xa7ccb4bf",
 				},
-				Platform: workerx.Crossbell.Platform(),
+				Platform: workerx.PlatformCrossbell.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("416564000000000")),
 					Decimal: 18,
@@ -1207,7 +1207,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x9bd9bbc6",
 				},
-				Platform: workerx.Crossbell.Platform(),
+				Platform: workerx.PlatformCrossbell.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("91854000000000")),
 					Decimal: 18,
@@ -1314,7 +1314,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x206657f2",
 				},
-				Platform: workerx.Crossbell.Platform(),
+				Platform: workerx.PlatformCrossbell.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("113102000000000")),
 					Decimal: 18,
@@ -1411,7 +1411,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x206657f2",
 				},
-				Platform: workerx.Crossbell.Platform(),
+				Platform: workerx.PlatformCrossbell.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("30915000000000")),
 					Decimal: 18,

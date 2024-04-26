@@ -40,7 +40,20 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.Stargate.Platform()
+	return workerx.PlatformStargate.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Ethereum,
+		network.Arbitrum,
+		network.Optimism,
+		network.Base,
+		network.Linea,
+		network.Avalanche,
+		network.BinanceSmartChain,
+		network.Polygon,
+	}
 }
 
 func (w *worker) Tags() []tag.Tag {

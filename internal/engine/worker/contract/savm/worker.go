@@ -41,7 +41,13 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.SAVM.Platform()
+	return workerx.PlatformSAVM.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.SatoshiVM,
+	}
 }
 
 func (w *worker) Tags() []tag.Tag {

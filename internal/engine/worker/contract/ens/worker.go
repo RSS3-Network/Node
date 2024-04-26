@@ -59,7 +59,13 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.ENS.Platform()
+	return workerx.PlatformENS.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Ethereum,
+	}
 }
 
 func (w *worker) Tags() []tag.Tag {

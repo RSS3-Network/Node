@@ -147,7 +147,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				From:     "0xf70da97812CB96acDF810712Aa562db8dfA3dbEF",
 				To:       "0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45",
 				Type:     typex.CollectibleMint,
-				Platform: workerx.KiwiStand.Platform(),
+				Platform: workerx.PlatformKiwiStand.String(),
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x45368181",
 				},
@@ -158,7 +158,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: workerx.KiwiStand.Platform(),
+						Platform: workerx.PlatformKiwiStand.String(),
 						From:     common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
 						To:       common.HexToAddress("0x7777777F279eba3d3Ad8F4E708545291A6fDBA8B").String(),
 						Metadata: metadata.TransactionTransfer{
@@ -170,7 +170,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: workerx.KiwiStand.Platform(),
+						Platform: workerx.PlatformKiwiStand.String(),
 						From:     common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
 						To:       common.HexToAddress("0x7777777F279eba3d3Ad8F4E708545291A6fDBA8B").String(),
 						Metadata: metadata.TransactionTransfer{
@@ -182,7 +182,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: workerx.KiwiStand.Platform(),
+						Platform: workerx.PlatformKiwiStand.String(),
 						From:     common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
 						To:       common.HexToAddress("0x7777777F279eba3d3Ad8F4E708545291A6fDBA8B").String(),
 						Metadata: metadata.TransactionTransfer{
@@ -194,7 +194,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: workerx.KiwiStand.Platform(),
+						Platform: workerx.PlatformKiwiStand.String(),
 						From:     common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
 						To:       common.HexToAddress("0x7777777F279eba3d3Ad8F4E708545291A6fDBA8B").String(),
 						Metadata: metadata.TransactionTransfer{
@@ -206,7 +206,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.CollectibleMint,
-						Platform: workerx.KiwiStand.Platform(),
+						Platform: workerx.PlatformKiwiStand.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       common.HexToAddress("0x68b885F956e3F0457f39B1d9eFDeD041A99AF915").String(),
 						Metadata: metadata.CollectibleTransfer{
@@ -220,7 +220,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: workerx.KiwiStand.Platform(),
+						Platform: workerx.PlatformKiwiStand.String(),
 						From:     common.HexToAddress("0xf70da97812CB96acDF810712Aa562db8dfA3dbEF").String(),
 						To:       common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
 						Metadata: metadata.TransactionTransfer{
@@ -232,7 +232,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.SocialMint,
-						Platform: workerx.KiwiStand.Platform(),
+						Platform: workerx.PlatformKiwiStand.String(),
 						From:     common.HexToAddress("0xf70da97812CB96acDF810712Aa562db8dfA3dbEF").String(),
 						To:       common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45").String(),
 						Metadata: &metadata.SocialPost{

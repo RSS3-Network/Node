@@ -17,6 +17,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
@@ -37,7 +38,13 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.Aavegotchi.Platform()
+	return workerx.PlatformAavegotchi.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Ethereum,
+	}
 }
 
 func (w *worker) Tags() []tag.Tag {

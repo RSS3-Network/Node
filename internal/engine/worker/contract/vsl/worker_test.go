@@ -157,7 +157,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x8c3152e9",
 				},
-				Platform: workerx.VSL.Platform(),
+				Platform: workerx.PlatformVSL.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("5847904578748375")),
 					Decimal: 18,
@@ -165,7 +165,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.VSL.Platform(),
+						Platform: workerx.PlatformVSL.String(),
 						From:     "0x30286DD245338292F319809935a1037CcD4573Ea",
 						To:       "0x30286DD245338292F319809935a1037CcD4573Ea",
 						Metadata: metadata.TransactionBridge{

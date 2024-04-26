@@ -161,7 +161,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x383c7d87",
 				},
-				Platform: workerx.RSS3.Platform(),
+				Platform: workerx.PlatformRSS3.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("5479491821006616")),
 					Decimal: 18,
@@ -169,7 +169,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeStaking,
-						Platform: workerx.RSS3.Platform(),
+						Platform: workerx.PlatformRSS3.String(),
 						From:     "0x1B861760AdE296aBE523C594118EF812208194CE",
 						To:       "0x1B861760AdE296aBE523C594118EF812208194CE",
 						Metadata: metadata.ExchangeStaking{
@@ -304,7 +304,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x00f714ce",
 				},
-				Platform: workerx.RSS3.Platform(),
+				Platform: workerx.PlatformRSS3.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2321450000000000")),
 					Decimal: 18,
@@ -312,7 +312,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeStaking,
-						Platform: workerx.RSS3.Platform(),
+						Platform: workerx.PlatformRSS3.String(),
 						From:     "0xE0BA908Be2f52063B0bD210544e67FCD76bd0b56",
 						To:       "0xE0BA908Be2f52063B0bD210544e67FCD76bd0b56",
 						Metadata: metadata.ExchangeStaking{
@@ -442,7 +442,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xef5cfb8c",
 				},
-				Platform: workerx.RSS3.Platform(),
+				Platform: workerx.PlatformRSS3.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1332888122256200")),
 					Decimal: 18,
@@ -450,7 +450,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeStaking,
-						Platform: workerx.RSS3.Platform(),
+						Platform: workerx.PlatformRSS3.String(),
 						From:     "0x2a03278590cd1962De28F9AbC855CF3774fe3eb6",
 						To:       "0x2a03278590cd1962De28F9AbC855CF3774fe3eb6",
 						Metadata: metadata.ExchangeStaking{
@@ -558,7 +558,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x96531623",
 				},
-				Platform: workerx.RSS3.Platform(),
+				Platform: workerx.PlatformRSS3.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1117542222924365900")),
 					Decimal: 18,
@@ -566,7 +566,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeStaking,
-						Platform: workerx.RSS3.Platform(),
+						Platform: workerx.PlatformRSS3.String(),
 						From:     "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
 						To:       "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
 						Metadata: metadata.ExchangeStaking{
@@ -673,7 +673,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x26476204",
 				},
-				Platform: workerx.RSS3.Platform(),
+				Platform: workerx.PlatformRSS3.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("772196357569891650")),
 					Decimal: 18,
@@ -681,7 +681,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.CollectibleMint,
-						Platform: workerx.RSS3.Platform(),
+						Platform: workerx.PlatformRSS3.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       common.HexToAddress("0x30286DD245338292F319809935a1037CcD4573Ea").String(),
 						Metadata: metadata.CollectibleTransfer{
@@ -695,7 +695,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.ExchangeStaking,
-						Platform: workerx.RSS3.Platform(),
+						Platform: workerx.PlatformRSS3.String(),
 						From:     "0x30286DD245338292F319809935a1037CcD4573Ea",
 						To:       "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
 						Metadata: metadata.ExchangeStaking{

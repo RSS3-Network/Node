@@ -130,7 +130,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xa1903eab",
 				},
-				Platform: workerx.Lido.Platform(),
+				Platform: workerx.PlatformLido.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1850864577993430")),
 					Decimal: 18,
@@ -138,7 +138,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: workerx.Lido.Platform(),
+						Platform: workerx.PlatformLido.String(),
 						From:     "0xcF7c2e2283e31984cA3e809e01ee35E80bCdAEea",
 						To:       lido.AddressStakedETH.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -155,7 +155,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionMint,
-						Platform: workerx.Lido.Platform(),
+						Platform: workerx.PlatformLido.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       "0xcF7c2e2283e31984cA3e809e01ee35E80bCdAEea",
 						Metadata: metadata.TransactionTransfer{
@@ -305,7 +305,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xacf41e4d",
 				},
-				Platform: workerx.Lido.Platform(),
+				Platform: workerx.PlatformLido.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("4367891628466576")),
 					Decimal: 18,
@@ -313,7 +313,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: workerx.Lido.Platform(),
+						Platform: workerx.PlatformLido.String(),
 						From:     "0x64833AEbDB5a39EAD24b7F053DbDA0FE38ad632e",
 						To:       lido.AddressStakedETHWithdrawalNFT.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -330,7 +330,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.CollectibleMint,
-						Platform: workerx.Lido.Platform(),
+						Platform: workerx.PlatformLido.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       "0x64833AEbDB5a39EAD24b7F053DbDA0FE38ad632e",
 						Metadata: metadata.CollectibleTransfer{
@@ -432,7 +432,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xe3afe0a3",
 				},
-				Platform: workerx.Lido.Platform(),
+				Platform: workerx.PlatformLido.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1364545917931882")),
 					Decimal: 18,
@@ -440,7 +440,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.CollectibleBurn,
-						Platform: workerx.Lido.Platform(),
+						Platform: workerx.PlatformLido.String(),
 						From:     "0x0C71f889D32002bCAC135434cac861Baf17A5f67",
 						To:       ethereum.AddressGenesis.String(),
 						Metadata: metadata.CollectibleTransfer{
@@ -454,7 +454,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: workerx.Lido.Platform(),
+						Platform: workerx.PlatformLido.String(),
 						From:     lido.AddressStakedETHWithdrawalNFT.String(),
 						To:       "0x0C71f889D32002bCAC135434cac861Baf17A5f67",
 						Metadata: metadata.TransactionTransfer{
@@ -588,7 +588,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xf532e86a",
 				},
-				Platform: workerx.Lido.Platform(),
+				Platform: workerx.PlatformLido.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("11618788820293291")),
 					Decimal: 18,
@@ -596,7 +596,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: workerx.Lido.Platform(),
+						Platform: workerx.PlatformLido.String(),
 						From:     "0xc9fE2F54234c513dbeadbF12Af72a7c1eDB0058f",
 						To:       lido.AddressStakedMATIC.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -613,7 +613,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionMint,
-						Platform: workerx.Lido.Platform(),
+						Platform: workerx.PlatformLido.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       "0xc9fE2F54234c513dbeadbF12Af72a7c1eDB0058f",
 						Metadata: metadata.TransactionTransfer{
@@ -801,7 +801,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xccc143b8",
 				},
-				Platform: workerx.Lido.Platform(),
+				Platform: workerx.PlatformLido.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("18695859673908466")),
 					Decimal: 18,
@@ -809,7 +809,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeLiquidity,
-						Platform: workerx.Lido.Platform(),
+						Platform: workerx.PlatformLido.String(),
 						From:     "0x36cc7B13029B5DEe4034745FB4F24034f3F2ffc6",
 						To:       lido.AddressStakedMATICWithdrawalNFT.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -828,7 +828,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.CollectibleMint,
-						Platform: workerx.Lido.Platform(),
+						Platform: workerx.PlatformLido.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       "0x36cc7B13029B5DEe4034745FB4F24034f3F2ffc6",
 						Metadata: metadata.CollectibleTransfer{
@@ -979,7 +979,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x46e04a2f",
 				},
-				Platform: workerx.Lido.Platform(),
+				Platform: workerx.PlatformLido.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3684529000000000")),
 					Decimal: 18,
@@ -987,7 +987,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.CollectibleBurn,
-						Platform: workerx.Lido.Platform(),
+						Platform: workerx.PlatformLido.String(),
 						From:     "0x22510fe99F63aE03BA792c21A29Ec10Fd87cae08",
 						To:       ethereum.AddressGenesis.String(),
 						Metadata: metadata.CollectibleTransfer{
@@ -1001,7 +1001,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: workerx.Lido.Platform(),
+						Platform: workerx.PlatformLido.String(),
 						From:     lido.AddressStakedMATIC.String(),
 						To:       "0x22510fe99F63aE03BA792c21A29Ec10Fd87cae08",
 						Metadata: metadata.TransactionTransfer{
@@ -1125,7 +1125,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xea598cb0",
 				},
-				Platform: workerx.Lido.Platform(),
+				Platform: workerx.PlatformLido.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2095213918569300")),
 					Decimal: 18,
@@ -1133,7 +1133,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
-						Platform: workerx.Lido.Platform(),
+						Platform: workerx.PlatformLido.String(),
 						From:     "0x8F1853b7891955791513A5E1262258D42468005a",
 						To:       "0x8F1853b7891955791513A5E1262258D42468005a",
 						Metadata: metadata.ExchangeSwap{
@@ -1255,7 +1255,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xde0e9a3e",
 				},
-				Platform: workerx.Lido.Platform(),
+				Platform: workerx.PlatformLido.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2101204713592270")),
 					Decimal: 18,
@@ -1263,7 +1263,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.ExchangeSwap,
-						Platform: workerx.Lido.Platform(),
+						Platform: workerx.PlatformLido.String(),
 						From:     "0x8375eC8bB9902512a63d488C09548e40e13FB81F",
 						To:       "0x8375eC8bB9902512a63d488C09548e40e13FB81F",
 						Metadata: metadata.ExchangeSwap{

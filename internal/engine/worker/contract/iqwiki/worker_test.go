@@ -120,7 +120,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					FunctionHash: "0xed53ddb9",
 				},
 				Tag:      tag.Social,
-				Platform: workerx.IQWiki.Platform(),
+				Platform: workerx.PlatformIQWiki.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("7792791087169620")),
 					Decimal: 18,
@@ -130,7 +130,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					{
 						Tag:      tag.Social,
 						Type:     typex.SocialPost,
-						Platform: workerx.IQWiki.Platform(),
+						Platform: workerx.PlatformIQWiki.String(),
 						From:     "0xcAF1CD3c9C76382E38fd813aecf103325ebD0dbE",
 						To:       "0xb8aA8CabfBa7eE3ccb218a9969AEF86DFf3b9d2D",
 						Metadata: metadata.SocialPost{
@@ -244,7 +244,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					FunctionHash: "0xed53ddb9",
 				},
 				Tag:      tag.Social,
-				Platform: workerx.IQWiki.Platform(),
+				Platform: workerx.PlatformIQWiki.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("12024190694314407")),
 					Decimal: 18,
@@ -254,7 +254,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					{
 						Tag:      tag.Social,
 						Type:     typex.SocialRevise,
-						Platform: workerx.IQWiki.Platform(),
+						Platform: workerx.PlatformIQWiki.String(),
 						From:     "0x212Cb3F4aE6611054637f9f78F18fB628AD258bb",
 						To:       "0xb8aA8CabfBa7eE3ccb218a9969AEF86DFf3b9d2D",
 						Metadata: metadata.SocialPost{

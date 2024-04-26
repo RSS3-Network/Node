@@ -140,7 +140,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xe8da2bfa",
 				},
-				Platform: workerx.Aavegotchi.Platform(),
+				Platform: workerx.PlatformAavegotchi.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("78236230158761866")),
 					Decimal: 18,
@@ -148,7 +148,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.MetaverseTrade,
-						Platform: workerx.Aavegotchi.Platform(),
+						Platform: workerx.PlatformAavegotchi.String(),
 						From:     common.HexToAddress("0xa2faa3405a734c04ae713aaa837e6cecc2caee9f").String(),
 						To:       common.HexToAddress("0x86935f11c86623dec8a25696e1c19a8659cbf95d").String(),
 						Metadata: metadata.MetaverseTrade{
@@ -377,7 +377,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x575ae876",
 				},
-				Platform: workerx.Aavegotchi.Platform(),
+				Platform: workerx.PlatformAavegotchi.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("121342301754875840")),
 					Decimal: 18,
@@ -385,7 +385,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.MetaverseTrade,
-						Platform: workerx.Aavegotchi.Platform(),
+						Platform: workerx.PlatformAavegotchi.String(),
 						From:     common.HexToAddress("0xcbef46a7cbe1f46a94ab77501eaa32596ab3c538").String(),
 						To:       common.HexToAddress("0xb9ad10b590bcd2b0db23d0005b2db0d53d9a1cf0").String(),
 						Metadata: metadata.MetaverseTrade{
@@ -518,7 +518,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x31b0b514",
 				},
-				Platform: workerx.Aavegotchi.Platform(),
+				Platform: workerx.PlatformAavegotchi.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("186070075623690420")),
 					Decimal: 18,
@@ -526,7 +526,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.MetaverseTrade,
-						Platform: workerx.Aavegotchi.Platform(),
+						Platform: workerx.PlatformAavegotchi.String(),
 						From:     common.HexToAddress("0xb7039fbd301cfaa7c66ba43fc10e2c60aa18f785").String(),
 						To:       common.HexToAddress("0x86935f11c86623dec8a25696e1c19a8659cbf95d").String(),
 						Metadata: metadata.MetaverseTrade{
@@ -754,7 +754,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x66609c88",
 				},
-				Platform: workerx.Aavegotchi.Platform(),
+				Platform: workerx.PlatformAavegotchi.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("151529543089805376")),
 					Decimal: 18,
@@ -762,7 +762,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.MetaverseTrade,
-						Platform: workerx.Aavegotchi.Platform(),
+						Platform: workerx.PlatformAavegotchi.String(),
 						From:     common.HexToAddress("0xa2faa3405a734c04ae713aaa837e6cecc2caee9f").String(),
 						To:       common.HexToAddress("0xb9ad10b590bcd2b0db23d0005b2db0d53d9a1cf0").String(),
 						Metadata: metadata.MetaverseTrade{

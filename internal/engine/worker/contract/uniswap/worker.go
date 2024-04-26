@@ -47,7 +47,15 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.Uniswap.Platform()
+	return workerx.PlatformUniswap.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Ethereum,
+		network.Linea,
+		network.SatoshiVM,
+	}
 }
 
 func (w *worker) Tags() []tag.Tag {

@@ -51,6 +51,23 @@ func (w *worker) Platform() string {
 	return ""
 }
 
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Arbitrum,
+		network.Avalanche,
+		network.Base,
+		network.BinanceSmartChain,
+		network.Crossbell,
+		network.Ethereum,
+		network.Gnosis,
+		network.Linea,
+		network.Optimism,
+		network.Polygon,
+		network.SatoshiVM,
+		network.VSL,
+	}
+}
+
 func (w *worker) Tags() []tag.Tag {
 	return []tag.Tag{
 		tag.Unknown,

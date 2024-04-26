@@ -40,7 +40,13 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.KiwiStand.Platform()
+	return workerx.PlatformKiwiStand.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Optimism,
+	}
 }
 
 func (w *worker) Tags() []tag.Tag {

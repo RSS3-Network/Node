@@ -41,7 +41,16 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.Highlight.Platform()
+	return workerx.PlatformHighlight.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Ethereum,
+		network.Polygon,
+		network.Optimism,
+		network.Arbitrum,
+	}
 }
 
 func (w *worker) Tags() []tag.Tag {

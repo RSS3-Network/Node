@@ -160,7 +160,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xb1a1a882",
 				},
-				Platform: workerx.Optimism.Platform(),
+				Platform: workerx.PlatformOptimism.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2100013493176452")),
 					Decimal: 18,
@@ -168,7 +168,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.Optimism.Platform(),
+						Platform: workerx.PlatformOptimism.String(),
 						From:     "0x31E7B932C655628fDA6F22f063D550d990dBA726",
 						To:       "0x31E7B932C655628fDA6F22f063D550d990dBA726",
 						Metadata: metadata.TransactionBridge{
@@ -327,7 +327,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x58a997f6",
 				},
-				Platform: workerx.Optimism.Platform(),
+				Platform: workerx.PlatformOptimism.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2678730832477170")),
 					Decimal: 18,
@@ -335,7 +335,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.Optimism.Platform(),
+						Platform: workerx.PlatformOptimism.String(),
 						From:     "0x98389CA467c0199D7379fa1B6992A389b56bCc15",
 						To:       "0x98389CA467c0199D7379fa1B6992A389b56bCc15",
 						Metadata: metadata.TransactionBridge{
@@ -486,7 +486,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x32b7006d",
 				},
-				Platform: workerx.Optimism.Platform(),
+				Platform: workerx.PlatformOptimism.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("34927390040514")),
 					Decimal: 18,
@@ -494,7 +494,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.Optimism.Platform(),
+						Platform: workerx.PlatformOptimism.String(),
 						From:     "0x175C0aD71624A537Cf594751A0A98c2FE85F950C",
 						To:       "0x175C0aD71624A537Cf594751A0A98c2FE85F950C",
 						Metadata: metadata.TransactionBridge{
@@ -669,7 +669,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x32b7006d",
 				},
-				Platform: workerx.Optimism.Platform(),
+				Platform: workerx.PlatformOptimism.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("31159514096212")),
 					Decimal: 18,
@@ -677,7 +677,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.Optimism.Platform(),
+						Platform: workerx.PlatformOptimism.String(),
 						From:     "0x7a16fF8270133F063aAb6C9977183D9e72835428",
 						To:       "0x7a16fF8270133F063aAb6C9977183D9e72835428",
 						Metadata: metadata.TransactionBridge{
@@ -798,7 +798,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xd764ad0b",
 				},
-				Platform: workerx.Optimism.Platform(),
+				Platform: workerx.PlatformOptimism.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("0")),
 					Decimal: 18,
@@ -806,7 +806,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.Optimism.Platform(),
+						Platform: workerx.PlatformOptimism.String(),
 						From:     "0xDc548196bA87b19E55D2570d1dC8D4A1dc86238c",
 						To:       "0xDc548196bA87b19E55D2570d1dC8D4A1dc86238c",
 						Metadata: metadata.TransactionBridge{
@@ -941,7 +941,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xcbd4ece9",
 				},
-				Platform: workerx.Optimism.Platform(),
+				Platform: workerx.PlatformOptimism.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("190455017173296")),
 					Decimal: 18,
@@ -949,7 +949,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.Optimism.Platform(),
+						Platform: workerx.PlatformOptimism.String(),
 						From:     "0x7a16fF8270133F063aAb6C9977183D9e72835428",
 						To:       "0x7a16fF8270133F063aAb6C9977183D9e72835428",
 						Metadata: metadata.TransactionBridge{
@@ -1126,7 +1126,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x32b7006d",
 				},
-				Platform: workerx.Optimism.Platform(),
+				Platform: workerx.PlatformOptimism.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("31159514096212")),
 					Decimal: 18,
@@ -1134,7 +1134,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.Optimism.Platform(),
+						Platform: workerx.PlatformOptimism.String(),
 						From:     "0x7a16fF8270133F063aAb6C9977183D9e72835428",
 						To:       "0x7a16fF8270133F063aAb6C9977183D9e72835428",
 						Metadata: metadata.TransactionBridge{
@@ -1281,7 +1281,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x8c3152e9",
 				},
-				Platform: workerx.Optimism.Platform(),
+				Platform: workerx.PlatformOptimism.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3936093594104630")),
 					Decimal: 18,
@@ -1289,7 +1289,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.Optimism.Platform(),
+						Platform: workerx.PlatformOptimism.String(),
 						From:     "0x2Ce910fBba65B454bBAf6A18c952A70f3bcd8299",
 						To:       "0x2Ce910fBba65B454bBAf6A18c952A70f3bcd8299",
 						Metadata: metadata.TransactionBridge{
@@ -1421,7 +1421,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x8c3152e9",
 				},
-				Platform: workerx.Optimism.Platform(),
+				Platform: workerx.PlatformOptimism.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3186228206953671")),
 					Decimal: 18,
@@ -1429,7 +1429,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.Optimism.Platform(),
+						Platform: workerx.PlatformOptimism.String(),
 						From:     "0x7205A3526Ed4F762B61c804e054A499c0f102e1C",
 						To:       "0x7205A3526Ed4F762B61c804e054A499c0f102e1C",
 						Metadata: metadata.TransactionBridge{

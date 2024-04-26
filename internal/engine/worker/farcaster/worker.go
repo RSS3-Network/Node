@@ -38,6 +38,12 @@ func (w *worker) Platform() string {
 	return workerx.Farcaster.Platform()
 }
 
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Farcaster,
+	}
+}
+
 func (w *worker) Tags() []tag.Tag {
 	return []tag.Tag{
 		tag.Social,

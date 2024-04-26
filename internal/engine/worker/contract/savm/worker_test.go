@@ -137,7 +137,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x030ba25d",
 				},
-				Platform: workerx.SAVM.Platform(),
+				Platform: workerx.PlatformSAVM.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("13339425000000")),
 					Decimal: 18,
@@ -145,7 +145,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.SAVM.Platform(),
+						Platform: workerx.PlatformSAVM.String(),
 						From:     "0x9e5635611981425B7AcbF827516123143F1d2237",
 						To:       "0x9e5635611981425B7AcbF827516123143F1d2237",
 						Metadata: metadata.TransactionBridge{
@@ -280,7 +280,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xe43772fb",
 				},
-				Platform: workerx.SAVM.Platform(),
+				Platform: workerx.PlatformSAVM.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("10878000000000")),
 					Decimal: 18,
@@ -288,7 +288,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionBridge,
-						Platform: workerx.SAVM.Platform(),
+						Platform: workerx.PlatformSAVM.String(),
 						From:     "0x9e5635611981425B7AcbF827516123143F1d2237",
 						To:       "0x9e5635611981425B7AcbF827516123143F1d2237",
 						Metadata: metadata.TransactionBridge{

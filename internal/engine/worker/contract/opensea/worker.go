@@ -48,7 +48,13 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.OpenSea.Platform()
+	return workerx.PlatformOpenSea.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Ethereum,
+	}
 }
 
 func (w *worker) Tags() []tag.Tag {

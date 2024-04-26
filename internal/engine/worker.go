@@ -5,6 +5,7 @@ import (
 
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 )
 
@@ -13,6 +14,8 @@ type Worker interface {
 	Name() string
 	// Platform returns the display name of the worker as the `platform` in the final Activity response.
 	Platform() string
+	// Network returns all networks where the worker runs on and displayed as the `network` in the final Activity response.
+	Network() []network.Network
 	// Tags the possible `tag` of the worker, displayed in the final Activity response.
 	Tags() []tag.Tag
 	// Types the possible `type` of the worker, displayed in the final Activity response.

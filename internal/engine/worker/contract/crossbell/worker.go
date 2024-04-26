@@ -31,7 +31,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
-	networkx "github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
@@ -60,7 +60,13 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.Crossbell.Platform()
+	return workerx.PlatformCrossbell.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Crossbell,
+	}
 }
 
 func (w *worker) Tags() []tag.Tag {
@@ -111,7 +117,7 @@ func (w *worker) Filter() engine.SourceFilter {
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == networkx.EthereumSource, nil
+	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
 // Transform Ethereum task to activityx.
@@ -772,7 +778,7 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 		return "", fmt.Errorf("invalid asset uri: %s", assetURI)
 	}
 
-	network, chainID := networkx.ParseNetworkAndChainIDFromString(asset[2])
+	networkx, chainID := network.ParseNetworkAndChainIDFromString(asset[2])
 	if chainID <= 0 {
 		return "", fmt.Errorf("invalid chain id: %s", asset[2])
 	}
@@ -784,11 +790,11 @@ func (w *worker) getAssetImageURI(ctx context.Context, assetURI string) (string,
 
 	var tokenClient token.Client
 
-	if chainID != networkx.EthereumChainIDCrossbell {
+	if chainID != network.EthereumChainIDCrossbell {
 		var ethereumClient ethereum.Client
 
 		// Initialize ethereum client.
-		endpoints, exists := endpoint.Get(network)
+		endpoints, exists := endpoint.Get(networkx)
 		if !exists {
 			return "", fmt.Errorf("get endpoint: %w", err)
 		}

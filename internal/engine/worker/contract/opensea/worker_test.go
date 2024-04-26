@@ -129,7 +129,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xfb0f3ee1",
 				},
-				Platform: workerx.OpenSea.Platform(),
+				Platform: workerx.PlatformOpenSea.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1799863423694410")),
 					Decimal: 18,
@@ -137,7 +137,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: workerx.OpenSea.Platform(),
+						Platform: workerx.PlatformOpenSea.String(),
 						From:     "0x6FEC7E57A21C3594619ae3CCc72330D5C71e6d11",
 						To:       "0x934B510D4C9103E6a87AEf13b816fb080286D649",
 						Metadata: metadata.CollectibleTrade{
@@ -283,7 +283,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xe7acab24",
 				},
-				Platform: workerx.OpenSea.Platform(),
+				Platform: workerx.PlatformOpenSea.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2685574746297498")),
 					Decimal: 18,
@@ -291,7 +291,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: workerx.OpenSea.Platform(),
+						Platform: workerx.PlatformOpenSea.String(),
 						From:     "0x934B510D4C9103E6a87AEf13b816fb080286D649",
 						To:       "0xDae889230c6a20359d9AfF984700c8A115eF8681",
 						Metadata: metadata.CollectibleTrade{
@@ -416,7 +416,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xb3a34c4c",
 				},
-				Platform: workerx.OpenSea.Platform(),
+				Platform: workerx.PlatformOpenSea.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3951707971003272")),
 					Decimal: 18,
@@ -424,7 +424,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: workerx.OpenSea.Platform(),
+						Platform: workerx.PlatformOpenSea.String(),
 						From:     "0x887578F7CeC7291a957a38710073b1a2770e2C1F",
 						To:       "0xc5037734E8AcD41A4dB7A3A8FE8153b7eC920212",
 						Metadata: metadata.CollectibleTrade{
@@ -585,7 +585,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x87201b41",
 				},
-				Platform: workerx.OpenSea.Platform(),
+				Platform: workerx.PlatformOpenSea.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("11285727142279668")),
 					Decimal: 18,
@@ -593,7 +593,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: workerx.OpenSea.Platform(),
+						Platform: workerx.PlatformOpenSea.String(),
 						From:     "0xb34E4285DE1a6D06e15964f84783cE1978df26A3",
 						To:       "0x2d368d6A84B791D634E6f9f81908D884849fd43d",
 						Metadata: metadata.CollectibleTrade{
@@ -617,7 +617,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: workerx.OpenSea.Platform(),
+						Platform: workerx.PlatformOpenSea.String(),
 						From:     "0xb34E4285DE1a6D06e15964f84783cE1978df26A3",
 						To:       "0x2d368d6A84B791D634E6f9f81908D884849fd43d",
 						Metadata: metadata.CollectibleTrade{
@@ -870,7 +870,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xb3a34c4c",
 				},
-				Platform: workerx.OpenSea.Platform(),
+				Platform: workerx.PlatformOpenSea.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("8451590861124860")),
 					Decimal: 18,
@@ -878,7 +878,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: workerx.OpenSea.Platform(),
+						Platform: workerx.PlatformOpenSea.String(),
 						From:     "0x7645D76b91806f6F2796F0A901C2Eeba7Ade3A2c",
 						To:       "0x45719eCcE878E7E2d376F7dfA6f4Bd20fdA55458",
 						Metadata: metadata.CollectibleTrade{
@@ -999,7 +999,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xab834bab",
 				},
-				Platform: workerx.OpenSea.Platform(),
+				Platform: workerx.PlatformOpenSea.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("19592761679751556")),
 					Decimal: 18,
@@ -1007,7 +1007,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: workerx.OpenSea.Platform(),
+						Platform: workerx.PlatformOpenSea.String(),
 						From:     "0xfb3AEefE6fb1645C3c8B5f6db50BE812E746C21F",
 						To:       "0x535B76436bE15c70DE947585672df01c25a6e966",
 						Metadata: metadata.CollectibleTrade{
@@ -1143,7 +1143,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xab834bab",
 				},
-				Platform: workerx.OpenSea.Platform(),
+				Platform: workerx.PlatformOpenSea.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("9175555000000000")),
 					Decimal: 18,
@@ -1151,7 +1151,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: workerx.OpenSea.Platform(),
+						Platform: workerx.PlatformOpenSea.String(),
 						From:     "0x93167077B4a072F939323AE8c9B0dCB23EDb3789",
 						To:       "0x6Ed6629101989283a1f01fdF9178ad6F34435672",
 						Metadata: metadata.CollectibleTrade{
@@ -1263,7 +1263,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0xab834bab",
 				},
-				Platform: workerx.OpenSea.Platform(),
+				Platform: workerx.PlatformOpenSea.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("4878860114106745")),
 					Decimal: 18,
@@ -1271,7 +1271,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.CollectibleTrade,
-						Platform: workerx.OpenSea.Platform(),
+						Platform: workerx.PlatformOpenSea.String(),
 						From:     "0x7E4Bb04f32207Cb4FB06A8AcD97EE90d9756ff58",
 						To:       "0xa1aafb06268f3396c4683e3F635A4AFf0E040e46",
 						Metadata: metadata.CollectibleTrade{

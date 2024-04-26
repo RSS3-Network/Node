@@ -53,7 +53,13 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.Lens.Platform()
+	return workerx.PlatformLens.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Polygon,
+	}
 }
 
 func (w *worker) Tags() []tag.Tag {

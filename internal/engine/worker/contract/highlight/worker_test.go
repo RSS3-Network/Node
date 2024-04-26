@@ -158,7 +158,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x705dcf34",
 				},
-				Platform: workerx.Highlight.Platform(),
+				Platform: workerx.PlatformHighlight.String(),
 				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("8656626470208573")),
 					Decimal: 18,
@@ -166,7 +166,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Actions: []*activityx.Action{
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: workerx.Highlight.Platform(),
+						Platform: workerx.PlatformHighlight.String(),
 						From:     common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
 						To:       common.HexToAddress("0xa532Df3Bedc7A30747c45F57603080F37A60df48").String(),
 						Metadata: metadata.TransactionTransfer{
@@ -178,7 +178,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.TransactionTransfer,
-						Platform: workerx.Highlight.Platform(),
+						Platform: workerx.PlatformHighlight.String(),
 						From:     common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
 						To:       common.HexToAddress("0x1bf979282181f2b7a640d17aB5D2e25125F2de5e").String(),
 						Metadata: metadata.TransactionTransfer{
@@ -190,7 +190,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.CollectibleMint,
-						Platform: workerx.Highlight.Platform(),
+						Platform: workerx.PlatformHighlight.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
 						Metadata: metadata.CollectibleTransfer{
@@ -204,7 +204,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.CollectibleMint,
-						Platform: workerx.Highlight.Platform(),
+						Platform: workerx.PlatformHighlight.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
 						Metadata: metadata.CollectibleTransfer{
@@ -218,7 +218,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 					{
 						Type:     typex.CollectibleMint,
-						Platform: workerx.Highlight.Platform(),
+						Platform: workerx.PlatformHighlight.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       common.HexToAddress("0xeA310C966D3Ff5E09c65487f1763B21361Eb71eF").String(),
 						Metadata: metadata.CollectibleTransfer{

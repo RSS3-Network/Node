@@ -34,6 +34,12 @@ func (w *worker) Platform() string {
 	return ""
 }
 
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Arweave,
+	}
+}
+
 func (w *worker) Tags() []tag.Tag {
 	return []tag.Tag{
 		tag.Unknown,

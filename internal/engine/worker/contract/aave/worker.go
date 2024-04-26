@@ -49,7 +49,18 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.Aave.Platform()
+	return workerx.PlatformAAVE.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Ethereum,
+		network.Polygon,
+		network.Avalanche,
+		network.Base,
+		network.Optimism,
+		network.Arbitrum,
+	}
 }
 
 func (w *worker) Tags() []tag.Tag {

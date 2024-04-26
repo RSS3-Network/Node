@@ -70,7 +70,7 @@ func TestWorker_Arweave(t *testing.T) {
 				From:     "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 				To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 				Type:     typex.SocialPost,
-				Platform: workerx.Mirror.Platform(),
+				Platform: workerx.PlatformMirror.String(),
 				Fee: &activityx.Fee{
 					Amount:  decimal.NewFromInt(27798031),
 					Decimal: 12,
@@ -79,7 +79,7 @@ func TestWorker_Arweave(t *testing.T) {
 					{
 						Type:     typex.SocialPost,
 						Tag:      tag.Social,
-						Platform: workerx.Mirror.Platform(),
+						Platform: workerx.PlatformMirror.String(),
 						From:     "0x4C0a466DF0628FE8699051b3Ac6506653191cc21",
 						To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 						Metadata: &metadata.SocialPost{
@@ -131,7 +131,7 @@ func TestWorker_Arweave(t *testing.T) {
 				From:     "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 				To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 				Type:     typex.SocialRevise,
-				Platform: workerx.Mirror.Platform(),
+				Platform: workerx.PlatformMirror.String(),
 				Fee: &activityx.Fee{
 					Amount:  decimal.NewFromInt(17827441),
 					Decimal: 12,
@@ -141,7 +141,7 @@ func TestWorker_Arweave(t *testing.T) {
 					{
 						Type:     typex.SocialRevise,
 						Tag:      tag.Social,
-						Platform: workerx.Mirror.Platform(),
+						Platform: workerx.PlatformMirror.String(),
 						From:     "0x31b4C292b4639a32A0aCA72B0451499B464c58cb",
 						To:       "Ky1c1Kkt-jZ9sY1hvLF5nCf6WWdBhIU5Un_BMYh-t3c",
 						Metadata: &metadata.SocialPost{

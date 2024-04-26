@@ -51,7 +51,13 @@ func (w *worker) Name() string {
 }
 
 func (w *worker) Platform() string {
-	return workerx.Momoka.Platform()
+	return workerx.PlatformLens.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Arweave,
+	}
 }
 
 func (w *worker) Tags() []tag.Tag {
