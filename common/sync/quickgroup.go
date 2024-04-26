@@ -23,7 +23,7 @@ type quickGroup[R any] struct {
 	result    R
 	err       error
 	done      atomic.Bool
-	locker    sync.Mutex
+	locker    sync.RWMutex
 }
 
 func (q *quickGroup[R]) Go(f func(ctx context.Context) (R, error)) {
@@ -31,17 +31,8 @@ func (q *quickGroup[R]) Go(f func(ctx context.Context) (R, error)) {
 		return
 	}
 
-	// Ensure that the cancel slice is thread-safe.
-	q.locker.Lock()
-
-	q.waitGroup.Add(1)
-
-	// Create a context to later cancel slow tasks.
-	ctx, cancel := context.WithCancel(q.ctx)
-	q.cancels = append(q.cancels, cancel)
-	index := len(q.cancels) - 1
-
-	q.locker.Unlock()
+	// Allocate a context and an id for the task.
+	ctx, id := q.allocateContext()
 
 	go func() {
 		defer q.waitGroup.Done()
@@ -51,9 +42,13 @@ func (q *quickGroup[R]) Go(f func(ctx context.Context) (R, error)) {
 				q.result = result
 				q.err = nil
 
+				// Lock the locker for reading the cancels slice.
+				q.locker.RLock()
+				defer q.locker.RUnlock()
+
 				// Cancel all other pending tasks.
 				for i, cancel := range q.cancels {
-					if i == index {
+					if i == id {
 						continue
 					}
 
@@ -62,6 +57,19 @@ func (q *quickGroup[R]) Go(f func(ctx context.Context) (R, error)) {
 			}
 		}
 	}()
+}
+
+// allowContext returns a context that can be used to cancel slow tasks.
+func (q *quickGroup[R]) allocateContext() (ctx context.Context, id int) {
+	q.locker.Lock()
+	defer q.locker.Unlock()
+
+	ctx, cancel := context.WithCancel(q.ctx)
+
+	q.cancels = append(q.cancels, cancel)
+	q.waitGroup.Add(1)
+
+	return ctx, len(q.cancels) - 1
 }
 
 func (q *quickGroup[R]) Wait() (result R, err error) {
