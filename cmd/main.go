@@ -215,7 +215,7 @@ func init() {
 	command.PersistentFlags().String(flag.KeyConfig, "config.yaml", "config file name")
 	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")
 	command.PersistentFlags().String(flag.KeyIndexerNetwork, networkx.Ethereum.String(), "indexer network")
-	command.PersistentFlags().String(flag.KeyIndexerWorker, worker.Fallback.String(), "indexer worker")
+	command.PersistentFlags().String(flag.KeyIndexerWorker, worker.Core.String(), "indexer worker")
 	command.PersistentFlags().String(flag.KeyIndexerParameters, "{}", "indexer parameters")
 }
 

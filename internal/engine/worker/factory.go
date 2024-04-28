@@ -30,15 +30,15 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/contract/stargate"
 	"github.com/rss3-network/node/internal/engine/worker/contract/uniswap"
 	"github.com/rss3-network/node/internal/engine/worker/contract/vsl"
-	"github.com/rss3-network/node/internal/engine/worker/fallback"
+	"github.com/rss3-network/node/internal/engine/worker/core"
 	"github.com/rss3-network/node/internal/engine/worker/farcaster"
 	"github.com/rss3-network/node/schema/worker"
 )
 
 func New(config *config.Module, databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {
 	switch config.Worker {
-	case worker.Fallback:
-		return fallback.NewWorker(config, redisClient)
+	case worker.Core:
+		return core.NewWorker(config, redisClient)
 	case worker.Mirror:
 		return mirror.NewWorker(config, databaseClient)
 	case worker.Farcaster:
