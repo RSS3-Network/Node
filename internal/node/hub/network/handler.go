@@ -67,7 +67,7 @@ func (h *Hub) GetWorkersByNetwork(c echo.Context) error {
 // NetworkToWorkersMap is a map of network to workers.
 var NetworkToWorkersMap = map[network.Network][]string{
 	network.Ethereum: {
-		worker.Fallback.String(),
+		worker.Core.String(),
 		worker.RSS3.String(),
 		worker.OpenSea.String(),
 		worker.Uniswap.String(),
@@ -87,7 +87,7 @@ var NetworkToWorkersMap = map[network.Network][]string{
 		worker.Momoka.String(),
 	},
 	network.Farcaster: {
-		worker.Farcaster.String(),
+		worker.Core.String(),
 	},
 	network.Polygon: {
 		worker.Aavegotchi.String(),
@@ -95,7 +95,7 @@ var NetworkToWorkersMap = map[network.Network][]string{
 		worker.Matters.String(),
 		worker.Aave.String(),
 		worker.IQWiki.String(),
-		worker.Fallback.String(),
+		worker.Core.String(),
 		worker.Highlight.String(),
 		worker.Stargate.String(),
 		worker.Curve.String(),
@@ -110,12 +110,12 @@ var NetworkToWorkersMap = map[network.Network][]string{
 	},
 	network.Base: {
 		worker.Aave.String(),
-		worker.Fallback.String(),
+		worker.Core.String(),
 		worker.Stargate.String(),
 	},
 	network.Optimism: {
 		worker.Aave.String(),
-		worker.Fallback.String(),
+		worker.Core.String(),
 		worker.Highlight.String(),
 		worker.KiwiStand.String(),
 		worker.Stargate.String(),
@@ -123,31 +123,31 @@ var NetworkToWorkersMap = map[network.Network][]string{
 	},
 	network.Arbitrum: {
 		worker.Aave.String(),
-		worker.Fallback.String(),
+		worker.Core.String(),
 		worker.Highlight.String(),
 		worker.Stargate.String(),
 		worker.Curve.String(),
 	},
 	network.VSL: {
-		worker.Fallback.String(),
+		worker.Core.String(),
 		worker.RSS3.String(),
 		worker.VSL.String(),
 	},
 	network.SatoshiVM: {
-		worker.Fallback.String(),
+		worker.Core.String(),
 		worker.Uniswap.String(),
 		worker.SAVM.String(),
 	},
 	network.BinanceSmartChain: {
-		worker.Fallback.String(),
+		worker.Core.String(),
 		worker.Stargate.String(),
 	},
 	network.Gnosis: {
-		worker.Fallback.String(),
+		worker.Core.String(),
 		worker.Curve.String(),
 	},
 	network.Linea: {
-		worker.Fallback.String(),
+		worker.Core.String(),
 		worker.Uniswap.String(),
 		worker.Stargate.String(),
 	},
