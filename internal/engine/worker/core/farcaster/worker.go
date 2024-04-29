@@ -31,7 +31,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return workerx.Farcaster.String()
+	return workerx.Core.String()
 }
 
 func (w *worker) Platform() string {

@@ -64,7 +64,7 @@ component:
           access_code: def
   decentralized:
     - network: ethereum
-      worker: fallback
+      worker: core
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start: 47370106
@@ -139,7 +139,7 @@ component:
     "decentralized": [
       {
         "network": "ethereum",
-        "worker": "fallback",
+        "worker": "core",
         "endpoint": "https://rpc.ankr.com/eth",
         "parameters": {
           "block_number_start": 47370106,
@@ -207,7 +207,7 @@ access_code = "def"
 
 [[component.decentralized]]
 network = "ethereum"
-worker = "fallback"
+worker = "core"
 endpoint = "https://rpc.ankr.com/eth"
 
   [component.decentralized.parameters]
@@ -258,7 +258,7 @@ var configFileExcept = &File{
 		Decentralized: []*Module{
 			{
 				Network:  network.Ethereum,
-				Worker:   workerx.Fallback,
+				Worker:   workerx.Core,
 				Endpoint: "https://rpc.ankr.com/eth",
 				Parameters: &Parameters{
 					"block_number_start":  47370106,
@@ -267,7 +267,7 @@ var configFileExcept = &File{
 			},
 			{
 				Network:  network.Ethereum,
-				Worker:   workerx.Fallback,
+				Worker:   workerx.Core,
 				Endpoint: "https://rpc.ankr.com/eth",
 				Parameters: &Parameters{
 					"block_height_start": 123,

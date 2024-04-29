@@ -13,7 +13,7 @@ import (
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
-	worker "github.com/rss3-network/node/internal/engine/worker/fallback/ethereum"
+	worker "github.com/rss3-network/node/internal/engine/worker/core/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	redisx "github.com/rss3-network/node/provider/redis"

@@ -6,7 +6,7 @@ import (
 
 	"github.com/rss3-network/node/config"
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
-	worker "github.com/rss3-network/node/internal/engine/worker/fallback/arweave"
+	worker "github.com/rss3-network/node/internal/engine/worker/core/arweave"
 	"github.com/rss3-network/node/provider/arweave"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
