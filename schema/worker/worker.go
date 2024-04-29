@@ -29,7 +29,7 @@ const (
 	Lido                     // lido
 	Crossbell                // crossbell
 	ENS                      // ens
-	Oneinch                  // oneinch
+	Oneinch                  // 1inch
 	KiwiStand                // kiwistand
 	SAVM                     // savm
 	VSL                      // vsl
