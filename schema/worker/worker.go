@@ -11,30 +11,30 @@ import (
 type Worker uint64
 
 const (
-	Aave       Worker = iota // aave
+	Core       Worker = iota // core
+	Mirror                   // mirror
+	RSS3                     // rss3
+	Paragraph                // paragraph
+	OpenSea                  // opensea
+	Uniswap                  // uniswap
+	Optimism                 // optimism
 	Aavegotchi               // aavegotchi
-	Core                     // core
-	Crossbell                // crossbell
-	Curve                    // curve
-	ENS                      // ens
-	Highlight                // highlight
-	IQWiki                   // iqwiki
-	KiwiStand                // kiwistand
 	Lens                     // lens
-	Lido                     // lido
 	Looksrare                // looksrare
 	Matters                  // matters
-	Mirror                   // mirror
 	Momoka                   // momoka
+	Highlight                // highlight
+	Aave                     // aave
+	IQWiki                   // iqwiki
+	Lido                     // lido
+	Crossbell                // crossbell
+	ENS                      // ens
 	Oneinch                  // 1inch
-	OpenSea                  // opensea
-	Optimism                 // optimism
-	Paragraph                // paragraph
-	RSS3                     // rss3
+	KiwiStand                // kiwistand
 	SAVM                     // savm
-	Stargate                 // stargate
-	Uniswap                  // uniswap
 	VSL                      // vsl
+	Stargate                 // stargate
+	Curve                    // curve
 )
 
 var _ echo.BindUnmarshaler = (*Worker)(nil)
