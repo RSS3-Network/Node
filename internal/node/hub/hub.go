@@ -8,12 +8,14 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/hub/decentralized"
+	"github.com/rss3-network/node/internal/node/hub/network"
 	"github.com/rss3-network/node/internal/node/hub/rss"
 )
 
 type Hub struct {
 	RSS           *rss.Hub
 	Decentralized *decentralized.Hub
+	Network       *network.Hub
 }
 
 var _ echo.Validator = (*Validator)(nil)
@@ -30,5 +32,6 @@ func NewHub(ctx context.Context, config *config.File, database database.Client) 
 	return &Hub{
 		RSS:           rss.NewHub(ctx, config),
 		Decentralized: decentralized.NewHub(ctx, database),
+		Network:       network.NewHub(ctx),
 	}
 }
