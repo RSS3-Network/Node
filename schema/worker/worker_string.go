@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _WorkerName = "coremirrorrss3paragraphopenseauniswapzoptimismaavegotchilenslooksraremattersmomokahighlightaaveiqwikilidocrossbellensoneinchkiwistandsavmvslstargatecurve"
+const _WorkerName = "coremirrorrss3paragraphopenseauniswapzoptimismaavegotchilenslooksraremattersmomokahighlightaaveiqwikilidocrossbellens1inchkiwistandsavmvslstargatecurve"
 
-var _WorkerIndex = [...]uint8{0, 4, 10, 14, 23, 30, 38, 46, 56, 60, 69, 76, 82, 91, 95, 101, 105, 114, 117, 124, 133, 137, 140, 148, 153}
+var _WorkerIndex = [...]uint8{0, 4, 10, 14, 23, 30, 38, 46, 56, 60, 69, 76, 82, 91, 95, 101, 105, 114, 117, 122, 131, 135, 138, 146, 151}
 
-const _WorkerLowerName = "coremirrorrss3paragraphopenseauniswapzoptimismaavegotchilenslooksraremattersmomokahighlightaaveiqwikilidocrossbellensoneinchkiwistandsavmvslstargatecurve"
+const _WorkerLowerName = "coremirrorrss3paragraphopenseauniswapzoptimismaavegotchilenslooksraremattersmomokahighlightaaveiqwikilidocrossbellens1inchkiwistandsavmvslstargatecurve"
 
 func (i Worker) String() string {
 	if i >= Worker(len(_WorkerIndex)-1) {
@@ -95,18 +95,18 @@ var _WorkerNameToValueMap = map[string]Worker{
 	_WorkerLowerName[105:114]: Crossbell,
 	_WorkerName[114:117]:      ENS,
 	_WorkerLowerName[114:117]: ENS,
-	_WorkerName[117:124]:      Oneinch,
-	_WorkerLowerName[117:124]: Oneinch,
-	_WorkerName[124:133]:      KiwiStand,
-	_WorkerLowerName[124:133]: KiwiStand,
-	_WorkerName[133:137]:      SAVM,
-	_WorkerLowerName[133:137]: SAVM,
-	_WorkerName[137:140]:      VSL,
-	_WorkerLowerName[137:140]: VSL,
-	_WorkerName[140:148]:      Stargate,
-	_WorkerLowerName[140:148]: Stargate,
-	_WorkerName[148:153]:      Curve,
-	_WorkerLowerName[148:153]: Curve,
+	_WorkerName[117:122]:      Oneinch,
+	_WorkerLowerName[117:122]: Oneinch,
+	_WorkerName[122:131]:      KiwiStand,
+	_WorkerLowerName[122:131]: KiwiStand,
+	_WorkerName[131:135]:      SAVM,
+	_WorkerLowerName[131:135]: SAVM,
+	_WorkerName[135:138]:      VSL,
+	_WorkerLowerName[135:138]: VSL,
+	_WorkerName[138:146]:      Stargate,
+	_WorkerLowerName[138:146]: Stargate,
+	_WorkerName[146:151]:      Curve,
+	_WorkerLowerName[146:151]: Curve,
 }
 
 var _WorkerNames = []string{
@@ -128,12 +128,12 @@ var _WorkerNames = []string{
 	_WorkerName[101:105],
 	_WorkerName[105:114],
 	_WorkerName[114:117],
-	_WorkerName[117:124],
-	_WorkerName[124:133],
-	_WorkerName[133:137],
-	_WorkerName[137:140],
-	_WorkerName[140:148],
-	_WorkerName[148:153],
+	_WorkerName[117:122],
+	_WorkerName[122:131],
+	_WorkerName[131:135],
+	_WorkerName[135:138],
+	_WorkerName[138:146],
+	_WorkerName[146:151],
 }
 
 // WorkerString retrieves an enum value from the enum constants string name.
