@@ -57,7 +57,7 @@ component:
       worker: core
       endpoint: https://rpc.ankr.com/eth
       parameters:
-        block_number_start: 19397956
+        block_number_start:
     - network: ethereum
       worker: rss3
       endpoint: https://rpc.ankr.com/eth

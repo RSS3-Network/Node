@@ -16,7 +16,7 @@ const (
 	RSS3                     // rss3
 	Paragraph                // paragraph
 	OpenSea                  // opensea
-	Uniswap                  // uniswapz
+	Uniswap                  // uniswap
 	Optimism                 // optimism
 	Aavegotchi               // aavegotchi
 	Lens                     // lens
