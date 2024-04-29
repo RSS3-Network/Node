@@ -31,7 +31,6 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/contract/uniswap"
 	"github.com/rss3-network/node/internal/engine/worker/contract/vsl"
 	"github.com/rss3-network/node/internal/engine/worker/core"
-	"github.com/rss3-network/node/internal/engine/worker/farcaster"
 	"github.com/rss3-network/node/schema/worker"
 )
 
@@ -41,8 +40,6 @@ func New(config *config.Module, databaseClient database.Client, redisClient ruei
 		return core.NewWorker(config, redisClient)
 	case worker.Mirror:
 		return mirror.NewWorker(config, databaseClient)
-	case worker.Farcaster:
-		return farcaster.NewWorker()
 	case worker.RSS3:
 		return rss3.NewWorker(config)
 	case worker.Paragraph:

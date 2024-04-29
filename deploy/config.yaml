@@ -120,7 +120,7 @@ component:
         block_number_start:
     # farcaster
     - network: farcaster
-      worker: farcaster
+      worker: core
       endpoint: https://nemes.farcaster.xyz:2281
       parameters:
         api_key:

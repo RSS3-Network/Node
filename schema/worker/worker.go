@@ -13,7 +13,6 @@ type Worker uint64
 const (
 	Core       Worker = iota // core
 	Mirror                   // mirror
-	Farcaster                // farcaster
 	RSS3                     // rss3
 	Paragraph                // paragraph
 	OpenSea                  // opensea

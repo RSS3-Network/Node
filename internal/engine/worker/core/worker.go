@@ -8,6 +8,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/internal/engine/worker/core/arweave"
 	"github.com/rss3-network/node/internal/engine/worker/core/ethereum"
+	"github.com/rss3-network/node/internal/engine/worker/core/farcaster"
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 
@@ -18,6 +19,8 @@ func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker
 		return ethereum.NewWorker(config, redisClient)
 	case network.ArweaveSource:
 		return arweave.NewWorker(config)
+	case network.FarcasterSource:
+		return farcaster.NewWorker()
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Network)
 	}
