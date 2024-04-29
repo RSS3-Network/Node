@@ -10,10 +10,11 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/farcaster"
 	worker "github.com/rss3-network/node/internal/engine/worker/farcaster"
 	message "github.com/rss3-network/node/provider/farcaster"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
-	"github.com/samber/lo"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,14 +28,14 @@ func TestWorker(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Post A Cast",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkFarcaster,
+					Network: network.Farcaster,
 					Message: message.Message{
 						Data: message.MessageData{
 							Type: message.MessageTypeCastAdd.String(),
@@ -71,18 +72,18 @@ func TestWorker(t *testing.T) {
 					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:       "0x0000000000000000000000009d72f8030aafa43f4c208b013964a51017a2747c",
-				Network:  filter.NetworkFarcaster,
+				Network:  network.Farcaster,
 				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				To:       common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
-				Type:     filter.TypeSocialPost,
+				Type:     typex.SocialPost,
 				Status:   true,
-				Platform: lo.ToPtr(filter.PlatformFarcaster),
-				Actions: []*schema.Action{
+				Platform: workerx.PlatformFarcaster.String(),
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialPost,
-						Platform: filter.PlatformFarcaster.String(),
+						Type:     typex.SocialPost,
+						Platform: workerx.PlatformFarcaster.String(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						Metadata: metadata.SocialPost{
@@ -104,7 +105,7 @@ func TestWorker(t *testing.T) {
 			name: "Comment A Cast",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkFarcaster,
+					Network: network.Farcaster,
 					Message: message.Message{
 						Data: message.MessageData{
 							Type: message.MessageTypeCastAdd.String(),
@@ -173,18 +174,18 @@ func TestWorker(t *testing.T) {
 					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:       "0x00000000000000000000000010ae8f78cbbad692c3b330b8970770406dc785ef",
-				Network:  filter.NetworkFarcaster,
+				Network:  network.Farcaster,
 				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				To:       common.HexToAddress("0xe25228a6525A2090be824d66Bdf6DB8836eCc90C").String(),
-				Type:     filter.TypeSocialComment,
-				Platform: lo.ToPtr(filter.PlatformFarcaster),
+				Type:     typex.SocialComment,
+				Platform: workerx.PlatformFarcaster.String(),
 				Status:   true,
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialComment,
-						Platform: filter.PlatformFarcaster.String(),
+						Type:     typex.SocialComment,
+						Platform: workerx.PlatformFarcaster.String(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x827431510a5D249cE4fdB7F00C83a3353F471848").String(),
 						Metadata: metadata.SocialPost{
@@ -212,7 +213,7 @@ func TestWorker(t *testing.T) {
 			name: "Share A Cast",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkFarcaster,
+					Network: network.Farcaster,
 					Message: message.Message{
 						Data: message.MessageData{
 							Type: message.MessageTypeReactionAdd.String(),
@@ -275,18 +276,18 @@ func TestWorker(t *testing.T) {
 					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:       "0x0000000000000000000000002931794842a5f3a152bff66cc010120cfe9c6102",
-				Network:  filter.NetworkFarcaster,
+				Network:  network.Farcaster,
 				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				To:       common.HexToAddress("0xe25228a6525A2090be824d66Bdf6DB8836eCc90C").String(),
-				Type:     filter.TypeSocialShare,
+				Type:     typex.SocialShare,
 				Status:   true,
-				Platform: lo.ToPtr(filter.PlatformFarcaster),
-				Actions: []*schema.Action{
+				Platform: workerx.PlatformFarcaster.String(),
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialShare,
-						Platform: filter.PlatformFarcaster.String(),
+						Type:     typex.SocialShare,
+						Platform: workerx.PlatformFarcaster.String(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x827431510a5D249cE4fdB7F00C83a3353F471848").String(),
 						Metadata: metadata.SocialPost{
@@ -313,7 +314,7 @@ func TestWorker(t *testing.T) {
 			name: "Share Own Cast",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkFarcaster,
+					Network: network.Farcaster,
 					Message: message.Message{
 						Data: message.MessageData{
 							Type: message.MessageTypeReactionAdd.String(),
@@ -376,18 +377,18 @@ func TestWorker(t *testing.T) {
 					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:       "0x0000000000000000000000000d62b1610e7dd177363cd3571bfe9a112d6185de",
-				Network:  filter.NetworkFarcaster,
+				Network:  network.Farcaster,
 				From:     common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
 				To:       common.HexToAddress("0xe5d6216F0085a7F6B9b692e06cf5856e6fA41B55").String(),
-				Type:     filter.TypeSocialShare,
+				Type:     typex.SocialShare,
 				Status:   true,
-				Platform: lo.ToPtr(filter.PlatformFarcaster),
-				Actions: []*schema.Action{
+				Platform: workerx.PlatformFarcaster.String(),
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialShare,
-						Platform: filter.PlatformFarcaster.String(),
+						Type:     typex.SocialShare,
+						Platform: workerx.PlatformFarcaster.String(),
 						From:     common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						To:       common.HexToAddress("0x8888888198FbdC8c017870cC5d3c96D0cf15C4F0").String(),
 						Metadata: metadata.SocialPost{
@@ -427,15 +428,15 @@ func TestWorker(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			data, err := json.MarshalIndent(feed, "", "\x20\x20")
+			data, err := json.MarshalIndent(activity, "", "\x20\x20")
 			require.NoError(t, err)
 
 			t.Log(string(data))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

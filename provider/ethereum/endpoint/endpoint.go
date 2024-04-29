@@ -4,66 +4,66 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rss3-network/protocol-go/schema/filter"
+	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 )
 
-var endpointsMap = map[filter.Network][]string{
-	filter.NetworkEthereum: {
+var endpointsMap = map[networkx.Network][]string{
+	networkx.Ethereum: {
 		"https://rpc.ankr.com/eth",
 		"https://ethereum.blockpi.network/v1/rpc/public",
 		"https://eth.llamarpc.com",
 	},
-	filter.NetworkOptimism: {
+	networkx.Optimism: {
 		"https://rpc.ankr.com/optimism",
 		"https://optimism.blockpi.network/v1/rpc/public",
 	},
-	filter.NetworkPolygon: {
+	networkx.Polygon: {
 		"https://rpc.ankr.com/polygon",
 		"https://polygon.blockpi.network/v1/rpc/public",
 		"https://polygon.llamarpc.com",
 	},
-	filter.NetworkBase: {
+	networkx.Base: {
 		"https://mainnet.base.org",
 		"https://rpc.ankr.com/base",
 		"https://base.blockpi.network/v1/rpc/public",
 		"https://base.llamarpc.com",
 	},
-	filter.NetworkArbitrum: {
+	networkx.Arbitrum: {
 		"https://arb1.arbitrum.io/rpc",
 		"https://rpc.ankr.com/arbitrum",
 		"https://arbitrum.blockpi.network/v1/rpc/public",
 		"https://arbitrum.llamarpc.com",
 	},
-	filter.NetworkAvalanche: {
+	networkx.Avalanche: {
 		"https://api.avax.network/ext/bc/C/rpc",
 		"https://rpc.ankr.com/avalanche",
 		"https://avalanche.blockpi.network/v1/rpc/public",
 	},
-	filter.NetworkCrossbell: {
+	networkx.Crossbell: {
 		"https://rpc.crossbell.io",
 	},
-	filter.NetworkVSL: {
+	networkx.VSL: {
 		"https://rpc.rss3.io",
 	},
-	filter.NetworkSatoshiVM: {
+	networkx.SatoshiVM: {
 		"https://alpha-rpc-node-http.svmscan.io",
 	},
-	filter.NetworkBinanceSmartChain: {
+	networkx.BinanceSmartChain: {
 		"https://rpc.ankr.com/bsc",
 	},
-	filter.NetworkGnosis: {
+	networkx.Gnosis: {
 		"https://rpc.ankr.com/gnosis",
 	},
-	filter.NetworkLinea: {
+	networkx.Linea: {
 		"https://rpc.linea.build",
 	},
 }
 
-func Get(network filter.Network) ([]string, bool) {
-	endpoints, exists := endpointsMap[network]
+func Get(n networkx.Network) ([]string, bool) {
+	endpoints, exists := endpointsMap[n]
 	if exists && len(endpoints) == 0 {
-		return nil, !exists
+		return nil, false
 	}
 
 	if !exists {
@@ -73,8 +73,8 @@ func Get(network filter.Network) ([]string, bool) {
 	return endpoints, exists
 }
 
-func MustGet(network filter.Network) string {
-	return lo.Must(Get(network))[0]
+func MustGet(n networkx.Network) string {
+	return lo.Must(Get(n))[0]
 }
 
 func init() {
@@ -90,7 +90,7 @@ func init() {
 			splits := strings.Split(key, "_")
 
 			if len(splits) == 2 {
-				network, err := filter.NetworkString(splits[1])
+				network, err := networkx.NetworkString(splits[1])
 				if err != nil {
 					continue
 				}

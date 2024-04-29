@@ -10,6 +10,8 @@ linters:
     - errcheck
     - errorlint
     - gci
+    - gocognit
+    - gocritic
     - gocyclo
     - gosec
     - govet
@@ -33,3 +35,16 @@ linters:
 issues:
   max-issues-per-linter: 0 # Unlimited
   max-same-issues: 0 # Unlimited
+
+linters-settings:
+  govet:
+    enable-all: true
+    disable:
+      - shadow
+      - fieldalignment
+  gocognit:
+    min-complexity: 30
+  gocyclo:
+    min-complexity: 30
+  gocritic:
+    disabled-tags: ["opinionated", "experimental"]

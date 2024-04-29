@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/rss3-network/protocol-go/schema"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/samber/lo"
 )
 
@@ -17,7 +17,7 @@ const (
 	RSSHubUMSPath = "format=ums"
 )
 
-func (h *Hub) getRSSHubData(ctx context.Context, path string, rawQuery string) ([]*schema.Feed, error) {
+func (h *Hub) getRSSHubData(ctx context.Context, path string, rawQuery string) ([]*activityx.Activity, error) {
 	request, err := url.Parse(h.rsshub.Endpoint)
 	if err != nil {
 		return nil, err
@@ -91,9 +91,9 @@ func (h *Hub) parseRSSHubAuthentication(_ context.Context, request *url.URL) err
 	return nil
 }
 
-func (h *Hub) transformRSSHubToActivities(_ context.Context, data []byte) ([]*schema.Feed, error) {
+func (h *Hub) transformRSSHubToActivities(_ context.Context, data []byte) ([]*activityx.Activity, error) {
 	type response struct {
-		Data schema.Feeds `json:"data"`
+		Data activityx.Activities `json:"data"`
 	}
 
 	var resp response

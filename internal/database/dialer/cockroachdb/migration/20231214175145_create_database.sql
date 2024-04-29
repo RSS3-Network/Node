@@ -24,7 +24,7 @@ CREATE INDEX IF NOT EXISTS "idx_indexes_network" ON "indexes" ("network", "times
 CREATE INDEX IF NOT EXISTS "idx_indexes_owner" ON "indexes" ("owner", "timestamp" DESC, "index" DESC, "direction");
 CREATE INDEX IF NOT EXISTS "idx_indexes_timestamp" ON "indexes" ("timestamp" DESC, "index" DESC);
 
-CREATE TABLE IF NOT EXISTS "feeds"
+CREATE TABLE IF NOT EXISTS "activities"
 (
     "id"            text        NOT NULL,
     "network"       text        NOT NULL,
@@ -42,13 +42,13 @@ CREATE TABLE IF NOT EXISTS "feeds"
     "created_at"    timestamptz NOT NULL DEFAULT now(),
     "updated_at"    timestamptz NOT NULL DEFAULT now(),
 
-    CONSTRAINT "pk_feeds" PRIMARY KEY ("id")
+    CONSTRAINT "pk_activities" PRIMARY KEY ("id")
     );
 
-CREATE INDEX IF NOT EXISTS "idx_feeds_platform" ON "feeds" ("platform");
-CREATE INDEX IF NOT EXISTS "idx_feeds_timestamp" ON "feeds" ("timestamp" DESC);
-CREATE INDEX IF NOT EXISTS "idx_feeds_tag_type" ON "feeds" ("tag", "type");
-CREATE INDEX IF NOT EXISTS "idx_feeds_total_actions" ON "feeds" ("total_actions");
+CREATE INDEX IF NOT EXISTS "idx_activities_platform" ON "activities" ("platform");
+CREATE INDEX IF NOT EXISTS "idx_activities_timestamp" ON "activities" ("timestamp" DESC);
+CREATE INDEX IF NOT EXISTS "idx_activities_tag_type" ON "activities" ("tag", "type");
+CREATE INDEX IF NOT EXISTS "idx_activities_total_actions" ON "activities" ("total_actions");
 
 CREATE TABLE IF NOT EXISTS "checkpoints"
 (
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS "dataset_farcaster_profiles"
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE IF EXISTS "indexes";
-DROP TABLE IF EXISTS "feeds";
+DROP TABLE IF EXISTS "activities";
 DROP TABLE IF EXISTS "checkpoints";
 DROP TABLE IF EXISTS "dataset_mirror_posts";
 DROP TABLE IF EXISTS "dataset_farcaster_profiles";

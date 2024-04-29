@@ -9,85 +9,87 @@ import (
 	"time"
 
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/shopspring/decimal"
 )
 
 const (
-	// FeedSpamLimit The restriction conditions for judging the feed to be spam cannot be changed at will.
-	FeedSpamLimit = 100
+	// ActivitySpamLimit this limit of actions in a single activity, mark as spam if exceeds.
+	ActivitySpamLimit = 100
 )
 
-type Feed struct {
-	ID           string           `gorm:"column:id"`
-	Network      filter.Network   `gorm:"column:network"`
-	Platform     *filter.Platform `gorm:"column:platform"`
-	Index        uint             `gorm:"column:index"`
-	From         string           `gorm:"column:from"`
-	To           string           `gorm:"column:to"`
-	Tag          filter.Tag       `gorm:"column:tag"`
-	Type         string           `gorm:"column:type"`
-	Status       bool             `gorm:"column:status"`
-	Fee          *Fee             `gorm:"column:fee;type:jsonb"`
-	Calldata     *Calldata        `gorm:"column:calldata;type:jsonb"`
-	TotalActions uint             `gorm:"column:total_actions"`
-	Actions      FeedActions      `gorm:"column:actions;type:jsonb"`
-	Timestamp    time.Time        `gorm:"column:timestamp"`
-	CreatedAt    time.Time        `gorm:"column:created_at;autoCreateTime"`
-	UpdatedAt    time.Time        `gorm:"column:updated_at;autoUpdateTime"`
+type Activity struct {
+	ID           string          `gorm:"column:id"`
+	Network      network.Network `gorm:"column:network"`
+	Platform     string          `gorm:"column:platform"`
+	Index        uint            `gorm:"column:index"`
+	From         string          `gorm:"column:from"`
+	To           string          `gorm:"column:to"`
+	Tag          tag.Tag         `gorm:"column:tag"`
+	Type         string          `gorm:"column:type"`
+	Status       bool            `gorm:"column:status"`
+	Fee          *Fee            `gorm:"column:fee;type:jsonb"`
+	Calldata     *Calldata       `gorm:"column:calldata;type:jsonb"`
+	TotalActions uint            `gorm:"column:total_actions"`
+	Actions      ActivityActions `gorm:"column:actions;type:jsonb"`
+	Timestamp    time.Time       `gorm:"column:timestamp"`
+	CreatedAt    time.Time       `gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt    time.Time       `gorm:"column:updated_at;autoUpdateTime"`
 }
 
-func (f *Feed) TableName() string {
-	return "feeds"
+func (f *Activity) TableName() string {
+	return "activities"
 }
 
-func (f *Feed) PartitionName(feed *schema.Feed) string {
-	if feed != nil {
-		f.Timestamp = time.Unix(int64(feed.Timestamp), 0)
-		f.Network = feed.Network
+func (f *Activity) PartitionName(activity *activityx.Activity) string {
+	if activity != nil {
+		f.Timestamp = time.Unix(int64(activity.Timestamp), 0)
+		f.Network = activity.Network
 	}
 
 	return fmt.Sprintf("%s_%s_%d_q%d", f.TableName(), f.Network,
 		f.Timestamp.Year(), int(math.Ceil(float64(f.Timestamp.Month())/3)))
 }
 
-func (f *Feed) Import(feed *schema.Feed) error {
-	f.ID = feed.ID
-	f.Network = feed.Network
-	f.Platform = feed.Platform
-	f.Index = feed.Index
-	f.From = feed.From
-	f.To = feed.To
-	f.Tag = feed.Type.Tag()
-	f.Type = feed.Type.Name()
-	f.Status = feed.Status
-	f.TotalActions = uint(len(feed.Actions))
-	f.Actions = make(FeedActions, 0)
-	f.Timestamp = time.Unix(int64(feed.Timestamp), 0)
+func (f *Activity) Import(activity *activityx.Activity) error {
+	f.ID = activity.ID
+	f.Network = activity.Network
+	f.Platform = activity.Platform
+	f.Index = activity.Index
+	f.From = activity.From
+	f.To = activity.To
+	f.Tag = activity.Type.Tag()
+	f.Type = activity.Type.Name()
+	f.Status = activity.Status
+	f.TotalActions = uint(len(activity.Actions))
+	f.Actions = make(ActivityActions, 0)
+	f.Timestamp = time.Unix(int64(activity.Timestamp), 0)
 
-	if feed.Fee != nil {
+	if activity.Fee != nil {
 		f.Fee = new(Fee)
 
-		if err := f.Fee.Import(feed.Fee); err != nil {
+		if err := f.Fee.Import(activity.Fee); err != nil {
 			return fmt.Errorf("invalid fee: %w", err)
 		}
 	}
 
-	if feed.Calldata != nil {
+	if activity.Calldata != nil {
 		f.Calldata = new(Calldata)
 
-		if err := f.Calldata.Import(feed.Calldata); err != nil {
+		if err := f.Calldata.Import(activity.Calldata); err != nil {
 			return fmt.Errorf("invalid calldata: %w", err)
 		}
 	}
 
 	// spam transactions only retain last one action
-	if f.TotalActions > FeedSpamLimit {
-		for i := len(feed.Actions) - 1; i >= 0; i-- {
-			item := new(FeedAction)
+	if f.TotalActions > ActivitySpamLimit {
+		for i := len(activity.Actions) - 1; i >= 0; i-- {
+			item := new(ActivityAction)
 
-			if err := item.Import(feed.Actions[i]); err != nil {
+			if err := item.Import(activity.Actions[i]); err != nil {
 				return err
 			}
 
@@ -99,8 +101,8 @@ func (f *Feed) Import(feed *schema.Feed) error {
 		}
 	}
 
-	for _, action := range feed.Actions {
-		item := new(FeedAction)
+	for _, action := range activity.Actions {
+		item := new(ActivityAction)
 
 		if err := item.Import(action); err != nil {
 			return fmt.Errorf("invalid action: %w", err)
@@ -112,15 +114,15 @@ func (f *Feed) Import(feed *schema.Feed) error {
 	return nil
 }
 
-func (f *Feed) Export(index *Index) (*schema.Feed, error) {
-	feed := schema.Feed{
+func (f *Activity) Export(index *Index) (*activityx.Activity, error) {
+	activity := activityx.Activity{
 		ID:           f.ID,
 		From:         f.From,
 		To:           f.To,
 		Network:      f.Network,
 		Platform:     f.Platform,
 		Status:       f.Status,
-		Actions:      make([]*schema.Action, 0, len(f.Actions)),
+		Actions:      make([]*activityx.Action, 0, len(f.Actions)),
 		TotalActions: f.TotalActions,
 		Timestamp:    uint64(f.Timestamp.Unix()),
 		Owner:        index.Owner,
@@ -129,17 +131,17 @@ func (f *Feed) Export(index *Index) (*schema.Feed, error) {
 
 	var err error
 
-	if feed.Type, err = filter.TypeString(f.Tag, f.Type); err != nil {
+	if activity.Type, err = schema.ParseTypeFromString(f.Tag, f.Type); err != nil {
 		return nil, err
 	}
 
-	feed.Tag = feed.Type.Tag()
+	activity.Tag = activity.Type.Tag()
 
-	if feed.Fee, err = f.Fee.Export(); err != nil {
+	if activity.Fee, err = f.Fee.Export(); err != nil {
 		return nil, fmt.Errorf("invalid fee: %w", err)
 	}
 
-	if feed.Calldata, err = f.Calldata.Export(); err != nil {
+	if activity.Calldata, err = f.Calldata.Export(); err != nil {
 		return nil, fmt.Errorf("invalid calldata: %w", err)
 	}
 
@@ -149,19 +151,19 @@ func (f *Feed) Export(index *Index) (*schema.Feed, error) {
 			return nil, err
 		}
 
-		feed.Actions = append(feed.Actions, item)
+		activity.Actions = append(activity.Actions, item)
 	}
 
-	return &feed, nil
+	return &activity, nil
 }
 
-type Feeds []*Feed
+type Activities []*Activity
 
-func (f *Feeds) Import(feeds []*schema.Feed) error {
-	for _, feed := range feeds {
-		item := new(Feed)
+func (f *Activities) Import(activities []*activityx.Activity) error {
+	for _, activity := range activities {
+		item := new(Activity)
 
-		if err := item.Import(feed); err != nil {
+		if err := item.Import(activity); err != nil {
 			return err
 		}
 
@@ -171,18 +173,18 @@ func (f *Feeds) Import(feeds []*schema.Feed) error {
 	return nil
 }
 
-func (f *Feeds) Export(indexes []*Index) ([]*schema.Feed, error) {
-	feeds := make(map[string]*Feed)
+func (f *Activities) Export(indexes []*Index) ([]*activityx.Activity, error) {
+	activities := make(map[string]*Activity)
 
-	for _, feed := range *f {
-		feeds[feed.ID] = feed
+	for _, activity := range *f {
+		activities[activity.ID] = activity
 	}
 
-	result := make([]*schema.Feed, 0, len(indexes))
+	result := make([]*activityx.Activity, 0, len(indexes))
 
 	for _, index := range indexes {
-		if feed, ok := feeds[index.ID]; ok {
-			data, err := feed.Export(index)
+		if activity, ok := activities[index.ID]; ok {
+			data, err := activity.Export(index)
 			if err != nil {
 				return nil, err
 			}
@@ -201,7 +203,7 @@ type Fee struct {
 }
 
 //goland:noinspection ALL
-func (f *Fee) Import(fee *schema.Fee) error {
+func (f *Fee) Import(fee *activityx.Fee) error {
 	if fee != nil {
 		f.Address = fee.Address
 		f.Amount = fee.Amount
@@ -212,12 +214,12 @@ func (f *Fee) Import(fee *schema.Fee) error {
 }
 
 //goland:noinspection ALL
-func (f *Fee) Export() (*schema.Fee, error) {
+func (f *Fee) Export() (*activityx.Fee, error) {
 	if f == nil {
 		return nil, nil
 	}
 
-	return &schema.Fee{
+	return &activityx.Fee{
 		Address: f.Address,
 		Amount:  f.Amount,
 		Decimal: f.Decimal,
@@ -251,7 +253,7 @@ type Calldata struct {
 }
 
 //goland:noinspection ALL
-func (c *Calldata) Import(calldata *schema.Calldata) error {
+func (c *Calldata) Import(calldata *activityx.Calldata) error {
 	if calldata != nil {
 		c.Raw = calldata.Raw
 		c.FunctionHash = calldata.FunctionHash
@@ -262,12 +264,12 @@ func (c *Calldata) Import(calldata *schema.Calldata) error {
 }
 
 //goland:noinspection ALL
-func (c *Calldata) Export() (*schema.Calldata, error) {
+func (c *Calldata) Export() (*activityx.Calldata, error) {
 	if c == nil {
 		return nil, nil
 	}
 
-	return &schema.Calldata{
+	return &activityx.Calldata{
 		Raw:            c.Raw,
 		FunctionHash:   c.FunctionHash,
 		ParsedFunction: c.ParsedFunction,
@@ -294,7 +296,7 @@ func (c Calldata) Value() (driver.Value, error) {
 	return json.Marshal(c)
 }
 
-type FeedAction struct {
+type ActivityAction struct {
 	Tag      string          `json:"tag"`
 	Type     string          `json:"type"`
 	From     string          `json:"from"`
@@ -303,7 +305,7 @@ type FeedAction struct {
 	Metadata json.RawMessage `json:"metadata"`
 }
 
-func (f *FeedAction) Import(action *schema.Action) (err error) {
+func (f *ActivityAction) Import(action *activityx.Action) (err error) {
 	f.Tag = action.Type.Tag().String()
 	f.Type = action.Type.Name()
 	f.From = action.From
@@ -317,15 +319,15 @@ func (f *FeedAction) Import(action *schema.Action) (err error) {
 	return nil
 }
 
-func (f *FeedAction) Export() (*schema.Action, error) {
-	action := &schema.Action{
+func (f *ActivityAction) Export() (*activityx.Action, error) {
+	action := &activityx.Action{
 		From:     f.From,
 		To:       f.To,
 		Platform: f.Platform,
 	}
 
 	var err error
-	if action.Tag, action.Type, err = filter.TagAndTypeString(f.Tag, f.Type); err != nil {
+	if action.Tag, action.Type, err = schema.ParseTagAndTypeFromString(f.Tag, f.Type); err != nil {
 		return nil, err
 	}
 
@@ -337,14 +339,14 @@ func (f *FeedAction) Export() (*schema.Action, error) {
 }
 
 var (
-	_ sql.Scanner   = (*FeedActions)(nil)
-	_ driver.Valuer = (*FeedActions)(nil)
+	_ sql.Scanner   = (*ActivityActions)(nil)
+	_ driver.Valuer = (*ActivityActions)(nil)
 )
 
-type FeedActions []*FeedAction
+type ActivityActions []*ActivityAction
 
 //goland:noinspection ALL
-func (f *FeedActions) Scan(value any) error {
+func (f *ActivityActions) Scan(value any) error {
 	data, ok := value.([]byte)
 	if !ok {
 		return fmt.Errorf("invalid type: %T", value)
@@ -354,6 +356,6 @@ func (f *FeedActions) Scan(value any) error {
 }
 
 //goland:noinspection ALL
-func (f FeedActions) Value() (driver.Value, error) {
+func (f ActivityActions) Value() (driver.Value, error) {
 	return json.Marshal(f)
 }

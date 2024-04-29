@@ -16,7 +16,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/arweave/bundle"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.uber.org/zap"
@@ -45,7 +45,7 @@ type source struct {
 	pendingState  State
 }
 
-func (s *source) Network() filter.Network {
+func (s *source) Network() network.Network {
 	return s.config.Network
 }
 
@@ -77,6 +77,15 @@ func (s *source) initialize() (err error) {
 	return nil
 }
 
+// initializeBlockHeights initializes block heights.
+func (s *source) initializeBlockHeights() {
+	if s.option.BlockHeightStart != nil && s.option.BlockHeightStart.Uint64() > s.state.BlockHeight {
+		s.pendingState.BlockHeight = s.option.BlockHeightStart.Uint64()
+		s.state.BlockHeight = s.option.BlockHeightStart.Uint64()
+	}
+}
+
+// pollBlocks polls blocks from arweave network.
 func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks, filter *Filter) error {
 	var (
 		blockHeightLatestRemote int64
@@ -85,10 +94,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 
 	// Get start block height from config
 	// if not set, use default value 0
-	if s.option.BlockHeightStart != nil && s.option.BlockHeightStart.Uint64() > s.state.BlockHeight {
-		s.pendingState.BlockHeight = s.option.BlockHeightStart.Uint64()
-		s.state.BlockHeight = s.option.BlockHeightStart.Uint64()
-	}
+	s.initializeBlockHeights()
 
 	// Get target block height from config
 	// if not set, use the latest block height from arweave network
@@ -169,7 +175,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 			}
 
 			for _, bundleTransaction := range bundleTransactions {
-				blocks[index].Txs = append(block.Txs, bundleTransaction.ID)
+				blocks[index].Txs = append(blocks[index].Txs, bundleTransaction.ID)
 			}
 
 			transactions = append(transactions, bundleTransactions...)

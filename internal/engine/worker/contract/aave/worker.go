@@ -16,9 +16,13 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -41,7 +45,34 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Aave.String()
+	return workerx.Aave.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.PlatformAAVE.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Ethereum,
+		network.Polygon,
+		network.Avalanche,
+		network.Base,
+		network.Optimism,
+		network.Arbitrum,
+	}
+}
+
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Exchange,
+	}
+}
+
+func (w *worker) Types() []schema.Type {
+	return []schema.Type{
+		typex.ExchangeLiquidity,
+	}
 }
 
 // Filter contract address and event hash.
@@ -49,18 +80,18 @@ func (w *worker) Filter() engine.SourceFilter {
 	var aaveV2LendingAddress, aaveV3PoolAddress common.Address
 
 	switch w.config.Network {
-	case filter.NetworkEthereum:
+	case network.Ethereum:
 		aaveV2LendingAddress = aave.AddressV2LendingPoolMainnet
 		aaveV3PoolAddress = aave.AddressV3PoolMainnet
-	case filter.NetworkPolygon:
+	case network.Polygon:
 		aaveV2LendingAddress = aave.AddressV2LendingPoolPolygon
 		aaveV3PoolAddress = aave.AddressV3PoolOthers
-	case filter.NetworkAvalanche:
+	case network.Avalanche:
 		aaveV2LendingAddress = aave.AddressV2LendingPoolAvalanche
 		aaveV3PoolAddress = aave.AddressV3PoolOthers
-	case filter.NetworkBase:
+	case network.Base:
 		aaveV3PoolAddress = aave.AddressV3PoolBase
-	case filter.NetworkOptimism, filter.NetworkArbitrum:
+	case network.Optimism, network.Arbitrum:
 		aaveV3PoolAddress = aave.AddressV3PoolOthers
 	default:
 		aaveV2LendingAddress = aave.AddressV2LendingPoolMainnet
@@ -90,11 +121,11 @@ func (w *worker) Filter() engine.SourceFilter {
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
+	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to feed.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+// Transform Ethereum task to activityx.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -104,10 +135,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, fmt.Errorf("invalid transaction to: %s", ethereumTask.Transaction.Hash)
 	}
 
-	// Build feed base from task.
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformAAVE))
+	// Build activity base from task.
+	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	for _, log := range ethereumTask.Receipt.Logs {
@@ -117,7 +148,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		}
 
 		var (
-			actions []*schema.Action
+			actions []*activityx.Action
 			err     error
 		)
 
@@ -136,11 +167,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			return nil, err
 		}
 
-		feed.Type = filter.TypeExchangeLiquidity
-		feed.Actions = append(feed.Actions, actions...)
+		activity.Type = typex.ExchangeLiquidity
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	return feed, nil
+	return activity, nil
 }
 
 // NewWorker creates a new worker.
@@ -183,15 +214,15 @@ func (w *worker) matchLiquidityV1Pool(_ *source.Task, log *ethereum.Log) bool {
 
 func (w *worker) matchLiquidityV2LendingPool(task *source.Task, log *ethereum.Log) bool {
 	switch task.Network {
-	case filter.NetworkEthereum:
+	case network.Ethereum:
 		if *task.Transaction.To != aave.AddressV2LendingPoolMainnet {
 			return false
 		}
-	case filter.NetworkPolygon:
+	case network.Polygon:
 		if *task.Transaction.To != aave.AddressV2LendingPoolPolygon {
 			return false
 		}
-	case filter.NetworkAvalanche:
+	case network.Avalanche:
 		if *task.Transaction.To != aave.AddressV2LendingPoolAvalanche {
 			return false
 		}
@@ -210,19 +241,19 @@ func (w *worker) matchLiquidityV2LendingPool(task *source.Task, log *ethereum.Lo
 
 func (w *worker) matchLiquidityV3Pool(task *source.Task, log *ethereum.Log) bool {
 	switch task.Network {
-	case filter.NetworkEthereum:
+	case network.Ethereum:
 		if *task.Transaction.To != aave.AddressV3PoolMainnet {
 			return false
 		}
-	case filter.NetworkBase:
+	case network.Base:
 		if *task.Transaction.To != aave.AddressV3PoolBase {
 			return false
 		}
 	case
-		filter.NetworkOptimism,
-		filter.NetworkArbitrum,
-		filter.NetworkPolygon,
-		filter.NetworkAvalanche:
+		network.Optimism,
+		network.Arbitrum,
+		network.Polygon,
+		network.Avalanche:
 		if *task.Transaction.To != aave.AddressV3PoolOthers {
 			return false
 		}
@@ -239,8 +270,8 @@ func (w *worker) matchLiquidityV3Pool(task *source.Task, log *ethereum.Log) bool
 	)
 }
 
-func (w *worker) handleV1LendingPool(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
-	actions := make([]*schema.Action, 0)
+func (w *worker) handleV1LendingPool(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
+	actions := make([]*activityx.Action, 0)
 
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
@@ -248,7 +279,7 @@ func (w *worker) handleV1LendingPool(ctx context.Context, task *source.Task) ([]
 		}
 
 		var (
-			action *schema.Action
+			action *activityx.Action
 			err    error
 		)
 
@@ -275,8 +306,8 @@ func (w *worker) handleV1LendingPool(ctx context.Context, task *source.Task) ([]
 	return actions, nil
 }
 
-func (w *worker) handleV2LendingPool(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
-	actions := make([]*schema.Action, 0)
+func (w *worker) handleV2LendingPool(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
+	actions := make([]*activityx.Action, 0)
 
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
@@ -284,7 +315,7 @@ func (w *worker) handleV2LendingPool(ctx context.Context, task *source.Task) ([]
 		}
 
 		var (
-			action *schema.Action
+			action *activityx.Action
 			err    error
 		)
 
@@ -313,8 +344,8 @@ func (w *worker) handleV2LendingPool(ctx context.Context, task *source.Task) ([]
 	return actions, nil
 }
 
-func (w *worker) handleV3Pool(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
-	actions := make([]*schema.Action, 0)
+func (w *worker) handleV3Pool(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
+	actions := make([]*activityx.Action, 0)
 
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
@@ -322,7 +353,7 @@ func (w *worker) handleV3Pool(ctx context.Context, task *source.Task) ([]*schema
 		}
 
 		var (
-			action *schema.Action
+			action *activityx.Action
 			err    error
 		)
 
@@ -395,7 +426,7 @@ func (w *worker) matchEthereumV3PoolRepayLog(log *ethereum.Log) bool {
 	return contract.MatchAddresses(log.Address, aave.AddressV3PoolMainnet, aave.AddressV3PoolBase, aave.AddressV3PoolOthers) && contract.MatchEventHashes(log.Topics[0], aave.EventHashV3PoolRepay)
 }
 
-func (w *worker) transformV1LendingPoolDepositLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+func (w *worker) transformV1LendingPoolDepositLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activityx.Action, error) {
 	event, err := w.v1LendingPoolFilterer.ParseDeposit(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse deposit event: %w", err)
@@ -406,7 +437,7 @@ func (w *worker) transformV1LendingPoolDepositLog(ctx context.Context, task *sou
 	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquiditySupply, event.Reserve, event.Amount)
 }
 
-func (w *worker) transformV1LendingPoolBorrowLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+func (w *worker) transformV1LendingPoolBorrowLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activityx.Action, error) {
 	event, err := w.v1LendingPoolFilterer.ParseBorrow(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse deposit event: %w", err)
@@ -417,7 +448,7 @@ func (w *worker) transformV1LendingPoolBorrowLog(ctx context.Context, task *sour
 	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquidityBorrow, event.Reserve, event.Amount)
 }
 
-func (w *worker) transformV1LendingPoolRepayLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+func (w *worker) transformV1LendingPoolRepayLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activityx.Action, error) {
 	event, err := w.v1LendingPoolFilterer.ParseRepay(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse deposit event: %w", err)
@@ -428,7 +459,7 @@ func (w *worker) transformV1LendingPoolRepayLog(ctx context.Context, task *sourc
 	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquidityRepay, event.Reserve, event.AmountMinusFees)
 }
 
-func (w *worker) transformV2LendingPoolDepositLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+func (w *worker) transformV2LendingPoolDepositLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activityx.Action, error) {
 	event, err := w.v2LendingPoolFilterer.ParseDeposit(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse deposit event: %w", err)
@@ -439,7 +470,7 @@ func (w *worker) transformV2LendingPoolDepositLog(ctx context.Context, task *sou
 	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquiditySupply, event.Reserve, event.Amount)
 }
 
-func (w *worker) transformV2LendingPoolWithdrawLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+func (w *worker) transformV2LendingPoolWithdrawLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activityx.Action, error) {
 	event, err := w.v2LendingPoolFilterer.ParseWithdraw(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse withdraw event: %w", err)
@@ -450,7 +481,7 @@ func (w *worker) transformV2LendingPoolWithdrawLog(ctx context.Context, task *so
 	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquidityWithdraw, event.Reserve, event.Amount)
 }
 
-func (w *worker) transformV2LendingPoolBorrowLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+func (w *worker) transformV2LendingPoolBorrowLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activityx.Action, error) {
 	event, err := w.v2LendingPoolFilterer.ParseBorrow(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse borrow event: %w", err)
@@ -461,7 +492,7 @@ func (w *worker) transformV2LendingPoolBorrowLog(ctx context.Context, task *sour
 	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquidityBorrow, event.Reserve, event.Amount)
 }
 
-func (w *worker) transformV2LendingPoolRepayLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+func (w *worker) transformV2LendingPoolRepayLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activityx.Action, error) {
 	event, err := w.v2LendingPoolFilterer.ParseRepay(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse repay event: %w", err)
@@ -472,7 +503,7 @@ func (w *worker) transformV2LendingPoolRepayLog(ctx context.Context, task *sourc
 	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquidityRepay, event.Reserve, event.Amount)
 }
 
-func (w *worker) transformV3PoolSupplyLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+func (w *worker) transformV3PoolSupplyLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activityx.Action, error) {
 	event, err := w.v3PoolFilterer.ParseSupply(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse supply event: %w", err)
@@ -483,7 +514,7 @@ func (w *worker) transformV3PoolSupplyLog(ctx context.Context, task *source.Task
 	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, pool, metadata.ActionExchangeLiquiditySupply, event.Reserve, event.Amount)
 }
 
-func (w *worker) transformV3PoolWithdrawLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+func (w *worker) transformV3PoolWithdrawLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activityx.Action, error) {
 	event, err := w.v3PoolFilterer.ParseWithdraw(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse withdraw event: %w", err)
@@ -494,7 +525,7 @@ func (w *worker) transformV3PoolWithdrawLog(ctx context.Context, task *source.Ta
 	return w.buildEthereumExchangeLiquidityAction(ctx, task, pool, lender, metadata.ActionExchangeLiquidityWithdraw, event.Reserve, event.Amount)
 }
 
-func (w *worker) transformV3PoolBorrowLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+func (w *worker) transformV3PoolBorrowLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activityx.Action, error) {
 	event, err := w.v3PoolFilterer.ParseBorrow(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse borrow event: %w", err)
@@ -505,7 +536,7 @@ func (w *worker) transformV3PoolBorrowLog(ctx context.Context, task *source.Task
 	return w.buildEthereumExchangeLiquidityAction(ctx, task, lender, borrower, metadata.ActionExchangeLiquidityBorrow, event.Reserve, event.Amount)
 }
 
-func (w *worker) transformV3PoolRepayLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*schema.Action, error) {
+func (w *worker) transformV3PoolRepayLog(ctx context.Context, task *source.Task, log *ethereum.Log) (*activityx.Action, error) {
 	event, err := w.v3PoolFilterer.ParseRepay(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse repay event: %w", err)
@@ -516,7 +547,7 @@ func (w *worker) transformV3PoolRepayLog(ctx context.Context, task *source.Task,
 	return w.buildEthereumExchangeLiquidityAction(ctx, task, borrower, lender, metadata.ActionExchangeLiquidityRepay, event.Reserve, event.Amount)
 }
 
-func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task *source.Task, from, to common.Address, exchangeLiquidityAction metadata.ExchangeLiquidityAction, tokenAddress common.Address, tokenValue *big.Int) (*schema.Action, error) {
+func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task *source.Task, from, to common.Address, exchangeLiquidityAction metadata.ExchangeLiquidityAction, tokenAddress common.Address, tokenValue *big.Int) (*activityx.Action, error) {
 	targetToken, err := w.tokenClient.Lookup(ctx, task.ChainID, &tokenAddress, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenAddress, err)
@@ -524,9 +555,9 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task 
 
 	targetToken.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
-	action := schema.Action{
-		Type:     filter.TypeExchangeLiquidity,
-		Platform: filter.PlatformAAVE.String(),
+	action := activityx.Action{
+		Type:     typex.ExchangeLiquidity,
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeLiquidity{

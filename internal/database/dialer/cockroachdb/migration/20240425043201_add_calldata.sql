@@ -1,11 +1,11 @@
 -- +goose Up
 -- +goose StatementBegin
-ALTER TABLE "feeds"
+ALTER TABLE "activities"
     ADD "calldata" json;
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-ALTER TABLE "feeds"
+ALTER TABLE "activities"
 DROP COLUMN "calldata";
 -- +goose StatementEnd

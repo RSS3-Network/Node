@@ -9,7 +9,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/node/provider/ethereum/proxy"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,7 +18,7 @@ func TestGetImplementation(t *testing.T) {
 
 	type arguments struct {
 		ctx         context.Context
-		network     filter.Network
+		network     network.Network
 		address     common.Address
 		blockNumber *big.Int
 	}
@@ -33,7 +33,7 @@ func TestGetImplementation(t *testing.T) {
 			name: "Ethereum USD Coin",
 			arguments: arguments{
 				ctx:     context.Background(),
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				address: common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
 			},
 			want: func(t require.TestingT, value interface{}, _ ...interface{}) {

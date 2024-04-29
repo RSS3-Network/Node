@@ -14,9 +14,13 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/iqwiki"
 	"github.com/rss3-network/node/provider/ipfs"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 )
 
@@ -32,7 +36,30 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.IQWiki.String()
+	return workerx.IQWiki.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.PlatformIQWiki.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Polygon,
+	}
+}
+
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Social,
+	}
+}
+
+func (w *worker) Types() []schema.Type {
+	return []schema.Type{
+		typex.SocialPost,
+		typex.SocialRevise,
+	}
 }
 
 // Filter IQWiki contract address and event hash.
@@ -50,7 +77,7 @@ func (w *worker) Filter() engine.SourceFilter {
 
 // Match Ethereum task to IQWiki.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
+	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
 // Match Ethereum task to IQWiki.
@@ -58,8 +85,8 @@ func matchEthereumIqWiki(task *source.Task) bool {
 	return task.Transaction.From == iqwiki.AddressSig && iqwiki.AddressWiki == *task.Transaction.To
 }
 
-// Transform Ethereum task to feed.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+// Transform Ethereum task to activityx.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -73,10 +100,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, fmt.Errorf("invalid iqwiki transaction: %s", ethereumTask.Transaction.Hash)
 	}
 
-	// Build default IQWiki feed from task.
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformIQWiki))
+	// Build default IQWiki activity from task.
+	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	// Parse actions from task.
@@ -91,23 +118,23 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			continue
 		}
 
-		feed.Actions = append(feed.Actions, action)
+		activity.Actions = append(activity.Actions, action)
 	}
 
-	if len(feed.Actions) == 0 {
+	if len(activity.Actions) == 0 {
 		return nil, fmt.Errorf("no actions in transaction: %s", ethereumTask.Transaction.Hash)
 	}
 
-	// Set feed type to the first action type & total actions.
-	feed.Type = feed.Actions[0].Type
-	feed.Tag = filter.TagSocial
-	feed.TotalActions = uint(len(feed.Actions))
+	// Set activity type to the first action type & total actions.
+	activity.Type = activity.Actions[0].Type
+	activity.Tag = tag.Social
+	activity.TotalActions = uint(len(activity.Actions))
 
-	return feed, nil
+	return activity, nil
 }
 
 // Parse action from Ethereum log.
-func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTask *source.Task) (*schema.Action, error) {
+func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTask *source.Task) (*activityx.Action, error) {
 	wikiPosted, err := w.iqWikiFilterer.ParsePosted(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse posted: %w", err)
@@ -138,10 +165,10 @@ func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTas
 		return nil, fmt.Errorf("fetch wiki %s, hash %s, %w", wiki.ID, ethereumTask.Transaction.Hash.String(), err)
 	}
 
-	action := &schema.Action{
-		Tag:      filter.TagSocial,
-		Type:     lo.If(iqwiki.StatusCreated == wikiResponse.ActivityByWikiIdAndBlock.Type, filter.TypeSocialPost).Else(filter.TypeSocialRevise),
-		Platform: filter.PlatformIQWiki.String(),
+	action := &activityx.Action{
+		Tag:      tag.Social,
+		Type:     lo.If(iqwiki.StatusCreated == wikiResponse.ActivityByWikiIdAndBlock.Type, typex.SocialPost).Else(typex.SocialRevise),
+		Platform: w.Platform(),
 		From:     wikiPosted.From.String(),
 		To:       iqwiki.AddressWiki.String(),
 		Metadata: metadata.SocialPost{

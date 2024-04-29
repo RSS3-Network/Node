@@ -16,7 +16,7 @@ database:
 stream:
   enable: false
   driver: kafka
-  topic: rss3.node.feeds
+  topic: rss3.node.activities
   uri: localhost:9092
 
 redis:
@@ -269,11 +269,6 @@ component:
     - network: linea
       endpoint: https://rpc.linea.build
       worker: uniswap
-      parameters:
-        block_number_start:
-    - network: vsl
-      endpoint: https://rpc.rss3.io
-      worker: fallback
       parameters:
         block_number_start:
     - network: vsl

@@ -25,7 +25,7 @@ type Option struct {
 	RPCBatchBlockReceipts *uint `json:"rpc_batch_block_receipts" mapstructure:"rpc_batch_block_receipts"`
 }
 
-func NewOption(options *config.Options) (*Option, error) {
+func NewOption(options *config.Parameters) (*Option, error) {
 	var instance Option
 
 	if options == nil {

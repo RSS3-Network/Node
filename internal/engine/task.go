@@ -3,8 +3,8 @@ package engine
 import (
 	"time"
 
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
@@ -12,10 +12,10 @@ import (
 
 type Task interface {
 	ID() string
-	GetNetwork() filter.Network
+	GetNetwork() network.Network
 	GetTimestamp() uint64
 	Validate() error
-	BuildFeed(options ...schema.FeedOption) (*schema.Feed, error)
+	BuildActivity(options ...activityx.Option) (*activityx.Activity, error)
 }
 
 func BuildTaskTraceAttributes(task Task) []attribute.KeyValue {
