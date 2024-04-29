@@ -49,10 +49,7 @@ component:
       endpoint: https://rsshub.app/
       parameters:
         authentication:
-          username:
-          password:
           access_key:
-          access_code:
 
   decentralized:
     # ethereum
