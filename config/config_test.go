@@ -267,7 +267,7 @@ var configFileExcept = &File{
 			},
 			{
 				Network:  network.Ethereum,
-				Worker:   workerx.Core,
+				Worker:   workerx.RSS3,
 				Endpoint: "https://rpc.ankr.com/eth",
 				Parameters: &Parameters{
 					"block_height_start": 123,
