@@ -8,7 +8,7 @@ import (
 )
 
 //go:generate go run --mod=mod github.com/dmarkham/enumer@v1.5.9 --values --type=Worker --linecomment --output worker_string.go --json --yaml --sql
-type Worker uint64
+type Worker int
 
 const (
 	Core       Worker = iota // core
@@ -60,7 +60,7 @@ func HookFunc() mapstructure.DecodeHookFuncType {
 			return data, nil
 		}
 
-		if t.Kind() != reflect.Uint64 {
+		if t.Kind() != reflect.Int {
 			return data, nil
 		}
 
