@@ -62,13 +62,9 @@ var command = cobra.Command{
 		}
 
 		// Init redis client
-		var redisClient rueidis.Client
-
-		if *config.Redis.Enable {
-			redisClient, err = redis.NewClient(*config.Redis)
-			if err != nil {
-				return fmt.Errorf("new redis client: %w", err)
-			}
+		redisClient, err := redis.NewClient(*config.Redis)
+		if err != nil {
+			return fmt.Errorf("new redis client: %w", err)
 		}
 
 		var databaseClient database.Client

@@ -37,7 +37,6 @@ stream:
   topic: rss3.node.activities
   uri: localhost:9092
 redis:
-  enable: false
   endpoints:
     - localhost:6379
   username:
@@ -100,7 +99,6 @@ component:
     "uri": "localhost:9092"
   },
   "redis": {
-	"enable": false,
 	"endpoints": [
 	  "localhost:6379"
 	],
@@ -180,7 +178,6 @@ topic = "rss3.node.activities"
 uri = "localhost:9092"
 
 [redis]
-enable = false
 endpoints = ["localhost:6379"]
 username = ""
 password = ""
@@ -288,7 +285,6 @@ var configFileExcept = &File{
 		URI:    "localhost:9092",
 	},
 	Redis: &Redis{
-		Enable:       lo.ToPtr(false),
 		Endpoints:    []string{"localhost:6379"},
 		Username:     "",
 		Password:     "",

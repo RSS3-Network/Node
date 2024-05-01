@@ -17,6 +17,7 @@ import (
 	"github.com/rss3-network/node/internal/stream"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum"
+	workerx "github.com/rss3-network/node/schema/worker"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
@@ -37,6 +38,7 @@ type Server struct {
 	streamClient   stream.Client
 	ethereumClient ethereum.Client
 	arweaveClient  arweave.Client
+	redisClient    rueidis.Client
 	// meterTasksCounter is a counter of the number of tasks processed.
 	// Deprecated: use meterTasksHistogram instead.
 	meterTasksCounter   metric.Int64Counter
@@ -51,6 +53,11 @@ func (s *Server) Run(ctx context.Context) error {
 		tasksChan = make(chan *engine.Tasks)
 		errorChan = make(chan error)
 	)
+
+	// Cache worker status to Redis.
+	if err := s.updateWorkerStatus(ctx, s.worker.Name(), workerx.Disabled.String()); err != nil {
+		return fmt.Errorf("cache token metadata: %w", err)
+	}
 
 	zap.L().Info("start node", zap.String("version", constant.BuildVersion()))
 
@@ -70,6 +77,27 @@ func (s *Server) Run(ctx context.Context) error {
 			return nil
 		}
 	}
+}
+
+// updateWorkerStatus caches the worker status to Redis.
+func (s *Server) updateWorkerStatus(ctx context.Context, workerName string, status string) error {
+	if s.redisClient == nil {
+		return nil
+	}
+
+	command := s.redisClient.B().Set().Key(s.buildCacheKey(workerName)).Value(status).Build()
+
+	result := s.redisClient.Do(ctx, command)
+	if err := result.Error(); err != nil {
+		return fmt.Errorf("redis result: %w", err)
+	}
+
+	return nil
+}
+
+// buildCacheKey builds cache key for Redis.
+func (s *Server) buildCacheKey(workerName string) string {
+	return fmt.Sprintf("worker:status::%s", workerName)
 }
 
 func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
@@ -169,6 +197,11 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		return fmt.Errorf("save checkpoint: %w", err)
 	}
 
+	// Check if the worker is ready
+	if err := s.checkWorkerStatus(ctx, checkpoint); err != nil {
+		return fmt.Errorf("check worker status: %w", err)
+	}
+
 	// Record the time it takes to handle tasks.
 	duration := time.Since(taskTimer).Seconds()
 	s.meterTasksHistogram.Record(ctx, duration, meterTasksCounterAttributes)
@@ -183,27 +216,74 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 	return nil
 }
 
-func (s *Server) initializeMeter() (err error) {
-	// init ethereum client
-	switch s.config.Network {
-	case network.Arweave:
-		arweaveClient, err := arweave.NewClient()
-		if err != nil {
-			return fmt.Errorf("new arweave client: %w", err)
-		}
-
-		s.arweaveClient = arweaveClient
-	case network.Farcaster:
-		break
-	default:
-		ethereumClient, err := ethereum.Dial(context.Background(), s.config.Endpoint)
-		if err != nil {
-			return fmt.Errorf("dial ethereum: %w", err)
-		}
-
-		s.ethereumClient = ethereumClient
+// checkWorkerStatus checks if the worker is ready.
+func (s *Server) checkWorkerStatus(ctx context.Context, checkpoint engine.Checkpoint) (err error) {
+	// Check if the worker is ready
+	// Get the current block height/block number from the checkpoint state.
+	type CheckpointState struct {
+		BlockHeight uint64 `json:"block_height"`
+		BlockNumber uint64 `json:"block_number"`
+		EventID     uint64 `json:"event_id"`
 	}
 
+	var state CheckpointState
+	if err := json.Unmarshal(checkpoint.State, &state); err != nil {
+		zap.L().Error("unmarshal checkpoint state", zap.Error(err))
+		return err
+	}
+
+	switch s.config.Network {
+	case network.Arweave:
+		latestHeight, err := s.arweaveClient.GetBlockHeight(ctx)
+		if err != nil {
+			zap.L().Error("get latest block height", zap.Error(err))
+			return err
+		}
+
+		currentHeight := state.BlockHeight
+
+		if uint64(latestHeight)-currentHeight < 100 {
+			// Cache worker status to Redis.
+			if err := s.updateWorkerStatus(ctx, s.worker.Name(), workerx.Ready.String()); err != nil {
+				return fmt.Errorf("cache token metadata: %w", err)
+			}
+		} else {
+			// Cache worker status to Redis.
+			if err := s.updateWorkerStatus(ctx, s.worker.Name(), workerx.Indexing.String()); err != nil {
+				return fmt.Errorf("cache token metadata: %w", err)
+			}
+		}
+	case network.Farcaster:
+		// Check Timestamp
+		break
+	default:
+		latestBlock, err := s.ethereumClient.BlockNumber(ctx)
+		if err != nil {
+			zap.L().Error("get latest block number", zap.Error(err))
+			return err
+		}
+
+		latestBlockNumber := latestBlock.Int64()
+
+		currentBlockNumber := state.BlockNumber
+
+		if uint64(latestBlockNumber)-currentBlockNumber < 100 {
+			// Cache worker status to Redis.
+			if err := s.updateWorkerStatus(ctx, s.worker.Name(), workerx.Ready.String()); err != nil {
+				return fmt.Errorf("cache token metadata: %w", err)
+			}
+		} else {
+			// Cache worker status to Redis.
+			if err := s.updateWorkerStatus(ctx, s.worker.Name(), workerx.Indexing.String()); err != nil {
+				return fmt.Errorf("cache token metadata: %w", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *Server) initializeMeter() (err error) {
 	// init meter
 	meter := otel.GetMeterProvider().Meter(constant.Name)
 
@@ -304,11 +384,31 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 		config:         config,
 		databaseClient: databaseClient,
 		streamClient:   streamClient,
+		redisClient:    redisClient,
 	}
 
 	// Initialize worker.
-	if instance.worker, err = worker.New(instance.config, databaseClient, redisClient); err != nil {
+	if instance.worker, err = worker.New(instance.config, databaseClient, instance.redisClient); err != nil {
 		return nil, fmt.Errorf("new worker: %w", err)
+	}
+
+	switch config.Network {
+	case network.Arweave:
+		arweaveClient, err := arweave.NewClient()
+		if err != nil {
+			return nil, fmt.Errorf("new arweave client: %w", err)
+		}
+
+		instance.arweaveClient = arweaveClient
+	case network.Farcaster:
+		break
+	default:
+		ethereumClient, err := ethereum.Dial(context.Background(), config.Endpoint)
+		if err != nil {
+			return nil, fmt.Errorf("dial ethereum: %w", err)
+		}
+
+		instance.ethereumClient = ethereumClient
 	}
 
 	if err := instance.initializeMeter(); err != nil {
