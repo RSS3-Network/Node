@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -53,6 +54,16 @@ type MetaCursor struct {
 type StatisticResponse struct {
 	Count      int64      `json:"count"`
 	LastUpdate *time.Time `json:"last_update,omitempty"`
+}
+
+type WorkerResponse struct {
+	Data []WorkerInfo `json:"data"`
+}
+
+type WorkerInfo struct {
+	Network network.Network `json:"network"`
+	Worker  worker.Worker   `json:"name"`
+	Status  worker.Status   `json:"status"`
 }
 
 func (h *Hub) parseParams(params url.Values, tags []tag.Tag) ([]schema.Type, error) {

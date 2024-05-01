@@ -4,8 +4,9 @@ package worker
 type Status uint64
 
 const (
-	Disabled  Status = iota // Disabled
-	Indexing                // Indexing
-	Ready                   // Ready
-	Unhealthy               // Unhealthy
+	StatusUnknown   Status = iota // Unknown
+	StatusDisabled                // Disabled
+	StatusIndexing                // Indexing
+	StatusReady                   // Ready
+	StatusUnhealthy               // Unhealthy
 )

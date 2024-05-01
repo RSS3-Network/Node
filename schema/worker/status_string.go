@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _StatusName = "DisabledIndexingReadyUnhealthy"
+const _StatusName = "UnknownDisabledIndexingReadyUnhealthy"
 
-var _StatusIndex = [...]uint8{0, 8, 16, 21, 30}
+var _StatusIndex = [...]uint8{0, 7, 15, 23, 28, 37}
 
-const _StatusLowerName = "disabledindexingreadyunhealthy"
+const _StatusLowerName = "unknowndisabledindexingreadyunhealthy"
 
 func (i Status) String() string {
 	if i >= Status(len(_StatusIndex)-1) {
@@ -30,30 +30,34 @@ func (Status) Values() []string {
 // Re-run the stringer command to generate them again.
 func _StatusNoOp() {
 	var x [1]struct{}
-	_ = x[Disabled-(0)]
-	_ = x[Indexing-(1)]
-	_ = x[Ready-(2)]
-	_ = x[Unhealthy-(3)]
+	_ = x[StatusUnknown-(0)]
+	_ = x[StatusDisabled-(1)]
+	_ = x[StatusIndexing-(2)]
+	_ = x[StatusReady-(3)]
+	_ = x[StatusUnhealthy-(4)]
 }
 
-var _StatusValues = []Status{Disabled, Indexing, Ready, Unhealthy}
+var _StatusValues = []Status{StatusUnknown, StatusDisabled, StatusIndexing, StatusReady, StatusUnhealthy}
 
 var _StatusNameToValueMap = map[string]Status{
-	_StatusName[0:8]:        Disabled,
-	_StatusLowerName[0:8]:   Disabled,
-	_StatusName[8:16]:       Indexing,
-	_StatusLowerName[8:16]:  Indexing,
-	_StatusName[16:21]:      Ready,
-	_StatusLowerName[16:21]: Ready,
-	_StatusName[21:30]:      Unhealthy,
-	_StatusLowerName[21:30]: Unhealthy,
+	_StatusName[0:7]:        StatusUnknown,
+	_StatusLowerName[0:7]:   StatusUnknown,
+	_StatusName[7:15]:       StatusDisabled,
+	_StatusLowerName[7:15]:  StatusDisabled,
+	_StatusName[15:23]:      StatusIndexing,
+	_StatusLowerName[15:23]: StatusIndexing,
+	_StatusName[23:28]:      StatusReady,
+	_StatusLowerName[23:28]: StatusReady,
+	_StatusName[28:37]:      StatusUnhealthy,
+	_StatusLowerName[28:37]: StatusUnhealthy,
 }
 
 var _StatusNames = []string{
-	_StatusName[0:8],
-	_StatusName[8:16],
-	_StatusName[16:21],
-	_StatusName[21:30],
+	_StatusName[0:7],
+	_StatusName[7:15],
+	_StatusName[15:23],
+	_StatusName[23:28],
+	_StatusName[28:37],
 }
 
 // StatusString retrieves an enum value from the enum constants string name.

@@ -85,7 +85,7 @@ var command = cobra.Command{
 
 		switch module {
 		case node.Hub:
-			return runHub(cmd.Context(), config, databaseClient)
+			return runHub(cmd.Context(), config, databaseClient, redisClient)
 		case node.Indexer:
 			return runIndexer(cmd.Context(), config, databaseClient, streamClient, redisClient)
 		case node.Broadcaster:
@@ -96,8 +96,8 @@ var command = cobra.Command{
 	},
 }
 
-func runHub(ctx context.Context, config *config.File, databaseClient database.Client) error {
-	server := hub.NewServer(ctx, config, databaseClient)
+func runHub(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client) error {
+	server := hub.NewServer(ctx, config, databaseClient, redisClient)
 
 	return server.Run(ctx)
 }

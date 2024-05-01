@@ -55,7 +55,7 @@ func (s *Server) Run(ctx context.Context) error {
 	)
 
 	// Cache worker status to Redis.
-	if err := s.updateWorkerStatus(ctx, s.worker.Name(), workerx.Disabled.String()); err != nil {
+	if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusDisabled.String()); err != nil {
 		return fmt.Errorf("cache token metadata: %w", err)
 	}
 
@@ -80,12 +80,12 @@ func (s *Server) Run(ctx context.Context) error {
 }
 
 // updateWorkerStatus caches the worker status to Redis.
-func (s *Server) updateWorkerStatus(ctx context.Context, workerName string, status string) error {
+func (s *Server) updateWorkerStatus(ctx context.Context, network, workerName string, status string) error {
 	if s.redisClient == nil {
 		return nil
 	}
 
-	command := s.redisClient.B().Set().Key(s.buildCacheKey(workerName)).Value(status).Build()
+	command := s.redisClient.B().Set().Key(s.buildCacheKey(network, workerName)).Value(status).Build()
 
 	result := s.redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
@@ -96,8 +96,8 @@ func (s *Server) updateWorkerStatus(ctx context.Context, workerName string, stat
 }
 
 // buildCacheKey builds cache key for Redis.
-func (s *Server) buildCacheKey(workerName string) string {
-	return fmt.Sprintf("worker:status::%s", workerName)
+func (s *Server) buildCacheKey(network, workerName string) string {
+	return fmt.Sprintf("worker:status::%s:%s", network, workerName)
 }
 
 func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
@@ -244,12 +244,12 @@ func (s *Server) checkWorkerStatus(ctx context.Context, checkpoint engine.Checkp
 
 		if uint64(latestHeight)-currentHeight < 100 {
 			// Cache worker status to Redis.
-			if err := s.updateWorkerStatus(ctx, s.worker.Name(), workerx.Ready.String()); err != nil {
+			if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusReady.String()); err != nil {
 				return fmt.Errorf("cache token metadata: %w", err)
 			}
 		} else {
 			// Cache worker status to Redis.
-			if err := s.updateWorkerStatus(ctx, s.worker.Name(), workerx.Indexing.String()); err != nil {
+			if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusIndexing.String()); err != nil {
 				return fmt.Errorf("cache token metadata: %w", err)
 			}
 		}
@@ -269,12 +269,12 @@ func (s *Server) checkWorkerStatus(ctx context.Context, checkpoint engine.Checkp
 
 		if uint64(latestBlockNumber)-currentBlockNumber < 100 {
 			// Cache worker status to Redis.
-			if err := s.updateWorkerStatus(ctx, s.worker.Name(), workerx.Ready.String()); err != nil {
+			if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusReady.String()); err != nil {
 				return fmt.Errorf("cache token metadata: %w", err)
 			}
 		} else {
 			// Cache worker status to Redis.
-			if err := s.updateWorkerStatus(ctx, s.worker.Name(), workerx.Indexing.String()); err != nil {
+			if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusIndexing.String()); err != nil {
 				return fmt.Errorf("cache token metadata: %w", err)
 			}
 		}
