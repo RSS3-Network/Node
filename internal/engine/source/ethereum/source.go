@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
@@ -53,11 +54,32 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 	}
 
 	go func() {
-		switch {
-		case s.filter.LogAddresses != nil || s.filter.LogTopics != nil:
-			errorChan <- s.pollLogs(ctx, tasksChan)
-		default:
-			errorChan <- s.pollBlocks(ctx, tasksChan)
+		retryableFunc := func() error {
+			switch {
+			case s.filter.LogAddresses != nil || s.filter.LogTopics != nil:
+				if err := s.pollLogs(ctx, tasksChan); err != nil {
+					return fmt.Errorf("poll logs: %w", err)
+				}
+			default:
+				if err := s.pollBlocks(ctx, tasksChan); err != nil {
+					return fmt.Errorf("poll blocks: %w", err)
+				}
+			}
+
+			return nil
+		}
+
+		err := retry.Do(retryableFunc,
+			retry.Attempts(0),
+			retry.Delay(time.Second),            // Set initial delay to 1 second.
+			retry.DelayType(retry.BackOffDelay), // Use backoff delay type, increasing delay on each retry.
+			retry.MaxDelay(5*time.Minute),
+			retry.OnRetry(func(n uint, err error) {
+				zap.L().Error("retry ethereum source start", zap.Uint("retry", n), zap.Error(err))
+			}),
+		)
+		if err != nil {
+			errorChan <- err
 		}
 	}()
 }

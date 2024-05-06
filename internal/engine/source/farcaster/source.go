@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
@@ -50,26 +51,29 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 
 	// poll historical casts
 	go func() {
-		err := s.pollCasts(ctx, tasksChan)
-		if err == nil {
-			return
+		if err := retryOperation(ctx, func(ctx context.Context) error {
+			return s.pollCasts(ctx, tasksChan)
+		}); err != nil {
+			errorChan <- err
 		}
-
-		errorChan <- err
 	}()
 
 	// poll historical reactions
 	go func() {
-		if err := s.pollReactions(ctx, tasksChan); err != nil {
+		if err := retryOperation(ctx, func(ctx context.Context) error {
+			return s.pollReactions(ctx, tasksChan)
+		}); err != nil {
 			errorChan <- err
-		} else {
-			return
 		}
 	}()
 
 	// poll latest events
 	go func() {
-		errorChan <- s.pollEvents(ctx, tasksChan)
+		if err := retryOperation(ctx, func(ctx context.Context) error {
+			return s.pollEvents(ctx, tasksChan)
+		}); err != nil {
+			errorChan <- err
+		}
 	}()
 }
 
@@ -475,6 +479,20 @@ func (s *source) fillReactionParams(ctx context.Context, message *farcaster.Mess
 	}
 
 	return s.fillProfile(ctx, message)
+}
+
+func retryOperation(ctx context.Context, operation func(ctx context.Context) error) error {
+	return retry.Do(
+		func() error {
+			return operation(ctx)
+		},
+		retry.Attempts(0),
+		retry.Delay(1*time.Second),
+		retry.DelayType(retry.BackOffDelay),
+		retry.OnRetry(func(n uint, err error) {
+			zap.L().Warn("retry farcaster source", zap.Uint("retry", n), zap.Error(err))
+		}),
+	)
 }
 
 func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.Source, error) {
