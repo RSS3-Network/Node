@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
@@ -53,11 +54,32 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 	}
 
 	go func() {
-		switch {
-		case s.filter.LogAddresses != nil || s.filter.LogTopics != nil:
-			errorChan <- s.pollLogs(ctx, tasksChan)
-		default:
-			errorChan <- s.pollBlocks(ctx, tasksChan)
+		retryableFunc := func() error {
+			switch {
+			case s.filter.LogAddresses != nil || s.filter.LogTopics != nil:
+				if err := s.pollLogs(ctx, tasksChan); err != nil {
+					return fmt.Errorf("poll logs: %w", err)
+				}
+			default:
+				if err := s.pollBlocks(ctx, tasksChan); err != nil {
+					return fmt.Errorf("poll blocks: %w", err)
+				}
+			}
+
+			return nil
+		}
+
+		err := retry.Do(retryableFunc,
+			retry.Attempts(0),
+			retry.Delay(time.Second),            // Set initial delay to 1 second.
+			retry.DelayType(retry.BackOffDelay), // Use backoff delay type, increasing delay on each retry.
+			retry.MaxDelay(5*time.Minute),
+			retry.OnRetry(func(n uint, err error) {
+				zap.L().Error("retry ethereum source start", zap.Uint("retry", n), zap.Error(err))
+			}),
+		)
+		if err != nil {
+			errorChan <- err
 		}
 	}()
 }
@@ -85,6 +107,8 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks)
 		// Stop the source if the block number target is not nil and the current block number is greater than the target
 		// block number. This is useful when the source is used to index a specific range of blocks.
 		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
+			zap.L().Info("source has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockNumberTarget.Uint64()))
+
 			break
 		}
 
@@ -101,7 +125,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks)
 
 			blockNumberLatestRemote = blockNumber.Uint64()
 
-			// RPC providers may incorrectly shunt the request to a lagging node.
+			// No new block has been mined, or the RPC node is lagging.
 			if blockNumberStart > blockNumberLatestRemote {
 				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestRemote), zap.Duration("block.time", defaultBlockTime))
 
@@ -173,22 +197,39 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 	for {
 		ctx, span := otel.GetTracerProvider().Tracer("").Start(ctx, "Source pollLogs", trace.WithSpanKind(trace.SpanKindProducer))
 
+		// Stop the source if the block number target is not nil and the current block number is greater than the target
+		// block number. This is useful when the source is used to index a specific range of blocks.
 		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
+			zap.L().Info("source has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockNumberTarget.Uint64()))
+
 			break
 		}
 
 		blockNumberStart := s.state.BlockNumber + 1
 
+		// Check if the local block number is greater than or equal to the remote block number, or the remote block
+		// number is zero. If so, sync the remote block number and wait for the new block.
 		if blockNumberStart > blockNumberLatestRemote || blockNumberLatestRemote == 0 {
-			blockNumber, err := s.refreshRemoteBlockNumber(ctx, blockNumberStart)
+			// Refresh the remote block number.
+			blockNumber, err := s.ethereumClient.BlockNumber(ctx)
 			if err != nil {
-				return err
+				return fmt.Errorf("get latest block number: %w", err)
 			}
 
-			blockNumberLatestRemote = blockNumber
+			blockNumberLatestRemote = blockNumber.Uint64()
+
+			// No new block has been mined, or the RPC node is lagging.
+			if blockNumberStart > blockNumberLatestRemote {
+				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestRemote), zap.Duration("block.time", defaultBlockTime))
+
+				time.Sleep(defaultBlockTime)
+			}
+
+			continue
 		}
 
-		blockNumberEnd := min(blockNumberStart+uint64(*s.option.RPCThreadBlocks)-1, blockNumberLatestRemote)
+		// The block number end is the start block number plus the number of blocks to be processed in parallel.
+		blockNumberEnd := min(blockNumberStart+uint64(*s.option.RPCThreadBlocks)-1, blockNumberStart)
 
 		span.SetAttributes(
 			attribute.String("block.number.start", strconv.FormatUint(blockNumberStart, 10)),
@@ -232,21 +273,6 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 	}
 
 	return nil
-}
-
-func (s *source) refreshRemoteBlockNumber(ctx context.Context, blockNumberStart uint64) (uint64, error) {
-	blockNumber, err := s.ethereumClient.BlockNumber(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("get latest block number: %w", err)
-	}
-
-	if blockNumberStart > blockNumber.Uint64() {
-		zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumber.Uint64()), zap.Duration("block.time", defaultBlockTime))
-
-		time.Sleep(defaultBlockTime)
-	}
-
-	return blockNumber.Uint64(), nil
 }
 
 func (s *source) updateLatestBlock(ctx context.Context, blockNumberEnd uint64) (*ethereum.Block, error) {

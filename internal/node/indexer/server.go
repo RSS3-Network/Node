@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
@@ -67,8 +68,25 @@ func (s *Server) Run(ctx context.Context) error {
 	for {
 		select {
 		case tasks := <-tasksChan:
-			if err := s.handleTasks(ctx, tasks); err != nil {
-				return fmt.Errorf("handle tasks: %w", err)
+			retryableFunc := func() error {
+				if err := s.handleTasks(ctx, tasks); err != nil {
+					return fmt.Errorf("handle tasks: %w", err)
+				}
+
+				return nil
+			}
+
+			err := retry.Do(retryableFunc,
+				retry.Attempts(0),
+				retry.Delay(time.Second),            // Set initial delay to 1 second.
+				retry.DelayType(retry.BackOffDelay), // Use backoff delay type, increasing delay on each retry.
+				retry.MaxDelay(5*time.Minute),
+				retry.OnRetry(func(n uint, err error) {
+					zap.L().Error("retry handle tasks", zap.Uint("retry", n), zap.Error(err))
+				}),
+			)
+			if err != nil {
+				return fmt.Errorf("retry handle tasks: %w", err)
 			}
 		case err := <-errorChan:
 			if err != nil {

@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/arweave"
@@ -63,7 +64,26 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 
 	// Start a goroutine to poll blocks.
 	go func() {
-		errorChan <- s.pollBlocks(ctx, tasksChan, s.filter)
+		retryableFunc := func() error {
+			if err := s.pollBlocks(ctx, tasksChan, s.filter); err != nil {
+				return fmt.Errorf("poll blocks: %w", err)
+			}
+
+			return nil
+		}
+
+		err := retry.Do(retryableFunc,
+			retry.Attempts(0),
+			retry.Delay(time.Second),
+			retry.DelayType(retry.BackOffDelay),
+			retry.MaxDelay(5*time.Minute),
+			retry.OnRetry(func(n uint, err error) {
+				zap.L().Error("retry arweave source start", zap.Uint("retry", n), zap.Error(err))
+			}),
+		)
+		if err != nil {
+			errorChan <- err
+		}
 	}()
 }
 
