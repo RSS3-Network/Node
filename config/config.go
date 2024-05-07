@@ -44,6 +44,8 @@ type File struct {
 	Observability *Telemetry `mapstructure:"observability" validate:"required"`
 }
 
+// LoadModulesEndpoint loads the endpoint url and headers for each module.
+// If the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.
 func (f *File) LoadModulesEndpoint() error {
 	for index, module := range f.Node.RSS {
 		endpoint, found := lo.Find(f.Endpoints, func(endpoint Endpoint) bool { return endpoint.ID == module.EndpointID })
@@ -294,6 +296,8 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)
 	}
 
+	// Use the function to load the endpoint for each module, because mapstructure doesn't support use custom unmarshaler.
+	// Reference https://github.com/mitchellh/mapstructure/issues/115.
 	if err := configFile.LoadModulesEndpoint(); err != nil {
 		return nil, fmt.Errorf("build endpoint for modules: %w", err)
 	}
