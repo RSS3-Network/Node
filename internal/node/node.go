@@ -15,31 +15,32 @@ import (
 )
 
 const (
-	// Hub FIXME: update startup command to use `components` instead of `hub`
-	Hub = "hub"
-	// Indexer FIXME: do not use `indexer`, use `worker` instead
-	Indexer     = "indexer"
+	// FIXME: update startup command to use `core` instead of `hub`
+	CoreService = "hub"
+	// FIXME: do not use `indexer`, use `worker` instead
+	Worker      = "indexer"
 	Broadcaster = "broadcaster"
 	DefaultHost = "0.0.0.0"
 	DefaultPort = "80"
 )
 
-// Node is logically formed by an API server and a list of components
-type Node struct {
+// Core is logically formed by an API server and a list of components
+type Core struct {
 	apiServer  *echo.Echo
 	components []*component.Component
 }
 
-func (s *Node) Run(_ context.Context) error {
+func (s *Core) Run(_ context.Context) error {
 	address := net.JoinHostPort(DefaultHost, DefaultPort)
 
 	return s.apiServer.Start(address)
 }
 
-func NewNode(ctx context.Context, config *config.File, databaseClient database.Client) *Node {
+// NewCoreService initializes the core services required by the Core
+func NewCoreService(ctx context.Context, config *config.File, databaseClient database.Client) *Core {
 	apiServer := echo.New()
 
-	node := Node{
+	node := Core{
 		apiServer:  apiServer,
 		components: []*component.Component{},
 	}
@@ -53,8 +54,8 @@ func NewNode(ctx context.Context, config *config.File, databaseClient database.C
 	apiServer.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
 
 	if len(config.Node.RSS) > 0 {
-		rssComponnet := rss.NewComponent(ctx, apiServer, config.Node.RSS)
-		node.components = append(node.components, &rssComponnet)
+		rssComponent := rss.NewComponent(ctx, apiServer, config.Node.RSS)
+		node.components = append(node.components, &rssComponent)
 	}
 
 	if len(config.Node.Decentralized) > 0 {

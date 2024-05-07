@@ -87,9 +87,9 @@ var command = cobra.Command{
 		}
 
 		switch module {
-		case node.Hub:
-			return runHub(cmd.Context(), config, databaseClient)
-		case node.Indexer:
+		case node.CoreService:
+			return runCoreService(cmd.Context(), config, databaseClient)
+		case node.Worker:
 			return runIndexer(cmd.Context(), config, databaseClient, streamClient, redisClient)
 		case node.Broadcaster:
 			return runBroadcaster(cmd.Context(), config)
@@ -99,8 +99,8 @@ var command = cobra.Command{
 	},
 }
 
-func runHub(ctx context.Context, config *config.File, databaseClient database.Client) error {
-	server := node.NewNode(ctx, config, databaseClient)
+func runCoreService(ctx context.Context, config *config.File, databaseClient database.Client) error {
+	server := node.NewCoreService(ctx, config, databaseClient)
 
 	return server.Run(ctx)
 }
@@ -212,7 +212,7 @@ func init() {
 	initializePyroscope()
 
 	command.PersistentFlags().String(flag.KeyConfig, "config.yaml", "config file name")
-	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")
+	command.PersistentFlags().String(flag.KeyModule, node.Worker, "module name")
 	command.PersistentFlags().String(flag.KeyIndexerNetwork, networkx.Ethereum.String(), "indexer network")
 	command.PersistentFlags().String(flag.KeyIndexerWorker, worker.Core.String(), "indexer worker")
 	command.PersistentFlags().String(flag.KeyIndexerParameters, "{}", "indexer parameters")
