@@ -16,7 +16,7 @@ var _WorkerIndex = [...]uint8{0, 4, 10, 14, 23, 30, 37, 45, 55, 59, 68, 75, 81, 
 const _WorkerLowerName = "coremirrorrss3paragraphopenseauniswapoptimismaavegotchilenslooksraremattersmomokahighlightaaveiqwikilidocrossbellens1inchkiwistandsavmvslstargatecurve"
 
 func (i Worker) String() string {
-	if i >= Worker(len(_WorkerIndex)-1) {
+	if i < 0 || i >= Worker(len(_WorkerIndex)-1) {
 		return fmt.Sprintf("Worker(%d)", i)
 	}
 	return _WorkerName[_WorkerIndex[i]:_WorkerIndex[i+1]]
