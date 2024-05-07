@@ -11,8 +11,6 @@ import (
 	"github.com/robfig/cron/v3"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
-	"github.com/rss3-network/node/provider/arweave"
-	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 
@@ -21,7 +19,7 @@ type Monitor struct {
 	cron           *cron.Cron
 	databaseClient database.Client
 	redisClient    rueidis.Client
-	clients        map[network.Network]interface{}
+	clients        map[network.Network]Client
 }
 
 func (m *Monitor) Run(ctx context.Context) error {
@@ -45,20 +43,18 @@ func (m *Monitor) Run(ctx context.Context) error {
 }
 
 // initNetworkClient initializes arweave, ethereum, and other network clients.
-func initNetworkClient(n network.Network, endpoint string) (interface{}, error) {
-	var client interface{}
+func initNetworkClient(n network.Network, endpoint string) (Client, error) {
+	var client Client
 
 	var err error
 
 	switch n {
 	case network.Arweave:
-		client, err = arweave.NewClient()
-	case network.Arbitrum, network.Avalanche, network.Base, network.BinanceSmartChain, network.Crossbell, network.Ethereum, network.Gnosis, network.Linea, network.Optimism, network.Polygon, network.SatoshiVM, network.VSL:
-		client, err = ethereum.Dial(context.Background(), endpoint)
+		client, err = NewArweaveClient()
 	case network.Farcaster:
 		break
 	default:
-		err = fmt.Errorf("unsupported network: %s", n)
+		client, err = NewEthereumClient(endpoint)
 	}
 
 	if err != nil {
@@ -75,7 +71,7 @@ func NewMonitor(_ context.Context, config *config.File, databaseClient database.
 		cron:           cron.New(),
 		databaseClient: databaseClient,
 		redisClient:    redisClient,
-		clients:        make(map[network.Network]interface{}),
+		clients:        make(map[network.Network]Client),
 	}
 
 	// init all clients

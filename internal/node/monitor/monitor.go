@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/rss3-network/node/provider/arweave"
-	"github.com/rss3-network/node/provider/ethereum"
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"go.uber.org/zap"
@@ -47,33 +45,17 @@ func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 
 // getWorkerIndexingStateByClients gets the latest block height (arweave), block number (ethereum), event id (farcaster).
 func (m *Monitor) getWorkerIndexingStateByClients(ctx context.Context, n network.Network, state CheckpointState) (uint64, uint64, error) {
-	switch n {
-	case network.Arweave:
-		currentWorkerState := state.BlockHeight
-
-		arweaveClient := m.clients[n].(arweave.Client)
-
-		latestWorkerState, err := arweaveClient.GetBlockHeight(ctx)
-		if err != nil {
-			zap.L().Error("get latest block height", zap.Error(err))
-			return 0, 0, err
-		}
-
-		return currentWorkerState, uint64(latestWorkerState), nil
-	case network.Farcaster:
-		return 0, 0, nil
-	default:
-		currentWorkerState := state.BlockNumber
-
-		evmClient := m.clients[n].(ethereum.Client)
-
-		latestWorkerState, err := evmClient.BlockNumber(ctx)
-		if err != nil {
-			return 0, 0, err
-		}
-
-		return currentWorkerState, uint64(latestWorkerState.Int64()), nil
+	client, ok := m.clients[n]
+	if !ok {
+		return 0, 0, fmt.Errorf("client not ready")
 	}
+
+	latestState, err := client.LatestState(ctx)
+	if err != nil {
+		return 0, 0, fmt.Errorf("get latest state: %w", err)
+	}
+
+	return client.CurrentState(state), latestState, nil
 }
 
 // flagUnhealthyWorker detects by comparing the current and latest block height/number. If the difference is greater than the tolerance, the worker is flagged as unhealthy.

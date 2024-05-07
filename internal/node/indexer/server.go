@@ -17,8 +17,6 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
-	"github.com/rss3-network/node/provider/arweave"
-	"github.com/rss3-network/node/provider/ethereum"
 	workerx "github.com/rss3-network/node/schema/worker"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -38,8 +36,7 @@ type Server struct {
 	worker         engine.Worker
 	databaseClient database.Client
 	streamClient   stream.Client
-	ethereumClient ethereum.Client
-	arweaveClient  arweave.Client
+	client         monitor.Client
 	redisClient    rueidis.Client
 	// meterTasksCounter is a counter of the number of tasks processed.
 	// Deprecated: use meterTasksHistogram instead.
@@ -245,7 +242,7 @@ func (s *Server) checkWorkerStatus(ctx context.Context, checkpoint engine.Checkp
 	}
 
 	// get current indexing block height, number or event id and the latest block height, number, timestamp of network
-	currentWorkerState, latestWorkerState, err := s.getWorkerIndexingStateByClient(ctx, s.config.Network, state)
+	currentWorkerState, latestWorkerState, err := s.getWorkerIndexingStateByClient(ctx, state)
 	if err != nil {
 		zap.L().Error("get latest block height or number", zap.Error(err))
 		return err
@@ -272,32 +269,13 @@ func (s *Server) flagIndexingWorker(ctx context.Context, currentWorkerState, lat
 }
 
 // getWorkerIndexingStateByClient gets the latest block height (arweave), block number (ethereum), event id (farcaster).
-func (s *Server) getWorkerIndexingStateByClient(ctx context.Context, n network.Network, state monitor.CheckpointState) (uint64, uint64, error) {
-	switch n {
-	case network.Arweave:
-		currentWorkerState := state.BlockHeight
-
-		latestWorkerState, err := s.arweaveClient.GetBlockHeight(ctx)
-		if err != nil {
-			zap.L().Error("get latest block height", zap.Error(err))
-			return 0, 0, err
-		}
-
-		return currentWorkerState, uint64(latestWorkerState), nil
-	case network.Farcaster:
-		// TODO convert event id to timestamp and compare with now
-		return 0, 0, nil
-	default:
-		// if the network is evm-based chain, we use block number instead of block height
-		currentWorkerState := state.BlockNumber
-
-		latestWorkerState, err := s.ethereumClient.BlockNumber(ctx)
-		if err != nil {
-			return 0, 0, err
-		}
-
-		return currentWorkerState, uint64(latestWorkerState.Int64()), nil
+func (s *Server) getWorkerIndexingStateByClient(ctx context.Context, state monitor.CheckpointState) (uint64, uint64, error) {
+	latestState, err := s.client.LatestState(ctx)
+	if err != nil {
+		return 0, 0, fmt.Errorf("get latest state: %w", err)
 	}
+
+	return s.client.CurrentState(state), latestState, nil
 }
 
 func (s *Server) initializeMeter() (err error) {
@@ -358,31 +336,13 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.Int64Observer) error {
 	go func() {
 		// get latest block height
-		var latestBlockHeight int64
-
-		switch s.config.Network {
-		case network.Arweave:
-			// get arweave client
-			latestHeight, err := s.arweaveClient.GetBlockHeight(ctx)
-			if err != nil {
-				zap.L().Error("get latest block height", zap.Error(err))
-				return
-			}
-
-			latestBlockHeight = latestHeight
-		case network.Farcaster:
-			break
-		default:
-			latestBlock, err := s.ethereumClient.BlockNumber(ctx)
-			if err != nil {
-				zap.L().Error("get latest block number", zap.Error(err))
-				return
-			}
-
-			latestBlockHeight = latestBlock.Int64()
+		latestBlockHeight, err := s.client.LatestState(ctx)
+		if err != nil {
+			zap.L().Error("get latest block height", zap.Error(err))
+			return
 		}
 
-		observer.Observe(latestBlockHeight, metric.WithAttributes(
+		observer.Observe(int64(latestBlockHeight), metric.WithAttributes(
 			attribute.String("service", constant.Name),
 			attribute.String("worker", s.worker.Name())))
 	}()
@@ -406,21 +366,17 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 
 	switch config.Network {
 	case network.Arweave:
-		arweaveClient, err := arweave.NewClient()
+		instance.client, err = monitor.NewArweaveClient()
 		if err != nil {
 			return nil, fmt.Errorf("new arweave client: %w", err)
 		}
-
-		instance.arweaveClient = arweaveClient
 	case network.Farcaster:
 		break
 	default:
-		ethereumClient, err := ethereum.Dial(context.Background(), config.Endpoint)
+		instance.client, err = monitor.NewEthereumClient(config.Endpoint)
 		if err != nil {
-			return nil, fmt.Errorf("dial ethereum: %w", err)
+			return nil, fmt.Errorf("new arweave client: %w", err)
 		}
-
-		instance.ethereumClient = ethereumClient
 	}
 
 	if err := instance.initializeMeter(); err != nil {
