@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"path"
 	"reflect"
@@ -14,6 +15,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/stream"
+	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
@@ -33,12 +35,53 @@ const (
 
 type File struct {
 	Environment   string     `mapstructure:"environment" validate:"required" default:"development"`
+	Endpoints     []Endpoint `mapstructure:"endpoints"`
 	Discovery     *Discovery `mapstructure:"discovery" validate:"required"`
 	Node          *Node      `mapstructure:"component" validate:"required"`
 	Database      *Database  `mapstructure:"database" validate:"required"`
 	Stream        *Stream    `mapstructure:"stream" validate:"required"`
 	Redis         *Redis     `mapstructure:"redis" validate:"required"`
 	Observability *Telemetry `mapstructure:"observability" validate:"required"`
+}
+
+func (f *File) LoadModulesEndpoint() error {
+	for index, module := range f.Node.RSS {
+		endpoint, found := lo.Find(f.Endpoints, func(endpoint Endpoint) bool { return endpoint.ID == module.EndpointID })
+		if !found {
+			endpoint = Endpoint{
+				ID:  module.EndpointID,
+				URL: module.EndpointID,
+			}
+		}
+
+		f.Node.RSS[index].Endpoint = endpoint
+	}
+
+	for index, module := range f.Node.Federated {
+		endpoint, found := lo.Find(f.Endpoints, func(endpoint Endpoint) bool { return endpoint.ID == module.EndpointID })
+		if !found {
+			endpoint = Endpoint{
+				ID:  module.EndpointID,
+				URL: module.EndpointID,
+			}
+		}
+
+		f.Node.Federated[index].Endpoint = endpoint
+	}
+
+	for index, module := range f.Node.Decentralized {
+		endpoint, found := lo.Find(f.Endpoints, func(endpoint Endpoint) bool { return endpoint.ID == module.EndpointID })
+		if !found {
+			endpoint = Endpoint{
+				ID:  module.EndpointID,
+				URL: module.EndpointID,
+			}
+		}
+
+		f.Node.Decentralized[index].Endpoint = endpoint
+	}
+
+	return nil
 }
 
 type Discovery struct {
@@ -64,10 +107,34 @@ type Node struct {
 
 type Module struct {
 	Network      network.Network `mapstructure:"network" validate:"required"`
-	Endpoint     string          `mapstructure:"endpoint" validate:"required"`
+	EndpointID   string          `mapstructure:"endpoint" validate:"required"`
 	IPFSGateways []string        `mapstructure:"ipfs_gateways"`
 	Worker       worker.Worker   `mapstructure:"worker"`
 	Parameters   *Parameters     `mapstructure:"parameters"`
+
+	Endpoint Endpoint `mapstructure:"-"`
+}
+
+type Endpoint struct {
+	ID      string            `mapstructure:"id"`
+	URL     string            `mapstructure:"url"`
+	Headers map[string]string `mapstructure:"headers"`
+}
+
+func (e Endpoint) BuildEthereumOptions() []ethereum.Option {
+	options := make([]ethereum.Option, 0)
+
+	if len(e.Headers) > 0 {
+		httpHeader := make(http.Header, 0)
+
+		for key, value := range e.Headers {
+			httpHeader.Set(key, value)
+		}
+
+		options = append(options, ethereum.WithHTTPHeader(httpHeader))
+	}
+
+	return options
 }
 
 type Database struct {
@@ -225,6 +292,10 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 		EvmAddressHookFunc(),
 	))); err != nil {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)
+	}
+
+	if err := configFile.LoadModulesEndpoint(); err != nil {
+		return nil, fmt.Errorf("build endpoint for modules: %w", err)
 	}
 
 	// Set default values.

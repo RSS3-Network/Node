@@ -51,7 +51,9 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 				config: &config.Module{
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
-					Endpoint:     endpoint.MustGet(network.Polygon),
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -112,7 +114,9 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 				config: &config.Module{
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
-					Endpoint:     endpoint.MustGet(network.Polygon),
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -173,7 +177,9 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 				config: &config.Module{
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
-					Endpoint:     endpoint.MustGet(network.Polygon),
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -247,7 +253,9 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 				config: &config.Module{
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
-					Endpoint:     endpoint.MustGet(network.Polygon),
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -309,7 +317,9 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 				config: &config.Module{
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
-					Endpoint:     endpoint.MustGet(network.Polygon),
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -377,7 +387,9 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 				config: &config.Module{
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
-					Endpoint:     endpoint.MustGet(network.Polygon),
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -440,7 +452,9 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 				config: &config.Module{
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
-					Endpoint:     endpoint.MustGet(network.Polygon),
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
 			want: &activityx.Activity{

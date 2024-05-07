@@ -188,8 +188,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Arbitrum,
-					Endpoint: endpoint.MustGet(network.Arbitrum),
+					Network: network.Arbitrum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Arbitrum),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -345,8 +347,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Optimism,
-					Endpoint: endpoint.MustGet(network.Optimism),
+					Network: network.Optimism,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Optimism),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -530,8 +534,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Optimism,
-					Endpoint: endpoint.MustGet(network.Optimism),
+					Network: network.Optimism,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Optimism),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -701,8 +707,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Polygon,
-					Endpoint: endpoint.MustGet(network.Polygon),
+					Network: network.Polygon,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -896,8 +904,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Linea,
-					Endpoint: endpoint.MustGet(network.Linea),
+					Network: network.Linea,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Linea),
+					},
 				},
 			},
 			want: &activityx.Activity{

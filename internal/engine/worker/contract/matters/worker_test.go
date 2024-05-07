@@ -120,7 +120,9 @@ func TestWorker_Matters(t *testing.T) {
 		//		},
 		//		config: &config.Module{
 		//			Network:  network.Polygon,
-		//			Endpoint: endpoint.MustGet(network.Polygon),
+		//			Endpoint: config.Endpoint{
+		//			URL: endpoint.MustGet(network.Polygon),
+		//			},
 		//		},
 		//	},
 		//	want: &activityx.Activity{
