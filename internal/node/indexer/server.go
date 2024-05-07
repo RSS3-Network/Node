@@ -332,7 +332,6 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 
 		if latestCheckpoint != nil {
 			// Get the current block height/block number from the checkpoint state.
-
 			var state monitor.CheckpointState
 			if err := json.Unmarshal(latestCheckpoint.State, &state); err != nil {
 				zap.L().Error("unmarshal checkpoint state", zap.Error(err))
