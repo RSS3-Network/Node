@@ -14,8 +14,8 @@ import (
 )
 
 type Component struct {
-	databaseClient            database.Client
-	meterDecentralizedCounter metric.Int64Counter
+	databaseClient database.Client
+	counter        metric.Int64Counter
 }
 
 const Name = "decentralized"
@@ -47,7 +47,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, databaseClient databa
 func (h *Component) InitMeter() (err error) {
 	meter := otel.GetMeterProvider().Meter(constant.Name)
 
-	if h.meterDecentralizedCounter, err = meter.Int64Counter(h.Name()); err != nil {
+	if h.counter, err = meter.Int64Counter(h.Name()); err != nil {
 		return fmt.Errorf("failed to init meter for component %s: %w", h.Name(), err)
 	}
 
@@ -60,5 +60,5 @@ func (h *Component) CollectMetric(ctx context.Context, value string) {
 		attribute.String("path", value),
 	)
 
-	h.meterDecentralizedCounter.Add(ctx, int64(1), measurementOption)
+	h.counter.Add(ctx, int64(1), measurementOption)
 }

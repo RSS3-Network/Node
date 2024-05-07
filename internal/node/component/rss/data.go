@@ -21,8 +21,8 @@ const (
 	SUFFIX = "rss3"
 )
 
-// getData fetches data from an RSSHub based on the provided URL.
-func (h *Component) getData(ctx context.Context, path string, url *url.URL) ([]*activityx.Activity, error) {
+// getActivities fetches data from an RSSHub and returns the transformed response in the Activity format.
+func (h *Component) getActivities(ctx context.Context, path string, url *url.URL) ([]*activityx.Activity, error) {
 	request, err := h.formatRequest(ctx, path, url)
 	if err != nil {
 		return nil, fmt.Errorf("format request: %w", err)
@@ -31,21 +31,21 @@ func (h *Component) getData(ctx context.Context, path string, url *url.URL) ([]*
 	//nolint:bodyclose // False positive
 	response, err := h.getResponse(ctx, request)
 	if err != nil {
-		return nil, fmt.Errorf("get RSS response: %w", err)
+		return nil, fmt.Errorf("failed to get RSSHub response: %w", err)
 	}
 
 	return h.formatResponse(ctx, response)
 }
 
-// formatRequest prepares the URL for the RSS request with necessary parameters and authentication.
+// formatRequest prepares the URL for the RSSHub request with necessary parameters and authentication.
 func (h *Component) formatRequest(ctx context.Context, path string, in *url.URL) (*url.URL, error) {
 	out, err := url.Parse(h.rsshub.Endpoint)
 	if err != nil {
-		return nil, fmt.Errorf("parse rsshub endpoint: %w", err)
+		return nil, fmt.Errorf("parse RSSHub endpoint: %w", err)
 	}
 
 	if err := h.parseRSSHubAuthentication(ctx, in); err != nil {
-		return nil, fmt.Errorf("parse rsshub authentication: %w", err)
+		return nil, fmt.Errorf("parse RSSHub authentication: %w", err)
 	}
 
 	parameters := in.Query()
@@ -95,7 +95,7 @@ func (h *Component) getResponse(ctx context.Context, rssRequestURL *url.URL) (*h
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("RSS service response status code: %d", response.StatusCode)
+		return nil, fmt.Errorf("RSSHub status code: %d", response.StatusCode)
 	}
 
 	return response, nil
@@ -105,14 +105,14 @@ func (h *Component) getResponse(ctx context.Context, rssRequestURL *url.URL) (*h
 func (h *Component) formatResponse(ctx context.Context, response *http.Response) ([]*activityx.Activity, error) {
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("read response body: %w", err)
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	defer lo.Try(response.Body.Close)
 
 	activities, err := h.transformResponse(ctx, data)
 	if err != nil {
-		return nil, fmt.Errorf("transform RSS response: %w", err)
+		return nil, err
 	}
 
 	return activities, nil
@@ -127,7 +127,7 @@ func (h *Component) transformResponse(_ context.Context, data []byte) ([]*activi
 	var resp response
 
 	if err := json.Unmarshal(data, &resp); err != nil {
-		return nil, fmt.Errorf("unmarshal rsshub response: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal RSSHub response: %w", err)
 	}
 
 	return resp.Data, nil

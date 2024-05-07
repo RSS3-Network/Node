@@ -19,7 +19,7 @@ func (h *Component) GetRSSHubHandler(c echo.Context) error {
 
 	go h.CollectMetric(context.TODO(), path)
 
-	data, err := h.getData(c.Request().Context(), path, c.Request().URL)
+	data, err := h.getActivities(c.Request().Context(), path, c.Request().URL)
 	if err != nil {
 		return response.InternalError(c, err)
 	}

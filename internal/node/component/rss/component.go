@@ -16,9 +16,9 @@ import (
 )
 
 type Component struct {
-	httpClient      *http.Client
-	rsshub          *config.Module
-	meterRSSCounter metric.Int64Counter
+	httpClient *http.Client
+	rsshub     *config.Module
+	counter    metric.Int64Counter
 }
 
 const Name = "rss"
@@ -55,7 +55,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config []*config.Modu
 func (h *Component) InitMeter() (err error) {
 	meter := otel.GetMeterProvider().Meter(constant.Name)
 
-	if h.meterRSSCounter, err = meter.Int64Counter(h.Name()); err != nil {
+	if h.counter, err = meter.Int64Counter(h.Name()); err != nil {
 		return fmt.Errorf("failed to init meter for component %s: %w", h.Name(), err)
 	}
 
@@ -68,5 +68,5 @@ func (h *Component) CollectMetric(ctx context.Context, value string) {
 		attribute.String("value", value),
 	)
 
-	h.meterRSSCounter.Add(ctx, int64(1), measurementOption)
+	h.counter.Add(ctx, int64(1), measurementOption)
 }
