@@ -53,12 +53,12 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 
 	apiServer.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
 
-	if len(config.Node.RSS) > 0 {
-		rssComponent := rss.NewComponent(ctx, apiServer, config.Node.RSS)
+	if len(config.Component.RSS) > 0 {
+		rssComponent := rss.NewComponent(ctx, apiServer, config.Component.RSS)
 		node.components = append(node.components, &rssComponent)
 	}
 
-	if len(config.Node.Decentralized) > 0 {
+	if len(config.Component.Decentralized) > 0 {
 		decentralizedComponent := decentralized.NewComponent(ctx, apiServer, databaseClient)
 		node.components = append(node.components, &decentralizedComponent)
 	}

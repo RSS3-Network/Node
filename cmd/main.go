@@ -122,7 +122,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 		return fmt.Errorf("worker string: %w", err)
 	}
 
-	for _, nodeConfig := range config.Node.Decentralized {
+	for _, nodeConfig := range config.Component.Decentralized {
 		if nodeConfig.Network == network && nodeConfig.Worker == _worker {
 			if nodeConfig.Parameters == nil && parameters == "{}" || *(nodeConfig.Parameters) != nil && strings.EqualFold(nodeConfig.Parameters.String(), parameters) {
 				server, err := indexer.NewServer(ctx, nodeConfig, databaseClient, streamClient, redisClient)

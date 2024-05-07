@@ -34,7 +34,7 @@ const (
 type File struct {
 	Environment   string     `mapstructure:"environment" validate:"required" default:"development"`
 	Discovery     *Discovery `mapstructure:"discovery" validate:"required"`
-	Node          *Node      `mapstructure:"component" validate:"required"`
+	Component     *Component `mapstructure:"component" validate:"required"`
 	Database      *Database  `mapstructure:"database" validate:"required"`
 	Stream        *Stream    `mapstructure:"stream" validate:"required"`
 	Redis         *Redis     `mapstructure:"redis" validate:"required"`
@@ -56,7 +56,7 @@ type Server struct {
 	GlobalIndexerEndpoint string `mapstructure:"global_indexer_endpoint"`
 }
 
-type Node struct {
+type Component struct {
 	RSS           []*Module `mapstructure:"rss" validate:"dive"`
 	Federated     []*Module `mapstructure:"federated" validate:"dive"`
 	Decentralized []*Module `mapstructure:"decentralized" validate:"dive"`
