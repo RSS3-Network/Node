@@ -2,9 +2,7 @@ package rss
 
 import (
 	"context"
-	// nolint:gosec
-	"crypto/md5"
-	"encoding/hex"
+
 	"encoding/json"
 	"fmt"
 	"io"
@@ -23,7 +21,7 @@ const (
 
 // getActivities fetches data from an RSSHub and returns the transformed response in the Activity format.
 func (h *Component) getActivities(ctx context.Context, path string, url *url.URL) ([]*activityx.Activity, error) {
-	request, err := h.formatRequest(ctx, path, url)
+	request, err := h.formatRequest(path, url)
 	if err != nil {
 		return nil, fmt.Errorf("format request: %w", err)
 	}
@@ -38,52 +36,29 @@ func (h *Component) getActivities(ctx context.Context, path string, url *url.URL
 }
 
 // formatRequest prepares the URL for the RSSHub request with necessary parameters and authentication.
-func (h *Component) formatRequest(ctx context.Context, path string, in *url.URL) (*url.URL, error) {
-	out, err := url.Parse(h.rsshub.Endpoint)
+func (h *Component) formatRequest(path string, in *url.URL) (*url.URL, error) {
+	out, err := url.Parse(h.rsshub.endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("parse RSSHub endpoint: %w", err)
 	}
 
-	if err := h.parseRSSHubAuthentication(ctx, in); err != nil {
-		return nil, fmt.Errorf("parse RSSHub authentication: %w", err)
-	}
-
 	parameters := in.Query()
 	parameters.Set("format", SUFFIX)
+
+	if h.rsshub.accessKey != "" {
+		parameters.Set("key", h.rsshub.accessKey)
+		in.RawQuery = parameters.Encode()
+	}
+
 	out.RawQuery = parameters.Encode()
 	out.Path = path
 
 	return out, nil
 }
 
-// parseRSSHubAuthentication parse authentication config and validate it, then fill in request
-func (h *Component) parseRSSHubAuthentication(_ context.Context, request *url.URL) error {
-	if h.rsshub.Parameters == nil {
-		return nil
-	}
-
-	option, err := NewOption(h.rsshub.Parameters)
-	if err != nil {
-		return fmt.Errorf("parse parmeters: %w", err)
-	}
-
-	if option.Authentication.AccessKey != "" {
-		// AccessKey calculation: md5(rawQuery + AccessKey)
-		// nolint:gosec
-		hash := md5.Sum([]byte("/" + request.Path + option.Authentication.AccessKey))
-		accessCode := hex.EncodeToString(hash[:])
-
-		parameters := request.Query()
-		parameters.Set("code", accessCode)
-		request.RawQuery = parameters.Encode()
-	}
-
-	return nil
-}
-
 // getResponse sends an HTTP request to the RSSHub and returns the response.
-func (h *Component) getResponse(ctx context.Context, rssRequestURL *url.URL) (*http.Response, error) {
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, rssRequestURL.String(), nil)
+func (h *Component) getResponse(ctx context.Context, url *url.URL) (*http.Response, error) {
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("create HTTP request: %w", err)
 	}

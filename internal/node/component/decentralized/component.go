@@ -27,21 +27,21 @@ func (h *Component) Name() string {
 var _ component.Component = (*Component)(nil)
 
 func NewComponent(_ context.Context, apiServer *echo.Echo, databaseClient database.Client) component.Component {
-	component := &Component{
+	c := &Component{
 		databaseClient: databaseClient,
 	}
 
 	group := apiServer.Group(fmt.Sprintf("/%s", Name))
 
-	group.GET("/tx/:id", component.GetActivity)
-	group.GET("/:account", component.GetAccountActivities)
-	group.GET("/count", component.GetActivitiesCount)
+	group.GET("/tx/:id", c.GetActivity)
+	group.GET("/:account", c.GetAccountActivities)
+	group.GET("/count", c.GetActivitiesCount)
 
-	if err := component.InitMeter(); err != nil {
+	if err := c.InitMeter(); err != nil {
 		return nil
 	}
 
-	return component
+	return c
 }
 
 func (h *Component) InitMeter() (err error) {

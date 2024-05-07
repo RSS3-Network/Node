@@ -17,8 +17,13 @@ import (
 
 type Component struct {
 	httpClient *http.Client
-	rsshub     *config.Module
+	rsshub     *RSSHub
 	counter    metric.Int64Counter
+}
+
+type RSSHub struct {
+	endpoint  string
+	accessKey string
 }
 
 const Name = "rss"
@@ -30,26 +35,38 @@ func (h *Component) Name() string {
 var _ component.Component = (*Component)(nil)
 
 func NewComponent(_ context.Context, apiServer *echo.Echo, config []*config.Module) component.Component {
-	component := &Component{
+	c := &Component{
 		httpClient: http.DefaultClient,
 	}
 
 	group := apiServer.Group(fmt.Sprintf("/%s", Name))
 
-	group.GET("/*", component.GetRSSHubHandler)
+	group.GET("/*", c.GetRSSHubHandler)
 
-	if err := component.InitMeter(); err != nil {
+	if err := c.InitMeter(); err != nil {
 		return nil
 	}
 
 	for _, conf := range config {
 		if conf.Network == network.RSS {
-			component.rsshub = conf
+
+			c.rsshub = &RSSHub{
+				endpoint: conf.Endpoint,
+			}
+
+			if err := c.setAccessKey(context.Background(), conf); err != nil {
+				c.rsshub = nil
+			}
+
 			break
 		}
 	}
 
-	return component
+	if c.rsshub == nil {
+		panic("Missing configuration for Component RSS")
+	}
+
+	return c
 }
 
 func (h *Component) InitMeter() (err error) {
@@ -69,4 +86,22 @@ func (h *Component) CollectMetric(ctx context.Context, value string) {
 	)
 
 	h.counter.Add(ctx, int64(1), measurementOption)
+}
+
+// setAccessKey set the access code according to the RSSHub authentication specification.
+func (h *Component) setAccessKey(_ context.Context, config *config.Module) error {
+	if config.Parameters == nil {
+		return nil
+	}
+
+	option, err := NewOption(config.Parameters)
+	if err != nil {
+		return fmt.Errorf("parse parmeters: %w", err)
+	}
+
+	if option.Authentication.AccessKey != "" {
+		h.rsshub.accessKey = option.Authentication.AccessKey
+	}
+
+	return nil
 }
