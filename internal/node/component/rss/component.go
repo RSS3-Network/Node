@@ -17,11 +17,11 @@ import (
 
 type Component struct {
 	httpClient *http.Client
-	rsshub     *RSSHub
+	rsshub     *configx
 	counter    metric.Int64Counter
 }
 
-type RSSHub struct {
+type configx struct {
 	endpoint  string
 	accessKey string
 }
@@ -49,8 +49,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config []*config.Modu
 
 	for _, conf := range config {
 		if conf.Network == network.RSS {
-
-			c.rsshub = &RSSHub{
+			c.rsshub = &configx{
 				endpoint: conf.Endpoint,
 			}
 

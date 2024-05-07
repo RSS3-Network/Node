@@ -2,7 +2,6 @@ package rss
 
 import (
 	"context"
-
 	"encoding/json"
 	"fmt"
 	"io"
