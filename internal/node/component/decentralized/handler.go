@@ -55,7 +55,7 @@ type StatisticResponse struct {
 	LastUpdate *time.Time `json:"last_update,omitempty"`
 }
 
-func (h *Hub) parseParams(params url.Values, tags []tag.Tag) ([]schema.Type, error) {
+func (h *Component) parseParams(params url.Values, tags []tag.Tag) ([]schema.Type, error) {
 	if len(tags) == 0 {
 		return nil, nil
 	}

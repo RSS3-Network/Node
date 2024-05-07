@@ -242,7 +242,7 @@ func (w *worker) matchEthereumStableSwapTokenExchangeLog(task *source.Task, log 
 		return false
 	}
 
-	// Validate stable swap pool.
+	// Validator stable swap pool.
 	validated, err := w.curvePoolRegistry.Validate(context.Background(), task.Network, pool.ContractTypePool, log.Address)
 	if err != nil {
 		zap.L().Error("validate pool", zap.Error(err), zap.Stringer("pool", log.Address))
@@ -257,7 +257,7 @@ func (w *worker) matchEthereumLiquidityGaugeDepositLog(task *source.Task, log *e
 		return false
 	}
 
-	// Validate liquidity gauge.
+	// Validator liquidity gauge.
 	validated, err := w.curvePoolRegistry.Validate(context.Background(), task.Network, pool.ContractTypeGauge, log.Address)
 	if err != nil {
 		zap.L().Error("validate gauge", zap.Error(err), zap.Stringer("pool", log.Address))
@@ -272,7 +272,7 @@ func (w *worker) matchEthereumLiquidityGaugeWithdrawLog(task *source.Task, log *
 		return false
 	}
 
-	// Validate liquidity gauge.
+	// Validator liquidity gauge.
 	validated, err := w.curvePoolRegistry.Validate(context.Background(), task.Network, pool.ContractTypeGauge, log.Address)
 	if err != nil {
 		zap.L().Error("validate gauge", zap.Error(err), zap.Stringer("pool", log.Address))

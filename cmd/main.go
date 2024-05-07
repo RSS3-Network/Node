@@ -15,7 +15,6 @@ import (
 	"github.com/rss3-network/node/internal/database/dialer"
 	"github.com/rss3-network/node/internal/node"
 	"github.com/rss3-network/node/internal/node/broadcaster"
-	"github.com/rss3-network/node/internal/node/hub"
 	"github.com/rss3-network/node/internal/node/indexer"
 	"github.com/rss3-network/node/internal/stream"
 	"github.com/rss3-network/node/internal/stream/provider"
@@ -101,7 +100,7 @@ var command = cobra.Command{
 }
 
 func runHub(ctx context.Context, config *config.File, databaseClient database.Client) error {
-	server := hub.NewServer(ctx, config, databaseClient)
+	server := node.NewNode(ctx, config, databaseClient)
 
 	return server.Run(ctx)
 }

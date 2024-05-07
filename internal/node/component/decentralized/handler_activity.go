@@ -12,7 +12,7 @@ import (
 	"github.com/samber/lo"
 )
 
-func (h *Hub) GetActivity(c echo.Context) error {
+func (h *Component) GetActivity(c echo.Context) error {
 	var request ActivityRequest
 
 	if err := c.Bind(&request); err != nil {
@@ -46,7 +46,7 @@ func (h *Hub) GetActivity(c echo.Context) error {
 	})
 }
 
-func (h *Hub) GetAccountActivities(c echo.Context) (err error) {
+func (h *Component) GetAccountActivities(c echo.Context) (err error) {
 	request := AccountActivitiesRequest{}
 
 	if err = c.Bind(&request); err != nil {
@@ -65,7 +65,7 @@ func (h *Hub) GetAccountActivities(c echo.Context) (err error) {
 		return response.ValidateFailedError(c, err)
 	}
 
-	go h.countAccount(context.TODO(), common.HexToAddress(request.Account).String())
+	go h.CollectMetric(context.TODO(), common.HexToAddress(request.Account).String())
 
 	cursor, err := h.getCursor(c.Request().Context(), request.Cursor)
 	if err != nil {

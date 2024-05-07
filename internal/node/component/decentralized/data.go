@@ -12,11 +12,11 @@ import (
 	"github.com/samber/lo"
 )
 
-func (h *Hub) getActivity(ctx context.Context, request model.ActivityQuery) (*activityx.Activity, *int, error) {
+func (h *Component) getActivity(ctx context.Context, request model.ActivityQuery) (*activityx.Activity, *int, error) {
 	return h.databaseClient.FindActivity(ctx, request)
 }
 
-func (h *Hub) getActivities(ctx context.Context, request model.ActivitiesQuery) ([]*activityx.Activity, string, error) {
+func (h *Component) getActivities(ctx context.Context, request model.ActivitiesQuery) ([]*activityx.Activity, string, error) {
 	activities, err := h.databaseClient.FindActivities(ctx, request)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to find activities: %w", err)
@@ -30,7 +30,7 @@ func (h *Hub) getActivities(ctx context.Context, request model.ActivitiesQuery) 
 	return nil, "", nil
 }
 
-func (h *Hub) getCursor(ctx context.Context, cursor *string) (*activityx.Activity, error) {
+func (h *Component) getCursor(ctx context.Context, cursor *string) (*activityx.Activity, error) {
 	if cursor == nil {
 		return nil, nil
 	}
@@ -53,7 +53,7 @@ func (h *Hub) getCursor(ctx context.Context, cursor *string) (*activityx.Activit
 	return data, nil
 }
 
-func (h *Hub) transformCursor(_ context.Context, activity *activityx.Activity) string {
+func (h *Component) transformCursor(_ context.Context, activity *activityx.Activity) string {
 	if activity == nil {
 		return ""
 	}
@@ -61,7 +61,7 @@ func (h *Hub) transformCursor(_ context.Context, activity *activityx.Activity) s
 	return fmt.Sprintf("%s:%s", activity.ID, activity.Network)
 }
 
-func (h *Hub) getIndexCount(ctx context.Context) (int64, *time.Time, error) {
+func (h *Component) getIndexCount(ctx context.Context) (int64, *time.Time, error) {
 	var (
 		count      int64
 		updateTime *time.Time
