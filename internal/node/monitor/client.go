@@ -8,15 +8,18 @@ import (
 )
 
 type Client interface {
+	// CurrentState returns the current block number (ethereum), height (arweave) or event id (farcaster) of the client from Checkpoints table in database.
 	CurrentState(state CheckpointState) uint64
+	// LatestState returns the latest block number (ethereum), height (arweave) or event id (farcaster) of the client from network rpc/api.
 	LatestState(ctx context.Context) (uint64, error)
 }
 
+// ethereumClient is a client implementation for ethereum.
 type ethereumClient struct {
 	ethereumClient ethereum.Client
 }
 
-// make sure client implements monitor.Client
+// make sure client implements Client
 var _ Client = (*ethereumClient)(nil)
 
 func (c *ethereumClient) CurrentState(state CheckpointState) uint64 {
@@ -32,6 +35,7 @@ func (c *ethereumClient) LatestState(ctx context.Context) (uint64, error) {
 	return uint64(latestWorkerState.Int64()), nil
 }
 
+// NewEthereumClient returns a new ethereum client.
 func NewEthereumClient(endpoint string) (Client, error) {
 	evmClient, err := ethereum.Dial(context.Background(), endpoint)
 	if err != nil {
@@ -43,6 +47,7 @@ func NewEthereumClient(endpoint string) (Client, error) {
 	}, nil
 }
 
+// arweaveClient is a client implementation for arweave.
 type arweaveClient struct {
 	arweaveClient arweave.Client
 }
@@ -63,6 +68,7 @@ func (c *arweaveClient) LatestState(ctx context.Context) (uint64, error) {
 	return uint64(latestWorkerState), nil
 }
 
+// NewArweaveClient returns a new arweave client.
 func NewArweaveClient() (Client, error) {
 	arClient, err := arweave.NewClient()
 	if err != nil {

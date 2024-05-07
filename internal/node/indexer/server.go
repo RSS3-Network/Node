@@ -301,6 +301,7 @@ func (s *Server) initializeMeter() (err error) {
 	return nil
 }
 
+// currentBlockMetricHandler gets the current block height/number from the checkpoint state and get latest block height/number from the network rpc.
 func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.Int64Observer) error {
 	go func() {
 		// get current block height state
@@ -318,12 +319,7 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 				return
 			}
 
-			currentBlockHeight := state.BlockNumber
-			if currentBlockHeight == 0 {
-				currentBlockHeight = state.BlockHeight
-			}
-
-			observer.Observe(int64(currentBlockHeight), metric.WithAttributes(
+			observer.Observe(int64(s.client.CurrentState(state)), metric.WithAttributes(
 				attribute.String("service", constant.Name),
 				attribute.String("worker", s.worker.Name()),
 			))
@@ -333,6 +329,7 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 	return nil
 }
 
+// latestBlockMetricHandler gets the latest block height/number from the network rpc.
 func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.Int64Observer) error {
 	go func() {
 		// get latest block height
