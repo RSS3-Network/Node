@@ -11,13 +11,12 @@ import (
 type Worker uint64
 
 const (
-	Fallback   Worker = iota // fallback
+	Core       Worker = iota // core
 	Mirror                   // mirror
-	Farcaster                // farcaster
 	RSS3                     // rss3
 	Paragraph                // paragraph
 	OpenSea                  // opensea
-	Uniswap                  // uniswapz
+	Uniswap                  // uniswap
 	Optimism                 // optimism
 	Aavegotchi               // aavegotchi
 	Lens                     // lens
@@ -30,7 +29,7 @@ const (
 	Lido                     // lido
 	Crossbell                // crossbell
 	ENS                      // ens
-	Oneinch                  // oneinch
+	Oneinch                  // 1inch
 	KiwiStand                // kiwistand
 	SAVM                     // savm
 	VSL                      // vsl

@@ -44,7 +44,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return workerx.Fallback.String()
+	return workerx.Core.String()
 }
 
 func (w *worker) Platform() string {
