@@ -14,6 +14,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/internal/engine/source"
 	"github.com/rss3-network/node/internal/engine/worker"
+	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum"
@@ -219,68 +220,64 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 // checkWorkerStatus checks if the worker is ready.
 func (s *Server) checkWorkerStatus(ctx context.Context, checkpoint engine.Checkpoint) (err error) {
 	// Check if the worker is ready
-	// Get the current block height/block number from the checkpoint state.
-	type CheckpointState struct {
-		BlockHeight uint64 `json:"block_height"`
-		BlockNumber uint64 `json:"block_number"`
-		EventID     uint64 `json:"event_id"`
-	}
-
-	var state CheckpointState
+	var state monitor.CheckpointState
 	if err := json.Unmarshal(checkpoint.State, &state); err != nil {
 		zap.L().Error("unmarshal checkpoint state", zap.Error(err))
 		return err
 	}
 
-	switch s.config.Network {
-	case network.Arweave:
-		latestHeight, err := s.arweaveClient.GetBlockHeight(ctx)
-		if err != nil {
-			zap.L().Error("get latest block height", zap.Error(err))
-			return err
+	// get current indexing block height, number or event id and the latest block height, number, timestamp of network
+	currentBlockState, latestBlockState, err := s.getLatestBlockHeightOrNumberByClient(ctx, s.config.Network, state)
+	if err != nil {
+		zap.L().Error("get latest block height or number", zap.Error(err))
+		return err
+	}
+
+	return s.flagIndexingWorker(ctx, currentBlockState, latestBlockState, monitor.NetworkTorlerance[s.config.Network])
+}
+
+// flagIndexingWorker compares the current and latest block height/number. If the difference is less than the tolerance, the worker is flagged as ready, otherwise it is flagged as indexing.
+func (s *Server) flagIndexingWorker(ctx context.Context, currentBlockState, latestBlockState, networkTolerance uint64) error {
+	if latestBlockState-currentBlockState < networkTolerance {
+		// Cache worker status to Redis.
+		if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusReady.String()); err != nil {
+			return fmt.Errorf("cache token metadata: %w", err)
 		}
-
-		currentHeight := state.BlockHeight
-
-		if uint64(latestHeight)-currentHeight < 100 {
-			// Cache worker status to Redis.
-			if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusReady.String()); err != nil {
-				return fmt.Errorf("cache token metadata: %w", err)
-			}
-		} else {
-			// Cache worker status to Redis.
-			if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusIndexing.String()); err != nil {
-				return fmt.Errorf("cache token metadata: %w", err)
-			}
-		}
-	case network.Farcaster:
-		// Check Timestamp
-		break
-	default:
-		latestBlock, err := s.ethereumClient.BlockNumber(ctx)
-		if err != nil {
-			zap.L().Error("get latest block number", zap.Error(err))
-			return err
-		}
-
-		latestBlockNumber := latestBlock.Int64()
-
-		currentBlockNumber := state.BlockNumber
-
-		if uint64(latestBlockNumber)-currentBlockNumber < 100 {
-			// Cache worker status to Redis.
-			if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusReady.String()); err != nil {
-				return fmt.Errorf("cache token metadata: %w", err)
-			}
-		} else {
-			// Cache worker status to Redis.
-			if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusIndexing.String()); err != nil {
-				return fmt.Errorf("cache token metadata: %w", err)
-			}
+	} else {
+		// Cache worker status to Redis.
+		if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusIndexing.String()); err != nil {
+			return fmt.Errorf("cache token metadata: %w", err)
 		}
 	}
 
 	return nil
+}
+
+// getLatestBlockHeightOrNumberByClient gets the latest block height (arweave), block number (ethereum), event id (farcaster).
+func (s *Server) getLatestBlockHeightOrNumberByClient(ctx context.Context, n network.Network, state monitor.CheckpointState) (uint64, uint64, error) {
+	switch n {
+	case network.Arweave:
+		current := state.BlockHeight
+
+		latestHeight, err := s.arweaveClient.GetBlockHeight(ctx)
+		if err != nil {
+			zap.L().Error("get latest block height", zap.Error(err))
+			return 0, 0, err
+		}
+
+		return current, uint64(latestHeight), nil
+	case network.Farcaster:
+		return 0, 0, nil
+	default:
+		current := state.BlockNumber
+
+		block, err := s.ethereumClient.BlockNumber(ctx)
+		if err != nil {
+			return 0, 0, err
+		}
+
+		return current, uint64(block.Int64()), nil
+	}
 }
 
 func (s *Server) initializeMeter() (err error) {
@@ -317,12 +314,8 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 
 		if latestCheckpoint != nil {
 			// Get the current block height/block number from the checkpoint state.
-			type CheckpointState struct {
-				BlockHeight uint64 `json:"block_height"`
-				BlockNumber uint64 `json:"block_number"`
-			}
 
-			var state CheckpointState
+			var state monitor.CheckpointState
 			if err := json.Unmarshal(latestCheckpoint.State, &state); err != nil {
 				zap.L().Error("unmarshal checkpoint state", zap.Error(err))
 				return

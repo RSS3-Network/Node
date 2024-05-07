@@ -10,8 +10,7 @@ import (
 )
 
 func (h *Hub) GetWorkers(c echo.Context) error {
-	// nolint: prealloc
-	var workers []WorkerInfo
+	workers := make([]WorkerInfo, 0, len(h.config.Node.Decentralized))
 
 	for _, w := range h.config.Node.Decentralized {
 		workers = append(workers, WorkerInfo{
@@ -26,7 +25,7 @@ func (h *Hub) GetWorkers(c echo.Context) error {
 	})
 }
 
-// getWorkerStatus gets the status of the worker.
+// getWorkerStatus gets worker status from Redis cache by network and workName.
 func (h *Hub) getWorkerStatus(network, workerName string) worker.Status {
 	if h.redisClient == nil {
 		return worker.StatusUnknown
