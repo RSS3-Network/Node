@@ -13,8 +13,7 @@ type Response struct {
 	Data []*activityx.Activity `json:"data"`
 }
 
-// GetRSSHubHandler get rsshub data from rsshub node
-func (h *Component) GetRSSHubHandler(c echo.Context) error {
+func (h *Component) Handler(c echo.Context) error {
 	path := c.Param("*")
 
 	go h.CollectMetric(context.TODO(), path)

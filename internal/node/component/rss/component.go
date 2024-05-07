@@ -41,7 +41,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config []*config.Modu
 
 	group := apiServer.Group(fmt.Sprintf("/%s", Name))
 
-	group.GET("/*", c.GetRSSHubHandler)
+	group.GET("/*", c.Handler)
 
 	if err := c.InitMeter(); err != nil {
 		return nil

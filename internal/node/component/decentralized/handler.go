@@ -68,8 +68,8 @@ func (h *Component) parseParams(params url.Values, tags []tag.Tag) ([]schema.Typ
 			err   error
 		)
 
-		for _, tag := range tags {
-			value, err = schema.ParseTypeFromString(tag, typex)
+		for _, tagx := range tags {
+			value, err = schema.ParseTypeFromString(tagx, typex)
 			if err == nil {
 				types = append(types, value)
 
