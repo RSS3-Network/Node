@@ -245,18 +245,18 @@ func (s *Server) checkWorkerStatus(ctx context.Context, checkpoint engine.Checkp
 	}
 
 	// get current indexing block height, number or event id and the latest block height, number, timestamp of network
-	currentBlockState, latestBlockState, err := s.getLatestBlockHeightOrNumberByClient(ctx, s.config.Network, state)
+	currentWorkerState, latestWorkerState, err := s.getWorkerIndexingStateByClient(ctx, s.config.Network, state)
 	if err != nil {
 		zap.L().Error("get latest block height or number", zap.Error(err))
 		return err
 	}
 
-	return s.flagIndexingWorker(ctx, currentBlockState, latestBlockState, monitor.NetworkTorlerance[s.config.Network])
+	return s.flagIndexingWorker(ctx, currentWorkerState, latestWorkerState, monitor.NetworkTorlerance[s.config.Network])
 }
 
 // flagIndexingWorker compares the current and latest block height/number. If the difference is less than the tolerance, the worker is flagged as ready, otherwise it is flagged as indexing.
-func (s *Server) flagIndexingWorker(ctx context.Context, currentBlockState, latestBlockState, networkTolerance uint64) error {
-	if latestBlockState-currentBlockState < networkTolerance {
+func (s *Server) flagIndexingWorker(ctx context.Context, currentWorkerState, latestWorkerState, networkTolerance uint64) error {
+	if latestWorkerState-currentWorkerState < networkTolerance {
 		// Cache worker status to Redis.
 		if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusReady.String()); err != nil {
 			return fmt.Errorf("cache token metadata: %w", err)
@@ -271,30 +271,32 @@ func (s *Server) flagIndexingWorker(ctx context.Context, currentBlockState, late
 	return nil
 }
 
-// getLatestBlockHeightOrNumberByClient gets the latest block height (arweave), block number (ethereum), event id (farcaster).
-func (s *Server) getLatestBlockHeightOrNumberByClient(ctx context.Context, n network.Network, state monitor.CheckpointState) (uint64, uint64, error) {
+// getWorkerIndexingStateByClient gets the latest block height (arweave), block number (ethereum), event id (farcaster).
+func (s *Server) getWorkerIndexingStateByClient(ctx context.Context, n network.Network, state monitor.CheckpointState) (uint64, uint64, error) {
 	switch n {
 	case network.Arweave:
-		current := state.BlockHeight
+		currentWorkerState := state.BlockHeight
 
-		latestHeight, err := s.arweaveClient.GetBlockHeight(ctx)
+		latestWorkerState, err := s.arweaveClient.GetBlockHeight(ctx)
 		if err != nil {
 			zap.L().Error("get latest block height", zap.Error(err))
 			return 0, 0, err
 		}
 
-		return current, uint64(latestHeight), nil
+		return currentWorkerState, uint64(latestWorkerState), nil
 	case network.Farcaster:
+		// TODO convert event id to timestamp and compare with now
 		return 0, 0, nil
 	default:
-		current := state.BlockNumber
+		// if the network is evm-based chain, we use block number instead of block height
+		currentWorkerState := state.BlockNumber
 
-		block, err := s.ethereumClient.BlockNumber(ctx)
+		latestWorkerState, err := s.ethereumClient.BlockNumber(ctx)
 		if err != nil {
 			return 0, 0, err
 		}
 
-		return current, uint64(block.Int64()), nil
+		return currentWorkerState, uint64(latestWorkerState.Int64()), nil
 	}
 }
 

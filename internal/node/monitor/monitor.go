@@ -18,7 +18,9 @@ type CheckpointState struct {
 	EventID     uint64 `json:"event_id"`
 }
 
-func (m *Monitor) CheckWorkerStatus(ctx context.Context) error {
+// MonitorWorkerStatus checks the worker status by comparing the current and latest block height/number.
+// flags the worker as unhealthy if it's left behind the latest block height/number by more than the tolerance.
+func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 	for _, w := range m.config.Node.Decentralized {
 		// get checkpoint state from database
 		state, err := m.getCheckpointState(ctx, w.ID(), w.Network, w.Worker.String())
@@ -28,13 +30,14 @@ func (m *Monitor) CheckWorkerStatus(ctx context.Context) error {
 		}
 
 		// get current indexing block height, number or event id and the latest block height, number, timestamp of network
-		currentBlockState, latestBlockState, err := m.getLatestBlockHeightOrNumberByClients(ctx, w.Network, state)
+		currentWorkerState, latestWorkerState, err := m.getWorkerIndexingStateByClients(ctx, w.Network, state)
 		if err != nil {
 			zap.L().Error("get latest block height or number", zap.Error(err))
 			return err
 		}
 
-		if err := m.flagUnhealthyWorker(ctx, w.Network.String(), w.Worker.String(), currentBlockState, latestBlockState, 500); err != nil {
+		// check worker's current status, and flag it as unhealthy if it's left behind the latest block height/number by more than the tolerance
+		if err := m.flagUnhealthyWorker(ctx, w.Network.String(), w.Worker.String(), currentWorkerState, latestWorkerState, NetworkTorlerance[w.Network]); err != nil {
 			return fmt.Errorf("detect unhealthy: %w", err)
 		}
 	}
@@ -42,39 +45,40 @@ func (m *Monitor) CheckWorkerStatus(ctx context.Context) error {
 	return nil
 }
 
-// getLatestBlockHeightOrNumber gets the latest block height (arweave), block number (ethereum), event id (farcaster).
-func (m *Monitor) getLatestBlockHeightOrNumberByClients(ctx context.Context, n network.Network, state CheckpointState) (uint64, uint64, error) {
+// getWorkerIndexingStateByClients gets the latest block height (arweave), block number (ethereum), event id (farcaster).
+func (m *Monitor) getWorkerIndexingStateByClients(ctx context.Context, n network.Network, state CheckpointState) (uint64, uint64, error) {
 	switch n {
 	case network.Arweave:
-		currentBlockState := state.BlockHeight
+		currentWorkerState := state.BlockHeight
 
 		arweaveClient := m.clients[n].(arweave.Client)
 
-		latestBlockState, err := arweaveClient.GetBlockHeight(ctx)
+		latestWorkerState, err := arweaveClient.GetBlockHeight(ctx)
 		if err != nil {
 			zap.L().Error("get latest block height", zap.Error(err))
 			return 0, 0, err
 		}
 
-		return currentBlockState, uint64(latestBlockState), nil
+		return currentWorkerState, uint64(latestWorkerState), nil
 	case network.Farcaster:
 		return 0, 0, nil
 	default:
-		currentBlockState := state.BlockNumber
+		currentWorkerState := state.BlockNumber
 
 		evmClient := m.clients[n].(ethereum.Client)
 
-		latestBlockState, err := evmClient.BlockNumber(ctx)
+		latestWorkerState, err := evmClient.BlockNumber(ctx)
 		if err != nil {
 			return 0, 0, err
 		}
 
-		return currentBlockState, uint64(latestBlockState.Int64()), nil
+		return currentWorkerState, uint64(latestWorkerState.Int64()), nil
 	}
 }
 
 // flagUnhealthyWorker detects by comparing the current and latest block height/number. If the difference is greater than the tolerance, the worker is flagged as unhealthy.
 func (m *Monitor) flagUnhealthyWorker(ctx context.Context, network, workerName string, currentBlockState, latestBlockState, networkTolerance uint64) error {
+	// if the worker is in Ready status and current block height/number is left behind the latest block height/number by more than the tolerance, flag the worker as unhealthy
 	if m.getWorkerStatus(network, workerName) == workerx.StatusReady && latestBlockState-currentBlockState > networkTolerance {
 		// Cache worker status to Redis.
 		if err := m.updateWorkerStatus(ctx, network, workerName, workerx.StatusUnhealthy.String()); err != nil {
@@ -87,7 +91,6 @@ func (m *Monitor) flagUnhealthyWorker(ctx context.Context, network, workerName s
 
 // getCheckpointState gets the checkpoint state from the database.
 func (m *Monitor) getCheckpointState(ctx context.Context, id string, network network.Network, worker string) (CheckpointState, error) {
-	// load checkpoint
 	checkpoint, err := m.databaseClient.LoadCheckpoint(ctx, id, network, worker)
 	if err != nil {
 		return CheckpointState{}, fmt.Errorf("load checkpoint: %w", err)
@@ -102,7 +105,7 @@ func (m *Monitor) getCheckpointState(ctx context.Context, id string, network net
 	return state, nil
 }
 
-// getWorkerStatus gets worker status from Redis cache by network and workName.
+// getWorkerStatus gets worker status from Redis cache by network and workerName.
 func (m *Monitor) getWorkerStatus(network, workerName string) workerx.Status {
 	if m.redisClient == nil {
 		return workerx.StatusUnknown
