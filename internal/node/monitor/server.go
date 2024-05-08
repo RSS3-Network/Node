@@ -52,7 +52,7 @@ func initNetworkClient(n network.Network, endpoint string) (Client, error) {
 	case network.Arweave:
 		client, err = NewArweaveClient()
 	case network.Farcaster:
-		break
+		client, err = NewFarcasterClient()
 	default:
 		client, err = NewEthereumClient(endpoint)
 	}

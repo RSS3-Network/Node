@@ -19,6 +19,7 @@ const (
 
 	DefaultTimeout  = 5 * time.Second
 	DefaultAttempts = 5
+	SequenceBits    = 12
 )
 
 var _ Client = (*client)(nil)
@@ -244,6 +245,21 @@ func (c *client) fetch(ctx context.Context, path string, result any) error {
 // CovertFarcasterTimeToTimestamp Converts a Farcaster seconds timestamp to a Unix milliseconds timestamp.
 func CovertFarcasterTimeToTimestamp(timestamp int64) int64 {
 	return timestamp + FarcasterEpoch
+}
+
+// ExtractEventIDToTimestamp Extracts the timestamp format from a farcaster event ID.
+func ExtractEventIDToTimestamp(eventID uint64) uint64 {
+	binaryEventID := fmt.Sprintf("%b", eventID)
+	binaryTimestamp := binaryEventID[:len(binaryEventID)-SequenceBits]
+
+	decimalTimestamp := 0
+	for _, digit := range binaryTimestamp {
+		decimalTimestamp = decimalTimestamp*2 + int(digit-'0')
+	}
+
+	timestampWithEpoch := uint64(decimalTimestamp) + FarcasterEpoch
+
+	return timestampWithEpoch
 }
 
 type ClientOption func(client *client) error

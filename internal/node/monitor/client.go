@@ -2,9 +2,11 @@ package monitor
 
 import (
 	"context"
+	"time"
 
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum"
+	"github.com/rss3-network/node/provider/farcaster"
 )
 
 type Client interface {
@@ -78,4 +80,27 @@ func NewArweaveClient() (Client, error) {
 	return &arweaveClient{
 		arweaveClient: arClient,
 	}, nil
+}
+
+// farcasterClient is a client implementation for farcaster.
+type farcasterClient struct{}
+
+// make sure client implements Client
+var _ Client = (*farcasterClient)(nil)
+
+func (c *farcasterClient) CurrentState(state CheckpointState) uint64 {
+	if state.CastsBackfill && state.ReactionBackfill {
+		return farcaster.ExtractEventIDToTimestamp(state.EventID)
+	}
+
+	return 0
+}
+
+func (c *farcasterClient) LatestState(_ context.Context) (uint64, error) {
+	return uint64(time.Now().Unix()), nil
+}
+
+// NewFarcasterClient returns a new farcaster client.
+func NewFarcasterClient() (Client, error) {
+	return &farcasterClient{}, nil
 }

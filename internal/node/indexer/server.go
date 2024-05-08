@@ -368,11 +368,14 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 			return nil, fmt.Errorf("new arweave client: %w", err)
 		}
 	case network.Farcaster:
-		break
+		instance.client, err = monitor.NewFarcasterClient()
+		if err != nil {
+			return nil, fmt.Errorf("new farcaster client: %w", err)
+		}
 	default:
 		instance.client, err = monitor.NewEthereumClient(config.Endpoint)
 		if err != nil {
-			return nil, fmt.Errorf("new arweave client: %w", err)
+			return nil, fmt.Errorf("new ethereum client: %w", err)
 		}
 	}
 

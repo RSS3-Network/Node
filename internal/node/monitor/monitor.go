@@ -11,9 +11,11 @@ import (
 )
 
 type CheckpointState struct {
-	BlockHeight uint64 `json:"block_height"`
-	BlockNumber uint64 `json:"block_number"`
-	EventID     uint64 `json:"event_id"`
+	BlockHeight      uint64 `json:"block_height"`
+	BlockNumber      uint64 `json:"block_number"`
+	EventID          uint64 `json:"event_id"`
+	CastsBackfill    bool   `json:"casts_backfill"`
+	ReactionBackfill bool   `json:"reaction_backfill"`
 }
 
 // MonitorWorkerStatus checks the worker status by comparing the current and latest block height/number.
@@ -59,9 +61,9 @@ func (m *Monitor) getWorkerIndexingStateByClients(ctx context.Context, n network
 }
 
 // flagUnhealthyWorker detects by comparing the current and latest block height/number. If the difference is greater than the tolerance, the worker is flagged as unhealthy.
-func (m *Monitor) flagUnhealthyWorker(ctx context.Context, network, workerName string, currentBlockState, latestBlockState, networkTolerance uint64) error {
+func (m *Monitor) flagUnhealthyWorker(ctx context.Context, network, workerName string, currentWorkerState, latestWorkerState, networkTolerance uint64) error {
 	// if the worker is in Ready status and current block height/number is left behind the latest block height/number by more than the tolerance, flag the worker as unhealthy
-	if m.getWorkerStatus(network, workerName) == workerx.StatusReady && latestBlockState-currentBlockState > networkTolerance {
+	if m.getWorkerStatus(network, workerName) == workerx.StatusReady && latestWorkerState-currentWorkerState > networkTolerance {
 		// Cache worker status to Redis.
 		if err := m.updateWorkerStatus(ctx, network, workerName, workerx.StatusUnhealthy.String()); err != nil {
 			return fmt.Errorf("cache token metadata: %w", err)
