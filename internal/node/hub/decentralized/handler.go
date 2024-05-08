@@ -63,6 +63,7 @@ type WorkerResponse struct {
 type WorkerInfo struct {
 	Network network.Network `json:"network"`
 	Worker  worker.Worker   `json:"worker"`
+	Tag     tag.Tag         `json:"tag"`
 	Status  worker.Status   `json:"status"`
 }
 

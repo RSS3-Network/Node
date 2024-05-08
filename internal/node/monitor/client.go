@@ -97,7 +97,7 @@ func (c *farcasterClient) CurrentState(state CheckpointState) uint64 {
 }
 
 func (c *farcasterClient) LatestState(_ context.Context) (uint64, error) {
-	return uint64(time.Now().Unix()), nil
+	return uint64(time.Now().UnixMilli()), nil
 }
 
 // NewFarcasterClient returns a new farcaster client.

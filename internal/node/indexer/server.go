@@ -55,7 +55,7 @@ func (s *Server) Run(ctx context.Context) error {
 
 	// Cache worker status to Redis.
 	if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusDisabled.String()); err != nil {
-		return fmt.Errorf("cache token metadata: %w", err)
+		return fmt.Errorf("update worker status: %w", err)
 	}
 
 	zap.L().Info("start node", zap.String("version", constant.BuildVersion()))
@@ -105,7 +105,7 @@ func (s *Server) updateWorkerStatus(ctx context.Context, network, workerName str
 
 	result := s.redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
-		return fmt.Errorf("redis result: %w", err)
+		return fmt.Errorf("update worker status in redis cache: %w", err)
 	}
 
 	return nil
@@ -253,16 +253,17 @@ func (s *Server) checkWorkerStatus(ctx context.Context, checkpoint engine.Checkp
 
 // flagIndexingWorker compares the current and latest block height/number. If the difference is less than the tolerance, the worker is flagged as ready, otherwise it is flagged as indexing.
 func (s *Server) flagIndexingWorker(ctx context.Context, currentWorkerState, latestWorkerState, networkTolerance uint64) error {
+	var status workerx.Status
+
 	if latestWorkerState-currentWorkerState < networkTolerance {
-		// Cache worker status to Redis.
-		if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusReady.String()); err != nil {
-			return fmt.Errorf("cache token metadata: %w", err)
-		}
+		status = workerx.StatusReady
 	} else {
-		// Cache worker status to Redis.
-		if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusIndexing.String()); err != nil {
-			return fmt.Errorf("cache token metadata: %w", err)
-		}
+		status = workerx.StatusIndexing
+	}
+
+	// update worker status to ready or indexing to Redis cache.
+	if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), status.String()); err != nil {
+		return fmt.Errorf("update worker status: %w", err)
 	}
 
 	return nil

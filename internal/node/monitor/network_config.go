@@ -10,7 +10,7 @@ var NetworkTorlerance = map[network.Network]uint64{
 	network.BinanceSmartChain: 100,
 	network.Crossbell:         100,
 	network.Ethereum:          100,
-	network.Farcaster:         3600,
+	network.Farcaster:         3600000,
 	network.Gnosis:            100,
 	network.Linea:             100,
 	network.Optimism:          100,

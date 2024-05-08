@@ -76,23 +76,12 @@ func (m *Monitor) flagUnhealthyWorker(ctx context.Context, network, workerID, wo
 		}
 	}
 
-	switch m.getWorkerStatus(network, workerName) {
-	case workerx.StatusReady:
-		if latestWorkerState-currentWorkerState > networkTolerance {
-			// Cache worker status to Redis.
-			if err := m.updateWorkerStatus(ctx, network, workerName, workerx.StatusUnhealthy.String()); err != nil {
-				return fmt.Errorf("cache token metadata: %w", err)
-			}
+	currentStatus := m.getWorkerStatus(network, workerName)
+
+	if (currentStatus == workerx.StatusReady && latestWorkerState-currentWorkerState > networkTolerance) || (currentStatus == workerx.StatusIndexing && currentWorkerState <= m.getWorkerProgress(workerID)) {
+		if err := m.updateWorkerStatus(ctx, network, workerName, workerx.StatusUnhealthy.String()); err != nil {
+			return fmt.Errorf("update worker status: %w", err)
 		}
-	case workerx.StatusIndexing:
-		if currentWorkerState <= m.getWorkerProgress(workerID) {
-			// Cache worker status to Redis.
-			if err := m.updateWorkerStatus(ctx, network, workerName, workerx.StatusUnhealthy.String()); err != nil {
-				return fmt.Errorf("cache token metadata: %w", err)
-			}
-		}
-	default:
-		return nil
 	}
 
 	return nil

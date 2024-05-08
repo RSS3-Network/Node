@@ -19,7 +19,6 @@ const (
 
 	DefaultTimeout  = 5 * time.Second
 	DefaultAttempts = 5
-	SequenceBits    = 12
 )
 
 var _ Client = (*client)(nil)
@@ -257,7 +256,7 @@ func ExtractEventIDToTimestamp(eventID uint64) uint64 {
 		decimalTimestamp = decimalTimestamp*2 + int(digit-'0')
 	}
 
-	timestampWithEpoch := uint64(decimalTimestamp) + FarcasterEpoch
+	timestampWithEpoch := uint64(decimalTimestamp) + FarcasterEpoch*1000
 
 	return timestampWithEpoch
 }
