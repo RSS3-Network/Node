@@ -108,12 +108,14 @@ func (t Task) buildFee() (*big.Int, error) {
 	switch {
 	case network.IsOptimismSuperchain(t.ChainID):
 		return t.buildFeeOptimismSuperchain()
+	case t.Network == network.Arbitrum:
+		return t.buildFeeArbitrumNitro()
 	default:
-		return t.BuildActivityefault()
+		return t.buildFeeDefault()
 	}
 }
 
-func (t Task) BuildActivityefault() (*big.Int, error) {
+func (t Task) buildFeeDefault() (*big.Int, error) {
 	switch t.Transaction.Type {
 	case types.LegacyTxType, types.AccessListTxType:
 		return new(big.Int).Mul(t.Transaction.GasPrice, new(big.Int).SetUint64(t.Receipt.GasUsed)), nil
@@ -143,13 +145,42 @@ func (t Task) BuildActivityefault() (*big.Int, error) {
 func (t Task) buildFeeOptimismSuperchain() (*big.Int, error) {
 	switch t.Transaction.Type {
 	case types.LegacyTxType, types.AccessListTxType, types.DynamicFeeTxType:
-		fee, err := t.BuildActivityefault()
+		fee, err := t.buildFeeDefault()
 		if err != nil {
 			return nil, err
 		}
 
 		return new(big.Int).Add(fee, t.Receipt.L1Fee), nil
-	case ethereum.TransactionTypeOptimismDeposit:
+	case ethereum.TransactionTypeOptimismDeposit: // The `effectiveGasPrice` of the transaction is always 0.
+		return big.NewInt(0), nil
+	default:
+		return nil, fmt.Errorf("unsupported transaction type %d", t.Transaction.Type)
+	}
+}
+
+// buildFeeArbitrumNitro calculates the fee of the Arbitrum Nitro transactions.
+func (t Task) buildFeeArbitrumNitro() (*big.Int, error) {
+	switch t.Transaction.Type {
+	case
+		types.LegacyTxType,
+		types.AccessListTxType,
+		types.DynamicFeeTxType:
+		fee, err := t.buildFeeDefault()
+		if err != nil {
+			return nil, err
+		}
+
+		return new(big.Int).Add(fee, t.Receipt.L1Fee), nil
+	case // The transaction fee is `effectiveGasPrice` * `gasUsed`.
+		ethereum.TransactionTypeArbitrumContract,
+		ethereum.TransactionTypeArbitrumUnsigned,
+		ethereum.TransactionTypeArbitrumRetry,
+		ethereum.TransactionTypeArbitrumLegacy:
+		return new(big.Int).Mul(t.Receipt.EffectiveGasPrice, new(big.Int).SetUint64(t.Receipt.GasUsed)), nil
+	case // The `gasUsed` of the transaction is always 0.
+		ethereum.TransactionTypeArbitrumSubmitRetryable,
+		ethereum.TransactionTypeArbitrumDeposit,
+		ethereum.TransactionTypeArbitrumInternal:
 		return big.NewInt(0), nil
 	default:
 		return nil, fmt.Errorf("unsupported transaction type %d", t.Transaction.Type)
