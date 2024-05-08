@@ -170,7 +170,7 @@ func (t Task) buildFeeArbitrumNitro() (*big.Int, error) {
 			return nil, err
 		}
 
-		return new(big.Int).Add(fee, t.Receipt.L1Fee), nil
+		return fee, nil
 	case // The transaction fee is `effectiveGasPrice` * `gasUsed`.
 		ethereum.TransactionTypeArbitrumContract,
 		ethereum.TransactionTypeArbitrumUnsigned,
