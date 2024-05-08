@@ -59,6 +59,7 @@ require (
 	github.com/redis/rueidis v1.0.34
 	github.com/rss3-network/protocol-go v0.4.3
 	github.com/spf13/afero v1.11.0
+	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	github.com/vincent-petithory/dataurl v1.0.0
 	golang.org/x/net v0.24.0
 )
@@ -96,6 +97,7 @@ require (
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
 	github.com/google/uuid v1.4.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.6 // indirect

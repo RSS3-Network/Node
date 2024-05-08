@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/database"
+	"github.com/rss3-network/node/provider/ethereum/etherface"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -18,6 +20,7 @@ type Hub struct {
 	databaseClient            database.Client
 	redisClient               rueidis.Client
 	meterDecentralizedCounter metric.Int64Counter
+	etherfaceClient           etherface.Client
 }
 
 // NewHub creates a new decentralized hub
@@ -31,6 +34,14 @@ func NewHub(_ context.Context, databaseClient database.Client, config *config.Fi
 	if err := hub.initializeMeter(); err != nil {
 		return nil
 	}
+
+	// Initialize etherface client
+	etherfaceClient, err := etherface.NewEtherfaceClient()
+	if err != nil {
+		log.Error("failed to initialize etherface client", "error", err)
+	}
+
+	hub.etherfaceClient = etherfaceClient
 
 	return &hub
 }

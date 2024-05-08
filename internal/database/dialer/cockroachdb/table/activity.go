@@ -32,6 +32,7 @@ type Activity struct {
 	Type         string          `gorm:"column:type"`
 	Status       bool            `gorm:"column:status"`
 	Fee          *Fee            `gorm:"column:fee;type:jsonb"`
+	Calldata     *Calldata       `gorm:"column:calldata;type:jsonb"`
 	TotalActions uint            `gorm:"column:total_actions"`
 	Actions      ActivityActions `gorm:"column:actions;type:jsonb"`
 	Timestamp    time.Time       `gorm:"column:timestamp"`
@@ -72,6 +73,14 @@ func (f *Activity) Import(activity *activityx.Activity) error {
 
 		if err := f.Fee.Import(activity.Fee); err != nil {
 			return fmt.Errorf("invalid fee: %w", err)
+		}
+	}
+
+	if activity.Calldata != nil {
+		f.Calldata = new(Calldata)
+
+		if err := f.Calldata.Import(activity.Calldata); err != nil {
+			return fmt.Errorf("invalid calldata: %w", err)
 		}
 	}
 
@@ -130,6 +139,10 @@ func (f *Activity) Export(index *Index) (*activityx.Activity, error) {
 
 	if activity.Fee, err = f.Fee.Export(); err != nil {
 		return nil, fmt.Errorf("invalid fee: %w", err)
+	}
+
+	if activity.Calldata, err = f.Calldata.Export(); err != nil {
+		return nil, fmt.Errorf("invalid calldata: %w", err)
 	}
 
 	for _, action := range f.Actions {
@@ -231,6 +244,56 @@ func (f *Fee) Scan(value any) error {
 //goland:noinspection ALL
 func (f Fee) Value() (driver.Value, error) {
 	return json.Marshal(f)
+}
+
+type Calldata struct {
+	Raw            string `json:"raw,omitempty"`
+	FunctionHash   string `json:"function_hash,omitempty"`
+	ParsedFunction string `json:"parsed_function,omitempty"`
+}
+
+//goland:noinspection ALL
+func (c *Calldata) Import(calldata *activityx.Calldata) error {
+	if calldata != nil {
+		c.Raw = calldata.Raw
+		c.FunctionHash = calldata.FunctionHash
+		c.ParsedFunction = calldata.ParsedFunction
+	}
+
+	return nil
+}
+
+//goland:noinspection ALL
+func (c *Calldata) Export() (*activityx.Calldata, error) {
+	if c == nil {
+		return nil, nil
+	}
+
+	return &activityx.Calldata{
+		Raw:            c.Raw,
+		FunctionHash:   c.FunctionHash,
+		ParsedFunction: c.ParsedFunction,
+	}, nil
+}
+
+var (
+	_ sql.Scanner   = (*Calldata)(nil)
+	_ driver.Valuer = (*Calldata)(nil)
+)
+
+//goland:noinspection ALL
+func (c *Calldata) Scan(value any) error {
+	data, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("invalid type: %T", value)
+	}
+
+	return json.Unmarshal(data, &c)
+}
+
+//goland:noinspection ALL
+func (c Calldata) Value() (driver.Value, error) {
+	return json.Marshal(c)
 }
 
 type ActivityAction struct {

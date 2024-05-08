@@ -14,6 +14,16 @@ const (
 	// Optimism
 	// https://github.com/Inphi/optimism-rosetta/blob/d3c37e359fa4262a2a53014c424a8ae53efaf3d0/optimism/client_bedrock.go#L138
 	TransactionTypeOptimismDeposit = 0x7E
+
+	// Arbitrum
+	// https://github.com/OffchainLabs/go-ethereum/blob/08bf9b119ff9c47ad51d507969997ff9cd8c5328/core/types/transaction.go#L45-L59
+	TransactionTypeArbitrumDeposit         = 0x64
+	TransactionTypeArbitrumUnsigned        = 0x65
+	TransactionTypeArbitrumContract        = 0x66
+	TransactionTypeArbitrumRetry           = 0x68
+	TransactionTypeArbitrumSubmitRetryable = 0x69
+	TransactionTypeArbitrumInternal        = 0x6A
+	TransactionTypeArbitrumLegacy          = 0x78
 )
 
 //go:generate go run --mod=mod github.com/fjl/gencodec --type Header --field-override headerMarshal --out type_header.go
