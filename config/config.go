@@ -113,8 +113,7 @@ type Module struct {
 	IPFSGateways []string        `mapstructure:"ipfs_gateways"`
 	Worker       worker.Worker   `mapstructure:"worker"`
 	Parameters   *Parameters     `mapstructure:"parameters"`
-
-	Endpoint Endpoint `mapstructure:"-"`
+	Endpoint     Endpoint        `mapstructure:"-"`
 }
 
 type Endpoint struct {
@@ -123,6 +122,7 @@ type Endpoint struct {
 	Headers map[string]string `mapstructure:"headers"`
 }
 
+// BuildEthereumOptions builds the custom options to be supplied to an ethereum client.
 func (e Endpoint) BuildEthereumOptions() []ethereum.Option {
 	options := make([]ethereum.Option, 0)
 
@@ -296,7 +296,7 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)
 	}
 
-	// Use the function to load the endpoint for each module, because mapstructure doesn't support use custom unmarshaler.
+	// Use a function to load the endpoint for each module, because mapstructure doesn't support the use of custom unmarshaler.
 	// Reference https://github.com/mitchellh/mapstructure/issues/115.
 	if err := configFile.LoadModulesEndpoint(); err != nil {
 		return nil, fmt.Errorf("build endpoint for modules: %w", err)
