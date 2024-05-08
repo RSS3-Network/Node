@@ -165,12 +165,7 @@ func (t Task) buildFeeArbitrumNitro() (*big.Int, error) {
 		types.LegacyTxType,
 		types.AccessListTxType,
 		types.DynamicFeeTxType:
-		fee, err := t.buildFeeDefault()
-		if err != nil {
-			return nil, err
-		}
-
-		return fee, nil
+		return t.buildFeeDefault()
 	case // The transaction fee is `effectiveGasPrice` * `gasUsed`.
 		ethereum.TransactionTypeArbitrumContract,
 		ethereum.TransactionTypeArbitrumUnsigned,
