@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
 	"github.com/rss3-network/node/internal/database/model"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 )
 
@@ -36,6 +37,11 @@ func (h *Component) GetActivity(c echo.Context) error {
 	activity, page, err := h.getActivity(c.Request().Context(), query)
 	if err != nil {
 		return response.InternalError(c, err)
+	}
+
+	// query etherface for the transaction
+	if h.etherfaceClient != nil && activity != nil && activity.Type == typex.Unknown && activity.Calldata != nil {
+		activity.Calldata.ParsedFunction, _ = h.etherfaceClient.Lookup(c.Request().Context(), activity.Calldata.FunctionHash)
 	}
 
 	return c.JSON(http.StatusOK, ActivityResponse{
@@ -90,6 +96,13 @@ func (h *Component) GetAccountActivities(c echo.Context) (err error) {
 	activities, last, err := h.getActivities(c.Request().Context(), databaseRequest)
 	if err != nil {
 		return response.InternalError(c, err)
+	}
+
+	// iterate over the activities and query etherface for the transaction
+	for _, activity := range activities {
+		if h.etherfaceClient != nil && activity.Type == typex.Unknown && activity.Calldata != nil {
+			activity.Calldata.ParsedFunction, _ = h.etherfaceClient.Lookup(c.Request().Context(), activity.Calldata.FunctionHash)
+		}
 	}
 
 	return c.JSON(http.StatusOK, ActivitiesResponse{

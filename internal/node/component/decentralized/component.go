@@ -8,14 +8,16 @@ import (
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
+	"github.com/rss3-network/node/provider/ethereum/etherface"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 )
 
 type Component struct {
-	databaseClient database.Client
-	counter        metric.Int64Counter
+	databaseClient  database.Client
+	counter         metric.Int64Counter
+	etherfaceClient etherface.Client
 }
 
 const Name = "decentralized"
@@ -38,8 +40,16 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, databaseClient databa
 	group.GET("/count", c.GetActivitiesCount)
 
 	if err := c.InitMeter(); err != nil {
-		return nil
+		panic(err)
 	}
+
+	// Initialize etherface client
+	etherfaceClient, err := etherface.NewEtherfaceClient()
+	if err != nil {
+		panic(fmt.Errorf("failed to initialize etherface client, %w", err))
+	}
+
+	c.etherfaceClient = etherfaceClient
 
 	return c
 }

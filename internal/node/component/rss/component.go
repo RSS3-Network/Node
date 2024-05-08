@@ -44,7 +44,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config []*config.Modu
 	group.GET("/*", c.Handler)
 
 	if err := c.InitMeter(); err != nil {
-		return nil
+		panic(err)
 	}
 
 	for _, conf := range config {
