@@ -3,7 +3,7 @@ environment: production
 endpoints:
   - id: ethereum
     url: http://localhost:80
-    headers:
+    http_headers:
       user-agent: rss3-node
 
 discovery:

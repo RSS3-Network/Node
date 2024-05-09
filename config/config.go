@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"path"
 	"reflect"
@@ -47,41 +46,26 @@ type File struct {
 // LoadModulesEndpoint loads the endpoint url and headers for each module.
 // If the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.
 func (f *File) LoadModulesEndpoint() error {
-	for index, module := range f.Node.RSS {
-		endpoint, found := lo.Find(f.Endpoints, func(endpoint Endpoint) bool { return endpoint.ID == module.EndpointID })
-		if !found {
-			endpoint = Endpoint{
-				ID:  module.EndpointID,
-				URL: module.EndpointID,
-			}
-		}
+	assignEndpoint := func(modules []*Module) {
+		for index, module := range modules {
+			endpoint, found := lo.Find(f.Endpoints, func(endpoint Endpoint) bool {
+				return endpoint.ID == module.EndpointID
+			})
 
-		f.Node.RSS[index].Endpoint = endpoint
+			if !found {
+				endpoint = Endpoint{
+					ID:  module.EndpointID,
+					URL: module.EndpointID,
+				}
+			}
+
+			modules[index].Endpoint = endpoint
+		}
 	}
 
-	for index, module := range f.Node.Federated {
-		endpoint, found := lo.Find(f.Endpoints, func(endpoint Endpoint) bool { return endpoint.ID == module.EndpointID })
-		if !found {
-			endpoint = Endpoint{
-				ID:  module.EndpointID,
-				URL: module.EndpointID,
-			}
-		}
-
-		f.Node.Federated[index].Endpoint = endpoint
-	}
-
-	for index, module := range f.Node.Decentralized {
-		endpoint, found := lo.Find(f.Endpoints, func(endpoint Endpoint) bool { return endpoint.ID == module.EndpointID })
-		if !found {
-			endpoint = Endpoint{
-				ID:  module.EndpointID,
-				URL: module.EndpointID,
-			}
-		}
-
-		f.Node.Decentralized[index].Endpoint = endpoint
-	}
+	assignEndpoint(f.Node.RSS)
+	assignEndpoint(f.Node.Decentralized)
+	assignEndpoint(f.Node.Federated)
 
 	return nil
 }
@@ -117,23 +101,17 @@ type Module struct {
 }
 
 type Endpoint struct {
-	ID      string            `mapstructure:"id"`
-	URL     string            `mapstructure:"url"`
-	Headers map[string]string `mapstructure:"headers"`
+	ID          string            `mapstructure:"id"`
+	URL         string            `mapstructure:"url"`
+	HttpHeaders map[string]string `mapstructure:"http_headers"`
 }
 
 // BuildEthereumOptions builds the custom options to be supplied to an ethereum client.
 func (e Endpoint) BuildEthereumOptions() []ethereum.Option {
 	options := make([]ethereum.Option, 0)
 
-	if len(e.Headers) > 0 {
-		httpHeader := make(http.Header, 0)
-
-		for key, value := range e.Headers {
-			httpHeader.Set(key, value)
-		}
-
-		options = append(options, ethereum.WithHTTPHeader(httpHeader))
+	if len(e.HttpHeaders) > 0 {
+		options = append(options, ethereum.WithHTTPHeader(e.HttpHeaders))
 	}
 
 	return options

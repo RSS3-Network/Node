@@ -30,7 +30,7 @@ discovery:
 endpoints:
     - id: ethereum
       url: https://rpc.ankr.com/eth
-      headers:
+      http_headers:
         user-agent: rss3-node
 database:
   driver: cockroachdb
@@ -87,7 +87,7 @@ component:
     {
       "id": "ethereum",
       "url": "https://rpc.ankr.com/eth",
-      "headers": {
+      "http_headers": {
         "user-agent": "rss3-node"
       }
     }
@@ -182,7 +182,7 @@ signature = "0x00000000011111111122222222233333333344444444455555555566666666677
 id = "ethereum"
 url = "https://rpc.ankr.com/eth"
 
-	[endpoints.headers]
+	[endpoints.http_headers]
 	user-agent = "rss3-node"
 
 [discovery.server]
@@ -253,7 +253,7 @@ var configFileExcept = &File{
 		{
 			ID:  "ethereum",
 			URL: "https://rpc.ankr.com/eth",
-			Headers: map[string]string{
+			HttpHeaders: map[string]string{
 				"user-agent": "rss3-node",
 			},
 		},
@@ -297,7 +297,7 @@ var configFileExcept = &File{
 				Endpoint: Endpoint{
 					ID:  "ethereum",
 					URL: "https://rpc.ankr.com/eth",
-					Headers: map[string]string{
+					HttpHeaders: map[string]string{
 						"user-agent": "rss3-node",
 					},
 				},
