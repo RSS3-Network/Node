@@ -2,10 +2,16 @@ package decentralized
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
 )
+
+type StatisticResponse struct {
+	Count      int64      `json:"count"`
+	LastUpdate *time.Time `json:"last_update,omitempty"`
+}
 
 func (c *Component) GetActivitiesCount(ctx echo.Context) error {
 	count, updateTime, err := c.getIndexCount(ctx.Request().Context())
