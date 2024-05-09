@@ -38,6 +38,7 @@ type Client interface {
 var _ Client = (*client)(nil)
 
 type client struct {
+	endpoint  string
 	rpcClient *rpc.Client
 }
 
@@ -319,11 +320,12 @@ func Dial(ctx context.Context, endpoint string, options ...Option) (Client, erro
 	}
 
 	instance := client{
+		endpoint:  endpoint,
 		rpcClient: rpcClient,
 	}
 
 	for _, option := range options {
-		if err := option(&instance); err != nil {
+		if err := option(ctx, &instance); err != nil {
 			return nil, fmt.Errorf("apply option: %w", err)
 		}
 	}
