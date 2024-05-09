@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -67,7 +68,7 @@ type WorkerInfo struct {
 	Status   worker.Status   `json:"status"`
 }
 
-func (h *Hub) parseParams(params url.Values, tags []tag.Tag) ([]schema.Type, error) {
+func (c *Component) parseParams(params url.Values, tags []tag.Tag) ([]schema.Type, error) {
 	if len(tags) == 0 {
 		return nil, nil
 	}

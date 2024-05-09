@@ -7,6 +7,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
@@ -38,7 +39,7 @@ func (s *Core) Run(_ context.Context) error {
 }
 
 // NewCoreService initializes the core services required by the Core
-func NewCoreService(ctx context.Context, config *config.File, databaseClient database.Client) *Core {
+func NewCoreService(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client) *Core {
 	apiServer := echo.New()
 
 	node := Core{
@@ -60,7 +61,7 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 	}
 
 	if len(config.Component.Decentralized) > 0 {
-		decentralizedComponent := decentralized.NewComponent(ctx, apiServer, databaseClient)
+		decentralizedComponent := decentralized.NewComponent(ctx, apiServer, config, databaseClient, redisClient)
 		node.components = append(node.components, &decentralizedComponent)
 	}
 

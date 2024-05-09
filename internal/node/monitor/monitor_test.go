@@ -37,7 +37,7 @@ func TestMonitor(t *testing.T) {
 			name: "Ethereum Worker Ready Status -> Unhealthy Status",
 			arguments: arguments{
 				config: &config.File{
-					Node: &config.Node{
+					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
 								Network: network.Ethereum,
@@ -62,7 +62,7 @@ func TestMonitor(t *testing.T) {
 			name: "Ethereum Worker Ready Status -> Ready Status",
 			arguments: arguments{
 				config: &config.File{
-					Node: &config.Node{
+					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
 								Network: network.Ethereum,
@@ -87,7 +87,7 @@ func TestMonitor(t *testing.T) {
 			name: "Ethereum Worker Indexing Status -> Unhealthy Status",
 			arguments: arguments{
 				config: &config.File{
-					Node: &config.Node{
+					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
 								Network: network.Ethereum,
@@ -113,7 +113,7 @@ func TestMonitor(t *testing.T) {
 			name: "Ethereum Worker Indexing Status -> Indexing Status",
 			arguments: arguments{
 				config: &config.File{
-					Node: &config.Node{
+					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
 								Network: network.Ethereum,
@@ -141,7 +141,7 @@ func TestMonitor(t *testing.T) {
 			name: "Arweave Worker Ready Status -> Unhealthy Status",
 			arguments: arguments{
 				config: &config.File{
-					Node: &config.Node{
+					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
 								Network: network.Arweave,
@@ -163,7 +163,7 @@ func TestMonitor(t *testing.T) {
 			name: "Arweave Worker Ready Status -> Ready Status",
 			arguments: arguments{
 				config: &config.File{
-					Node: &config.Node{
+					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
 								Network: network.Arweave,
@@ -185,7 +185,7 @@ func TestMonitor(t *testing.T) {
 			name: "Arweave Worker Indexing Status -> Unhealthy Status",
 			arguments: arguments{
 				config: &config.File{
-					Node: &config.Node{
+					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
 								Network: network.Arweave,
@@ -208,7 +208,7 @@ func TestMonitor(t *testing.T) {
 			name: "Arweave Worker Indexing Status -> Indexing Status",
 			arguments: arguments{
 				config: &config.File{
-					Node: &config.Node{
+					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
 								Network: network.Arweave,
@@ -233,7 +233,7 @@ func TestMonitor(t *testing.T) {
 			name: "Farcaster Worker Ready Status -> Unhealthy Status",
 			arguments: arguments{
 				config: &config.File{
-					Node: &config.Node{
+					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
 								Network: network.Farcaster,
@@ -257,7 +257,7 @@ func TestMonitor(t *testing.T) {
 			name: "Farcaster Worker Ready Status -> Ready Status",
 			arguments: arguments{
 				config: &config.File{
-					Node: &config.Node{
+					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
 								Network: network.Farcaster,
@@ -281,7 +281,7 @@ func TestMonitor(t *testing.T) {
 			name: "Farcaster Worker Indexing Status -> Unhealthy Status",
 			arguments: arguments{
 				config: &config.File{
-					Node: &config.Node{
+					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
 								Network: network.Farcaster,
@@ -306,7 +306,7 @@ func TestMonitor(t *testing.T) {
 			name: "Farcaster Worker Indexing Status -> Indexing Status",
 			arguments: arguments{
 				config: &config.File{
-					Node: &config.Node{
+					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
 								Network: network.Farcaster,
@@ -361,11 +361,11 @@ func TestMonitor(t *testing.T) {
 			require.NoError(t, err)
 
 			// update worker status to initial status
-			err = instance.UpdateWorkerStatus(ctx, testcase.arguments.config.Node.Decentralized[0].Network.String(), testcase.arguments.config.Node.Decentralized[0].Worker.String(), testcase.arguments.initialStatus.String())
+			err = instance.UpdateWorkerStatus(ctx, testcase.arguments.config.Component.Decentralized[0].Network.String(), testcase.arguments.config.Component.Decentralized[0].Worker.String(), testcase.arguments.initialStatus.String())
 			require.NoError(t, err)
 
 			// update worker progress
-			err = instance.UpdateWorkerProgress(ctx, testcase.arguments.config.Node.Decentralized[0].ID(), testcase.arguments.lastState)
+			err = instance.UpdateWorkerProgress(ctx, testcase.arguments.config.Component.Decentralized[0].ID(), testcase.arguments.lastState)
 			require.NoError(t, err)
 
 			// run monitor
@@ -373,7 +373,7 @@ func TestMonitor(t *testing.T) {
 			require.NoError(t, err)
 
 			// check final worker status
-			status := instance.GetWorkerStatus(ctx, testcase.arguments.config.Node.Decentralized[0].Network.String(), testcase.arguments.config.Node.Decentralized[0].Worker.String())
+			status := instance.GetWorkerStatus(ctx, testcase.arguments.config.Component.Decentralized[0].Network.String(), testcase.arguments.config.Component.Decentralized[0].Worker.String())
 			require.Equal(t, testcase.want, status)
 		})
 	}

@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo/v4"
+	"github.com/redis/rueidis"
+	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
@@ -15,22 +17,26 @@ import (
 )
 
 type Component struct {
-	databaseClient  database.Client
+	config          *config.File
 	counter         metric.Int64Counter
+	databaseClient  database.Client
 	etherfaceClient etherface.Client
+	redisClient     rueidis.Client
 }
 
 const Name = "decentralized"
 
-func (h *Component) Name() string {
+func (c *Component) Name() string {
 	return Name
 }
 
 var _ component.Component = (*Component)(nil)
 
-func NewComponent(_ context.Context, apiServer *echo.Echo, databaseClient database.Client) component.Component {
+func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client) component.Component {
 	c := &Component{
+		config:         config,
 		databaseClient: databaseClient,
+		redisClient:    redisClient,
 	}
 
 	group := apiServer.Group(fmt.Sprintf("/%s", Name))
@@ -38,6 +44,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, databaseClient databa
 	group.GET("/tx/:id", c.GetActivity)
 	group.GET("/:account", c.GetAccountActivities)
 	group.GET("/count", c.GetActivitiesCount)
+	group.GET("/workers", c.GetWorkers)
 
 	if err := c.InitMeter(); err != nil {
 		panic(err)
@@ -54,21 +61,21 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, databaseClient databa
 	return c
 }
 
-func (h *Component) InitMeter() (err error) {
+func (c *Component) InitMeter() (err error) {
 	meter := otel.GetMeterProvider().Meter(constant.Name)
 
-	if h.counter, err = meter.Int64Counter(h.Name()); err != nil {
-		return fmt.Errorf("failed to init meter for component %s: %w", h.Name(), err)
+	if c.counter, err = meter.Int64Counter(c.Name()); err != nil {
+		return fmt.Errorf("failed to init meter for component %s: %w", c.Name(), err)
 	}
 
 	return nil
 }
 
-func (h *Component) CollectMetric(ctx context.Context, value string) {
+func (c *Component) CollectMetric(ctx context.Context, value string) {
 	measurementOption := metric.WithAttributes(
-		attribute.String("component", h.Name()),
+		attribute.String("component", c.Name()),
 		attribute.String("path", value),
 	)
 
-	h.counter.Add(ctx, int64(1), measurementOption)
+	c.counter.Add(ctx, int64(1), measurementOption)
 }

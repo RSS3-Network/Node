@@ -50,7 +50,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config []*config.Modu
 	for _, conf := range config {
 		if conf.Network == network.RSS {
 			c.rsshub = &configx{
-				endpoint: conf.Endpoint,
+				endpoint: conf.Endpoint.URL,
 			}
 
 			if err := c.setAccessKey(context.Background(), conf); err != nil {

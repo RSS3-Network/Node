@@ -11,20 +11,20 @@ import (
 	"github.com/rss3-network/node/schema/worker"
 )
 
-func (h *Hub) GetWorkers(c echo.Context) error {
+func (c *Component) GetWorkers(ctx echo.Context) error {
 	var wg sync.WaitGroup
 
-	workerInfoChan := make(chan WorkerInfo, len(h.config.Node.Decentralized))
+	workerInfoChan := make(chan WorkerInfo, len(c.config.Component.Decentralized))
 
-	workers := make([]WorkerInfo, 0, len(h.config.Node.Decentralized))
+	workers := make([]WorkerInfo, 0, len(c.config.Component.Decentralized))
 
-	for _, w := range h.config.Node.Decentralized {
+	for _, w := range c.config.Component.Decentralized {
 		wg.Add(1)
 
 		go func(w *config.Module) {
 			defer wg.Done()
 
-			status := h.getWorkerStatus(c.Request().Context(), w.Network.String(), w.Worker.String())
+			status := c.getWorkerStatus(ctx.Request().Context(), w.Network.String(), w.Worker.String())
 
 			workerInfo := WorkerInfo{
 				Network:  w.Network,
@@ -48,20 +48,20 @@ func (h *Hub) GetWorkers(c echo.Context) error {
 		workers = append(workers, workerInfo)
 	}
 
-	return c.JSON(http.StatusOK, WorkerResponse{
+	return ctx.JSON(http.StatusOK, WorkerResponse{
 		Data: workers,
 	})
 }
 
 // getWorkerStatus gets worker status from Redis cache by network and workName.
-func (h *Hub) getWorkerStatus(ctx context.Context, network, workerName string) worker.Status {
-	if h.redisClient == nil {
+func (c *Component) getWorkerStatus(ctx context.Context, network, workerName string) worker.Status {
+	if c.redisClient == nil {
 		return worker.StatusUnknown
 	}
 
-	command := h.redisClient.B().Get().Key(h.buildCacheKey(network, workerName)).Build()
+	command := c.redisClient.B().Get().Key(c.buildCacheKey(network, workerName)).Build()
 
-	result := h.redisClient.Do(ctx, command)
+	result := c.redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
 		return worker.StatusUnknown
 	}
@@ -81,6 +81,6 @@ func (h *Hub) getWorkerStatus(ctx context.Context, network, workerName string) w
 }
 
 // buildCacheKey builds cache key for Redis.
-func (h *Hub) buildCacheKey(network, workerName string) string {
+func (c *Component) buildCacheKey(network, workerName string) string {
 	return fmt.Sprintf("worker:status::%s:%s", network, workerName)
 }

@@ -7,13 +7,13 @@ import (
 	"github.com/rss3-network/node/common/http/response"
 )
 
-func (h *Component) GetActivitiesCount(c echo.Context) error {
-	count, updateTime, err := h.getIndexCount(c.Request().Context())
+func (c *Component) GetActivitiesCount(ctx echo.Context) error {
+	count, updateTime, err := c.getIndexCount(ctx.Request().Context())
 	if err != nil {
-		return response.InternalError(c, err)
+		return response.InternalError(ctx, err)
 	}
 
-	return c.JSON(http.StatusOK, StatisticResponse{
+	return ctx.JSON(http.StatusOK, StatisticResponse{
 		Count:      count,
 		LastUpdate: updateTime,
 	})

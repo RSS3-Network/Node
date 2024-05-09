@@ -13,19 +13,19 @@ import (
 	"github.com/samber/lo"
 )
 
-func (h *Component) GetActivity(c echo.Context) error {
+func (c *Component) GetActivity(ctx echo.Context) error {
 	var request ActivityRequest
 
-	if err := c.Bind(&request); err != nil {
-		return response.BadRequestError(c, err)
+	if err := ctx.Bind(&request); err != nil {
+		return response.BadRequestError(ctx, err)
 	}
 
 	if err := defaults.Set(&request); err != nil {
-		return response.BadRequestError(c, err)
+		return response.BadRequestError(ctx, err)
 	}
 
-	if err := c.Validate(&request); err != nil {
-		return response.ValidateFailedError(c, err)
+	if err := ctx.Validate(&request); err != nil {
+		return response.ValidateFailedError(ctx, err)
 	}
 
 	query := model.ActivityQuery{
@@ -34,17 +34,17 @@ func (h *Component) GetActivity(c echo.Context) error {
 		ActionPage:  request.ActionPage,
 	}
 
-	activity, page, err := h.getActivity(c.Request().Context(), query)
+	activity, page, err := c.getActivity(ctx.Request().Context(), query)
 	if err != nil {
-		return response.InternalError(c, err)
+		return response.InternalError(ctx, err)
 	}
 
 	// query etherface for the transaction
-	if h.etherfaceClient != nil && activity != nil && activity.Type == typex.Unknown && activity.Calldata != nil {
-		activity.Calldata.ParsedFunction, _ = h.etherfaceClient.Lookup(c.Request().Context(), activity.Calldata.FunctionHash)
+	if c.etherfaceClient != nil && activity != nil && activity.Type == typex.Unknown && activity.Calldata != nil {
+		activity.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx.Request().Context(), activity.Calldata.FunctionHash)
 	}
 
-	return c.JSON(http.StatusOK, ActivityResponse{
+	return ctx.JSON(http.StatusOK, ActivityResponse{
 		Data: activity,
 		Meta: lo.Ternary(page == nil, nil, &MetaTotalPages{
 			TotalPages: lo.FromPtr(page),
@@ -52,30 +52,30 @@ func (h *Component) GetActivity(c echo.Context) error {
 	})
 }
 
-func (h *Component) GetAccountActivities(c echo.Context) (err error) {
+func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 	request := AccountActivitiesRequest{}
 
-	if err = c.Bind(&request); err != nil {
-		return response.BadRequestError(c, err)
+	if err = ctx.Bind(&request); err != nil {
+		return response.BadRequestError(ctx, err)
 	}
 
-	if request.Type, err = h.parseParams(c.QueryParams(), request.Tag); err != nil {
-		return response.BadRequestError(c, err)
+	if request.Type, err = c.parseParams(ctx.QueryParams(), request.Tag); err != nil {
+		return response.BadRequestError(ctx, err)
 	}
 
 	if err = defaults.Set(&request); err != nil {
-		return response.BadRequestError(c, err)
+		return response.BadRequestError(ctx, err)
 	}
 
-	if err = c.Validate(&request); err != nil {
-		return response.ValidateFailedError(c, err)
+	if err = ctx.Validate(&request); err != nil {
+		return response.ValidateFailedError(ctx, err)
 	}
 
-	go h.CollectMetric(context.TODO(), common.HexToAddress(request.Account).String())
+	go c.CollectMetric(context.TODO(), common.HexToAddress(request.Account).String())
 
-	cursor, err := h.getCursor(c.Request().Context(), request.Cursor)
+	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
-		return response.InternalError(c, err)
+		return response.InternalError(ctx, err)
 	}
 
 	databaseRequest := model.ActivitiesQuery{
@@ -93,19 +93,19 @@ func (h *Component) GetAccountActivities(c echo.Context) (err error) {
 		Platforms:      lo.Uniq(request.Platform),
 	}
 
-	activities, last, err := h.getActivities(c.Request().Context(), databaseRequest)
+	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
 	if err != nil {
-		return response.InternalError(c, err)
+		return response.InternalError(ctx, err)
 	}
 
 	// iterate over the activities and query etherface for the transaction
 	for _, activity := range activities {
-		if h.etherfaceClient != nil && activity.Type == typex.Unknown && activity.Calldata != nil {
-			activity.Calldata.ParsedFunction, _ = h.etherfaceClient.Lookup(c.Request().Context(), activity.Calldata.FunctionHash)
+		if c.etherfaceClient != nil && activity.Type == typex.Unknown && activity.Calldata != nil {
+			activity.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx.Request().Context(), activity.Calldata.FunctionHash)
 		}
 	}
 
-	return c.JSON(http.StatusOK, ActivitiesResponse{
+	return ctx.JSON(http.StatusOK, ActivitiesResponse{
 		Data: activities,
 		Meta: lo.Ternary(len(activities) < databaseRequest.Limit, nil, &MetaCursor{
 			Cursor: last,
