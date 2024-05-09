@@ -53,7 +53,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config []*config.Modu
 				endpoint: conf.Endpoint.URL,
 			}
 
-			if err := c.setAccessKey(context.Background(), conf); err != nil {
+			if err := c.setAccessKey(conf); err != nil {
 				c.rsshub = nil
 			}
 
@@ -88,7 +88,7 @@ func (h *Component) CollectMetric(ctx context.Context, value string) {
 }
 
 // setAccessKey set the access code according to the RSSHub authentication specification.
-func (h *Component) setAccessKey(_ context.Context, config *config.Module) error {
+func (h *Component) setAccessKey(config *config.Module) error {
 	if config.Parameters == nil {
 		return nil
 	}
