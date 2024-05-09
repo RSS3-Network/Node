@@ -43,7 +43,7 @@ func (m *Monitor) Run(ctx context.Context) error {
 }
 
 // initNetworkClient initializes arweave, ethereum, and other network clients.
-func initNetworkClient(n network.Network, endpoint string) (Client, error) {
+func initNetworkClient(n network.Network, endpoint config.Endpoint) (Client, error) {
 	var client Client
 
 	var err error

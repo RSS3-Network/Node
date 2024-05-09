@@ -21,7 +21,7 @@ const (
 )
 
 func (h *Hub) getRSSHubData(ctx context.Context, path string, rawQuery string) ([]*activityx.Activity, error) {
-	request, err := url.Parse(h.rsshub.Endpoint)
+	request, err := url.Parse(h.rsshub.Endpoint.URL)
 	if err != nil {
 		return nil, err
 	}

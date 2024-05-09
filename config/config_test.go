@@ -27,6 +27,11 @@ discovery:
     server:
       endpoint: https://node.mydomain.com/
       global_indexer_endpoint: https://gi.rss3.dev/
+endpoints:
+    ethereum:
+      url: https://rpc.ankr.com/eth
+      http_headers:
+        user-agent: rss3-node
 database:
   driver: cockroachdb
   partition: true
@@ -64,7 +69,7 @@ component:
   decentralized:
     - network: ethereum
       worker: core
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       parameters:
         block_number_start: 47370106
         block_number_target: 456
@@ -77,6 +82,14 @@ component:
 `
 	configExampleJSON = `{
   "environment": "development",
+  "endpoints": {
+     "ethereum": {
+      "url": "https://rpc.ankr.com/eth",
+      "http_headers": {
+        "user-agent": "rss3-node"
+      }
+    }
+  },
   "discovery": {
     "maintainer": {
       "evm_address": "0x111222333444555666777888999aaabbbcccddde",
@@ -99,12 +112,12 @@ component:
     "uri": "localhost:9092"
   },
   "redis": {
-	"endpoints": [
-	  "localhost:6379"
-	],
-	"username": "",
-	"password": "",
-	"disable_cache": true
+    "endpoints": [
+      "localhost:6379"
+    ],
+    "username": "",
+    "password": "",
+    "disable_cache": true
   },
   "observability": {
     "opentelemetry": {
@@ -138,7 +151,7 @@ component:
       {
         "network": "ethereum",
         "worker": "core",
-        "endpoint": "https://rpc.ankr.com/eth",
+        "endpoint": "ethereum",
         "parameters": {
           "block_number_start": 47370106,
           "block_number_target": 456
@@ -161,6 +174,12 @@ component:
 [discovery.maintainer]
 evm_address = "0x111222333444555666777888999aaabbbcccddde"
 signature = "0x000000000111111111222222222333333333444444444555555555666666666777777777888888888999999999aaaaaaaaabbbbbbbbbcccccccccdddddddddeeee"
+
+[endpoints.ethereum]
+url = "https://rpc.ankr.com/eth"
+
+	[endpoints.ethereum.http_headers]
+	user-agent = "rss3-node"
 
 [discovery.server]
 endpoint = "https://node.mydomain.com/"
@@ -205,7 +224,7 @@ access_code = "def"
 [[component.decentralized]]
 network = "ethereum"
 worker = "core"
-endpoint = "https://rpc.ankr.com/eth"
+endpoint = "ethereum"
 
   [component.decentralized.parameters]
   block_number_start = 47370106
@@ -225,6 +244,14 @@ endpoint = "https://rpc.ankr.com/eth"
 
 var configFileExcept = &File{
 	Environment: "development",
+	Endpoints: map[string]Endpoint{
+		"ethereum": {
+			URL: "https://rpc.ankr.com/eth",
+			HTTPHeaders: map[string]string{
+				"user-agent": "rss3-node",
+			},
+		},
+	},
 	Discovery: &Discovery{
 		Maintainer: &Maintainer{
 			EvmAddress: common.HexToAddress("0x111222333444555666777888999aaabbbcccddde"),
@@ -238,9 +265,12 @@ var configFileExcept = &File{
 	Node: &Node{
 		RSS: []*Module{
 			{
-				Network:  network.RSS,
-				Endpoint: "https://rsshub.app/",
-				Worker:   0,
+				Network:    network.RSS,
+				EndpointID: "https://rsshub.app/",
+				Endpoint: Endpoint{
+					URL: "https://rsshub.app/",
+				},
+				Worker: 0,
 				Parameters: &Parameters{
 					"authentication": map[string]any{
 						"access_code": "def",
@@ -254,18 +284,27 @@ var configFileExcept = &File{
 		Federated: nil,
 		Decentralized: []*Module{
 			{
-				Network:  network.Ethereum,
-				Worker:   workerx.Core,
-				Endpoint: "https://rpc.ankr.com/eth",
+				Network:    network.Ethereum,
+				Worker:     workerx.Core,
+				EndpointID: "ethereum",
+				Endpoint: Endpoint{
+					URL: "https://rpc.ankr.com/eth",
+					HTTPHeaders: map[string]string{
+						"user-agent": "rss3-node",
+					},
+				},
 				Parameters: &Parameters{
 					"block_number_start":  47370106,
 					"block_number_target": 456,
 				},
 			},
 			{
-				Network:  network.Ethereum,
-				Worker:   workerx.RSS3,
-				Endpoint: "https://rpc.ankr.com/eth",
+				Network:    network.Ethereum,
+				Worker:     workerx.RSS3,
+				EndpointID: "https://rpc.ankr.com/eth",
+				Endpoint: Endpoint{
+					URL: "https://rpc.ankr.com/eth",
+				},
 				Parameters: &Parameters{
 					"block_height_start": 123,
 					"rpc_thread_blocks":  2,

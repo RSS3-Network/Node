@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/farcaster"
@@ -38,8 +39,8 @@ func (c *ethereumClient) LatestState(ctx context.Context) (uint64, error) {
 }
 
 // NewEthereumClient returns a new ethereum client.
-func NewEthereumClient(endpoint string) (Client, error) {
-	evmClient, err := ethereum.Dial(context.Background(), endpoint)
+func NewEthereumClient(endpoint config.Endpoint) (Client, error) {
+	evmClient, err := ethereum.Dial(context.Background(), endpoint.URL, endpoint.BuildEthereumOptions()...)
 	if err != nil {
 		return nil, err
 	}

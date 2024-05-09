@@ -40,9 +40,11 @@ func TestMonitor(t *testing.T) {
 					Node: &config.Node{
 						Decentralized: []*config.Module{
 							{
-								Network:  network.Ethereum,
-								Worker:   worker.Core,
-								Endpoint: endpoint.MustGet(network.Ethereum),
+								Network: network.Ethereum,
+								Worker:  worker.Core,
+								Endpoint: config.Endpoint{
+									URL: endpoint.MustGet(network.Ethereum),
+								},
 							},
 						},
 					},
@@ -63,9 +65,11 @@ func TestMonitor(t *testing.T) {
 					Node: &config.Node{
 						Decentralized: []*config.Module{
 							{
-								Network:  network.Ethereum,
-								Worker:   worker.Core,
-								Endpoint: endpoint.MustGet(network.Ethereum),
+								Network: network.Ethereum,
+								Worker:  worker.Core,
+								Endpoint: config.Endpoint{
+									URL: endpoint.MustGet(network.Ethereum),
+								},
 							},
 						},
 					},
@@ -86,9 +90,11 @@ func TestMonitor(t *testing.T) {
 					Node: &config.Node{
 						Decentralized: []*config.Module{
 							{
-								Network:  network.Ethereum,
-								Worker:   worker.Core,
-								Endpoint: endpoint.MustGet(network.Ethereum),
+								Network: network.Ethereum,
+								Worker:  worker.Core,
+								Endpoint: config.Endpoint{
+									URL: endpoint.MustGet(network.Ethereum),
+								},
 							},
 						},
 					},
@@ -110,9 +116,11 @@ func TestMonitor(t *testing.T) {
 					Node: &config.Node{
 						Decentralized: []*config.Module{
 							{
-								Network:  network.Ethereum,
-								Worker:   worker.Core,
-								Endpoint: endpoint.MustGet(network.Ethereum),
+								Network: network.Ethereum,
+								Worker:  worker.Core,
+								Endpoint: config.Endpoint{
+									URL: endpoint.MustGet(network.Ethereum),
+								},
 							},
 						},
 					},
@@ -136,9 +144,8 @@ func TestMonitor(t *testing.T) {
 					Node: &config.Node{
 						Decentralized: []*config.Module{
 							{
-								Network:  network.Arweave,
-								Worker:   worker.Mirror,
-								Endpoint: "https://arweave.net",
+								Network: network.Arweave,
+								Worker:  worker.Mirror,
 							},
 						},
 					},
@@ -159,9 +166,8 @@ func TestMonitor(t *testing.T) {
 					Node: &config.Node{
 						Decentralized: []*config.Module{
 							{
-								Network:  network.Arweave,
-								Worker:   worker.Mirror,
-								Endpoint: "https://arweave.net",
+								Network: network.Arweave,
+								Worker:  worker.Mirror,
 							},
 						},
 					},
@@ -182,9 +188,8 @@ func TestMonitor(t *testing.T) {
 					Node: &config.Node{
 						Decentralized: []*config.Module{
 							{
-								Network:  network.Arweave,
-								Worker:   worker.Mirror,
-								Endpoint: "https://arweave.net",
+								Network: network.Arweave,
+								Worker:  worker.Mirror,
 							},
 						},
 					},
@@ -206,9 +211,8 @@ func TestMonitor(t *testing.T) {
 					Node: &config.Node{
 						Decentralized: []*config.Module{
 							{
-								Network:  network.Arweave,
-								Worker:   worker.Mirror,
-								Endpoint: "https://arweave.net",
+								Network: network.Arweave,
+								Worker:  worker.Mirror,
 							},
 						},
 					},
