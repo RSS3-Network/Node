@@ -2,11 +2,6 @@ package farcaster
 
 import "github.com/rss3-network/node/internal/database/model"
 
-const (
-	FarcasterEpoch = 1609459200 // January 1, 2021 UTC https://github.com/farcasterxyz/hub-monorepo/blob/77ff79ed804104956eb153247c22c00099c7b122/packages/core/src/time.ts#L4
-	SequenceBits   = 12
-)
-
 type farcasterQuery struct {
 	Fid          *int64 `form:"fid,omitempty"`
 	TargetFid    *int64 `form:"target_fid,omitempty"`

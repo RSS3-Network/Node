@@ -90,7 +90,7 @@ var _ Client = (*farcasterClient)(nil)
 
 func (c *farcasterClient) CurrentState(state CheckpointState) uint64 {
 	if state.EventID != 0 {
-		return farcaster.ExtractEventIDToTimestamp(state.EventID)
+		return farcaster.ConvertEventIDToTimestamp(state.EventID)
 	}
 
 	return 0

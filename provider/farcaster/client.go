@@ -19,6 +19,8 @@ const (
 
 	DefaultTimeout  = 5 * time.Second
 	DefaultAttempts = 5
+	FarcasterEpoch  = 1609459200 // January 1, 2021 UTC https://github.com/farcasterxyz/hub-monorepo/blob/77ff79ed804104956eb153247c22c00099c7b122/packages/core/src/time.ts#L4
+	SequenceBits    = 12
 )
 
 var _ Client = (*client)(nil)
@@ -246,19 +248,12 @@ func CovertFarcasterTimeToTimestamp(timestamp int64) int64 {
 	return timestamp + FarcasterEpoch
 }
 
-// ExtractEventIDToTimestamp Extracts the timestamp format from a farcaster event ID.
-func ExtractEventIDToTimestamp(eventID uint64) uint64 {
-	binaryEventID := fmt.Sprintf("%b", eventID)
-	binaryTimestamp := binaryEventID[:len(binaryEventID)-SequenceBits]
+// ConvertEventIDToTimestamp Extracts the timestamp from a farcaster event ID.
+func ConvertEventIDToTimestamp(eventID uint64) uint64 {
+	timestampMask := ^uint64((1 << SequenceBits) - 1)
+	timestamp := (eventID & timestampMask) >> SequenceBits
 
-	decimalTimestamp := 0
-	for _, digit := range binaryTimestamp {
-		decimalTimestamp = decimalTimestamp*2 + int(digit-'0')
-	}
-
-	timestampWithEpoch := uint64(decimalTimestamp) + FarcasterEpoch*1000
-
-	return timestampWithEpoch
+	return timestamp + FarcasterEpoch*1000
 }
 
 type ClientOption func(client *client) error
