@@ -28,7 +28,7 @@ discovery:
       endpoint: https://node.mydomain.com/
       global_indexer_endpoint: https://gi.rss3.dev/
 endpoints:
-    - id: ethereum
+    ethereum:
       url: https://rpc.ankr.com/eth
       http_headers:
         user-agent: rss3-node
@@ -83,15 +83,14 @@ component:
 `
 	configExampleJSON = `{
   "environment": "development",
-  "endpoints": [
-    {
-      "id": "ethereum",
+  "endpoints": {
+     "ethereum": {
       "url": "https://rpc.ankr.com/eth",
       "http_headers": {
         "user-agent": "rss3-node"
       }
     }
-  ],
+  },
   "discovery": {
     "maintainer": {
       "evm_address": "0x111222333444555666777888999aaabbbcccddde",
@@ -178,11 +177,10 @@ component:
 evm_address = "0x111222333444555666777888999aaabbbcccddde"
 signature = "0x000000000111111111222222222333333333444444444555555555666666666777777777888888888999999999aaaaaaaaabbbbbbbbbcccccccccdddddddddeeee"
 
-[[endpoints]]
-id = "ethereum"
+[endpoints.ethereum]
 url = "https://rpc.ankr.com/eth"
 
-	[endpoints.http_headers]
+	[endpoints.ethereum.http_headers]
 	user-agent = "rss3-node"
 
 [discovery.server]
@@ -249,9 +247,8 @@ endpoint = "https://rpc.ankr.com/eth"
 
 var configFileExcept = &File{
 	Environment: "development",
-	Endpoints: []Endpoint{
-		{
-			ID:  "ethereum",
+	Endpoints: map[string]Endpoint{
+		"ethereum": {
 			URL: "https://rpc.ankr.com/eth",
 			HttpHeaders: map[string]string{
 				"user-agent": "rss3-node",
@@ -274,7 +271,6 @@ var configFileExcept = &File{
 				Network:    network.RSS,
 				EndpointID: "https://rsshub.app/",
 				Endpoint: Endpoint{
-					ID:  "https://rsshub.app/",
 					URL: "https://rsshub.app/",
 				},
 				Worker: 0,
@@ -295,7 +291,6 @@ var configFileExcept = &File{
 				Worker:     workerx.Core,
 				EndpointID: "ethereum",
 				Endpoint: Endpoint{
-					ID:  "ethereum",
 					URL: "https://rpc.ankr.com/eth",
 					HttpHeaders: map[string]string{
 						"user-agent": "rss3-node",
@@ -311,7 +306,6 @@ var configFileExcept = &File{
 				Worker:     workerx.RSS3,
 				EndpointID: "https://rpc.ankr.com/eth",
 				Endpoint: Endpoint{
-					ID:  "https://rpc.ankr.com/eth",
 					URL: "https://rpc.ankr.com/eth",
 				},
 				Parameters: &Parameters{

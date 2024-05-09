@@ -33,14 +33,14 @@ const (
 )
 
 type File struct {
-	Environment   string     `mapstructure:"environment" validate:"required" default:"development"`
-	Endpoints     []Endpoint `mapstructure:"endpoints"`
-	Discovery     *Discovery `mapstructure:"discovery" validate:"required"`
-	Node          *Node      `mapstructure:"component" validate:"required"`
-	Database      *Database  `mapstructure:"database" validate:"required"`
-	Stream        *Stream    `mapstructure:"stream" validate:"required"`
-	Redis         *Redis     `mapstructure:"redis" validate:"required"`
-	Observability *Telemetry `mapstructure:"observability" validate:"required"`
+	Environment   string              `mapstructure:"environment" validate:"required" default:"development"`
+	Endpoints     map[string]Endpoint `mapstructure:"endpoints"`
+	Discovery     *Discovery          `mapstructure:"discovery" validate:"required"`
+	Node          *Node               `mapstructure:"component" validate:"required"`
+	Database      *Database           `mapstructure:"database" validate:"required"`
+	Stream        *Stream             `mapstructure:"stream" validate:"required"`
+	Redis         *Redis              `mapstructure:"redis" validate:"required"`
+	Observability *Telemetry          `mapstructure:"observability" validate:"required"`
 }
 
 // LoadModulesEndpoint loads the endpoint url and headers for each module.
@@ -48,13 +48,10 @@ type File struct {
 func (f *File) LoadModulesEndpoint() error {
 	assignEndpoint := func(modules []*Module) {
 		for index, module := range modules {
-			endpoint, found := lo.Find(f.Endpoints, func(endpoint Endpoint) bool {
-				return endpoint.ID == module.EndpointID
-			})
+			endpoint, found := f.Endpoints[module.EndpointID]
 
 			if !found {
 				endpoint = Endpoint{
-					ID:  module.EndpointID,
 					URL: module.EndpointID,
 				}
 			}
@@ -101,7 +98,6 @@ type Module struct {
 }
 
 type Endpoint struct {
-	ID          string            `mapstructure:"id"`
 	URL         string            `mapstructure:"url"`
 	HttpHeaders map[string]string `mapstructure:"http_headers"`
 }
