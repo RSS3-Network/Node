@@ -250,7 +250,7 @@ var configFileExcept = &File{
 	Endpoints: map[string]Endpoint{
 		"ethereum": {
 			URL: "https://rpc.ankr.com/eth",
-			HttpHeaders: map[string]string{
+			HTTPHeaders: map[string]string{
 				"user-agent": "rss3-node",
 			},
 		},
@@ -292,7 +292,7 @@ var configFileExcept = &File{
 				EndpointID: "ethereum",
 				Endpoint: Endpoint{
 					URL: "https://rpc.ankr.com/eth",
-					HttpHeaders: map[string]string{
+					HTTPHeaders: map[string]string{
 						"user-agent": "rss3-node",
 					},
 				},

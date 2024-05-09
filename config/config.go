@@ -99,15 +99,15 @@ type Module struct {
 
 type Endpoint struct {
 	URL         string            `mapstructure:"url"`
-	HttpHeaders map[string]string `mapstructure:"http_headers"`
+	HTTPHeaders map[string]string `mapstructure:"http_headers"`
 }
 
 // BuildEthereumOptions builds the custom options to be supplied to an ethereum client.
 func (e Endpoint) BuildEthereumOptions() []ethereum.Option {
 	options := make([]ethereum.Option, 0)
 
-	if len(e.HttpHeaders) > 0 {
-		options = append(options, ethereum.WithHTTPHeader(e.HttpHeaders))
+	if len(e.HTTPHeaders) > 0 {
+		options = append(options, ethereum.WithHTTPHeader(e.HTTPHeaders))
 	}
 
 	return options

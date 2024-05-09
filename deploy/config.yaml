@@ -2,7 +2,7 @@ environment: production
 
 endpoints:
   ethereum:
-    url: http://localhost:80
+    url: https://rpc.ankr.com/eth
     http_headers:
       user-agent: rss3-node
 
