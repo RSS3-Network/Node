@@ -19,6 +19,8 @@ const (
 
 	DefaultTimeout  = 5 * time.Second
 	DefaultAttempts = 5
+	FarcasterEpoch  = 1609459200 // January 1, 2021 UTC https://github.com/farcasterxyz/hub-monorepo/blob/77ff79ed804104956eb153247c22c00099c7b122/packages/core/src/time.ts#L4
+	SequenceBits    = 12
 )
 
 var _ Client = (*client)(nil)
@@ -241,9 +243,17 @@ func (c *client) fetch(ctx context.Context, path string, result any) error {
 	return nil
 }
 
-// CovertFarcasterTimeToTimestamp Converts a Farcaster seconds timestamp to a Unix milliseconds timestamp.
+// CovertFarcasterTimeToTimestamp Converts a Farcaster seconds timestamp to a Unix timestamp.
 func CovertFarcasterTimeToTimestamp(timestamp int64) int64 {
 	return timestamp + FarcasterEpoch
+}
+
+// ConvertEventIDToTimestampMilli Convert the timestampMilli from a farcaster event ID.
+func ConvertEventIDToTimestampMilli(eventID uint64) uint64 {
+	timestampMilliMask := ^uint64((1 << SequenceBits) - 1)
+	timestampMilli := (eventID & timestampMilliMask) >> SequenceBits
+
+	return timestampMilli + FarcasterEpoch*1000
 }
 
 type ClientOption func(client *client) error

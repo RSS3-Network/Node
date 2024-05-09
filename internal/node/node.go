@@ -20,6 +20,7 @@ const (
 	// FIXME: do not use `indexer`, use `worker` instead
 	Worker      = "indexer"
 	Broadcaster = "broadcaster"
+	Monitor     = "monitor"
 	DefaultHost = "0.0.0.0"
 	DefaultPort = "80"
 )

@@ -123,8 +123,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.SatoshiVM,
-					Endpoint: endpoint.MustGet(network.SatoshiVM),
+					Network: network.SatoshiVM,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.SatoshiVM),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -266,8 +268,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.SatoshiVM,
-					Endpoint: endpoint.MustGet(network.SatoshiVM),
+					Network: network.SatoshiVM,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.SatoshiVM),
+					},
 				},
 			},
 			want: &activityx.Activity{

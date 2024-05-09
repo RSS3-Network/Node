@@ -1,5 +1,12 @@
 environment: production
 
+endpoints:
+  ethereum:
+    url: https://rpc.ankr.com/eth
+    http_headers:
+      user-agent: rss3-node
+    http2_disabled:
+
 discovery:
     maintainer:
       evm_address:
@@ -20,7 +27,6 @@ stream:
   uri: localhost:9092
 
 redis:
-  enable: false
   endpoints:
     - localhost:6379
   username:
@@ -54,7 +60,7 @@ component:
   decentralized:
     - network: ethereum
       worker: core
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       parameters:
         block_number_start:
     - network: ethereum

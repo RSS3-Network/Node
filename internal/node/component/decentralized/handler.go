@@ -55,7 +55,19 @@ type StatisticResponse struct {
 	LastUpdate *time.Time `json:"last_update,omitempty"`
 }
 
-func (h *Component) parseParams(params url.Values, tags []tag.Tag) ([]schema.Type, error) {
+type WorkerResponse struct {
+	Data []WorkerInfo `json:"data"`
+}
+
+type WorkerInfo struct {
+	Network  network.Network `json:"network"`
+	Worker   worker.Worker   `json:"worker"`
+	Tags     []tag.Tag       `json:"tags"`
+	Platform worker.Platform `json:"platform"`
+	Status   worker.Status   `json:"status"`
+}
+
+func (h *Hub) parseParams(params url.Values, tags []tag.Tag) ([]schema.Type, error) {
 	if len(tags) == 0 {
 		return nil, nil
 	}
