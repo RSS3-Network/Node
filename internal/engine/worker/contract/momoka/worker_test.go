@@ -81,7 +81,7 @@ func TestWorker_Arweave(t *testing.T) {
 							Body:   "😕🙁☹️😞😔😟",
 							Media: []metadata.Media{
 								{
-									Address:  "https://images.lens.phaver.com/insecure/raw:1/plain/a1aebf7d47ef88929b25f962138eed10",
+									Address:  "https://images.lens.phaver.com/insecure/raw:t/plain/a1aebf7d47ef88929b25f962138eed10",
 									MimeType: "image/jpeg",
 								},
 							},
