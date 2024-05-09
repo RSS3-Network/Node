@@ -554,7 +554,7 @@ func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker
 
 	var err error
 
-	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
+	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint.URL, config.Endpoint.BuildEthereumOptions()...); err != nil {
 		return nil, fmt.Errorf("initialize ethereum client: %w", err)
 	}
 

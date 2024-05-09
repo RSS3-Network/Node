@@ -78,7 +78,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 }
 
 func (s *source) initialize() (err error) {
-	client, err := farcaster.NewClient(s.config.Endpoint, farcaster.WithAPIKey(s.option.APIKey))
+	client, err := farcaster.NewClient(s.config.Endpoint.URL, farcaster.WithAPIKey(s.option.APIKey))
 	if err != nil {
 		return fmt.Errorf("create farcaster client: %w", err)
 	}

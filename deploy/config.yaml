@@ -1,5 +1,12 @@
 environment: production
 
+endpoints:
+  ethereum:
+    url: https://rpc.ankr.com/eth
+    http_headers:
+      user-agent: rss3-node
+    http2_disabled:
+
 discovery:
     maintainer:
       evm_address:
@@ -55,7 +62,7 @@ component:
     # ethereum
     - network: ethereum
       worker: core
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       parameters:
         block_number_start:
     - network: ethereum

@@ -147,8 +147,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Ethereum,
-					Endpoint: endpoint.MustGet(network.Ethereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -290,8 +292,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Ethereum,
-					Endpoint: endpoint.MustGet(network.Ethereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -428,8 +432,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Ethereum,
-					Endpoint: endpoint.MustGet(network.Ethereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -544,8 +550,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.VSL,
-					Endpoint: endpoint.MustGet(network.VSL),
+					Network: network.VSL,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.VSL),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -659,8 +667,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.VSL,
-					Endpoint: endpoint.MustGet(network.VSL),
+					Network: network.VSL,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.VSL),
+					},
 				},
 			},
 			want: &activityx.Activity{
