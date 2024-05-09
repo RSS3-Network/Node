@@ -76,7 +76,7 @@ func (m *Monitor) processWorker(ctx context.Context, w *config.Module) error {
 	}
 
 	//	update worker progress (state)
-	if err := m.updateWorkerProgress(ctx, w.ID(), currentWorkerState); err != nil {
+	if err := m.UpdateWorkerProgress(ctx, w.ID(), currentWorkerState); err != nil {
 		return fmt.Errorf("update worker progress: %w", err)
 	}
 
@@ -200,8 +200,8 @@ func (m *Monitor) getWorkerProgress(ctx context.Context, workerID string) uint64
 	return uint64(workerProgress)
 }
 
-// buildStatusCacheKey updates worker progress (state) in each monitoring cycle to Redis Cache.
-func (m *Monitor) updateWorkerProgress(ctx context.Context, workerID string, state uint64) error {
+// UpdateWorkerProgress updates worker progress (state) in each monitoring cycle to Redis Cache.
+func (m *Monitor) UpdateWorkerProgress(ctx context.Context, workerID string, state uint64) error {
 	if m.redisClient == nil {
 		return nil
 	}

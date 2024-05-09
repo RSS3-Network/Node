@@ -55,7 +55,7 @@ func (m *Monitor) processMockWorker(ctx context.Context, w *config.Module, curre
 	}
 
 	//	update worker progress (state)
-	if err := m.updateWorkerProgress(ctx, w.ID(), currentWorkerState); err != nil {
+	if err := m.UpdateWorkerProgress(ctx, w.ID(), currentWorkerState); err != nil {
 		return fmt.Errorf("update worker progress: %w", err)
 	}
 
