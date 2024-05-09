@@ -159,7 +159,12 @@ func (m *Monitor) getWorkerProgress(workerID string) uint64 {
 		return 0
 	}
 
-	workerProgress, err := result.ToInt64()
+	workerProgressStr, err := result.ToString()
+	if err != nil {
+		return 0
+	}
+
+	workerProgress, err := strconv.ParseInt(workerProgressStr, 10, 64)
 	if err != nil {
 		return 0
 	}
