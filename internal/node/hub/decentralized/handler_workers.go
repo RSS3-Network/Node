@@ -17,7 +17,7 @@ func (h *Hub) GetWorkers(c echo.Context) error {
 			Network:  w.Network,
 			Worker:   w.Worker,
 			Platform: worker.ToPlatformMap[w.Worker],
-			Tag:      worker.ToTagsMap[w.Worker],
+			Tags:     worker.ToTagsMap[w.Worker],
 			Status:   h.getWorkerStatus(w.Network.String(), w.Worker.String()),
 		})
 	}
