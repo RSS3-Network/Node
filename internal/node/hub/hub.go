@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/hub/decentralized"
@@ -26,9 +27,9 @@ func (v *Validator) Validate(i interface{}) error {
 	return v.validate.Struct(i)
 }
 
-func NewHub(ctx context.Context, config *config.File, database database.Client) *Hub {
+func NewHub(ctx context.Context, config *config.File, database database.Client, redisClient rueidis.Client) *Hub {
 	return &Hub{
 		RSS:           rss.NewHub(ctx, config),
-		Decentralized: decentralized.NewHub(ctx, database),
+		Decentralized: decentralized.NewHub(ctx, database, config, redisClient),
 	}
 }

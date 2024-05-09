@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/redis/rueidis"
+	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/provider/ethereum/etherface"
@@ -14,15 +16,19 @@ import (
 )
 
 type Hub struct {
+	config                    *config.File
 	databaseClient            database.Client
+	redisClient               rueidis.Client
 	meterDecentralizedCounter metric.Int64Counter
 	etherfaceClient           etherface.Client
 }
 
 // NewHub creates a new decentralized hub
-func NewHub(_ context.Context, databaseClient database.Client) *Hub {
+func NewHub(_ context.Context, databaseClient database.Client, config *config.File, redisClient rueidis.Client) *Hub {
 	hub := Hub{
+		config:         config,
 		databaseClient: databaseClient,
+		redisClient:    redisClient,
 	}
 
 	if err := hub.initializeMeter(); err != nil {

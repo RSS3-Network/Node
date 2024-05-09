@@ -17,6 +17,7 @@ import (
 	"github.com/rss3-network/node/internal/node/broadcaster"
 	"github.com/rss3-network/node/internal/node/hub"
 	"github.com/rss3-network/node/internal/node/indexer"
+	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
 	"github.com/rss3-network/node/internal/stream/provider"
 	"github.com/rss3-network/node/provider/redis"
@@ -62,13 +63,9 @@ var command = cobra.Command{
 		}
 
 		// Init redis client
-		var redisClient rueidis.Client
-
-		if *config.Redis.Enable {
-			redisClient, err = redis.NewClient(*config.Redis)
-			if err != nil {
-				return fmt.Errorf("new redis client: %w", err)
-			}
+		redisClient, err := redis.NewClient(*config.Redis)
+		if err != nil {
+			return fmt.Errorf("new redis client: %w", err)
 		}
 
 		var databaseClient database.Client
@@ -89,19 +86,21 @@ var command = cobra.Command{
 
 		switch module {
 		case node.Hub:
-			return runHub(cmd.Context(), config, databaseClient)
+			return runHub(cmd.Context(), config, databaseClient, redisClient)
 		case node.Indexer:
 			return runIndexer(cmd.Context(), config, databaseClient, streamClient, redisClient)
 		case node.Broadcaster:
 			return runBroadcaster(cmd.Context(), config)
+		case node.Monitor:
+			return runMonitor(cmd.Context(), config, databaseClient, redisClient)
 		}
 
 		return fmt.Errorf("unsupported module %s", lo.Must(flags.GetString(flag.KeyModule)))
 	},
 }
 
-func runHub(ctx context.Context, config *config.File, databaseClient database.Client) error {
-	server := hub.NewServer(ctx, config, databaseClient)
+func runHub(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client) error {
+	server := hub.NewServer(ctx, config, databaseClient, redisClient)
 
 	return server.Run(ctx)
 }
@@ -143,6 +142,15 @@ func runBroadcaster(ctx context.Context, config *config.File) error {
 	server, err := broadcaster.NewBroadcaster(ctx, config)
 	if err != nil {
 		return fmt.Errorf("new broadcaster: %w", err)
+	}
+
+	return server.Run(ctx)
+}
+
+func runMonitor(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client) error {
+	server, err := monitor.NewMonitor(ctx, config, databaseClient, redisClient)
+	if err != nil {
+		return fmt.Errorf("new monitor: %w", err)
 	}
 
 	return server.Run(ctx)
