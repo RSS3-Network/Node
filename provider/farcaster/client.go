@@ -243,17 +243,17 @@ func (c *client) fetch(ctx context.Context, path string, result any) error {
 	return nil
 }
 
-// CovertFarcasterTimeToTimestamp Converts a Farcaster seconds timestamp to a Unix milliseconds timestamp.
+// CovertFarcasterTimeToTimestamp Converts a Farcaster seconds timestamp to a Unix timestamp.
 func CovertFarcasterTimeToTimestamp(timestamp int64) int64 {
 	return timestamp + FarcasterEpoch
 }
 
-// ConvertEventIDToTimestamp Extracts the timestamp from a farcaster event ID.
-func ConvertEventIDToTimestamp(eventID uint64) uint64 {
-	timestampMask := ^uint64((1 << SequenceBits) - 1)
-	timestamp := (eventID & timestampMask) >> SequenceBits
+// ConvertEventIDToTimestampMilli Convert the timestampMilli from a farcaster event ID.
+func ConvertEventIDToTimestampMilli(eventID uint64) uint64 {
+	timestampMilliMask := ^uint64((1 << SequenceBits) - 1)
+	timestampMilli := (eventID & timestampMilliMask) >> SequenceBits
 
-	return timestamp + FarcasterEpoch*1000
+	return timestampMilli + FarcasterEpoch*1000
 }
 
 type ClientOption func(client *client) error

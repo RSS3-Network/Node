@@ -736,12 +736,12 @@ func TestClient_CovertFarcasterTimeToTimestamp(t *testing.T) {
 	})
 }
 
-func TestClient_ConvertEventIDToTimestamp(t *testing.T) {
+func TestClient_ConvertEventIDToTimestampMilli(t *testing.T) {
 	t.Parallel()
 
-	t.Run("covert Farcaster event id to timestamp", func(t *testing.T) {
+	t.Run("covert Farcaster event id to unix milli timestamp", func(t *testing.T) {
 		t.Parallel()
 
-		require.Equal(t, farcaster.ConvertEventIDToTimestamp(432183841886217), uint64(1714972833273))
+		require.Equal(t, farcaster.ConvertEventIDToTimestampMilli(432183841886217), uint64(1714972833273))
 	})
 }
