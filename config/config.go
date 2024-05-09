@@ -14,7 +14,8 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/stream"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
 )
@@ -26,6 +27,8 @@ const (
 
 	EnvironmentDevelopment = "development"
 	EnvironmentProduction  = "production"
+
+	EnvironmentPyroscopeEndpoint = EnvPrefix + "_PYROSCOPE_ENDPOINT"
 )
 
 type File struct {
@@ -34,6 +37,7 @@ type File struct {
 	Node          *Node      `mapstructure:"component" validate:"required"`
 	Database      *Database  `mapstructure:"database" validate:"required"`
 	Stream        *Stream    `mapstructure:"stream" validate:"required"`
+	Redis         *Redis     `mapstructure:"redis" validate:"required"`
 	Observability *Telemetry `mapstructure:"observability" validate:"required"`
 }
 
@@ -59,11 +63,11 @@ type Node struct {
 }
 
 type Module struct {
-	Network      filter.Network `mapstructure:"network" validate:"required"`
-	Endpoint     string         `mapstructure:"endpoint" validate:"required"`
-	IPFSGateways []string       `mapstructure:"ipfs_gateways"`
-	Worker       filter.Name    `mapstructure:"worker"`
-	Parameters   *Options       `mapstructure:"parameters"`
+	Network      network.Network `mapstructure:"network" validate:"required"`
+	Endpoint     string          `mapstructure:"endpoint" validate:"required"`
+	IPFSGateways []string        `mapstructure:"ipfs_gateways"`
+	Worker       worker.Worker   `mapstructure:"worker"`
+	Parameters   *Parameters     `mapstructure:"parameters"`
 }
 
 type Database struct {
@@ -75,7 +79,7 @@ type Database struct {
 type Stream struct {
 	Enable *bool         `mapstructure:"enable" validate:"required" default:"false"`
 	Driver stream.Driver `mapstructure:"driver" validate:"required" default:"kafka"`
-	Topic  string        `mapstructure:"topic" validate:"required" default:"rss3.node.feeds"`
+	Topic  string        `mapstructure:"topic" validate:"required" default:"rss3.node.activities"`
 	URI    string        `mapstructure:"uri" validate:"required" default:"localhost:9092"`
 }
 
@@ -99,6 +103,23 @@ type OpenTelemetryTracesConfig struct {
 	Endpoint string `mapstructure:"endpoint" validate:"required" default:"0.0.0.0:4318"`
 }
 
+type Redis struct {
+	Enable       *bool    `mapstructure:"enable" validate:"required" default:"false"`
+	Endpoints    []string `mapstructure:"endpoints" default:"['localhost:6379']" validate:"required"`
+	Username     string   `mapstructure:"username"`
+	Password     string   `mapstructure:"password"`
+	DisableCache bool     `mapstructure:"disable_cache" default:"true"`
+	TLS          RedisTLS `mapstructure:"tls"`
+}
+
+type RedisTLS struct {
+	Enabled            bool   `mapstructure:"enabled" default:"false"`
+	CAFile             string `mapstructure:"ca_file"`
+	CertFile           string `mapstructure:"cert_file"`
+	KeyFile            string `mapstructure:"key_file"`
+	InsecureSkipVerify bool   `mapstructure:"insecure_skip_verify" default:"false"`
+}
+
 // ID returns the unique identifier of the configuration.
 func (c *Module) ID() string {
 	id := fmt.Sprintf("%s.%s", c.Network, c.Worker)
@@ -116,14 +137,14 @@ func (c *Module) ID() string {
 	return id
 }
 
-//var _ fmt.Stringer = (*Options)(nil)
+// var _ fmt.Stringer = (*Parameters)(nil)
 
-type Options map[string]any
+type Parameters map[string]any
 
-func (o *Options) String() string {
+func (p *Parameters) String() string {
 	var buffer map[string]any
 
-	lo.Must0(o.Decode(&buffer))
+	lo.Must0(p.Decode(&buffer))
 
 	if buffer == nil {
 		return "{}"
@@ -138,8 +159,8 @@ func (o *Options) String() string {
 	return string(lo.Must(json.Marshal(buffer)))
 }
 
-func (o *Options) Decode(v interface{}) error {
-	jsonStr, err := json.Marshal(*o)
+func (p *Parameters) Decode(v interface{}) error {
+	jsonStr, err := json.Marshal(*p)
 	if err != nil {
 		return err
 	}
@@ -199,8 +220,8 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	// Unmarshal config file.
 	var configFile File
 	if err := v.Unmarshal(&configFile, viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
-		filter.NetworkHookFunc(),
-		filter.WorkerHookFunc(),
+		network.HookFunc(),
+		worker.HookFunc(),
 		EvmAddressHookFunc(),
 	))); err != nil {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)

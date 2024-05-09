@@ -8,7 +8,8 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -33,8 +34,15 @@ database:
 stream:
   enable: false
   driver: kafka
-  topic: rss3.node.feeds
+  topic: rss3.node.activities
   uri: localhost:9092
+redis:
+  enable: false
+  endpoints:
+    - localhost:6379
+  username:
+  password:
+  disable_cache: true
 observability:
   opentelemetry:
     metrics:
@@ -56,7 +64,7 @@ component:
           access_code: def
   decentralized:
     - network: ethereum
-      worker: fallback
+      worker: core
       endpoint: https://rpc.ankr.com/eth
       parameters:
         block_number_start: 47370106
@@ -88,8 +96,17 @@ component:
   "stream": {
     "enable": false,
     "driver": "kafka",
-    "topic": "rss3.node.feeds",
+    "topic": "rss3.node.activities",
     "uri": "localhost:9092"
+  },
+  "redis": {
+	"enable": false,
+	"endpoints": [
+	  "localhost:6379"
+	],
+	"username": "",
+	"password": "",
+	"disable_cache": true
   },
   "observability": {
     "opentelemetry": {
@@ -122,7 +139,7 @@ component:
     "decentralized": [
       {
         "network": "ethereum",
-        "worker": "fallback",
+        "worker": "core",
         "endpoint": "https://rpc.ankr.com/eth",
         "parameters": {
           "block_number_start": 47370106,
@@ -159,8 +176,15 @@ uri = "postgres://root@localhost:26257/defaultdb"
 [stream]
 enable = false
 driver = "kafka"
-topic = "rss3.node.feeds"
+topic = "rss3.node.activities"
 uri = "localhost:9092"
+
+[redis]
+enable = false
+endpoints = ["localhost:6379"]
+username = ""
+password = ""
+disable_cache = true
 
 [observability.opentelemetry.metrics]
 enable = true
@@ -183,7 +207,7 @@ access_code = "def"
 
 [[component.decentralized]]
 network = "ethereum"
-worker = "fallback"
+worker = "core"
 endpoint = "https://rpc.ankr.com/eth"
 
   [component.decentralized.parameters]
@@ -217,10 +241,10 @@ var configFileExcept = &File{
 	Node: &Node{
 		RSS: []*Module{
 			{
-				Network:  filter.NetworkRSS,
+				Network:  network.RSS,
 				Endpoint: "https://rsshub.app/",
 				Worker:   0,
-				Parameters: &Options{
+				Parameters: &Parameters{
 					"authentication": map[string]any{
 						"access_code": "def",
 						"access_key":  "abc",
@@ -233,19 +257,19 @@ var configFileExcept = &File{
 		Federated: nil,
 		Decentralized: []*Module{
 			{
-				Network:  filter.NetworkEthereum,
-				Worker:   filter.Fallback,
+				Network:  network.Ethereum,
+				Worker:   workerx.Core,
 				Endpoint: "https://rpc.ankr.com/eth",
-				Parameters: &Options{
+				Parameters: &Parameters{
 					"block_number_start":  47370106,
 					"block_number_target": 456,
 				},
 			},
 			{
-				Network:  filter.NetworkEthereum,
-				Worker:   filter.RSS3,
+				Network:  network.Ethereum,
+				Worker:   workerx.RSS3,
 				Endpoint: "https://rpc.ankr.com/eth",
-				Parameters: &Options{
+				Parameters: &Parameters{
 					"block_height_start": 123,
 					"rpc_thread_blocks":  2,
 				},
@@ -260,8 +284,15 @@ var configFileExcept = &File{
 	Stream: &Stream{
 		Enable: lo.ToPtr(false),
 		Driver: "kafka",
-		Topic:  "rss3.node.feeds",
+		Topic:  "rss3.node.activities",
 		URI:    "localhost:9092",
+	},
+	Redis: &Redis{
+		Enable:       lo.ToPtr(false),
+		Endpoints:    []string{"localhost:6379"},
+		Username:     "",
+		Password:     "",
+		DisableCache: true,
 	},
 	Observability: &Telemetry{
 		OpenTelemetry: &OpenTelemetryConfig{
@@ -302,7 +333,7 @@ func TestSetupConfig(t *testing.T) {
 	AssertConfig(t, f, configFileExcept)
 }
 
-//func TestConfigEnvOverride(t *testing.T) {
+// func TestConfigEnvOverride(t *testing.T) {
 //	t.Parallel()
 //
 //	exceptEnvironment := "testing"
@@ -334,7 +365,7 @@ func TestSetupConfig(t *testing.T) {
 //	assert.Equal(t, exceptEnvironment, f.Environment)
 //	assert.Equal(t, exceptDatabaseURI, f.Database.URI)
 //	assert.Equal(t, exceptMetricsEndpoint, f.Observability.OpenTelemetry.Metrics.Endpoint)
-//}
+// }
 
 func TestConfigFilePath(t *testing.T) {
 	t.Parallel()
@@ -353,6 +384,7 @@ func TestConfigFilePath(t *testing.T) {
 		func(_path string) {
 			t.Run(_path, func(t *testing.T) {
 				t.Parallel()
+
 				fs := afero.NewMemMapFs()
 
 				err := fs.Mkdir(_path, 0o777)
@@ -391,6 +423,7 @@ func TestConfigFileType(t *testing.T) {
 		func(_type, context string) {
 			t.Run(_type, func(t *testing.T) {
 				t.Parallel()
+
 				fs := afero.NewMemMapFs()
 
 				err := fs.Mkdir(configDir, 0o777)

@@ -5,12 +5,22 @@ ifeq ($(VERSION),)
 	VERSION="0.0.0"
 endif
 
+gocyclo:
+	go run github.com/fzipp/gocyclo/cmd/gocyclo@latest -top 10 -ignore "_test|contract_" ./
+
+gocognit:
+	go run github.com/uudashr/gocognit/cmd/gocognit@latest -top 10 -ignore "_test|contract_" ./
+
+# sort struct fields to reduce memory usage
+align:
+	go run github.com/dkorunic/betteralign/cmd/betteralign@latest -apply ./...
+
 generate:
 	go generate ./...
 
 lint: generate
 	go mod tidy
-	go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2 run
+	go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run
 
 test:
 	go test -cover -race -v ./...

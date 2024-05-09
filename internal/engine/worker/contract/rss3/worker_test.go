@@ -14,9 +14,11 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/rss3"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -33,14 +35,15 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
+		// Ethereum Mainnet
 		{
 			name: "Deposit $RSS3 to the Staking contract",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x9fa20b204527b2bb325ab65062c8f035a32ee0a6b42351e349d77cbdec11a225"),
@@ -144,29 +147,29 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x85ded9199c3c8a46bcb1e431e3e05f62fe014930c0a13a029a78e3a18061011f",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   140,
 				From:    "0x1B861760AdE296aBE523C594118EF812208194CE",
 				To:      rss3.AddressStaking.String(),
-				Type:    filter.TypeExchangeStaking,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeStaking,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x383c7d87",
 				},
-				Platform: lo.ToPtr(filter.PlatformRSS3),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformRSS3.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("5479491821006616")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeStaking,
-						Platform: filter.PlatformRSS3.String(),
+						Type:     typex.ExchangeStaking,
+						Platform: workerx.PlatformRSS3.String(),
 						From:     "0x1B861760AdE296aBE523C594118EF812208194CE",
 						To:       "0x1B861760AdE296aBE523C594118EF812208194CE",
 						Metadata: metadata.ExchangeStaking{
@@ -195,7 +198,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Withdraw $RSS3 from the Staking contract",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x1064d670c369cf48e032bd03a9c0d9b7db9eb6929bab811c7f6d79f83a14ab63"),
@@ -287,29 +290,29 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xb3a2c0760f29dba991b8d225a705dbb1785fba7b0e04f4a54c3e91560a1b3227",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   305,
 				From:    "0xE0BA908Be2f52063B0bD210544e67FCD76bd0b56",
 				To:      rss3.AddressStaking.String(),
-				Type:    filter.TypeExchangeStaking,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeStaking,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x00f714ce",
 				},
-				Platform: lo.ToPtr(filter.PlatformRSS3),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformRSS3.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2321450000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeStaking,
-						Platform: filter.PlatformRSS3.String(),
+						Type:     typex.ExchangeStaking,
+						Platform: workerx.PlatformRSS3.String(),
 						From:     "0xE0BA908Be2f52063B0bD210544e67FCD76bd0b56",
 						To:       "0xE0BA908Be2f52063B0bD210544e67FCD76bd0b56",
 						Metadata: metadata.ExchangeStaking{
@@ -334,7 +337,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Claim $RSS3 from the Staking contract",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xe685eebd34c2e1a1f7e941a2a5c09281849234a01cd868f99b8596c31ba2e5ef"),
@@ -425,29 +428,29 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network:  network.Ethereum,
+					Endpoint: endpoint.MustGet(network.Ethereum),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x46cf455d0500f0b0979401ef1192af508890c2f888bc0dc6c006b49f65a37b6b",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   49,
 				From:    "0x2a03278590cd1962De28F9AbC855CF3774fe3eb6",
 				To:      rss3.AddressStaking.String(),
-				Type:    filter.TypeExchangeStaking,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeStaking,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xef5cfb8c",
 				},
-				Platform: lo.ToPtr(filter.PlatformRSS3),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformRSS3.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1332888122256200")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeStaking,
-						Platform: filter.PlatformRSS3.String(),
+						Type:     typex.ExchangeStaking,
+						Platform: workerx.PlatformRSS3.String(),
 						From:     "0x2a03278590cd1962De28F9AbC855CF3774fe3eb6",
 						To:       "0x2a03278590cd1962De28F9AbC855CF3774fe3eb6",
 						Metadata: metadata.ExchangeStaking{
@@ -468,6 +471,249 @@ func TestWorker_Ethereum(t *testing.T) {
 			},
 			wantError: require.NoError,
 		},
+		// VSL Mainnet
+		{
+			name: "Deposit $RSS3 to the VSL Staking contract",
+			arguments: arguments{
+				task: &source.Task{
+					Network: network.VSL,
+					ChainID: 12553,
+					Header: &ethereum.Header{
+						Hash:         common.HexToHash("0x65c5c7eebca0f8bad09de7c5ceadaa369878db3d7488a881155611e9bb18d820"),
+						ParentHash:   common.HexToHash("0xfffd9b8f39aff5b2c99c3f2d3e0b3c885f3b823207d9bb7dfbdf10e856d9e102"),
+						UncleHash:    common.HexToHash("0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"),
+						Coinbase:     common.HexToAddress("0x4200000000000000000000000000000000000011"),
+						Number:       lo.Must(new(big.Int).SetString("182670", 0)),
+						GasLimit:     30000000,
+						GasUsed:      260163,
+						Timestamp:    1710223859,
+						BaseFee:      lo.Must(new(big.Int).SetString("50", 0)),
+						Transactions: nil,
+					},
+					Transaction: &ethereum.Transaction{
+						BlockHash: common.HexToHash("0xb49208a4fb936cf3d73da0b92af0776945a09062af8983cf72c8bd4fffb7f624"),
+						From:      common.HexToAddress("0x39F9e912C1F696F533e7A2267Ea233AeC9742b35"),
+						Gas:       218959,
+						GasPrice:  lo.Must(new(big.Int).SetString("1500000050", 10)),
+						Hash:      common.HexToHash("0xb49208a4fb936cf3d73da0b92af0776945a09062af8983cf72c8bd4fffb7f624"),
+						Input:     hexutil.MustDecode("0x96531623000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000003200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000667657869616f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000015466f72204f70656e20496e666f726d6174696f6e2e0000000000000000000000"),
+						To:        lo.ToPtr(common.HexToAddress("0x28F14d917fddbA0c1f2923C406952478DfDA5578")),
+						Value:     lo.Must(new(big.Int).SetString("10000000000000000000000", 0)),
+						Type:      2,
+						ChainID:   lo.Must(new(big.Int).SetString("12553", 0)),
+					},
+					Receipt: &ethereum.Receipt{
+						BlockHash:         common.HexToHash("0x65c5c7eebca0f8bad09de7c5ceadaa369878db3d7488a881155611e9bb18d820"),
+						BlockNumber:       lo.Must(new(big.Int).SetString("182670", 0)),
+						ContractAddress:   nil,
+						CumulativeGasUsed: 260163,
+						EffectiveGasPrice: hexutil.MustDecodeBig("0x59682f32"),
+						GasUsed:           213238,
+						L1GasPrice:        lo.Must(new(big.Int).SetString("51211146219", 0)),
+						L1GasUsed:         lo.Must(new(big.Int).SetString("3636", 0)),
+						L1Fee:             lo.Must(new(big.Int).SetString("1117222365913704000", 0)),
+						FeeScalar:         lo.Must(new(big.Float).SetString("6000")),
+						Logs: []*ethereum.Log{{
+							Address: common.HexToAddress("0x28F14d917fddbA0c1f2923C406952478DfDA5578"),
+							Topics: []common.Hash{
+								common.HexToHash("0x37570f68d94fd46cd4009b3823da2b2bc1a9a7e38f824f311ede9e876816e321"),
+								common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000008"),
+								common.HexToHash("0x00000000000000000000000039f9e912c1f696f533e7a2267ea233aec9742b35"),
+							},
+							Data:            hexutil.MustDecode("0x00000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000000000000000000000000000000000000000032000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000667657869616f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000015466f72204f70656e20496e666f726d6174696f6e2e0000000000000000000000"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("182670", 0)),
+							TransactionHash: common.HexToHash("0xb49208a4fb936cf3d73da0b92af0776945a09062af8983cf72c8bd4fffb7f624"),
+							Index:           0,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0x28F14d917fddbA0c1f2923C406952478DfDA5578"),
+							Topics: []common.Hash{
+								common.HexToHash("0x2da466a7b24304f47e87fa2e1e5a81b9831ce54fec19055ce277ca2f39ba42c4"),
+								common.HexToHash("0x00000000000000000000000039f9e912c1f696f533e7a2267ea233aec9742b35"),
+								common.HexToHash("0x00000000000000000000000000000000000000000000021e19e0c9bab2400000"),
+							},
+							Data:            nil,
+							BlockNumber:     lo.Must(new(big.Int).SetString("182670", 0)),
+							TransactionHash: common.HexToHash("0xb49208a4fb936cf3d73da0b92af0776945a09062af8983cf72c8bd4fffb7f624"),
+							Index:           1,
+							Removed:         false,
+						}},
+						Status:           1,
+						TransactionHash:  common.HexToHash("0xb49208a4fb936cf3d73da0b92af0776945a09062af8983cf72c8bd4fffb7f624"),
+						TransactionIndex: 1,
+					},
+				},
+				config: &config.Module{
+					Network:  network.VSL,
+					Endpoint: endpoint.MustGet(network.VSL),
+				},
+			},
+			want: &activityx.Activity{
+				ID:      "0xb49208a4fb936cf3d73da0b92af0776945a09062af8983cf72c8bd4fffb7f624",
+				Network: network.VSL,
+				Index:   1,
+				From:    "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
+				To:      rss3.AddressStakingVSL.String(),
+				Type:    typex.ExchangeStaking,
+				Calldata: &activityx.Calldata{
+					FunctionHash: "0x96531623",
+				},
+				Platform: workerx.PlatformRSS3.String(),
+				Fee: &activityx.Fee{
+					Amount:  lo.Must(decimal.NewFromString("1117542222924365900")),
+					Decimal: 18,
+				},
+				Actions: []*activityx.Action{
+					{
+						Type:     typex.ExchangeStaking,
+						Platform: workerx.PlatformRSS3.String(),
+						From:     "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
+						To:       "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
+						Metadata: metadata.ExchangeStaking{
+							Action: metadata.ActionExchangeStakingStake,
+							Token: metadata.Token{
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("10000000000000000000000"))),
+								Name:     "RSS3",
+								Symbol:   "RSS3",
+								Decimals: 18,
+							},
+						},
+					},
+				},
+				Status:    true,
+				Timestamp: 1710223859,
+			},
+			wantError: require.NoError,
+		},
+		{
+			name: "Staking $RSS3 to the VSL Nodes",
+			arguments: arguments{
+				task: &source.Task{
+					Network: network.VSL,
+					ChainID: 12553,
+					Header: &ethereum.Header{
+						Hash:         common.HexToHash("0xc358a8dc0da6cac588e5a98b805d60cd5d2746eced7606cb153155fccd6ea460"),
+						ParentHash:   common.HexToHash("0xcebd5a7ab6f8fc7b396225f6c8a9a3b4963da19ac4165629cb73ab1012dde314"),
+						UncleHash:    common.HexToHash("0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"),
+						Coinbase:     common.HexToAddress("0x4200000000000000000000000000000000000011"),
+						Number:       lo.Must(new(big.Int).SetString("184967", 0)),
+						GasLimit:     30000000,
+						GasUsed:      184758,
+						Timestamp:    1710228453,
+						BaseFee:      lo.Must(new(big.Int).SetString("50", 0)),
+						Transactions: nil,
+					},
+					Transaction: &ethereum.Transaction{
+						BlockHash: common.HexToHash("0x26fbdff8a7af1a1917b6dd8a54c636151cb7186a6b3c3a5922df3a98edda54a8"),
+						From:      common.HexToAddress("0x30286DD245338292F319809935a1037CcD4573Ea"),
+						Gas:       140094,
+						GasPrice:  lo.Must(new(big.Int).SetString("1000050", 10)),
+						Hash:      common.HexToHash("0x26fbdff8a7af1a1917b6dd8a54c636151cb7186a6b3c3a5922df3a98edda54a8"),
+						Input:     hexutil.MustDecode("0x2647620400000000000000000000000039f9e912c1f696f533e7a2267ea233aec9742b35"),
+						To:        lo.ToPtr(common.HexToAddress("0x28F14d917fddbA0c1f2923C406952478DfDA5578")),
+						Value:     lo.Must(new(big.Int).SetString("500000000000000000000", 0)),
+						Type:      2,
+						ChainID:   lo.Must(new(big.Int).SetString("12553", 0)),
+					},
+					Receipt: &ethereum.Receipt{
+						BlockHash:         common.HexToHash("0xc358a8dc0da6cac588e5a98b805d60cd5d2746eced7606cb153155fccd6ea460"),
+						BlockNumber:       lo.Must(new(big.Int).SetString("184967", 0)),
+						ContractAddress:   nil,
+						CumulativeGasUsed: 184758,
+						EffectiveGasPrice: hexutil.MustDecodeBig("0xf4272"),
+						GasUsed:           137833,
+						L1GasPrice:        lo.Must(new(big.Int).SetString("51479747982", 0)),
+						L1GasUsed:         lo.Must(new(big.Int).SetString("2500", 0)),
+						L1Fee:             lo.Must(new(big.Int).SetString("772196219730000000", 0)),
+						FeeScalar:         lo.Must(new(big.Float).SetString("6000")),
+						Logs: []*ethereum.Log{{
+							Address: common.HexToAddress("0x849f8F55078dCc69dD857b58Cc04631EBA54E4DE"),
+							Topics: []common.Hash{
+								common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+								common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+								common.HexToHash("0x00000000000000000000000030286dd245338292f319809935a1037ccd4573ea"),
+								common.HexToHash("0x00000000000000000000000000000000000000000000000000000000000000a2"),
+							},
+							Data:            nil,
+							BlockNumber:     lo.Must(new(big.Int).SetString("184967", 0)),
+							TransactionHash: common.HexToHash("0x26fbdff8a7af1a1917b6dd8a54c636151cb7186a6b3c3a5922df3a98edda54a8"),
+							Index:           0,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0x28F14d917fddbA0c1f2923C406952478DfDA5578"),
+							Topics: []common.Hash{
+								common.HexToHash("0xad3fa07f4195b47e64892eb944ecbfc253384053c119852bb2bcae484c2fcb69"),
+								common.HexToHash("0x00000000000000000000000030286dd245338292f319809935a1037ccd4573ea"),
+								common.HexToHash("0x00000000000000000000000039f9e912c1f696f533e7a2267ea233aec9742b35"),
+								common.HexToHash("0x00000000000000000000000000000000000000000000001b1ae4d6e2ef500000"),
+							},
+							Data:            hexutil.MustDecode("0x00000000000000000000000000000000000000000000000000000000000000a200000000000000000000000000000000000000000000000000000000000000a2"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("184967", 0)),
+							TransactionHash: common.HexToHash("0x26fbdff8a7af1a1917b6dd8a54c636151cb7186a6b3c3a5922df3a98edda54a8"),
+							Index:           1,
+							Removed:         false,
+						}},
+						Status:           1,
+						TransactionHash:  common.HexToHash("0x26fbdff8a7af1a1917b6dd8a54c636151cb7186a6b3c3a5922df3a98edda54a8"),
+						TransactionIndex: 1,
+					},
+				},
+				config: &config.Module{
+					Network:  network.VSL,
+					Endpoint: endpoint.MustGet(network.VSL),
+				},
+			},
+			want: &activityx.Activity{
+				ID:      "0x26fbdff8a7af1a1917b6dd8a54c636151cb7186a6b3c3a5922df3a98edda54a8",
+				Network: network.VSL,
+				Index:   1,
+				From:    "0x30286DD245338292F319809935a1037CcD4573Ea",
+				To:      rss3.AddressStakingVSL.String(),
+				Type:    typex.ExchangeStaking,
+				Calldata: &activityx.Calldata{
+					FunctionHash: "0x26476204",
+				},
+				Platform: workerx.PlatformRSS3.String(),
+				Fee: &activityx.Fee{
+					Amount:  lo.Must(decimal.NewFromString("772196357569891650")),
+					Decimal: 18,
+				},
+				Actions: []*activityx.Action{
+					{
+						Type:     typex.CollectibleMint,
+						Platform: workerx.PlatformRSS3.String(),
+						From:     ethereum.AddressGenesis.String(),
+						To:       common.HexToAddress("0x30286DD245338292F319809935a1037CcD4573Ea").String(),
+						Metadata: metadata.CollectibleTransfer{
+							Address:  lo.ToPtr("0x849f8F55078dCc69dD857b58Cc04631EBA54E4DE"),
+							ID:       lo.ToPtr(decimal.NewFromBigInt(big.NewInt(162), 0)),
+							Value:    lo.ToPtr(decimal.NewFromBigInt(big.NewInt(1), 0)),
+							Name:     "Open Chips",
+							Symbol:   "Chips",
+							Standard: metadata.StandardERC721,
+						},
+					},
+					{
+						Type:     typex.ExchangeStaking,
+						Platform: workerx.PlatformRSS3.String(),
+						From:     "0x30286DD245338292F319809935a1037CcD4573Ea",
+						To:       "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
+						Metadata: metadata.ExchangeStaking{
+							Action: metadata.ActionExchangeStakingStake,
+							Token: metadata.Token{
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("500000000000000000000"))),
+								Name:     "RSS3",
+								Symbol:   "RSS3",
+								Decimals: 18,
+							},
+						},
+					},
+				},
+				Status:    true,
+				Timestamp: 1710228453,
+			},
+			wantError: require.NoError,
+		},
 	}
 
 	for _, testcase := range testcases {
@@ -485,12 +731,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

@@ -12,11 +12,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/arweave/bundle"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.uber.org/zap"
@@ -45,7 +46,7 @@ type source struct {
 	pendingState  State
 }
 
-func (s *source) Network() filter.Network {
+func (s *source) Network() network.Network {
 	return s.config.Network
 }
 
@@ -53,7 +54,7 @@ func (s *source) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, errorChan chan<- error) {
+func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
 	// Initialize source.
 	if err := s.initialize(); err != nil {
 		errorChan <- fmt.Errorf("initialize source: %w", err)
@@ -63,7 +64,26 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 
 	// Start a goroutine to poll blocks.
 	go func() {
-		errorChan <- s.pollBlocks(ctx, tasksChan, s.filter)
+		retryableFunc := func() error {
+			if err := s.pollBlocks(ctx, tasksChan, s.filter); err != nil {
+				return fmt.Errorf("poll blocks: %w", err)
+			}
+
+			return nil
+		}
+
+		err := retry.Do(retryableFunc,
+			retry.Attempts(0),
+			retry.Delay(time.Second),
+			retry.DelayType(retry.BackOffDelay),
+			retry.MaxDelay(5*time.Minute),
+			retry.OnRetry(func(n uint, err error) {
+				zap.L().Error("retry arweave source start", zap.Uint("retry", n), zap.Error(err))
+			}),
+		)
+		if err != nil {
+			errorChan <- err
+		}
 	}()
 }
 
@@ -77,7 +97,16 @@ func (s *source) initialize() (err error) {
 	return nil
 }
 
-func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task, filter *Filter) error {
+// initializeBlockHeights initializes block heights.
+func (s *source) initializeBlockHeights() {
+	if s.option.BlockHeightStart != nil && s.option.BlockHeightStart.Uint64() > s.state.BlockHeight {
+		s.pendingState.BlockHeight = s.option.BlockHeightStart.Uint64()
+		s.state.BlockHeight = s.option.BlockHeightStart.Uint64()
+	}
+}
+
+// pollBlocks polls blocks from arweave network.
+func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks, filter *Filter) error {
 	var (
 		blockHeightLatestRemote int64
 		err                     error
@@ -85,10 +114,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task,
 
 	// Get start block height from config
 	// if not set, use default value 0
-	if s.option.BlockHeightStart != nil && s.option.BlockHeightStart.Uint64() > s.state.BlockHeight {
-		s.pendingState.BlockHeight = s.option.BlockHeightStart.Uint64()
-		s.state.BlockHeight = s.option.BlockHeightStart.Uint64()
-	}
+	s.initializeBlockHeights()
 
 	// Get target block height from config
 	// if not set, use the latest block height from arweave network
@@ -127,15 +153,10 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task,
 			continue
 		}
 
-		// set the default value of RPCThreadBlocks to 1
-		if s.option.RPCThreadBlocks == 0 {
-			s.option.RPCThreadBlocks = 1
-		}
-
 		// Pull blocks
 		blockHeightEnd := lo.Min([]uint64{
 			uint64(blockHeightLatestRemote),
-			s.state.BlockHeight + s.option.RPCThreadBlocks - 1,
+			s.state.BlockHeight + *s.option.RPCThreadBlocks - 1,
 		})
 
 		// Pull blocks by range.
@@ -155,6 +176,9 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task,
 			return fmt.Errorf("batch pull transactions: %w", err)
 		}
 
+		// Filter non batch transactions.
+		transactions = s.filterNonBatchTransaction(transactions)
+
 		// Filter transactions by owner.
 		transactions = s.filterOwnerTransaction(transactions, filter.OwnerAddresses)
 
@@ -171,7 +195,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task,
 			}
 
 			for _, bundleTransaction := range bundleTransactions {
-				blocks[index].Txs = append(block.Txs, bundleTransaction.ID)
+				blocks[index].Txs = append(blocks[index].Txs, bundleTransaction.ID)
 			}
 
 			transactions = append(transactions, bundleTransactions...)
@@ -180,10 +204,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task,
 		// Discard the Bundle transaction itself.
 		transactions = s.discardRootBundleTransaction(transactions)
 
-		tasks, err := s.buildTasks(blocks, transactions)
-		if err != nil {
-			return fmt.Errorf("build tasks: %w", err)
-		}
+		tasks := s.buildTasks(ctx, blocks, transactions)
 
 		// TODO It might be possible to use generics to avoid manual type assertions.
 		tasksChan <- tasks
@@ -339,8 +360,6 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 					Signature: dataItem.Signature,
 				}
 
-				// TODO: Match and filter bundle transactions.
-
 				data, err := io.ReadAll(dataItem)
 				if err != nil {
 					return nil, fmt.Errorf("read data item %s: %w", dataItemInfo.ID, err)
@@ -438,23 +457,35 @@ func (s *source) filterOwnerTransaction(transactions []*arweave.Transaction, own
 	})
 }
 
+// filterOwnerTransaction filters non batch transactions.
+func (s *source) filterNonBatchTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
+	return lo.Filter(transactions, func(transaction *arweave.Transaction, _ int) bool {
+		transactionOwner, err := arweave.PublicKeyToAddress(transaction.Owner)
+		if err != nil {
+			return false
+		}
+
+		return !lo.Contains(bundlrNodes, transactionOwner)
+	})
+}
+
 // buildTasks builds tasks from blocks and transactions.
-func (s *source) buildTasks(blocks []*arweave.Block, transactions []*arweave.Transaction) ([]engine.Task, error) {
-	tasks := make([]engine.Task, 0)
+func (s *source) buildTasks(_ context.Context, blocks []*arweave.Block, transactions []*arweave.Transaction) *engine.Tasks {
+	var tasks engine.Tasks
 
 	for _, transaction := range transactions {
 		block, _ := lo.Find(blocks, func(block *arweave.Block) bool {
 			return lo.Contains(block.Txs, transaction.ID)
 		})
 
-		tasks = append(tasks, &Task{
+		tasks.Tasks = append(tasks.Tasks, &Task{
 			Network:     s.Network(),
 			Block:       *block,
 			Transaction: *transaction,
 		})
 	}
 
-	return tasks, nil
+	return &tasks
 }
 
 // NewSource creates a new arweave source.

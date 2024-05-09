@@ -9,8 +9,8 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,7 +19,7 @@ func TestDetectTokenStandard(t *testing.T) {
 
 	type arguments struct {
 		ctx     context.Context
-		network filter.Network
+		network network.Network
 		address common.Address
 	}
 
@@ -33,7 +33,7 @@ func TestDetectTokenStandard(t *testing.T) {
 			name: "RSS3",
 			arguments: arguments{
 				ctx:     context.Background(),
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				// https://etherscan.io/address/0xc98d64da73a6616c42117b582e832812e7b8d57f
 				address: common.HexToAddress("0xc98D64DA73a6616c42117b582e832812e7B8D57F"),
 			},
@@ -44,7 +44,7 @@ func TestDetectTokenStandard(t *testing.T) {
 			name: "USD Coin",
 			arguments: arguments{
 				ctx:     context.Background(),
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				// https://etherscan.io/address/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
 				address: common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
 			},
@@ -55,7 +55,7 @@ func TestDetectTokenStandard(t *testing.T) {
 			name: "Maker",
 			arguments: arguments{
 				ctx:     context.Background(),
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				// https://etherscan.io/address/0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2
 				address: common.HexToAddress("0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2"),
 			},
@@ -66,7 +66,7 @@ func TestDetectTokenStandard(t *testing.T) {
 			name: "The Genesis RSS3 Avatar NFT",
 			arguments: arguments{
 				ctx:     context.Background(),
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				address: common.HexToAddress("0x5452C7fB99D99fAb3Cc1875E9DA9829Cb50F7A13"),
 			},
 			want:      metadata.StandardERC721,
@@ -76,7 +76,7 @@ func TestDetectTokenStandard(t *testing.T) {
 			name: "ENS",
 			arguments: arguments{
 				ctx:     context.Background(),
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				address: common.HexToAddress("0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85"),
 			},
 			want:      metadata.StandardERC721,
@@ -86,7 +86,7 @@ func TestDetectTokenStandard(t *testing.T) {
 			name: "Proof Of Stake Pages", // SBT
 			arguments: arguments{
 				ctx:     context.Background(),
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				// https://etherscan.io/address/0x5bf5bcc5362f88721167c1068b58c60cad075aac
 				address: common.HexToAddress("0x5bF5BCc5362F88721167C1068b58C60caD075aAc"),
 			},
@@ -97,7 +97,7 @@ func TestDetectTokenStandard(t *testing.T) {
 			name: "Love, Death + Robots",
 			arguments: arguments{
 				ctx:     context.Background(),
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				// https://etherscan.io/address/0xFD43D1dA000558473822302e1d44D81dA2e4cC0d
 				address: common.HexToAddress("0xFD43D1dA000558473822302e1d44D81dA2e4cC0d"),
 			},
@@ -108,7 +108,7 @@ func TestDetectTokenStandard(t *testing.T) {
 			name: "TIME NFT Special Issues",
 			arguments: arguments{
 				ctx:     context.Background(),
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				// https://etherscan.io/address/0x8442864d6AB62a9193be2F16580c08E0D7BCda2f
 				address: common.HexToAddress("0x8442864d6AB62a9193be2F16580c08E0D7BCda2f"),
 			},
@@ -119,7 +119,7 @@ func TestDetectTokenStandard(t *testing.T) {
 			name: "Beacon Deposit Contract",
 			arguments: arguments{
 				ctx:     context.Background(),
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				// https://etherscan.io/address/0x00000000219ab540356cbb839cbe05303d7705fa
 				address: common.HexToAddress("0x00000000219ab540356cBB839Cbe05303d7705Fa"),
 			},
@@ -130,7 +130,7 @@ func TestDetectTokenStandard(t *testing.T) {
 			name: "Arbitrum Bridge",
 			arguments: arguments{
 				ctx:     context.Background(),
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				// https://etherscan.io/address/0x8315177ab297ba92a06054ce80a67ed4dbd7ed3a
 				address: common.HexToAddress("0x8315177aB297bA92A06054cE80a67Ed4DBd7ed3a"),
 			},
@@ -145,7 +145,7 @@ func TestDetectTokenStandard(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
-			chainID, err := filter.EthereumChainIDString(testcase.arguments.network.String())
+			chainID, err := network.EthereumChainIDString(testcase.arguments.network.String())
 			require.NoError(t, err)
 
 			ethereumClient, err := ethereum.Dial(testcase.arguments.ctx, endpoint.MustGet(testcase.arguments.network))
@@ -166,6 +166,6 @@ func BenchmarkDetectERC20WithCode(b *testing.B) {
 	require.NoError(b, err)
 
 	for i := 0; i < b.N; i++ {
-		require.False(b, contract.DetectERC165WithCode(uint64(filter.EthereumChainIDMainnet), address, code))
+		require.False(b, contract.DetectERC165WithCode(uint64(network.EthereumChainIDMainnet), address, code))
 	}
 }

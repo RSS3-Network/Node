@@ -3,30 +3,48 @@ run:
 
 linters:
   enable:
-    # Enabled by default
-    - errcheck
-    - gosimple
-    - govet
-    - ineffassign
-    - staticcheck
-    - unused
-    # Disabled by default
     - asasalint
     - asciicheck
     - bodyclose
+    - durationcheck
+    - errcheck
     - errorlint
     - gci
+    - gocognit
+    - gocritic
     - gocyclo
     - gosec
+    - govet
+    - ineffassign
     - makezero
+    - nakedret
     - noctx
     - paralleltest
     - prealloc
+    - predeclared
     - reassign
     - revive
+    - staticcheck
+    - stylecheck
+    - unconvert
+    - unparam
+    - unused
     - whitespace
     - wsl
 
 issues:
   max-issues-per-linter: 0 # Unlimited
   max-same-issues: 0 # Unlimited
+
+linters-settings:
+  govet:
+    enable-all: true
+    disable:
+      - shadow
+      - fieldalignment
+  gocognit:
+    min-complexity: 30
+  gocyclo:
+    min-complexity: 30
+  gocritic:
+    disabled-tags: ["opinionated", "experimental"]

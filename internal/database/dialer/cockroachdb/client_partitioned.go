@@ -11,8 +11,9 @@ import (
 
 	"github.com/rss3-network/node/internal/database/dialer/cockroachdb/table"
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/protocol-go/schema"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/samber/lo"
+	"github.com/sourcegraph/conc/pool"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
@@ -38,7 +39,7 @@ func (c *client) createPartitionTable(ctx context.Context, name, template string
 }
 
 // findIndexesPartitionTable finds partition table names of indexes in the past year.
-func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index) ([]string, error) {
+func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index) []string {
 	partitionedNames := make([]string, 0)
 
 	for i := 0; i <= 4; i++ {
@@ -56,7 +57,7 @@ func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index
 		index.Timestamp = time.Date(lo.Ternary(month < 3, year-1, year), lo.Ternary(month < 3, month+9, month-3), index.Timestamp.Day(), 23, 59, 59, 1e9-1, time.Local)
 	}
 
-	return partitionedNames, nil
+	return partitionedNames
 }
 
 // loadIndexesPartitionTables loads indexes partition tables.
@@ -72,42 +73,42 @@ func (c *client) loadIndexesPartitionTables(ctx context.Context) {
 	}
 }
 
-// saveFeedsPartitioned saves feeds in partitioned tables.
-func (c *client) saveFeedsPartitioned(ctx context.Context, feeds []*schema.Feed) error {
-	partitions := make(map[string][]*schema.Feed)
+// saveActivitiesPartitioned saves Activities in partitioned tables.
+func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*activityx.Activity) error {
+	partitions := make(map[string][]*activityx.Activity)
 
-	// Group feeds by partition name.
-	for _, feed := range feeds {
-		var feedTable table.Feed
+	// Group activities by partition name.
+	for _, a := range activities {
+		var activityTable table.Activity
 
-		name := feedTable.PartitionName(feed)
+		name := activityTable.PartitionName(a)
 
 		if _, exists := partitions[name]; !exists {
-			partitions[name] = make([]*schema.Feed, 0)
+			partitions[name] = make([]*activityx.Activity, 0)
 		}
 
-		partitions[name] = append(partitions[name], feed)
+		partitions[name] = append(partitions[name], a)
 	}
 
 	errorGroup, ctx := errgroup.WithContext(ctx)
 
-	// Save feeds and indexes in parallel.
-	for name, feeds := range partitions {
-		name, feeds := name, feeds
+	// Save activities and indexes in parallel.
+	for name, activities := range partitions {
+		name, activities := name, activities
 
 		errorGroup.Go(func() error {
-			tableFeeds := make(table.Feeds, 0)
+			tableActivities := make(table.Activities, 0)
 
-			if err := tableFeeds.Import(feeds); err != nil {
+			if err := tableActivities.Import(activities); err != nil {
 				return err
 			}
 
-			if len(tableFeeds) == 0 {
+			if len(tableActivities) == 0 {
 				return nil
 			}
 
 			// #nosec
-			if err := c.createPartitionTable(ctx, name, tableFeeds[0].TableName()); err != nil {
+			if err := c.createPartitionTable(ctx, name, tableActivities[0].TableName()); err != nil {
 				return err
 			}
 
@@ -123,70 +124,70 @@ func (c *client) saveFeedsPartitioned(ctx context.Context, feeds []*schema.Feed)
 			if err := c.database.WithContext(ctx).
 				Table(name).
 				Clauses(onConflict).
-				CreateInBatches(tableFeeds, math.MaxUint8).
+				CreateInBatches(tableActivities, math.MaxUint8).
 				Error; err != nil {
 				return err
 			}
 
-			return c.saveIndexesPartitioned(ctx, feeds)
+			return c.saveIndexesPartitioned(ctx, activities)
 		})
 	}
 
 	return errorGroup.Wait()
 }
 
-// findFeedPartitioned finds a feed by id.
-func (c *client) findFeedPartitioned(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error) {
-	index, err := c.findIndexPartitioned(ctx, query)
+// findActivityPartitioned finds an activity  by id.
+func (c *client) findActivityPartitioned(ctx context.Context, query model.ActivityQuery) (*activityx.Activity, *int, error) {
+	matchedActivity, err := c.findIndexPartitioned(ctx, query)
 	if err != nil {
-		return nil, nil, fmt.Errorf("first index: %w", err)
+		return nil, nil, fmt.Errorf("first matchedActivity: %w", err)
 	}
 
-	if index == nil {
+	if matchedActivity == nil {
 		return nil, nil, nil
 	}
 
-	feed := &table.Feed{
-		ID:        index.ID,
-		Network:   index.Network,
-		Timestamp: index.Timestamp,
+	activity := &table.Activity{
+		ID:        matchedActivity.ID,
+		Network:   matchedActivity.Network,
+		Timestamp: matchedActivity.Timestamp,
 	}
 
-	if err := c.database.WithContext(ctx).Table(feed.PartitionName(nil)).Where("id = ?", index.ID).Limit(1).Find(&feed).Error; err != nil {
-		return nil, nil, fmt.Errorf("find feed: %w", err)
+	if err := c.database.WithContext(ctx).Table(activity.PartitionName(nil)).Where("id = ?", matchedActivity.ID).Limit(1).Find(&activity).Error; err != nil {
+		return nil, nil, fmt.Errorf("find activity: %w", err)
 	}
 
-	result, err := feed.Export(index)
+	result, err := activity.Export(matchedActivity)
 	if err != nil {
-		return nil, nil, fmt.Errorf("export feed: %w", err)
+		return nil, nil, fmt.Errorf("export activity: %w", err)
 	}
 
-	page := math.Ceil(float64(len(feed.Actions)) / float64(query.ActionLimit))
+	page := math.Ceil(float64(len(activity.Actions)) / float64(query.ActionLimit))
 
-	feed.Actions = lo.Slice(feed.Actions, query.ActionLimit*(query.ActionPage-1), query.ActionLimit*query.ActionPage)
+	activity.Actions = lo.Slice(activity.Actions, query.ActionLimit*(query.ActionPage-1), query.ActionLimit*query.ActionPage)
 
 	return result, lo.ToPtr(int(page)), nil
 }
 
-// findFeedsPartitioned finds feeds.
-func (c *client) findFeedsPartitioned(ctx context.Context, query model.FeedsQuery) ([]*schema.Feed, error) {
+// findActivitiesPartitioned finds activities.
+func (c *client) findActivitiesPartitioned(ctx context.Context, query model.ActivitiesQuery) ([]*activityx.Activity, error) {
 	indexes, err := c.findIndexesPartitioned(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("find indexes: %w", err)
 	}
 
 	partition := lo.GroupBy(indexes, func(query *table.Index) string {
-		feed := table.Feed{
+		activity := table.Activity{
 			ID:        query.ID,
 			Network:   query.Network,
 			Timestamp: query.Timestamp,
 		}
 
-		return feed.PartitionName(nil)
+		return activity.PartitionName(nil)
 	})
 
 	var (
-		result = make([]*schema.Feed, 0)
+		result = make([]*activityx.Activity, 0)
 		locker sync.Mutex
 	)
 
@@ -200,10 +201,10 @@ func (c *client) findFeedsPartitioned(ctx context.Context, query model.FeedsQuer
 		})
 
 		errorGroup.Go(func() error {
-			tableFeeds := make(table.Feeds, 0)
+			tableActivities := make(table.Activities, 0)
 
-			if err := c.database.WithContext(errorCtx).Table(tableName).Where("id IN ?", lo.Uniq(ids)).Find(&tableFeeds).Error; err != nil {
-				zap.L().Error("failed to find feeds", zap.Error(err), zap.String("tableName", tableName))
+			if err := c.database.WithContext(errorCtx).Table(tableName).Where("id IN ?", lo.Uniq(ids)).Find(&tableActivities).Error; err != nil {
+				zap.L().Error("failed to find activities", zap.Error(err), zap.String("tableName", tableName))
 
 				return err
 			}
@@ -211,12 +212,12 @@ func (c *client) findFeedsPartitioned(ctx context.Context, query model.FeedsQuer
 			locker.Lock()
 			defer locker.Unlock()
 
-			feeds, err := tableFeeds.Export(index)
+			activities, err := tableActivities.Export(index)
 			if err != nil {
 				return err
 			}
 
-			result = append(result, feeds...)
+			result = append(result, activities...)
 
 			return nil
 		})
@@ -226,8 +227,8 @@ func (c *client) findFeedsPartitioned(ctx context.Context, query model.FeedsQuer
 		return nil, err
 	}
 
-	lo.ForEach(result, func(feed *schema.Feed, i int) {
-		result[i].Actions = lo.Slice(feed.Actions, 0, query.ActionLimit)
+	lo.ForEach(result, func(activity *activityx.Activity, i int) {
+		result[i].Actions = lo.Slice(activity.Actions, 0, query.ActionLimit)
 	})
 
 	sort.SliceStable(result, func(i, j int) bool {
@@ -238,10 +239,10 @@ func (c *client) findFeedsPartitioned(ctx context.Context, query model.FeedsQuer
 }
 
 // saveIndexesPartitioned saves indexes in partitioned tables.
-func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Feed) error {
+func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activityx.Activity) error {
 	indexes := make(table.Indexes, 0)
 
-	if err := indexes.Import(feeds); err != nil {
+	if err := indexes.Import(activities); err != nil {
 		return err
 	}
 
@@ -254,7 +255,7 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 		return fmt.Errorf("create partition table: %w", err)
 	}
 
-	// Delete indexes with the same feed id and network.
+	// Delete indexes with the same activity id and network.
 	pkIndexes := make(map[string][]string)
 
 	for _, index := range indexes {
@@ -272,13 +273,22 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 		return value
 	})
 
-	// #nosec
-	if err := c.database.WithContext(ctx).
-		Table(indexes[0].PartitionName()).
-		Where("(id, network) IN (?)", conditions).
-		Delete(&table.Indexes{}).
-		Error; err != nil {
-		return fmt.Errorf("delete indexes: %w", err)
+	errorPool := pool.New().WithContext(ctx).WithMaxGoroutines(10).WithCancelOnError().WithFirstError()
+
+	for _, condition := range lo.Chunk(conditions, math.MaxUint8) {
+		condition := condition
+
+		errorPool.Go(func(ctx context.Context) error {
+			return c.database.WithContext(ctx).
+				Table(indexes[0].PartitionName()).
+				Where("(id, network) IN (?)", condition).
+				Delete(&table.Index{}).
+				Error
+		})
+	}
+
+	if err := errorPool.Wait(); err != nil {
+		return fmt.Errorf("failed to delete indexes: %w", err)
 	}
 
 	// Save indexes.
@@ -297,24 +307,34 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, feeds []*schema.Fee
 		UpdateAll: true,
 	}
 
-	// #nosec
-	return c.database.WithContext(ctx).
-		Table(indexes[0].PartitionName()).
-		Clauses(onConflict).
-		CreateInBatches(indexes, math.MaxUint8).
-		Error
+	errorPool = pool.New().WithContext(ctx).WithMaxGoroutines(10).WithCancelOnError().WithFirstError()
+
+	for _, index := range lo.Chunk(indexes, math.MaxUint8) {
+		index := index
+
+		errorPool.Go(func(ctx context.Context) error {
+			return c.database.WithContext(ctx).
+				Table(indexes[0].PartitionName()).
+				Clauses(onConflict).
+				Create(index).
+				Error
+		})
+	}
+
+	if err := errorPool.Wait(); err != nil {
+		return fmt.Errorf("failed to save indexes: %w", err)
+	}
+
+	return nil
 }
 
-// findIndexPartitioned finds a feed by id.
-func (c *client) findIndexPartitioned(ctx context.Context, query model.FeedQuery) (*table.Index, error) {
+// findIndexPartitioned finds an activity  by id.
+func (c *client) findIndexPartitioned(ctx context.Context, query model.ActivityQuery) (*table.Index, error) {
 	index := table.Index{
 		Timestamp: time.Now(),
 	}
 
-	tables, err := c.findIndexesPartitionTables(ctx, index)
-	if err != nil {
-		return nil, fmt.Errorf("find indexes partition tables: %w", err)
-	}
+	tables := c.findIndexesPartitionTables(ctx, index)
 
 	ctx, cancel := context.WithCancel(ctx)
 	errorGroup, errorContext := errgroup.WithContext(ctx)
@@ -379,7 +399,9 @@ func (c *client) findIndexPartitioned(ctx context.Context, query model.FeedQuery
 }
 
 // findIndexesPartitioned finds indexes.
-func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQuery) ([]*table.Index, error) {
+//
+//nolint:gocognit
+func (c *client) findIndexesPartitioned(ctx context.Context, query model.ActivitiesQuery) ([]*table.Index, error) {
 	index := table.Index{
 		Timestamp: time.Now(),
 	}
@@ -392,12 +414,7 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQu
 		index.Timestamp = time.Unix(int64(query.Cursor.Timestamp), 0)
 	}
 
-	partitionedNames, err := c.findIndexesPartitionTables(ctx, index)
-	if err != nil {
-		zap.L().Error("failed to build partitioned indexes past year", zap.Error(err))
-
-		return nil, err
-	}
+	partitionedNames := c.findIndexesPartitionTables(ctx, index)
 
 	if len(partitionedNames) == 0 {
 		return nil, nil
@@ -487,7 +504,7 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.FeedsQu
 }
 
 // buildFindIndexStatement builds the query index statement.
-func (c *client) buildFindIndexStatement(ctx context.Context, partitionedName string, query model.FeedQuery) *gorm.DB {
+func (c *client) buildFindIndexStatement(ctx context.Context, partitionedName string, query model.ActivityQuery) *gorm.DB {
 	databaseStatement := c.database.WithContext(ctx).Table(partitionedName)
 
 	if query.ID != nil {
@@ -506,22 +523,22 @@ func (c *client) buildFindIndexStatement(ctx context.Context, partitionedName st
 }
 
 // buildFindIndexesStatement builds the query indexes statement.
-func (c *client) buildFindIndexesStatement(ctx context.Context, partition string, query model.FeedsQuery) *gorm.DB {
+func (c *client) buildFindIndexesStatement(ctx context.Context, partition string, query model.ActivitiesQuery) *gorm.DB {
 	databaseStatement := c.database.WithContext(ctx).Table(partition)
 
-	var table *string
+	var tbl *string
 
 	if query.Distinct != nil && lo.FromPtr(query.Distinct) {
 		databaseStatement = databaseStatement.Select("DISTINCT (id) id, timestamp, index, network")
 	}
 
 	if query.Owner != nil {
-		table = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
+		tbl = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
 		databaseStatement = databaseStatement.Where("owner = ?", query.Owner)
 	}
 
 	if len(query.Owners) > 0 {
-		table = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
+		tbl = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
 		databaseStatement = databaseStatement.Where("owner IN ?", query.Owners)
 	}
 
@@ -541,7 +558,7 @@ func (c *client) buildFindIndexesStatement(ctx context.Context, partition string
 		databaseStatement = databaseStatement.Where("timestamp <= ?", time.Unix(int64(*query.EndTimestamp), 0))
 	}
 
-	if query.Platform != nil {
+	if query.Platform != "" {
 		databaseStatement = databaseStatement.Where("platform = ?", query.Platform)
 	}
 
@@ -565,8 +582,8 @@ func (c *client) buildFindIndexesStatement(ctx context.Context, partition string
 		databaseStatement = databaseStatement.Where("timestamp < ? OR (timestamp = ? AND index < ?)", time.Unix(int64(query.Cursor.Timestamp), 0), time.Unix(int64(query.Cursor.Timestamp), 0), query.Cursor.Index)
 	}
 
-	if table != nil {
-		databaseStatement.Statement.TableExpr.SQL = *table
+	if tbl != nil {
+		databaseStatement.Statement.TableExpr.SQL = *tbl
 	}
 
 	return databaseStatement.Order("timestamp DESC, index DESC").Limit(query.Limit)

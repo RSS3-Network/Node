@@ -19,9 +19,13 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/ipfs"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -42,7 +46,29 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Matters.String()
+	return workerx.Matters.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.PlatformMatters.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Polygon,
+	}
+}
+
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Social,
+	}
+}
+
+func (w *worker) Types() []schema.Type {
+	return []schema.Type{
+		typex.SocialReward,
+	}
 }
 
 // Filter returns a filter for source.
@@ -58,21 +84,21 @@ func (w *worker) Filter() engine.SourceFilter {
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
+	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform matters task to feed.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+// Transform matters task to activityx.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	// Cast the task to a matters task.
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build the feed.
-	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.PlatformMatters))
+	// Build the activity.
+	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	for _, log := range ethereumTask.Receipt.Logs {
@@ -82,13 +108,13 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		}
 
 		var (
-			actions []*schema.Action
+			actions []*activityx.Action
 			err     error
 		)
 
 		switch {
 		case w.matchEthereumCurationTransaction(log):
-			actions, err = w.handleEthereumCurationTransaction(ctx, *ethereumTask, *log, feed)
+			actions, err = w.handleEthereumCurationTransaction(ctx, *ethereumTask, *log, activity)
 		default:
 			continue
 		}
@@ -99,21 +125,21 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			return nil, err
 		}
 
-		feed.Actions = append(feed.Actions, actions...)
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	feed.TotalActions = uint(len(feed.Actions))
-	feed.Tag = filter.TagSocial
+	activity.TotalActions = uint(len(activity.Actions))
+	activity.Tag = tag.Social
 
-	return feed, nil
+	return activity, nil
 }
 
 func (w *worker) matchEthereumCurationTransaction(log *ethereum.Log) bool {
 	return len(log.Topics) == 4 && contract.MatchEventHashes(log.Topics[0], matters.EventCuration)
 }
 
-func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task source.Task, log ethereum.Log, feed *schema.Feed) ([]*schema.Action, error) {
-	feed.Type = filter.TypeSocialReward
+func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task source.Task, log ethereum.Log, activity *activityx.Activity) ([]*activityx.Action, error) {
+	activity.Type = typex.SocialReward
 
 	export := log.Export()
 
@@ -128,7 +154,7 @@ func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task sou
 		return nil, fmt.Errorf("build social reward action: %w", err)
 	}
 
-	return []*schema.Action{action}, nil
+	return []*activityx.Action{action}, nil
 }
 func (w *worker) fetchArticle(ctx context.Context, uri string) (*readability.Article, error) {
 	_, path, err := ipfs.ParseURL(uri)
@@ -200,7 +226,7 @@ func (w *worker) removeUnusedHTMLTags(node *html.Node) {
 		}
 	}
 }
-func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Task, trigger, recipient, token common.Address, amount *big.Int, uri string) (*schema.Action, error) {
+func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Task, trigger, recipient, token common.Address, amount *big.Int, uri string) (*activityx.Action, error) {
 	article, err := w.fetchArticle(ctx, uri)
 
 	if err != nil || article == nil {
@@ -214,10 +240,10 @@ func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Ta
 
 	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
 
-	return &schema.Action{
-		Type:     filter.TypeSocialReward,
-		Tag:      filter.TagSocial,
-		Platform: filter.PlatformMatters.String(),
+	return &activityx.Action{
+		Type:     typex.SocialReward,
+		Tag:      tag.Social,
+		Platform: w.Platform(),
 		From:     trigger.String(),
 		To:       recipient.String(),
 		Metadata: &metadata.SocialPost{

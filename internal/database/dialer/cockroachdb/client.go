@@ -7,8 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pressly/goose/v3"
 	"github.com/rss3-network/node/internal/database"
@@ -16,8 +18,11 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
 	mirror_model "github.com/rss3-network/node/internal/engine/worker/contract/mirror/model"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	networkx "github.com/rss3-network/protocol-go/schema/network"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -26,6 +31,10 @@ import (
 )
 
 var _ database.Client = (*client)(nil)
+
+const (
+	DefaultKVClosedTimestampTargetDuration = 3 * time.Second
+)
 
 //go:embed migration/*.sql
 var migrationFS embed.FS
@@ -55,22 +64,38 @@ func (c *client) Migrate(ctx context.Context) error {
 
 // WithTransaction executes a transaction.
 func (c *client) WithTransaction(ctx context.Context, transactionFunction func(ctx context.Context, client database.Client) error, transactionOptions ...*sql.TxOptions) error {
-	transaction, err := c.Begin(ctx, transactionOptions...)
-	if err != nil {
-		return fmt.Errorf("begin transaction: %w", err)
+	transactionFunc := func() error {
+		transaction, err := c.Begin(ctx, transactionOptions...)
+		if err != nil {
+			return fmt.Errorf("begin transaction: %w", err)
+		}
+
+		if err := transactionFunction(ctx, transaction); err != nil {
+			_ = transaction.Rollback()
+
+			return fmt.Errorf("execute transaction: %w", err)
+		}
+
+		if err := transaction.Commit(); err != nil {
+			return fmt.Errorf("commit transaction: %w", err)
+		}
+
+		return nil
 	}
 
-	if err := transactionFunction(ctx, transaction); err != nil {
-		_ = transaction.Rollback()
-
-		return fmt.Errorf("execute transaction: %w", err)
+	retryIfFunc := func(err error) bool {
+		// https://www.cockroachlabs.com/docs/stable/transaction-retry-error-reference#retry_serializable
+		return strings.Contains(err.Error(), "TransactionRetryWithProtoRefreshError: TransactionRetryError:")
 	}
 
-	if err := transaction.Commit(); err != nil {
-		return fmt.Errorf("commit transaction: %w", err)
+	onRetryFunc := func(n uint, err error) {
+		zap.L().Error("execute transaction", zap.Uint("retry", n), zap.Error(err))
 	}
 
-	return nil
+	return retry.Do(
+		transactionFunc,
+		retry.RetryIf(retryIfFunc), retry.MaxJitter(DefaultKVClosedTimestampTargetDuration), retry.DelayType(retry.RandomDelay), retry.OnRetry(onRetryFunc), retry.Attempts(0),
+	)
 }
 
 // Begin begins a transaction.
@@ -96,7 +121,7 @@ func (c *client) Commit() error {
 	return c.database.Commit().Error
 }
 
-func (c *client) LoadCheckpoint(ctx context.Context, id string, network filter.Network, worker string) (*engine.Checkpoint, error) {
+func (c *client) LoadCheckpoint(ctx context.Context, id string, network networkx.Network, worker string) (*engine.Checkpoint, error) {
 	var value table.Checkpoint
 
 	zap.L().Info("load checkpoint", zap.String("id", id), zap.String("network", network.String()), zap.String("worker", worker))
@@ -123,7 +148,7 @@ func (c *client) LoadCheckpoint(ctx context.Context, id string, network filter.N
 	return value.Export()
 }
 
-func (c *client) LoadCheckpoints(ctx context.Context, id string, network filter.Network, worker string) ([]*engine.Checkpoint, error) {
+func (c *client) LoadCheckpoints(ctx context.Context, id string, network networkx.Network, worker string) ([]*engine.Checkpoint, error) {
 	databaseStatement := c.database.WithContext(ctx)
 
 	var checkpoints []*table.Checkpoint
@@ -134,7 +159,7 @@ func (c *client) LoadCheckpoints(ctx context.Context, id string, network filter.
 		databaseStatement = databaseStatement.Where("id = ?", id)
 	}
 
-	if network != filter.NetworkUnknown {
+	if network != networkx.Unknown {
 		databaseStatement = databaseStatement.Where("network = ?", network)
 	}
 
@@ -163,6 +188,16 @@ func (c *client) LoadCheckpoints(ctx context.Context, id string, network filter.
 }
 
 func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error {
+	spanStartOptions := []trace.SpanStartOption{
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(
+			attribute.String("checkpoint.id", checkpoint.ID),
+		),
+	}
+
+	ctx, span := otel.Tracer("").Start(ctx, "Database saveCheckpoint", spanStartOptions...)
+	defer span.End()
+
 	clauses := []clause.Expression{
 		clause.OnConflict{
 			Columns: []clause.Column{{Name: "id"}},
@@ -182,10 +217,20 @@ func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoi
 	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
-// SaveFeeds saves feeds and indexes to the database.
-func (c *client) SaveFeeds(ctx context.Context, feeds []*schema.Feed) error {
+// SaveActivities saves activities and indexes to the database.
+func (c *client) SaveActivities(ctx context.Context, activities []*activityx.Activity) error {
+	spanStartOptions := []trace.SpanStartOption{
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(
+			attribute.Int("activities", len(activities)),
+		),
+	}
+
+	ctx, span := otel.Tracer("").Start(ctx, "Database saveActivities", spanStartOptions...)
+	defer span.End()
+
 	if c.partition {
-		return c.saveFeedsPartitioned(ctx, feeds)
+		return c.saveActivitiesPartitioned(ctx, activities)
 	}
 
 	return fmt.Errorf("not implemented")
@@ -230,19 +275,19 @@ func (c *client) SaveDatasetMirrorPost(ctx context.Context, post *mirror_model.D
 	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
-// FindFeed finds a feed by id.
-func (c *client) FindFeed(ctx context.Context, query model.FeedQuery) (*schema.Feed, *int, error) {
+// FindActivity finds a Activity by id.
+func (c *client) FindActivity(ctx context.Context, query model.ActivityQuery) (*activityx.Activity, *int, error) {
 	if c.partition {
-		return c.findFeedPartitioned(ctx, query)
+		return c.findActivityPartitioned(ctx, query)
 	}
 
 	return nil, nil, fmt.Errorf("not implemented")
 }
 
-// FindFeeds finds feeds.
-func (c *client) FindFeeds(ctx context.Context, query model.FeedsQuery) ([]*schema.Feed, error) {
+// FindActivities finds Activities.
+func (c *client) FindActivities(ctx context.Context, query model.ActivitiesQuery) ([]*activityx.Activity, error) {
 	if c.partition {
-		return c.findFeedsPartitioned(ctx, query)
+		return c.findActivitiesPartitioned(ctx, query)
 	}
 
 	return nil, fmt.Errorf("not implemented")
@@ -330,7 +375,8 @@ func Dial(ctx context.Context, dataSourceName string, partition bool) (database.
 	logger.SetAsDefault()
 
 	config := gorm.Config{
-		Logger: logger,
+		Logger:                 logger,
+		SkipDefaultTransaction: true,
 	}
 
 	if instance.database, err = gorm.Open(postgres.Open(dataSourceName), &config); err != nil {

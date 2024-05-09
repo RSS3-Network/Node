@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/grafana/pyroscope-go"
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/flag"
 	"github.com/rss3-network/node/internal/constant"
@@ -17,13 +19,16 @@ import (
 	"github.com/rss3-network/node/internal/node/indexer"
 	"github.com/rss3-network/node/internal/stream"
 	"github.com/rss3-network/node/internal/stream/provider"
+	"github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/provider/telemetry"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/node/schema/worker"
+	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/tdewolff/minify/v2/minify"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	"go.uber.org/zap"
 )
 
@@ -56,6 +61,16 @@ var command = cobra.Command{
 			}
 		}
 
+		// Init redis client
+		var redisClient rueidis.Client
+
+		if *config.Redis.Enable {
+			redisClient, err = redis.NewClient(*config.Redis)
+			if err != nil {
+				return fmt.Errorf("new redis client: %w", err)
+			}
+		}
+
 		var databaseClient database.Client
 
 		module := lo.Must(flags.GetString(flag.KeyModule))
@@ -76,7 +91,7 @@ var command = cobra.Command{
 		case node.Hub:
 			return runHub(cmd.Context(), config, databaseClient)
 		case node.Indexer:
-			return runIndexer(cmd.Context(), config, databaseClient, streamClient)
+			return runIndexer(cmd.Context(), config, databaseClient, streamClient, redisClient)
 		case node.Broadcaster:
 			return runBroadcaster(cmd.Context(), config)
 		}
@@ -86,34 +101,32 @@ var command = cobra.Command{
 }
 
 func runHub(ctx context.Context, config *config.File, databaseClient database.Client) error {
-	server, err := hub.NewServer(ctx, config, databaseClient)
-	if err != nil {
-		return fmt.Errorf("new server: %w", err)
-	}
+	server := hub.NewServer(ctx, config, databaseClient)
 
 	return server.Run(ctx)
 }
 
-func runIndexer(ctx context.Context, config *config.File, databaseClient database.Client, streamClient stream.Client) error {
+func runIndexer(ctx context.Context, config *config.File, databaseClient database.Client, streamClient stream.Client, redisClient rueidis.Client) error {
 	parameters, err := minify.JSON(lo.Must(flags.GetString(flag.KeyIndexerParameters)))
 	if err != nil {
 		return fmt.Errorf("invalid indexer parameters: %w", err)
 	}
 
-	network, err := filter.NetworkString(lo.Must(flags.GetString(flag.KeyIndexerNetwork)))
+	network, err := networkx.NetworkString(lo.Must(flags.GetString(flag.KeyIndexerNetwork)))
 	if err != nil {
 		return fmt.Errorf("network string: %w", err)
 	}
 
-	worker, err := filter.NameString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
+	_worker, err := worker.WorkerString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
+
 	if err != nil {
 		return fmt.Errorf("worker string: %w", err)
 	}
 
 	for _, nodeConfig := range config.Node.Decentralized {
-		if nodeConfig.Network == network && nodeConfig.Worker == worker {
+		if nodeConfig.Network == network && nodeConfig.Worker == _worker {
 			if nodeConfig.Parameters == nil && parameters == "{}" || *(nodeConfig.Parameters) != nil && strings.EqualFold(nodeConfig.Parameters.String(), parameters) {
-				server, err := indexer.NewServer(ctx, nodeConfig, databaseClient, streamClient)
+				server, err := indexer.NewServer(ctx, nodeConfig, databaseClient, streamClient, redisClient)
 				if err != nil {
 					return fmt.Errorf("new server: %w", err)
 				}
@@ -123,7 +136,7 @@ func runIndexer(ctx context.Context, config *config.File, databaseClient databas
 		}
 	}
 
-	return fmt.Errorf("undefined indexer %s.%s.%s", network, worker, parameters)
+	return fmt.Errorf("undefined indexer %s.%s.%s", network, _worker, parameters)
 }
 
 func runBroadcaster(ctx context.Context, config *config.File) error {
@@ -146,6 +159,7 @@ func setOpenTelemetry(config *config.File) error {
 		}
 
 		otel.SetTracerProvider(tracerProvider)
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}))
 	}
 
 	if observabilityConfig.Metrics.Enable {
@@ -179,17 +193,36 @@ func initializeLogger() {
 	}
 }
 
+func initializePyroscope() {
+	// Only use Pyroscope in development environment.
+	if os.Getenv(config.Environment) == config.EnvironmentDevelopment {
+		// Start Pyroscope agent if the environment variable is set.
+		if serverAddress := os.Getenv(config.EnvironmentPyroscopeEndpoint); serverAddress != "" {
+			_, _ = pyroscope.Start(pyroscope.Config{
+				ApplicationName: constant.Name,
+				ServerAddress:   serverAddress,
+				Logger:          zap.L().Sugar(),
+				ProfileTypes:    append(pyroscope.DefaultProfileTypes, pyroscope.ProfileGoroutines),
+			})
+		}
+	}
+}
+
 func init() {
 	initializeLogger()
+	initializePyroscope()
 
 	command.PersistentFlags().String(flag.KeyConfig, "config.yaml", "config file name")
 	command.PersistentFlags().String(flag.KeyModule, node.Indexer, "module name")
-	command.PersistentFlags().String(flag.KeyIndexerNetwork, filter.NetworkEthereum.String(), "indexer network")
-	command.PersistentFlags().String(flag.KeyIndexerWorker, filter.Fallback.String(), "indexer worker")
+	command.PersistentFlags().String(flag.KeyIndexerNetwork, networkx.Ethereum.String(), "indexer network")
+	command.PersistentFlags().String(flag.KeyIndexerWorker, worker.Core.String(), "indexer worker")
 	command.PersistentFlags().String(flag.KeyIndexerParameters, "{}", "indexer parameters")
 }
 
 func main() {
+	// Flush the logs before the process exits.
+	defer lo.Try(zap.L().Sync)
+
 	if err := command.ExecuteContext(context.Background()); err != nil {
 		zap.L().Fatal("execute command", zap.Error(err))
 	}

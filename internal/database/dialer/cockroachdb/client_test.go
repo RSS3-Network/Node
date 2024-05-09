@@ -12,8 +12,9 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/database/dialer"
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )
@@ -22,26 +23,26 @@ func TestClient(t *testing.T) {
 	t.Parallel()
 
 	testcases := []struct {
-		name        string
-		driver      database.Driver
-		partition   *bool
-		feedCreated []*schema.Feed
-		feedUpdated []*schema.Feed
+		name            string
+		driver          database.Driver
+		partition       *bool
+		activityCreated []*activityx.Activity
+		activityUpdated []*activityx.Activity
 	}{
 		{
 			name:      "cockroach",
 			driver:    database.DriverCockroachDB,
 			partition: lo.ToPtr(true),
-			feedCreated: []*schema.Feed{
+			activityCreated: []*activityx.Activity{
 				{
 					ID:      "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
-					Type:    filter.TypeTransactionTransfer,
-					Actions: []*schema.Action{
+					Type:    typex.TransactionTransfer,
+					Actions: []*activityx.Action{
 						{
-							Type: filter.TypeTransactionTransfer,
+							Type: typex.TransactionTransfer,
 							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 							To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
 						},
@@ -50,13 +51,13 @@ func TestClient(t *testing.T) {
 				},
 				{
 					ID:      "0xedc029f7c7acce7b72939f8bfff44c5fdc7e64e3e2ba650d195799db8fec4c90",
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
-					Type:    filter.TypeTransactionTransfer,
-					Actions: []*schema.Action{
+					Type:    typex.TransactionTransfer,
+					Actions: []*activityx.Action{
 						{
-							Type: filter.TypeTransactionTransfer,
+							Type: typex.TransactionTransfer,
 							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 							To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
 						},
@@ -64,21 +65,21 @@ func TestClient(t *testing.T) {
 					Timestamp: uint64(time.Now().Add(-3 * 31 * 24 * time.Hour).Unix()),
 				},
 			},
-			feedUpdated: []*schema.Feed{
+			activityUpdated: []*activityx.Activity{
 				{
 					ID:      "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 					To:      "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
-					Type:    filter.TypeTransactionTransfer,
-					Actions: []*schema.Action{
+					Type:    typex.TransactionTransfer,
+					Actions: []*activityx.Action{
 						{
-							Type: filter.TypeTransactionTransfer,
+							Type: typex.TransactionTransfer,
 							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 							To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
 						},
 						{
-							Type: filter.TypeTransactionTransfer,
+							Type: typex.TransactionTransfer,
 							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 							To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
 						},
@@ -95,9 +96,11 @@ func TestClient(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
-			var container *gnomock.Container
-			var dataSourceName string
-			var err error
+			var (
+				container      *gnomock.Container
+				dataSourceName string
+				err            error
+			)
 
 			for {
 				container, dataSourceName, err = createContainer(context.Background(), testcase.driver, *testcase.partition)
@@ -124,35 +127,35 @@ func TestClient(t *testing.T) {
 			require.NoError(t, client.Migrate(context.Background()))
 
 			// Begin a transaction.
-			require.NoError(t, client.SaveFeeds(context.Background(), testcase.feedCreated))
+			require.NoError(t, client.SaveActivities(context.Background(), testcase.activityCreated))
 
-			// Query first feed.
-			for _, feed := range testcase.feedCreated {
-				data, page, err := client.FindFeed(context.Background(), model.FeedQuery{ID: lo.ToPtr(feed.ID), ActionLimit: 10})
+			// Query first activity
+			for _, activity := range testcase.activityCreated {
+				data, page, err := client.FindActivity(context.Background(), model.ActivityQuery{ID: lo.ToPtr(activity.ID), ActionLimit: 10})
 				require.NoError(t, err)
 				require.NotNil(t, data)
 				require.Greater(t, lo.FromPtr(page), 0)
-				require.Equal(t, data.ID, feed.ID)
-				require.Equal(t, data.From, feed.From)
-				require.Equal(t, data.To, feed.To)
+				require.Equal(t, data.ID, activity.ID)
+				require.Equal(t, data.From, activity.From)
+				require.Equal(t, data.To, activity.To)
 			}
 
-			// Query feeds by account.
+			// Query activities by account.
 			accounts := make(map[string]int)
 
-			for _, feed := range testcase.feedCreated {
-				accounts[feed.From]++
-				accounts[feed.To]++
+			for _, activity := range testcase.activityCreated {
+				accounts[activity.From]++
+				accounts[activity.To]++
 			}
 
 			for account, count := range accounts {
-				feeds, err := client.FindFeeds(context.Background(), model.FeedsQuery{Owner: &account, Limit: 100})
+				activities, err := client.FindActivities(context.Background(), model.ActivitiesQuery{Owner: &account, Limit: 100})
 				require.NoError(t, err)
-				require.Len(t, feeds, count)
+				require.Len(t, activities, count)
 			}
 
-			// Update feeds.
-			require.NoError(t, client.SaveFeeds(context.Background(), testcase.feedUpdated))
+			// Update activities.
+			require.NoError(t, client.SaveActivities(context.Background(), testcase.activityUpdated))
 		})
 	}
 }

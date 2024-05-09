@@ -20,9 +20,13 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/lens"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/ipfs"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
 )
@@ -43,7 +47,31 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Momoka.String()
+	return workerx.Momoka.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.PlatformLens.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Arweave,
+	}
+}
+
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Social,
+	}
+}
+
+func (w *worker) Types() []schema.Type {
+	return []schema.Type{
+		typex.SocialComment,
+		typex.SocialPost,
+		typex.SocialShare,
+	}
 }
 
 // Filter returns a filter for source.
@@ -54,7 +82,7 @@ func (w *worker) Filter() engine.SourceFilter {
 // Match returns true if the task is an Arweave task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	switch task.GetNetwork() {
-	case filter.NetworkArweave:
+	case network.Arweave:
 		task := task.(*source.Task)
 
 		owner, err := arweave.PublicKeyToAddress(task.Transaction.Owner)
@@ -68,18 +96,18 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 	}
 }
 
-// Transform returns a feed with the action of the task.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+// Transform returns an activity  with the action of the task.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build the feed.
-	feed, err := task.BuildFeed(schema.WithFeedPlatform(filter.PlatformLens))
+	// Build the activity.
+	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	// Get actions and social content timestamp from the transaction.
@@ -88,19 +116,19 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		return nil, fmt.Errorf("handle arweave mirror transaction: %w", err)
 	}
 
-	feed.To = feed.From
+	activity.To = activity.From
 
-	// Feed type should be inferred from the action (if it's revise)
+	// Activity type should be inferred from the action (if it's `revise`)
 	if actions[0] != nil {
-		feed.Type = actions[0].Type
-		feed.Actions = append(feed.Actions, actions...)
+		activity.Type = actions[0].Type
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	return feed, nil
+	return activity, nil
 }
 
 // transformPostOrReviseAction Returns the actions of mirror post or revise.
-func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) ([]*schema.Action, error) {
+func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
 	data, err := base64.RawURLEncoding.DecodeString(task.Transaction.Data)
 	if err != nil {
 		return nil, fmt.Errorf("decode transaction data: %w", err)
@@ -115,51 +143,7 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 	// Polygon block number
 	blockNumber := transactionData.Get("chainProofs.thisPublication.blockNumber").Uint()
 
-	var socialType filter.SocialType
-
-	var contentURI, rawProfileID, rawProfileIDPointed string
-
-	switch transactionData.Get("type").String() {
-	case "POST_CREATED":
-		socialType = filter.TypeSocialPost
-
-		if transactionData.Get("event.postParams").Exists() {
-			contentURI = transactionData.Get("event.postParams.contentURI").String()
-			rawProfileID = transactionData.Get("event.postParams.profileId").String()
-		} else {
-			contentURI = transactionData.Get("event.contentURI").String()
-			rawProfileID = transactionData.Get("event.profileId").String()
-		}
-	case "COMMENT_CREATED":
-		socialType = filter.TypeSocialComment
-
-		if transactionData.Get("event.commentParams").Exists() {
-			contentURI = transactionData.Get("event.commentParams.contentURI").String()
-			rawProfileID = transactionData.Get("event.commentParams.profileId").String()
-			rawProfileIDPointed = transactionData.Get("event.commentParams.pointedProfileId").String()
-		} else {
-			contentURI = transactionData.Get("event.contentURI").String()
-			rawProfileID = transactionData.Get("event.profileId").String()
-			rawProfileIDPointed = transactionData.Get("event.profileIdPointed").String()
-		}
-	case "MIRROR_CREATED":
-		socialType = filter.TypeSocialShare
-
-		if transactionData.Get("event.mirrorParams").Exists() {
-			rawProfileID = transactionData.Get("event.mirrorParams.profileId").String()
-			rawProfileIDPointed = transactionData.Get("event.mirrorParams.pointedProfileId").String()
-		} else {
-			rawProfileID = transactionData.Get("event.profileId").String()
-			rawProfileIDPointed = transactionData.Get("event.profileIdPointed").String()
-		}
-	case "QUOTE_CREATED":
-		socialType = filter.TypeSocialShare
-		contentURI = transactionData.Get("event.quoteParams.contentURI").String()
-		rawProfileID = transactionData.Get("event.quoteParams.profileId").String()
-		rawProfileIDPointed = transactionData.Get("event.quoteParams.pointedProfileId").String()
-	default:
-		return nil, fmt.Errorf("unsupported transaction type: %s", transactionData.Get("type").String())
-	}
+	contentURI, rawProfileID, rawProfileIDPointed, socialType := w.parseTransactionDataByType(transactionData)
 
 	// Discard unsupported transaction type
 	if rawProfileID == "" || rawPublicationID == "" {
@@ -216,13 +200,14 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 
 		var targetContentURI string
 
-		if targetData.Get("event.postParams").Exists() {
+		switch {
+		case targetData.Get("event.postParams").Exists():
 			targetContentURI = targetData.Get("event.postParams.contentURI").String()
-		} else if targetData.Get("event.commentParams").Exists() {
+		case targetData.Get("event.commentParams").Exists():
 			targetContentURI = targetData.Get("event.commentParams.contentURI").String()
-		} else if targetData.Get("event.quoteParams").Exists() {
+		case targetData.Get("event.quoteParams").Exists():
 			targetContentURI = targetData.Get("event.quoteParams.contentURI").String()
-		} else {
+		default:
 			targetContentURI = targetData.Get("event.contentURI").String()
 		}
 
@@ -239,34 +224,75 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 		return nil, fmt.Errorf("get lens owner of: %w", err)
 	}
 
-	feedFrom, err := arweave.PublicKeyToAddress(task.Transaction.Owner)
+	activityFrom, err := arweave.PublicKeyToAddress(task.Transaction.Owner)
 	if err != nil {
 		return nil, fmt.Errorf("public key to address: %w", err)
 	}
 
-	action, err := w.buildArweaveMomokaAction(ctx, from.String(), feedFrom, socialType, momokaMetadata)
-	if err != nil {
-		return nil, fmt.Errorf("build arweave momoka action: %w", err)
-	}
-
-	actions := []*schema.Action{
-		action,
+	actions := []*activityx.Action{
+		w.buildArweaveMomokaAction(ctx, from.String(), activityFrom, socialType, momokaMetadata),
 	}
 
 	return actions, nil
 }
 
-func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, filterType filter.SocialType, momokaMetadata *metadata.SocialPost) (*schema.Action, error) {
-	action := schema.Action{
-		Type:     filterType,
-		Tag:      filter.TagSocial,
-		Platform: filter.PlatformLens.String(),
+// parseTransactionDataByType returns the contentURI, profileID, and profileIDPointed of the transaction data.
+func (w *worker) parseTransactionDataByType(transactionData gjson.Result) (contentURI string, profileID string, profileIDPointed string, socialType typex.SocialType) {
+	switch transactionData.Get("type").String() {
+	case "POST_CREATED":
+		socialType = typex.SocialPost
+
+		if transactionData.Get("event.postParams").Exists() {
+			contentURI = transactionData.Get("event.postParams.contentURI").String()
+			profileID = transactionData.Get("event.postParams.profileId").String()
+		} else {
+			contentURI = transactionData.Get("event.contentURI").String()
+			profileID = transactionData.Get("event.profileId").String()
+		}
+	case "COMMENT_CREATED":
+		socialType = typex.SocialComment
+
+		if transactionData.Get("event.commentParams").Exists() {
+			contentURI = transactionData.Get("event.commentParams.contentURI").String()
+			profileID = transactionData.Get("event.commentParams.profileId").String()
+			profileIDPointed = transactionData.Get("event.commentParams.pointedProfileId").String()
+		} else {
+			contentURI = transactionData.Get("event.contentURI").String()
+			profileID = transactionData.Get("event.profileId").String()
+			profileIDPointed = transactionData.Get("event.profileIdPointed").String()
+		}
+	case "MIRROR_CREATED":
+		socialType = typex.SocialShare
+
+		if transactionData.Get("event.mirrorParams").Exists() {
+			profileID = transactionData.Get("event.mirrorParams.profileId").String()
+			profileIDPointed = transactionData.Get("event.mirrorParams.pointedProfileId").String()
+		} else {
+			profileID = transactionData.Get("event.profileId").String()
+			profileIDPointed = transactionData.Get("event.profileIdPointed").String()
+		}
+	case "QUOTE_CREATED":
+		socialType = typex.SocialShare
+
+		contentURI = transactionData.Get("event.quoteParams.contentURI").String()
+		profileID = transactionData.Get("event.quoteParams.profileId").String()
+		profileIDPointed = transactionData.Get("event.quoteParams.pointedProfileId").String()
+	}
+
+	return contentURI, profileID, profileIDPointed, socialType
+}
+
+func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, socialType typex.SocialType, momokaMetadata *metadata.SocialPost) *activityx.Action {
+	action := activityx.Action{
+		Type:     socialType,
+		Tag:      tag.Social,
+		Platform: w.Platform(),
 		From:     from,
 		To:       to,
 		Metadata: momokaMetadata,
 	}
 
-	return &action, nil
+	return &action
 }
 
 func (w *worker) buildArweaveMomokaPostMetadata(ctx context.Context, profileID, handle, pubID string, contentURI string, isTarget bool, timestamp uint64) (*metadata.SocialPost, error) {
@@ -298,47 +324,48 @@ func (w *worker) buildArweaveMomokaPostMetadata(ctx context.Context, profileID, 
 	if momokaData.Get("lens").Exists() {
 		content = momokaData.Get("lens.content").String()
 
-		momokaImages := lo.Map(momokaData.Get("lens.image").Array(), func(media gjson.Result, index int) metadata.Media {
+		momokaImages := lo.Map(momokaData.Get("lens.image").Array(), func(media gjson.Result, _ int) metadata.Media {
 			return metadata.Media{
 				MimeType: media.Get("type").String(),
 				Address:  media.Get("item").String(),
 			}
 		})
 
-		momokaAttachments := lo.Map(momokaData.Get("lens.attachments").Array(), func(media gjson.Result, index int) metadata.Media {
+		momokaAttachments := lo.Map(momokaData.Get("lens.attachments").Array(), func(media gjson.Result, _ int) metadata.Media {
 			return metadata.Media{
 				MimeType: media.Get("type").String(),
 				Address:  media.Get("item").String(),
 			}
 		})
 
-		momokaVideos := lo.Map(momokaData.Get("lens.video").Array(), func(media gjson.Result, index int) metadata.Media {
+		momokaVideos := lo.Map(momokaData.Get("lens.video").Array(), func(media gjson.Result, _ int) metadata.Media {
 			return metadata.Media{
 				MimeType: media.Get("type").String(),
 				Address:  media.Get("item").String(),
 			}
 		})
 
-		//append all three types of media
-		momokaMedia = append(momokaImages, momokaVideos...)
+		// append all three types of media
+		momokaMedia = append(momokaMedia, momokaImages...)
+		momokaMedia = append(momokaMedia, momokaVideos...)
 		momokaMedia = append(momokaMedia, momokaAttachments...)
 
 		momokaMedia = lo.Uniq(momokaMedia)
 
-		momokaTags = lo.Map(momokaData.Get("lens.tags").Array(), func(tag gjson.Result, index int) string {
+		momokaTags = lo.Map(momokaData.Get("lens.tags").Array(), func(tag gjson.Result, _ int) string {
 			return tag.String()
 		})
 	} else {
 		content = momokaData.Get("content").String()
 
-		momokaMedia = lo.Map(momokaData.Get("media").Array(), func(media gjson.Result, index int) metadata.Media {
+		momokaMedia = lo.Map(momokaData.Get("media").Array(), func(media gjson.Result, _ int) metadata.Media {
 			return metadata.Media{
 				MimeType: media.Get("type").String(),
 				Address:  media.Get("item").String(),
 			}
 		})
 
-		momokaTags = lo.Map(momokaData.Get("tags").Array(), func(tag gjson.Result, index int) string {
+		momokaTags = lo.Map(momokaData.Get("tags").Array(), func(tag gjson.Result, _ int) string {
 			return tag.String()
 		})
 	}

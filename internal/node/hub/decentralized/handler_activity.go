@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
 	"github.com/rss3-network/node/internal/database/model"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 )
 
@@ -27,15 +28,20 @@ func (h *Hub) GetActivity(c echo.Context) error {
 		return response.ValidateFailedError(c, err)
 	}
 
-	query := model.FeedQuery{
+	query := model.ActivityQuery{
 		ID:          lo.ToPtr(request.ID),
 		ActionLimit: request.ActionLimit,
 		ActionPage:  request.ActionPage,
 	}
 
-	activity, page, err := h.getFeed(c.Request().Context(), query)
+	activity, page, err := h.getActivity(c.Request().Context(), query)
 	if err != nil {
 		return response.InternalError(c, err)
+	}
+
+	// query etherface for the transaction
+	if h.etherfaceClient != nil && activity != nil && activity.Type == typex.Unknown && activity.Calldata != nil {
+		activity.Calldata.ParsedFunction, _ = h.etherfaceClient.Lookup(c.Request().Context(), activity.Calldata.FunctionHash)
 	}
 
 	return c.JSON(http.StatusOK, ActivityResponse{
@@ -72,7 +78,7 @@ func (h *Hub) GetAccountActivities(c echo.Context) (err error) {
 		return response.InternalError(c, err)
 	}
 
-	databaseRequest := model.FeedsQuery{
+	databaseRequest := model.ActivitiesQuery{
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
@@ -87,9 +93,16 @@ func (h *Hub) GetAccountActivities(c echo.Context) (err error) {
 		Platforms:      lo.Uniq(request.Platform),
 	}
 
-	activities, last, err := h.getFeeds(c.Request().Context(), databaseRequest)
+	activities, last, err := h.getActivities(c.Request().Context(), databaseRequest)
 	if err != nil {
 		return response.InternalError(c, err)
+	}
+
+	// iterate over the activities and query etherface for the transaction
+	for _, activity := range activities {
+		if h.etherfaceClient != nil && activity.Type == typex.Unknown && activity.Calldata != nil {
+			activity.Calldata.ParsedFunction, _ = h.etherfaceClient.Lookup(c.Request().Context(), activity.Calldata.FunctionHash)
+		}
 	}
 
 	return c.JSON(http.StatusOK, ActivitiesResponse{

@@ -5,14 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"sort"
+	"strconv"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/ethereum"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
+	"github.com/sourcegraph/conc/pool"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -29,10 +36,9 @@ type source struct {
 	filter         *Filter
 	ethereumClient ethereum.Client
 	state          State
-	pendingState   State
 }
 
-func (s *source) Network() filter.Network {
+func (s *source) Network() network.Network {
 	return s.config.Network
 }
 
@@ -40,7 +46,7 @@ func (s *source) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, errorChan chan<- error) {
+func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
 	if err := s.initialize(ctx); err != nil {
 		errorChan <- fmt.Errorf("initialize source: %w", err)
 
@@ -48,11 +54,32 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- []engine.Task, erro
 	}
 
 	go func() {
-		switch {
-		case s.filter.LogAddresses != nil || s.filter.LogTopics != nil:
-			errorChan <- s.pollLogs(ctx, tasksChan)
-		default:
-			errorChan <- s.pollBlocks(ctx, tasksChan)
+		retryableFunc := func() error {
+			switch {
+			case s.filter.LogAddresses != nil || s.filter.LogTopics != nil:
+				if err := s.pollLogs(ctx, tasksChan); err != nil {
+					return fmt.Errorf("poll logs: %w", err)
+				}
+			default:
+				if err := s.pollBlocks(ctx, tasksChan); err != nil {
+					return fmt.Errorf("poll blocks: %w", err)
+				}
+			}
+
+			return nil
+		}
+
+		err := retry.Do(retryableFunc,
+			retry.Attempts(0),
+			retry.Delay(time.Second),            // Set initial delay to 1 second.
+			retry.DelayType(retry.BackOffDelay), // Use backoff delay type, increasing delay on each retry.
+			retry.MaxDelay(5*time.Minute),
+			retry.OnRetry(func(n uint, err error) {
+				zap.L().Error("retry ethereum source start", zap.Uint("retry", n), zap.Error(err))
+			}),
+		)
+		if err != nil {
+			errorChan <- err
 		}
 	}()
 }
@@ -65,229 +92,361 @@ func (s *source) initialize(ctx context.Context) (err error) {
 	return nil
 }
 
-func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- []engine.Task) error {
-	var blockNumberLatestLocal uint64
+func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+	// The latest block number of the remote RPC endpoint.
+	var blockNumberLatestRemote uint64
 
+	// Set the block number to the start block number if it is greater than the current block number.
 	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > s.state.BlockNumber {
-		s.pendingState.BlockNumber = s.option.BlockNumberStart.Uint64()
 		s.state.BlockNumber = s.option.BlockNumberStart.Uint64()
 	}
 
 	for {
+		ctx, span := otel.Tracer("").Start(ctx, "Source pollBlocks", trace.WithSpanKind(trace.SpanKindProducer))
+
+		// Stop the source if the block number target is not nil and the current block number is greater than the target
+		// block number. This is useful when the source is used to index a specific range of blocks.
 		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
+			zap.L().Info("source has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockNumberTarget.Uint64()))
+
 			break
 		}
 
-		// The local block number is equal than the remote block number.
-		if s.state.BlockNumber >= blockNumberLatestLocal || blockNumberLatestLocal == 0 {
+		blockNumberStart := s.state.BlockNumber + 1
+
+		// Check if the local block number is greater than or equal to the remote block number, or the remote block
+		// number is zero. If so, sync the remote block number and wait for the new block.
+		if blockNumberStart > blockNumberLatestRemote || blockNumberLatestRemote == 0 {
 			// Refresh the remote block number.
-			blockNumberLatestRemote, err := s.ethereumClient.BlockNumber(ctx)
+			blockNumber, err := s.ethereumClient.BlockNumber(ctx)
 			if err != nil {
 				return fmt.Errorf("get latest block number: %w", err)
 			}
 
-			// RPC providers may incorrectly shunt the request to a lagging node.
-			if blockNumberLatestRemote.Uint64() <= blockNumberLatestLocal {
-				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestLocal), zap.Duration("block.time", defaultBlockTime))
+			blockNumberLatestRemote = blockNumber.Uint64()
+
+			// No new block has been mined, or the RPC node is lagging.
+			if blockNumberStart > blockNumberLatestRemote {
+				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestRemote), zap.Duration("block.time", defaultBlockTime))
 
 				time.Sleep(defaultBlockTime)
-			} else {
-				// TODO Need to handle block reorganization.
-				blockNumberLatestLocal = blockNumberLatestRemote.Uint64()
 			}
 
 			continue
 		}
 
-		block, err := s.ethereumClient.BlockByNumber(ctx, new(big.Int).SetUint64(s.state.BlockNumber))
+		blockNumbers := lo.Map(lo.Range(int(*s.option.RPCThreadBlocks)), func(item int, _ int) *big.Int {
+			return new(big.Int).SetUint64(blockNumberStart + uint64(item))
+		})
+
+		// Filter block numbers that are less than or equal to the latest remote block number.
+		blockNumbers = lo.Filter(blockNumbers, func(blockNumber *big.Int, _ int) bool {
+			return blockNumber.Uint64() <= blockNumberLatestRemote
+		})
+
+		span.SetAttributes(
+			attribute.Stringer("block.number.start", blockNumbers[0]),
+			attribute.Stringer("block.number.end", blockNumbers[len(blockNumbers)-1]),
+		)
+
+		blocks, err := s.getBlocks(ctx, blockNumbers)
 		if err != nil {
-			return fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
+			return fmt.Errorf("get blocks by block numbers: %w", err)
 		}
 
-		// nolint:prealloc
-		var receipts []*ethereum.Receipt
-
-		// handle crossbell, savm and arbitrum blockchain cause lack of `eth_getBlockReceipts` implementation
-		switch s.config.Network {
-		case filter.NetworkCrossbell, filter.NetworkArbitrum, filter.NetworkSatoshiVM, filter.NetworkLinea, filter.NetworkBinanceSmartChain:
-			receipts, err = s.getBlockReceipts(ctx, block)
-			if err != nil {
-				return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
-			}
-		default:
-			// Before being able to handle block reorganization, correctly handle canonical.
-			receipts, err = s.ethereumClient.BlockReceipts(ctx, block.Number)
-			if err != nil {
-				return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
-			}
-		}
-
-		tasks, err := s.buildTasks(block, receipts)
+		receipts, err := s.getReceipts(ctx, blocks)
 		if err != nil {
-			return fmt.Errorf("build tasks for block hash: %s: %w", block.Hash, err)
+			return fmt.Errorf("get receipts: %w", err)
 		}
 
-		// TODO It might be possible to use generics to avoid manual type assertions.
-		tasksChan <- lo.Map(tasks, func(task *Task, _ int) engine.Task { return task })
+		// Build tasks for each block.
+		var tasks engine.Tasks
 
-		// Update state by two phase commit to avoid data inconsistency.
-		s.state = s.pendingState
+		for _, block := range blocks {
+			block := block
 
-		s.pendingState.BlockHash = block.Hash
-		s.pendingState.BlockNumber++
+			blockTasks, err := s.buildTasks(block, receipts)
+			if err != nil {
+				return fmt.Errorf("build tasks for block hash: %s: %w", block.Hash, err)
+			}
+
+			tasks.Tasks = append(tasks.Tasks, lo.Map(blockTasks, func(blockTask *Task, _ int) engine.Task { return blockTask })...)
+		}
+
+		span.End()
+
+		// Push tasks to the source.
+		s.pushTasks(ctx, tasksChan, &tasks)
+
+		latestBlock := lo.Must(lo.Last(blocks))
+
+		s.state.BlockHash = latestBlock.Hash
+		s.state.BlockNumber = latestBlock.Number.Uint64()
 	}
 
 	return nil
 }
 
-func (s *source) pollLogs(ctx context.Context, tasksChan chan<- []engine.Task) error {
-	var blockNumberLatestLocal uint64
+func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+	var blockNumberLatestRemote uint64
 
 	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > s.state.BlockNumber {
-		s.pendingState.BlockNumber = s.option.BlockNumberStart.Uint64()
 		s.state.BlockNumber = s.option.BlockNumberStart.Uint64()
 	}
 
 	for {
+		ctx, span := otel.GetTracerProvider().Tracer("").Start(ctx, "Source pollLogs", trace.WithSpanKind(trace.SpanKindProducer))
+
+		// Stop the source if the block number target is not nil and the current block number is greater than the target
+		// block number. This is useful when the source is used to index a specific range of blocks.
 		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
+			zap.L().Info("source has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockNumberTarget.Uint64()))
+
 			break
 		}
 
-		// The local block number is equal than the remote block number.
-		if s.state.BlockNumber >= blockNumberLatestLocal || blockNumberLatestLocal == 0 {
+		blockNumberStart := s.state.BlockNumber + 1
+
+		// Check if the local block number is greater than or equal to the remote block number, or the remote block
+		// number is zero. If so, sync the remote block number and wait for the new block.
+		if blockNumberStart > blockNumberLatestRemote || blockNumberLatestRemote == 0 {
 			// Refresh the remote block number.
-			blockNumberLatestRemote, err := s.ethereumClient.BlockNumber(ctx)
+			blockNumber, err := s.ethereumClient.BlockNumber(ctx)
 			if err != nil {
 				return fmt.Errorf("get latest block number: %w", err)
 			}
 
-			// RPC providers may incorrectly shunt the request to a lagging node.
-			if blockNumberLatestRemote.Uint64() <= blockNumberLatestLocal {
-				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestLocal), zap.Duration("block.time", defaultBlockTime))
+			blockNumberLatestRemote = blockNumber.Uint64()
+
+			// No new block has been mined, or the RPC node is lagging.
+			if blockNumberStart > blockNumberLatestRemote {
+				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestRemote), zap.Duration("block.time", defaultBlockTime))
 
 				time.Sleep(defaultBlockTime)
-			} else {
-				// TODO Need to handle block reorganization.
-				blockNumberLatestLocal = blockNumberLatestRemote.Uint64()
 			}
 
 			continue
 		}
 
-		// Build log filter by the filter config.
+		// The block number end is the start block number plus the number of blocks to be processed in parallel.
+		blockNumberEnd := min(blockNumberStart+uint64(*s.option.RPCThreadBlocks)-1, blockNumberStart)
+
+		span.SetAttributes(
+			attribute.String("block.number.start", strconv.FormatUint(blockNumberStart, 10)),
+			attribute.String("block.number.end", strconv.FormatUint(blockNumberEnd, 10)),
+		)
+
 		logFilter := ethereum.Filter{
-			FromBlock: new(big.Int).SetUint64(s.state.BlockNumber),
-			ToBlock:   new(big.Int).SetUint64(s.state.BlockNumber),
+			FromBlock: new(big.Int).SetUint64(blockNumberStart),
+			ToBlock:   new(big.Int).SetUint64(blockNumberEnd),
 			Addresses: s.filter.LogAddresses,
 			Topics: [][]common.Hash{
 				s.filter.LogTopics,
 			},
 		}
 
-		// Get logs by filter.
 		logs, err := s.ethereumClient.FilterLogs(ctx, logFilter)
 		if err != nil {
 			return fmt.Errorf("get logs by filter: %w", err)
 		}
 
-		transactionHashes := lo.Map(logs, func(log *ethereum.Log, _ int) common.Hash {
-			return log.TransactionHash
-		})
+		var latestBlock *ethereum.Block
 
-		var block *ethereum.Block
-
-		if len(logs) != 0 {
-			blockHash := logs[0].BlockHash
-
-			if block, err = s.ethereumClient.BlockByHash(ctx, blockHash); err != nil {
-				return fmt.Errorf("get block by hash %s: %w", blockHash, err)
-			}
-
-			// nolint:prealloc
-			var receipts []*ethereum.Receipt
-
-			// handle crossbell, savm and arbitrum blockchain cause lack of `eth_getBlockReceipts` implementation
-			switch s.config.Network {
-			case filter.NetworkCrossbell, filter.NetworkArbitrum, filter.NetworkSatoshiVM, filter.NetworkLinea, filter.NetworkBinanceSmartChain:
-				receipts, err = s.getBlockReceipts(ctx, block)
-				if err != nil {
-					return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
-				}
-			default:
-				// Before being able to handle block reorganization, correctly handle canonical.
-				receipts, err = s.ethereumClient.BlockReceipts(ctx, block.Number)
-				if err != nil {
-					return fmt.Errorf("get receipts by block number %d: %w", block.Number, err)
-				}
-			}
-
-			// Filter receipts by transaction hashes of logs.
-			receipts = lo.Filter(receipts, func(receipt *ethereum.Receipt, _ int) bool {
-				return lo.Contains(transactionHashes, receipt.TransactionHash)
-			})
-
-			// Remove transactions for the block if the receipt has been filtered.
-			block.Transactions = lo.Filter(block.Transactions, func(transaction *ethereum.Transaction, _ int) bool {
-				return lo.ContainsBy(receipts, func(receipt *ethereum.Receipt) bool {
-					return receipt.TransactionHash == transaction.Hash
-				})
-			})
-
-			tasks, err := s.buildTasks(block, receipts)
+		if len(logs) == 0 {
+			latestBlock, err = s.updateLatestBlock(ctx, blockNumberEnd)
 			if err != nil {
-				return fmt.Errorf("build tasks for block hash: %s: %w", block.Hash, err)
+				return err
 			}
 
-			// TODO It might be possible to use generics to avoid manual type assertions.
-			tasksChan <- lo.Map(tasks, func(task *Task, _ int) engine.Task { return task })
-		}
+			span.End()
 
-		// If there are no logs, only update the block number.
-		if block == nil {
-			if block, err = s.ethereumClient.BlockByNumber(ctx, new(big.Int).SetUint64(s.state.BlockNumber)); err != nil {
-				return fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
+			s.pushTasks(ctx, tasksChan, new(engine.Tasks))
+		} else {
+			latestBlock, err = s.processLogs(ctx, logs, tasksChan)
+			if err != nil {
+				return err
 			}
-
-			s.state = s.pendingState
-
-			s.pendingState.BlockHash = block.Hash
-			s.pendingState.BlockNumber++
-
-			// Push an empty task slice to the channel to update the block number.
-			tasksChan <- make([]engine.Task, 0)
-
-			continue
 		}
 
-		// Update state by two phase commit to avoid data inconsistency.
-		s.state = s.pendingState
-
-		s.pendingState.BlockHash = block.Hash
-		s.pendingState.BlockNumber++
+		s.state.BlockHash = latestBlock.Hash
+		s.state.BlockNumber = latestBlock.Number.Uint64()
 	}
 
 	return nil
 }
 
-// use `eth_getTransactionReceipt`
-func (s *source) getBlockReceipts(ctx context.Context, block *ethereum.Block) ([]*ethereum.Receipt, error) {
-	// nolint:prealloc
-	var receipts []*ethereum.Receipt
-
-	for _, tx := range block.Transactions {
-		receipt, err := s.ethereumClient.TransactionReceipt(ctx, tx.Hash)
-		if err != nil {
-			return nil, fmt.Errorf("get receipt by transaction hash %s: %w", tx.Hash, err)
-		}
-
-		receipts = append(receipts, receipt)
+func (s *source) updateLatestBlock(ctx context.Context, blockNumberEnd uint64) (*ethereum.Block, error) {
+	latestBlock, err := s.ethereumClient.BlockByNumber(ctx, new(big.Int).SetUint64(blockNumberEnd))
+	if err != nil {
+		return nil, fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
 	}
 
-	return receipts, nil
+	return latestBlock, nil
+}
+
+func (s *source) processLogs(ctx context.Context, logs []*ethereum.Log, tasksChan chan<- *engine.Tasks) (*ethereum.Block, error) {
+	transactionHashes := lo.Map(logs, func(log *ethereum.Log, _ int) common.Hash {
+		return log.TransactionHash
+	})
+
+	transactionHashes = lo.UniqBy(transactionHashes, func(transactionHash common.Hash) common.Hash {
+		return transactionHash
+	})
+
+	blockNumbers := lo.Map(logs, func(log *ethereum.Log, _ int) *big.Int {
+		return log.BlockNumber
+	})
+
+	blockNumbers = lo.UniqBy(blockNumbers, func(blockNumber *big.Int) uint64 {
+		return blockNumber.Uint64()
+	})
+
+	blocks, err := s.getBlocks(ctx, blockNumbers)
+	if err != nil {
+		return nil, fmt.Errorf("get blocks: %w", err)
+	}
+
+	blocks = lo.Map(blocks, func(block *ethereum.Block, _ int) *ethereum.Block {
+		block.Transactions = lo.Filter(block.Transactions, func(transaction *ethereum.Transaction, _ int) bool {
+			return lo.Contains(transactionHashes, transaction.Hash)
+		})
+
+		return block
+	})
+
+	latestBlock, err := lo.Last(blocks)
+	if err != nil {
+		return nil, fmt.Errorf("get latest block: %w", err)
+	}
+
+	receipts, err := s.getReceiptsByTransactionHashes(ctx, transactionHashes)
+	if err != nil {
+		return nil, fmt.Errorf("get receipts: %w", err)
+	}
+
+	var tasks engine.Tasks
+
+	for _, block := range blocks {
+		blockTasks, err := s.buildTasks(block, receipts)
+		if err != nil {
+			return nil, err
+		}
+
+		tasks.Tasks = append(tasks.Tasks, lo.Map(blockTasks, func(blockTask *Task, _ int) engine.Task { return blockTask })...)
+	}
+
+	s.pushTasks(ctx, tasksChan, &tasks)
+
+	return latestBlock, nil
+}
+
+// getBlocks is used to concurrently get blocks by block number.
+func (s *source) getBlocks(ctx context.Context, blockNumbers []*big.Int) ([]*ethereum.Block, error) {
+	resultPool := pool.NewWithResults[[]*ethereum.Block]().
+		WithContext(ctx).
+		WithFirstError().
+		WithCancelOnError()
+
+	for _, blockNumbers := range lo.Chunk(blockNumbers, int(*s.option.RPCBatchBlocks)) {
+		blockNumbers := blockNumbers
+
+		resultPool.Go(func(ctx context.Context) ([]*ethereum.Block, error) {
+			return s.ethereumClient.BatchBlockByNumbers(ctx, blockNumbers)
+		})
+	}
+
+	batchResults, err := resultPool.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	blocks := lo.Flatten(batchResults)
+
+	// Sort blocks by block number in ascending order.
+	sort.SliceStable(blocks, func(left, right int) bool {
+		return blocks[left].Number.Cmp(blocks[right].Number) == -1
+	})
+
+	return blocks, nil
+}
+
+func (s *source) getReceipts(ctx context.Context, blocks []*ethereum.Block) ([]*ethereum.Receipt, error) {
+	switch s.config.Network {
+	case
+		network.Crossbell,
+		network.Arbitrum,
+		network.SatoshiVM,
+		network.Linea:
+		transactionHashes := lo.Map(blocks, func(block *ethereum.Block, _ int) []common.Hash {
+			return lo.Map(block.Transactions, func(transaction *ethereum.Transaction, _ int) common.Hash {
+				return transaction.Hash
+			})
+		})
+
+		return s.getReceiptsByTransactionHashes(ctx, lo.Flatten(transactionHashes))
+	default:
+		blockNumbers := lo.Map(blocks, func(block *ethereum.Block, _ int) *big.Int {
+			return block.Number
+		})
+
+		return s.getReceiptsByBlockNumbers(ctx, blockNumbers)
+	}
+}
+
+func (s *source) getReceiptsByBlockNumbers(ctx context.Context, blockNumbers []*big.Int) ([]*ethereum.Receipt, error) {
+	resultPool := pool.NewWithResults[[]*ethereum.Receipt]().
+		WithContext(ctx).
+		WithFirstError().
+		WithCancelOnError()
+
+	for _, blockNumbers := range lo.Chunk(blockNumbers, int(*s.option.RPCBatchBlockReceipts)) {
+		blockNumbers := blockNumbers
+
+		resultPool.Go(func(ctx context.Context) ([]*ethereum.Receipt, error) {
+			batchReceipts, err := s.ethereumClient.BatchBlockReceipts(ctx, blockNumbers)
+			if err != nil {
+				return nil, err
+			}
+
+			return lo.Flatten(batchReceipts), nil
+		})
+	}
+
+	batchResults, err := resultPool.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Flatten(batchResults), nil
+}
+
+func (s *source) getReceiptsByTransactionHashes(ctx context.Context, transactionHashes []common.Hash) ([]*ethereum.Receipt, error) {
+	resultPool := pool.NewWithResults[[]*ethereum.Receipt]().
+		WithContext(ctx).
+		WithFirstError().
+		WithCancelOnError()
+
+	for _, transactionHashes := range lo.Chunk(transactionHashes, int(*s.option.RPCBatchBlockReceipts)) {
+		transactionHashes := transactionHashes
+
+		resultPool.Go(func(ctx context.Context) ([]*ethereum.Receipt, error) {
+			return s.ethereumClient.BatchTransactionReceipt(ctx, transactionHashes)
+		})
+	}
+
+	batchResults, err := resultPool.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Flatten(batchResults), nil
 }
 
 func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt) ([]*Task, error) {
-	tasks := make([]*Task, len(block.Transactions))
+	var (
+		tasks  = make([]*Task, len(block.Transactions))
+		header = block.Header()
+	)
 
 	for index, transaction := range block.Transactions {
 		// There is no guarantee that the receipts provided by RPC will be in the same order as the transactions,
@@ -302,7 +461,7 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 			return nil, fmt.Errorf("no receipt matched to transaction hash %s", transaction.Hash)
 		}
 
-		chain, err := filter.EthereumChainIDString(s.Network().String())
+		chain, err := network.EthereumChainIDString(s.Network().String())
 		if err != nil {
 			return nil, fmt.Errorf("unsupported chain %s", s.Network())
 		}
@@ -310,7 +469,7 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 		task := Task{
 			Network:     s.Network(),
 			ChainID:     uint64(chain),
-			Header:      block.Header(),
+			Header:      header,
 			Transaction: transaction,
 			Receipt:     receipt,
 		}
@@ -319,6 +478,15 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 	}
 
 	return tasks, nil
+}
+
+func (s *source) pushTasks(ctx context.Context, tasksChan chan<- *engine.Tasks, tasks *engine.Tasks) {
+	otel.GetTextMapPropagator().Inject(ctx, tasks)
+
+	_, span := otel.Tracer("").Start(ctx, "Source pushTasks", trace.WithSpanKind(trace.SpanKindProducer))
+	defer span.End()
+
+	tasksChan <- tasks
 }
 
 func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint) (engine.Source, error) {
@@ -335,10 +503,9 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 	}
 
 	instance := source{
-		config:       config,
-		filter:       new(Filter), // Set a default filter for the source.
-		state:        state,
-		pendingState: state, // Default pending state is equal to the current state.
+		config: config,
+		filter: new(Filter), // Set a default filter for the source.
+		state:  state,
 	}
 
 	// Initialize filter.

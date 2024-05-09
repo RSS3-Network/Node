@@ -12,9 +12,11 @@ import (
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/lens"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -31,7 +33,7 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		// V1
@@ -39,7 +41,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Lens V1 Post",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x4453f44d391358825a6c00922ee0126c033aafe85258ec913cff61f26da48c92"),
@@ -104,28 +106,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x1d4dc90c35d75df96b04e53f3949bad991f432a78dfa2196df39ad60d657e525",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   17,
 				From:    "0xD1FecCF6881970105dfb2b654054174007f0e07E",
 				To:      "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d",
-				Type:    filter.TypeSocialPost,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialPost,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x963ff141",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("40795434750675024")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialPost,
+						Type:     typex.SocialPost,
 						Platform: "Lenster",
 						From:     "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
 						To:       "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d",
@@ -155,7 +157,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Lens V1 Comment",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xab959cdfaaf69f3f2a240f81324420a3a93b3711f01fe4fe5db2dc7e15b511b4"),
@@ -220,28 +222,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xe64abd08fecf171163192cd793c6bb2897f4a10c36cd915dd2f98be2a43b3848",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   29,
 				From:    "0xD1FecCF6881970105dfb2b654054174007f0e07E",
 				To:      "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d",
-				Type:    filter.TypeSocialComment,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialComment,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xb6f32d2b",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("52156851468844922")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialComment,
+						Type:     typex.SocialComment,
 						Platform: "orb",
 						From:     "0x934B510D4C9103E6a87AEf13b816fb080286D649",
 						To:       "0xa9aeE5ed1b5fF1cC503298328dEfe11f6C0D2A8e",
@@ -280,7 +282,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Lens V1 Mirror",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xfe1c1896c884c53514c87395317b0b8b0fd0565d62bdf0b240e89a4f2f156cb7"),
@@ -345,28 +347,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xf986396e917af5ef5df171660d6f081e9bd5de621f4d14d186c16cac86402202",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   39,
 				From:    "0xD1FecCF6881970105dfb2b654054174007f0e07E",
 				To:      "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d",
-				Type:    filter.TypeSocialShare,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialShare,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x2faeed81",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("25285808266500040")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialShare,
+						Type:     typex.SocialShare,
 						Platform: "orb",
 						From:     "0x934B510D4C9103E6a87AEf13b816fb080286D649",
 						To:       "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d",
@@ -404,7 +406,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Lens Collect V1 Mint",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x929496e850ebfd3a881f62a9bd6c07c4de65a19fb720f592c0175ee344dfb296"),
@@ -570,28 +572,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xe815a7bd8a23691b4d20c3a07d1aea4cbd702b28746047c01da0a4e82f6577dc",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   8,
 				From:    "0x77582a98132c2BE11a6C0F85Ca6361555A030A68",
 				To:      "0x5a84eC20F88e94dC3EB96cE77695997f8446a22D",
-				Type:    filter.TypeSocialMint,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialMint,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x9d6f320e",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("127717034497094740")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialMint,
+						Type:     typex.SocialMint,
 						Platform: "Lenster",
 						From:     "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
 						To:       "0x5a84eC20F88e94dC3EB96cE77695997f8446a22D",
@@ -616,7 +618,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Lens V1 Create Profile",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xf251ad9cad115b9e16d25c156ecb70fb6558d3474bfc1ef584fea5724da5489c"),
@@ -695,28 +697,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x58cd98a80249aaf74e7296a2017c6c92ef08f5ae24976c16ff548bd720dd64a4",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   32,
 				From:    "0xD1FecCF6881970105dfb2b654054174007f0e07E",
 				To:      "0x1eeC6ecCaA4625da3Fa6Cd6339DBcc2418710E8a",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x07e5f948",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("53279683988343285")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
+						Type:     typex.SocialProfile,
 						Platform: "Lens",
 						From:     "0x1eeC6ecCaA4625da3Fa6Cd6339DBcc2418710E8a",
 						To:       "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
@@ -738,7 +740,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Lens V1 Update Profile Metadata",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x7fa12b7020806745a4218b3e72de3237dc0394a42752cc61da415db5ba6b25c0"),
@@ -802,28 +804,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x9ddb847657a957fc81fd06fc6231ad2d8d8f4c077956273b94e74e66a4e33c76",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   108,
 				From:    "0x58aA9a651d7CE87c4FbFB767405502864cD4e5EE",
 				To:      "0xeff187b4190E551FC25a7fA4dFC6cf7fDeF7194f",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xefe4fd83",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("110349206349525")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
+						Type:     typex.SocialProfile,
 						Platform: "Lens",
 						From:     "0x58aA9a651d7CE87c4FbFB767405502864cD4e5EE",
 						To:       "0x58aA9a651d7CE87c4FbFB767405502864cD4e5EE",
@@ -846,7 +848,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Lens V1 Update Profile Image URI",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xbb1d79088a918c610d252fc84add216652ce07f89876f618f0d4a015a2d22e5e"),
@@ -910,28 +912,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xc6f1a39aaaf20476384087b958a3c07eb7f1657b145cfc1b6b77b25e70e9fabb",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   1,
 				From:    "0xeCE7edDc02FB8F0010420D0d76911826b1536655",
 				To:      "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x054871b8",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("19454746000332000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
+						Type:     typex.SocialProfile,
 						Platform: "Lens",
 						From:     "0xeCE7edDc02FB8F0010420D0d76911826b1536655",
 						To:       "0xeCE7edDc02FB8F0010420D0d76911826b1536655",
@@ -953,7 +955,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Lens V2 Post",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x6014a610bead90c56500aebc46f6f18de38baf278eb7ab10bce6dc61f4e1d16d"),
@@ -1017,28 +1019,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x16a4eb2616f3e5cbdb19901fe3478870cf4d61fd76790f4ab9692bdd2e08d118",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   5,
 				From:    "0x76D4fFdA8c66864FA07f0a285B8E01E11b4Bb7b3",
 				To:      "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d",
-				Type:    filter.TypeSocialPost,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialPost,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x66b0dcd3",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("106713627373642400")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialPost,
+						Type:     typex.SocialPost,
 						Platform: "orb",
 						From:     "0x6ce9Ac48be646295027Fe609829248DE96886003",
 						To:       "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d",
@@ -1070,7 +1072,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Lens V2 Comment",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x17747a2562cf919d5c2339855a4448fb5398418d82c1f4fa83530652f316d287"),
@@ -1145,28 +1147,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x14b4130b4b0e5b2454c9e3b2a951c037e2d254015df7b6747dae2f73f43214bc",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   112,
 				From:    "0x479b18C5c5cd07777D97c523983779Bb6b4f8312",
 				To:      "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d",
-				Type:    filter.TypeSocialComment,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialComment,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xb42df51a",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("21954343382105066")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialComment,
+						Type:     typex.SocialComment,
 						Platform: "Hey",
 						From:     "0x028a158d9B47Ebedeaa17b67c7444ae1c82405D0",
 						To:       "0x3D5e9077ef8F9C6B0e10D6c62C1A022a49675Cc3",
@@ -1204,7 +1206,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Lens V2 Mirror",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xae599ffb4ab9a4947c54c1f18b819f76fc58a89dd8ee4d8ba02d2193310fbded"),
@@ -1268,28 +1270,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x4b25808683a856604fd9aeafd0b492263c284c39933480a792ca78d10caeb255",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   62,
 				From:    "0xFb304896014a9B9393281B2D6dA281843015Cd14",
 				To:      "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d",
-				Type:    filter.TypeSocialShare,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialShare,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xf90604d1",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("37917421212415536")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialShare,
+						Type:     typex.SocialShare,
 						Platform: "Hey",
 						From:     "0xFb304896014a9B9393281B2D6dA281843015Cd14",
 						To:       "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d",
@@ -1327,7 +1329,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Lens V2 Quote",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x05d318536856c3f8f22f0943f7bf33df4879dfbf8721dfeb9aeb7d027233fe15"),
@@ -1402,28 +1404,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x793769b3e6145e4c62939bd74e1dcb9c01ff231d13fe3295c7732ccad0e6f844",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   19,
 				From:    "0x900caB7bB11Ae04B943496FD6Ae686Fb15f4d98E",
 				To:      "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d",
-				Type:    filter.TypeSocialShare,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialShare,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x65f29f27",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("69993292024218310")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialShare,
+						Type:     typex.SocialShare,
 						Platform: "Hey",
 						From:     "0xDA65156390A551e1651d62Df698d330C819387Ff",
 						To:       "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d",
@@ -1457,7 +1459,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Lens Collect V2 Mint",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x0e065247c7eaebae9cfce4917d3b179ffe048bff89caebdc2e554ba01c768a36"),
@@ -1588,28 +1590,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x1e7041f4401381ca8b091dd0e77fd2a4bf762f5be077c531140f965e26696faf",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   2,
 				From:    "0x765F899Cc972768cd0440e7aaB112C26afbEE7cA",
 				To:      "0xDD3f6C22eCc68007cc9f76dA18984995DA4b7B82",
-				Type:    filter.TypeSocialMint,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialMint,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xa4d3f52e",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("78518953728556440")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialMint,
+						Type:     typex.SocialMint,
 						Platform: "wav3s",
 						From:     "0xa5423481cdaf678eF24FDDb9bf4584f9D0E12072",
 						To:       "0xDD3f6C22eCc68007cc9f76dA18984995DA4b7B82",
@@ -1638,7 +1640,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Lens V2 Create Profile",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x4fe2f445f4b0fa34818092965e495965d0ddb1abadc11c34522e06a580173e4b"),
@@ -1836,28 +1838,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xf8929e7ceaf2168c715ba40f1a75158944edcb9a3076fab1fb9daee4cab5552a",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   13,
 				From:    "0xe7Af8325aA443F7678B651d4f0De23663E818691",
 				To:      "0xdCB72aaB62d52aBC2E6be99BEEe535C2D1361fc0",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x50d425f9",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("92872457939322314")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
+						Type:     typex.SocialProfile,
 						Platform: "Lens",
 						From:     "0xdCB72aaB62d52aBC2E6be99BEEe535C2D1361fc0",
 						To:       "0xdCB72aaB62d52aBC2E6be99BEEe535C2D1361fc0",
@@ -1879,7 +1881,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Lens V2 Update Profile",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkPolygon,
+					Network: network.Polygon,
 					ChainID: 137,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xc20381c14bea35c37ca71de96aa271045c81006b1db186ef36eae1d5bf3adbc4"),
@@ -1943,28 +1945,28 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkPolygon,
-					Endpoint: endpoint.MustGet(filter.NetworkPolygon),
+					Network:  network.Polygon,
+					Endpoint: endpoint.MustGet(network.Polygon),
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x1f92b0335aa39b0c42df1cef83971749e80411f087149a3123e340dd1e1795f5",
-				Network: filter.NetworkPolygon,
+				Network: network.Polygon,
 				Index:   9,
 				From:    "0xeCE7edDc02FB8F0010420D0d76911826b1536655",
 				To:      "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xefe4fd83",
 				},
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("5715043291913934")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
+						Type:     typex.SocialProfile,
 						Platform: "Lens",
 						From:     "0xeCE7edDc02FB8F0010420D0d76911826b1536655",
 						To:       "0xeCE7edDc02FB8F0010420D0d76911826b1536655",
@@ -2001,12 +2003,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }
