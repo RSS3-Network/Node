@@ -14,6 +14,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.uber.org/zap"
 )
 
 type Component struct {
@@ -50,13 +51,13 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 		panic(err)
 	}
 
-	// Initialize etherface client
+	// Initialize etherface client, an optional dependency
 	etherfaceClient, err := etherface.NewEtherfaceClient()
 	if err != nil {
-		panic(fmt.Errorf("failed to initialize etherface client, %w", err))
+		zap.L().Warn("failed to initialize etherface client", zap.Any("error", err))
+	} else {
+		c.etherfaceClient = etherfaceClient
 	}
-
-	c.etherfaceClient = etherfaceClient
 
 	return c
 }

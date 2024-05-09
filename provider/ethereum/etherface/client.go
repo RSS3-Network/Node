@@ -19,6 +19,10 @@ const (
 	DefaultAttempts = 3
 )
 
+// etherface (https://github.com/volsa/etherface) is an Ethereum Signature Database.
+// It provides a way to lookup function names based on their hash.
+// It is an optional dependency for the decentralized component to improve the output usability.
+
 type Client interface {
 	Lookup(ctx context.Context, hash string) (string, error)
 }
