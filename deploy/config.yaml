@@ -5,6 +5,7 @@ endpoints:
     url: https://rpc.ankr.com/eth
     http_headers:
       user-agent: rss3-node
+    http2_disabled:
 
 discovery:
     maintainer:

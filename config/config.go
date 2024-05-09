@@ -98,13 +98,18 @@ type Module struct {
 }
 
 type Endpoint struct {
-	URL         string            `mapstructure:"url"`
-	HTTPHeaders map[string]string `mapstructure:"http_headers"`
+	URL           string            `mapstructure:"url"`
+	HTTPHeaders   map[string]string `mapstructure:"http_headers"`
+	HTTP2Disabled bool              `mapstructure:"http2_disabled"`
 }
 
 // BuildEthereumOptions builds the custom options to be supplied to an ethereum client.
 func (e Endpoint) BuildEthereumOptions() []ethereum.Option {
 	options := make([]ethereum.Option, 0)
+
+	if e.HTTP2Disabled {
+		options = append(options, ethereum.WithHTTP2Disabled())
+	}
 
 	if len(e.HTTPHeaders) > 0 {
 		options = append(options, ethereum.WithHTTPHeader(e.HTTPHeaders))
