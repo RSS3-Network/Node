@@ -36,7 +36,7 @@ type Server struct {
 	worker         engine.Worker
 	databaseClient database.Client
 	streamClient   stream.Client
-	client         monitor.Client
+	monitorClient  monitor.Client
 	redisClient    rueidis.Client
 	// meterTasksCounter is a counter of the number of tasks processed.
 	// Deprecated: use meterTasksHistogram instead.
@@ -276,12 +276,12 @@ func (s *Server) flagIndexingWorker(ctx context.Context, currentWorkerState, lat
 
 // getWorkerIndexingStateByClient gets the latest block height (arweave), block number (ethereum), event id (farcaster).
 func (s *Server) getWorkerIndexingStateByClient(ctx context.Context, state monitor.CheckpointState) (uint64, uint64, error) {
-	latestState, err := s.client.LatestState(ctx)
+	latestState, err := s.monitorClient.LatestState(ctx)
 	if err != nil {
 		return 0, 0, fmt.Errorf("get latest state: %w", err)
 	}
 
-	return s.client.CurrentState(state), latestState, nil
+	return s.monitorClient.CurrentState(state), latestState, nil
 }
 
 func (s *Server) initializeMeter() (err error) {
@@ -325,7 +325,7 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 				return
 			}
 
-			observer.Observe(int64(s.client.CurrentState(state)), metric.WithAttributes(
+			observer.Observe(int64(s.monitorClient.CurrentState(state)), metric.WithAttributes(
 				attribute.String("service", constant.Name),
 				attribute.String("worker", s.worker.Name()),
 			))
@@ -339,7 +339,7 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.Int64Observer) error {
 	go func() {
 		// get latest block height
-		latestBlockHeight, err := s.client.LatestState(ctx)
+		latestBlockHeight, err := s.monitorClient.LatestState(ctx)
 		if err != nil {
 			zap.L().Error("get latest block height", zap.Error(err))
 			return
@@ -369,19 +369,19 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 
 	switch config.Network {
 	case network.Arweave:
-		instance.client, err = monitor.NewArweaveClient()
+		instance.monitorClient, err = monitor.NewArweaveClient()
 		if err != nil {
-			return nil, fmt.Errorf("new arweave client: %w", err)
+			return nil, fmt.Errorf("new arweave monitorClient: %w", err)
 		}
 	case network.Farcaster:
-		instance.client, err = monitor.NewFarcasterClient()
+		instance.monitorClient, err = monitor.NewFarcasterClient()
 		if err != nil {
-			return nil, fmt.Errorf("new farcaster client: %w", err)
+			return nil, fmt.Errorf("new farcaster monitorClient: %w", err)
 		}
 	default:
-		instance.client, err = monitor.NewEthereumClient(config.Endpoint)
+		instance.monitorClient, err = monitor.NewEthereumClient(config.Endpoint)
 		if err != nil {
-			return nil, fmt.Errorf("new ethereum client: %w", err)
+			return nil, fmt.Errorf("new ethereum monitorClient: %w", err)
 		}
 	}
 
