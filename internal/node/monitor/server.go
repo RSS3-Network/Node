@@ -23,7 +23,7 @@ type Monitor struct {
 }
 
 func (m *Monitor) Run(ctx context.Context) error {
-	_, err := m.cron.AddFunc("@every 30s", func() {
+	_, err := m.cron.AddFunc("@every 15m", func() {
 		if err := m.MonitorWorkerStatus(ctx); err != nil {
 			return
 		}
@@ -58,7 +58,7 @@ func initNetworkClient(n network.Network, endpoint string) (Client, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("initializing client for network %s: %w", n, err)
+		return nil, err
 	}
 
 	return client, nil

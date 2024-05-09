@@ -253,7 +253,7 @@ func (s *Server) checkWorkerStatus(ctx context.Context, checkpoint engine.Checkp
 
 // flagIndexingWorker compares the current and latest block height/number. If the difference is less than the tolerance, the worker is flagged as ready, otherwise it is flagged as indexing.
 func (s *Server) flagIndexingWorker(ctx context.Context, currentWorkerState, latestWorkerState, networkTolerance uint64, state monitor.CheckpointState) error {
-	var status workerx.Status
+	status := workerx.StatusIndexing
 
 	switch s.config.Network {
 	case network.Farcaster:
@@ -263,8 +263,6 @@ func (s *Server) flagIndexingWorker(ctx context.Context, currentWorkerState, lat
 	default:
 		if latestWorkerState-currentWorkerState < networkTolerance {
 			status = workerx.StatusReady
-		} else {
-			status = workerx.StatusIndexing
 		}
 	}
 

@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"sync"
 
+	"github.com/rss3-network/node/config"
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"go.uber.org/zap"
@@ -22,30 +24,60 @@ type CheckpointState struct {
 // MonitorWorkerStatus checks the worker status by comparing the current and latest block height/number.
 // flags the worker as unhealthy if it's left behind the latest block height/number by more than the tolerance.
 func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
+	var wg sync.WaitGroup
+
+	errChan := make(chan error, len(m.config.Node.Decentralized))
+
 	for _, w := range m.config.Node.Decentralized {
-		// get checkpoint state from database
-		state, err := m.getCheckpointState(ctx, w.ID(), w.Network, w.Worker.String())
+		wg.Add(1)
+
+		go func(w *config.Module) {
+			defer wg.Done()
+
+			if err := m.processWorker(ctx, w); err != nil {
+				errChan <- err
+			}
+		}(w)
+	}
+
+	go func() {
+		wg.Wait()
+		close(errChan)
+	}()
+
+	for err := range errChan {
 		if err != nil {
-			zap.L().Error("get checkpoint state", zap.Error(err))
 			return err
 		}
+	}
 
-		// get current indexing block height, number or event id and the latest block height, number, timestamp of network
-		currentWorkerState, latestWorkerState, err := m.getWorkerIndexingStateByClients(ctx, w.Network, state)
-		if err != nil {
-			zap.L().Error("get latest block height or number", zap.Error(err))
-			return err
-		}
+	return nil
+}
 
-		// check worker's current status, and flag it as unhealthy if it's left behind the latest block height/number by more than the tolerance
-		if err := m.flagUnhealthyWorker(ctx, w.Network.String(), w.ID(), w.Worker.String(), currentWorkerState, latestWorkerState, NetworkTorlerance[w.Network]); err != nil {
-			return fmt.Errorf("detect unhealthy: %w", err)
-		}
+// processWorker processes the worker status.
+func (m *Monitor) processWorker(ctx context.Context, w *config.Module) error {
+	// get checkpoint state from database
+	state, err := m.getCheckpointState(ctx, w.ID(), w.Network, w.Worker.String())
+	if err != nil {
+		zap.L().Error("get checkpoint state", zap.Error(err))
+		return err
+	}
 
-		//	update worker progress (state)
-		if err := m.updateWorkerProgress(ctx, w.ID(), currentWorkerState); err != nil {
-			return fmt.Errorf("update worker progress: %w", err)
-		}
+	// get current indexing block height, number or event id and the latest block height, number, timestamp of network
+	currentWorkerState, latestWorkerState, err := m.getWorkerIndexingStateByClients(ctx, w.Network, state)
+	if err != nil {
+		zap.L().Error("get latest block height or number", zap.Error(err))
+		return err
+	}
+
+	// check worker's current status, and flag it as unhealthy if it's left behind the latest block height/number by more than the tolerance
+	if err := m.flagUnhealthyWorker(ctx, w.Network.String(), w.ID(), w.Worker.String(), currentWorkerState, latestWorkerState, NetworkTorlerance[w.Network]); err != nil {
+		return fmt.Errorf("detect unhealthy: %w", err)
+	}
+
+	//	update worker progress (state)
+	if err := m.updateWorkerProgress(ctx, w.ID(), currentWorkerState); err != nil {
+		return fmt.Errorf("update worker progress: %w", err)
 	}
 
 	return nil
@@ -68,14 +100,6 @@ func (m *Monitor) getWorkerIndexingStateByClients(ctx context.Context, n network
 
 // flagUnhealthyWorker detects by comparing the current and latest block height/number. If the difference is greater than the tolerance, the worker is flagged as unhealthy.
 func (m *Monitor) flagUnhealthyWorker(ctx context.Context, network, workerID, workerName string, currentWorkerState, latestWorkerState, networkTolerance uint64) error {
-	// if the worker is in Ready status and current block height/number is left behind the latest block height/number by more than the tolerance, flag the worker as unhealthy
-	if m.getWorkerStatus(network, workerName) == workerx.StatusReady && latestWorkerState-currentWorkerState > networkTolerance {
-		// Cache worker status to Redis.
-		if err := m.updateWorkerStatus(ctx, network, workerName, workerx.StatusUnhealthy.String()); err != nil {
-			return fmt.Errorf("cache token metadata: %w", err)
-		}
-	}
-
 	currentStatus := m.getWorkerStatus(network, workerName)
 
 	if (currentStatus == workerx.StatusReady && latestWorkerState-currentWorkerState > networkTolerance) || (currentStatus == workerx.StatusIndexing && currentWorkerState <= m.getWorkerProgress(workerID)) {
