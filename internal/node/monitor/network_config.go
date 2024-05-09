@@ -2,7 +2,7 @@ package monitor
 
 import "github.com/rss3-network/protocol-go/schema/network"
 
-var NetworkTorlerance = map[network.Network]uint64{
+var NetworkTolerance = map[network.Network]uint64{
 	network.Arbitrum:          100,
 	network.Arweave:           100,
 	network.Avalanche:         100,

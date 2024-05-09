@@ -248,7 +248,7 @@ func (s *Server) checkWorkerStatus(ctx context.Context, checkpoint engine.Checkp
 		return err
 	}
 
-	return s.flagIndexingWorker(ctx, currentWorkerState, latestWorkerState, monitor.NetworkTorlerance[s.config.Network], state)
+	return s.flagIndexingWorker(ctx, currentWorkerState, latestWorkerState, monitor.NetworkTolerance[s.config.Network], state)
 }
 
 // flagIndexingWorker compares the current and latest block height/number. If the difference is less than the tolerance, the worker is flagged as ready, otherwise it is flagged as indexing.

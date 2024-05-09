@@ -70,8 +70,8 @@ func (m *Monitor) processWorker(ctx context.Context, w *config.Module) error {
 		return err
 	}
 
-	// check worker's current status, and flag it as unhealthy if it's left behind the latest block height/number by more than the tolerance
-	if err := m.flagUnhealthyWorker(ctx, w.Network.String(), w.ID(), w.Worker.String(), currentWorkerState, latestWorkerState, NetworkTorlerance[w.Network]); err != nil {
+	// check worker's current status, and flag it as unhealthy if it's behind the latest block height/number by more than the tolerated amount
+	if err := m.flagUnhealthyWorker(ctx, w.Network.String(), w.ID(), w.Worker.String(), currentWorkerState, latestWorkerState, NetworkTolerance[w.Network]); err != nil {
 		return fmt.Errorf("detect unhealthy: %w", err)
 	}
 
