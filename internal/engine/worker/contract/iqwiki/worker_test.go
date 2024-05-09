@@ -105,8 +105,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Polygon,
-					Endpoint: endpoint.MustGet(network.Polygon),
+					Network: network.Polygon,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -229,8 +231,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Polygon,
-					Endpoint: endpoint.MustGet(network.Polygon),
+					Network: network.Polygon,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
 			want: &activityx.Activity{

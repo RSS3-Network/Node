@@ -106,8 +106,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Crossbell,
-					Endpoint: endpoint.MustGet(network.Crossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -200,8 +202,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Crossbell,
-					Endpoint: endpoint.MustGet(network.Crossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -309,8 +313,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Crossbell,
-					Endpoint: endpoint.MustGet(network.Crossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -404,8 +410,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Crossbell,
-					Endpoint: endpoint.MustGet(network.Crossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -498,8 +506,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Crossbell,
-					Endpoint: endpoint.MustGet(network.Crossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -596,8 +606,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Crossbell,
-					Endpoint: endpoint.MustGet(network.Crossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -693,8 +705,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Crossbell,
-					Endpoint: endpoint.MustGet(network.Crossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -798,8 +812,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Crossbell,
-					Endpoint: endpoint.MustGet(network.Crossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -896,8 +912,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Crossbell,
-					Endpoint: endpoint.MustGet(network.Crossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -1039,8 +1057,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Crossbell,
-					Endpoint: endpoint.MustGet(network.Crossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -1193,8 +1213,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Crossbell,
-					Endpoint: endpoint.MustGet(network.Crossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -1300,8 +1322,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Crossbell,
-					Endpoint: endpoint.MustGet(network.Crossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -1397,8 +1421,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Crossbell,
-					Endpoint: endpoint.MustGet(network.Crossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
 			want: &activityx.Activity{

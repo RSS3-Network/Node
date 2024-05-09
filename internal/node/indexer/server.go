@@ -214,7 +214,7 @@ func (s *Server) initializeMeter() (err error) {
 	case network.Farcaster:
 		break
 	default:
-		ethereumClient, err := ethereum.Dial(context.Background(), s.config.Endpoint)
+		ethereumClient, err := ethereum.Dial(context.Background(), s.config.Endpoint.URL, s.config.Endpoint.BuildEthereumOptions()...)
 		if err != nil {
 			return fmt.Errorf("dial ethereum: %w", err)
 		}

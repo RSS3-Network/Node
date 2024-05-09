@@ -121,8 +121,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Ethereum,
-					Endpoint: endpoint.MustGet(network.Ethereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -333,8 +335,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Ethereum,
-					Endpoint: endpoint.MustGet(network.Ethereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -536,8 +540,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Ethereum,
-					Endpoint: endpoint.MustGet(network.Ethereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -767,8 +773,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Ethereum,
-					Endpoint: endpoint.MustGet(network.Ethereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -936,8 +944,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Ethereum,
-					Endpoint: endpoint.MustGet(network.Ethereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -1151,8 +1161,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Ethereum,
-					Endpoint: endpoint.MustGet(network.Ethereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -1508,8 +1520,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Ethereum,
-					Endpoint: endpoint.MustGet(network.Ethereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -1704,8 +1718,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.SatoshiVM,
-					Endpoint: endpoint.MustGet(network.SatoshiVM),
+					Network: network.SatoshiVM,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.SatoshiVM),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -1879,8 +1895,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.SatoshiVM,
-					Endpoint: endpoint.MustGet(network.SatoshiVM),
+					Network: network.SatoshiVM,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.SatoshiVM),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -2082,8 +2100,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.SatoshiVM,
-					Endpoint: endpoint.MustGet(network.SatoshiVM),
+					Network: network.SatoshiVM,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.SatoshiVM),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -2229,8 +2249,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Linea,
-					Endpoint: endpoint.MustGet(network.Linea),
+					Network: network.Linea,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Linea),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -2409,8 +2431,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Linea,
-					Endpoint: endpoint.MustGet(network.Linea),
+					Network: network.Linea,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Linea),
+					},
 				},
 			},
 			want: &activityx.Activity{
@@ -2582,8 +2606,10 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  network.Linea,
-					Endpoint: endpoint.MustGet(network.Linea),
+					Network: network.Linea,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Linea),
+					},
 				},
 			},
 			want: &activityx.Activity{
