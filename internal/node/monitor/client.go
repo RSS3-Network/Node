@@ -89,11 +89,7 @@ type farcasterClient struct{}
 var _ Client = (*farcasterClient)(nil)
 
 func (c *farcasterClient) CurrentState(state CheckpointState) uint64 {
-	if state.CastsBackfill && state.ReactionBackfill {
-		return farcaster.ExtractEventIDToTimestamp(state.EventID)
-	}
-
-	return 0
+	return farcaster.ExtractEventIDToTimestamp(state.EventID)
 }
 
 func (c *farcasterClient) LatestState(_ context.Context) (uint64, error) {

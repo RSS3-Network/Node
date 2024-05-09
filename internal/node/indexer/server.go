@@ -248,17 +248,24 @@ func (s *Server) checkWorkerStatus(ctx context.Context, checkpoint engine.Checkp
 		return err
 	}
 
-	return s.flagIndexingWorker(ctx, currentWorkerState, latestWorkerState, monitor.NetworkTorlerance[s.config.Network])
+	return s.flagIndexingWorker(ctx, currentWorkerState, latestWorkerState, monitor.NetworkTorlerance[s.config.Network], state)
 }
 
 // flagIndexingWorker compares the current and latest block height/number. If the difference is less than the tolerance, the worker is flagged as ready, otherwise it is flagged as indexing.
-func (s *Server) flagIndexingWorker(ctx context.Context, currentWorkerState, latestWorkerState, networkTolerance uint64) error {
+func (s *Server) flagIndexingWorker(ctx context.Context, currentWorkerState, latestWorkerState, networkTolerance uint64, state monitor.CheckpointState) error {
 	var status workerx.Status
 
-	if latestWorkerState-currentWorkerState < networkTolerance {
-		status = workerx.StatusReady
-	} else {
-		status = workerx.StatusIndexing
+	switch s.config.Network {
+	case network.Farcaster:
+		if state.CastsBackfill && state.ReactionBackfill && latestWorkerState-currentWorkerState < networkTolerance {
+			status = workerx.StatusReady
+		}
+	default:
+		if latestWorkerState-currentWorkerState < networkTolerance {
+			status = workerx.StatusReady
+		} else {
+			status = workerx.StatusIndexing
+		}
 	}
 
 	// update worker status to ready or indexing to Redis cache.
