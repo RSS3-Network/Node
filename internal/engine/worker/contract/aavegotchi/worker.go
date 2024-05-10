@@ -328,7 +328,7 @@ func (w *worker) buildTransferAction(
 }
 
 func NewWorker(config *config.Module) (engine.Worker, error) {
-	ethereumClient, err := ethereum.Dial(context.Background(), config.Endpoint)
+	ethereumClient, err := ethereum.Dial(context.Background(), config.Endpoint.URL, config.Endpoint.BuildEthereumOptions()...)
 	if err != nil {
 		return nil, fmt.Errorf("dial Ethereum: %w", err)
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 )
@@ -27,10 +28,10 @@ func (s *Server) Run(_ context.Context) error {
 	return s.httpServer.Start(address)
 }
 
-func NewServer(ctx context.Context, config *config.File, databaseClient database.Client) *Server {
+func NewServer(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client) *Server {
 	instance := Server{
 		httpServer: echo.New(),
-		hub:        NewHub(ctx, config, databaseClient),
+		hub:        NewHub(ctx, config, databaseClient, redisClient),
 	}
 
 	instance.httpServer.HideBanner = true
@@ -46,6 +47,7 @@ func NewServer(ctx context.Context, config *config.File, databaseClient database
 	instance.httpServer.GET("/decentralized/tx/:id", instance.hub.Decentralized.GetActivity)
 	instance.httpServer.GET("/decentralized/:account", instance.hub.Decentralized.GetAccountActivities)
 	instance.httpServer.GET("/decentralized/count", instance.hub.Decentralized.GetActivitiesCount)
+	instance.httpServer.GET("/workers", instance.hub.Decentralized.GetWorkers)
 	instance.httpServer.GET("/networks", instance.hub.Network.GetNetworksHandler)
 	instance.httpServer.GET("/networks/:network/workers", instance.hub.Network.GetWorkersByNetwork)
 

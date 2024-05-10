@@ -7,6 +7,10 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=bind,source=go.mod,target=go.mod \
     go mod download -x
 
+RUN wget -O etherface.tar.gz https://storage.googleapis.com/rss3-etherface/etherface.tar.gz && \
+    tar -xzf etherface.tar.gz && \
+    rm etherface.tar.gz
+
 COPY . .
 
 FROM base AS builder
@@ -18,6 +22,8 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 FROM rss3/go-runtime AS runner
 
 WORKDIR /root/node
+
+COPY --from=builder /root/node/etherface /root/node/etherface
 
 COPY --from=builder /root/node/build/node .
 COPY deploy/config.yaml /etc/rss3/node/config.yaml

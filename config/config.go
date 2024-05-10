@@ -14,6 +14,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/stream"
+	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
@@ -32,13 +33,38 @@ const (
 )
 
 type File struct {
-	Environment   string     `mapstructure:"environment" validate:"required" default:"development"`
-	Discovery     *Discovery `mapstructure:"discovery" validate:"required"`
-	Node          *Node      `mapstructure:"component" validate:"required"`
-	Database      *Database  `mapstructure:"database" validate:"required"`
-	Stream        *Stream    `mapstructure:"stream" validate:"required"`
-	Redis         *Redis     `mapstructure:"redis" validate:"required"`
-	Observability *Telemetry `mapstructure:"observability" validate:"required"`
+	Environment   string              `mapstructure:"environment" validate:"required" default:"development"`
+	Endpoints     map[string]Endpoint `mapstructure:"endpoints"`
+	Discovery     *Discovery          `mapstructure:"discovery" validate:"required"`
+	Node          *Node               `mapstructure:"component" validate:"required"`
+	Database      *Database           `mapstructure:"database" validate:"required"`
+	Stream        *Stream             `mapstructure:"stream" validate:"required"`
+	Redis         *Redis              `mapstructure:"redis" validate:"required"`
+	Observability *Telemetry          `mapstructure:"observability" validate:"required"`
+}
+
+// LoadModulesEndpoint loads the endpoint url and headers for each module.
+// If the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.
+func (f *File) LoadModulesEndpoint() error {
+	assignEndpoint := func(modules []*Module) {
+		for index, module := range modules {
+			endpoint, found := f.Endpoints[module.EndpointID]
+
+			if !found {
+				endpoint = Endpoint{
+					URL: module.EndpointID,
+				}
+			}
+
+			modules[index].Endpoint = endpoint
+		}
+	}
+
+	assignEndpoint(f.Node.RSS)
+	assignEndpoint(f.Node.Decentralized)
+	assignEndpoint(f.Node.Federated)
+
+	return nil
 }
 
 type Discovery struct {
@@ -64,10 +90,32 @@ type Node struct {
 
 type Module struct {
 	Network      network.Network `mapstructure:"network" validate:"required"`
-	Endpoint     string          `mapstructure:"endpoint" validate:"required"`
+	EndpointID   string          `mapstructure:"endpoint" validate:"required"`
 	IPFSGateways []string        `mapstructure:"ipfs_gateways"`
 	Worker       worker.Worker   `mapstructure:"worker"`
 	Parameters   *Parameters     `mapstructure:"parameters"`
+	Endpoint     Endpoint        `mapstructure:"-"`
+}
+
+type Endpoint struct {
+	URL           string            `mapstructure:"url"`
+	HTTPHeaders   map[string]string `mapstructure:"http_headers"`
+	HTTP2Disabled bool              `mapstructure:"http2_disabled"`
+}
+
+// BuildEthereumOptions builds the custom options to be supplied to an ethereum client.
+func (e Endpoint) BuildEthereumOptions() []ethereum.Option {
+	options := make([]ethereum.Option, 0)
+
+	if e.HTTP2Disabled {
+		options = append(options, ethereum.WithHTTP2Disabled())
+	}
+
+	if len(e.HTTPHeaders) > 0 {
+		options = append(options, ethereum.WithHTTPHeader(e.HTTPHeaders))
+	}
+
+	return options
 }
 
 type Database struct {
@@ -104,7 +152,6 @@ type OpenTelemetryTracesConfig struct {
 }
 
 type Redis struct {
-	Enable       *bool    `mapstructure:"enable" validate:"required" default:"false"`
 	Endpoints    []string `mapstructure:"endpoints" default:"['localhost:6379']" validate:"required"`
 	Username     string   `mapstructure:"username"`
 	Password     string   `mapstructure:"password"`
@@ -225,6 +272,12 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 		EvmAddressHookFunc(),
 	))); err != nil {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)
+	}
+
+	// Use a function to load the endpoint for each module, because mapstructure doesn't support the use of custom unmarshaler.
+	// Reference https://github.com/mitchellh/mapstructure/issues/115.
+	if err := configFile.LoadModulesEndpoint(); err != nil {
+		return nil, fmt.Errorf("build endpoint for modules: %w", err)
 	}
 
 	// Set default values.

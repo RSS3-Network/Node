@@ -38,6 +38,7 @@ type Client interface {
 var _ Client = (*client)(nil)
 
 type client struct {
+	endpoint  string
 	rpcClient *rpc.Client
 }
 
@@ -312,14 +313,21 @@ func (c *client) FilterLogs(ctx context.Context, filter Filter) ([]*Log, error) 
 }
 
 // Dial creates a new client for the given endpoint.
-func Dial(ctx context.Context, endpoint string) (Client, error) {
+func Dial(ctx context.Context, endpoint string, options ...Option) (Client, error) {
 	rpcClient, err := rpc.DialContext(ctx, endpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	instance := client{
+		endpoint:  endpoint,
 		rpcClient: rpcClient,
+	}
+
+	for _, option := range options {
+		if err := option(ctx, &instance); err != nil {
+			return nil, fmt.Errorf("apply option: %w", err)
+		}
 	}
 
 	return &instance, nil
