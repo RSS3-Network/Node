@@ -49,7 +49,6 @@ func NewServer(ctx context.Context, config *config.File, databaseClient database
 	instance.httpServer.GET("/decentralized/count", instance.hub.Decentralized.GetActivitiesCount)
 	instance.httpServer.GET("/workers", instance.hub.Decentralized.GetWorkers)
 	instance.httpServer.GET("/networks", instance.hub.Network.GetNetworksHandler)
-	instance.httpServer.GET("/networks/:network/workers", instance.hub.Network.GetWorkersByNetwork)
-
+	instance.httpServer.GET("/networks/:network/list-workers", instance.hub.Network.GetWorkersByNetwork)
 	return &instance
 }

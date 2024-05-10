@@ -1,7 +1,6 @@
 package network
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -51,7 +50,7 @@ func (h *Hub) GetWorkersByNetwork(c echo.Context) error {
 		return fmt.Errorf("validate failed: %w", err)
 	}
 
-	go h.countRequest(context.TODO(), request.Network)
+	go h.countRequest(c.Request().Context(), request.Network)
 
 	nid, err := network.NetworkString(request.Network)
 
