@@ -34,6 +34,7 @@ const (
 
 type File struct {
 	Environment   string              `mapstructure:"environment" validate:"required" default:"development"`
+	Type          string              `mapstructure:"type" validate:"required,oneof=alpha beta" default:"beta"`
 	Endpoints     map[string]Endpoint `mapstructure:"endpoints"`
 	Discovery     *Discovery          `mapstructure:"discovery" validate:"required"`
 	Component     *Component          `mapstructure:"component" validate:"required"`
