@@ -27,7 +27,6 @@ stream:
   uri: localhost:9092
 
 redis:
-  enable: false
   endpoints:
     - localhost:6379
   username:
