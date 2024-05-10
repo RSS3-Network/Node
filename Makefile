@@ -18,7 +18,7 @@ align:
 generate:
 	go generate ./...
 
-lint: generate
+lint:
 	go mod tidy
 	go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run
 

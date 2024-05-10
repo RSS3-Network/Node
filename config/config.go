@@ -36,7 +36,7 @@ type File struct {
 	Environment   string              `mapstructure:"environment" validate:"required" default:"development"`
 	Endpoints     map[string]Endpoint `mapstructure:"endpoints"`
 	Discovery     *Discovery          `mapstructure:"discovery" validate:"required"`
-	Node          *Node               `mapstructure:"component" validate:"required"`
+	Component     *Component          `mapstructure:"component" validate:"required"`
 	Database      *Database           `mapstructure:"database" validate:"required"`
 	Stream        *Stream             `mapstructure:"stream" validate:"required"`
 	Redis         *Redis              `mapstructure:"redis" validate:"required"`
@@ -60,9 +60,9 @@ func (f *File) LoadModulesEndpoint() error {
 		}
 	}
 
-	assignEndpoint(f.Node.RSS)
-	assignEndpoint(f.Node.Decentralized)
-	assignEndpoint(f.Node.Federated)
+	assignEndpoint(f.Component.RSS)
+	assignEndpoint(f.Component.Decentralized)
+	assignEndpoint(f.Component.Federated)
 
 	return nil
 }
@@ -82,7 +82,7 @@ type Server struct {
 	GlobalIndexerEndpoint string `mapstructure:"global_indexer_endpoint"`
 }
 
-type Node struct {
+type Component struct {
 	RSS           []*Module `mapstructure:"rss" validate:"dive"`
 	Federated     []*Module `mapstructure:"federated" validate:"dive"`
 	Decentralized []*Module `mapstructure:"decentralized" validate:"dive"`
@@ -285,7 +285,7 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 		return nil, fmt.Errorf("set default values: %w", err)
 	}
 
-	// Validate config values.
+	// validate config values.
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := validate.Struct(&configFile); err != nil {
 		return nil, fmt.Errorf("validate config file: %w", err)
