@@ -8,6 +8,6 @@ import (
 )
 
 func (b *Broadcaster) GetNodeInfo(c echo.Context) error {
-	response := fmt.Sprintf("This is an RSS3 Component operated by %s.", b.config.Discovery.Maintainer.EvmAddress)
+	response := fmt.Sprintf("This is an RSS3 Node operated by %s.", b.config.Discovery.Maintainer.EvmAddress)
 	return c.JSON(http.StatusOK, response)
 }
