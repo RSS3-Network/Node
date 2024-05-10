@@ -48,6 +48,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 	group.GET("/workers", c.GetWorkers)
 	group.GET("/networks", c.GetNetworksHandler)
 	group.GET("/networks/:network/list-workers", c.GetWorkersByNetwork)
+	group.GET("/networks/:network/workers/:worker", c.GetWorkerConfig)
 
 	if err := c.InitMeter(); err != nil {
 		panic(err)
