@@ -247,6 +247,7 @@ endpoint = "https://rpc.ankr.com/eth"
 
 var configFileExcept = &File{
 	Environment: "development",
+	Type:        "alpha",
 	Endpoints: map[string]Endpoint{
 		"ethereum": {
 			URL: "https://rpc.ankr.com/eth",
