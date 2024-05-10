@@ -19,25 +19,25 @@ type Endpoint struct {
 }
 
 type Parameters struct {
-	BlockHeightStart      *ConfigDetail `json:"block_height_start"`
-	BlockHeightTarget     *ConfigDetail `json:"block_height_target"`
-	BlockNumberStart      *ConfigDetail `json:"block_number_start"`
-	BlockNumberTarget     *ConfigDetail `json:"block_number_target"`
-	RPCThreadBlocks       *ConfigDetail `json:"rpc_thread_blocks"`
-	RPCBatchBlocks        *ConfigDetail `json:"rpc_batch_blocks"`
-	RPCBatchReceipts      *ConfigDetail `json:"rpc_batch_receipts"`
-	RPCBatchBlockReceipts *ConfigDetail `json:"rpc_batch_block_receipts"`
-	APIKey                *ConfigDetail `json:"api_key"`
+	BlockHeightStart      *ConfigDetail `json:"block_height_start,omitempty"`
+	BlockHeightTarget     *ConfigDetail `json:"block_height_target,omitempty"`
+	BlockNumberStart      *ConfigDetail `json:"block_number_start,omitempty"`
+	BlockNumberTarget     *ConfigDetail `json:"block_number_target,omitempty"`
+	RPCThreadBlocks       *ConfigDetail `json:"rpc_thread_blocks,omitempty"`
+	RPCBatchBlocks        *ConfigDetail `json:"rpc_batch_blocks,omitempty"`
+	RPCBatchReceipts      *ConfigDetail `json:"rpc_batch_receipts,omitempty"`
+	RPCBatchBlockReceipts *ConfigDetail `json:"rpc_batch_block_receipts,omitempty"`
+	APIKey                *ConfigDetail `json:"api_key,omitempty"`
 }
 
 type workerConfig struct {
-	WorkerID     *ConfigDetail `json:"worker_id"`
+	WorkerID     ConfigDetail  `json:"worker_id"`
 	Network      ConfigDetail  `json:"network"`
 	Worker       ConfigDetail  `json:"worker"`
-	EndpointID   *ConfigDetail `json:"endpoint_id"`
-	Endpoint     *Endpoint     `json:"endpoint"`
-	IPFSGateways *ConfigDetail `json:"ipfs_gateways"`
-	Parameters   *Parameters   `json:"parameters"`
+	EndpointID   *ConfigDetail `json:"endpoint_id,omitempty"`
+	Endpoint     *Endpoint     `json:"endpoint,omitempty"`
+	IPFSGateways *ConfigDetail `json:"ipfs_gateways,omitempty"`
+	Parameters   *Parameters   `json:"parameters,omitempty"`
 }
 
 // NetworkToWorkersMap is a map of network to workers.
@@ -132,7 +132,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 // NetworkArchToConfigMap is a map of network arch to config.
 var NetworkArchToConfigMap = map[network.Source]workerConfig{
 	network.EthereumSource: {
-		WorkerID: &ConfigDetail{
+		WorkerID: ConfigDetail{
 			IsRequired:  false,
 			Type:        "string",
 			Description: "You can define your own worker id, it will run as an independent service",
@@ -211,7 +211,7 @@ var NetworkArchToConfigMap = map[network.Source]workerConfig{
 		},
 	},
 	network.ArweaveSource: {
-		WorkerID: &ConfigDetail{
+		WorkerID: ConfigDetail{
 			IsRequired:  false,
 			Type:        "string",
 			Description: "You can define your own worker id, it will run as an independent service",
@@ -252,7 +252,7 @@ var NetworkArchToConfigMap = map[network.Source]workerConfig{
 		},
 	},
 	network.FarcasterSource: {
-		WorkerID: &ConfigDetail{
+		WorkerID: ConfigDetail{
 			IsRequired:  false,
 			Type:        "string",
 			Description: "You can define your own worker id, it will run as an independent service",
