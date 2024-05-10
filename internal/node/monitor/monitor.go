@@ -26,9 +26,9 @@ type CheckpointState struct {
 func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 	var wg sync.WaitGroup
 
-	errChan := make(chan error, len(m.config.Node.Decentralized))
+	errChan := make(chan error, len(m.config.Component.Decentralized))
 
-	for _, w := range m.config.Node.Decentralized {
+	for _, w := range m.config.Component.Decentralized {
 		wg.Add(1)
 
 		go func(w *config.Module) {

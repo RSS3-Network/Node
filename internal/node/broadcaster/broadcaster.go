@@ -20,7 +20,8 @@ func (b *Broadcaster) Register(ctx context.Context) error {
 		Signature: b.config.Discovery.Maintainer.Signature,
 		Endpoint:  b.config.Discovery.Server.Endpoint,
 		Stream:    b.config.Stream,
-		Config:    b.config.Node,
+		Config:    b.config.Component,
+		Type:      b.config.Type,
 	}
 
 	var response any
@@ -101,11 +102,12 @@ func (b *Broadcaster) sendRequest(ctx context.Context, path string, values url.V
 }
 
 type RegisterNodeRequest struct {
-	Address   common.Address `json:"address" validate:"required"`
-	Signature string         `json:"signature" validate:"required"`
-	Endpoint  string         `json:"endpoint" validate:"required"`
-	Stream    *config.Stream `json:"stream,omitempty"`
-	Config    *config.Node   `json:"config,omitempty"`
+	Address   common.Address    `json:"address" validate:"required"`
+	Signature string            `json:"signature" validate:"required"`
+	Endpoint  string            `json:"endpoint" validate:"required"`
+	Stream    *config.Stream    `json:"stream,omitempty"`
+	Config    *config.Component `json:"config,omitempty"`
+	Type      string            `json:"type" validate:"required"`
 }
 
 type NodeHeartbeatRequest struct {

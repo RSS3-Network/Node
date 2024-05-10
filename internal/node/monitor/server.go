@@ -75,7 +75,7 @@ func NewMonitor(_ context.Context, config *config.File, databaseClient database.
 	}
 
 	// init all clients
-	for _, w := range config.Node.Decentralized {
+	for _, w := range config.Component.Decentralized {
 		client, err := initNetworkClient(w.Network, w.Endpoint)
 		if err != nil {
 			return nil, fmt.Errorf("init network client: %w", err)
