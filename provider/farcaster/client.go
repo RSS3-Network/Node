@@ -16,12 +16,14 @@ import (
 )
 
 const (
-	EndpointMainnet = "https://nemes.farcaster.xyz:2281" // Public Instances https://www.thehubble.xyz/intro/hubble.html
+	// Public Instances https://www.thehubble.xyz/intro/hubble.html
+	EndpointMainnet = "https://nemes.farcaster.xyz:2281"
 
 	DefaultTimeout  = 5 * time.Second
 	DefaultAttempts = 3
-	FarcasterEpoch  = 1609459200 // January 1, 2021 UTC https://github.com/farcasterxyz/hub-monorepo/blob/77ff79ed804104956eb153247c22c00099c7b122/packages/core/src/time.ts#L4
-	SequenceBits    = 12
+	// https://github.com/farcasterxyz/hub-monorepo/blob/77ff79ed804104956eb153247c22c00099c7b122/packages/core/src/time.ts#L4
+	FarcasterEpoch = 1609459200 // January 1, 2021 UTC
+	SequenceBits   = 12
 )
 
 var _ Client = (*client)(nil)
@@ -31,6 +33,7 @@ type Client interface {
 	GetCastByFidAndHash(ctx context.Context, fid *int64, hash string) (*Message, error)
 	GetVerificationsByFid(ctx context.Context, fid *int64, pageToken string) (*MessageResponse, error)
 	GetUserNameProofsByFid(ctx context.Context, fid *int64) (*ProofResponse, error)
+	GetUserNameProofByName(ctx context.Context, name string) (*UserNameProof, error)
 	GetUserDataByFid(ctx context.Context, fid *int64, pageToken string) (*MessageResponse, error)
 	GetUserDataByFidAndType(ctx context.Context, fid *int64, userDataType string) (*Message, error)
 	GetEvents(ctx context.Context, fromEventID *int64) (*EventResponse, error)
@@ -96,6 +99,19 @@ func (c *client) GetUserNameProofsByFid(ctx context.Context, fid *int64) (*Proof
 
 	if err := c.call(ctx, "/v1/userNameProofsByFid", farcasterQuery{
 		Fid: fid,
+	}, &response); err != nil {
+		return nil, fmt.Errorf("fetch: %w", err)
+	}
+
+	return &response, nil
+}
+
+// GetUserNameProofByName Get a proof by a user name.
+func (c *client) GetUserNameProofByName(ctx context.Context, name string) (*UserNameProof, error) {
+	var response UserNameProof
+
+	if err := c.call(ctx, "/v1/userNameProofByName", farcasterQuery{
+		Name: name,
 	}, &response); err != nil {
 		return nil, fmt.Errorf("fetch: %w", err)
 	}

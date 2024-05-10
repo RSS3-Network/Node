@@ -58,3 +58,11 @@ const (
 	UsernameTypeFname UsernameProofType = 1
 	UsernameTypeEnsL1 UsernameProofType = 2
 )
+
+//go:generate go run --mod=mod github.com/dmarkham/enumer --values --type=AccountType --output type_account.go --transform=snake-upper
+type AccountType int
+
+const (
+	ProtocolEthereum AccountType = 0
+	ProtocolSolana   AccountType = 1
+)

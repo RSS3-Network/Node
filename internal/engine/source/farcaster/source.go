@@ -319,51 +319,29 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 
 // updateProfileByFid update profile by fid.
 func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Profile, error) {
+	var username string
+
+	// owner username(handle)
+	userData, err := s.farcasterClient.GetUserDataByFidAndType(ctx, fid, farcaster.UserDataTypeUsername.String())
+
+	if err != nil {
+		zap.L().Error("failed to fetch user data by fid", zap.Error(err), zap.Int64("fid", *fid))
+	} else {
+		if userData.Data.UserDataBody != nil {
+			username = userData.Data.UserDataBody.Value
+		}
+	}
+
+	// custody address
+	custodyAddress, username, err := s.getCustodyAddress(ctx, fid, username)
+	if err != nil {
+		return nil, err
+	}
+
 	// eth addresses
-	verificationsByFidRes, err := s.farcasterClient.GetVerificationsByFid(ctx, fid, "")
-
+	ethAddresses, err := s.getEthAddresses(ctx, fid)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch eth address for fid %d: %w", fid, err)
-	}
-
-	ethAddresses := lo.Map(verificationsByFidRes.Messages, func(x farcaster.Message, _ int) string {
-		return common.HexToAddress(x.Data.VerificationAddEthAddressBody.Address).String()
-	})
-
-	if len(ethAddresses) == 0 {
-		return nil, fmt.Errorf("not found eth address for fid %d", *fid)
-	}
-
-	// custody address and name
-	custodyAddresses, err := s.farcasterClient.GetUserNameProofsByFid(ctx, fid)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch custody address and name for fid %d: %w", fid, err)
-	}
-
-	var (
-		custodyAddress string
-		username       string
-	)
-
-	for _, proof := range custodyAddresses.Proofs {
-		if proof.Type == farcaster.UsernameTypeFname.String() {
-			custodyAddress = proof.Owner
-			username = proof.Name
-
-			break
-		}
-	}
-
-	// owner prefer username(handle)
-	userDataByFidAndTypeRes, err := s.farcasterClient.GetUserDataByFidAndType(ctx, fid, farcaster.UserDataTypeUsername.String())
-
-	if err != nil {
-		if username == "" {
-			return nil, fmt.Errorf("failed to fetch prefer username for fid %d: %w", fid, err)
-		}
-	} else if userDataByFidAndTypeRes.Data.UserDataBody != nil {
-		username = userDataByFidAndTypeRes.Data.UserDataBody.Value
+		return nil, err
 	}
 
 	profile := &model.Profile{
@@ -378,6 +356,54 @@ func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Pro
 	}
 
 	return profile, nil
+}
+
+func (s *source) getCustodyAddress(ctx context.Context, fid *int64, username string) (string, string, error) {
+	userProofs, err := s.farcasterClient.GetUserNameProofsByFid(ctx, fid)
+	if err != nil {
+		return "", "", fmt.Errorf("fetch custody address by fid error: %w,%d", err, fid)
+	}
+
+	var custodyAddress string
+
+	for _, proof := range userProofs.Proofs {
+		if proof.Type == farcaster.UsernameTypeFname.String() {
+			custodyAddress = proof.Owner
+			if username == "" {
+				username = proof.Name
+			}
+
+			break
+		}
+	}
+
+	if custodyAddress == "" {
+		nameProof, err := s.farcasterClient.GetUserNameProofByName(ctx, username)
+		if err != nil || nameProof == nil {
+			return "", "", fmt.Errorf("fetch custody address by name error: %w,%d", err, fid)
+		}
+
+		custodyAddress = nameProof.Owner
+	}
+
+	return custodyAddress, username, nil
+}
+
+func (s *source) getEthAddresses(ctx context.Context, fid *int64) ([]string, error) {
+	verifications, err := s.farcasterClient.GetVerificationsByFid(ctx, fid, "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch eth address for fid %d: %w", fid, err)
+	}
+
+	var ethAddresses []string
+
+	for _, msg := range verifications.Messages {
+		if msg.Data.Type == farcaster.MessageTypeVerificationAddEthAddress.String() && msg.Data.VerificationAddEthAddressBody != nil && msg.Data.VerificationAddEthAddressBody.Protocol == farcaster.ProtocolEthereum.String() {
+			ethAddresses = append(ethAddresses, common.HexToAddress(msg.Data.VerificationAddEthAddressBody.Address).String())
+		}
+	}
+
+	return ethAddresses, nil
 }
 
 // getProfileByFid get profile by fid.
