@@ -58,7 +58,6 @@ component:
           access_key:
 
   decentralized:
-    # ethereum
     - network: ethereum
       worker: core
       endpoint: ethereum

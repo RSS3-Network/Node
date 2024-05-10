@@ -262,7 +262,7 @@ var configFileExcept = &File{
 			GlobalIndexerEndpoint: "https://gi.rss3.dev/",
 		},
 	},
-	Node: &Node{
+	Component: &Component{
 		RSS: []*Module{
 			{
 				Network:    network.RSS,
@@ -499,22 +499,22 @@ func AssertConfig(t *testing.T, expect, got *File) {
 	})
 
 	t.Run("decentralized", func(t *testing.T) {
-		for i, rss := range expect.Node.RSS {
+		for i, rss := range expect.Component.RSS {
 			func(_except, got *Module) {
 				t.Run(fmt.Sprintf("rss-%d", i), func(t *testing.T) {
 					t.Parallel()
 					assert.Equal(t, _except, got)
 				})
-			}(rss, got.Node.RSS[i])
+			}(rss, got.Component.RSS[i])
 		}
 
-		for i, indexer := range got.Node.Decentralized {
+		for i, indexer := range got.Component.Decentralized {
 			func(_except, got *Module) {
 				t.Run(fmt.Sprintf("%s-%s", indexer.Network, indexer.Worker), func(t *testing.T) {
 					t.Parallel()
 					AssertIndexer(t, _except, got)
 				})
-			}(configFileExcept.Node.Decentralized[i], indexer)
+			}(configFileExcept.Component.Decentralized[i], indexer)
 		}
 	})
 }

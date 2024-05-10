@@ -1,8 +1,12 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="run" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile">
-    <makefile filename="$PROJECT_DIR$/Makefile" target="run" workingDirectory="" arguments="">
-      <envs />
-    </makefile>
+  <configuration default="false" name="run" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="Serving-Node" />
+    <working_directory value="$PROJECT_DIR$" />
+    <parameters value="--module=hub" />
+    <kind value="FILE" />
+    <package value="./cmd" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/cmd/main.go" />
     <method v="2" />
   </configuration>
 </component>
