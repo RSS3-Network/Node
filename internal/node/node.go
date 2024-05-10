@@ -15,11 +15,8 @@ import (
 	"github.com/rss3-network/node/internal/node/component/rss"
 )
 
+// default host and port for the API server
 const (
-	CoreService = "core"
-	Worker      = "worker"
-	Broadcaster = "broadcaster"
-	Monitor     = "monitor"
 	DefaultHost = "0.0.0.0"
 	DefaultPort = "80"
 )

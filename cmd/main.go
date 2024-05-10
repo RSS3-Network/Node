@@ -31,6 +31,15 @@ import (
 
 var flags *pflag.FlagSet
 
+// the list of arguments to listen to
+// each argument corresponds to a module
+const (
+	CoreServiceArg = "core"
+	WorkerArg      = "worker"
+	BroadcasterArg = "broadcaster"
+	MonitorArg     = "monitor"
+)
+
 var command = cobra.Command{
 	Use:           constant.Name,
 	Version:       constant.BuildVersion(),
@@ -68,8 +77,8 @@ var command = cobra.Command{
 
 		module := lo.Must(flags.GetString(flag.KeyModule))
 
-		if module != node.Broadcaster {
-			// Dial and migrate database.
+		// Apply database migrations for all modules except the broadcaster.
+		if module != BroadcasterArg {
 			databaseClient, err = dialer.Dial(cmd.Context(), config.Database)
 			if err != nil {
 				return fmt.Errorf("dial database: %w", err)
@@ -81,13 +90,13 @@ var command = cobra.Command{
 		}
 
 		switch module {
-		case node.CoreService:
+		case CoreServiceArg:
 			return runCoreService(cmd.Context(), config, databaseClient, redisClient)
-		case node.Worker:
+		case WorkerArg:
 			return runWorker(cmd.Context(), config, databaseClient, streamClient, redisClient)
-		case node.Broadcaster:
+		case BroadcasterArg:
 			return runBroadcaster(cmd.Context(), config)
-		case node.Monitor:
+		case MonitorArg:
 			return runMonitor(cmd.Context(), config, databaseClient, redisClient)
 		}
 
@@ -206,7 +215,7 @@ func init() {
 	initializePyroscope()
 
 	command.PersistentFlags().String(flag.KeyConfig, "config.yaml", "config file name")
-	command.PersistentFlags().String(flag.KeyModule, node.Worker, "module name")
+	command.PersistentFlags().String(flag.KeyModule, WorkerArg, "module name")
 	command.PersistentFlags().String(flag.KeyWorkerID, "", "worker id")
 }
 
