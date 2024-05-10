@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -23,6 +24,8 @@ type ListWorkerResponse struct {
 
 // GetNetworksHandler get networks handler
 func (c *Component) GetNetworksHandler(ctx echo.Context) error {
+	go c.CollectMetric(ctx.Request().Context(), "networks")
+
 	networkList := network.NetworkValues()
 
 	result := make([]string, 0)
@@ -53,6 +56,8 @@ func (c *Component) GetWorkersByNetwork(ctx echo.Context) error {
 	if err := ctx.Validate(&request); err != nil {
 		return fmt.Errorf("validate failed: %w", err)
 	}
+
+	go c.CollectMetric(ctx.Request().Context(), common.HexToAddress(request.Network).String())
 
 	nid, err := network.NetworkString(request.Network)
 
