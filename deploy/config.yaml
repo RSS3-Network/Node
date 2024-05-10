@@ -6,6 +6,7 @@ endpoints:
     url: https://rpc.ankr.com/eth
     http_headers:
       user-agent: rss3-node
+    http2_disabled:
 
 discovery:
     maintainer:
@@ -27,7 +28,6 @@ stream:
   uri: localhost:9092
 
 redis:
-  enable: false
   endpoints:
     - localhost:6379
   username:
@@ -59,7 +59,6 @@ component:
           access_key:
 
   decentralized:
-    # ethereum
     - network: ethereum
       worker: core
       endpoint: ethereum

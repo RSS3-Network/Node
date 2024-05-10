@@ -42,7 +42,6 @@ stream:
   topic: rss3.node.activities
   uri: localhost:9092
 redis:
-  enable: false
   endpoints:
     - localhost:6379
   username:
@@ -113,7 +112,6 @@ component:
     "uri": "localhost:9092"
   },
   "redis": {
-    "enable": false,
     "endpoints": [
       "localhost:6379"
     ],
@@ -199,7 +197,6 @@ topic = "rss3.node.activities"
 uri = "localhost:9092"
 
 [redis]
-enable = false
 endpoints = ["localhost:6379"]
 username = ""
 password = ""
@@ -266,7 +263,7 @@ var configFileExcept = &File{
 			GlobalIndexerEndpoint: "https://gi.rss3.dev/",
 		},
 	},
-	Node: &Node{
+	Component: &Component{
 		RSS: []*Module{
 			{
 				Network:    network.RSS,
@@ -328,7 +325,6 @@ var configFileExcept = &File{
 		URI:    "localhost:9092",
 	},
 	Redis: &Redis{
-		Enable:       lo.ToPtr(false),
 		Endpoints:    []string{"localhost:6379"},
 		Username:     "",
 		Password:     "",
@@ -504,22 +500,22 @@ func AssertConfig(t *testing.T, expect, got *File) {
 	})
 
 	t.Run("decentralized", func(t *testing.T) {
-		for i, rss := range expect.Node.RSS {
+		for i, rss := range expect.Component.RSS {
 			func(_except, got *Module) {
 				t.Run(fmt.Sprintf("rss-%d", i), func(t *testing.T) {
 					t.Parallel()
 					assert.Equal(t, _except, got)
 				})
-			}(rss, got.Node.RSS[i])
+			}(rss, got.Component.RSS[i])
 		}
 
-		for i, indexer := range got.Node.Decentralized {
+		for i, indexer := range got.Component.Decentralized {
 			func(_except, got *Module) {
 				t.Run(fmt.Sprintf("%s-%s", indexer.Network, indexer.Worker), func(t *testing.T) {
 					t.Parallel()
 					AssertIndexer(t, _except, got)
 				})
-			}(configFileExcept.Node.Decentralized[i], indexer)
+			}(configFileExcept.Component.Decentralized[i], indexer)
 		}
 	})
 }
