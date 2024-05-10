@@ -21,12 +21,9 @@ import (
 	"github.com/rss3-network/node/internal/stream/provider"
 	"github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/provider/telemetry"
-	"github.com/rss3-network/node/schema/worker"
-	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/tdewolff/minify/v2/minify"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"go.uber.org/zap"
@@ -104,37 +101,26 @@ func runCoreService(ctx context.Context, config *config.File, databaseClient dat
 	return server.Run(ctx)
 }
 
-func runIndexer(ctx context.Context, config *config.File, databaseClient database.Client, streamClient stream.Client, redisClient rueidis.Client) error {
-	parameters, err := minify.JSON(lo.Must(flags.GetString(flag.KeyIndexerParameters)))
+func runIndexer(ctx context.Context, configFile *config.File, databaseClient database.Client, streamClient stream.Client, redisClient rueidis.Client) error {
+	indexerID, err := flags.GetString(flag.KeyIndexerID)
 	if err != nil {
-		return fmt.Errorf("invalid indexer parameters: %w", err)
+		return fmt.Errorf("invalid indexer id: %w", err)
 	}
 
-	network, err := networkx.NetworkString(lo.Must(flags.GetString(flag.KeyIndexerNetwork)))
+	module, found := lo.Find(configFile.Component.Decentralized, func(module *config.Module) bool {
+		return strings.EqualFold(module.ID, indexerID)
+	})
+
+	if !found {
+		return fmt.Errorf("undefined indexer %s", indexerID)
+	}
+
+	server, err := indexer.NewServer(ctx, module, databaseClient, streamClient, redisClient)
 	if err != nil {
-		return fmt.Errorf("network string: %w", err)
+		return fmt.Errorf("new indexer server: %w", err)
 	}
 
-	_worker, err := worker.WorkerString(lo.Must(flags.GetString(flag.KeyIndexerWorker)))
-
-	if err != nil {
-		return fmt.Errorf("worker string: %w", err)
-	}
-
-	for _, nodeConfig := range config.Component.Decentralized {
-		if nodeConfig.Network == network && nodeConfig.Worker == _worker {
-			if nodeConfig.Parameters == nil && parameters == "{}" || *(nodeConfig.Parameters) != nil && strings.EqualFold(nodeConfig.Parameters.String(), parameters) {
-				server, err := indexer.NewServer(ctx, nodeConfig, databaseClient, streamClient, redisClient)
-				if err != nil {
-					return fmt.Errorf("new server: %w", err)
-				}
-
-				return server.Run(ctx)
-			}
-		}
-	}
-
-	return fmt.Errorf("undefined indexer %s.%s.%s", network, _worker, parameters)
+	return server.Run(ctx)
 }
 
 func runBroadcaster(ctx context.Context, config *config.File) error {
@@ -221,9 +207,7 @@ func init() {
 
 	command.PersistentFlags().String(flag.KeyConfig, "config.yaml", "config file name")
 	command.PersistentFlags().String(flag.KeyModule, node.Worker, "module name")
-	command.PersistentFlags().String(flag.KeyIndexerNetwork, networkx.Ethereum.String(), "indexer network")
-	command.PersistentFlags().String(flag.KeyIndexerWorker, worker.Core.String(), "indexer worker")
-	command.PersistentFlags().String(flag.KeyIndexerParameters, "{}", "indexer parameters")
+	command.PersistentFlags().String(flag.KeyIndexerID, "", "indexer id")
 }
 
 func main() {

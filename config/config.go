@@ -90,6 +90,7 @@ type Component struct {
 }
 
 type Module struct {
+	ID           string          `mapstructure:"id"`
 	Network      network.Network `mapstructure:"network" validate:"required"`
 	EndpointID   string          `mapstructure:"endpoint" validate:"required"`
 	IPFSGateways []string        `mapstructure:"ipfs_gateways"`
@@ -166,23 +167,6 @@ type RedisTLS struct {
 	CertFile           string `mapstructure:"cert_file"`
 	KeyFile            string `mapstructure:"key_file"`
 	InsecureSkipVerify bool   `mapstructure:"insecure_skip_verify" default:"false"`
-}
-
-// ID returns the unique identifier of the configuration.
-func (c *Module) ID() string {
-	id := fmt.Sprintf("%s.%s", c.Network, c.Worker)
-
-	if c.Parameters != nil {
-		var buffer map[string]any
-
-		lo.Must0(c.Parameters.Decode(&buffer))
-
-		if buffer != nil {
-			id = fmt.Sprintf("%s.%s", id, string(lo.Must(json.Marshal(buffer))))
-		}
-	}
-
-	return id
 }
 
 // var _ fmt.Stringer = (*Parameters)(nil)
