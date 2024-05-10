@@ -55,6 +55,8 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 			return s.pollCasts(ctx, tasksChan)
 		}); err != nil {
 			errorChan <- err
+		} else {
+			return
 		}
 	}()
 
@@ -64,6 +66,8 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 			return s.pollReactions(ctx, tasksChan)
 		}); err != nil {
 			errorChan <- err
+		} else {
+			return
 		}
 	}()
 
