@@ -207,7 +207,7 @@ func init() {
 
 	command.PersistentFlags().String(flag.KeyConfig, "config.yaml", "config file name")
 	command.PersistentFlags().String(flag.KeyModule, node.Worker, "module name")
-	command.PersistentFlags().String(flag.KeyWorkerID, "", "indexer id")
+	command.PersistentFlags().String(flag.KeyWorkerID, "", "worker id")
 }
 
 func main() {
