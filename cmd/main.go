@@ -84,7 +84,7 @@ var command = cobra.Command{
 		case node.CoreService:
 			return runCoreService(cmd.Context(), config, databaseClient, redisClient)
 		case node.Worker:
-			return runIndexer(cmd.Context(), config, databaseClient, streamClient, redisClient)
+			return runWorker(cmd.Context(), config, databaseClient, streamClient, redisClient)
 		case node.Broadcaster:
 			return runBroadcaster(cmd.Context(), config)
 		case node.Monitor:
@@ -101,18 +101,18 @@ func runCoreService(ctx context.Context, config *config.File, databaseClient dat
 	return server.Run(ctx)
 }
 
-func runIndexer(ctx context.Context, configFile *config.File, databaseClient database.Client, streamClient stream.Client, redisClient rueidis.Client) error {
-	indexerID, err := flags.GetString(flag.KeyIndexerID)
+func runWorker(ctx context.Context, configFile *config.File, databaseClient database.Client, streamClient stream.Client, redisClient rueidis.Client) error {
+	workerID, err := flags.GetString(flag.KeyWorkerID)
 	if err != nil {
-		return fmt.Errorf("invalid indexer id: %w", err)
+		return fmt.Errorf("invalid worker id: %w", err)
 	}
 
 	module, found := lo.Find(configFile.Component.Decentralized, func(module *config.Module) bool {
-		return strings.EqualFold(module.ID, indexerID)
+		return strings.EqualFold(module.ID, workerID)
 	})
 
 	if !found {
-		return fmt.Errorf("undefined indexer %s", indexerID)
+		return fmt.Errorf("undefined module %s", workerID)
 	}
 
 	server, err := indexer.NewServer(ctx, module, databaseClient, streamClient, redisClient)
@@ -207,7 +207,7 @@ func init() {
 
 	command.PersistentFlags().String(flag.KeyConfig, "config.yaml", "config file name")
 	command.PersistentFlags().String(flag.KeyModule, node.Worker, "module name")
-	command.PersistentFlags().String(flag.KeyIndexerID, "", "indexer id")
+	command.PersistentFlags().String(flag.KeyWorkerID, "", "indexer id")
 }
 
 func main() {
