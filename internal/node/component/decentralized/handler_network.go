@@ -73,46 +73,46 @@ func (c *Component) GetWorkersByNetwork(ctx echo.Context) error {
 // NetworkToWorkersMap is a map of network to workers.
 var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.Ethereum: {
-		worker.Core,
-		worker.RSS3,
-		worker.OpenSea,
-		worker.Uniswap,
-		worker.Optimism,
-		worker.Looksrare,
-		worker.Highlight,
 		worker.Aave,
-		worker.Lido,
-		worker.ENS,
-		worker.Oneinch,
-		worker.Stargate,
+		worker.Core,
 		worker.Curve,
+		worker.ENS,
+		worker.Highlight,
+		worker.Lido,
+		worker.Looksrare,
+		worker.Oneinch,
+		worker.OpenSea,
+		worker.Optimism,
+		worker.RSS3,
+		worker.Stargate,
+		worker.Uniswap,
 	},
 	network.Arweave: {
 		worker.Mirror,
-		worker.Paragraph,
 		worker.Momoka,
+		worker.Paragraph,
 	},
 	network.Farcaster: {
 		worker.Core,
 	},
 	network.Polygon: {
+		worker.Aave,
 		worker.Aavegotchi,
+		worker.Core,
+		worker.Curve,
+		worker.Highlight,
+		worker.IQWiki,
 		worker.Lens,
 		worker.Matters,
-		worker.Aave,
-		worker.IQWiki,
-		worker.Core,
-		worker.Highlight,
 		worker.Stargate,
-		worker.Curve,
 	},
 	network.Crossbell: {
 		worker.Crossbell,
 	},
 	network.Avalanche: {
 		worker.Aave,
-		worker.Stargate,
 		worker.Curve,
+		worker.Stargate,
 	},
 	network.Base: {
 		worker.Aave,
@@ -122,17 +122,17 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.Optimism: {
 		worker.Aave,
 		worker.Core,
+		worker.Curve,
 		worker.Highlight,
 		worker.KiwiStand,
 		worker.Stargate,
-		worker.Curve,
 	},
 	network.Arbitrum: {
 		worker.Aave,
 		worker.Core,
+		worker.Curve,
 		worker.Highlight,
 		worker.Stargate,
-		worker.Curve,
 	},
 	network.VSL: {
 		worker.Core,
@@ -141,8 +141,8 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	},
 	network.SatoshiVM: {
 		worker.Core,
-		worker.Uniswap,
 		worker.SAVM,
+		worker.Uniswap,
 	},
 	network.BinanceSmartChain: {
 		worker.Core,
@@ -154,7 +154,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	},
 	network.Linea: {
 		worker.Core,
-		worker.Uniswap,
 		worker.Stargate,
+		worker.Uniswap,
 	},
 }
