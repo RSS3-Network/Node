@@ -285,7 +285,7 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 		return nil, fmt.Errorf("set default values: %w", err)
 	}
 
-	// Validator config values.
+	// validate config values.
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := validate.Struct(&configFile); err != nil {
 		return nil, fmt.Errorf("validate config file: %w", err)

@@ -95,7 +95,7 @@ func (h *Component) setAccessKey(config *config.Module) error {
 
 	option, err := NewOption(config.Parameters)
 	if err != nil {
-		return fmt.Errorf("parse parmeters: %w", err)
+		return fmt.Errorf("parse config parmeters: %w", err)
 	}
 
 	if option.Authentication.AccessKey != "" {
