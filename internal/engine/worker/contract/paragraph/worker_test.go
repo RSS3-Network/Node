@@ -8,10 +8,12 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/paragraph"
 	"github.com/rss3-network/node/provider/arweave"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
-	"github.com/samber/lo"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
 )
@@ -27,14 +29,14 @@ func TestWorker_Arweave(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Paragraph Post",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkArweave,
+					Network: network.Arweave,
 					Block: arweave.Block{
 						Timestamp: 1697091466,
 					},
@@ -61,23 +63,23 @@ func TestWorker_Arweave(t *testing.T) {
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:       "Sz5fY8Loj67fWxLQv98r5U5-h2aIA5x4FMsAVP1N2ig",
-				Network:  filter.NetworkArweave,
+				Network:  network.Arweave,
 				Index:    0,
 				From:     "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
 				To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
-				Type:     filter.TypeSocialPost,
-				Platform: lo.ToPtr(filter.PlatformParagraph),
-				Fee: &schema.Fee{
+				Type:     typex.SocialPost,
+				Platform: workerx.PlatformParagraph.String(),
+				Fee: &activityx.Fee{
 					Amount:  decimal.NewFromInt(212017846),
 					Decimal: 12,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialPost,
-						Tag:      filter.TagSocial,
-						Platform: filter.PlatformParagraph.String(),
+						Type:     typex.SocialPost,
+						Tag:      tag.Social,
+						Platform: workerx.PlatformParagraph.String(),
 						From:     "0x542E4C3b4a1DCE0A1Eca7BbC14754A867d61878A",
 						To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
 						Metadata: &metadata.SocialPost{
@@ -108,7 +110,7 @@ func TestWorker_Arweave(t *testing.T) {
 			name: "Paragraph Revise",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkArweave,
+					Network: network.Arweave,
 					Block: arweave.Block{
 						Timestamp: 1697092032,
 					},
@@ -134,24 +136,24 @@ func TestWorker_Arweave(t *testing.T) {
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:       "Xf7C--gk4hlH3mG0UnFiISYgOdymfInv2EgeOF0GeNg",
-				Network:  filter.NetworkArweave,
+				Network:  network.Arweave,
 				Index:    0,
 				From:     "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
 				To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
-				Type:     filter.TypeSocialRevise,
-				Platform: lo.ToPtr(filter.PlatformParagraph),
-				Fee: &schema.Fee{
+				Type:     typex.SocialRevise,
+				Platform: workerx.PlatformParagraph.String(),
+				Fee: &activityx.Fee{
 					Amount:  decimal.NewFromInt(212017846),
 					Decimal: 12,
 				},
 
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialRevise,
-						Tag:      filter.TagSocial,
-						Platform: filter.PlatformParagraph.String(),
+						Type:     typex.SocialRevise,
+						Tag:      tag.Social,
+						Platform: workerx.PlatformParagraph.String(),
 						From:     "0x542E4C3b4a1DCE0A1Eca7BbC14754A867d61878A",
 						To:       "w5AtiFsNvORfcRtikbdrp2tzqixb05vdPw-ZhgVkD70",
 						Metadata: &metadata.SocialPost{
@@ -195,12 +197,12 @@ func TestWorker_Arweave(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/provider/httpx"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 )
@@ -17,7 +17,7 @@ import (
 // Registry is a registry for the curve pools.
 type Registry interface {
 	Refresh(ctx context.Context) error
-	Validate(ctx context.Context, chain filter.Network, contractType ContractType, address common.Address) (*Pool, error)
+	Validate(ctx context.Context, chain network.Network, contractType ContractType, address common.Address) (*Pool, error)
 }
 
 var _ Registry = (*registry)(nil)
@@ -37,13 +37,13 @@ func (r *registry) Refresh(ctx context.Context) error {
 	const Endpoint = "https://api.curve.fi/"
 
 	// Networks to fetch pools for.
-	networks := []filter.Network{
-		filter.NetworkArbitrum,
-		filter.NetworkAvalanche,
-		filter.NetworkEthereum,
-		filter.NetworkGnosis,
-		filter.NetworkOptimism,
-		filter.NetworkPolygon,
+	networks := []network.Network{
+		network.Arbitrum,
+		network.Avalanche,
+		network.Ethereum,
+		network.Gnosis,
+		network.Optimism,
+		network.Polygon,
 	}
 
 	// Registry IDs to fetch pools for.
@@ -127,7 +127,7 @@ func (r *registry) Refresh(ctx context.Context) error {
 }
 
 // Validate checks if the pool is valid.
-func (r *registry) Validate(ctx context.Context, network filter.Network, contractType ContractType, address common.Address) (*Pool, error) {
+func (r *registry) Validate(ctx context.Context, network network.Network, contractType ContractType, address common.Address) (*Pool, error) {
 	command := r.redisClient.B().Get().Key(r.formatRedisKey(network, contractType, address)).Build()
 
 	result := r.redisClient.Do(ctx, command)
@@ -150,19 +150,19 @@ func (r *registry) Validate(ctx context.Context, network filter.Network, contrac
 }
 
 // formatRedisKey formats the redis key.
-func (r *registry) formatRedisKey(network filter.Network, contractType ContractType, address common.Address) string {
+func (r *registry) formatRedisKey(network network.Network, contractType ContractType, address common.Address) string {
 	return fmt.Sprintf("curve:%s:%s:%s", r.formatNetwork(network), contractType, address)
 }
 
 // formatNetwork handling special network name in curve endpoint like xdai.
-func (r *registry) formatNetwork(network filter.Network) string {
-	switch network {
-	case filter.NetworkGnosis:
+func (r *registry) formatNetwork(n network.Network) string {
+	switch n {
+	case network.Gnosis:
 		return "xdai"
-	case filter.NetworkAvalanche:
+	case network.Avalanche:
 		return "avalanche"
 	default:
-		return network.String()
+		return n.String()
 	}
 }
 

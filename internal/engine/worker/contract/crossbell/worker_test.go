@@ -12,9 +12,11 @@ import (
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/crossbell"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -31,14 +33,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Crossbell Create Profile",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkCrossbell,
+					Network: network.Crossbell,
 					ChainID: 3737,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x208cd7fa40c76bd071edc0db8f6d107b70e194cd27e69027e7c642523f15640d"),
@@ -104,29 +106,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkCrossbell,
-					Endpoint: endpoint.MustGet(filter.NetworkCrossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x70fa8c5b0fc9ce76fd27a1b99c1a3083bc5e4d0d72a7630cefc27e7badeb6ad3",
-				Network: filter.NetworkCrossbell,
+				Network: network.Crossbell,
 				Index:   0,
 				From:    "0x3F54953E56A0Fe272F3E1E61615Bda1fd6578101",
 				To:      "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xbd5f69cb",
 				},
-				Platform: lo.ToPtr(filter.PlatformCrossbell),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCrossbell.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("336353000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformCrossbell.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformCrossbell.String(),
 						From:     "0x3F54953E56A0Fe272F3E1E61615Bda1fd6578101",
 						To:       "0x3F54953E56A0Fe272F3E1E61615Bda1fd6578101",
 						Metadata: metadata.SocialProfile{
@@ -147,7 +151,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Crossbell Set Profile URI",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkCrossbell,
+					Network: network.Crossbell,
 					ChainID: 3737,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x395944fc954a4f6854f47b2bcbadc0f68ceb2980c9efdd8e32f435ec576610e3"),
@@ -198,29 +202,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkCrossbell,
-					Endpoint: endpoint.MustGet(filter.NetworkCrossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x24bc9af800a8d543e2a8cafd0015c5cb9166203e5114f36fd28dbc244a65a659",
-				Network: filter.NetworkCrossbell,
+				Network: network.Crossbell,
 				Index:   0,
 				From:    "0x08d66b34054a174841e2361bd4746Ff9F4905cC2",
 				To:      "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x7c392b51",
 				},
-				Platform: lo.ToPtr(filter.PlatformCrossbell),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCrossbell.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("51306000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformCrossbell.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformCrossbell.String(),
 						From:     "0x08d66b34054a174841e2361bd4746Ff9F4905cC2",
 						To:       "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
 						Metadata: metadata.SocialProfile{
@@ -241,7 +247,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Crossbell Create Character",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkCrossbell,
+					Network: network.Crossbell,
 					ChainID: 3737,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x73c391ff1d8cb24ba51393f006ae5b2c7f36cbd6ef08a0d29a5ca7a4f0075929"),
@@ -307,29 +313,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkCrossbell,
-					Endpoint: endpoint.MustGet(filter.NetworkCrossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x8ba289a3cd8ea21a52834961fa5dde07b2f52d51bd571fc40b18af09f841a3ef",
-				Network: filter.NetworkCrossbell,
+				Network: network.Crossbell,
 				Index:   0,
 				From:    "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
 				To:      "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xcd69fe61",
 				},
-				Platform: lo.ToPtr(filter.PlatformCrossbell),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCrossbell.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("327967000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformCrossbell.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformCrossbell.String(),
 						From:     "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
 						To:       "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
 						Metadata: metadata.SocialProfile{
@@ -350,7 +358,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Crossbell Character Set Handle",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkCrossbell,
+					Network: network.Crossbell,
 					ChainID: 3737,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x76db549a236c3979eee7ef994b0bd0c2a99e3e111c7f91307e1ce62341aec173"),
@@ -402,29 +410,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkCrossbell,
-					Endpoint: endpoint.MustGet(filter.NetworkCrossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x96a778fa21f708c24de5f995256155573815d96498de490155366f92aae512c7",
-				Network: filter.NetworkCrossbell,
+				Network: network.Crossbell,
 				Index:   0,
 				From:    "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
 				To:      "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xa6e6178d",
 				},
-				Platform: lo.ToPtr(filter.PlatformCrossbell),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCrossbell.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("56047000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformCrossbell.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformCrossbell.String(),
 						From:     "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
 						To:       "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
 						Metadata: metadata.SocialProfile{
@@ -445,7 +455,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Crossbell Character Set Uri",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkCrossbell,
+					Network: network.Crossbell,
 					ChainID: 3737,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x5037a92b9e783285779cf7ba1e180146d82424559d4b150efb3abb66feaff1d8"),
@@ -496,29 +506,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkCrossbell,
-					Endpoint: endpoint.MustGet(filter.NetworkCrossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xc6268ec5e794165322787e56aa483f6e1eb61586c8762c45593d0ee65a8740f3",
-				Network: filter.NetworkCrossbell,
+				Network: network.Crossbell,
 				Index:   0,
 				From:    "0x0fefeD77Bb715E96f1c35c1a4E0D349563d6f6c0",
 				To:      "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x47f94de7",
 				},
-				Platform: lo.ToPtr(filter.PlatformCrossbell),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCrossbell.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("47651000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformCrossbell.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformCrossbell.String(),
 						From:     "0x0fefeD77Bb715E96f1c35c1a4E0D349563d6f6c0",
 						To:       "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
 						Metadata: metadata.SocialProfile{
@@ -541,7 +553,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Crossbell Post Note",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkCrossbell,
+					Network: network.Crossbell,
 					ChainID: 3737,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x34905b0848cb58ee88d692d9c4cc095743d85f3a18bc595d206c234d3f43350b"),
@@ -594,28 +606,30 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkCrossbell,
-					Endpoint: endpoint.MustGet(filter.NetworkCrossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xf81f06f80b929e9f8c7bd9bbac6759a79c89d10fb3e7ce3f34d05b3f50253c41",
-				Network: filter.NetworkCrossbell,
+				Network: network.Crossbell,
 				Index:   0,
 				From:    "0x0F588318A494e4508A121a32B6670b5494Ca3357",
 				To:      "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
-				Type:    filter.TypeSocialPost,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialPost,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xf316bacd",
 				},
-				Platform: lo.ToPtr(filter.PlatformCrossbell),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCrossbell.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("236812000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialPost,
+						Type:     typex.SocialPost,
 						Platform: "xSync",
 						From:     "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
 						To:       "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
@@ -638,7 +652,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Crossbell Comment Note",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkCrossbell,
+					Network: network.Crossbell,
 					ChainID: 3737,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xfecf46318eb6be1b87b10c0c10edf6d2520c4f558bd14e780ef9012d41ad375b"),
@@ -691,28 +705,30 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkCrossbell,
-					Endpoint: endpoint.MustGet(filter.NetworkCrossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x4add740166bde1a1fc64045c3098a28f7335972db3bfb73455df3020d1365e04",
-				Network: filter.NetworkCrossbell,
+				Network: network.Crossbell,
 				Index:   0,
 				From:    "0x0F588318A494e4508A121a32B6670b5494Ca3357",
 				To:      "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
-				Type:    filter.TypeSocialComment,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialComment,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x9a4dec18",
 				},
-				Platform: lo.ToPtr(filter.PlatformCrossbell),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCrossbell.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("175319000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialComment,
+						Type:     typex.SocialComment,
 						Platform: "xSync",
 						From:     "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
 						To:       "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
@@ -745,7 +761,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Crossbell Set Note Uri",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkCrossbell,
+					Network: network.Crossbell,
 					ChainID: 3737,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x2eea61e14b05ac37016435339bc38509eb3eef7f1fbfa7c1bf29aaeddd28db1e"),
@@ -796,28 +812,30 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkCrossbell,
-					Endpoint: endpoint.MustGet(filter.NetworkCrossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x2b24d08600be7ce57f664d31c1ea0ff0a6ded55d5be8266cfee669305297cc93",
-				Network: filter.NetworkCrossbell,
+				Network: network.Crossbell,
 				Index:   0,
 				From:    "0x8a6dDC78E3aA24f4F31980623f489a274b305762",
 				To:      "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
-				Type:    filter.TypeSocialRevise,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialRevise,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x628b644a",
 				},
-				Platform: lo.ToPtr(filter.PlatformCrossbell),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCrossbell.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("53229000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialRevise,
+						Type:     typex.SocialRevise,
 						Platform: "xlog",
 						From:     "0x8a6dDC78E3aA24f4F31980623f489a274b305762",
 						To:       "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
@@ -843,7 +861,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Crossbell Delete Note",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkCrossbell,
+					Network: network.Crossbell,
 					ChainID: 3737,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x35972b9b40bd7165ab2af893bb16b710796e12454f019eadcb8e9e717d41923e"),
@@ -894,28 +912,30 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkCrossbell,
-					Endpoint: endpoint.MustGet(filter.NetworkCrossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xd0b0341118411ec564737458824544d00b75074989c775bac3db47a47dfd0b2a",
-				Network: filter.NetworkCrossbell,
+				Network: network.Crossbell,
 				Index:   0,
 				From:    "0x8a6dDC78E3aA24f4F31980623f489a274b305762",
 				To:      "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
-				Type:    filter.TypeSocialDelete,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialDelete,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xc2a6fe3b",
 				},
-				Platform: lo.ToPtr(filter.PlatformCrossbell),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCrossbell.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("49945000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialDelete,
+						Type:     typex.SocialDelete,
 						Platform: "xlog",
 						From:     "0x8a6dDC78E3aA24f4F31980623f489a274b305762",
 						To:       "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
@@ -941,7 +961,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Crossbell Mint Note",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkCrossbell,
+					Network: network.Crossbell,
 					ChainID: 3737,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x6c3fb9b4c1153572a35361a2e7771048a3fd4350fb42a0b9e54613d78c764e4e"),
@@ -1037,28 +1057,30 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkCrossbell,
-					Endpoint: endpoint.MustGet(filter.NetworkCrossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xf4e9d4397b364c1ae0202e836fbae505b77382d25a238f0d98f73c72c81fa693",
-				Network: filter.NetworkCrossbell,
+				Network: network.Crossbell,
 				Index:   0,
 				From:    "0xc560eb6fd0c2eb80Df50E5e06715295AE1205049",
 				To:      "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
-				Type:    filter.TypeSocialMint,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialMint,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xa7ccb4bf",
 				},
-				Platform: lo.ToPtr(filter.PlatformCrossbell),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCrossbell.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("416564000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialMint,
+						Type:     typex.SocialMint,
 						Platform: "Crossbell",
 						From:     "0x08d66b34054a174841e2361bd4746Ff9F4905cC2",
 						To:       "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
@@ -1087,7 +1109,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Crossbell Tip Character for Note",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkCrossbell,
+					Network: network.Crossbell,
 					ChainID: 3737,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x45a117f01e5951b3fa2d1adf7263902ca0ceb2ad82ee4fc810cf0fb4894717b7"),
@@ -1191,28 +1213,30 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkCrossbell,
-					Endpoint: endpoint.MustGet(filter.NetworkCrossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xd8072e5fd4d0de8a620b665fc99eabe252ac4e1b18347829ec9e2f4e6641b865",
-				Network: filter.NetworkCrossbell,
+				Network: network.Crossbell,
 				Index:   0,
 				From:    "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
 				To:      "0xAfB95CC0BD320648B3E8Df6223d9CDD05EbeDC64",
-				Type:    filter.TypeSocialReward,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialReward,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x9bd9bbc6",
 				},
-				Platform: lo.ToPtr(filter.PlatformCrossbell),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCrossbell.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("91854000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialReward,
+						Type:     typex.SocialReward,
 						Platform: "xlog",
 						From:     "0x39F9e912C1F696F533e7A2267Ea233AeC9742b35",
 						To:       "0xb461c1521eE9D96a9C950337f0851b79bD66CAe1",
@@ -1246,7 +1270,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Crossbell Set Operator Permission Appoint",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkCrossbell,
+					Network: network.Crossbell,
 					ChainID: 3737,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x13017260840c42c075e2b74985964bf75ef7dcdd2daf429ebf605472006727a2"),
@@ -1298,28 +1322,30 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkCrossbell,
-					Endpoint: endpoint.MustGet(filter.NetworkCrossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xd1f402c52687b954bba45d1c1012df743ab0facec8d9212f3b2a2a2d54fcc6d5",
-				Network: filter.NetworkCrossbell,
+				Network: network.Crossbell,
 				Index:   0,
 				From:    "0x8a6dDC78E3aA24f4F31980623f489a274b305762",
 				To:      "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
-				Type:    filter.TypeSocialProxy,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProxy,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x206657f2",
 				},
-				Platform: lo.ToPtr(filter.PlatformCrossbell),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCrossbell.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("113102000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProxy,
+						Type:     typex.SocialProxy,
 						Platform: "Crossbell",
 						From:     "0x8a6dDC78E3aA24f4F31980623f489a274b305762",
 						To:       "0xBBC2918C9003D264c25EcAE45B44a846702C0E7c",
@@ -1343,7 +1369,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Crossbell Set Operator Permission Remove",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkCrossbell,
+					Network: network.Crossbell,
 					ChainID: 3737,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x8134df3d86c7c98ee590abc6cc9e593c6e37cc82e74e15129e45c164ba922ff3"),
@@ -1395,28 +1421,30 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkCrossbell,
-					Endpoint: endpoint.MustGet(filter.NetworkCrossbell),
+					Network: network.Crossbell,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Crossbell),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x84257dbc6d86831d12735836779db5eb0a9d1848a7d91a6715f9a11ab10bf5af",
-				Network: filter.NetworkCrossbell,
+				Network: network.Crossbell,
 				Index:   0,
 				From:    "0x23c46e912b34C09c4bCC97F4eD7cDd762cee408A",
 				To:      "0xa6f969045641Cf486a747A2688F3a5A6d43cd0D8",
-				Type:    filter.TypeSocialProxy,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProxy,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x206657f2",
 				},
-				Platform: lo.ToPtr(filter.PlatformCrossbell),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCrossbell.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("30915000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProxy,
+						Type:     typex.SocialProxy,
 						Platform: "Crossbell",
 						From:     "0x23c46e912b34C09c4bCC97F4eD7cDd762cee408A",
 						To:       "0x0F588318A494e4508A121a32B6670b5494Ca3357",
@@ -1453,12 +1481,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

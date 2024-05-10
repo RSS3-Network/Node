@@ -9,11 +9,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/ethereum"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.opentelemetry.io/otel"
@@ -37,7 +38,7 @@ type source struct {
 	state          State
 }
 
-func (s *source) Network() filter.Network {
+func (s *source) Network() network.Network {
 	return s.config.Network
 }
 
@@ -53,17 +54,38 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 	}
 
 	go func() {
-		switch {
-		case s.filter.LogAddresses != nil || s.filter.LogTopics != nil:
-			errorChan <- s.pollLogs(ctx, tasksChan)
-		default:
-			errorChan <- s.pollBlocks(ctx, tasksChan)
+		retryableFunc := func() error {
+			switch {
+			case s.filter.LogAddresses != nil || s.filter.LogTopics != nil:
+				if err := s.pollLogs(ctx, tasksChan); err != nil {
+					return fmt.Errorf("poll logs: %w", err)
+				}
+			default:
+				if err := s.pollBlocks(ctx, tasksChan); err != nil {
+					return fmt.Errorf("poll blocks: %w", err)
+				}
+			}
+
+			return nil
+		}
+
+		err := retry.Do(retryableFunc,
+			retry.Attempts(0),
+			retry.Delay(time.Second),            // Set initial delay to 1 second.
+			retry.DelayType(retry.BackOffDelay), // Use backoff delay type, increasing delay on each retry.
+			retry.MaxDelay(5*time.Minute),
+			retry.OnRetry(func(n uint, err error) {
+				zap.L().Error("retry ethereum source start", zap.Uint("retry", n), zap.Error(err))
+			}),
+		)
+		if err != nil {
+			errorChan <- err
 		}
 	}()
 }
 
 func (s *source) initialize(ctx context.Context) (err error) {
-	if s.ethereumClient, err = ethereum.Dial(ctx, s.config.Endpoint); err != nil {
+	if s.ethereumClient, err = ethereum.Dial(ctx, s.config.Endpoint.URL, s.config.Endpoint.BuildEthereumOptions()...); err != nil {
 		return fmt.Errorf("dial to ethereum rpc endpoint: %w", err)
 	}
 
@@ -85,6 +107,8 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks)
 		// Stop the source if the block number target is not nil and the current block number is greater than the target
 		// block number. This is useful when the source is used to index a specific range of blocks.
 		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
+			zap.L().Info("source has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockNumberTarget.Uint64()))
+
 			break
 		}
 
@@ -101,7 +125,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks)
 
 			blockNumberLatestRemote = blockNumber.Uint64()
 
-			// RPC providers may incorrectly shunt the request to a lagging node.
+			// No new block has been mined, or the RPC node is lagging.
 			if blockNumberStart > blockNumberLatestRemote {
 				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestRemote), zap.Duration("block.time", defaultBlockTime))
 
@@ -164,10 +188,8 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks)
 }
 
 func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
-	// The latest block number of the remote RPC endpoint.
 	var blockNumberLatestRemote uint64
 
-	// Set the block number to the start block number if it is greater than the current block number.
 	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > s.state.BlockNumber {
 		s.state.BlockNumber = s.option.BlockNumberStart.Uint64()
 	}
@@ -178,6 +200,8 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 		// Stop the source if the block number target is not nil and the current block number is greater than the target
 		// block number. This is useful when the source is used to index a specific range of blocks.
 		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
+			zap.L().Info("source has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockNumberTarget.Uint64()))
+
 			break
 		}
 
@@ -194,7 +218,7 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 
 			blockNumberLatestRemote = blockNumber.Uint64()
 
-			// RPC providers may incorrectly shunt the request to a lagging node.
+			// No new block has been mined, or the RPC node is lagging.
 			if blockNumberStart > blockNumberLatestRemote {
 				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestRemote), zap.Duration("block.time", defaultBlockTime))
 
@@ -204,14 +228,14 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 			continue
 		}
 
-		blockNumberEnd := min(blockNumberStart+uint64(*s.option.RPCThreadBlocks)-1, blockNumberLatestRemote)
+		// The block number end is the start block number plus the number of blocks to be processed in parallel.
+		blockNumberEnd := min(blockNumberStart+uint64(*s.option.RPCThreadBlocks)-1, blockNumberStart)
 
 		span.SetAttributes(
 			attribute.String("block.number.start", strconv.FormatUint(blockNumberStart, 10)),
 			attribute.String("block.number.end", strconv.FormatUint(blockNumberEnd, 10)),
 		)
 
-		// Build log filter by the filter config.
 		logFilter := ethereum.Filter{
 			FromBlock: new(big.Int).SetUint64(blockNumberStart),
 			ToBlock:   new(big.Int).SetUint64(blockNumberEnd),
@@ -221,7 +245,6 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 			},
 		}
 
-		// Get logs by filter.
 		logs, err := s.ethereumClient.FilterLogs(ctx, logFilter)
 		if err != nil {
 			return fmt.Errorf("get logs by filter: %w", err)
@@ -230,71 +253,19 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 		var latestBlock *ethereum.Block
 
 		if len(logs) == 0 {
-			// If there are no logs in the block range, update the latest block by the block number only.
-			if latestBlock, err = s.ethereumClient.BlockByNumber(ctx, new(big.Int).SetUint64(blockNumberEnd)); err != nil {
-				return fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
+			latestBlock, err = s.updateLatestBlock(ctx, blockNumberEnd)
+			if err != nil {
+				return err
 			}
 
 			span.End()
 
-			// Push an empty task slice to the channel to update the block number.
 			s.pushTasks(ctx, tasksChan, new(engine.Tasks))
 		} else {
-			transactionHashes := lo.Map(logs, func(log *ethereum.Log, _ int) common.Hash {
-				return log.TransactionHash
-			})
-
-			// Filter unique transaction hashes.
-			transactionHashes = lo.UniqBy(transactionHashes, func(transactionHash common.Hash) common.Hash {
-				return transactionHash
-			})
-
-			blockNumbers := lo.Map(logs, func(log *ethereum.Log, _ int) *big.Int {
-				return log.BlockNumber
-			})
-
-			// Filter unique block numbers.
-			blockNumbers = lo.UniqBy(blockNumbers, func(blockNumber *big.Int) uint64 {
-				return blockNumber.Uint64()
-			})
-
-			blocks, err := s.getBlocks(ctx, blockNumbers)
+			latestBlock, err = s.processLogs(ctx, logs, tasksChan)
 			if err != nil {
-				return fmt.Errorf("get blocks: %w", err)
+				return err
 			}
-
-			// Filter blocks by transaction hashes of logs.
-			blocks = lo.Map(blocks, func(block *ethereum.Block, _ int) *ethereum.Block {
-				block.Transactions = lo.Filter(block.Transactions, func(transaction *ethereum.Transaction, _ int) bool {
-					return lo.Contains(transactionHashes, transaction.Hash)
-				})
-
-				return block
-			})
-
-			if latestBlock, err = lo.Last(blocks); err != nil {
-				return fmt.Errorf("get latest block: %w", err)
-			}
-
-			receipts, err := s.getReceiptsByTransactionHashes(ctx, transactionHashes)
-			if err != nil {
-				return fmt.Errorf("get receipts: %w", err)
-			}
-
-			var tasks engine.Tasks
-
-			for _, block := range blocks {
-				blockTasks, err := s.buildTasks(block, receipts)
-				if err != nil {
-					return err
-				}
-
-				tasks.Tasks = append(tasks.Tasks, lo.Map(blockTasks, func(blockTask *Task, _ int) engine.Task { return blockTask })...)
-			}
-
-			span.End()
-
-			s.pushTasks(ctx, tasksChan, &tasks)
 		}
 
 		s.state.BlockHash = latestBlock.Hash
@@ -302,6 +273,71 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 	}
 
 	return nil
+}
+
+func (s *source) updateLatestBlock(ctx context.Context, blockNumberEnd uint64) (*ethereum.Block, error) {
+	latestBlock, err := s.ethereumClient.BlockByNumber(ctx, new(big.Int).SetUint64(blockNumberEnd))
+	if err != nil {
+		return nil, fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
+	}
+
+	return latestBlock, nil
+}
+
+func (s *source) processLogs(ctx context.Context, logs []*ethereum.Log, tasksChan chan<- *engine.Tasks) (*ethereum.Block, error) {
+	transactionHashes := lo.Map(logs, func(log *ethereum.Log, _ int) common.Hash {
+		return log.TransactionHash
+	})
+
+	transactionHashes = lo.UniqBy(transactionHashes, func(transactionHash common.Hash) common.Hash {
+		return transactionHash
+	})
+
+	blockNumbers := lo.Map(logs, func(log *ethereum.Log, _ int) *big.Int {
+		return log.BlockNumber
+	})
+
+	blockNumbers = lo.UniqBy(blockNumbers, func(blockNumber *big.Int) uint64 {
+		return blockNumber.Uint64()
+	})
+
+	blocks, err := s.getBlocks(ctx, blockNumbers)
+	if err != nil {
+		return nil, fmt.Errorf("get blocks: %w", err)
+	}
+
+	blocks = lo.Map(blocks, func(block *ethereum.Block, _ int) *ethereum.Block {
+		block.Transactions = lo.Filter(block.Transactions, func(transaction *ethereum.Transaction, _ int) bool {
+			return lo.Contains(transactionHashes, transaction.Hash)
+		})
+
+		return block
+	})
+
+	latestBlock, err := lo.Last(blocks)
+	if err != nil {
+		return nil, fmt.Errorf("get latest block: %w", err)
+	}
+
+	receipts, err := s.getReceiptsByTransactionHashes(ctx, transactionHashes)
+	if err != nil {
+		return nil, fmt.Errorf("get receipts: %w", err)
+	}
+
+	var tasks engine.Tasks
+
+	for _, block := range blocks {
+		blockTasks, err := s.buildTasks(block, receipts)
+		if err != nil {
+			return nil, err
+		}
+
+		tasks.Tasks = append(tasks.Tasks, lo.Map(blockTasks, func(blockTask *Task, _ int) engine.Task { return blockTask })...)
+	}
+
+	s.pushTasks(ctx, tasksChan, &tasks)
+
+	return latestBlock, nil
 }
 
 // getBlocks is used to concurrently get blocks by block number.
@@ -337,10 +373,10 @@ func (s *source) getBlocks(ctx context.Context, blockNumbers []*big.Int) ([]*eth
 func (s *source) getReceipts(ctx context.Context, blocks []*ethereum.Block) ([]*ethereum.Receipt, error) {
 	switch s.config.Network {
 	case
-		filter.NetworkCrossbell,
-		filter.NetworkArbitrum,
-		filter.NetworkSatoshiVM,
-		filter.NetworkLinea:
+		network.Crossbell,
+		network.Arbitrum,
+		network.SatoshiVM,
+		network.Linea:
 		transactionHashes := lo.Map(blocks, func(block *ethereum.Block, _ int) []common.Hash {
 			return lo.Map(block.Transactions, func(transaction *ethereum.Transaction, _ int) common.Hash {
 				return transaction.Hash
@@ -425,7 +461,7 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 			return nil, fmt.Errorf("no receipt matched to transaction hash %s", transaction.Hash)
 		}
 
-		chain, err := filter.EthereumChainIDString(s.Network().String())
+		chain, err := network.EthereumChainIDString(s.Network().String())
 		if err != nil {
 			return nil, fmt.Errorf("unsupported chain %s", s.Network())
 		}

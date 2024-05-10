@@ -7,30 +7,30 @@ import (
 	"time"
 
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 )
 
-func (h *Hub) getFeed(ctx context.Context, request model.FeedQuery) (*schema.Feed, *int, error) {
-	return h.databaseClient.FindFeed(ctx, request)
+func (h *Hub) getActivity(ctx context.Context, request model.ActivityQuery) (*activityx.Activity, *int, error) {
+	return h.databaseClient.FindActivity(ctx, request)
 }
 
-func (h *Hub) getFeeds(ctx context.Context, request model.FeedsQuery) ([]*schema.Feed, string, error) {
-	feeds, err := h.databaseClient.FindFeeds(ctx, request)
+func (h *Hub) getActivities(ctx context.Context, request model.ActivitiesQuery) ([]*activityx.Activity, string, error) {
+	activities, err := h.databaseClient.FindActivities(ctx, request)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to find feeds: %w", err)
+		return nil, "", fmt.Errorf("failed to find activities: %w", err)
 	}
 
-	last, err := lo.Last(feeds)
+	last, err := lo.Last(activities)
 	if err == nil {
-		return feeds, h.transformCursor(ctx, last), nil
+		return activities, h.transformCursor(ctx, last), nil
 	}
 
 	return nil, "", nil
 }
 
-func (h *Hub) getCursor(ctx context.Context, cursor *string) (*schema.Feed, error) {
+func (h *Hub) getCursor(ctx context.Context, cursor *string) (*activityx.Activity, error) {
 	if cursor == nil {
 		return nil, nil
 	}
@@ -40,12 +40,12 @@ func (h *Hub) getCursor(ctx context.Context, cursor *string) (*schema.Feed, erro
 		return nil, fmt.Errorf("invalid cursor")
 	}
 
-	network, err := filter.NetworkString(str[1])
+	network, err := networkx.NetworkString(str[1])
 	if err != nil {
 		return nil, fmt.Errorf("invalid cursor: %w", err)
 	}
 
-	data, _, err := h.getFeed(ctx, model.FeedQuery{ID: lo.ToPtr(str[0]), Network: lo.ToPtr(network)})
+	data, _, err := h.getActivity(ctx, model.ActivityQuery{ID: lo.ToPtr(str[0]), Network: lo.ToPtr(network)})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cursor: %w", err)
 	}
@@ -53,12 +53,12 @@ func (h *Hub) getCursor(ctx context.Context, cursor *string) (*schema.Feed, erro
 	return data, nil
 }
 
-func (h *Hub) transformCursor(_ context.Context, feed *schema.Feed) string {
-	if feed == nil {
+func (h *Hub) transformCursor(_ context.Context, activity *activityx.Activity) string {
+	if activity == nil {
 		return ""
 	}
 
-	return fmt.Sprintf("%s:%s", feed.ID, feed.Network)
+	return fmt.Sprintf("%s:%s", activity.ID, activity.Network)
 }
 
 func (h *Hub) getIndexCount(ctx context.Context) (int64, *time.Time, error) {
@@ -67,7 +67,7 @@ func (h *Hub) getIndexCount(ctx context.Context) (int64, *time.Time, error) {
 		updateTime *time.Time
 	)
 
-	checkpoints, err := h.databaseClient.LoadCheckpoints(ctx, "", filter.NetworkUnknown, "")
+	checkpoints, err := h.databaseClient.LoadCheckpoints(ctx, "", networkx.Unknown, "")
 	if err != nil {
 		return count, nil, fmt.Errorf("failed to find index count: %w", err)
 	}

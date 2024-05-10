@@ -2,6 +2,9 @@ package rss
 
 import (
 	"context"
+	// nolint:gosec
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,7 +12,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/rss3-network/protocol-go/schema"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/samber/lo"
 )
 
@@ -17,8 +20,8 @@ const (
 	RSSHubUMSPath = "format=ums"
 )
 
-func (h *Hub) getRSSHubData(ctx context.Context, path string, rawQuery string) ([]*schema.Feed, error) {
-	request, err := url.Parse(h.rsshub.Endpoint)
+func (h *Hub) getRSSHubData(ctx context.Context, path string, rawQuery string) ([]*activityx.Activity, error) {
+	request, err := url.Parse(h.rsshub.Endpoint.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -26,17 +29,17 @@ func (h *Hub) getRSSHubData(ctx context.Context, path string, rawQuery string) (
 	request.Path = path
 	request.RawQuery = rawQuery
 
+	// fill in authentication config
+	if err := h.parseRSSHubAuthentication(ctx, request); err != nil {
+		return nil, fmt.Errorf("parse rsshub authentication: %w", err)
+	}
+
 	if !strings.Contains(request.RawQuery, RSSHubUMSPath) {
 		if request.RawQuery != "" {
 			request.RawQuery += "&" + RSSHubUMSPath
 		} else {
 			request.RawQuery = RSSHubUMSPath
 		}
-	}
-
-	// fill in authentication config
-	if err := h.parseRSSHubAuthentication(ctx, request); err != nil {
-		return nil, fmt.Errorf("parse rsshub authentication: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, request.String(), nil)
@@ -80,20 +83,21 @@ func (h *Hub) parseRSSHubAuthentication(_ context.Context, request *url.URL) err
 		return fmt.Errorf("parse parmeters: %w", err)
 	}
 
-	if option.Authentication.Username != "" && option.Authentication.Password != "" {
-		request.User = url.UserPassword(option.Authentication.Username, option.Authentication.Password)
-	}
+	if option.Authentication.AccessKey != "" {
+		// AccessKey calculation: md5(rawQuery + AccessKey)
+		// nolint:gosec
+		hash := md5.Sum([]byte("/" + request.Path + option.Authentication.AccessKey))
+		accessCode := hex.EncodeToString(hash[:])
 
-	if option.Authentication.AccessKey != "" && option.Authentication.AccessCode != "" {
-		request.RawQuery = fmt.Sprintf("%s&%s=%s", request.RawQuery, option.Authentication.AccessKey, option.Authentication.AccessCode)
+		request.RawQuery = fmt.Sprintf("%s?code=%s", request.RawQuery, accessCode)
 	}
 
 	return nil
 }
 
-func (h *Hub) transformRSSHubToActivities(_ context.Context, data []byte) ([]*schema.Feed, error) {
+func (h *Hub) transformRSSHubToActivities(_ context.Context, data []byte) ([]*activityx.Activity, error) {
 	type response struct {
-		Data schema.Feeds `json:"data"`
+		Data activityx.Activities `json:"data"`
 	}
 
 	var resp response

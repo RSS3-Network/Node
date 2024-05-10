@@ -6,11 +6,12 @@ import (
 
 	"github.com/rss3-network/node/config"
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
-	worker "github.com/rss3-network/node/internal/engine/worker/fallback/arweave"
+	worker "github.com/rss3-network/node/internal/engine/worker/core/arweave"
 	"github.com/rss3-network/node/provider/arweave"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -27,14 +28,14 @@ func TestWorker_Arweave(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Arweave native transfer",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkArweave,
+					Network: network.Arweave,
 					Transaction: arweave.Transaction{
 						ID:       "mQFakpEtbvv8eAjxmWYLcIO8QJJP2ZFYOhP1imDcnuY",
 						Reward:   "3847185",
@@ -47,20 +48,20 @@ func TestWorker_Arweave(t *testing.T) {
 					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "mQFakpEtbvv8eAjxmWYLcIO8QJJP2ZFYOhP1imDcnuY",
-				Network: filter.NetworkArweave,
+				Network: network.Arweave,
 				Index:   0,
 				From:    "JaUubKRNhJP9i1iDFt-n_s0zzqV97x8d_7ex3ZZv3CE",
 				To:      "4u5gMvlfVhkn_atzuagjO92H_xJLtVNjucSfEYBrL0E",
-				Type:    filter.TypeTransactionTransfer,
-				Fee: &schema.Fee{
+				Type:    typex.TransactionTransfer,
+				Fee: &activityx.Fee{
 					Amount:  decimal.NewFromInt(3847185),
 					Decimal: 12,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type: filter.TypeTransactionTransfer,
+						Type: typex.TransactionTransfer,
 						From: "JaUubKRNhJP9i1iDFt-n_s0zzqV97x8d_7ex3ZZv3CE",
 						To:   "4u5gMvlfVhkn_atzuagjO92H_xJLtVNjucSfEYBrL0E",
 						Metadata: metadata.TransactionTransfer{
@@ -93,7 +94,7 @@ func TestWorker_Arweave(t *testing.T) {
 			feed, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
 
 			require.Equal(t, testcase.want, feed)
 		})

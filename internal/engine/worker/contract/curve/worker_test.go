@@ -16,9 +16,11 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/curve"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	redisx "github.com/rss3-network/node/provider/redis"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -35,14 +37,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Swap ETH for WBTC on Registry Exchange",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x08efe625d4ee81b07b9159e28138cf2f198a8e0e5cbb7f548a11bd585ff204c0"),
@@ -130,29 +132,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xe019155e4cc243b605397d56bb88bd83f2c6f002eccb8e3056ded3a2e2240d32",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   68,
 				From:    "0x78d72460De403CB1650Bbd0476256539D61B25b2",
 				To:      curve.AddressRegistryExchangeEthereum.String(),
-				Type:    filter.TypeExchangeSwap,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeSwap,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x9db4f7aa",
 				},
-				Platform: lo.ToPtr(filter.PlatformCurve),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCurve.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3847252864839944")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeSwap,
-						Platform: filter.PlatformCurve.String(),
+						Type:     typex.ExchangeSwap,
+						Platform: workerx.PlatformCurve.String(),
 						From:     "0x78d72460De403CB1650Bbd0476256539D61B25b2",
 						To:       "0x78d72460De403CB1650Bbd0476256539D61B25b2",
 						Metadata: metadata.ExchangeSwap{
@@ -182,7 +186,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Swap DAI for USDT on StableSwap 3Pool",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x3a531f8ba1aefde11738cff16b41012e6e355e47c0c0bc90fcf2defc085e55c6"),
@@ -258,29 +262,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x31e337fb6eba7d49b9cf7107497e27c2cfa25c572f098380a530fff4538e80c0",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   41,
 				From:    "0xb0A79185B7640D6a3DbbDd1072A70D8f82f9095E",
 				To:      "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-				Type:    filter.TypeExchangeSwap,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeSwap,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x3df02124",
 				},
-				Platform: lo.ToPtr(filter.PlatformCurve),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCurve.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2838617936646403")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeSwap,
-						Platform: filter.PlatformCurve.String(),
+						Type:     typex.ExchangeSwap,
+						Platform: workerx.PlatformCurve.String(),
 						From:     "0xb0A79185B7640D6a3DbbDd1072A70D8f82f9095E",
 						To:       "0xb0A79185B7640D6a3DbbDd1072A70D8f82f9095E",
 						Metadata: metadata.ExchangeSwap{
@@ -312,7 +318,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Add USDC liquidity to StableSwap 3Pool",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xee4ec575a9c6176586d731d8c265bb9bbd0ea3af9519c1e8e3d71a1b423d9dd1"),
@@ -388,29 +394,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xd68b76ccb5692b43fdac871806b1c989602ee8d04b884a73c745966f30106641",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   514,
 				From:    "0x19BA1abE64245f0a9eB12B9efCC94167f9a05064",
 				To:      "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-				Type:    filter.TypeExchangeLiquidity,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x4515cef3",
 				},
-				Platform: lo.ToPtr(filter.PlatformCurve),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCurve.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2747078691366934")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformCurve.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformCurve.String(),
 						From:     "0x19BA1abE64245f0a9eB12B9efCC94167f9a05064",
 						To:       "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
 						Metadata: metadata.ExchangeLiquidity{
@@ -428,8 +436,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeTransactionMint,
-						Platform: filter.PlatformCurve.String(),
+						Type:     typex.TransactionMint,
+						Platform: workerx.PlatformCurve.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       "0x19BA1abE64245f0a9eB12B9efCC94167f9a05064",
 						Metadata: metadata.TransactionTransfer{
@@ -451,7 +459,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Remove CRV liquidity from StableSwap cvxCrv/Crv",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x253edfe9b30e5691aa3d83ae78a59ced30fde709e8b081a7057925a7033e10a7"),
@@ -527,29 +535,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x3dc1676ca76d0d9afd9dded53a0823d32f43454be439df1e56d34891eccb86c0",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   72,
 				From:    "0xb9A8f6204F08Df3609AfC4A0a352A1e62C8B8c5D",
 				To:      "0x971add32Ea87f10bD192671630be3BE8A11b8623",
-				Type:    filter.TypeExchangeLiquidity,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x1a4d01d2",
 				},
-				Platform: lo.ToPtr(filter.PlatformCurve),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCurve.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1564123506369594")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeTransactionBurn,
-						Platform: filter.PlatformCurve.String(),
+						Type:     typex.TransactionBurn,
+						Platform: workerx.PlatformCurve.String(),
 						From:     "0xb9A8f6204F08Df3609AfC4A0a352A1e62C8B8c5D",
 						To:       ethereum.AddressGenesis.String(),
 						Metadata: metadata.TransactionTransfer{
@@ -562,8 +572,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformCurve.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformCurve.String(),
 						From:     "0x971add32Ea87f10bD192671630be3BE8A11b8623",
 						To:       "0xb9A8f6204F08Df3609AfC4A0a352A1e62C8B8c5D",
 						Metadata: metadata.ExchangeLiquidity{
@@ -590,7 +600,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Deposit 3Crv to DAI/USDC/USDT Gauge",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xa127faa2fcd741ea97dd0b4f7282872b15f4c92cb3d5bff493188f06e209b1c7"),
@@ -664,29 +674,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xefd90c9bc0560e3eaac3667cc6b671fb73076ed51b1de3d9e17d2128beddcdda",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   87,
 				From:    "0x2AF2b2e485E1854fd71590C7Ffd104dB0f66F8A6",
 				To:      "0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A",
-				Type:    filter.TypeExchangeStaking,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeStaking,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xb6b55f25",
 				},
-				Platform: lo.ToPtr(filter.PlatformCurve),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCurve.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("4763253000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeStaking,
-						Platform: filter.PlatformCurve.String(),
+						Type:     typex.ExchangeStaking,
+						Platform: workerx.PlatformCurve.String(),
 						From:     "0x2AF2b2e485E1854fd71590C7Ffd104dB0f66F8A6",
 						To:       "0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A",
 						Metadata: metadata.ExchangeStaking{
@@ -711,7 +723,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Withdraw 3Crv from DAI/USDC/USDT Gauge",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x74329bad4a85c071ada4c4de7ff8e4b0bf2cde350fd9f3f9d4786ca33dea4832"),
@@ -785,29 +797,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x6c5460d21f5b9ae59af3f954146ff21f1acaff9030ceac5537738259438e9e3f",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   191,
 				From:    "0x66A2709d2c682Db7f623E1B6B14C918196cC40C8",
 				To:      "0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A",
-				Type:    filter.TypeExchangeStaking,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeStaking,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x2e1a7d4d",
 				},
-				Platform: lo.ToPtr(filter.PlatformCurve),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformCurve.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("4143592197939480")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeStaking,
-						Platform: filter.PlatformCurve.String(),
+						Type:     typex.ExchangeStaking,
+						Platform: workerx.PlatformCurve.String(),
 						From:     "0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A",
 						To:       "0x66A2709d2c682Db7f623E1B6B14C918196cC40C8",
 						Metadata: metadata.ExchangeStaking{
@@ -865,12 +879,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

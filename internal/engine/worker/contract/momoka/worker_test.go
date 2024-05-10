@@ -9,10 +9,12 @@ import (
 	worker "github.com/rss3-network/node/internal/engine/worker/contract/momoka"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
-	"github.com/samber/lo"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +30,7 @@ func TestWorker_Arweave(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		// V1
@@ -36,7 +38,7 @@ func TestWorker_Arweave(t *testing.T) {
 			name: "Momoka V1 Post",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkArweave,
+					Network: network.Arweave,
 					Block: arweave.Block{
 						Timestamp: 1692672514,
 					},
@@ -49,27 +51,29 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 				config: &config.Module{
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
-					Endpoint:     endpoint.MustGet(filter.NetworkPolygon),
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:       "7Nv-EG4QBa0yqwvOfL8vH_mKlj6-VkoobZ9CySDHPqA",
-				Network:  filter.NetworkArweave,
+				Network:  network.Arweave,
 				Index:    0,
 				From:     "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
-				Type:     filter.TypeSocialPost,
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Type:     typex.SocialPost,
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
 					Decimal: 12,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialPost,
-						Tag:      filter.TagSocial,
-						Platform: filter.PlatformLens.String(),
+						Type:     typex.SocialPost,
+						Tag:      tag.Social,
+						Platform: workerx.PlatformLens.String(),
 						From:     "0xa5c2A34384e38f74181756860DaA48e8C80e991A",
 						To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 						Metadata: &metadata.SocialPost{
@@ -77,7 +81,7 @@ func TestWorker_Arweave(t *testing.T) {
 							Body:   "😕🙁☹️😞😔😟",
 							Media: []metadata.Media{
 								{
-									Address:  "https://images.lens.phaver.com/insecure/raw:1/plain/a1aebf7d47ef88929b25f962138eed10",
+									Address:  "https://images.lens.phaver.com/insecure/raw:t/plain/a1aebf7d47ef88929b25f962138eed10",
 									MimeType: "image/jpeg",
 								},
 							},
@@ -97,7 +101,7 @@ func TestWorker_Arweave(t *testing.T) {
 			name: "Momoka V1 Mirror",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkArweave,
+					Network: network.Arweave,
 					Block: arweave.Block{
 						Timestamp: 1684142674,
 					},
@@ -110,27 +114,29 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 				config: &config.Module{
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
-					Endpoint:     endpoint.MustGet(filter.NetworkPolygon),
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:       "Hx828fn_nXZM1xCST_Vejz5JSCbz0XfjhCAOiOuugiM",
-				Network:  filter.NetworkArweave,
+				Network:  network.Arweave,
 				Index:    0,
 				From:     "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
-				Type:     filter.TypeSocialShare,
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Type:     typex.SocialShare,
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
 					Decimal: 12,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialShare,
-						Tag:      filter.TagSocial,
-						Platform: filter.PlatformLens.String(),
+						Type:     typex.SocialShare,
+						Tag:      tag.Social,
+						Platform: workerx.PlatformLens.String(),
 						From:     "0xe9c57C291340Ef34DB3646A10af99FE2A0E03827",
 						To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 						Metadata: &metadata.SocialPost{
@@ -158,7 +164,7 @@ func TestWorker_Arweave(t *testing.T) {
 			name: "Momoka V1 Comment",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkArweave,
+					Network: network.Arweave,
 					Block: arweave.Block{
 						Timestamp: 1692691555,
 					},
@@ -171,27 +177,29 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 				config: &config.Module{
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
-					Endpoint:     endpoint.MustGet(filter.NetworkPolygon),
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:       "0ZDiUg-TX9ne6Q0Bef1Pm1-q2giPUZIdDFDNa4YjEbg",
-				Network:  filter.NetworkArweave,
+				Network:  network.Arweave,
 				Index:    0,
 				From:     "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
-				Type:     filter.TypeSocialComment,
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Type:     typex.SocialComment,
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
 					Decimal: 12,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialComment,
-						Tag:      filter.TagSocial,
-						Platform: filter.PlatformLens.String(),
+						Type:     typex.SocialComment,
+						Tag:      tag.Social,
+						Platform: workerx.PlatformLens.String(),
 						From:     "0xE6b532E63F228087e26a5897131f2e1D043e27f2",
 						To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 						Metadata: &metadata.SocialPost{
@@ -232,7 +240,7 @@ func TestWorker_Arweave(t *testing.T) {
 			name: "Momoka V2 Post",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkArweave,
+					Network: network.Arweave,
 					Block: arweave.Block{
 						Timestamp: 1699526849,
 					},
@@ -245,27 +253,29 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 				config: &config.Module{
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
-					Endpoint:     endpoint.MustGet(filter.NetworkPolygon),
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:       "XL9qZdAKrBQleCiaVOxy2veWWoUB2mGeTH2D__Ksx6g",
-				Network:  filter.NetworkArweave,
+				Network:  network.Arweave,
 				Index:    0,
 				From:     "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
-				Type:     filter.TypeSocialPost,
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Type:     typex.SocialPost,
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
 					Decimal: 12,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialPost,
-						Tag:      filter.TagSocial,
-						Platform: filter.PlatformLens.String(),
+						Type:     typex.SocialPost,
+						Tag:      tag.Social,
+						Platform: workerx.PlatformLens.String(),
 						From:     "0x05092cF69BDD435f7Ba4B8eF97c9CAecF2BA69AD",
 						To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 						Metadata: &metadata.SocialPost{
@@ -294,7 +304,7 @@ func TestWorker_Arweave(t *testing.T) {
 			name: "Momoka V2 Mirror",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkArweave,
+					Network: network.Arweave,
 					Block: arweave.Block{
 						Timestamp: 1699512726,
 					},
@@ -307,27 +317,29 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 				config: &config.Module{
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
-					Endpoint:     endpoint.MustGet(filter.NetworkPolygon),
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:       "TwtfazAvUhHOMDt0nRsuTVB_HywfrtJ3IRUX0l2ucns",
-				Network:  filter.NetworkArweave,
+				Network:  network.Arweave,
 				Index:    0,
 				From:     "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
-				Type:     filter.TypeSocialShare,
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Type:     typex.SocialShare,
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
 					Decimal: 12,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialShare,
-						Tag:      filter.TagSocial,
-						Platform: filter.PlatformLens.String(),
+						Type:     typex.SocialShare,
+						Tag:      tag.Social,
+						Platform: workerx.PlatformLens.String(),
 						From:     "0x5BF64f9EB3BE7b3FBDb4BBf6354aD522B5A28f94",
 						To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 						Metadata: &metadata.SocialPost{
@@ -362,7 +374,7 @@ func TestWorker_Arweave(t *testing.T) {
 			name: "Momoka V2 Comment",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkArweave,
+					Network: network.Arweave,
 					Block: arweave.Block{
 						Timestamp: 1699512726,
 					},
@@ -375,27 +387,29 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 				config: &config.Module{
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
-					Endpoint:     endpoint.MustGet(filter.NetworkPolygon),
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:       "bN4Sf7lUO4TZwpPjtP3BUzBSG92io0McNgMXTxXUOcM",
-				Network:  filter.NetworkArweave,
+				Network:  network.Arweave,
 				Index:    0,
 				From:     "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
-				Type:     filter.TypeSocialComment,
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Type:     typex.SocialComment,
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
 					Decimal: 12,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialComment,
-						Tag:      filter.TagSocial,
-						Platform: filter.PlatformLens.String(),
+						Type:     typex.SocialComment,
+						Tag:      tag.Social,
+						Platform: workerx.PlatformLens.String(),
 						From:     "0xad9cC1a85e74Bd1300c57082ba86Ed21E6AAA5e8",
 						To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 						Metadata: &metadata.SocialPost{
@@ -425,7 +439,7 @@ func TestWorker_Arweave(t *testing.T) {
 			name: "Momoka V2 Quote",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkArweave,
+					Network: network.Arweave,
 					Block: arweave.Block{
 						Timestamp: 1699537271,
 					},
@@ -438,27 +452,29 @@ func TestWorker_Arweave(t *testing.T) {
 				},
 				config: &config.Module{
 					IPFSGateways: []string{"https://ipfs.rss3.page/"},
-					Endpoint:     endpoint.MustGet(filter.NetworkPolygon),
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Polygon),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:       "wJ40YsMEMybIZBXMu5a-lH6RGv7A54B2Lr0vYJCLvAQ",
-				Network:  filter.NetworkArweave,
+				Network:  network.Arweave,
 				Index:    0,
 				From:     "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 				To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
-				Type:     filter.TypeSocialShare,
-				Platform: lo.ToPtr(filter.PlatformLens),
-				Fee: &schema.Fee{
+				Type:     typex.SocialShare,
+				Platform: workerx.PlatformLens.String(),
+				Fee: &activityx.Fee{
 					Address: nil,
 					Amount:  decimal.Zero,
 					Decimal: 12,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialShare,
-						Tag:      filter.TagSocial,
-						Platform: filter.PlatformLens.String(),
+						Type:     typex.SocialShare,
+						Tag:      tag.Social,
+						Platform: workerx.PlatformLens.String(),
 						From:     "0x2b6091da312A3591DF6a94b24dD3c34d2B01Ca22",
 						To:       "llq4QhHA7fQWBKd6V8vzAhK-qy_JulpzlYUEgxAgJ4E",
 						Metadata: &metadata.SocialPost{
@@ -501,12 +517,12 @@ func TestWorker_Arweave(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

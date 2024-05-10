@@ -8,7 +8,8 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -26,6 +27,11 @@ discovery:
     server:
       endpoint: https://node.mydomain.com/
       global_indexer_endpoint: https://gi.rss3.dev/
+endpoints:
+    ethereum:
+      url: https://rpc.ankr.com/eth
+      http_headers:
+        user-agent: rss3-node
 database:
   driver: cockroachdb
   partition: true
@@ -33,7 +39,7 @@ database:
 stream:
   enable: false
   driver: kafka
-  topic: rss3.node.feeds
+  topic: rss3.node.activities
   uri: localhost:9092
 redis:
   enable: false
@@ -63,8 +69,8 @@ component:
           access_code: def
   decentralized:
     - network: ethereum
-      worker: fallback
-      endpoint: https://rpc.ankr.com/eth
+      worker: core
+      endpoint: ethereum
       parameters:
         block_number_start: 47370106
         block_number_target: 456
@@ -77,6 +83,14 @@ component:
 `
 	configExampleJSON = `{
   "environment": "development",
+  "endpoints": {
+     "ethereum": {
+      "url": "https://rpc.ankr.com/eth",
+      "http_headers": {
+        "user-agent": "rss3-node"
+      }
+    }
+  },
   "discovery": {
     "maintainer": {
       "evm_address": "0x111222333444555666777888999aaabbbcccddde",
@@ -95,17 +109,17 @@ component:
   "stream": {
     "enable": false,
     "driver": "kafka",
-    "topic": "rss3.node.feeds",
+    "topic": "rss3.node.activities",
     "uri": "localhost:9092"
   },
   "redis": {
-	"enable": false,
-	"endpoints": [
-	  "localhost:6379"
-	],
-	"username": "",
-	"password": "",
-	"disable_cache": true
+    "enable": false,
+    "endpoints": [
+      "localhost:6379"
+    ],
+    "username": "",
+    "password": "",
+    "disable_cache": true
   },
   "observability": {
     "opentelemetry": {
@@ -138,8 +152,8 @@ component:
     "decentralized": [
       {
         "network": "ethereum",
-        "worker": "fallback",
-        "endpoint": "https://rpc.ankr.com/eth",
+        "worker": "core",
+        "endpoint": "ethereum",
         "parameters": {
           "block_number_start": 47370106,
           "block_number_target": 456
@@ -163,6 +177,12 @@ component:
 evm_address = "0x111222333444555666777888999aaabbbcccddde"
 signature = "0x000000000111111111222222222333333333444444444555555555666666666777777777888888888999999999aaaaaaaaabbbbbbbbbcccccccccdddddddddeeee"
 
+[endpoints.ethereum]
+url = "https://rpc.ankr.com/eth"
+
+	[endpoints.ethereum.http_headers]
+	user-agent = "rss3-node"
+
 [discovery.server]
 endpoint = "https://node.mydomain.com/"
 global_indexer_endpoint = "https://gi.rss3.dev/"
@@ -175,7 +195,7 @@ uri = "postgres://root@localhost:26257/defaultdb"
 [stream]
 enable = false
 driver = "kafka"
-topic = "rss3.node.feeds"
+topic = "rss3.node.activities"
 uri = "localhost:9092"
 
 [redis]
@@ -206,8 +226,8 @@ access_code = "def"
 
 [[component.decentralized]]
 network = "ethereum"
-worker = "fallback"
-endpoint = "https://rpc.ankr.com/eth"
+worker = "core"
+endpoint = "ethereum"
 
   [component.decentralized.parameters]
   block_number_start = 47370106
@@ -227,6 +247,14 @@ endpoint = "https://rpc.ankr.com/eth"
 
 var configFileExcept = &File{
 	Environment: "development",
+	Endpoints: map[string]Endpoint{
+		"ethereum": {
+			URL: "https://rpc.ankr.com/eth",
+			HTTPHeaders: map[string]string{
+				"user-agent": "rss3-node",
+			},
+		},
+	},
 	Discovery: &Discovery{
 		Maintainer: &Maintainer{
 			EvmAddress: common.HexToAddress("0x111222333444555666777888999aaabbbcccddde"),
@@ -240,10 +268,13 @@ var configFileExcept = &File{
 	Node: &Node{
 		RSS: []*Module{
 			{
-				Network:  filter.NetworkRSS,
-				Endpoint: "https://rsshub.app/",
-				Worker:   0,
-				Parameters: &Options{
+				Network:    network.RSS,
+				EndpointID: "https://rsshub.app/",
+				Endpoint: Endpoint{
+					URL: "https://rsshub.app/",
+				},
+				Worker: 0,
+				Parameters: &Parameters{
 					"authentication": map[string]any{
 						"access_code": "def",
 						"access_key":  "abc",
@@ -256,19 +287,28 @@ var configFileExcept = &File{
 		Federated: nil,
 		Decentralized: []*Module{
 			{
-				Network:  filter.NetworkEthereum,
-				Worker:   filter.Fallback,
-				Endpoint: "https://rpc.ankr.com/eth",
-				Parameters: &Options{
+				Network:    network.Ethereum,
+				Worker:     workerx.Core,
+				EndpointID: "ethereum",
+				Endpoint: Endpoint{
+					URL: "https://rpc.ankr.com/eth",
+					HTTPHeaders: map[string]string{
+						"user-agent": "rss3-node",
+					},
+				},
+				Parameters: &Parameters{
 					"block_number_start":  47370106,
 					"block_number_target": 456,
 				},
 			},
 			{
-				Network:  filter.NetworkEthereum,
-				Worker:   filter.RSS3,
-				Endpoint: "https://rpc.ankr.com/eth",
-				Parameters: &Options{
+				Network:    network.Ethereum,
+				Worker:     workerx.RSS3,
+				EndpointID: "https://rpc.ankr.com/eth",
+				Endpoint: Endpoint{
+					URL: "https://rpc.ankr.com/eth",
+				},
+				Parameters: &Parameters{
 					"block_height_start": 123,
 					"rpc_thread_blocks":  2,
 				},
@@ -283,7 +323,7 @@ var configFileExcept = &File{
 	Stream: &Stream{
 		Enable: lo.ToPtr(false),
 		Driver: "kafka",
-		Topic:  "rss3.node.feeds",
+		Topic:  "rss3.node.activities",
 		URI:    "localhost:9092",
 	},
 	Redis: &Redis{
@@ -332,7 +372,7 @@ func TestSetupConfig(t *testing.T) {
 	AssertConfig(t, f, configFileExcept)
 }
 
-//func TestConfigEnvOverride(t *testing.T) {
+// func TestConfigEnvOverride(t *testing.T) {
 //	t.Parallel()
 //
 //	exceptEnvironment := "testing"
@@ -364,7 +404,7 @@ func TestSetupConfig(t *testing.T) {
 //	assert.Equal(t, exceptEnvironment, f.Environment)
 //	assert.Equal(t, exceptDatabaseURI, f.Database.URI)
 //	assert.Equal(t, exceptMetricsEndpoint, f.Observability.OpenTelemetry.Metrics.Endpoint)
-//}
+// }
 
 func TestConfigFilePath(t *testing.T) {
 	t.Parallel()

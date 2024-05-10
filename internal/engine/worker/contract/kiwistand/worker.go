@@ -13,9 +13,13 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/kiwistand"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -32,7 +36,33 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.KiwiStand.String()
+	return workerx.KiwiStand.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.PlatformKiwiStand.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Optimism,
+	}
+}
+
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Collectible,
+		tag.Transaction,
+		tag.Social,
+	}
+}
+
+func (w *worker) Types() []schema.Type {
+	return []schema.Type{
+		typex.CollectibleMint,
+		typex.TransactionTransfer,
+		typex.SocialMint,
+	}
 }
 
 // Filter kiwistand contract address and event hash.
@@ -51,26 +81,26 @@ func (w *worker) Filter() engine.SourceFilter {
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
+	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to feed.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+// Transform Ethereum task to activityx.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build default kiwistand feed from task.
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformKiwiStand))
+	// Build default kiwistand activity from task.
+	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	// Match and handle ethereum logs.
 	for _, log := range ethereumTask.Receipt.Logs {
 		var (
-			actions []*schema.Action
+			actions []*activityx.Action
 			err     error
 		)
 
@@ -92,12 +122,12 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			return nil, err
 		}
 
-		feed.Type = filter.TypeCollectibleMint
+		activity.Type = typex.CollectibleMint
 
-		feed.Actions = append(feed.Actions, actions...)
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	return feed, nil
+	return activity, nil
 }
 
 // matchRewardsDeposit matches the rewards deposit event.
@@ -121,7 +151,7 @@ func (w *worker) matchMintComment(_ *source.Task, log *ethereum.Log) bool {
 }
 
 // transformKiwiMint transforms Transfer event.
-func (w *worker) transformKiwiMint(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformKiwiMint(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	// Parse Transfer event.
 	event, err := w.kiwiFilterer.ParseTransfer(log.Export())
 	if err != nil {
@@ -133,21 +163,21 @@ func (w *worker) transformKiwiMint(ctx context.Context, task *source.Task, log *
 		return nil, fmt.Errorf("build KiwiMint action: %w", err)
 	}
 
-	return []*schema.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformRewardsDeposit transforms RewardsDeposit event.
-func (w *worker) transformRewardsDeposit(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformRewardsDeposit(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.protocolRewardsFilterer.ParseRewardsDeposit(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Transfer event: %w", err)
 	}
 
-	var actions []*schema.Action
+	var actions []*activityx.Action
 
-	var creatorRewardAction, createReferralRewardAction, mintReferralRewardAction, firstMinterRewardAction, zoraRewardAction *schema.Action
+	var creatorRewardAction, createReferralRewardAction, mintReferralRewardAction, firstMinterRewardAction, zoraRewardAction *activityx.Action
 
 	if event.CreatorReward.Cmp(big.NewInt(0)) > 0 {
 		creatorRewardAction, err = w.buildKiwiFeeAction(ctx, task, event.From, kiwistand.AddressProtocolRewards, event.CreatorReward)
@@ -199,7 +229,7 @@ func (w *worker) transformRewardsDeposit(ctx context.Context, task *source.Task,
 }
 
 // transformSale transforms Sale event.
-func (w *worker) transformSale(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformSale(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.kiwiFilterer.ParseSale(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse sale event: %w", err)
@@ -210,25 +240,25 @@ func (w *worker) transformSale(ctx context.Context, task *source.Task, log *ethe
 		return nil, err
 	}
 
-	return []*schema.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // transformMintComment transforms MintComment event.
-func (w *worker) transformMintComment(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformMintComment(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.kiwiFilterer.ParseMintComment(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse mint comment event: %w", err)
 	}
 
-	return []*schema.Action{
+	return []*activityx.Action{
 		w.buildKiwiMintCommentAction(ctx, task.Transaction.From, kiwistand.AddressKIWI, event.Comment),
 	}, nil
 }
 
 // buildKiwiMintAction builds KiwiMint action.
-func (w *worker) buildKiwiMintAction(ctx context.Context, task *source.Task, from, to common.Address, contract common.Address, id *big.Int, value *big.Int) (*schema.Action, error) {
+func (w *worker) buildKiwiMintAction(ctx context.Context, task *source.Task, from, to common.Address, contract common.Address, id *big.Int, value *big.Int) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &contract, id, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -236,9 +266,9 @@ func (w *worker) buildKiwiMintAction(ctx context.Context, task *source.Task, fro
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
 
-	return &schema.Action{
-		Type:     filter.TypeCollectibleMint,
-		Platform: filter.PlatformKiwiStand.String(),
+	return &activityx.Action{
+		Type:     typex.CollectibleMint,
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.CollectibleTransfer(*tokenMetadata),
@@ -246,12 +276,12 @@ func (w *worker) buildKiwiMintAction(ctx context.Context, task *source.Task, fro
 }
 
 // buildKiwiMintCommentAction builds KiwiMintComment action.
-func (w *worker) buildKiwiMintCommentAction(_ context.Context, from common.Address, to common.Address, comment string) *schema.Action {
-	return &schema.Action{
+func (w *worker) buildKiwiMintCommentAction(_ context.Context, from common.Address, to common.Address, comment string) *activityx.Action {
+	return &activityx.Action{
 		From:     from.String(),
 		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
-		Platform: filter.PlatformKiwiStand.String(),
-		Type:     filter.TypeSocialMint,
+		Platform: w.Platform(),
+		Type:     typex.SocialMint,
 		Metadata: &metadata.SocialPost{
 			Title: comment,
 			Body:  comment,
@@ -260,7 +290,7 @@ func (w *worker) buildKiwiMintCommentAction(_ context.Context, from common.Addre
 }
 
 // buildKiwiFee builds fee
-func (w *worker) buildKiwiFeeAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, amount *big.Int) (*schema.Action, error) {
+func (w *worker) buildKiwiFeeAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, amount *big.Int) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, nil, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -268,9 +298,9 @@ func (w *worker) buildKiwiFeeAction(ctx context.Context, task *source.Task, from
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
 
-	return &schema.Action{
-		Type:     filter.TypeTransactionTransfer,
-		Platform: filter.PlatformKiwiStand.String(),
+	return &activityx.Action{
+		Type:     typex.TransactionTransfer,
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
@@ -287,7 +317,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	)
 
 	// Initialize ethereum client.
-	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
+	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint.URL, config.Endpoint.BuildEthereumOptions()...); err != nil {
 		return nil, fmt.Errorf("initialize ethereum client: %w", err)
 	}
 

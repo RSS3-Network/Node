@@ -14,7 +14,9 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/stream"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/node/provider/ethereum"
+	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
 )
@@ -31,14 +33,39 @@ const (
 )
 
 type File struct {
-	Environment   string     `mapstructure:"environment" validate:"required" default:"development"`
-	Type          string     `mapstructure:"type" validate:"required,oneof=alpha beta" default:"alpha"`
-	Discovery     *Discovery `mapstructure:"discovery" validate:"required"`
-	Node          *Node      `mapstructure:"component" validate:"required"`
-	Database      *Database  `mapstructure:"database" validate:"required"`
-	Stream        *Stream    `mapstructure:"stream" validate:"required"`
-	Redis         *Redis     `mapstructure:"redis" validate:"required"`
-	Observability *Telemetry `mapstructure:"observability" validate:"required"`
+	Environment   string              `mapstructure:"environment" validate:"required" default:"development"`
+	Type          string              `mapstructure:"type" validate:"required,oneof=alpha beta" default:"alpha"`
+	Endpoints     map[string]Endpoint `mapstructure:"endpoints"`
+	Discovery     *Discovery          `mapstructure:"discovery" validate:"required"`
+	Node          *Node               `mapstructure:"component" validate:"required"`
+	Database      *Database           `mapstructure:"database" validate:"required"`
+	Stream        *Stream             `mapstructure:"stream" validate:"required"`
+	Redis         *Redis              `mapstructure:"redis" validate:"required"`
+	Observability *Telemetry          `mapstructure:"observability" validate:"required"`
+}
+
+// LoadModulesEndpoint loads the endpoint url and headers for each module.
+// If the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.
+func (f *File) LoadModulesEndpoint() error {
+	assignEndpoint := func(modules []*Module) {
+		for index, module := range modules {
+			endpoint, found := f.Endpoints[module.EndpointID]
+
+			if !found {
+				endpoint = Endpoint{
+					URL: module.EndpointID,
+				}
+			}
+
+			modules[index].Endpoint = endpoint
+		}
+	}
+
+	assignEndpoint(f.Node.RSS)
+	assignEndpoint(f.Node.Decentralized)
+	assignEndpoint(f.Node.Federated)
+
+	return nil
 }
 
 type Discovery struct {
@@ -63,11 +90,28 @@ type Node struct {
 }
 
 type Module struct {
-	Network      filter.Network `mapstructure:"network" validate:"required"`
-	Endpoint     string         `mapstructure:"endpoint" validate:"required"`
-	IPFSGateways []string       `mapstructure:"ipfs_gateways"`
-	Worker       filter.Name    `mapstructure:"worker"`
-	Parameters   *Options       `mapstructure:"parameters"`
+	Network      network.Network `mapstructure:"network" validate:"required"`
+	EndpointID   string          `mapstructure:"endpoint" validate:"required"`
+	IPFSGateways []string        `mapstructure:"ipfs_gateways"`
+	Worker       worker.Worker   `mapstructure:"worker"`
+	Parameters   *Parameters     `mapstructure:"parameters"`
+	Endpoint     Endpoint        `mapstructure:"-"`
+}
+
+type Endpoint struct {
+	URL         string            `mapstructure:"url"`
+	HTTPHeaders map[string]string `mapstructure:"http_headers"`
+}
+
+// BuildEthereumOptions builds the custom options to be supplied to an ethereum client.
+func (e Endpoint) BuildEthereumOptions() []ethereum.Option {
+	options := make([]ethereum.Option, 0)
+
+	if len(e.HTTPHeaders) > 0 {
+		options = append(options, ethereum.WithHTTPHeader(e.HTTPHeaders))
+	}
+
+	return options
 }
 
 type Database struct {
@@ -79,7 +123,7 @@ type Database struct {
 type Stream struct {
 	Enable *bool         `mapstructure:"enable" validate:"required" default:"false"`
 	Driver stream.Driver `mapstructure:"driver" validate:"required" default:"kafka"`
-	Topic  string        `mapstructure:"topic" validate:"required" default:"rss3.node.feeds"`
+	Topic  string        `mapstructure:"topic" validate:"required" default:"rss3.node.activities"`
 	URI    string        `mapstructure:"uri" validate:"required" default:"localhost:9092"`
 }
 
@@ -137,14 +181,14 @@ func (c *Module) ID() string {
 	return id
 }
 
-//var _ fmt.Stringer = (*Options)(nil)
+// var _ fmt.Stringer = (*Parameters)(nil)
 
-type Options map[string]any
+type Parameters map[string]any
 
-func (o *Options) String() string {
+func (p *Parameters) String() string {
 	var buffer map[string]any
 
-	lo.Must0(o.Decode(&buffer))
+	lo.Must0(p.Decode(&buffer))
 
 	if buffer == nil {
 		return "{}"
@@ -159,8 +203,8 @@ func (o *Options) String() string {
 	return string(lo.Must(json.Marshal(buffer)))
 }
 
-func (o *Options) Decode(v interface{}) error {
-	jsonStr, err := json.Marshal(*o)
+func (p *Parameters) Decode(v interface{}) error {
+	jsonStr, err := json.Marshal(*p)
 	if err != nil {
 		return err
 	}
@@ -220,11 +264,17 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	// Unmarshal config file.
 	var configFile File
 	if err := v.Unmarshal(&configFile, viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
-		filter.NetworkHookFunc(),
-		filter.WorkerHookFunc(),
+		network.HookFunc(),
+		worker.HookFunc(),
 		EvmAddressHookFunc(),
 	))); err != nil {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)
+	}
+
+	// Use a function to load the endpoint for each module, because mapstructure doesn't support the use of custom unmarshaler.
+	// Reference https://github.com/mitchellh/mapstructure/issues/115.
+	if err := configFile.LoadModulesEndpoint(); err != nil {
+		return nil, fmt.Errorf("build endpoint for modules: %w", err)
 	}
 
 	// Set default values.

@@ -5,8 +5,9 @@ import (
 
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/arweave"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/shopspring/decimal"
 )
 
@@ -15,7 +16,7 @@ const defaultFeeDecimal = 12
 var _ engine.Task = (*Task)(nil)
 
 type Task struct {
-	Network     filter.Network
+	Network     network.Network
 	Block       arweave.Block
 	Transaction arweave.Transaction
 }
@@ -24,7 +25,7 @@ func (t Task) ID() string {
 	return fmt.Sprintf("%s-%s", t.Network, t.Transaction.ID)
 }
 
-func (t Task) GetNetwork() filter.Network {
+func (t Task) GetNetwork() network.Network {
 	return t.Network
 }
 
@@ -36,8 +37,8 @@ func (t Task) Validate() error {
 	return nil
 }
 
-// BuildFeed builds a feed from the task.
-func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
+// BuildActivity builds an activity  from the task.
+func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, error) {
 	var feeValue decimal.Decimal
 
 	// Set fee value if the reward is not empty.
@@ -58,26 +59,26 @@ func (t Task) BuildFeed(options ...schema.FeedOption) (*schema.Feed, error) {
 		return nil, fmt.Errorf("parse transaction owner: %w", err)
 	}
 
-	feed := schema.Feed{
+	activity := activityx.Activity{
 		ID:      t.Transaction.ID,
 		Network: t.Network,
 		From:    from,
 		To:      t.Transaction.Target,
-		Type:    filter.TypeUnknown,
+		Type:    typex.Unknown,
 		Status:  true,
-		Fee: &schema.Fee{
+		Fee: &activityx.Fee{
 			Amount:  feeValue,
 			Decimal: defaultFeeDecimal,
 		},
-		Actions:   make([]*schema.Action, 0),
+		Actions:   make([]*activityx.Action, 0),
 		Timestamp: uint64(t.Block.Timestamp),
 	}
 
 	for _, option := range options {
-		if err := option(&feed); err != nil {
+		if err := option(&activity); err != nil {
 			return nil, fmt.Errorf("apply option: %w", err)
 		}
 	}
 
-	return &feed, nil
+	return &activity, nil
 }

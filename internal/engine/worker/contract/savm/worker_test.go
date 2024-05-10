@@ -13,9 +13,11 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/savm"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -32,14 +34,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Withdraw WBTC",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkSatoshiVM,
+					Network: network.SatoshiVM,
 					ChainID: 3109,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x06ade7dc3b83d30455a99a0a28da08e7cac601ffdeb207c5b8270d7327109f60"),
@@ -121,35 +123,37 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkSatoshiVM,
-					Endpoint: endpoint.MustGet(filter.NetworkSatoshiVM),
+					Network: network.SatoshiVM,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.SatoshiVM),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xf9d9724861f5e5558cbf70b9347e561462252990d2f4ed284a20514c78c77363",
-				Network: filter.NetworkSatoshiVM,
+				Network: network.SatoshiVM,
 				Index:   0,
 				From:    "0x9e5635611981425B7AcbF827516123143F1d2237",
 				To:      savm.AddressBTCBridge.String(),
-				Type:    filter.TypeTransactionBridge,
-				Calldata: &schema.Calldata{
+				Type:    typex.TransactionBridge,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x030ba25d",
 				},
-				Platform: lo.ToPtr(filter.PlatformSAVM),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformSAVM.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("13339425000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformSAVM.String(),
+						Type:     typex.TransactionBridge,
+						Platform: workerx.PlatformSAVM.String(),
 						From:     "0x9e5635611981425B7AcbF827516123143F1d2237",
 						To:       "0x9e5635611981425B7AcbF827516123143F1d2237",
 						Metadata: metadata.TransactionBridge{
 							Action:        metadata.ActionTransactionBridgeWithdraw,
-							SourceNetwork: filter.NetworkSatoshiVM,
-							TargetNetwork: filter.NetworkBitcoin,
+							SourceNetwork: network.SatoshiVM,
+							TargetNetwork: network.Bitcoin,
 							Token: metadata.Token{
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("20000"))),
 								Name:     "Bitcoin",
@@ -168,7 +172,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Withdraw SAVM",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkSatoshiVM,
+					Network: network.SatoshiVM,
 					ChainID: 3109,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x147c37f2d1e5d743fb09aab9ffefc67b6e884a3e1627db133d52bc3636829921"),
@@ -264,35 +268,37 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkSatoshiVM,
-					Endpoint: endpoint.MustGet(filter.NetworkSatoshiVM),
+					Network: network.SatoshiVM,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.SatoshiVM),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x21eafa992790b01bbd5b0445d1ba4fd0dfcc6ba2c7f46821588feabe42012ffa",
-				Network: filter.NetworkSatoshiVM,
+				Network: network.SatoshiVM,
 				Index:   0,
 				From:    "0x9e5635611981425B7AcbF827516123143F1d2237",
 				To:      savm.AddressSAVMBridge.String(),
-				Type:    filter.TypeTransactionBridge,
-				Calldata: &schema.Calldata{
+				Type:    typex.TransactionBridge,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xe43772fb",
 				},
-				Platform: lo.ToPtr(filter.PlatformSAVM),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformSAVM.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("10878000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformSAVM.String(),
+						Type:     typex.TransactionBridge,
+						Platform: workerx.PlatformSAVM.String(),
 						From:     "0x9e5635611981425B7AcbF827516123143F1d2237",
 						To:       "0x9e5635611981425B7AcbF827516123143F1d2237",
 						Metadata: metadata.TransactionBridge{
 							Action:        metadata.ActionTransactionBridgeWithdraw,
-							SourceNetwork: filter.NetworkSatoshiVM,
-							TargetNetwork: filter.NetworkEthereum,
+							SourceNetwork: network.SatoshiVM,
+							TargetNetwork: network.Ethereum,
 							Token: metadata.Token{
 								Address:  lo.ToPtr(savm.AddressSAVMToken.String()),
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("100000000000000000"))),
@@ -326,12 +332,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

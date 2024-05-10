@@ -14,9 +14,13 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/layerzero"
 	"github.com/rss3-network/node/provider/ethereum/contract/stargate"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -32,7 +36,37 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.Stargate.String()
+	return workerx.Stargate.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.PlatformStargate.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Ethereum,
+		network.Arbitrum,
+		network.Optimism,
+		network.Base,
+		network.Linea,
+		network.Avalanche,
+		network.BinanceSmartChain,
+		network.Polygon,
+	}
+}
+
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Transaction,
+	}
+}
+
+func (w *worker) Types() []schema.Type {
+	return []schema.Type{
+		typex.TransactionBridge,
+		typex.TransactionTransfer,
+	}
 }
 
 func (w *worker) Filter() engine.SourceFilter {
@@ -78,20 +112,20 @@ func (w *worker) Match(_ context.Context, _ engine.Task) (bool, error) {
 	return true, nil // TODO Remove this function.
 }
 
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformStargate))
+	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	for _, log := range ethereumTask.Receipt.Logs {
 		var (
-			actions []*schema.Action
+			actions []*activityx.Action
 			err     error
 		)
 
@@ -117,11 +151,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			return nil, err
 		}
 
-		feed.Type = filter.TypeTransactionBridge
-		feed.Actions = append(feed.Actions, actions...)
+		activity.Type = typex.TransactionBridge
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	return feed, nil
+	return activity, nil
 }
 
 // matchPoolSwapLog the pool swap log.
@@ -135,7 +169,7 @@ func (w *worker) matchPoolSwapRemoteLog(_ *source.Task, log *ethereum.Log) bool 
 }
 
 // transformLPoolSwapLog transforms the pool swap log.
-func (w *worker) transformLPoolSwapLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformLPoolSwapLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.stargatePoolFilterer.ParseSwap(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Swap event: %w", err)
@@ -221,7 +255,7 @@ func (w *worker) transformLPoolSwapLog(ctx context.Context, task *source.Task, l
 		return nil, fmt.Errorf("build transaction transfer action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		layerzeroFeeAction,
 		stargateFeeAction,
 		bridgeAction,
@@ -231,7 +265,7 @@ func (w *worker) transformLPoolSwapLog(ctx context.Context, task *source.Task, l
 }
 
 // transformLPoolSwapRemoteLog transforms the pool swap remote log.
-func (w *worker) transformLPoolSwapRemoteLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformLPoolSwapRemoteLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	swapRemoteEvent, err := w.stargatePoolFilterer.ParseSwapRemote(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Swap event: %w", err)
@@ -274,7 +308,7 @@ func (w *worker) transformLPoolSwapRemoteLog(ctx context.Context, task *source.T
 		return nil, fmt.Errorf("build transaction bridge action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		bridgeAction,
 	}
 
@@ -282,7 +316,7 @@ func (w *worker) transformLPoolSwapRemoteLog(ctx context.Context, task *source.T
 }
 
 // buildTransactionBridgeAction builds the transaction bridge action.
-func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address, source, target filter.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int, blockNumber *big.Int) (*schema.Action, error) {
+func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address, source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int, blockNumber *big.Int) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
@@ -290,9 +324,9 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
-	action := schema.Action{
-		Type:     filter.TypeTransactionBridge,
-		Platform: filter.PlatformStargate.String(),
+	action := activityx.Action{
+		Type:     typex.TransactionBridge,
+		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.TransactionBridge{
@@ -307,7 +341,7 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 }
 
 // buildTransactionTransferAction builds the Ethereum transaction transfer action.
-func (w *worker) buildTransactionTransferAction(ctx context.Context, task *source.Task, sender, receipt common.Address, token *common.Address, value *big.Int) (*schema.Action, error) {
+func (w *worker) buildTransactionTransferAction(ctx context.Context, task *source.Task, sender, receipt common.Address, token *common.Address, value *big.Int) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, token, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -315,8 +349,8 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
 
-	action := schema.Action{
-		Type:     filter.TypeTransactionTransfer,
+	action := activityx.Action{
+		Type:     typex.TransactionTransfer,
 		From:     sender.String(),
 		To:       receipt.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
@@ -334,7 +368,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 		}
 	)
 
-	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
+	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint.URL, config.Endpoint.BuildEthereumOptions()...); err != nil {
 		return nil, fmt.Errorf("initialize ethereum client: %w", err)
 	}
 

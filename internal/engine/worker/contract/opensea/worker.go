@@ -17,9 +17,13 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
 	"github.com/rss3-network/node/provider/ethereum/contract/opensea"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -40,7 +44,29 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.OpenSea.String()
+	return workerx.OpenSea.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.PlatformOpenSea.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Ethereum,
+	}
+}
+
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Collectible,
+	}
+}
+
+func (w *worker) Types() []schema.Type {
+	return []schema.Type{
+		typex.CollectibleTrade,
+	}
 }
 
 // Filter opensea contract address and event hash.
@@ -64,20 +90,20 @@ func (w *worker) Filter() engine.SourceFilter {
 }
 
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
+	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to feed.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+// Transform Ethereum task to activityx.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build default opensea feed from task.
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformOpenSea))
+	// Build default opensea activity from task.
+	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
 	// Match and handle ethereum logs.
@@ -88,7 +114,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		}
 
 		var (
-			actions []*schema.Action
+			actions []*activityx.Action
 			err     error
 		)
 
@@ -106,21 +132,21 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 
 		if err != nil {
 			if isInvalidTokenErr(err) {
-				return schema.NewUnknownFeed(feed), nil
+				return activityx.NewUnknownActivity(activity), nil
 			}
 
 			return nil, err
 		}
 
-		// Change feed type to the first action type.
+		// Change activity type to the first action type.
 		for _, action := range actions {
-			feed.Type = action.Type
+			activity.Type = action.Type
 		}
 
-		feed.Actions = append(feed.Actions, actions...)
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	return feed, nil
+	return activity, nil
 }
 
 // matchWyvernExchangeV1Orders matches WyvernExchangeV1 OrdersMatched event.
@@ -149,7 +175,7 @@ func (w *worker) matchSeaportV1OrderFulfilled(_ *source.Task, log *ethereum.Log)
 }
 
 // transformWyvernExchangeV1Orders transforms WyvernExchangeV1 OrdersMatched event.
-func (w *worker) transformWyvernExchangeV1Orders(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformWyvernExchangeV1Orders(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	// Parse OrdersMatched event.
 	event, err := w.wyvernExchangeV1Filterer.ParseOrdersMatched(log.Export())
 	if err != nil {
@@ -209,16 +235,16 @@ func (w *worker) transformWyvernExchangeV1Orders(ctx context.Context, task *sour
 		return nil, err
 	}
 
-	return []*schema.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
-func (w *worker) transformWyvernExchangeV2Orders(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformWyvernExchangeV2Orders(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	return w.transformWyvernExchangeV1Orders(ctx, task, log)
 }
 
-func (w *worker) transformSeaportV1OrderFulfilled(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformSeaportV1OrderFulfilled(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	// Parse OrderFulfilled event.
 	event, err := w.seaportV1Filterer.ParseOrderFulfilled(log.Export())
 	if err != nil {
@@ -280,12 +306,12 @@ func (w *worker) transformSeaportV1OrderFulfilled(ctx context.Context, task *sou
 		return nil, err
 	}
 
-	return []*schema.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
-func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *source.Task, seller, buyer, nft common.Address, nftID, nftValue *big.Int, offerToken *common.Address, offerValue *big.Int) (*schema.Action, error) {
+func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *source.Task, seller, buyer, nft common.Address, nftID, nftValue *big.Int, offerToken *common.Address, offerValue *big.Int) (*activityx.Action, error) {
 	if nftID == nil {
 		return nil, fmt.Errorf("nft id is nil")
 	}
@@ -313,9 +339,9 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 
 	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(offerValue, 0))
 
-	action := schema.Action{
-		Type:     filter.TypeCollectibleTrade,
-		Platform: filter.PlatformOpenSea.String(),
+	action := activityx.Action{
+		Type:     typex.CollectibleTrade,
+		Platform: w.Platform(),
 		From:     seller.String(),
 		To:       buyer.String(),
 		Metadata: metadata.CollectibleTrade{
@@ -344,7 +370,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	)
 
 	// Initialize ethereum client.
-	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
+	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint.URL, config.Endpoint.BuildEthereumOptions()...); err != nil {
 		return nil, fmt.Errorf("initialize ethereum client: %w", err)
 	}
 

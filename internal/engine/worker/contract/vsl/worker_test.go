@@ -14,9 +14,11 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -33,14 +35,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Withdraw RSS3 from L2 to L1",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xb4dda29fcd3d61d8bad67ee620a9ec9e4c5469109cc21fbe406b72506363ecb1"),
@@ -141,35 +143,37 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xafd8a40579b52ffb424fca87d17442b915029202fa104c9bee2bd805d12f7eec",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   140,
 				From:    "0x30286DD245338292F319809935a1037CcD4573Ea",
 				To:      vsl.AddressL1OptimismPortal.String(),
-				Type:    filter.TypeTransactionBridge,
-				Calldata: &schema.Calldata{
+				Type:    typex.TransactionBridge,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x8c3152e9",
 				},
-				Platform: lo.ToPtr(filter.PlatformVSL),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformVSL.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("5847904578748375")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeTransactionBridge,
-						Platform: filter.PlatformVSL.String(),
+						Type:     typex.TransactionBridge,
+						Platform: workerx.PlatformVSL.String(),
 						From:     "0x30286DD245338292F319809935a1037CcD4573Ea",
 						To:       "0x30286DD245338292F319809935a1037CcD4573Ea",
 						Metadata: metadata.TransactionBridge{
 							Action:        metadata.ActionTransactionBridgeWithdraw,
-							SourceNetwork: filter.NetworkVSL,
-							TargetNetwork: filter.NetworkEthereum,
+							SourceNetwork: network.VSL,
+							TargetNetwork: network.Ethereum,
 							Token: metadata.Token{
 								Address:  lo.ToPtr("0xc98D64DA73a6616c42117b582e832812e7B8D57F"),
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("5000000000000000000000"))),
@@ -203,12 +207,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

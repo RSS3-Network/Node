@@ -1,6 +1,6 @@
 package farcaster_test
 
-//func TestClient_GetCastsByFid(t *testing.T) {
+// func TestClient_GetCastsByFid(t *testing.T) {
 //	t.Parallel()
 //
 //	type arguments struct {
@@ -81,7 +81,7 @@ package farcaster_test
 //	}
 //}
 //
-//func TestClient_GetCastByFidAndHash(t *testing.T) {
+// func TestClient_GetCastByFidAndHash(t *testing.T) {
 //	t.Parallel()
 //
 //	type arguments struct {
@@ -153,7 +153,7 @@ package farcaster_test
 //	}
 //}
 //
-//func TestClient_GetVerificationsByFid(t *testing.T) {
+// func TestClient_GetVerificationsByFid(t *testing.T) {
 //	t.Parallel()
 //
 //	type arguments struct {
@@ -224,7 +224,7 @@ package farcaster_test
 //	}
 //}
 //
-//func TestClient_GetUserNameProofsByFid(t *testing.T) {
+// func TestClient_GetUserNameProofsByFid(t *testing.T) {
 //	t.Parallel()
 //
 //	type arguments struct {
@@ -290,7 +290,7 @@ package farcaster_test
 //	}
 //}
 //
-//func TestClient_GetUserDataByFid(t *testing.T) {
+// func TestClient_GetUserDataByFid(t *testing.T) {
 //	t.Parallel()
 //
 //	type arguments struct {
@@ -409,9 +409,9 @@ package farcaster_test
 //			require.Equal(t, testcase.want, *result)
 //		})
 //	}
-//}
+// }
 //
-//func TestClient_GetUserDataByFidAndType(t *testing.T) {
+// func TestClient_GetUserDataByFidAndType(t *testing.T) {
 //	t.Parallel()
 //
 //	type arguments struct {
@@ -474,9 +474,9 @@ package farcaster_test
 //			require.Equal(t, testcase.want, *result)
 //		})
 //	}
-//}
+// }
 //
-//func TestClient_GetEvents(t *testing.T) {
+// func TestClient_GetEvents(t *testing.T) {
 //	t.Parallel()
 //
 //	type arguments struct {
@@ -517,9 +517,9 @@ package farcaster_test
 //			require.Greater(t, len(result.Events), 0)
 //		})
 //	}
-//}
+// }
 //
-//func TestClient_GetFids(t *testing.T) {
+// func TestClient_GetFids(t *testing.T) {
 //	t.Parallel()
 //
 //	type arguments struct {
@@ -562,9 +562,9 @@ package farcaster_test
 //			require.Greater(t, result.Fids[0], uint64(196331))
 //		})
 //	}
-//}
+// }
 //
-//func TestClient_GetReactionsByFid(t *testing.T) {
+// func TestClient_GetReactionsByFid(t *testing.T) {
 //	t.Parallel()
 //
 //	type arguments struct {
@@ -643,7 +643,7 @@ package farcaster_test
 //	}
 //}
 //
-//func TestClient_GetReaction(t *testing.T) {
+// func TestClient_GetReaction(t *testing.T) {
 //	t.Parallel()
 //
 //	type arguments struct {
@@ -714,9 +714,9 @@ package farcaster_test
 //			require.Equal(t, testcase.want, *result)
 //		})
 //	}
-//}
+// }
 //
-//func TestClient_Func(t *testing.T) {
+// func TestClient_Func(t *testing.T) {
 //	t.Parallel()
 //
 //	t.Run("covert Farcaster time to timestamp", func(t *testing.T) {
@@ -724,4 +724,4 @@ package farcaster_test
 //
 //		require.Equal(t, farcaster.CovertFarcasterTimeToTimestamp(78224681), int64(1687683881))
 //	})
-//}
+// }

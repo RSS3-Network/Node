@@ -1,6 +1,12 @@
 environment: production
 type: beta
 
+endpoints:
+  ethereum:
+    url: https://rpc.ankr.com/eth
+    http_headers:
+      user-agent: rss3-node
+
 discovery:
     maintainer:
       evm_address:
@@ -17,7 +23,7 @@ database:
 stream:
   enable: false
   driver: kafka
-  topic: rss3.node.feeds
+  topic: rss3.node.activities
   uri: localhost:9092
 
 redis:
@@ -50,19 +56,15 @@ component:
       endpoint: https://rsshub.app/
       parameters:
         authentication:
-          username:
-          password:
           access_key:
-          access_code:
 
   decentralized:
     # ethereum
     - network: ethereum
-      worker: fallback
-      endpoint: https://rpc.ankr.com/eth
+      worker: core
+      endpoint: ethereum
       parameters:
         block_number_start:
-        block_number_target:
     - network: ethereum
       worker: rss3
       endpoint: https://rpc.ankr.com/eth
@@ -122,7 +124,7 @@ component:
         block_number_start:
     # farcaster
     - network: farcaster
-      worker: farcaster
+      worker: core
       endpoint: https://nemes.farcaster.xyz:2281
       parameters:
         api_key:
@@ -209,7 +211,7 @@ component:
         block_number_start:
     - network: vsl
       endpoint: https://rpc.rss3.io
-      worker: fallback
+      worker: core
       parameters:
         block_number_start:
     - network: optimism
@@ -219,7 +221,7 @@ component:
         block_number_start:
     - network: savm
       endpoint: https://alpha-rpc-node-http.svmscan.io
-      worker: fallback
+      worker: core
       parameters:
         block_number_start:
     - network: savm
@@ -234,47 +236,43 @@ component:
         block_number_start:
     - network: optimism
       endpoint: https://rpc.ankr.com/optimism
-      worker: fallback
+      worker: core
       parameters:
         block_number_start:
     - network: polygon
       endpoint: https://rpc.ankr.com/polygon
-      worker: fallback
+      worker: core
       parameters:
         block_number_start:
     - network: arbitrum
       endpoint: https://rpc.ankr.com/arbitrum
-      worker: fallback
+      worker: core
       parameters:
         block_number_start:
     - network: base
       endpoint: https://developer-access-mainnet.base.orgss
-      worker: fallback
+      worker: core
       parameters:
         block_number_start:
     - network: binance-smart-chain
       endpoint: https://rpc.ankr.com/bsc
-      worker: fallback
+      worker: core
       parameters:
-        block_number_start:
+        block_number_start: 34436412
+        rpc_thread_blocks: 1
     - network: gnosis
       endpoint: https://rpc.ankr.com/gnosis
-      worker: fallback
+      worker: core
       parameters:
         block_number_start:
     - network: linea
       endpoint: https://rpc.linea.build
-      worker: fallback
+      worker: core
       parameters:
           block_number_start:
     - network: linea
       endpoint: https://rpc.linea.build
       worker: uniswap
-      parameters:
-        block_number_start:
-    - network: vsl
-      endpoint: https://rpc.rss3.io
-      worker: fallback
       parameters:
         block_number_start:
     - network: vsl

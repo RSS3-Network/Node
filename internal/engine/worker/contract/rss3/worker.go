@@ -14,9 +14,13 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/rss3"
 	"github.com/rss3-network/node/provider/ethereum/token"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
@@ -33,7 +37,32 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return filter.RSS3.String()
+	return workerx.RSS3.String()
+}
+
+func (w *worker) Platform() string {
+	return workerx.PlatformRSS3.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Ethereum,
+		network.VSL,
+	}
+}
+
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Exchange,
+		tag.Collectible,
+	}
+}
+
+func (w *worker) Types() []schema.Type {
+	return []schema.Type{
+		typex.ExchangeStaking,
+		typex.CollectibleMint,
+	}
 }
 
 func (w *worker) Filter() engine.SourceFilter {
@@ -62,19 +91,19 @@ func (w *worker) Filter() engine.SourceFilter {
 
 // Match checks if the task is a RSS3 task.
 func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == filter.NetworkEthereumSource, nil
+	return task.GetNetwork().Source() == network.EthereumSource, nil
 }
 
-// Transform Ethereum task to feed.
-func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed, error) {
+// Transform Ethereum task to activityx.
+func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	feed, err := ethereumTask.BuildFeed(schema.WithFeedPlatform(filter.PlatformRSS3))
+	_activities, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build feed: %w", err)
+		return nil, fmt.Errorf("build _activities: %w", err)
 	}
 
 	// Match and handle logs.
@@ -85,7 +114,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 		}
 
 		var (
-			actions []*schema.Action
+			actions []*activityx.Action
 			err     error
 		)
 
@@ -113,15 +142,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*schema.Feed,
 			return nil, err
 		}
 
-		// Overwrite the type for feed.
+		// Overwrite the type for _activities.
 		for _, action := range actions {
-			feed.Type = action.Type
+			_activities.Type = action.Type
 		}
 
-		feed.Actions = append(feed.Actions, actions...)
+		_activities.Actions = append(_activities.Actions, actions...)
 	}
 
-	return feed, nil
+	return _activities, nil
 }
 
 // matchStakingDeposited matches the staking deposited event.
@@ -155,7 +184,7 @@ func (w *worker) matchTransfer(_ *source.Task, log *ethereum.Log) bool {
 }
 
 // transformStakingDeposited transforms the staking deposited event.
-func (w *worker) transformStakingDeposited(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformStakingDeposited(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.stakingFilterer.ParseDeposited(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Deposited event: %w", err)
@@ -171,7 +200,7 @@ func (w *worker) transformStakingDeposited(ctx context.Context, task *source.Tas
 		return nil, fmt.Errorf("build exchange staking action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
@@ -179,7 +208,7 @@ func (w *worker) transformStakingDeposited(ctx context.Context, task *source.Tas
 }
 
 // transformStakingWithdrawn transforms the staking withdrawn event.
-func (w *worker) transformStakingWithdrawn(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformStakingWithdrawn(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.stakingFilterer.ParseWithdrawn(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Withdrawn event: %w", err)
@@ -190,7 +219,7 @@ func (w *worker) transformStakingWithdrawn(ctx context.Context, task *source.Tas
 		return nil, fmt.Errorf("build action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
@@ -198,7 +227,7 @@ func (w *worker) transformStakingWithdrawn(ctx context.Context, task *source.Tas
 }
 
 // transformStakingRewardsClaimed transforms the staking rewards claimed event.
-func (w *worker) transformStakingRewardsClaimed(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformStakingRewardsClaimed(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.stakingFilterer.ParseRewardsClaimed(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse RewardsClaimed event: %w", err)
@@ -209,7 +238,7 @@ func (w *worker) transformStakingRewardsClaimed(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("build action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
@@ -217,7 +246,7 @@ func (w *worker) transformStakingRewardsClaimed(ctx context.Context, task *sourc
 }
 
 // transformStakingVSLDeposited transforms the staking VSL deposited event.
-func (w *worker) transformStakingVSLDeposited(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformStakingVSLDeposited(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.stakingVSLFilterer.ParseDeposited(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Deposited event: %w", err)
@@ -228,7 +257,7 @@ func (w *worker) transformStakingVSLDeposited(ctx context.Context, task *source.
 		return nil, fmt.Errorf("build exchange staking action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		action,
 	}
 
@@ -236,7 +265,7 @@ func (w *worker) transformStakingVSLDeposited(ctx context.Context, task *source.
 }
 
 // transformStakingVSLStaked transforms the staking VSL staked event.
-func (w *worker) transformStakingVSLStaked(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformStakingVSLStaked(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.stakingVSLFilterer.ParseStaked(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse Deposited event: %w", err)
@@ -247,7 +276,7 @@ func (w *worker) transformStakingVSLStaked(ctx context.Context, task *source.Tas
 		return nil, fmt.Errorf("build exchange staking action: %w", err)
 	}
 
-	actions := []*schema.Action{
+	actions := []*activityx.Action{
 		stakingAction,
 	}
 
@@ -255,7 +284,7 @@ func (w *worker) transformStakingVSLStaked(ctx context.Context, task *source.Tas
 }
 
 // transformChipsMint transforms the transfer event.
-func (w *worker) transformChipsMint(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*schema.Action, error) {
+func (w *worker) transformChipsMint(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	// Parse Transfer event.
 	event, err := w.chipsFilterer.ParseTransfer(log.Export())
 	if err != nil {
@@ -267,13 +296,13 @@ func (w *worker) transformChipsMint(ctx context.Context, task *source.Task, log 
 		return nil, fmt.Errorf("build ChipsMint action: %w", err)
 	}
 
-	return []*schema.Action{
+	return []*activityx.Action{
 		action,
 	}, nil
 }
 
 // buildExchangeStakingAction builds the exchange staking action.
-func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Task, from, to common.Address, tokenValue *big.Int, stakingAction metadata.ExchangeStakingAction, period *metadata.ExchangeStakingPeriod) (*schema.Action, error) {
+func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Task, from, to common.Address, tokenValue *big.Int, stakingAction metadata.ExchangeStakingAction, period *metadata.ExchangeStakingPeriod) (*activityx.Action, error) {
 	// The Token always is $RSS3.
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &rss3.AddressToken, nil, task.Header.Number)
 	if err != nil {
@@ -282,9 +311,9 @@ func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Ta
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
-	action := schema.Action{
-		Type:     filter.TypeExchangeStaking,
-		Platform: filter.PlatformRSS3.String(),
+	action := activityx.Action{
+		Type:     typex.ExchangeStaking,
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeStaking{
@@ -298,7 +327,7 @@ func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Ta
 }
 
 // buildExchangeStakingVSLAction builds the exchange staking VSL action.
-func (w *worker) buildExchangeStakingVSLAction(ctx context.Context, task *source.Task, from, to common.Address, tokenValue *big.Int, stakingAction metadata.ExchangeStakingAction) (*schema.Action, error) {
+func (w *worker) buildExchangeStakingVSLAction(ctx context.Context, task *source.Task, from, to common.Address, tokenValue *big.Int, stakingAction metadata.ExchangeStakingAction) (*activityx.Action, error) {
 	// The Token always is $RSS3.
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, nil, nil, task.Header.Number)
 	if err != nil {
@@ -307,9 +336,9 @@ func (w *worker) buildExchangeStakingVSLAction(ctx context.Context, task *source
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
-	action := schema.Action{
-		Type:     filter.TypeExchangeStaking,
-		Platform: filter.PlatformRSS3.String(),
+	action := activityx.Action{
+		Type:     typex.ExchangeStaking,
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.ExchangeStaking{
@@ -322,7 +351,7 @@ func (w *worker) buildExchangeStakingVSLAction(ctx context.Context, task *source
 }
 
 // buildChipsMintAction builds the ChipsMint action.
-func (w *worker) buildChipsMintAction(ctx context.Context, task *source.Task, from, to common.Address, contract common.Address, id *big.Int, value *big.Int) (*schema.Action, error) {
+func (w *worker) buildChipsMintAction(ctx context.Context, task *source.Task, from, to common.Address, contract common.Address, id *big.Int, value *big.Int) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &contract, id, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -330,9 +359,9 @@ func (w *worker) buildChipsMintAction(ctx context.Context, task *source.Task, fr
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
 
-	return &schema.Action{
-		Type:     filter.TypeCollectibleMint,
-		Platform: filter.PlatformRSS3.String(),
+	return &activityx.Action{
+		Type:     typex.CollectibleMint,
+		Platform: w.Platform(),
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.CollectibleTransfer(*tokenMetadata),
@@ -348,7 +377,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 		}
 	)
 
-	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint); err != nil {
+	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint.URL, config.Endpoint.BuildEthereumOptions()...); err != nil {
 		return nil, fmt.Errorf("initialize ethereum client: %w", err)
 	}
 

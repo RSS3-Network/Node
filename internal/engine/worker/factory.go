@@ -30,62 +30,59 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/contract/stargate"
 	"github.com/rss3-network/node/internal/engine/worker/contract/uniswap"
 	"github.com/rss3-network/node/internal/engine/worker/contract/vsl"
-	"github.com/rss3-network/node/internal/engine/worker/fallback"
-	"github.com/rss3-network/node/internal/engine/worker/farcaster"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/node/internal/engine/worker/core"
+	"github.com/rss3-network/node/schema/worker"
 )
 
 func New(config *config.Module, databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {
 	switch config.Worker {
-	case filter.Fallback:
-		return fallback.NewWorker(config, redisClient)
-	case filter.Mirror:
+	case worker.Core:
+		return core.NewWorker(config, redisClient)
+	case worker.Mirror:
 		return mirror.NewWorker(config, databaseClient)
-	case filter.Farcaster:
-		return farcaster.NewWorker()
-	case filter.RSS3:
+	case worker.RSS3:
 		return rss3.NewWorker(config)
-	case filter.Paragraph:
+	case worker.Paragraph:
 		return paragraph.NewWorker(config)
-	case filter.OpenSea:
+	case worker.OpenSea:
 		return opensea.NewWorker(config)
-	case filter.Uniswap:
+	case worker.Uniswap:
 		return uniswap.NewWorker(config)
-	case filter.Optimism:
+	case worker.Optimism:
 		return optimism.NewWorker(config)
-	case filter.Aavegotchi:
+	case worker.Aavegotchi:
 		return aavegotchi.NewWorker(config)
-	case filter.Lens:
+	case worker.Lens:
 		return lens.NewWorker(config)
-	case filter.Looksrare:
+	case worker.Looksrare:
 		return looksrare.NewWorker(config)
-	case filter.Matters:
+	case worker.Matters:
 		return matters.NewWorker(config)
-	case filter.Momoka:
+	case worker.Momoka:
 		return momoka.NewWorker(config)
-	case filter.Highlight:
+	case worker.Highlight:
 		return highlight.NewWorker(config)
-	case filter.Aave:
+	case worker.Aave:
 		return aave.NewWorker(config)
-	case filter.IQWiki:
+	case worker.IQWiki:
 		return iqwiki.NewWorker(config)
-	case filter.Lido:
+	case worker.Lido:
 		return lido.NewWorker(config)
-	case filter.Crossbell:
+	case worker.Crossbell:
 		return crossbell.NewWorker(config)
-	case filter.ENS:
+	case worker.ENS:
 		return ens.NewWorker(config, databaseClient)
-	case filter.Oneinch:
+	case worker.Oneinch:
 		return oneinch.NewWorker(config)
-	case filter.KiwiStand:
+	case worker.KiwiStand:
 		return kiwistand.NewWorker(config)
-	case filter.SAVM:
+	case worker.SAVM:
 		return savm.NewWorker(config)
-	case filter.VSL:
+	case worker.VSL:
 		return vsl.NewWorker(config)
-	case filter.Stargate:
+	case worker.Stargate:
 		return stargate.NewWorker(config)
-	case filter.Curve:
+	case worker.Curve:
 		return curve.NewWorker(config, redisClient)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)

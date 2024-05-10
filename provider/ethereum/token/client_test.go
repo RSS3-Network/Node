@@ -10,8 +10,8 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/node/provider/ethereum/token"
-	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -21,7 +21,7 @@ func TestEthereumClient(t *testing.T) {
 	t.Parallel()
 
 	type arguments struct {
-		network filter.Network
+		network network.Network
 		address *common.Address
 		id      *big.Int
 	}
@@ -34,7 +34,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "ETH",
 			arguments: arguments{
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 			},
 			want: metadata.Token{
 				Name:     "Ethereum",
@@ -45,7 +45,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "RSS3",
 			arguments: arguments{
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				address: lo.ToPtr(common.HexToAddress("0xc98D64DA73a6616c42117b582e832812e7B8D57F")),
 			},
 			want: metadata.Token{
@@ -59,7 +59,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "RSS Fruits Token #61",
 			arguments: arguments{
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				address: lo.ToPtr(common.HexToAddress("0xAcbe98EFe2d4D103e221E04c76D7c55dB15C8E89")),
 				id:      big.NewInt(61),
 			},
@@ -74,7 +74,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "Base, Introduced #1",
 			arguments: arguments{
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				address: lo.ToPtr(common.HexToAddress("0xD4307E0acD12CF46fD6cf93BC264f5D5D1598792")),
 				id:      big.NewInt(1),
 			},
@@ -89,7 +89,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "Cheers UP #0",
 			arguments: arguments{
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				address: lo.ToPtr(common.HexToAddress("0x3113A3c04aEBEC2B77eB38Eabf6a2257B580c54B")),
 				id:      big.NewInt(0),
 			},
@@ -104,7 +104,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "RSS3 Whitepaper #1",
 			arguments: arguments{
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				address: lo.ToPtr(common.HexToAddress("0xB9619cF4F875CdF0E3CE48B28A1C725bC4f6c0fB")),
 				id:      big.NewInt(1),
 			},
@@ -119,7 +119,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "OpenSea Shared Storefront #4452815761501376758038898720702591022279500679302039557361006834352129",
 			arguments: arguments{
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				address: lo.ToPtr(common.HexToAddress("0x495f947276749Ce646f68AC8c248420045cb7b5e")),
 				id:      lo.Must(new(big.Int).SetString("4452815761501376758038898720702591022279500679302039557361006834352129", 0)),
 			},
@@ -134,7 +134,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "Love, Death + Robots",
 			arguments: arguments{
-				network: filter.NetworkEthereum,
+				network: network.Ethereum,
 				address: lo.ToPtr(common.HexToAddress("0xFD43D1dA000558473822302e1d44D81dA2e4cC0d")),
 				id:      big.NewInt(1),
 			},
@@ -149,7 +149,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "Kiwi #979",
 			arguments: arguments{
-				network: filter.NetworkOptimism,
+				network: network.Optimism,
 				address: lo.ToPtr(common.HexToAddress("0x66747bdC903d17C586fA09eE5D6b54CC85bBEA45")),
 				id:      big.NewInt(979),
 			},
@@ -164,7 +164,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "RSS3 Token",
 			arguments: arguments{
-				network: filter.NetworkVSL,
+				network: network.VSL,
 				address: lo.ToPtr(common.HexToAddress("0x4200000000000000000000000000000000000042")),
 			},
 			want: metadata.Token{
@@ -178,7 +178,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "RSS3 VSL Open Chips",
 			arguments: arguments{
-				network: filter.NetworkVSL,
+				network: network.VSL,
 				address: lo.ToPtr(common.HexToAddress("0x849f8F55078dCc69dD857b58Cc04631EBA54E4DE")),
 			},
 			want: metadata.Token{
@@ -191,7 +191,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "SAVM Token",
 			arguments: arguments{
-				network: filter.NetworkSatoshiVM,
+				network: network.SatoshiVM,
 				address: lo.ToPtr(common.HexToAddress("0x0E02765992f946397E6d2e65642eABb9cc674928")),
 			},
 			want: metadata.Token{
@@ -205,7 +205,7 @@ func TestEthereumClient(t *testing.T) {
 		{
 			name: "SAVM WBTC",
 			arguments: arguments{
-				network: filter.NetworkSatoshiVM,
+				network: network.SatoshiVM,
 				address: lo.ToPtr(common.HexToAddress("0x5db252ead05C54B08A83414adCAbF46Eaa9E0337")),
 			},
 			want: metadata.Token{
@@ -232,7 +232,7 @@ func TestEthereumClient(t *testing.T) {
 
 			tokenClient := token.NewClient(ethereumClient)
 
-			chainID, err := filter.EthereumChainIDString(testcase.arguments.network.String())
+			chainID, err := network.EthereumChainIDString(testcase.arguments.network.String())
 			require.NoError(t, err)
 
 			tokenMetadata, err := tokenClient.Lookup(ctx, uint64(chainID), testcase.arguments.address, testcase.arguments.id, nil)

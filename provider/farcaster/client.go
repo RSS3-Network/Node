@@ -114,7 +114,7 @@ func (c *client) GetUserDataByFid(ctx context.Context, fid *int64, pageToken str
 	return &response, nil
 }
 
-// GetUserDataByFidAndType Get UserData by an fid and user data type.
+// GetUserDataByFidAndType Get UserData by an fid and user data typex.
 func (c *client) GetUserDataByFidAndType(ctx context.Context, fid *int64, userDataType string) (*Message, error) {
 	var response Message
 

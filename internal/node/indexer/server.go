@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
@@ -17,8 +18,8 @@ import (
 	"github.com/rss3-network/node/internal/stream"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.opentelemetry.io/otel"
@@ -59,8 +60,25 @@ func (s *Server) Run(ctx context.Context) error {
 	for {
 		select {
 		case tasks := <-tasksChan:
-			if err := s.handleTasks(ctx, tasks); err != nil {
-				return fmt.Errorf("handle tasks: %w", err)
+			retryableFunc := func() error {
+				if err := s.handleTasks(ctx, tasks); err != nil {
+					return fmt.Errorf("handle tasks: %w", err)
+				}
+
+				return nil
+			}
+
+			err := retry.Do(retryableFunc,
+				retry.Attempts(0),
+				retry.Delay(time.Second),            // Set initial delay to 1 second.
+				retry.DelayType(retry.BackOffDelay), // Use backoff delay type, increasing delay on each retry.
+				retry.MaxDelay(5*time.Minute),
+				retry.OnRetry(func(n uint, err error) {
+					zap.L().Error("retry handle tasks", zap.Uint("retry", n), zap.Error(err))
+				}),
+			)
+			if err != nil {
+				return fmt.Errorf("retry handle tasks: %w", err)
 			}
 		case err := <-errorChan:
 			if err != nil {
@@ -114,12 +132,12 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		return nil
 	}
 
-	resultPool := pool.NewWithResults[*schema.Feed]().WithMaxGoroutines(lo.Ternary(tasks.Len() < 20*runtime.NumCPU(), tasks.Len(), 20*runtime.NumCPU()))
+	resultPool := pool.NewWithResults[*activityx.Activity]().WithMaxGoroutines(lo.Ternary(tasks.Len() < 20*runtime.NumCPU(), tasks.Len(), 20*runtime.NumCPU()))
 
 	for _, task := range tasks.Tasks {
 		task := task
 
-		resultPool.Go(func() *schema.Feed {
+		resultPool.Go(func() *activityx.Activity {
 			zap.L().Debug("start match task", zap.String("task.id", task.ID()))
 
 			matched, err := s.worker.Match(ctx, task)
@@ -138,29 +156,29 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 
 			zap.L().Debug("start transform task", zap.String("task.id", task.ID()))
 
-			feed, err := s.worker.Transform(ctx, task)
+			activity, err := s.worker.Transform(ctx, task)
 			if err != nil {
 				zap.L().Error("transform task", zap.String("task.id", task.ID()), zap.Error(err))
 
 				return nil
 			}
 
-			return feed
+			return activity
 		})
 	}
 
-	// Filter failed feeds.
-	feeds := lo.Filter(resultPool.Wait(), func(feed *schema.Feed, _ int) bool {
-		return feed != nil
+	// Filter failed activities.
+	activities := lo.Filter(resultPool.Wait(), func(activity *activityx.Activity, _ int) bool {
+		return activity != nil
 	})
 
 	// Deprecated: use meterTasksHistogram instead.
 	s.meterTasksCounter.Add(ctx, int64(tasks.Len()), meterTasksCounterAttributes)
-	checkpoint.IndexCount = int64(len(feeds))
+	checkpoint.IndexCount = int64(len(activities))
 
-	// Save feeds and checkpoint to the database.
-	if err := s.databaseClient.SaveFeeds(ctx, feeds); err != nil {
-		return fmt.Errorf("save %d feeds: %w", len(feeds), err)
+	// Save activities and checkpoint to the database.
+	if err := s.databaseClient.SaveActivities(ctx, activities); err != nil {
+		return fmt.Errorf("save %d activities: %w", len(activities), err)
 	}
 
 	zap.L().Info("save checkpoint", zap.Any("checkpoint", checkpoint))
@@ -173,10 +191,10 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 	duration := time.Since(taskTimer).Seconds()
 	s.meterTasksHistogram.Record(ctx, duration, meterTasksCounterAttributes)
 
-	// Push feeds to the stream.
-	if s.streamClient != nil && len(feeds) > 0 {
-		if err := s.streamClient.PushFeeds(ctx, feeds); err != nil {
-			return fmt.Errorf("publish %d feeds: %w", len(feeds), err)
+	// Push activities to the stream.
+	if s.streamClient != nil && len(activities) > 0 {
+		if err := s.streamClient.PushActivities(ctx, activities); err != nil {
+			return fmt.Errorf("publish %d activities: %w", len(activities), err)
 		}
 	}
 
@@ -186,17 +204,17 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 func (s *Server) initializeMeter() (err error) {
 	// init ethereum client
 	switch s.config.Network {
-	case filter.NetworkArweave:
+	case network.Arweave:
 		arweaveClient, err := arweave.NewClient()
 		if err != nil {
 			return fmt.Errorf("new arweave client: %w", err)
 		}
 
 		s.arweaveClient = arweaveClient
-	case filter.NetworkFarcaster:
+	case network.Farcaster:
 		break
 	default:
-		ethereumClient, err := ethereum.Dial(context.Background(), s.config.Endpoint)
+		ethereumClient, err := ethereum.Dial(context.Background(), s.config.Endpoint.URL, s.config.Endpoint.BuildEthereumOptions()...)
 		if err != nil {
 			return fmt.Errorf("dial ethereum: %w", err)
 		}
@@ -269,8 +287,8 @@ func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.I
 		var latestBlockHeight int64
 
 		switch s.config.Network {
-		case filter.NetworkArweave:
-			//get arweave client
+		case network.Arweave:
+			// get arweave client
 			latestHeight, err := s.arweaveClient.GetBlockHeight(ctx)
 			if err != nil {
 				zap.L().Error("get latest block height", zap.Error(err))
@@ -278,7 +296,7 @@ func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.I
 			}
 
 			latestBlockHeight = latestHeight
-		case filter.NetworkFarcaster:
+		case network.Farcaster:
 			break
 		default:
 			latestBlock, err := s.ethereumClient.BlockNumber(ctx)

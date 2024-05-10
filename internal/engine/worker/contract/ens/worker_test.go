@@ -18,9 +18,11 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/ens"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -37,14 +39,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "ENS NameRegistered V1",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xff066467303b45a198cbfc148166ac1e00779a4e6feaf265fd77b021c13f678b"),
@@ -191,29 +193,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:       "0x85cfc1b0641425e7aefeef65f9fe274deff13154e14394b0c9fd316746a98d10",
-				Network:  filter.NetworkEthereum,
+				Network:  network.Ethereum,
 				Index:    123,
 				From:     "0x7Da1E64e92094075A6D9b803d948015C993Bb58D",
 				To:       "0x1d6552e8F46fD509f3918A174FE62C34b42564aE",
-				Platform: lo.ToPtr(filter.PlatformENS),
-				Type:     filter.TypeCollectibleTrade,
-				Calldata: &schema.Calldata{
+				Platform: workerx.PlatformENS.String(),
+				Type:     typex.CollectibleTrade,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xf7a16963",
 				},
-				Fee: &schema.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("5418018134817597")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeCollectibleTrade,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.CollectibleTrade,
+						Platform: workerx.PlatformENS.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       "0x7Da1E64e92094075A6D9b803d948015C993Bb58D",
 						Metadata: metadata.CollectibleTrade{
@@ -244,7 +248,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "ENS NameRegistered V2",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xa498498d8a10735e50b6a3b1f7b8497bb3a4cfa770dce4719c91a8d5b15c1ad6"),
@@ -390,29 +394,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x2bbf9d6f2644c79a8983a532e2488e046c49caeea8b07e6a42f3c9741c16640d",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   68,
 				From:    "0x4265D230d2D54010d853b107848FC6e0B64c9c24",
 				To:      "0x253553366Da8546fC250F225fe3d25d0C782303b",
-				Type:    filter.TypeCollectibleTrade,
-				Calldata: &schema.Calldata{
+				Type:    typex.CollectibleTrade,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x74694a2b",
 				},
-				Fee: &schema.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("4836538783709927")),
 					Decimal: 18,
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
-				Actions: []*schema.Action{
+				Platform: workerx.PlatformENS.String(),
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeCollectibleTrade,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.CollectibleTrade,
+						Platform: workerx.PlatformENS.String(),
 						From:     ethereum.AddressGenesis.String(),
 						To:       "0x4265D230d2D54010d853b107848FC6e0B64c9c24",
 						Metadata: metadata.CollectibleTrade{
@@ -443,7 +449,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "ENS NameRenewed V1",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xc06cd55ff53bff781a54917734bec5759859b4ab8e9b52e5745a945d7706f1b0"),
@@ -505,29 +511,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x228e0614701d5c365928387ad5ef0fa61d517eed1efe658827275f870674a8a4",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   64,
 				From:    "0xBaDacd66C71448047A3ebf0314DDb5dba046FF53",
 				To:      "0xfF252725f6122A92551A5FA9a6b6bf10eb0Be035",
-				Fee: &schema.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1816919199971902")),
 					Decimal: 18,
 				},
-				Type: filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type: typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xe8d6dbb4",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
-				Actions: []*schema.Action{
+				Platform: workerx.PlatformENS.String(),
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0xBaDacd66C71448047A3ebf0314DDb5dba046FF53",
 						To:       "0x283Af0B28c62C092C9727F1Ee09c02CA627EB7F5",
 						Metadata: metadata.SocialProfile{
@@ -549,7 +557,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "ENS NameRenewed V2",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x171d24a3a17e753fa7941294775bb4d89800729f8ddb8a863a5e93632a7a29bd"),
@@ -611,29 +619,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xeb861ac3443943528e05530281e168abac3cec9d95583ee77a4df2d3e81b14d8",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   107,
 				From:    "0x6F4644485226276868658cC467700e104f2f9689",
 				To:      "0x253553366Da8546fC250F225fe3d25d0C782303b",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xacf1a841",
 				},
-				Fee: &schema.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1504275221075760")),
 					Decimal: 18,
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
-				Actions: []*schema.Action{
+				Platform: workerx.PlatformENS.String(),
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0x6F4644485226276868658cC467700e104f2f9689",
 						To:       "0x253553366Da8546fC250F225fe3d25d0C782303b",
 						Metadata: metadata.SocialProfile{
@@ -655,7 +665,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "ENS Public Resolver TextChanged",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xdc046f63ff0e6943715d065c87ce5ff281d90cde0ba15eef20fc084408eb1787"),
@@ -764,29 +774,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x452a0fa17e761353f1a311fb01a53a1a573f06b2348955a383d5e7a968aee9d6",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   103,
 				From:    "0xC4eE38B534CfbD26cB94e282A390eCa0B7e3e7b2",
 				To:      "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xac9650d8",
 				},
-				Fee: &schema.Fee{
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1405749108579186")),
 					Decimal: 18,
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
-				Actions: []*schema.Action{
+				Platform: workerx.PlatformENS.String(),
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0xC4eE38B534CfbD26cB94e282A390eCa0B7e3e7b2",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -799,8 +811,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0xC4eE38B534CfbD26cB94e282A390eCa0B7e3e7b2",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -813,8 +825,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0xC4eE38B534CfbD26cB94e282A390eCa0B7e3e7b2",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -827,8 +839,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0xC4eE38B534CfbD26cB94e282A390eCa0B7e3e7b2",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -842,8 +854,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0xC4eE38B534CfbD26cB94e282A390eCa0B7e3e7b2",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -866,7 +878,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "ENS Public Resolver TextChanged With Value",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xd977d57f212b6e3e10dcdeffd445ec64b349c9bd854c76d92c6ecd5d617ba561"),
@@ -918,29 +930,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x7364fd343c669e29af6710ebc55c4e6588e8acb7d2b63afe2a00f09f1528ada8",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   124,
 				From:    "0xA60e522c5517B05526eE0F7f3885b82b37CeeB2d",
 				To:      "0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xac9650d8",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformENS.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3529175103095238")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0xA60e522c5517B05526eE0F7f3885b82b37CeeB2d",
 						To:       "0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63",
 						Metadata: metadata.SocialProfile{
@@ -963,7 +977,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "ENS Name Wrapped",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xbe094ed33b2dfeaecbe6695e0c1a557229643856ea8dde52aba1c51b9cc809f7"),
@@ -1063,29 +1077,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x5597682570383f1a57a82b3b77673a4561d472d0fdc6ba324d8e687e789c9df9",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   64,
 				From:    "0xC59dc5B9906728A19070BeD06F10E31da2313AC6",
 				To:      "0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xb88d4fde",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformENS.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("2221536833800956")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0xC59dc5B9906728A19070BeD06F10E31da2313AC6",
 						To:       "0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401",
 						Metadata: metadata.SocialProfile{
@@ -1106,7 +1122,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "ENS Name Unwrapped",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x3de45fda3a4b278c4e5ee85a91a3cf5a2888d1788aac562ae028a8fb7df33a01"),
@@ -1194,29 +1210,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xe2e6f42795b4bbff284d4d68b68e9099ddb7dcb4dcdbb21add936f0e63e01fa7",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   84,
 				From:    "0x4015e9865cb268E7939220edfbbf623C6A41DaC2",
 				To:      "0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x8b4dfa75",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformENS.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1292564988750885")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0x4015e9865cb268E7939220edfbbf623C6A41DaC2",
 						To:       "0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401",
 						Metadata: metadata.SocialProfile{
@@ -1237,7 +1255,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "ENS FusesSet",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xbca740d04a185ceb2dca75a08c0c9610aa086a6048cfbff594885e03f7f56590"),
@@ -1288,29 +1306,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xaa33107f3cf26f828a955970f7765724aadf71fe0f8a77a494ab92130cfc649c",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   105,
 				From:    "0x6d5601E90220C989111939d9317FCbba27c015ab",
 				To:      "0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x402906fc",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformENS.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("1266415647151962")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0x6d5601E90220C989111939d9317FCbba27c015ab",
 						To:       "0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401",
 						Metadata: metadata.SocialProfile{
@@ -1333,7 +1353,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "ENS ContentHash Changed",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xb2a142d10c1ed9a886c4267eec7d80e6b21558ef276c2750da003253b98362c3"),
@@ -1384,29 +1404,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x01ce07608c77865004f8a6ae8139b14b2e10e304ab3f214cf12bf79a6410e6b9",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   126,
 				From:    "0xDFF917ab602e8508b6907dE1b038dd52B24A2379",
 				To:      "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x304e6ade",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformENS.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("761876041051530")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0xDFF917ab602e8508b6907dE1b038dd52B24A2379",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -1429,7 +1451,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "ENS Name Changed",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xba0387a7bbba87f7b7fe9f9a8c1fa416fad711a96d2621bd35f1b602f3dcd2ee"),
@@ -1480,29 +1502,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x6b2b172406ace420b9c43f91bb9ae0b2948ee85eea91ba1a61e29c5003e57379",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   58,
 				From:    "0x63A2368F4B509438ca90186cb1C15156713D5834",
 				To:      "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x77372213",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformENS.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("4207580864183088")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0x63A2368F4B509438ca90186cb1C15156713D5834",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -1525,7 +1549,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "ENS Address Changed",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xc174922af411ebe8b9aa6ceff6110d225c06801ed9f921ef697c32fe62040d3e"),
@@ -1587,29 +1611,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x41ac65d8b98e28587ce4836a192f2416a2f11bb96895fcea29b86a479e8cd360",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   138,
 				From:    "0x07bd403d0E4Cd0f2cF5e4b1eF44D8Fb18CF6eCad",
 				To:      "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xac9650d8",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformENS.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("783619710684342")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0x07bd403d0E4Cd0f2cF5e4b1eF44D8Fb18CF6eCad",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -1632,7 +1658,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "ENS Public Key Changed",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x16971d16aa0abb60a0b2fdee0719c53c7299bc9d4b74177102b7a5fce75162bb"),
@@ -1683,29 +1709,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x6794d34bd533740716b19658e4c957aa1e39cbfb1d34dc56aed50b1cca31fbdf",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   91,
 				From:    "0x790BEd7B93e14235d8EB153Eb7CF4497906260F4",
 				To:      "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
-				Type:    filter.TypeSocialProfile,
-				Calldata: &schema.Calldata{
+				Type:    typex.SocialProfile,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x29cd62ea",
 				},
-				Platform: lo.ToPtr(filter.PlatformENS),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformENS.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("930494878588516")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeSocialProfile,
-						Platform: filter.PlatformENS.String(),
+						Type:     typex.SocialProfile,
+						Platform: workerx.PlatformENS.String(),
 						From:     "0x790BEd7B93e14235d8EB153Eb7CF4497906260F4",
 						To:       "0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41",
 						Metadata: metadata.SocialProfile{
@@ -1730,12 +1758,12 @@ func TestWorker_Ethereum(t *testing.T) {
 	partition := true
 
 	testDB, err := testserver.NewTestServer(testserver.CustomVersionOpt("v23.1.8"))
-	//container, dataSourceName, err := createContainer(context.Background(), driver, partition)
+	// container, dataSourceName, err := createContainer(context.Background(), driver, partition)
 	require.NoError(t, err)
 
-	//t.Cleanup(func() {
+	// t.Cleanup(func() {
 	//	require.NoError(t, gnomock.Stop(container))
-	//})
+	// })
 
 	// Dial the database.
 	databaseClient, err := dialer.Dial(context.Background(), &config.Database{
@@ -1786,16 +1814,16 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, activity)
 
-			t.Log(feed)
+			t.Log(activity)
 		})
 	}
 }
 
-//func createContainer(ctx context.Context, driver database.Driver, partition bool) (container *gnomock.Container, dataSourceName string, err error) {
+// func createContainer(ctx context.Context, driver database.Driver, partition bool) (container *gnomock.Container, dataSourceName string, err error) {
 //	cfg := config.Database{
 //		Driver:    driver,
 //		Partition: &partition,
@@ -1836,13 +1864,13 @@ func TestWorker_Ethereum(t *testing.T) {
 //	default:
 //		return nil, "", fmt.Errorf("unsupported driver: %s", driver)
 //	}
-//}
+// }
 //
-//func formatContainerURI(container *gnomock.Container) string {
+// func formatContainerURI(container *gnomock.Container) string {
 //	return fmt.Sprintf(
 //		"postgres://root@%s:%d/%s?sslmode=disable",
 //		container.Host,
 //		container.DefaultPort(),
 //		"test",
 //	)
-//}
+// }

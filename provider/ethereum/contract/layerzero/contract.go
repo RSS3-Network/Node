@@ -3,7 +3,7 @@ package layerzero
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/provider/ethereum"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 )
 
 // https://layerzero.gitbook.io/docs/technical-reference/mainnet/layerzero-labs-relayer.sol-addresses
@@ -28,25 +28,25 @@ var (
 	AddressUltraLightNodeLinea             = common.HexToAddress("0x38dE71124f7a447a01D67945a51eDcE9FF491251")
 )
 
-func UltraLightNodeAddress(network filter.Network) (common.Address, bool) {
+func UltraLightNodeAddress(n network.Network) (common.Address, bool) {
 	var address common.Address
 
-	switch network {
-	case filter.NetworkEthereum:
+	switch n {
+	case network.Ethereum:
 		address = AddressUltraLightNodeMainnet
-	case filter.NetworkBinanceSmartChain:
+	case network.BinanceSmartChain:
 		address = AddressUltraLightNodeBinanceSmartChain
-	case filter.NetworkAvalanche:
+	case network.Avalanche:
 		address = AddressUltraLightNodeAvalanche
-	case filter.NetworkPolygon:
+	case network.Polygon:
 		address = AddressUltraLightNodePolygon
-	case filter.NetworkArbitrum:
+	case network.Arbitrum:
 		address = AddressUltraLightNodeArbitrumOne
-	case filter.NetworkOptimism:
+	case network.Optimism:
 		address = AddressUltraLightNodeOptimism
-	case filter.NetworkBase:
+	case network.Base:
 		address = AddressUltraLightNodeBase
-	case filter.NetworkLinea:
+	case network.Linea:
 		address = AddressUltraLightNodeLinea
 	}
 

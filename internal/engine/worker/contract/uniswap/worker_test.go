@@ -13,9 +13,11 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/uniswap"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	workerx "github.com/rss3-network/node/schema/worker"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -32,14 +34,14 @@ func TestWorker_Ethereum(t *testing.T) {
 	testcases := []struct {
 		name      string
 		arguments arguments
-		want      *schema.Feed
+		want      *activityx.Activity
 		wantError require.ErrorAssertionFunc
 	}{
 		{
 			name: "Swap RAI for DAI on Universal Router",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x04eea124abdeed2a6c9676e71631a2bf0c8850babacd302517e3ce2534421b2c"),
@@ -119,29 +121,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x872ef1fca3aacd6ef892511edbc72d79917a59026dfb792d64f4f7c3f1bcdc5c",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   4,
 				From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 				To:      uniswap.AddressUniversalRouter.String(),
-				Type:    filter.TypeExchangeSwap,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeSwap,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x3593564c",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformUniswap.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("52461988974038056")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeSwap,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 						To:       "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
 						Metadata: metadata.ExchangeSwap{
@@ -173,7 +177,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Swap LUSD for WETH on Universal Router",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x3502faead807c1d9755406ca713d88f2fc35a2e44a6aa1ebad07f3ea356eda6f"),
@@ -331,29 +335,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xf5f4c7b09fe2bc00b16506c285e9e4a03116775ad0c35164104f1b49beb9fa81",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   113,
 				From:    "0xB5A7c3f565f0DFDb4EE63d0ca4b4d59fa69c391C",
 				To:      uniswap.AddressUniversalRouter.String(),
-				Type:    filter.TypeExchangeSwap,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeSwap,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x24856bc3",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformUniswap.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("3838148125415498")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeSwap,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0xB5A7c3f565f0DFDb4EE63d0ca4b4d59fa69c391C",
 						To:       uniswap.AddressUniversalRouter.String(),
 						Metadata: metadata.ExchangeSwap{
@@ -376,8 +382,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeSwap,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     uniswap.AddressUniversalRouter.String(),
 						To:       uniswap.AddressUniversalRouter.String(),
 						Metadata: metadata.ExchangeSwap{
@@ -400,8 +406,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeSwap,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     uniswap.AddressUniversalRouter.String(),
 						To:       "0xB5A7c3f565f0DFDb4EE63d0ca4b4d59fa69c391C",
 						Metadata: metadata.ExchangeSwap{
@@ -431,7 +437,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Swap DAI for ETH on Uniswap V2 Router 2",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x9960d6291f283a9dc0f23afd7aaab19b9121a654597585ba013bf769ac0af199"),
@@ -534,29 +540,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x50479c222eca9d12f041ee1df2db6f9b8b77bf52be4d45536ab2bf0e7578260f",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   26,
 				From:    "0xe18e3F6015840c3675Add0b82dF801Ebb7D621f3",
 				To:      uniswap.AddressV2SwapRouter02.String(),
-				Type:    filter.TypeExchangeSwap,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeSwap,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x18cbafe5",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformUniswap.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("11277942633517824")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeSwap,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0xe18e3F6015840c3675Add0b82dF801Ebb7D621f3",
 						To:       uniswap.AddressV2SwapRouter02.String(),
 						Metadata: metadata.ExchangeSwap{
@@ -579,8 +587,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeSwap,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     uniswap.AddressV2SwapRouter02.String(),
 						To:       "0xe18e3F6015840c3675Add0b82dF801Ebb7D621f3",
 						Metadata: metadata.ExchangeSwap{
@@ -610,7 +618,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Remove DAI and ETH liquidity from Uniswap V2 Pair",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x1e52d78de7884ff78f3c0792902e32afb1146130df233d91afdd5ddf0abc7511"),
@@ -765,29 +773,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xc59d2ed54f0ab05f4f40679aa1d32a6537ed75e4da8b496f8bee2c209186b335",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   156,
 				From:    "0x3E07f1C21024c1bdD2217e51E46C13C143B8aC12",
 				To:      uniswap.AddressV2SwapRouter02.String(),
-				Type:    filter.TypeExchangeLiquidity,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xded9382a",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformUniswap.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("6413074183473729")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11",
 						To:       "0x3E07f1C21024c1bdD2217e51E46C13C143B8aC12",
 						Metadata: metadata.ExchangeLiquidity{
@@ -822,7 +832,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Add USDC and WETH liquidity to Uniswap Nonfungible Position Manager",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xf78ad62b69d4c8794857fca664f39718664a147e2634915c996c51ad83e53c84"),
@@ -934,29 +944,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x955784fc31f3ab7e09f6c0bd0b174d386fc3ca97ecda1ce3e150335164eafa8f",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   117,
 				From:    "0x36E5A96c8d01803d2C48756AA7bde1c01d7D9f8A",
 				To:      uniswap.AddressNonfungiblePositionManager.String(),
-				Type:    filter.TypeExchangeLiquidity,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xac9650d8",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformUniswap.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("11773803096106902")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeTransactionMint,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.TransactionMint,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0x0000000000000000000000000000000000000000",
 						To:       "0x36E5A96c8d01803d2C48756AA7bde1c01d7D9f8A",
 						Metadata: metadata.TransactionTransfer{
@@ -969,8 +981,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0x36E5A96c8d01803d2C48756AA7bde1c01d7D9f8A",
 						To:       uniswap.AddressNonfungiblePositionManager.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -1005,7 +1017,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Remove cbETH and WETH liquidity from Uniswap Nonfungible Position Manager",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xa7b709890eadb66d9abfb29269de27ff60d0264a584a5a2ffc0e235db80c5a57"),
@@ -1149,29 +1161,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x1da1d585513eb27ac32020046e3b39b114311e934243b497a1af5be25e959410",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   222,
 				From:    "0x8E02247D3eE0E6153495c971FFd45Aa131f4D7cB",
 				To:      uniswap.AddressNonfungiblePositionManager.String(),
-				Type:    filter.TypeExchangeLiquidity,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xac9650d8",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformUniswap.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("14454483784358304")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     uniswap.AddressNonfungiblePositionManager.String(),
 						To:       "0x8E02247D3eE0E6153495c971FFd45Aa131f4D7cB",
 						Metadata: metadata.ExchangeLiquidity{
@@ -1197,8 +1211,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     uniswap.AddressNonfungiblePositionManager.String(),
 						To:       "0x8E02247D3eE0E6153495c971FFd45Aa131f4D7cB",
 						Metadata: metadata.ExchangeLiquidity{
@@ -1233,7 +1247,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Migrate DAI and ETH liquidity from Uniswap V2 Pair to Uniswap V3 Pool",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkEthereum,
+					Network: network.Ethereum,
 					ChainID: 1,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x4b00d4e7a4866d94035f418d3e041aa5c3470edf770988418059fb4f72ae3c1a"),
@@ -1506,29 +1520,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkEthereum,
-					Endpoint: endpoint.MustGet(filter.NetworkEthereum),
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xbf77b991e7a17fbf5da6089f9a27ff2805d63b8d0b18ff48e1d6e118404a7864",
-				Network: filter.NetworkEthereum,
+				Network: network.Ethereum,
 				Index:   90,
 				From:    "0xf69A8916669De197E84Cb39A38bA5115e8efCC77",
 				To:      uniswap.AddressV3Migrator.String(),
-				Type:    filter.TypeExchangeLiquidity,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xac9650d8",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformUniswap.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("25334331411301152")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11",
 						To:       "0xf69A8916669De197E84Cb39A38bA5115e8efCC77",
 						Metadata: metadata.ExchangeLiquidity{
@@ -1554,8 +1570,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeTransactionMint,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.TransactionMint,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0x0000000000000000000000000000000000000000",
 						To:       "0xf69A8916669De197E84Cb39A38bA5115e8efCC77",
 						Metadata: metadata.TransactionTransfer{
@@ -1568,8 +1584,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0xf69A8916669De197E84Cb39A38bA5115e8efCC77",
 						To:       uniswap.AddressNonfungiblePositionManager.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -1604,7 +1620,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Swap Token on SAVM Uniswap V2 Router",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkSatoshiVM,
+					Network: network.SatoshiVM,
 					ChainID: 3109,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x0f6329b36a3b43b6ee531d531387b54bedc2a8b96a5455869214aebe563bd340"),
@@ -1702,29 +1718,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkSatoshiVM,
-					Endpoint: endpoint.MustGet(filter.NetworkSatoshiVM),
+					Network: network.SatoshiVM,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.SatoshiVM),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x8d22193d3b5bcf0a901622eb0fd2f813a2b47cab93e4027d73d8673773c410c5",
-				Network: filter.NetworkSatoshiVM,
+				Network: network.SatoshiVM,
 				Index:   0,
 				From:    "0x34e3FfffB6664DCBF59Ac3b89d13b0014915aE42",
 				To:      uniswap.AddressV2SwapRouterSAVM.String(),
-				Type:    filter.TypeExchangeSwap,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeSwap,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x9619e4cd",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformUniswap.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("11547000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeSwap,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0xC7c934E224e8567df50058A907904b451bD1c57D",
 						To:       "0x34e3FfffB6664DCBF59Ac3b89d13b0014915aE42",
 						Metadata: metadata.ExchangeSwap{
@@ -1756,7 +1774,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Add liquidity from Uniswap V2 Pair On SAVM",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkSatoshiVM,
+					Network: network.SatoshiVM,
 					ChainID: 3109,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x00ab08f563276052c24c948b04663e018c0f2504a3ae6e5d5b3465578309adc2"),
@@ -1877,29 +1895,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkSatoshiVM,
-					Endpoint: endpoint.MustGet(filter.NetworkSatoshiVM),
+					Network: network.SatoshiVM,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.SatoshiVM),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xc2d423478942eca528558e87e32e76272938dd3762fae9271efd43944d8c995c",
-				Network: filter.NetworkSatoshiVM,
+				Network: network.SatoshiVM,
 				Index:   0,
 				From:    "0x9e5635611981425B7AcbF827516123143F1d2237",
 				To:      uniswap.AddressV2SwapRouterSAVM.String(),
-				Type:    filter.TypeExchangeLiquidity,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xd3d7797d",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformUniswap.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("15249300000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0xC7c934E224e8567df50058A907904b451bD1c57D",
 						To:       "0x0D0f7d92A2f36eAff54d04a0D7aF39D6F352b58c",
 						Metadata: metadata.ExchangeLiquidity{
@@ -1934,7 +1954,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Remove liquidity from Uniswap V2 Pair On SAVM",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkSatoshiVM,
+					Network: network.SatoshiVM,
 					ChainID: 3109,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xbcd034f4db554ce3c7b0bc88e68b8cdf89e13b60f2986f8ae2bbb823eab5579f"),
@@ -2080,29 +2100,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkSatoshiVM,
-					Endpoint: endpoint.MustGet(filter.NetworkSatoshiVM),
+					Network: network.SatoshiVM,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.SatoshiVM),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x1096a6a55f4c28bbb2516c2058c011e7e4ccf8c3e3c9447512342ce147a6e4ee",
-				Network: filter.NetworkSatoshiVM,
+				Network: network.SatoshiVM,
 				Index:   0,
 				From:    "0x9e5635611981425B7AcbF827516123143F1d2237",
 				To:      uniswap.AddressV2SwapRouterSAVM.String(),
-				Type:    filter.TypeExchangeLiquidity,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xe4f98102",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformUniswap.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("17046000000000")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0x0D0f7d92A2f36eAff54d04a0D7aF39D6F352b58c",
 						To:       "0x9e5635611981425B7AcbF827516123143F1d2237",
 						Metadata: metadata.ExchangeLiquidity{
@@ -2139,7 +2161,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Swap WETH and USDC on Linea Uniswap V3 Router 2",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkLinea,
+					Network: network.Linea,
 					ChainID: 59144,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x38ea1b7457420ee27f56a160d6e9498cf95ea1d551c8fc12b22c6e12eb4e907b"),
@@ -2227,29 +2249,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkLinea,
-					Endpoint: endpoint.MustGet(filter.NetworkLinea),
+					Network: network.Linea,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Linea),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x288cfdec91d3d590dd2eac108927b9e1b40ea5dc48765717ae1d233425aa9316",
-				Network: filter.NetworkLinea,
+				Network: network.Linea,
 				Index:   82,
 				From:    "0x576ffCfbD57D9406bBeb7D9CE24751620314858f",
 				To:      uniswap.AddressV3SwapRouter02Linea.String(),
-				Type:    filter.TypeExchangeSwap,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeSwap,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x5ae401dc",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformUniswap.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("183888204870909")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeSwap,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeSwap,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0x576ffCfbD57D9406bBeb7D9CE24751620314858f",
 						To:       "0x576ffCfbD57D9406bBeb7D9CE24751620314858f",
 						Metadata: metadata.ExchangeSwap{
@@ -2281,7 +2305,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Add DAI and USDT liquidity to Linea Uniswap Nonfungible Position Manager",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkLinea,
+					Network: network.Linea,
 					ChainID: 59144,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0x32b6573327f3564bb8cdbc37f6a5636f39c8d7559868d2cdbe0baccbaa169a44"),
@@ -2407,29 +2431,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkLinea,
-					Endpoint: endpoint.MustGet(filter.NetworkLinea),
+					Network: network.Linea,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Linea),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0x18281b269e35e2bbd226ff8f370f3280dbf985ce115d0df37ec999f88c035fba",
-				Network: filter.NetworkLinea,
+				Network: network.Linea,
 				Index:   46,
 				From:    "0xB2603DBa60e997B4C3dF90B162E9c2D1aF77202C",
 				To:      uniswap.AddressNonfungiblePositionManagerLinea.String(),
-				Type:    filter.TypeExchangeLiquidity,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0x88316456",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformUniswap.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("612116450404240")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeTransactionMint,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.TransactionMint,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0x0000000000000000000000000000000000000000",
 						To:       "0xB2603DBa60e997B4C3dF90B162E9c2D1aF77202C",
 						Metadata: metadata.TransactionTransfer{
@@ -2442,8 +2468,8 @@ func TestWorker_Ethereum(t *testing.T) {
 						},
 					},
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     "0xB2603DBa60e997B4C3dF90B162E9c2D1aF77202C",
 						To:       uniswap.AddressNonfungiblePositionManagerLinea.String(),
 						Metadata: metadata.ExchangeLiquidity{
@@ -2478,7 +2504,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			name: "Collect USDC and WETH liquidity from Linea Uniswap Nonfungible Position Manager",
 			arguments: arguments{
 				task: &source.Task{
-					Network: filter.NetworkLinea,
+					Network: network.Linea,
 					ChainID: 59144,
 					Header: &ethereum.Header{
 						Hash:         common.HexToHash("0xa0813b3c869629efae316f60be55960c3d9182428bc5044ed580046b97c4d4f5"),
@@ -2580,29 +2606,31 @@ func TestWorker_Ethereum(t *testing.T) {
 					},
 				},
 				config: &config.Module{
-					Network:  filter.NetworkLinea,
-					Endpoint: endpoint.MustGet(filter.NetworkLinea),
+					Network: network.Linea,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Linea),
+					},
 				},
 			},
-			want: &schema.Feed{
+			want: &activityx.Activity{
 				ID:      "0xf84880b33363ca37be90566b9ae532a1c9f7fe99b5732fa73e300fbe9b7c769c",
-				Network: filter.NetworkLinea,
+				Network: network.Linea,
 				Index:   19,
 				From:    "0x97d35D3F6B7a303B8F40C7f61Ab90CAe5Bf71acB",
 				To:      uniswap.AddressNonfungiblePositionManagerLinea.String(),
-				Type:    filter.TypeExchangeLiquidity,
-				Calldata: &schema.Calldata{
+				Type:    typex.ExchangeLiquidity,
+				Calldata: &activityx.Calldata{
 					FunctionHash: "0xfc6f7865",
 				},
-				Platform: lo.ToPtr(filter.PlatformUniswap),
-				Fee: &schema.Fee{
+				Platform: workerx.PlatformUniswap.String(),
+				Fee: &activityx.Fee{
 					Amount:  lo.Must(decimal.NewFromString("335899046341584")),
 					Decimal: 18,
 				},
-				Actions: []*schema.Action{
+				Actions: []*activityx.Action{
 					{
-						Type:     filter.TypeExchangeLiquidity,
-						Platform: filter.PlatformUniswap.String(),
+						Type:     typex.ExchangeLiquidity,
+						Platform: workerx.PlatformUniswap.String(),
 						From:     uniswap.AddressNonfungiblePositionManagerLinea.String(),
 						To:       "0x97d35D3F6B7a303B8F40C7f61Ab90CAe5Bf71acB",
 						Metadata: metadata.ExchangeLiquidity{
@@ -2650,12 +2678,12 @@ func TestWorker_Ethereum(t *testing.T) {
 			testcase.wantError(t, err)
 			require.True(t, matched)
 
-			feed, err := instance.Transform(ctx, testcase.arguments.task)
+			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			//t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
-			require.Equal(t, testcase.want, feed)
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

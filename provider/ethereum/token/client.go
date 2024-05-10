@@ -21,8 +21,8 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/multicall3"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/ipfs"
-	"github.com/rss3-network/protocol-go/schema/filter"
 	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/tdewolff/minify/v2/minify"
@@ -44,62 +44,62 @@ type Client interface {
 
 // nativeTokenMap is a map of native token metadata.
 var nativeTokenMap = map[uint64]metadata.Token{
-	uint64(filter.EthereumChainIDMainnet): {
+	uint64(network.EthereumChainIDMainnet): {
 		Name:     "Ethereum",
 		Symbol:   "ETH",
 		Decimals: 18,
 	},
-	uint64(filter.EthereumChainIDOptimism): {
+	uint64(network.EthereumChainIDOptimism): {
 		Name:     "Ethereum",
 		Symbol:   "ETH",
 		Decimals: 18,
 	},
-	uint64(filter.EthereumChainIDPolygon): {
+	uint64(network.EthereumChainIDPolygon): {
 		Name:     "Polygon",
 		Symbol:   "MATIC",
 		Decimals: 18,
 	},
-	uint64(filter.EthereumChainIDBase): {
+	uint64(network.EthereumChainIDBase): {
 		Name:     "Ethereum",
 		Symbol:   "ETH",
 		Decimals: 18,
 	},
-	uint64(filter.EthereumChainIDCrossbell): {
+	uint64(network.EthereumChainIDCrossbell): {
 		Name:     "CSB",
 		Symbol:   "CSB",
 		Decimals: 18,
 	},
-	uint64(filter.EthereumChainIDArbitrum): {
+	uint64(network.EthereumChainIDArbitrum): {
 		Name:     "Ethereum",
 		Symbol:   "ETH",
 		Decimals: 18,
 	},
-	uint64(filter.EthereumChainIDAvalanche): {
+	uint64(network.EthereumChainIDAvalanche): {
 		Name:     "Avalanche",
 		Symbol:   "AVAX",
 		Decimals: 18,
 	},
-	uint64(filter.EthereumChainIDVSL): {
+	uint64(network.EthereumChainIDVSL): {
 		Name:     "RSS3",
 		Symbol:   "RSS3",
 		Decimals: 18,
 	},
-	uint64(filter.EthereumChainIDSatoshiVM): {
+	uint64(network.EthereumChainIDSatoshiVM): {
 		Name:     "Bitcoin",
 		Symbol:   "BTC",
 		Decimals: 8,
 	},
-	uint64(filter.EthereumChainIDBinanceSmartChain): {
+	uint64(network.EthereumChainIDBinanceSmartChain): {
 		Name:     "BNB",
 		Symbol:   "BNB",
 		Decimals: 18,
 	},
-	uint64(filter.EthereumChainIDGnosis): {
+	uint64(network.EthereumChainIDGnosis): {
 		Name:     "xDAI",
 		Symbol:   "xDAI",
 		Decimals: 18,
 	},
-	uint64(filter.EthereumChainIDLinea): {
+	uint64(network.EthereumChainIDLinea): {
 		Name:     "Ethereum",
 		Symbol:   "ETH",
 		Decimals: 18,
@@ -678,7 +678,7 @@ func NewClient(ethereumClient ethereum.Client, options ...Option) Client {
 	}
 
 	instance.unexpectedTokenMap = map[uint64]map[common.Address]LookupFunc{
-		uint64(filter.EthereumChainIDMainnet): {
+		uint64(network.EthereumChainIDMainnet): {
 			// ENS
 			common.HexToAddress("0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85"): instance.lookupENS,
 			common.HexToAddress("0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2"): instance.lookupMaker,

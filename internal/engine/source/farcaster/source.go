@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/farcaster"
-	"github.com/rss3-network/protocol-go/schema/filter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
@@ -33,7 +34,7 @@ type source struct {
 	pendingState    State
 }
 
-func (s *source) Network() filter.Network {
+func (s *source) Network() network.Network {
 	return s.config.Network
 }
 
@@ -50,31 +51,34 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 
 	// poll historical casts
 	go func() {
-		err := s.pollCasts(ctx, tasksChan)
-		if err == nil {
-			return
+		if err := retryOperation(ctx, func(ctx context.Context) error {
+			return s.pollCasts(ctx, tasksChan)
+		}); err != nil {
+			errorChan <- err
 		}
-
-		errorChan <- err
 	}()
 
 	// poll historical reactions
 	go func() {
-		if err := s.pollReactions(ctx, tasksChan); err != nil {
+		if err := retryOperation(ctx, func(ctx context.Context) error {
+			return s.pollReactions(ctx, tasksChan)
+		}); err != nil {
 			errorChan <- err
-		} else {
-			return
 		}
 	}()
 
 	// poll latest events
 	go func() {
-		errorChan <- s.pollEvents(ctx, tasksChan)
+		if err := retryOperation(ctx, func(ctx context.Context) error {
+			return s.pollEvents(ctx, tasksChan)
+		}); err != nil {
+			errorChan <- err
+		}
 	}()
 }
 
 func (s *source) initialize() (err error) {
-	client, err := farcaster.NewClient(s.config.Endpoint, farcaster.WithAPIKey(s.option.APIKey))
+	client, err := farcaster.NewClient(s.config.Endpoint.URL, farcaster.WithAPIKey(s.option.APIKey))
 	if err != nil {
 		return fmt.Errorf("create farcaster client: %w", err)
 	}
@@ -313,14 +317,12 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Profile, error) {
 	// owner username(handle)
 	userDataByFidAndTypeRes, err := s.farcasterClient.GetUserDataByFidAndType(ctx, fid, farcaster.UserDataTypeUsername.String())
-
 	if err != nil {
 		return nil, fmt.Errorf("fetch user data error: %w,%d", err, fid)
 	}
 
 	// custody address
 	custodyAddresses, err := s.farcasterClient.GetUserNameProofsByFid(ctx, fid)
-
 	if err != nil {
 		return nil, fmt.Errorf("fetch custody address error: %w,%d", err, fid)
 	}
@@ -347,10 +349,6 @@ func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Pro
 	ethAddresses := lo.Map(verificationsByFidRes.Messages, func(x farcaster.Message, _ int) string {
 		return common.HexToAddress(x.Data.VerificationAddEthAddressBody.Address).String()
 	})
-
-	if err != nil {
-		return nil, fmt.Errorf("get new farcaster profile %d: %w", fid, err)
-	}
 
 	profile := &model.Profile{
 		Fid:            *fid,
@@ -481,6 +479,20 @@ func (s *source) fillReactionParams(ctx context.Context, message *farcaster.Mess
 	}
 
 	return s.fillProfile(ctx, message)
+}
+
+func retryOperation(ctx context.Context, operation func(ctx context.Context) error) error {
+	return retry.Do(
+		func() error {
+			return operation(ctx)
+		},
+		retry.Attempts(0),
+		retry.Delay(1*time.Second),
+		retry.DelayType(retry.BackOffDelay),
+		retry.OnRetry(func(n uint, err error) {
+			zap.L().Warn("retry farcaster source", zap.Uint("retry", n), zap.Error(err))
+		}),
+	)
 }
 
 func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.Source, error) {

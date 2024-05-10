@@ -5,18 +5,19 @@ import (
 )
 
 type Option struct {
-	Authentication OptionAuthentication `yaml:"authentication"`
+	Authentication OptionAuthentication `json:"authentication" mapstructure:"authentication"`
 }
 
 type OptionAuthentication struct {
-	Username   string `yaml:"username"`
-	Password   string `yaml:"password"`
-	AccessKey  string `yaml:"access_key"`
-	AccessCode string `yaml:"access_code"`
+	AccessKey string `json:"access_key" mapstructure:"access_key"`
 }
 
-func NewOption(options *config.Options) (*Option, error) {
+func NewOption(options *config.Parameters) (*Option, error) {
 	var instance Option
+
+	if options == nil {
+		return &instance, nil
+	}
 
 	if err := options.Decode(&instance); err != nil {
 		return nil, err

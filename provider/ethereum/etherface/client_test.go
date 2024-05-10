@@ -18,7 +18,7 @@ func setup(t *testing.T) {
 	setupOnce.Do(func() {
 		var err error
 
-		etherfaceClient, err = etherface.NewEtherfaceClient()
+		etherfaceClient, err = etherface.NewMockEtherfaceClient()
 		require.NoError(t, err)
 	})
 }
@@ -39,7 +39,13 @@ func TestEtherfaceClient_Lookup(t *testing.T) {
 		{
 			name: "Lookup Function Signature",
 			arguments: arguments{
-				hash: "0xb4e4b296",
+				hash: "8f283970",
+			},
+		},
+		{
+			name: "Lookup Function Signature with 0x prefix",
+			arguments: arguments{
+				hash: "0x8f283970",
 			},
 		},
 	}
@@ -53,7 +59,7 @@ func TestEtherfaceClient_Lookup(t *testing.T) {
 			functionName, err := etherfaceClient.Lookup(context.TODO(), testcase.arguments.hash)
 			require.NoError(t, err)
 
-			require.Equal(t, "matchAskWithTakerBidUsingETHAndWETH", functionName)
+			require.Equal(t, "changeAdmin", functionName)
 		})
 	}
 }
