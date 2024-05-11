@@ -103,29 +103,8 @@ func (c *Component) GetWorkerConfig(ctx echo.Context) error {
 	}
 
 	// set default values for specific network architecture worker
-	config := NetworkArchToConfigMap[nid.Source()]
-
-	// set worker id and network
-	config.Worker.Value = wid
+	config := WorkerToConfigMap[nid.Source()][wid]
 	config.Network.Value = nid
-
-	// handle special cases
-	// momoka
-	if wid == worker.Momoka {
-		config.Endpoint = &Endpoint{
-			URL: &ConfigDetail{
-				IsRequired:  false,
-				Type:        "string",
-				Description: "You should set polygon endpoint url for momoka worker because it depends on lens contract",
-			},
-		}
-
-		config.EndpointID = &ConfigDetail{
-			IsRequired:  false,
-			Type:        "string",
-			Description: "You should set polygon endpoint id for momoka worker because it depends on lens contract",
-		}
-	}
 
 	return ctx.JSON(http.StatusOK, WorkerConfigResponse{
 		Data: config,
