@@ -30,7 +30,7 @@ type WorkerConfigResponse struct {
 	Data workerConfig `json:"data"`
 }
 
-// GetNetworksHandler get networks handler
+// GetNetworksHandler returns the list of all networks that the node can support.
 func (c *Component) GetNetworksHandler(ctx echo.Context) error {
 	go c.CollectMetric(ctx.Request().Context(), "networks")
 
@@ -40,7 +40,7 @@ func (c *Component) GetNetworksHandler(ctx echo.Context) error {
 
 	for _, item := range networkList {
 		networkStr := item.String()
-		// do not add unknown network
+		// skip unknown and bitcoin network
 		if networkStr == network.Unknown.String() || networkStr == network.Bitcoin.String() {
 			continue
 		}
@@ -53,7 +53,7 @@ func (c *Component) GetNetworksHandler(ctx echo.Context) error {
 	})
 }
 
-// GetWorkersByNetwork returns workers by Network.
+// GetWorkersByNetwork returns list of all workers for the specified network.
 func (c *Component) GetWorkersByNetwork(ctx echo.Context) error {
 	var request Request
 
@@ -78,7 +78,7 @@ func (c *Component) GetWorkersByNetwork(ctx echo.Context) error {
 	})
 }
 
-// GetWorkerConfig returns worker config of each network-worker pair.
+// GetWorkerConfig returns the recommended configuration for the specified worker.
 func (c *Component) GetWorkerConfig(ctx echo.Context) error {
 	var request WorkerRequest
 
