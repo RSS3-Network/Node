@@ -36,12 +36,28 @@ type WorkerStatusAggregator struct {
 	Statuses []worker.Status
 }
 
+// GetWorkers returns the status of all workers.
 func (c *Component) GetWorkers(ctx echo.Context) error {
-	var wg sync.WaitGroup
-
 	workerCount := len(c.config.Component.Decentralized)
-
 	workerInfoChan := make(chan *WorkerInfo, workerCount)
+
+	// Fetch all worker info concurrently.
+	c.fetchAllWorkerInfo(ctx, workerInfoChan)
+
+	// Aggregate the statuses of workers.
+	aggregatedWorkers := c.aggregateWorkers(workerInfoChan)
+
+	// Build the worker response.
+	workers := c.buildWorkerResponse(aggregatedWorkers)
+
+	return ctx.JSON(http.StatusOK, WorkerResponse{
+		Data: workers,
+	})
+}
+
+// fetchAllWorkerInfo fetches the status of all workers concurrently.
+func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *WorkerInfo) {
+	var wg sync.WaitGroup
 
 	for _, w := range c.config.Component.Decentralized {
 		wg.Add(1)
@@ -57,7 +73,10 @@ func (c *Component) GetWorkers(ctx echo.Context) error {
 		wg.Wait()
 		close(workerInfoChan)
 	}()
+}
 
+// aggregateWorkers aggregates the same workers through network + worker.
+func (c *Component) aggregateWorkers(workerInfoChan <-chan *WorkerInfo) map[WorkerKey]*WorkerStatusAggregator {
 	aggregatedWorkers := make(map[WorkerKey]*WorkerStatusAggregator)
 
 	for workerInfo := range workerInfoChan {
@@ -71,6 +90,11 @@ func (c *Component) GetWorkers(ctx echo.Context) error {
 		aggregatedWorkers[key].Statuses = append(aggregatedWorkers[key].Statuses, workerInfo.Status)
 	}
 
+	return aggregatedWorkers
+}
+
+// buildWorkerResponse aggregates statuses to determine the final status of a worker
+func (c *Component) buildWorkerResponse(aggregatedWorkers map[WorkerKey]*WorkerStatusAggregator) []*WorkerInfo {
 	workers := make([]*WorkerInfo, 0, len(aggregatedWorkers))
 
 	for key, aggregator := range aggregatedWorkers {
@@ -85,9 +109,7 @@ func (c *Component) GetWorkers(ctx echo.Context) error {
 		})
 	}
 
-	return ctx.JSON(http.StatusOK, WorkerResponse{
-		Data: workers,
-	})
+	return workers
 }
 
 func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
