@@ -6,6 +6,7 @@ type farcasterQuery struct {
 	Fid          *int64 `form:"fid,omitempty"`
 	TargetFid    *int64 `form:"target_fid,omitempty"`
 	Hash         string `form:"hash,omitempty"`
+	Name         string `form:"name,omitempty"`
 	TargetHash   string `form:"target_hash,omitempty"`
 	FromEventID  string `form:"from_event_id,omitempty"`
 	Reverse      bool   `form:"reverse,omitempty"`
@@ -106,6 +107,7 @@ type VerificationAddEthAddressBody struct {
 	Address      string `json:"address"`
 	EthSignature string `json:"ethSignature"`
 	BlockHash    string `json:"blockHash"`
+	Protocol     string `json:"protocol"`
 }
 
 type VerificationRemoveBody struct {
