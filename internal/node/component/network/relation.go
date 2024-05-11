@@ -1,4 +1,4 @@
-package decentralized
+package network
 
 import (
 	"github.com/rss3-network/node/schema/worker"

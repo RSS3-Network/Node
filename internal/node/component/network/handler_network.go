@@ -1,4 +1,4 @@
-package decentralized
+package network
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 
-type NetworkRequest struct {
+type Request struct {
 	Network string `param:"network" validate:"required"`
 }
 
@@ -18,7 +18,7 @@ type WorkerRequest struct {
 	Worker  string `param:"worker" validate:"required"`
 }
 
-type NetworkResponse struct {
+type Response struct {
 	Data []string `json:"data"`
 }
 
@@ -41,21 +41,21 @@ func (c *Component) GetNetworksHandler(ctx echo.Context) error {
 	for _, item := range networkList {
 		networkStr := item.String()
 		// do not add unknown network
-		if networkStr == "unknown" {
+		if networkStr == network.Unknown.String() || networkStr == network.Bitcoin.String() {
 			continue
 		}
 
 		result = append(result, networkStr)
 	}
 
-	return ctx.JSON(http.StatusOK, NetworkResponse{
+	return ctx.JSON(http.StatusOK, Response{
 		Data: result,
 	})
 }
 
 // GetWorkersByNetwork returns workers by Network.
 func (c *Component) GetWorkersByNetwork(ctx echo.Context) error {
-	var request NetworkRequest
+	var request Request
 
 	if err := ctx.Bind(&request); err != nil {
 		return fmt.Errorf("bind failed: %w", err)

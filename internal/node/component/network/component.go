@@ -1,31 +1,24 @@
-package decentralized
+package network
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/labstack/echo/v4"
-	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
-	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
-	"github.com/rss3-network/node/provider/ethereum/etherface"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.uber.org/zap"
 )
 
 type Component struct {
-	config          *config.File
-	counter         metric.Int64Counter
-	databaseClient  database.Client
-	etherfaceClient etherface.Client
-	redisClient     rueidis.Client
+	config  *config.File
+	counter metric.Int64Counter
 }
 
-const Name = "decentralized"
+const Name = "networks"
 
 func (c *Component) Name() string {
 	return Name
@@ -33,30 +26,19 @@ func (c *Component) Name() string {
 
 var _ component.Component = (*Component)(nil)
 
-func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client) component.Component {
+func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File) component.Component {
 	c := &Component{
-		config:         config,
-		databaseClient: databaseClient,
-		redisClient:    redisClient,
+		config: config,
 	}
 
 	group := apiServer.Group(fmt.Sprintf("/%s", Name))
 
-	group.GET("/tx/:id", c.GetActivity)
-	group.GET("/:account", c.GetAccountActivities)
-	group.GET("/count", c.GetActivitiesCount)
-	group.GET("/workers", c.GetWorkers)
+	group.GET("", c.GetNetworksHandler)
+	group.GET("/:network/list-workers", c.GetWorkersByNetwork)
+	group.GET("/:network/workers/:worker", c.GetWorkerConfig)
 
 	if err := c.InitMeter(); err != nil {
 		panic(err)
-	}
-
-	// Initialize etherface client, an optional dependency
-	etherfaceClient, err := etherface.NewEtherfaceClient()
-	if err != nil {
-		zap.L().Warn("failed to initialize etherface client", zap.Any("error", err))
-	} else {
-		c.etherfaceClient = etherfaceClient
 	}
 
 	return c
