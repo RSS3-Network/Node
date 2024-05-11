@@ -228,8 +228,9 @@ func (c *client) call(ctx context.Context, path string, query farcasterQuery, re
 		if err != nil {
 			var httpErr *HTTPError
 
+			// If the error is an HTTP error and the status code is 4xx, we will not retry.
 			if errors.As(err, &httpErr) && httpErr.StatusCode >= http.StatusBadRequest && httpErr.StatusCode < http.StatusInternalServerError {
-				zap.L().Warn("fetch farcaster request failed with HTTP 400, will not retry", zap.Error(err), zap.Int("status.code", httpErr.StatusCode))
+				zap.L().Warn("failed to fetch farcaster request, will not retry", zap.Error(err), zap.Int("status.code", httpErr.StatusCode))
 
 				return retry.Unrecoverable(err)
 			}
@@ -253,6 +254,7 @@ type HTTPError struct {
 func (e *HTTPError) Error() string {
 	return fmt.Sprintf("HTTP %d: %s", e.StatusCode, e.Message)
 }
+
 func (c *client) fetch(ctx context.Context, path string, result any) error {
 	httpErr := &HTTPError{}
 
