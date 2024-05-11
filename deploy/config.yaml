@@ -44,8 +44,8 @@ observability:
       endpoint: localhost:4318
 
 endpoints:
-  base:
-    url: https://base.blockpi.network/v1/rpc/f3067b7ddc8e748924a340d6a445145cc0508c41
+  ethereum:
+    url: https://rpc.ankr.com/eth
     http2_disabled: true
 
 component:
