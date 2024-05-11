@@ -197,6 +197,7 @@ func TestClient_GetVerificationsByFid(t *testing.T) {
 								Address:      "0x8888888198fbdc8c017870cc5d3c96d0cf15c4f0",
 								EthSignature: "c+kDPPR4mpcy0UZ9f5z5+kkMhpK+wPgS0VUgo7J3riAgMOYFJ48BhC5BMuAMU+Zsr03U9/lIrxgsCBr9E3J6RBw=",
 								BlockHash:    "0xea1823d0815b0e309b45b2fb317011165e72dec0f04a107381531cbb9a12091a",
+								Protocol:     "PROTOCOL_ETHEREUM",
 							},
 						},
 						Hash:            "0xf41b3e42c9c9d5356f9c2c80bf9fac6607b56ecd",

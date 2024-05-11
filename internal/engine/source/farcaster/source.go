@@ -55,6 +55,8 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 			return s.pollCasts(ctx, tasksChan)
 		}); err != nil {
 			errorChan <- err
+		} else {
+			return
 		}
 	}()
 
@@ -64,6 +66,8 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 			return s.pollReactions(ctx, tasksChan)
 		}); err != nil {
 			errorChan <- err
+		} else {
+			return
 		}
 	}()
 
@@ -88,20 +92,25 @@ func (s *source) initialize() (err error) {
 	return nil
 }
 
+// pollCasts polls casts from the Farcaster Hub.
+// It will poll casts by fid from the maximum fid to the minimal fid (1).
 func (s *source) pollCasts(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+	// Check if backfill of casts is complete.
 	if s.state.CastsBackfill {
 		return nil
 	}
 
+	// If fid is 0 and backfill is not complete, fetch the maximum fid from the Farcaster Hub.
 	if s.state.CastsFid == 0 && !s.state.CastsBackfill {
 		fidsResponse, err := s.farcasterClient.GetFids(ctx, true, lo.ToPtr(1))
 		if err != nil {
-			return fmt.Errorf("fetch farcaster max fid: %w", err)
+			return fmt.Errorf("failed to fetch farcaster max fid: %w", err)
 		}
 
 		s.pendingState.CastsFid = fidsResponse.Fids[0]
 	}
 
+	// Poll casts by fid until backfill is complete.
 	for !s.state.CastsBackfill {
 		err := s.pollCastsByFid(ctx, lo.ToPtr(int64(s.pendingState.CastsFid)), "", tasksChan)
 
@@ -109,9 +118,11 @@ func (s *source) pollCasts(ctx context.Context, tasksChan chan<- *engine.Tasks) 
 			return err
 		}
 
+		// Update state with pending state and decrement pending fid.
 		s.state = s.pendingState
 		s.pendingState.CastsFid--
 
+		// If pending fid is 0, mark backfill as complete.
 		if s.pendingState.CastsFid == 0 {
 			s.pendingState.CastsBackfill = true
 			s.state = s.pendingState
@@ -121,40 +132,49 @@ func (s *source) pollCasts(ctx context.Context, tasksChan chan<- *engine.Tasks) 
 	return nil
 }
 
+// pollCastsByFid polls casts by fid from the Farcaster Hub and send tasks to tasksChan.
 func (s *source) pollCastsByFid(ctx context.Context, fid *int64, pageToken string, tasksChan chan<- *engine.Tasks) error {
 	for {
+		// Fetch casts by fid.
 		castsByFidResponse, err := s.farcasterClient.GetCastsByFid(ctx, fid, true, nil, pageToken)
 
 		if err != nil {
 			return err
 		}
 
+		// Build tasks from the fetched casts and send them to the tasks channel.
 		tasks := s.buildFarcasterMessageTasks(ctx, castsByFidResponse.Messages)
 
 		tasksChan <- tasks
 
+		// If the fetched casts do not have a next page token, return nil
 		if castsByFidResponse.NextPageToken == "" {
 			return nil
 		}
-
+		// Update the page token for the next iteration
 		pageToken = castsByFidResponse.NextPageToken
 	}
 }
 
+// pollReactions polls reactions from the Farcaster Hub.
+// It will poll reactions by fid from the maximum fid to the minimal fid (1).
 func (s *source) pollReactions(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+	// Check if backfill of reactions is complete.
 	if s.state.ReactionsBackfill {
 		return nil
 	}
 
+	// If fid is 0 and backfill is not complete, fetch the maximum fid from the Farcaster Hub.
 	if s.state.ReactionsFid == 0 && !s.state.ReactionsBackfill {
 		fidsResponse, err := s.farcasterClient.GetFids(ctx, true, lo.ToPtr(1))
 		if err != nil {
-			return fmt.Errorf("fetch farcaster max fid: %w", err)
+			return fmt.Errorf("failed to fetch farcaster max fid: %w", err)
 		}
 
 		s.pendingState.ReactionsFid = fidsResponse.Fids[0]
 	}
 
+	// Poll reactions by fid until backfill is complete.
 	for !s.state.ReactionsBackfill {
 		err := s.pollReactionsByFid(ctx, lo.ToPtr(int64(s.pendingState.ReactionsFid)), "", tasksChan)
 
@@ -162,9 +182,11 @@ func (s *source) pollReactions(ctx context.Context, tasksChan chan<- *engine.Tas
 			return err
 		}
 
+		// Update state with pending state and decrement pending fid.
 		s.state = s.pendingState
 		s.pendingState.ReactionsFid--
 
+		// If pending fid is 0, mark backfill as complete.
 		if s.pendingState.ReactionsFid == 0 {
 			s.pendingState.ReactionsBackfill = true
 			s.state = s.pendingState
@@ -174,27 +196,29 @@ func (s *source) pollReactions(ctx context.Context, tasksChan chan<- *engine.Tas
 	return nil
 }
 
+// pollCastsByFid polls reactions by fid from the Farcaster Hub and send tasks to tasksChan.
 func (s *source) pollReactionsByFid(ctx context.Context, fid *int64, pageToken string, tasksChan chan<- *engine.Tasks) error {
 	for {
+		// Fetch reactions by fid.
 		reactionsByFidResponse, err := s.farcasterClient.GetReactionsByFid(ctx, fid, true, nil, pageToken, farcaster.ReactionTypeRecast.String())
 
 		if err != nil {
 			return err
 		}
-
+		// Build tasks from the fetched reactions and send them to the tasks channel.
 		tasks := s.buildFarcasterMessageTasks(ctx, reactionsByFidResponse.Messages)
 
 		tasksChan <- tasks
-
+		// If the fetched reactions do not have a next page token, return nil
 		if reactionsByFidResponse.NextPageToken == "" {
 			return nil
 		}
-
+		// Update the page token for the next iteration
 		pageToken = reactionsByFidResponse.NextPageToken
 	}
 }
 
-// buildFarcasterMessageTasks filter cast add and recast messages.
+// buildFarcasterMessageTasks builds tasks from a slice of Farcaster messages.
 func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farcaster.Message) *engine.Tasks {
 	var tasks engine.Tasks
 
@@ -224,10 +248,14 @@ func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farc
 	return &tasks
 }
 
+// pollEvents polls events from the Farcaster Hub.
+// It will poll events from the last event id to the latest event id.
 func (s *source) pollEvents(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+	// Set the cursor to the current event ID in the state.
 	cursor := s.state.EventID
 
 	for {
+		// Fetch events from the Farcaster Hub using the cursor.
 		eventsResponse, err := s.farcasterClient.GetEvents(ctx, lo.ToPtr(int64(cursor)))
 
 		if err != nil || eventsResponse == nil {
@@ -238,6 +266,7 @@ func (s *source) pollEvents(ctx context.Context, tasksChan chan<- *engine.Tasks)
 			continue
 		}
 
+		// If the fetched events are empty, log an info message, wait for a default block time, and continue to the next iteration.
 		if len(eventsResponse.Events) == 0 {
 			zap.L().Info("wait for new events", zap.Uint64("event.from.id", cursor), zap.Duration("block.time", defaultBlockTime))
 
@@ -257,7 +286,7 @@ func (s *source) pollEvents(ctx context.Context, tasksChan chan<- *engine.Tasks)
 	}
 }
 
-// buildFarcasterEventTasks filter cast add, recast and profile update events.
+// buildFarcasterEventTasks filter different types of events and build tasks from them.
 func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaster.HubEvent, tasksChan chan<- *engine.Tasks) *engine.Tasks {
 	var tasks engine.Tasks
 
@@ -303,7 +332,7 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 					_ = s.pollReactionsByFid(ctx, &fid, "", tasksChan)
 				}
 			default:
-				zap.L().Debug("unsupport message type", zap.String("type", event.MergeMessageBody.Message.Data.Type))
+				zap.L().Debug("unsupported message type", zap.String("type", event.MergeMessageBody.Message.Data.Type))
 
 				continue
 			}
@@ -314,45 +343,34 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 }
 
 // updateProfileByFid update profile by fid.
+// It will fetch the username and custody address by fid and update the profile in the database.
 func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Profile, error) {
+	var username string
+
 	// owner username(handle)
-	userDataByFidAndTypeRes, err := s.farcasterClient.GetUserDataByFidAndType(ctx, fid, farcaster.UserDataTypeUsername.String())
+	userData, err := s.farcasterClient.GetUserDataByFidAndType(ctx, fid, farcaster.UserDataTypeUsername.String())
+
 	if err != nil {
-		return nil, fmt.Errorf("fetch user data error: %w,%d", err, fid)
+		zap.L().Error("failed to fetch user data by fid", zap.Error(err), zap.Int64("fid", *fid))
+	} else if userData.Data.UserDataBody != nil {
+		username = userData.Data.UserDataBody.Value
 	}
 
 	// custody address
-	custodyAddresses, err := s.farcasterClient.GetUserNameProofsByFid(ctx, fid)
+	custodyAddress, username, err := s.getCustodyAddress(ctx, fid, username)
 	if err != nil {
-		return nil, fmt.Errorf("fetch custody address error: %w,%d", err, fid)
-	}
-
-	var custodyAddress string
-
-	if len(custodyAddresses.Proofs) > 0 {
-		addresses := lo.Filter(custodyAddresses.Proofs, func(x farcaster.UserNameProof, _ int) bool {
-			return x.Type == farcaster.UsernameTypeFname.String()
-		})
-
-		if len(addresses) > 0 {
-			custodyAddress = addresses[0].Owner
-		}
+		return nil, err
 	}
 
 	// eth addresses
-	verificationsByFidRes, err := s.farcasterClient.GetVerificationsByFid(ctx, fid, "")
-
+	ethAddresses, err := s.getEthAddresses(ctx, fid)
 	if err != nil {
-		return nil, fmt.Errorf("fetch eth address error: %w,%d", err, fid)
+		return nil, err
 	}
-
-	ethAddresses := lo.Map(verificationsByFidRes.Messages, func(x farcaster.Message, _ int) string {
-		return common.HexToAddress(x.Data.VerificationAddEthAddressBody.Address).String()
-	})
 
 	profile := &model.Profile{
 		Fid:            *fid,
-		Username:       userDataByFidAndTypeRes.Data.UserDataBody.Value,
+		Username:       username,
 		CustodyAddress: common.HexToAddress(custodyAddress).String(),
 		EthAddresses:   ethAddresses,
 	}
@@ -364,7 +382,60 @@ func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Pro
 	return profile, nil
 }
 
+// getCustodyAddress get custody address by fid.
+func (s *source) getCustodyAddress(ctx context.Context, fid *int64, username string) (string, string, error) {
+	userProofs, err := s.farcasterClient.GetUserNameProofsByFid(ctx, fid)
+	if err != nil {
+		return "", "", fmt.Errorf("fetch custody address by fid error: %w,%d", err, fid)
+	}
+
+	var custodyAddress string
+
+	for _, proof := range userProofs.Proofs {
+		if proof.Type == farcaster.UsernameTypeFname.String() {
+			custodyAddress = proof.Owner
+
+			if username == "" {
+				username = proof.Name
+			}
+
+			break
+		}
+	}
+
+	if custodyAddress == "" {
+		nameProof, err := s.farcasterClient.GetUserNameProofByName(ctx, username)
+		if err != nil || nameProof == nil {
+			return "", "", fmt.Errorf("fetch custody address by name error: %w,%d", err, fid)
+		}
+
+		custodyAddress = nameProof.Owner
+	}
+
+	return custodyAddress, username, nil
+}
+
+// getEthAddresses get eth addresses by fid.
+func (s *source) getEthAddresses(ctx context.Context, fid *int64) ([]string, error) {
+	verifications, err := s.farcasterClient.GetVerificationsByFid(ctx, fid, "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch eth address for fid %d: %w", fid, err)
+	}
+
+	var ethAddresses []string
+
+	for _, msg := range verifications.Messages {
+		if msg.Data.Type == farcaster.MessageTypeVerificationAddEthAddress.String() && msg.Data.VerificationAddEthAddressBody != nil && msg.Data.VerificationAddEthAddressBody.Protocol == farcaster.ProtocolEthereum.String() {
+			ethAddresses = append(ethAddresses, common.HexToAddress(msg.Data.VerificationAddEthAddressBody.Address).String())
+		}
+	}
+
+	return ethAddresses, nil
+}
+
 // getProfileByFid get profile by fid.
+// It will fetch the profile by fid from the database.
+// If the profile is not found or the username, custody address, and eth addresses are empty, it will update the profile.
 func (s *source) getProfileByFid(ctx context.Context, fid *int64) (*model.Profile, error) {
 	var (
 		profile *model.Profile
@@ -381,7 +452,7 @@ func (s *source) getProfileByFid(ctx context.Context, fid *int64) (*model.Profil
 		profile, err = s.updateProfileByFid(ctx, fid)
 
 		if err != nil {
-			return nil, fmt.Errorf("update farcaster profile %d: %w", fid, err)
+			return nil, fmt.Errorf("failed to update farcaster profile for fid %d: %w", fid, err)
 		}
 	}
 
@@ -413,7 +484,7 @@ func (s *source) fillProfile(ctx context.Context, message *farcaster.Message) er
 	profile, err := s.getProfileByFid(ctx, &fid)
 
 	if err != nil {
-		return fmt.Errorf("fetch farcaster profile error: %w", err)
+		return fmt.Errorf("failed to fetch farcaster profile for fid %d: %w", fid, err)
 	}
 
 	message.Data.Profile = profile
@@ -428,11 +499,11 @@ func (s *source) fillCastParams(ctx context.Context, message *farcaster.Message)
 		targetMessage, err := s.farcasterClient.GetCastByFidAndHash(ctx, &targetFid, message.Data.CastAddBody.ParentCastID.Hash)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to fetch target cast for target fid %d: %w", targetFid, err)
 		}
 
 		if targetMessage == nil {
-			return fmt.Errorf("target cast not found")
+			return fmt.Errorf("not found target cast for target fid %d", targetFid)
 		}
 
 		if err = s.fillMentionsUsernames(ctx, targetMessage); err != nil {
@@ -460,11 +531,11 @@ func (s *source) fillReactionParams(ctx context.Context, message *farcaster.Mess
 		targetMessage, err := s.farcasterClient.GetCastByFidAndHash(ctx, &targetFid, message.Data.ReactionBody.TargetCastID.Hash)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to fetch target reaction for target fid %d: %w", targetFid, err)
 		}
 
 		if targetMessage == nil {
-			return fmt.Errorf("target cast not found")
+			return fmt.Errorf("not found target reaction for target fid %d", targetFid)
 		}
 
 		if err = s.fillMentionsUsernames(ctx, targetMessage); err != nil {

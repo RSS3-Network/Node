@@ -16,13 +16,8 @@ import (
 	"github.com/rss3-network/node/internal/node/component/rss"
 )
 
+// default host and port for the API server
 const (
-	// FIXME: update startup command to use `core` instead of `hub`
-	CoreService = "hub"
-	// FIXME: do not use `indexer`, use `worker` instead
-	Worker      = "indexer"
-	Broadcaster = "broadcaster"
-	Monitor     = "monitor"
 	DefaultHost = "0.0.0.0"
 	DefaultPort = "80"
 )

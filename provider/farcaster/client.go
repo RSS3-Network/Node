@@ -3,6 +3,7 @@ package farcaster
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,12 +16,14 @@ import (
 )
 
 const (
-	EndpointMainnet = "https://nemes.farcaster.xyz:2281" // Public Instances https://www.thehubble.xyz/intro/hubble.html
+	// Public Instances https://www.thehubble.xyz/intro/hubble.html
+	EndpointMainnet = "https://nemes.farcaster.xyz:2281"
 
 	DefaultTimeout  = 5 * time.Second
-	DefaultAttempts = 5
-	FarcasterEpoch  = 1609459200 // January 1, 2021 UTC https://github.com/farcasterxyz/hub-monorepo/blob/77ff79ed804104956eb153247c22c00099c7b122/packages/core/src/time.ts#L4
-	SequenceBits    = 12
+	DefaultAttempts = 3
+	// https://github.com/farcasterxyz/hub-monorepo/blob/77ff79ed804104956eb153247c22c00099c7b122/packages/core/src/time.ts#L4
+	FarcasterEpoch = 1609459200 // January 1, 2021 UTC
+	SequenceBits   = 12
 )
 
 var _ Client = (*client)(nil)
@@ -30,6 +33,7 @@ type Client interface {
 	GetCastByFidAndHash(ctx context.Context, fid *int64, hash string) (*Message, error)
 	GetVerificationsByFid(ctx context.Context, fid *int64, pageToken string) (*MessageResponse, error)
 	GetUserNameProofsByFid(ctx context.Context, fid *int64) (*ProofResponse, error)
+	GetUserNameProofByName(ctx context.Context, name string) (*UserNameProof, error)
 	GetUserDataByFid(ctx context.Context, fid *int64, pageToken string) (*MessageResponse, error)
 	GetUserDataByFidAndType(ctx context.Context, fid *int64, userDataType string) (*Message, error)
 	GetEvents(ctx context.Context, fromEventID *int64) (*EventResponse, error)
@@ -95,6 +99,19 @@ func (c *client) GetUserNameProofsByFid(ctx context.Context, fid *int64) (*Proof
 
 	if err := c.call(ctx, "/v1/userNameProofsByFid", farcasterQuery{
 		Fid: fid,
+	}, &response); err != nil {
+		return nil, fmt.Errorf("fetch: %w", err)
+	}
+
+	return &response, nil
+}
+
+// GetUserNameProofByName Get a proof by a user name.
+func (c *client) GetUserNameProofByName(ctx context.Context, name string) (*UserNameProof, error) {
+	var response UserNameProof
+
+	if err := c.call(ctx, "/v1/userNameProofByName", farcasterQuery{
+		Name: name,
 	}, &response); err != nil {
 		return nil, fmt.Errorf("fetch: %w", err)
 	}
@@ -203,11 +220,23 @@ func (c *client) call(ctx context.Context, path string, query farcasterQuery, re
 	}
 
 	onRetry := retry.OnRetry(func(n uint, err error) {
-		zap.L().Error("fetch farcaster request", zap.Error(err), zap.Uint("attempts", n))
+		zap.L().Error("fetch farcaster request, retrying", zap.Error(err), zap.Uint("attempts", n))
 	})
 
 	retryableFunc := func() error {
-		return c.fetch(ctx, fmt.Sprintf("%s?%s", path, values.Encode()), &response)
+		err = c.fetch(ctx, fmt.Sprintf("%s?%s", path, values.Encode()), &response)
+		if err != nil {
+			var httpErr *HTTPError
+
+			// If the error is an HTTP error and the status code is 4xx, we will not retry.
+			if errors.As(err, &httpErr) && httpErr.StatusCode >= http.StatusBadRequest && httpErr.StatusCode < http.StatusInternalServerError {
+				zap.L().Warn("failed to fetch farcaster request, will not retry", zap.Error(err), zap.Int("status.code", httpErr.StatusCode))
+
+				return retry.Unrecoverable(err)
+			}
+		}
+
+		return err
 	}
 
 	if err = retry.Do(retryableFunc, retry.Delay(time.Second), retry.Attempts(c.attempts), onRetry); err != nil {
@@ -217,15 +246,30 @@ func (c *client) call(ctx context.Context, path string, query farcasterQuery, re
 	return nil
 }
 
+type HTTPError struct {
+	StatusCode int
+	Message    string
+}
+
+func (e *HTTPError) Error() string {
+	return fmt.Sprintf("HTTP %d: %s", e.StatusCode, e.Message)
+}
+
 func (c *client) fetch(ctx context.Context, path string, result any) error {
+	httpErr := &HTTPError{}
+
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s%s", c.endpointURL, path), nil)
 	if err != nil {
-		return fmt.Errorf("create request: %w", err)
+		httpErr.Message = fmt.Sprintf("create request: %s", err.Error())
+
+		return httpErr
 	}
 
 	response, err := c.httpClient.Do(request)
 	if err != nil {
-		return fmt.Errorf("do request: %w", err)
+		httpErr.Message = fmt.Sprintf("do request: %s", err.Error())
+
+		return httpErr
 	}
 
 	defer func() {
@@ -233,11 +277,16 @@ func (c *client) fetch(ctx context.Context, path string, result any) error {
 	}()
 
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status: %s", response.Status)
+		httpErr.StatusCode = response.StatusCode
+		httpErr.Message = fmt.Sprintf("unexpected status: %s", response.Status)
+
+		return httpErr
 	}
 
 	if err = json.NewDecoder(response.Body).Decode(&result); err != nil {
-		return fmt.Errorf("decode response: %w", err)
+		httpErr.Message = fmt.Sprintf("failed to decode response: %s", err.Error())
+
+		return httpErr
 	}
 
 	return nil
