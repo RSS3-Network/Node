@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _StatusName = "UnknownDisabledIndexingReadyUnhealthy"
+const _StatusName = "UnknownIndexingReadyUnhealthy"
 
-var _StatusIndex = [...]uint8{0, 7, 15, 23, 28, 37}
+var _StatusIndex = [...]uint8{0, 7, 15, 20, 29}
 
-const _StatusLowerName = "unknowndisabledindexingreadyunhealthy"
+const _StatusLowerName = "unknownindexingreadyunhealthy"
 
 func (i Status) String() string {
 	if i >= Status(len(_StatusIndex)-1) {
@@ -31,33 +31,29 @@ func (Status) Values() []string {
 func _StatusNoOp() {
 	var x [1]struct{}
 	_ = x[StatusUnknown-(0)]
-	_ = x[StatusDisabled-(1)]
-	_ = x[StatusIndexing-(2)]
-	_ = x[StatusReady-(3)]
-	_ = x[StatusUnhealthy-(4)]
+	_ = x[StatusIndexing-(1)]
+	_ = x[StatusReady-(2)]
+	_ = x[StatusUnhealthy-(3)]
 }
 
-var _StatusValues = []Status{StatusUnknown, StatusDisabled, StatusIndexing, StatusReady, StatusUnhealthy}
+var _StatusValues = []Status{StatusUnknown, StatusIndexing, StatusReady, StatusUnhealthy}
 
 var _StatusNameToValueMap = map[string]Status{
 	_StatusName[0:7]:        StatusUnknown,
 	_StatusLowerName[0:7]:   StatusUnknown,
-	_StatusName[7:15]:       StatusDisabled,
-	_StatusLowerName[7:15]:  StatusDisabled,
-	_StatusName[15:23]:      StatusIndexing,
-	_StatusLowerName[15:23]: StatusIndexing,
-	_StatusName[23:28]:      StatusReady,
-	_StatusLowerName[23:28]: StatusReady,
-	_StatusName[28:37]:      StatusUnhealthy,
-	_StatusLowerName[28:37]: StatusUnhealthy,
+	_StatusName[7:15]:       StatusIndexing,
+	_StatusLowerName[7:15]:  StatusIndexing,
+	_StatusName[15:20]:      StatusReady,
+	_StatusLowerName[15:20]: StatusReady,
+	_StatusName[20:29]:      StatusUnhealthy,
+	_StatusLowerName[20:29]: StatusUnhealthy,
 }
 
 var _StatusNames = []string{
 	_StatusName[0:7],
 	_StatusName[7:15],
-	_StatusName[15:23],
-	_StatusName[23:28],
-	_StatusName[28:37],
+	_StatusName[15:20],
+	_StatusName[20:29],
 }
 
 // StatusString retrieves an enum value from the enum constants string name.
