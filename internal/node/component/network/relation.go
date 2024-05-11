@@ -1663,7 +1663,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			WorkerID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service",
+				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
@@ -1705,7 +1705,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			WorkerID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service",
+				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
@@ -1759,7 +1759,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			WorkerID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service",
+				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
@@ -1798,7 +1798,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			WorkerID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service",
+				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
