@@ -57,7 +57,7 @@ func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 // processWorker processes the worker status.
 func (m *Monitor) processWorker(ctx context.Context, w *config.Module) error {
 	// get checkpoint state from database
-	state, err := m.getCheckpointState(ctx, w.ID(), w.Network, w.Worker.String())
+	state, err := m.getCheckpointState(ctx, w.ID, w.Network, w.Worker.String())
 	if err != nil {
 		zap.L().Error("get checkpoint state", zap.Error(err))
 		return err
@@ -71,12 +71,12 @@ func (m *Monitor) processWorker(ctx context.Context, w *config.Module) error {
 	}
 
 	// check worker's current status, and flag it as unhealthy if it's behind the latest block height/number by more than the tolerated amount
-	if err := m.flagUnhealthyWorker(ctx, w.Network.String(), w.ID(), w.Worker.String(), currentWorkerState, latestWorkerState, NetworkTolerance[w.Network]); err != nil {
+	if err := m.flagUnhealthyWorker(ctx, w.Network.String(), w.ID, w.Worker.String(), currentWorkerState, latestWorkerState, NetworkTolerance[w.Network]); err != nil {
 		return fmt.Errorf("detect unhealthy: %w", err)
 	}
 
 	//	update worker progress (state)
-	if err := m.UpdateWorkerProgress(ctx, w.ID(), currentWorkerState); err != nil {
+	if err := m.UpdateWorkerProgress(ctx, w.ID, currentWorkerState); err != nil {
 		return fmt.Errorf("update worker progress: %w", err)
 	}
 

@@ -355,7 +355,7 @@ func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.I
 
 func NewServer(ctx context.Context, config *config.Module, databaseClient database.Client, streamClient stream.Client, redisClient rueidis.Client) (server *Server, err error) {
 	instance := Server{
-		id:             config.ID(),
+		id:             config.ID,
 		config:         config,
 		databaseClient: databaseClient,
 		streamClient:   streamClient,
