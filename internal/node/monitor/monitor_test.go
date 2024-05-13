@@ -140,6 +140,33 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
+			name: "Ethereum Worker Unhealthy Status -> Indexing Status",
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "ethereum-core",
+								Network: network.Ethereum,
+								Worker:  worker.Core,
+								Endpoint: config.Endpoint{
+									URL: endpoint.MustGet(network.Ethereum),
+								},
+							},
+						},
+					},
+				},
+				initialStatus: worker.StatusUnhealthy,
+				currentState: monitor.CheckpointState{
+					BlockNumber: 19800000,
+				},
+				lastState:   19800000 - 1,
+				latestState: 19800000 + monitor.NetworkTolerance[network.Ethereum] + 1,
+			},
+			want:      worker.StatusIndexing,
+			wantError: require.NoError,
+		},
+		{
 			name: "Ethereum Worker Indexing Status -> Ready Status",
 			arguments: arguments{
 				config: &config.File{
@@ -258,6 +285,30 @@ func TestMonitor(t *testing.T) {
 				lastState:     1420000 - 1,
 				latestState:   1420000 + monitor.NetworkTolerance[network.Arweave] + 1,
 				initialStatus: worker.StatusIndexing,
+			},
+			want:      worker.StatusIndexing,
+			wantError: require.NoError,
+		},
+		{
+			name: "Arweave Worker Unhealthy Status -> Indexing Status",
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "arweave-mirror",
+								Network: network.Arweave,
+								Worker:  worker.Mirror,
+							},
+						},
+					},
+				},
+				currentState: monitor.CheckpointState{
+					BlockHeight: 1420000,
+				},
+				lastState:     1420000 - 1,
+				latestState:   1420000 + monitor.NetworkTolerance[network.Arweave] + 1,
+				initialStatus: worker.StatusUnhealthy,
 			},
 			want:      worker.StatusIndexing,
 			wantError: require.NoError,
@@ -386,6 +437,32 @@ func TestMonitor(t *testing.T) {
 				lastState:     1714972833273 - 1,
 				latestState:   1714972833273 + monitor.NetworkTolerance[network.Farcaster] + 1,
 				initialStatus: worker.StatusIndexing,
+			},
+			want:      worker.StatusIndexing,
+			wantError: require.NoError,
+		},
+		{
+			name: "Farcaster Worker Unhealthy Status -> Indexing Status",
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "farcaster-core",
+								Network: network.Farcaster,
+								Worker:  worker.Core,
+							},
+						},
+					},
+				},
+				currentState: monitor.CheckpointState{
+					EventID:          432183841886217,
+					CastsBackfill:    true,
+					ReactionBackfill: true,
+				},
+				lastState:     1714972833273 - 1,
+				latestState:   1714972833273 + monitor.NetworkTolerance[network.Farcaster] + 1,
+				initialStatus: worker.StatusUnhealthy,
 			},
 			want:      worker.StatusIndexing,
 			wantError: require.NoError,

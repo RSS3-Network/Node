@@ -17,7 +17,6 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
-	workerx "github.com/rss3-network/node/schema/worker"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
@@ -206,11 +205,6 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 
 	if err := s.databaseClient.SaveCheckpoint(ctx, &checkpoint); err != nil {
 		return fmt.Errorf("save checkpoint: %w", err)
-	}
-
-	// Set the worker status to indexing.
-	if err := s.updateWorkerStatus(ctx, s.config.ID, workerx.StatusIndexing.String()); err != nil {
-		return fmt.Errorf("update worker status: %w", err)
 	}
 
 	// Record the time it takes to handle tasks.
