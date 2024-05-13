@@ -3,7 +3,6 @@ package monitor
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"strconv"
 	"time"
 
@@ -20,11 +19,6 @@ type Client interface {
 	TargetState(param *config.Parameters) uint64
 	// LatestState returns the latest block number (ethereum), height (arweave) or event id (farcaster) of the client from network rpc/api.
 	LatestState(ctx context.Context) (uint64, error)
-}
-
-type TargetParam struct {
-	BlockHeightTarget *big.Int `json:"block_height_target"`
-	BlockNumberTarget *big.Int `json:"block_number_target"`
 }
 
 // ethereumClient is a client implementation for ethereum.
