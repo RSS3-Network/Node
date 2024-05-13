@@ -46,6 +46,8 @@ observability:
 endpoints:
   ethereum:
     url: https://rpc.ankr.com/eth
+  base:
+    url: https://rpc.ankr.com/base
     http2_disabled: true
 
 component:

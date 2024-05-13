@@ -64,14 +64,14 @@ func (m *Monitor) processWorker(ctx context.Context, w *config.Module) error {
 	}
 
 	// get current indexing block height, number or event id and the latest block height, number, timestamp of network
-	currentWorkerState, latestWorkerState, err := m.getWorkerIndexingStateByClients(ctx, w.Network, state)
+	currentWorkerState, latestWorkerState, isTargetParamSet, err := m.getWorkerIndexingStateByClients(ctx, w.Network, state, w.Parameters)
 	if err != nil {
 		zap.L().Error("get latest block height or number", zap.Error(err))
 		return err
 	}
 
 	// check worker's current status, and flag it as unhealthy if it's behind the latest block height/number by more than the tolerated amount
-	if err := m.flagWorkerStatus(ctx, w.ID, currentWorkerState, latestWorkerState, NetworkTolerance[w.Network]); err != nil {
+	if err := m.flagWorkerStatus(ctx, w.ID, currentWorkerState, latestWorkerState, NetworkTolerance[w.Network], isTargetParamSet); err != nil {
 		return fmt.Errorf("detect unhealthy: %w", err)
 	}
 
@@ -84,22 +84,22 @@ func (m *Monitor) processWorker(ctx context.Context, w *config.Module) error {
 }
 
 // getWorkerIndexingStateByClients gets the latest block height (arweave), block number (ethereum), event id (farcaster).
-func (m *Monitor) getWorkerIndexingStateByClients(ctx context.Context, n network.Network, state CheckpointState) (uint64, uint64, error) {
+func (m *Monitor) getWorkerIndexingStateByClients(ctx context.Context, n network.Network, state CheckpointState, param *config.Parameters) (uint64, uint64, bool, error) {
 	client, ok := m.clients[n]
 	if !ok {
-		return 0, 0, fmt.Errorf("client not ready")
+		return 0, 0, false, fmt.Errorf("client not ready")
 	}
 
 	latestState, err := client.LatestState(ctx)
 	if err != nil {
-		return 0, 0, fmt.Errorf("get latest state: %w", err)
+		return 0, 0, false, fmt.Errorf("get latest state: %w", err)
 	}
 
-	return client.CurrentState(state), latestState, nil
+	return client.CurrentState(state), latestState, client.IsTargetParamSet(param), nil
 }
 
 // flagWorkerStatus detects by comparing the current and latest block height/number. Could be converted to ready, indexing, unhealthy.
-func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, currentWorkerState, latestWorkerState, networkTolerance uint64) error {
+func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, currentWorkerState, latestWorkerState, networkTolerance uint64, isTargetParamSet bool) error {
 	currentStatus := m.GetWorkerStatusByID(ctx, workerID)
 	targetStatus := currentStatus
 
@@ -108,9 +108,9 @@ func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, current
 	}
 
 	switch currentStatus {
-	case workerx.StatusReady:
-		// if the worker is ready but the difference between the current and latest block height/number is greater than the tolerance, flag it as indexing
-		if latestWorkerState-currentWorkerState > networkTolerance {
+	case workerx.StatusUnknown:
+		// if the worker status is unknown and the current worker state is greater than 0, flag it as indexing
+		if currentWorkerState > 0 {
 			targetStatus = workerx.StatusIndexing
 		}
 	case workerx.StatusIndexing:
@@ -121,6 +121,12 @@ func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, current
 			// if the worker is indexing and the difference between the current and latest block height/number is less than the tolerance, flag it as ready
 			targetStatus = workerx.StatusReady
 		}
+	case workerx.StatusReady:
+		// if the worker is ready and the target block height/number is set, it will remain ready because it's finished.
+		// otherwise the difference between the current and latest block height/number is greater than the tolerance, flag it as indexing
+		if !isTargetParamSet && latestWorkerState-currentWorkerState > networkTolerance {
+			targetStatus = workerx.StatusIndexing
+		}
 	case workerx.StatusUnhealthy:
 		if currentWorkerState > m.getWorkerProgress(ctx, workerID) {
 			// if the worker is unhealthy and made progress in the last cycle, flag it as indexing
@@ -129,8 +135,10 @@ func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, current
 	default:
 	}
 
-	if err := m.UpdateWorkerStatusByID(ctx, workerID, targetStatus.String()); err != nil {
-		return fmt.Errorf("update worker status: %w", err)
+	if targetStatus != currentStatus {
+		if err := m.UpdateWorkerStatusByID(ctx, workerID, targetStatus.String()); err != nil {
+			return fmt.Errorf("update worker status: %w", err)
+		}
 	}
 
 	return nil

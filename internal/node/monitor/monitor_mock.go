@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState CheckpointState, latestState uint64) error {
+func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState CheckpointState, latestState uint64, isTargetParamSet bool) error {
 	var wg sync.WaitGroup
 
 	errChan := make(chan error, len(m.config.Component.Decentralized))
@@ -20,7 +20,7 @@ func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState Chec
 		go func(w *config.Module) {
 			defer wg.Done()
 
-			if err := m.processMockWorker(ctx, w, currentState, latestState); err != nil {
+			if err := m.processMockWorker(ctx, w, currentState, latestState, isTargetParamSet); err != nil {
 				errChan <- err
 			}
 		}(w)
@@ -41,16 +41,16 @@ func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState Chec
 }
 
 // processWorker processes the worker status.
-func (m *Monitor) processMockWorker(ctx context.Context, w *config.Module, currentState CheckpointState, latestWorkerState uint64) error {
+func (m *Monitor) processMockWorker(ctx context.Context, w *config.Module, currentState CheckpointState, latestWorkerState uint64, isTargetParamSet bool) error {
 	// get current indexing block height, number or event id and the latest block height, number, timestamp of network
-	currentWorkerState, _, err := m.getWorkerIndexingStateByClients(ctx, w.Network, currentState)
+	currentWorkerState, _, _, err := m.getWorkerIndexingStateByClients(ctx, w.Network, currentState, w.Parameters)
 	if err != nil {
 		zap.L().Error("get latest block height or number", zap.Error(err))
 		return err
 	}
 
 	// check worker's current status, and flag it as unhealthy if it's left behind the latest block height/number by more than the tolerance
-	if err := m.flagWorkerStatus(ctx, w.ID, currentWorkerState, latestWorkerState, NetworkTolerance[w.Network]); err != nil {
+	if err := m.flagWorkerStatus(ctx, w.ID, currentWorkerState, latestWorkerState, NetworkTolerance[w.Network], isTargetParamSet); err != nil {
 		return fmt.Errorf("detect unhealthy: %w", err)
 	}
 
