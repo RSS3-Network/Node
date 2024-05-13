@@ -31,7 +31,7 @@ type Parameters struct {
 }
 
 type workerConfig struct {
-	WorkerID     ConfigDetail  `json:"worker_id"`
+	ID           ConfigDetail  `json:"id"`
 	Network      ConfigDetail  `json:"network"`
 	Worker       ConfigDetail  `json:"worker"`
 	EndpointID   *ConfigDetail `json:"endpoint,omitempty"`
@@ -132,15 +132,15 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	network.EthereumSource: {
 		worker.Aave: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -151,7 +151,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -161,7 +161,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -190,15 +190,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.Aavegotchi: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "Your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -209,7 +209,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -219,7 +219,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -248,15 +248,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.Core: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -267,7 +267,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -277,7 +277,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -306,15 +306,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.Crossbell: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -330,7 +330,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -340,7 +340,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -369,15 +369,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.Curve: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -388,7 +388,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -398,7 +398,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -427,15 +427,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.ENS: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -446,7 +446,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -456,7 +456,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -485,15 +485,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.Highlight: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -504,7 +504,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -514,7 +514,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -543,15 +543,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.IQWiki: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -567,7 +567,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -577,7 +577,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -606,15 +606,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.KiwiStand: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -625,7 +625,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -635,7 +635,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -664,15 +664,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.Lens: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -688,7 +688,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -698,7 +698,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -727,15 +727,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.Lido: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -746,7 +746,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -756,7 +756,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -785,15 +785,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.Looksrare: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -804,7 +804,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -814,7 +814,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -843,15 +843,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.Matters: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -867,7 +867,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -877,7 +877,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -906,15 +906,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.OpenSea: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -925,7 +925,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -935,7 +935,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -964,15 +964,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.Optimism: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -983,7 +983,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -993,7 +993,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -1022,15 +1022,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.RSS3: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -1041,7 +1041,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -1051,7 +1051,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -1080,15 +1080,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.SAVM: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -1099,7 +1099,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -1109,7 +1109,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -1138,15 +1138,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.Stargate: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -1157,7 +1157,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -1167,7 +1167,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -1196,15 +1196,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.Uniswap: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -1215,7 +1215,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -1225,7 +1225,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -1254,15 +1254,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.VSL: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -1273,7 +1273,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -1283,7 +1283,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				BlockNumberTarget: &ConfigDetail{
 					IsRequired:  false,
 					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing",
+					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
 				},
 				RPCThreadBlocks: &ConfigDetail{
 					IsRequired:  false,
@@ -1314,16 +1314,16 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	},
 	network.ArweaveSource: {
 		worker.Mirror: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
 				Value:       network.Arweave,
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -1356,16 +1356,16 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.Momoka: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
 				Value:       network.Arweave,
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -1403,16 +1403,16 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		},
 		worker.Paragraph: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
 				Value:       network.Arweave,
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
@@ -1442,27 +1442,27 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	},
 	network.FarcasterSource: {
 		worker.Core: {
-			WorkerID: ConfigDetail{
+			ID: ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, it will run as an independent service, the default is `network.worker`",
+				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
 			Network: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
 				Value:       network.Farcaster,
-				Description: "Network where the worker is running on",
+				Description: "Your worker is running on the defined network",
 			},
 			Worker: ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
 				Value:       worker.Core,
-				Description: "Your farcaster worker name, currently only support core",
+				Description: "Your farcaster worker name, currently we only support core",
 			},
 			EndpointID: &ConfigDetail{
 				IsRequired:  true,
 				Type:        "string",
-				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
+				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
 			},
 			Parameters: &Parameters{
 				APIKey: &ConfigDetail{
