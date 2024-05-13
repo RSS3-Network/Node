@@ -5,11 +5,20 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 
+type ConfigDetailValueType string
+
+const (
+	BigIntType      ConfigDetailValueType = "big.Int"
+	StringArrayType ConfigDetailValueType = "[]string"
+	StringType      ConfigDetailValueType = "string"
+	UintType        ConfigDetailValueType = "uint"
+)
+
 type ConfigDetail struct {
-	IsRequired  bool        `json:"isRequired"`
-	Type        string      `json:"type"`
-	Value       interface{} `json:"value"`
-	Description string      `json:"description"`
+	IsRequired  bool                  `json:"isRequired"`
+	Type        ConfigDetailValueType `json:"type"`
+	Value       interface{}           `json:"value"`
+	Description string                `json:"description"`
 }
 
 type Endpoint struct {
@@ -43,36 +52,36 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 	network.EthereumSource: {
 		BlockNumberStart: &ConfigDetail{
 			IsRequired:  false,
-			Type:        "big.Int",
+			Type:        BigIntType,
 			Description: "The block number where your worker will begin indexing. Each version of Node has a different starting block number.",
 		},
 		// unnecessary to expose
 		// BlockNumberTarget: &ConfigDetail{
 		//	IsRequired:  false,
-		//	Type:        "big.Int",
+		//	Type:        BigIntType,
 		//	Description: "The block number where your worker will stop indexing",
 		// },
 		RPCThreadBlocks: &ConfigDetail{
 			IsRequired:  false,
-			Type:        "uint",
+			Type:        UintType,
 			Value:       uint(8),
 			Description: "The number of concurrent RPC requests to the blockchain rpc. Default: 8",
 		},
 		RPCBatchBlocks: &ConfigDetail{
 			IsRequired:  false,
-			Type:        "uint",
+			Type:        UintType,
 			Value:       uint(8),
 			Description: "The number of blocks to fetch in a single RPC request. Default: 8",
 		},
 		RPCBatchReceipts: &ConfigDetail{
 			IsRequired:  false,
-			Type:        "uint",
+			Type:        UintType,
 			Value:       uint(200),
 			Description: "The number of receipts to fetch in a single RPC request. Default: 200",
 		},
 		RPCBatchBlockReceipts: &ConfigDetail{
 			IsRequired:  false,
-			Type:        "uint",
+			Type:        UintType,
 			Value:       uint(8),
 			Description: "The number of blocks to fetch receipts in a single RPC request. Default: 8",
 		},
@@ -80,18 +89,18 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 	network.ArweaveSource: {
 		BlockHeightStart: &ConfigDetail{
 			IsRequired:  false,
-			Type:        "big.Int",
+			Type:        BigIntType,
 			Description: "The block height where your worker will begin indexing. Each version of Node has a different starting block height",
 		},
 		// unnecessary to expose
 		// BlockHeightTarget: &ConfigDetail{
 		//	IsRequired:  false,
-		//	Type:        "big.Int",
+		//	Type:        BigIntType,
 		//	Description: "The block height where your worker will stop indexing",
 		// },
 		RPCThreadBlocks: &ConfigDetail{
 			IsRequired:  false,
-			Type:        "uint",
+			Type:        UintType,
 			Value:       uint(1),
 			Description: "The number of concurrent RPC requests to the arweave endpoints or gateways, it's recommended to set it to 1 because the strict rate limit of arweave",
 		},
@@ -114,23 +123,23 @@ func defaultWorkerConfig(worker worker.Worker, network network.Source, parameter
 	config := workerConfig{
 		ID: ConfigDetail{
 			IsRequired:  true,
-			Type:        "string",
+			Type:        StringType,
 			Description: "Worker's id, must be unique, for example '[network]-[worker]'",
 		},
 		Network: ConfigDetail{
 			IsRequired:  true,
-			Type:        "string",
+			Type:        StringType,
 			Description: "The network where the worker operates on",
 		},
 		Worker: ConfigDetail{
 			IsRequired:  true,
-			Type:        "string",
+			Type:        StringType,
 			Value:       worker.String(),
 			Description: "Name of the worker",
 		},
 		EndpointID: &ConfigDetail{
 			IsRequired:  true,
-			Type:        "string",
+			Type:        StringType,
 			Description: "An external endpoint to fetch data from, for example, a blockchain RPC endpoint",
 		},
 		Parameters: parameters,
@@ -145,7 +154,7 @@ func customWorkerConfigWithIPFS(worker worker.Worker, network network.Source, en
 
 	config.IPFSGateways = &ConfigDetail{
 		IsRequired:  false,
-		Type:        "[]string",
+		Type:        StringArrayType,
 		Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service",
 	}
 
@@ -288,7 +297,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		worker.Core: customWorkerConfig(worker.Core, network.FarcasterSource, &Parameters{
 			APIKey: &ConfigDetail{
 				IsRequired:  false,
-				Type:        "string",
+				Type:        StringType,
 				Description: "API key to access your Farcaster Hubble on Neynar",
 			},
 		}, "A Farcaster Hubble is required"),
