@@ -52,3 +52,15 @@ var (
 	MethodIDStableSwapRemoveLiquidityImbalance3Coins = contract.MethodID("remove_liquidity_imbalance(uint256[3],uint256)")
 	MethodIDStableSwapRemoveLiquidityImbalance4Coins = contract.MethodID("remove_liquidity_imbalance(uint256[4],uint256)")
 )
+
+func IsOfficeRegistryExchange(address common.Address) bool {
+	return contract.MatchAddresses(
+		address,
+		AddressRegistryExchangeEthereum,
+		AddressRegistryExchangeArbitrum,
+		AddressRegistryExchangeAvalanche,
+		AddressRegistryExchangeGnosis,
+		AddressRegistryExchangeOptimism,
+		AddressRegistryExchangePolygon,
+	)
+}
