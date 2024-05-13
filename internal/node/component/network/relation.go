@@ -149,7 +149,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -207,7 +207,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -265,7 +265,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -328,7 +328,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -386,7 +386,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -444,7 +444,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -502,7 +502,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -565,7 +565,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -623,7 +623,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -686,7 +686,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service. You are recommended to use your own ipfs gateways because the default ones are not stable for lens",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -744,7 +744,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -802,7 +802,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -865,7 +865,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -923,7 +923,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -981,7 +981,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -1039,7 +1039,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -1097,7 +1097,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -1155,7 +1155,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -1213,7 +1213,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -1271,7 +1271,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your evm worker name",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
@@ -1379,7 +1379,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service. You are recommended to use your own ipfs gateways because the default ones are not stable for momoka",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You should set polygon endpoint id for momoka worker because it depends on lens contract",
 			},
@@ -1460,7 +1460,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "Your farcaster worker name, currently only support core",
 			},
 			EndpointID: &ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
