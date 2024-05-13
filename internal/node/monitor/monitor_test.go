@@ -34,7 +34,7 @@ func TestMonitor(t *testing.T) {
 	}{
 		// Ethereum Worker
 		{
-			name: "Ethereum Worker Ready Status -> Unhealthy Status",
+			name: "Ethereum Worker Ready Status -> Indexing Status",
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -56,7 +56,7 @@ func TestMonitor(t *testing.T) {
 				latestState:   19800000 + monitor.NetworkTolerance[network.Ethereum] + 1,
 				initialStatus: worker.StatusReady,
 			},
-			want:      worker.StatusUnhealthy,
+			want:      worker.StatusIndexing,
 			wantError: require.NoError,
 		},
 		{
@@ -169,7 +169,7 @@ func TestMonitor(t *testing.T) {
 
 		// Arweave Worker
 		{
-			name: "Arweave Worker Ready Status -> Unhealthy Status",
+			name: "Arweave Worker Ready Status -> Indexing Status",
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -188,7 +188,7 @@ func TestMonitor(t *testing.T) {
 				latestState:   1420000 + monitor.NetworkTolerance[network.Arweave] + 1,
 				initialStatus: worker.StatusReady,
 			},
-			want:      worker.StatusUnhealthy,
+			want:      worker.StatusIndexing,
 			wantError: require.NoError,
 		},
 		{
@@ -289,7 +289,7 @@ func TestMonitor(t *testing.T) {
 
 		// Farcaster Worker
 		{
-			name: "Farcaster Worker Ready Status -> Unhealthy Status",
+			name: "Farcaster Worker Ready Status -> Indexing Status",
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -310,7 +310,7 @@ func TestMonitor(t *testing.T) {
 				latestState:   1714972833273 + monitor.NetworkTolerance[network.Farcaster] + 1,
 				initialStatus: worker.StatusReady,
 			},
-			want:      worker.StatusUnhealthy,
+			want:      worker.StatusIndexing,
 			wantError: require.NoError,
 		},
 		{
