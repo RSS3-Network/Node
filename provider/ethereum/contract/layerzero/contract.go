@@ -28,6 +28,20 @@ var (
 	AddressUltraLightNodeLinea             = common.HexToAddress("0x38dE71124f7a447a01D67945a51eDcE9FF491251")
 )
 
+func RelayerAddresses() []common.Address {
+	return []common.Address{
+		AddressRelayerMainnet,
+		AddressRelayerBinanceSmartChain,
+		AddressRelayerAvalanche,
+		AddressRelayerPolygon,
+		AddressRelayerArbitrum,
+		AddressRelayerOptimism,
+		AddressRelayerGnosis,
+		AddressRelayerBase,
+		AddressRelayerLinea,
+	}
+}
+
 func UltraLightNodeAddress(n network.Network) (common.Address, bool) {
 	var address common.Address
 

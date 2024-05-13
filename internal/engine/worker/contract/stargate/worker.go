@@ -11,6 +11,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
+	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/layerzero"
 	"github.com/rss3-network/node/provider/ethereum/contract/stargate"
 	"github.com/rss3-network/node/provider/ethereum/token"
@@ -70,46 +71,31 @@ func (w *worker) Types() []schema.Type {
 }
 
 func (w *worker) Filter() engine.SourceFilter {
-	return &source.Filter{
-		LogAddresses: []common.Address{
-			// RouterETHAddresses
-			stargate.AddressRouterETHMainnet,
-			stargate.AddressRouterETHArbitrumOne,
-			stargate.AddressRouterETHOptimism,
-			stargate.AddressRouterETHBase,
-			stargate.AddressRouterETHLinea,
+	return &source.Filter{}
+}
 
-			// RouterAddresses
-			stargate.AddressRouterMainnet,
-			stargate.AddressRouterBinanceSmartChain,
-			stargate.AddressRouterAvalanche,
-			stargate.AddressRouterPolygon,
-			stargate.AddressRouterArbitrumOne,
-			stargate.AddressRouterOptimism,
-			stargate.AddressRouterBase,
-			stargate.AddressRouterLinea,
+func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
+	ethereumTask, ok := task.(*source.Task)
+	if !ok {
+		return false, fmt.Errorf("invalid task type: %T", task)
+	}
 
-			// RelayerAddresses
-			layerzero.AddressRelayerMainnet,
-			layerzero.AddressRelayerBinanceSmartChain,
-			layerzero.AddressRelayerAvalanche,
-			layerzero.AddressRelayerPolygon,
-			layerzero.AddressRelayerArbitrum,
-			layerzero.AddressRelayerOptimism,
-			layerzero.AddressRelayerGnosis,
-			layerzero.AddressRelayerBase,
-			layerzero.AddressRelayerLinea,
-		},
-		LogTopics: []common.Hash{
+	if ethereumTask.Transaction.To == nil {
+		return false, nil
+	}
+
+	if contract.MatchAddresses(*ethereumTask.Transaction.To, stargate.RouterETHAddresses()...) || contract.MatchAddresses(*ethereumTask.Transaction.To, stargate.RouterAddresses()...) {
+		return true, nil
+	}
+
+	return lo.ContainsBy(ethereumTask.Receipt.Logs, func(log *ethereum.Log) bool {
+		return len(log.Topics) > 0 && contract.MatchEventHashes(
+			log.Topics[0],
 			stargate.EventHashPoolCreditChainPath,
 			stargate.EventHashPoolSwap,
 			stargate.EventHashPoolSwapRemote,
-		},
-	}
-}
-
-func (w *worker) Match(_ context.Context, _ engine.Task) (bool, error) {
-	return true, nil // TODO Remove this function.
+		)
+	}), nil
 }
 
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {

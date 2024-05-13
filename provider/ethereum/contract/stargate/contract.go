@@ -19,22 +19,22 @@ var (
 	AddressRouterBinanceSmartChain = common.HexToAddress("0x4a364f8c717cAAD9A442737Eb7b8A55cc6cf18D8")
 	AddressRouterAvalanche         = common.HexToAddress("0x45A01E4e04F14f7A4a6702c74187c5F6222033cd")
 	AddressRouterPolygon           = common.HexToAddress("0x45A01E4e04F14f7A4a6702c74187c5F6222033cd")
-	AddressRouterArbitrumOne       = common.HexToAddress("0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614")
+	AddressRouterArbitrum          = common.HexToAddress("0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614")
 	AddressRouterOptimism          = common.HexToAddress("0xB0D502E938ed5f4df2E681fE6E419ff29631d62b")
 	AddressRouterBase              = common.HexToAddress("0x45f1A95A4D3f3836523F5c83673c797f4d4d263B")
 	AddressRouterLinea             = common.HexToAddress("0x2F6F07CDcf3588944Bf4C42aC74ff24bF56e7590")
 
-	AddressRouterETHMainnet     = common.HexToAddress("0x150f94B44927F078737562f0fcF3C95c01Cc2376")
-	AddressRouterETHArbitrumOne = common.HexToAddress("0xbf22f0f184bCcbeA268dF387a49fF5238dD23E40")
-	AddressRouterETHOptimism    = common.HexToAddress("0xB49c4e680174E331CB0A7fF3Ab58afC9738d5F8b")
-	AddressRouterETHBase        = common.HexToAddress("0x50B6EbC2103BFEc165949CC946d739d5650d7ae4")
-	AddressRouterETHLinea       = common.HexToAddress("0x8731d54E9D02c286767d56ac03e8037C07e01e98")
+	AddressRouterETHMainnet  = common.HexToAddress("0x150f94B44927F078737562f0fcF3C95c01Cc2376")
+	AddressRouterETHArbitrum = common.HexToAddress("0xbf22f0f184bCcbeA268dF387a49fF5238dD23E40")
+	AddressRouterETHOptimism = common.HexToAddress("0xB49c4e680174E331CB0A7fF3Ab58afC9738d5F8b")
+	AddressRouterETHBase     = common.HexToAddress("0x50B6EbC2103BFEc165949CC946d739d5650d7ae4")
+	AddressRouterETHLinea    = common.HexToAddress("0x8731d54E9D02c286767d56ac03e8037C07e01e98")
 
 	AddressFactoryMainnet           = common.HexToAddress("0x06D538690AF257Da524f25D0CD52fD85b1c2173E")
 	AddressFactoryBinanceSmartChain = common.HexToAddress("0xe7Ec689f432f29383f217e36e680B5C855051f25")
 	AddressFactoryAvalanche         = common.HexToAddress("0x808d7c71ad2ba3FA531b068a2417C63106BC0949")
 	AddressFactoryPolygon           = common.HexToAddress("0x808d7c71ad2ba3FA531b068a2417C63106BC0949")
-	AddressFactoryArbitrumOne       = common.HexToAddress("0x55bDb4164D28FBaF0898e0eF14a589ac09Ac9970")
+	AddressFactoryArbitrum          = common.HexToAddress("0x55bDb4164D28FBaF0898e0eF14a589ac09Ac9970")
 	AddressFactoryOptimism          = common.HexToAddress("0xE3B53AF74a4BF62Ae5511055290838050bf764Df")
 	AddressFactoryBase              = common.HexToAddress("0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6")
 	AddressFactoryLinea             = common.HexToAddress("0xaf54be5b6eec24d6bfacf1cce4eaf680a8239398")
@@ -49,6 +49,29 @@ var (
 	EventHashPoolSwapRemote      = contract.EventHash("SwapRemote(address,uint256,uint256,uint256)")
 	EventHashPoolCreditChainPath = contract.EventHash("CreditChainPath(uint16,uint256,uint256,uint256)")
 )
+
+func RouterAddresses() []common.Address {
+	return []common.Address{
+		AddressRouterMainnet,
+		AddressRouterBinanceSmartChain,
+		AddressRouterAvalanche,
+		AddressRouterPolygon,
+		AddressRouterArbitrum,
+		AddressRouterOptimism,
+		AddressRouterBase,
+		AddressRouterLinea,
+	}
+}
+
+func RouterETHAddresses() []common.Address {
+	return []common.Address{
+		AddressRouterETHMainnet,
+		AddressRouterETHArbitrum,
+		AddressRouterETHOptimism,
+		AddressRouterETHBase,
+		AddressRouterETHLinea,
+	}
+}
 
 func EthereumChain(chainID uint16) (network.Network, bool) {
 	var chain network.Network
@@ -88,7 +111,7 @@ func FactoryAddress(n network.Network) (common.Address, bool) {
 	case network.Polygon:
 		address = AddressFactoryPolygon
 	case network.Arbitrum:
-		address = AddressFactoryArbitrumOne
+		address = AddressFactoryArbitrum
 	case network.Optimism:
 		address = AddressFactoryOptimism
 	case network.Base:

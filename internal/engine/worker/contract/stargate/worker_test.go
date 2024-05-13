@@ -199,7 +199,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Network: network.Arbitrum,
 				Index:   2,
 				From:    "0x32C8e4D2Cb2642A29bC06115336AC96Bf0160485",
-				To:      stargate.AddressRouterETHArbitrumOne.String(),
+				To:      stargate.AddressRouterETHArbitrum.String(),
 				Type:    typex.TransactionBridge,
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x1114cd2a",
