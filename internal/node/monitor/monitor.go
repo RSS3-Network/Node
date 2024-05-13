@@ -109,15 +109,16 @@ func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, current
 
 	switch currentStatus {
 	case workerx.StatusReady:
-		// if the worker is ready but the difference between the current and latest block height/number is greater than the tolerance, flag it as unhealthy
+		// if the worker is ready but the difference between the current and latest block height/number is greater than the tolerance, flag it as indexing
 		if latestWorkerState-currentWorkerState > networkTolerance {
 			targetStatus = workerx.StatusIndexing
 		}
 	case workerx.StatusIndexing:
-		// if the worker is indexing but didn't make any progress in the last cycle, flag it as unhealthy
 		if currentWorkerState <= m.getWorkerProgress(ctx, workerID) {
+			// if the worker is indexing but didn't make any progress in the last cycle, flag it as unhealthy
 			targetStatus = workerx.StatusUnhealthy
 		} else if latestWorkerState-currentWorkerState < networkTolerance {
+			// if the worker is indexing and the difference between the current and latest block height/number is less than the tolerance, flag it as ready
 			targetStatus = workerx.StatusReady
 		}
 	default:
