@@ -278,6 +278,10 @@ func (s *source) batchPullData(ctx context.Context, transactions []*arweave.Tran
 	for index, transaction := range transactions {
 		index, transaction := index, transaction
 
+		if lo.Contains(bundlrNodes, transaction.Owner) {
+			continue
+		}
+
 		resultPool.Go(func(ctx context.Context) error {
 			response, err := s.arweaveClient.GetTransactionData(ctx, transaction.ID)
 			if err != nil {
