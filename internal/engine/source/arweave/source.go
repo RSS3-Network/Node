@@ -278,7 +278,12 @@ func (s *source) batchPullData(ctx context.Context, transactions []*arweave.Tran
 	for index, transaction := range transactions {
 		index, transaction := index, transaction
 
-		if lo.Contains(bundlrNodes, transaction.Owner) {
+		owner, err := arweave.PublicKeyToAddress(transaction.Owner)
+		if err != nil {
+			return fmt.Errorf("invalid owner of transaction %s: %w", transaction.ID, err)
+		}
+
+		if lo.Contains(bundlrNodes, owner) {
 			continue
 		}
 
