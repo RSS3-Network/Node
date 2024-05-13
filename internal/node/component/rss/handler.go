@@ -1,7 +1,6 @@
 package rss
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -16,7 +15,7 @@ type Response struct {
 func (h *Component) Handler(c echo.Context) error {
 	path := c.Param("*")
 
-	go h.CollectMetric(context.TODO(), path)
+	go h.CollectMetric(c.Request().Context(), path)
 
 	data, err := h.getActivities(c.Request().Context(), path, c.Request().URL)
 	if err != nil {

@@ -1,7 +1,6 @@
 package decentralized
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -116,7 +115,7 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 		return response.ValidateFailedError(ctx, err)
 	}
 
-	go c.CollectMetric(context.TODO(), common.HexToAddress(request.Account).String())
+	go c.CollectMetric(ctx.Request().Context(), common.HexToAddress(request.Account).String())
 
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
