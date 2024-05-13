@@ -39,6 +39,139 @@ type workerConfig struct {
 	Parameters   *Parameters   `json:"parameters,omitempty"`
 }
 
+var defaultNetworkParameters = map[network.Source]*Parameters{
+	network.EthereumSource: &Parameters{
+		BlockNumberStart: &ConfigDetail{
+			IsRequired:  false,
+			Type:        "big.Int",
+			Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
+		BlockNumberTarget: &ConfigDetail{
+			IsRequired:  false,
+			Type:        "big.Int",
+			Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
+		},
+		RPCThreadBlocks: &ConfigDetail{
+			IsRequired:  false,
+			Type:        "uint",
+			Value:       uint(8),
+			Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
+		},
+		RPCBatchBlocks: &ConfigDetail{
+			IsRequired:  false,
+			Type:        "uint",
+			Value:       uint(8),
+			Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
+		},
+		RPCBatchReceipts: &ConfigDetail{
+			IsRequired:  false,
+			Type:        "uint",
+			Value:       uint(200),
+			Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
+		},
+		RPCBatchBlockReceipts: &ConfigDetail{
+			IsRequired:  false,
+			Type:        "uint",
+			Value:       uint(8),
+			Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
+		},
+	},
+	network.ArweaveSource: {
+		BlockHeightStart: &ConfigDetail{
+			IsRequired:  false,
+			Type:        "big.Int",
+			Description: "Your arweave worker will start from this block height, if it's not defined, we will use the recommended one(~3 months)",
+		},
+		BlockHeightTarget: &ConfigDetail{
+			IsRequired:  false,
+			Type:        "big.Int",
+			Description: "Your arweave worker will stop at this block height, if it's not defined, your worker will always indexing",
+		},
+		RPCThreadBlocks: &ConfigDetail{
+			IsRequired:  false,
+			Type:        "uint",
+			Value:       uint(1),
+			Description: "The number of concurrent RPC requests to the arweave endpoints or gateways, it's recommended to set it to 1 because the strict rate limit of arweave",
+		},
+	},
+}
+
+func getDefaultParameters(network network.Source) *Parameters {
+	return defaultNetworkParameters[network]
+}
+
+func defaultWorkerConfig(worker worker.Worker, network network.Source, parameters *Parameters) workerConfig {
+	// generate default parameters only if parameters are not provided
+	if parameters == nil {
+		parameters = getDefaultParameters(network)
+	}
+
+	config := workerConfig{
+		ID: ConfigDetail{
+			IsRequired:  true,
+			Type:        "string",
+			Description: "Worker's id, must be unique, for example '[network]-[worker]'",
+		},
+		Network: ConfigDetail{
+			IsRequired:  true,
+			Type:        "string",
+			Description: "The network where the worker operates on",
+		},
+		Worker: ConfigDetail{
+			IsRequired:  true,
+			Type:        "string",
+			Value:       worker.String(),
+			Description: "Name of the worker",
+		},
+		EndpointID: &ConfigDetail{
+			IsRequired:  true,
+			Type:        "string",
+			Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
+		},
+		Parameters: parameters,
+	}
+
+	return config
+}
+
+// workerConfigWithIPFS returns the default worker config with IPFS.
+// If parameters are supplied, use them to override the default parameters.
+func workerConfigWithIPFS(worker worker.Worker, network network.Source, parameters *Parameters) workerConfig {
+	config := defaultWorkerConfig(worker, network, parameters)
+
+	config.IPFSGateways = &ConfigDetail{
+		IsRequired:  false,
+		Type:        "[]string",
+		Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service",
+	}
+
+	return config
+}
+
+// customWorkerConfigWithIPFS generates a config with IPFS and custom fields.
+func customWorkerConfigWithIPFS(worker worker.Worker, network network.Source, parameters *Parameters, endpointDescription string) workerConfig {
+	config := defaultWorkerConfig(worker, network, parameters)
+
+	config.IPFSGateways = &ConfigDetail{
+		IsRequired:  false,
+		Type:        "[]string",
+		Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service",
+	}
+
+	config.EndpointID.Description = endpointDescription
+
+	return config
+}
+
+// customWorkerConfig generates a config with custom fields.
+func customWorkerConfig(worker worker.Worker, network network.Source, parameters *Parameters, endpointDescription string) workerConfig {
+	config := defaultWorkerConfig(worker, network, parameters)
+
+	// Update the EndpointID description based on the provided custom description
+	config.EndpointID.Description = endpointDescription
+
+	return config
+}
+
 // NetworkToWorkersMap is a map of network to workers.
 var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.Ethereum: {
@@ -131,1346 +264,39 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 // WorkerToConfigMap is a map of worker to config.
 var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	network.EthereumSource: {
-		worker.Aave: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Aave,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.Aavegotchi: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Aavegotchi,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.Core: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Core,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.Crossbell: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Crossbell,
-				Description: "Your evm worker name",
-			},
-			IPFSGateways: &ConfigDetail{
-				IsRequired:  false,
-				Type:        "[]string",
-				Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.Curve: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Curve,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.ENS: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Aave,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.Highlight: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Highlight,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.IQWiki: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.IQWiki,
-				Description: "Your evm worker name",
-			},
-			IPFSGateways: &ConfigDetail{
-				IsRequired:  false,
-				Type:        "[]string",
-				Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.KiwiStand: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.KiwiStand,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.Lens: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Lens,
-				Description: "Your evm worker name",
-			},
-			IPFSGateways: &ConfigDetail{
-				IsRequired:  false,
-				Type:        "[]string",
-				Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service. You are recommended to use your own ipfs gateways because the default ones are not stable for lens",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.Lido: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Lido,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.Looksrare: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Looksrare,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.Matters: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Matters,
-				Description: "Your evm worker name",
-			},
-			IPFSGateways: &ConfigDetail{
-				IsRequired:  false,
-				Type:        "[]string",
-				Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.OpenSea: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.OpenSea,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.Optimism: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Optimism,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.RSS3: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.RSS3,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.SAVM: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.SAVM,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.Stargate: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Stargate,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.Uniswap: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Uniswap,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
-		worker.VSL: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.VSL,
-				Description: "Your evm worker name",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				BlockNumberStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-				BlockNumberTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-				RPCBatchReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(200),
-					Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
-				},
-				RPCBatchBlockReceipts: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(8),
-					Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
-				},
-			},
-		},
+		worker.Aave:       defaultWorkerConfig(worker.Aave, network.EthereumSource, &Parameters{}),
+		worker.Aavegotchi: defaultWorkerConfig(worker.Aavegotchi, network.EthereumSource, &Parameters{}),
+		worker.Core:       defaultWorkerConfig(worker.Core, network.EthereumSource, &Parameters{}),
+		worker.Crossbell:  workerConfigWithIPFS(worker.Crossbell, network.EthereumSource, &Parameters{}),
+		worker.Curve:      defaultWorkerConfig(worker.Curve, network.EthereumSource, &Parameters{}),
+		worker.ENS:        defaultWorkerConfig(worker.ENS, network.EthereumSource, &Parameters{}),
+		worker.Highlight:  defaultWorkerConfig(worker.Highlight, network.EthereumSource, &Parameters{}),
+		worker.IQWiki:     workerConfigWithIPFS(worker.IQWiki, network.EthereumSource, &Parameters{}),
+		worker.KiwiStand:  defaultWorkerConfig(worker.KiwiStand, network.EthereumSource, &Parameters{}),
+		worker.Lens:       workerConfigWithIPFS(worker.Lens, network.EthereumSource, &Parameters{}),
+		worker.Lido:       defaultWorkerConfig(worker.Lido, network.EthereumSource, &Parameters{}),
+		worker.Looksrare:  defaultWorkerConfig(worker.Looksrare, network.EthereumSource, &Parameters{}),
+		worker.Matters:    workerConfigWithIPFS(worker.Matters, network.EthereumSource, &Parameters{}),
+		worker.OpenSea:    defaultWorkerConfig(worker.OpenSea, network.EthereumSource, &Parameters{}),
+		worker.Optimism:   defaultWorkerConfig(worker.Optimism, network.EthereumSource, &Parameters{}),
+		worker.RSS3:       defaultWorkerConfig(worker.RSS3, network.EthereumSource, &Parameters{}),
+		worker.SAVM:       defaultWorkerConfig(worker.SAVM, network.EthereumSource, &Parameters{}),
+		worker.Stargate:   defaultWorkerConfig(worker.Stargate, network.EthereumSource, &Parameters{}),
+		worker.Uniswap:    defaultWorkerConfig(worker.Uniswap, network.EthereumSource, &Parameters{}),
+		worker.VSL:        defaultWorkerConfig(worker.VSL, network.EthereumSource, &Parameters{}),
 	},
 	network.ArweaveSource: {
-		worker.Mirror: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       network.Arweave,
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Mirror,
-				Description: "Your arweave worker name",
-			},
-			IPFSGateways: &ConfigDetail{
-				IsRequired:  false,
-				Type:        "[]string",
-				Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service",
-			},
-			Parameters: &Parameters{
-				BlockHeightStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your arweave worker will start from this block height, if it's not defined, we will use the recommended one(~3 months)",
-				},
-				BlockHeightTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your arweave worker will stop at this block height, if it's not defined, your worker will always indexing",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(1),
-					Description: "The number of concurrent RPC requests to the arweave endpoints or gateways, it's recommended to set it to 1 because the strict rate limit of arweave",
-				},
-			},
-		},
-		worker.Momoka: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       network.Arweave,
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Momoka,
-				Description: "Your arweave worker name",
-			},
-			IPFSGateways: &ConfigDetail{
-				IsRequired:  false,
-				Type:        "[]string",
-				Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service. You are recommended to use your own ipfs gateways because the default ones are not stable for momoka",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You should set polygon endpoint id for momoka worker because it depends on lens contract",
-			},
-			Parameters: &Parameters{
-				BlockHeightStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your arweave worker will start from this block height, if it's not defined, we will use the recommended one(~3 months)",
-				},
-				BlockHeightTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your arweave worker will stop at this block height, if it's not defined, your worker will always indexing",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(1),
-					Description: "The number of concurrent RPC requests to the arweave endpoints or gateways, it's recommended to set it to 1 because the strict rate limit of arweave",
-				},
-			},
-		},
-		worker.Paragraph: {
-			ID: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
-			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       network.Arweave,
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Paragraph,
-				Description: "Your arweave worker name",
-			},
-			Parameters: &Parameters{
-				BlockHeightStart: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your arweave worker will start from this block height, if it's not defined, we will use the recommended one(~3 months)",
-				},
-				BlockHeightTarget: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "big.Int",
-					Description: "Your arweave worker will stop at this block height, if it's not defined, your worker will always indexing",
-				},
-				RPCThreadBlocks: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "uint",
-					Value:       uint(1),
-					Description: "The number of concurrent RPC requests to the arweave endpoints or gateways, it's recommended to set it to 1 because the strict rate limit of arweave",
-				},
-			},
-		},
+		worker.Mirror:    workerConfigWithIPFS(worker.Mirror, network.ArweaveSource, &Parameters{}),
+		worker.Momoka:    customWorkerConfigWithIPFS(worker.Mirror, network.ArweaveSource, &Parameters{}, "A Polygon RPC is required for Momoka"),
+		worker.Paragraph: defaultWorkerConfig(worker.Mirror, network.ArweaveSource, &Parameters{}),
 	},
 	network.FarcasterSource: {
-		worker.Core: {
-			ID: ConfigDetail{
-				IsRequired:  true,
+		worker.Core: customWorkerConfig(worker.Core, network.FarcasterSource, &Parameters{
+			APIKey: &ConfigDetail{
+				IsRequired:  false,
 				Type:        "string",
-				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
+				Description: "API key to access your Farcaster Hubble",
 			},
-			Network: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       network.Farcaster,
-				Description: "Your worker is running on the defined network",
-			},
-			Worker: ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Value:       worker.Core,
-				Description: "Your farcaster worker name, currently we only support core",
-			},
-			EndpointID: &ConfigDetail{
-				IsRequired:  true,
-				Type:        "string",
-				Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
-			},
-			Parameters: &Parameters{
-				APIKey: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "API key for your own farcaster hub",
-				},
-			},
-		},
+		}, "If your Farcaster Hubble requires authentication"),
 	},
 }
