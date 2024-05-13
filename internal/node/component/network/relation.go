@@ -133,7 +133,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	network.EthereumSource: {
 		worker.Aave: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -191,7 +191,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.Aavegotchi: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "Your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -249,7 +249,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.Core: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -307,7 +307,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.Crossbell: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -370,7 +370,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.Curve: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -428,7 +428,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.ENS: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -486,7 +486,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.Highlight: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -544,7 +544,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.IQWiki: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -607,7 +607,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.KiwiStand: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -665,7 +665,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.Lens: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -728,7 +728,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.Lido: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -786,7 +786,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.Looksrare: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -844,7 +844,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.Matters: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -907,7 +907,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.OpenSea: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -965,7 +965,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.Optimism: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -1023,7 +1023,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.RSS3: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -1081,7 +1081,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.SAVM: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -1139,7 +1139,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.Stargate: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -1197,7 +1197,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.Uniswap: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -1255,7 +1255,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.VSL: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -1315,7 +1315,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	network.ArweaveSource: {
 		worker.Mirror: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -1357,7 +1357,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.Momoka: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -1404,7 +1404,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		},
 		worker.Paragraph: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
@@ -1443,7 +1443,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	network.FarcasterSource: {
 		worker.Core: {
 			ID: ConfigDetail{
-				IsRequired:  false,
+				IsRequired:  true,
 				Type:        "string",
 				Description: "You can define your own worker id, you are recommended to use `[network]-[worker]`",
 			},
