@@ -465,7 +465,7 @@ func (s *source) filterNonBatchTransaction(transactions []*arweave.Transaction) 
 			return false
 		}
 
-		return !lo.Contains(bundlrNodes, transactionOwner)
+		return lo.Contains(bundlrNodes, transactionOwner)
 	})
 }
 
