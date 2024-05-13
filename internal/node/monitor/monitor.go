@@ -112,6 +112,8 @@ func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, current
 		// if the worker status is unknown and the current worker state is greater than 0, flag it as indexing
 		if currentWorkerState > 0 {
 			targetStatus = workerx.StatusIndexing
+		} else {
+			targetStatus = workerx.StatusUnhealthy
 		}
 	case workerx.StatusIndexing:
 		if currentWorkerState <= m.getWorkerProgress(ctx, workerID) {
