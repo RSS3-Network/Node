@@ -34,8 +34,7 @@ type workerConfig struct {
 	WorkerID     ConfigDetail  `json:"worker_id"`
 	Network      ConfigDetail  `json:"network"`
 	Worker       ConfigDetail  `json:"worker"`
-	EndpointID   *ConfigDetail `json:"endpoint_id,omitempty"`
-	Endpoint     *Endpoint     `json:"endpoint,omitempty"`
+	EndpointID   *ConfigDetail `json:"endpoint,omitempty"`
 	IPFSGateways *ConfigDetail `json:"ipfs_gateways,omitempty"`
 	Parameters   *Parameters   `json:"parameters,omitempty"`
 }
@@ -154,23 +153,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
-			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
 					IsRequired:  false,
@@ -229,23 +211,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
-			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
 					IsRequired:  false,
@@ -303,23 +268,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				IsRequired:  false,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
-			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -384,23 +332,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
-			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
 					IsRequired:  false,
@@ -458,23 +389,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				IsRequired:  false,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
-			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -534,23 +448,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
-			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
 					IsRequired:  false,
@@ -608,23 +505,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				IsRequired:  false,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
-			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -689,23 +569,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
-			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
 					IsRequired:  false,
@@ -763,23 +626,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				IsRequired:  false,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
-			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -844,23 +690,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
-			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
 					IsRequired:  false,
@@ -919,23 +748,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
-			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
 					IsRequired:  false,
@@ -993,23 +805,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				IsRequired:  false,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
-			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -1074,23 +869,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
-			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
 					IsRequired:  false,
@@ -1148,23 +926,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				IsRequired:  false,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
-			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -1224,23 +985,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
-			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
 					IsRequired:  false,
@@ -1298,23 +1042,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				IsRequired:  false,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
-			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -1374,23 +1101,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
-			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
 					IsRequired:  false,
@@ -1448,23 +1158,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				IsRequired:  false,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
-			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -1524,23 +1217,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
 			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
-			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
 					IsRequired:  false,
@@ -1598,23 +1274,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				IsRequired:  false,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
-			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "If you don't define the endpoint id, you should set the endpoint url here",
-				},
-				HTTPHeaders: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "map[string]string",
-					Description: "HTTP headers for network client",
-				},
-				HTTP2Disabled: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "bool",
-					Description: "You can disable HTTP/2 for the network client",
-				},
 			},
 			Parameters: &Parameters{
 				BlockNumberStart: &ConfigDetail{
@@ -1719,13 +1378,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Type:        "[]string",
 				Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service. You are recommended to use your own ipfs gateways because the default ones are not stable for momoka",
 			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "You should set polygon endpoint url for momoka worker because it depends on lens contract",
-				},
-			},
 			EndpointID: &ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
@@ -1811,13 +1463,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				IsRequired:  false,
 				Type:        "string",
 				Description: "You can define a global endpoint id for later use, and if the endpoint id is not found in the endpoints list, it will use the endpoint id as the url.",
-			},
-			Endpoint: &Endpoint{
-				URL: &ConfigDetail{
-					IsRequired:  false,
-					Type:        "string",
-					Description: "You should run your own farcaster hub and set the endpoint url here",
-				},
 			},
 			Parameters: &Parameters{
 				APIKey: &ConfigDetail{
