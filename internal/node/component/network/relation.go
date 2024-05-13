@@ -102,7 +102,7 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 			IsRequired:  false,
 			Type:        UintType,
 			Value:       uint(1),
-			Description: "The number of concurrent RPC requests to the arweave endpoints or gateways, it's recommended to set it to 1 because the strict rate limit of arweave",
+			Description: "The number of concurrent RPC requests to the Arweave gateway. Default: 1",
 		},
 	},
 }
@@ -140,7 +140,7 @@ func defaultWorkerConfig(worker worker.Worker, network network.Source, parameter
 		EndpointID: &ConfigDetail{
 			IsRequired:  true,
 			Type:        StringType,
-			Description: "An external endpoint to fetch data from, for example, a blockchain RPC endpoint",
+			Description: "An external endpoint to fetch data from, for example, a blockchain RPC endpoint or an Arweave gateway",
 		},
 		Parameters: parameters,
 	}
@@ -155,7 +155,7 @@ func customWorkerConfigWithIPFS(worker worker.Worker, network network.Source, en
 	config.IPFSGateways = &ConfigDetail{
 		IsRequired:  false,
 		Type:        StringArrayType,
-		Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service",
+		Description: "A list of IPFS gateways to fetch data from, multiple gateways may improve the availability of IPFS data",
 	}
 
 	if len(endpointDescription) > 0 {
