@@ -85,18 +85,24 @@ func (w *worker) Types() []schema.Type {
 
 // Filter curve contract address and event hash.
 func (w *worker) Filter() engine.SourceFilter {
-	return &source.Filter{
-		// filter curve contract address
-		LogAddresses: []common.Address{
-			curve.AddressRegistryExchangeEthereum,
-			curve.AddressRegistryExchangeArbitrum,
-			curve.AddressRegistryExchangeAvalanche,
-			curve.AddressRegistryExchangeGnosis,
-			curve.AddressRegistryExchangeOptimism,
-			curve.AddressRegistryExchangePolygon,
-		},
-		// filter curve event hash
-		LogTopics: []common.Hash{
+	return &source.Filter{}
+}
+
+// Match Ethereum task.
+func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
+	ethereumTask, ok := task.(*source.Task)
+	if !ok {
+		return false, fmt.Errorf("invalid task type: %T", task)
+	}
+
+	// RegistryExchange
+	if curve.IsOfficeRegistryExchange(*ethereumTask.Transaction.To) {
+		return true, nil
+	}
+
+	return lo.ContainsBy(ethereumTask.Receipt.Logs, func(log *ethereum.Log) bool {
+		return len(log.Topics) > 0 && contract.MatchEventHashes(
+			log.Topics[0],
 			curve.EventHashStableSwapTokenExchange,
 			curve.EventHashStableSwapAddLiquidity2Coins,
 			curve.EventHashStableSwapAddLiquidity3Coins,
@@ -111,13 +117,8 @@ func (w *worker) Filter() engine.SourceFilter {
 			curve.EventHashStableSwapRemoveLiquidityImbalance4Coins,
 			curve.EventHashLiquidityGaugeDeposit,
 			curve.EventHashLiquidityGaugeWithdraw,
-		},
-	}
-}
-
-// Match Ethereum task.
-func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == network.EthereumSource, nil
+		)
+	}), nil
 }
 
 // Transform Ethereum task to feed.
