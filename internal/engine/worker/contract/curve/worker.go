@@ -95,6 +95,10 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 		return false, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	if ethereumTask.Transaction.To == nil {
+		return false, nil
+	}
+
 	// RegistryExchange
 	if curve.IsOfficeRegistryExchange(*ethereumTask.Transaction.To) {
 		return true, nil
@@ -234,6 +238,10 @@ func (w *worker) matchStableSwapEventHashStableSwapRemoveLiquidityTransaction(ta
 
 // matchEthereumRegistryExchangeExchangeMultipleLog matches ethereum registry exchange multiple log.
 func (w *worker) matchEthereumRegistryExchangeExchangeMultipleLog(_ *source.Task, log *ethereum.Log) bool {
+	if !curve.IsOfficeRegistryExchange(log.Address) {
+		return false
+	}
+
 	return len(log.Topics) == 3 && contract.MatchEventHashes(log.Topics[0], curve.EventHashRegistryExchangeExchangeMultiple)
 }
 
