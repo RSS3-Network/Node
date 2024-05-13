@@ -139,23 +139,9 @@ func defaultWorkerConfig(worker worker.Worker, network network.Source, parameter
 	return config
 }
 
-// workerConfigWithIPFS returns the default worker config with IPFS.
-// If parameters are supplied, use them to override the default parameters.
-func workerConfigWithIPFS(worker worker.Worker, network network.Source, parameters *Parameters) workerConfig {
-	config := defaultWorkerConfig(worker, network, parameters)
-
-	config.IPFSGateways = &ConfigDetail{
-		IsRequired:  false,
-		Type:        "[]string",
-		Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service",
-	}
-
-	return config
-}
-
 // customWorkerConfigWithIPFS generates a config with IPFS and custom fields.
-func customWorkerConfigWithIPFS(worker worker.Worker, network network.Source, parameters *Parameters, endpointDescription string) workerConfig {
-	config := defaultWorkerConfig(worker, network, parameters)
+func customWorkerConfigWithIPFS(worker worker.Worker, network network.Source, endpointDescription string) workerConfig {
+	config := defaultWorkerConfig(worker, network, nil)
 
 	config.IPFSGateways = &ConfigDetail{
 		IsRequired:  false,
@@ -163,7 +149,9 @@ func customWorkerConfigWithIPFS(worker worker.Worker, network network.Source, pa
 		Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service",
 	}
 
-	config.EndpointID.Description = endpointDescription
+	if len(endpointDescription) > 0 {
+		config.EndpointID.Description = endpointDescription
+	}
 
 	return config
 }
@@ -270,31 +258,31 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 // WorkerToConfigMap is a map of worker to config.
 var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	network.EthereumSource: {
-		worker.Aave:       defaultWorkerConfig(worker.Aave, network.EthereumSource, &Parameters{}),
-		worker.Aavegotchi: defaultWorkerConfig(worker.Aavegotchi, network.EthereumSource, &Parameters{}),
-		worker.Core:       defaultWorkerConfig(worker.Core, network.EthereumSource, &Parameters{}),
-		worker.Crossbell:  workerConfigWithIPFS(worker.Crossbell, network.EthereumSource, &Parameters{}),
-		worker.Curve:      defaultWorkerConfig(worker.Curve, network.EthereumSource, &Parameters{}),
-		worker.ENS:        defaultWorkerConfig(worker.ENS, network.EthereumSource, &Parameters{}),
-		worker.Highlight:  defaultWorkerConfig(worker.Highlight, network.EthereumSource, &Parameters{}),
-		worker.IQWiki:     workerConfigWithIPFS(worker.IQWiki, network.EthereumSource, &Parameters{}),
-		worker.KiwiStand:  defaultWorkerConfig(worker.KiwiStand, network.EthereumSource, &Parameters{}),
-		worker.Lens:       workerConfigWithIPFS(worker.Lens, network.EthereumSource, &Parameters{}),
-		worker.Lido:       defaultWorkerConfig(worker.Lido, network.EthereumSource, &Parameters{}),
-		worker.Looksrare:  defaultWorkerConfig(worker.Looksrare, network.EthereumSource, &Parameters{}),
-		worker.Matters:    workerConfigWithIPFS(worker.Matters, network.EthereumSource, &Parameters{}),
-		worker.OpenSea:    defaultWorkerConfig(worker.OpenSea, network.EthereumSource, &Parameters{}),
-		worker.Optimism:   defaultWorkerConfig(worker.Optimism, network.EthereumSource, &Parameters{}),
-		worker.RSS3:       defaultWorkerConfig(worker.RSS3, network.EthereumSource, &Parameters{}),
-		worker.SAVM:       defaultWorkerConfig(worker.SAVM, network.EthereumSource, &Parameters{}),
-		worker.Stargate:   defaultWorkerConfig(worker.Stargate, network.EthereumSource, &Parameters{}),
-		worker.Uniswap:    defaultWorkerConfig(worker.Uniswap, network.EthereumSource, &Parameters{}),
-		worker.VSL:        defaultWorkerConfig(worker.VSL, network.EthereumSource, &Parameters{}),
+		worker.Aave:       defaultWorkerConfig(worker.Aave, network.EthereumSource, nil),
+		worker.Aavegotchi: defaultWorkerConfig(worker.Aavegotchi, network.EthereumSource, nil),
+		worker.Core:       defaultWorkerConfig(worker.Core, network.EthereumSource, nil),
+		worker.Crossbell:  customWorkerConfigWithIPFS(worker.Crossbell, network.EthereumSource, ""),
+		worker.Curve:      defaultWorkerConfig(worker.Curve, network.EthereumSource, nil),
+		worker.ENS:        defaultWorkerConfig(worker.ENS, network.EthereumSource, nil),
+		worker.Highlight:  defaultWorkerConfig(worker.Highlight, network.EthereumSource, nil),
+		worker.IQWiki:     customWorkerConfigWithIPFS(worker.IQWiki, network.EthereumSource, ""),
+		worker.KiwiStand:  defaultWorkerConfig(worker.KiwiStand, network.EthereumSource, nil),
+		worker.Lens:       customWorkerConfigWithIPFS(worker.Lens, network.EthereumSource, ""),
+		worker.Lido:       defaultWorkerConfig(worker.Lido, network.EthereumSource, nil),
+		worker.Looksrare:  defaultWorkerConfig(worker.Looksrare, network.EthereumSource, nil),
+		worker.Matters:    customWorkerConfigWithIPFS(worker.Matters, network.EthereumSource, ""),
+		worker.OpenSea:    defaultWorkerConfig(worker.OpenSea, network.EthereumSource, nil),
+		worker.Optimism:   defaultWorkerConfig(worker.Optimism, network.EthereumSource, nil),
+		worker.RSS3:       defaultWorkerConfig(worker.RSS3, network.EthereumSource, nil),
+		worker.SAVM:       defaultWorkerConfig(worker.SAVM, network.EthereumSource, nil),
+		worker.Stargate:   defaultWorkerConfig(worker.Stargate, network.EthereumSource, nil),
+		worker.Uniswap:    defaultWorkerConfig(worker.Uniswap, network.EthereumSource, nil),
+		worker.VSL:        defaultWorkerConfig(worker.VSL, network.EthereumSource, nil),
 	},
 	network.ArweaveSource: {
-		worker.Mirror:    workerConfigWithIPFS(worker.Mirror, network.ArweaveSource, &Parameters{}),
-		worker.Momoka:    customWorkerConfigWithIPFS(worker.Mirror, network.ArweaveSource, &Parameters{}, "A Polygon RPC is required for Momoka"),
-		worker.Paragraph: defaultWorkerConfig(worker.Mirror, network.ArweaveSource, &Parameters{}),
+		worker.Mirror:    customWorkerConfigWithIPFS(worker.Mirror, network.ArweaveSource, ""),
+		worker.Momoka:    customWorkerConfigWithIPFS(worker.Mirror, network.ArweaveSource, "A Polygon RPC is required for Momoka"),
+		worker.Paragraph: defaultWorkerConfig(worker.Mirror, network.ArweaveSource, nil),
 	},
 	network.FarcasterSource: {
 		worker.Core: customWorkerConfig(worker.Core, network.FarcasterSource, &Parameters{
