@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"math/big"
+	"strconv"
 	"time"
 
 	"github.com/rss3-network/node/config"
@@ -14,7 +15,8 @@ import (
 type Client interface {
 	// CurrentState returns the current block number (ethereum), height (arweave) or event id (farcaster) of the client from Checkpoints table in database.
 	CurrentState(state CheckpointState) uint64
-	IsTargetParamSet(param *config.Parameters) bool
+	// TargetState checks if the target block number/height is set in the parameters.
+	TargetState(param *config.Parameters) uint64
 	// LatestState returns the latest block number (ethereum), height (arweave) or event id (farcaster) of the client from network rpc/api.
 	LatestState(ctx context.Context) (uint64, error)
 }
@@ -36,18 +38,22 @@ func (c *ethereumClient) CurrentState(state CheckpointState) uint64 {
 	return state.BlockNumber
 }
 
-func (c *ethereumClient) IsTargetParamSet(param *config.Parameters) bool {
-	// Check if the target block number is set.
+func (c *ethereumClient) TargetState(param *config.Parameters) uint64 {
 	if param == nil {
-		return false
+		return 0
 	}
 
 	targetBlock, exists := (*param)["block_number_target"]
-	if exists && targetBlock != nil {
-		return true
+	if !exists || targetBlock == nil {
+		return 0
 	}
 
-	return false
+	targetBlockUint, err := strconv.ParseUint(targetBlock.(string), 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	return targetBlockUint
 }
 
 func (c *ethereumClient) LatestState(ctx context.Context) (uint64, error) {
@@ -83,18 +89,22 @@ func (c *arweaveClient) CurrentState(state CheckpointState) uint64 {
 	return state.BlockHeight
 }
 
-func (c *arweaveClient) IsTargetParamSet(param *config.Parameters) bool {
-	// Check if the target block number is set.
+func (c *arweaveClient) TargetState(param *config.Parameters) uint64 {
 	if param == nil {
-		return false
+		return 0
 	}
 
-	targetBlock, exists := (*param)["block_height_target"]
-	if exists && targetBlock != nil {
-		return true
+	targetBlock, exists := (*param)["block_number_target"]
+	if !exists || targetBlock == nil {
+		return 0
 	}
 
-	return false
+	targetBlockUint, err := strconv.ParseUint(targetBlock.(string), 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	return targetBlockUint
 }
 
 func (c *arweaveClient) LatestState(ctx context.Context) (uint64, error) {
@@ -132,8 +142,8 @@ func (c *farcasterClient) CurrentState(state CheckpointState) uint64 {
 	return 0
 }
 
-func (c *farcasterClient) IsTargetParamSet(_ *config.Parameters) bool {
-	return false
+func (c *farcasterClient) TargetState(_ *config.Parameters) uint64 {
+	return 0
 }
 
 func (c *farcasterClient) LatestState(_ context.Context) (uint64, error) {

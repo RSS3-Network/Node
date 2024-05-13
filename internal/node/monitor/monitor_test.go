@@ -19,12 +19,12 @@ func TestMonitor(t *testing.T) {
 	t.Parallel()
 
 	type arguments struct {
-		config           *config.File
-		currentState     monitor.CheckpointState
-		lastState        uint64
-		latestState      uint64
-		initialStatus    worker.Status
-		isTargetParamSet bool
+		config        *config.File
+		currentState  monitor.CheckpointState
+		targetState   uint64
+		lastState     uint64
+		latestState   uint64
+		initialStatus worker.Status
 	}
 
 	testcases := []struct {
@@ -87,7 +87,7 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Ethereum Worker Ready Status -> Ready Status (Finished Indexing)",
+			name: "Ethereum Worker Ready Status -> Ready Status (With Target Param)",
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -107,10 +107,64 @@ func TestMonitor(t *testing.T) {
 				currentState: monitor.CheckpointState{
 					BlockNumber: 19800000,
 				},
-				latestState:      19800000 + monitor.NetworkTolerance[network.Ethereum] + 1,
-				isTargetParamSet: true,
+				targetState: 19800000,
+				latestState: 19800000 + monitor.NetworkTolerance[network.Ethereum] + 1,
 			},
 			want:      worker.StatusReady,
+			wantError: require.NoError,
+		},
+		{
+			name: "Ethereum Worker Indexing Status -> Ready Status (With Target Param)",
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "ethereum-core",
+								Network: network.Ethereum,
+								Worker:  worker.Core,
+								Endpoint: config.Endpoint{
+									URL: endpoint.MustGet(network.Ethereum),
+								},
+							},
+						},
+					},
+				},
+				initialStatus: worker.StatusIndexing,
+				currentState: monitor.CheckpointState{
+					BlockNumber: 19800000,
+				},
+				targetState: 19800000,
+				latestState: 19800000 + monitor.NetworkTolerance[network.Ethereum] + 1,
+			},
+			want:      worker.StatusReady,
+			wantError: require.NoError,
+		},
+		{
+			name: "Ethereum Worker Indexing Status -> Indexing Status (With Target Param)",
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "ethereum-core",
+								Network: network.Ethereum,
+								Worker:  worker.Core,
+								Endpoint: config.Endpoint{
+									URL: endpoint.MustGet(network.Ethereum),
+								},
+							},
+						},
+					},
+				},
+				initialStatus: worker.StatusIndexing,
+				currentState: monitor.CheckpointState{
+					BlockNumber: 19800000,
+				},
+				targetState: 19800001,
+				latestState: 19800000 + monitor.NetworkTolerance[network.Ethereum] + 1,
+			},
+			want:      worker.StatusIndexing,
 			wantError: require.NoError,
 		},
 		{
@@ -297,7 +351,7 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Arweave Worker Ready Status -> Ready Status (Finished Indexing)",
+			name: "Arweave Worker Ready Status -> Ready Status (With Target Param)",
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -313,11 +367,59 @@ func TestMonitor(t *testing.T) {
 				currentState: monitor.CheckpointState{
 					BlockHeight: 1420000,
 				},
-				latestState:      1420000 + monitor.NetworkTolerance[network.Arweave] + 1,
-				initialStatus:    worker.StatusReady,
-				isTargetParamSet: true,
+				targetState:   1420000,
+				latestState:   1420000 + monitor.NetworkTolerance[network.Arweave] + 1,
+				initialStatus: worker.StatusReady,
 			},
 			want:      worker.StatusReady,
+			wantError: require.NoError,
+		},
+		{
+			name: "Arweave Worker Indexing Status -> Ready Status (With Target Param)",
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "arweave-mirror",
+								Network: network.Arweave,
+								Worker:  worker.Mirror,
+							},
+						},
+					},
+				},
+				currentState: monitor.CheckpointState{
+					BlockHeight: 1420000,
+				},
+				targetState:   1420000,
+				latestState:   1420000 + monitor.NetworkTolerance[network.Arweave] + 1,
+				initialStatus: worker.StatusIndexing,
+			},
+			want:      worker.StatusReady,
+			wantError: require.NoError,
+		},
+		{
+			name: "Arweave Worker Indexing Status -> Indexing Status (With Target Param)",
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "arweave-mirror",
+								Network: network.Arweave,
+								Worker:  worker.Mirror,
+							},
+						},
+					},
+				},
+				currentState: monitor.CheckpointState{
+					BlockHeight: 1420000,
+				},
+				targetState:   1420001,
+				latestState:   1420000 + monitor.NetworkTolerance[network.Arweave] + 1,
+				initialStatus: worker.StatusIndexing,
+			},
+			want:      worker.StatusIndexing,
 			wantError: require.NoError,
 		},
 		{
@@ -664,7 +766,7 @@ func TestMonitor(t *testing.T) {
 			require.NoError(t, err)
 
 			// run monitor
-			err = instance.MonitorMockWorkerStatus(ctx, testcase.arguments.currentState, testcase.arguments.latestState, testcase.arguments.isTargetParamSet)
+			err = instance.MonitorMockWorkerStatus(ctx, testcase.arguments.currentState, testcase.arguments.targetState, testcase.arguments.latestState)
 			require.NoError(t, err)
 
 			// check final worker status
