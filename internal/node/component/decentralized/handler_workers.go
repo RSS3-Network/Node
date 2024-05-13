@@ -25,12 +25,39 @@ type WorkerInfo struct {
 	Status   worker.Status   `json:"status"`
 }
 
+// WorkerKey is the key for the worker status aggregator.
+type WorkerKey struct {
+	Network network.Network
+	Worker  worker.Worker
+}
+
+// WorkerStatusAggregator aggregates the statuses of workers with the same Network+Worker.
+type WorkerStatusAggregator struct {
+	Statuses []worker.Status
+}
+
+// GetWorkers returns the status of all workers.
 func (c *Component) GetWorkers(ctx echo.Context) error {
-	var wg sync.WaitGroup
-
 	workerCount := len(c.config.Component.Decentralized)
-
 	workerInfoChan := make(chan *WorkerInfo, workerCount)
+
+	// Fetch all worker info concurrently.
+	c.fetchAllWorkerInfo(ctx, workerInfoChan)
+
+	// Aggregate the statuses of workers.
+	aggregatedWorkers := c.aggregateWorkers(workerInfoChan)
+
+	// Build the worker response.
+	workers := c.buildWorkerResponse(aggregatedWorkers)
+
+	return ctx.JSON(http.StatusOK, WorkerResponse{
+		Data: workers,
+	})
+}
+
+// fetchAllWorkerInfo fetches the status of all workers concurrently.
+func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *WorkerInfo) {
+	var wg sync.WaitGroup
 
 	for _, w := range c.config.Component.Decentralized {
 		wg.Add(1)
@@ -44,27 +71,91 @@ func (c *Component) GetWorkers(ctx echo.Context) error {
 
 	go func() {
 		wg.Wait()
-
 		close(workerInfoChan)
 	}()
-
-	workers := make([]*WorkerInfo, 0, workerCount)
-	for workerInfo := range workerInfoChan {
-		workers = append(workers, workerInfo)
-	}
-
-	return ctx.JSON(http.StatusOK, WorkerResponse{
-		Data: workers,
-	})
 }
 
-// getWorkerStatus gets worker status from Redis cache by network and workerName.
-func (c *Component) getWorkerStatus(ctx context.Context, network, workerName string) worker.Status {
+// aggregateWorkers aggregates the same workers through network + worker.
+func (c *Component) aggregateWorkers(workerInfoChan <-chan *WorkerInfo) map[WorkerKey]*WorkerStatusAggregator {
+	aggregatedWorkers := make(map[WorkerKey]*WorkerStatusAggregator)
+
+	for workerInfo := range workerInfoChan {
+		// construct the key for the worker status aggregator.
+		key := WorkerKey{Network: workerInfo.Network, Worker: workerInfo.Worker}
+
+		if _, exists := aggregatedWorkers[key]; !exists {
+			aggregatedWorkers[key] = &WorkerStatusAggregator{Statuses: []worker.Status{}}
+		}
+
+		aggregatedWorkers[key].Statuses = append(aggregatedWorkers[key].Statuses, workerInfo.Status)
+	}
+
+	return aggregatedWorkers
+}
+
+// buildWorkerResponse aggregates statuses to determine the final status of a worker
+func (c *Component) buildWorkerResponse(aggregatedWorkers map[WorkerKey]*WorkerStatusAggregator) []*WorkerInfo {
+	workers := make([]*WorkerInfo, 0, len(aggregatedWorkers))
+
+	for key, aggregator := range aggregatedWorkers {
+		finalStatus := determineFinalStatus(aggregator.Statuses)
+
+		workers = append(workers, &WorkerInfo{
+			Network:  key.Network,
+			Worker:   key.Worker,
+			Status:   finalStatus,
+			Tags:     worker.ToTagsMap[key.Worker],
+			Platform: worker.ToPlatformMap[key.Worker],
+		})
+	}
+
+	return workers
+}
+
+func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
+	// Fetch status from a specific worker by id.
+	status := c.getWorkerStatusByID(ctx, module.ID)
+
+	return &WorkerInfo{
+		Network:  module.Network,
+		Worker:   module.Worker,
+		Platform: worker.ToPlatformMap[module.Worker],
+		Tags:     worker.ToTagsMap[module.Worker],
+		Status:   status,
+	}
+}
+
+// determineFinalStatus determines the final status of a worker based on the statuses of its instances.
+// if all instances are ready, the final status is ready,
+// at least one instance is indexing or ready, the final status is indexing
+// otherwise, the final status is unhealthy
+func determineFinalStatus(statuses []worker.Status) worker.Status {
+	hasIndexing := false
+
+	for _, status := range statuses {
+		switch status {
+		case worker.StatusIndexing:
+			hasIndexing = true
+		case worker.StatusReady:
+		default:
+			return worker.StatusUnhealthy
+		}
+	}
+
+	if hasIndexing {
+		return worker.StatusIndexing
+	}
+
+	return worker.StatusReady
+}
+
+// getWorkerStatusByID gets worker status from Redis cache by worker id.
+func (c *Component) getWorkerStatusByID(ctx context.Context, workerID string) worker.Status {
 	if c.redisClient == nil {
 		return worker.StatusUnknown
 	}
 
-	command := c.redisClient.B().Get().Key(c.buildCacheKey(network, workerName)).Build()
+	command := c.redisClient.B().Get().Key(c.buildWorkerIDStatusCacheKey(workerID)).Build()
 
 	result := c.redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
@@ -85,20 +176,7 @@ func (c *Component) getWorkerStatus(ctx context.Context, network, workerName str
 	return status
 }
 
-func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
-	// Fetch status from a specific worker network.
-	status := c.getWorkerStatus(ctx, module.Network.String(), module.Worker.String())
-
-	return &WorkerInfo{
-		Network:  module.Network,
-		Worker:   module.Worker,
-		Platform: worker.ToPlatformMap[module.Worker],
-		Tags:     worker.ToTagsMap[module.Worker],
-		Status:   status,
-	}
-}
-
-// buildCacheKey builds cache key for Redis.
-func (c *Component) buildCacheKey(network, workerName string) string {
-	return fmt.Sprintf("worker:status::%s:%s", network, workerName)
+// buildWorkerIDStatusCacheKey builds the cache key for the worker status by id.
+func (c *Component) buildWorkerIDStatusCacheKey(workerID string) string {
+	return fmt.Sprintf("worker:status:id::%s", workerID)
 }

@@ -5,7 +5,6 @@ type Status uint64
 
 const (
 	StatusUnknown   Status = iota // Unknown
-	StatusDisabled                // Disabled
 	StatusIndexing                // Indexing
 	StatusReady                   // Ready
 	StatusUnhealthy               // Unhealthy

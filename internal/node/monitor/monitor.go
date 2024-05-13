@@ -71,7 +71,7 @@ func (m *Monitor) processWorker(ctx context.Context, w *config.Module) error {
 	}
 
 	// check worker's current status, and flag it as unhealthy if it's behind the latest block height/number by more than the tolerated amount
-	if err := m.flagUnhealthyWorker(ctx, w.Network.String(), w.ID, w.Worker.String(), currentWorkerState, latestWorkerState, NetworkTolerance[w.Network]); err != nil {
+	if err := m.flagWorkerStatus(ctx, w.ID, currentWorkerState, latestWorkerState, NetworkTolerance[w.Network]); err != nil {
 		return fmt.Errorf("detect unhealthy: %w", err)
 	}
 
@@ -98,18 +98,34 @@ func (m *Monitor) getWorkerIndexingStateByClients(ctx context.Context, n network
 	return client.CurrentState(state), latestState, nil
 }
 
-// flagUnhealthyWorker detects by comparing the current and latest block height/number. If the difference is greater than the tolerance, the worker is flagged as unhealthy.
-func (m *Monitor) flagUnhealthyWorker(ctx context.Context, network, workerID, workerName string, currentWorkerState, latestWorkerState, networkTolerance uint64) error {
-	currentStatus := m.GetWorkerStatus(ctx, network, workerName)
+// flagWorkerStatus detects by comparing the current and latest block height/number. Could be converted to ready, indexing, unhealthy.
+func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, currentWorkerState, latestWorkerState, networkTolerance uint64) error {
+	currentStatus := m.GetWorkerStatusByID(ctx, workerID)
+	targetStatus := currentStatus
 
 	if latestWorkerState < currentWorkerState {
 		return nil
 	}
 
-	if (currentStatus == workerx.StatusReady && latestWorkerState-currentWorkerState > networkTolerance) || (currentStatus == workerx.StatusIndexing && currentWorkerState <= m.getWorkerProgress(ctx, workerID)) {
-		if err := m.UpdateWorkerStatus(ctx, network, workerName, workerx.StatusUnhealthy.String()); err != nil {
-			return fmt.Errorf("update worker status: %w", err)
+	switch currentStatus {
+	case workerx.StatusReady:
+		// if the worker is ready but the difference between the current and latest block height/number is greater than the tolerance, flag it as indexing
+		if latestWorkerState-currentWorkerState > networkTolerance {
+			targetStatus = workerx.StatusIndexing
 		}
+	case workerx.StatusIndexing:
+		if currentWorkerState <= m.getWorkerProgress(ctx, workerID) {
+			// if the worker is indexing but didn't make any progress in the last cycle, flag it as unhealthy
+			targetStatus = workerx.StatusUnhealthy
+		} else if latestWorkerState-currentWorkerState < networkTolerance {
+			// if the worker is indexing and the difference between the current and latest block height/number is less than the tolerance, flag it as ready
+			targetStatus = workerx.StatusReady
+		}
+	default:
+	}
+
+	if err := m.UpdateWorkerStatusByID(ctx, workerID, targetStatus.String()); err != nil {
+		return fmt.Errorf("update worker status: %w", err)
 	}
 
 	return nil
@@ -131,13 +147,13 @@ func (m *Monitor) getCheckpointState(ctx context.Context, id string, network net
 	return state, nil
 }
 
-// GetWorkerStatus gets worker status from Redis cache by network and workerName.
-func (m *Monitor) GetWorkerStatus(ctx context.Context, network, workerName string) workerx.Status {
+// GetWorkerStatusByID gets worker status from Redis cache by network and workerName.
+func (m *Monitor) GetWorkerStatusByID(ctx context.Context, workerID string) workerx.Status {
 	if m.redisClient == nil {
 		return workerx.StatusUnknown
 	}
 
-	command := m.redisClient.B().Get().Key(m.buildStatusCacheKey(network, workerName)).Build()
+	command := m.redisClient.B().Get().Key(m.buildWorkerIDStatusCacheKey(workerID)).Build()
 
 	result := m.redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
@@ -158,13 +174,13 @@ func (m *Monitor) GetWorkerStatus(ctx context.Context, network, workerName strin
 	return status
 }
 
-// UpdateWorkerStatus caches the worker status to Redis.
-func (m *Monitor) UpdateWorkerStatus(ctx context.Context, network, workerName string, status string) error {
+// UpdateWorkerStatusByID updates the worker status in the Redis cache by id.
+func (m *Monitor) UpdateWorkerStatusByID(ctx context.Context, workerID string, status string) error {
 	if m.redisClient == nil {
 		return nil
 	}
 
-	command := m.redisClient.B().Set().Key(m.buildStatusCacheKey(network, workerName)).Value(status).Build()
+	command := m.redisClient.B().Set().Key(m.buildWorkerIDStatusCacheKey(workerID)).Value(status).Build()
 
 	result := m.redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
@@ -216,9 +232,9 @@ func (m *Monitor) UpdateWorkerProgress(ctx context.Context, workerID string, sta
 	return nil
 }
 
-// buildStatusCacheKey builds cache key for worker status.
-func (m *Monitor) buildStatusCacheKey(network, workerName string) string {
-	return fmt.Sprintf("worker:status::%s:%s", network, workerName)
+// buildWorkerIDStatusCacheKey builds the cache key for the worker status by id.
+func (m *Monitor) buildWorkerIDStatusCacheKey(workerID string) string {
+	return fmt.Sprintf("worker:status:id::%s", workerID)
 }
 
 // buildWorkerProgressCacheKey builds cache key for worker current state in each monitoring cycle.

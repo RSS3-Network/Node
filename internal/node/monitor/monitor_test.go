@@ -34,12 +34,13 @@ func TestMonitor(t *testing.T) {
 	}{
 		// Ethereum Worker
 		{
-			name: "Ethereum Worker Ready Status -> Unhealthy Status",
+			name: "Ethereum Worker Ready Status -> Indexing Status",
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
+								ID:      "ethereum-core",
 								Network: network.Ethereum,
 								Worker:  worker.Core,
 								Endpoint: config.Endpoint{
@@ -55,7 +56,7 @@ func TestMonitor(t *testing.T) {
 				latestState:   19800000 + monitor.NetworkTolerance[network.Ethereum] + 1,
 				initialStatus: worker.StatusReady,
 			},
-			want:      worker.StatusUnhealthy,
+			want:      worker.StatusIndexing,
 			wantError: require.NoError,
 		},
 		{
@@ -65,6 +66,7 @@ func TestMonitor(t *testing.T) {
 					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
+								ID:      "ethereum-core",
 								Network: network.Ethereum,
 								Worker:  worker.Core,
 								Endpoint: config.Endpoint{
@@ -90,6 +92,7 @@ func TestMonitor(t *testing.T) {
 					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
+								ID:      "ethereum-core",
 								Network: network.Ethereum,
 								Worker:  worker.Core,
 								Endpoint: config.Endpoint{
@@ -116,6 +119,34 @@ func TestMonitor(t *testing.T) {
 					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
+								ID:      "ethereum-core",
+								Network: network.Ethereum,
+								Worker:  worker.Core,
+								Endpoint: config.Endpoint{
+									URL: endpoint.MustGet(network.Ethereum),
+								},
+							},
+						},
+					},
+				},
+				initialStatus: worker.StatusIndexing,
+				currentState: monitor.CheckpointState{
+					BlockNumber: 19800000,
+				},
+				lastState:   19800000 - 1,
+				latestState: 19800000 + monitor.NetworkTolerance[network.Ethereum] + 1,
+			},
+			want:      worker.StatusIndexing,
+			wantError: require.NoError,
+		},
+		{
+			name: "Ethereum Worker Indexing Status -> Ready Status",
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "ethereum-core",
 								Network: network.Ethereum,
 								Worker:  worker.Core,
 								Endpoint: config.Endpoint{
@@ -132,18 +163,19 @@ func TestMonitor(t *testing.T) {
 				lastState:   19800000 - 1,
 				latestState: 19800000 + monitor.NetworkTolerance[network.Ethereum] - 1,
 			},
-			want:      worker.StatusIndexing,
+			want:      worker.StatusReady,
 			wantError: require.NoError,
 		},
 
 		// Arweave Worker
 		{
-			name: "Arweave Worker Ready Status -> Unhealthy Status",
+			name: "Arweave Worker Ready Status -> Indexing Status",
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
+								ID:      "arweave-mirror",
 								Network: network.Arweave,
 								Worker:  worker.Mirror,
 							},
@@ -156,7 +188,7 @@ func TestMonitor(t *testing.T) {
 				latestState:   1420000 + monitor.NetworkTolerance[network.Arweave] + 1,
 				initialStatus: worker.StatusReady,
 			},
-			want:      worker.StatusUnhealthy,
+			want:      worker.StatusIndexing,
 			wantError: require.NoError,
 		},
 		{
@@ -166,6 +198,7 @@ func TestMonitor(t *testing.T) {
 					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
+								ID:      "arweave-mirror",
 								Network: network.Arweave,
 								Worker:  worker.Mirror,
 							},
@@ -188,6 +221,7 @@ func TestMonitor(t *testing.T) {
 					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
+								ID:      "arweave-mirror",
 								Network: network.Arweave,
 								Worker:  worker.Mirror,
 							},
@@ -211,6 +245,31 @@ func TestMonitor(t *testing.T) {
 					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
+								ID:      "arweave-mirror",
+								Network: network.Arweave,
+								Worker:  worker.Mirror,
+							},
+						},
+					},
+				},
+				currentState: monitor.CheckpointState{
+					BlockHeight: 1420000,
+				},
+				lastState:     1420000 - 1,
+				latestState:   1420000 + monitor.NetworkTolerance[network.Arweave] + 1,
+				initialStatus: worker.StatusIndexing,
+			},
+			want:      worker.StatusIndexing,
+			wantError: require.NoError,
+		},
+		{
+			name: "Arweave Worker Indexing Status -> Ready Status",
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "arweave-mirror",
 								Network: network.Arweave,
 								Worker:  worker.Mirror,
 							},
@@ -224,18 +283,19 @@ func TestMonitor(t *testing.T) {
 				latestState:   1420000 + monitor.NetworkTolerance[network.Arweave] - 1,
 				initialStatus: worker.StatusIndexing,
 			},
-			want:      worker.StatusIndexing,
+			want:      worker.StatusReady,
 			wantError: require.NoError,
 		},
 
 		// Farcaster Worker
 		{
-			name: "Farcaster Worker Ready Status -> Unhealthy Status",
+			name: "Farcaster Worker Ready Status -> Indexing Status",
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
+								ID:      "farcaster-core",
 								Network: network.Farcaster,
 								Worker:  worker.Core,
 							},
@@ -250,7 +310,7 @@ func TestMonitor(t *testing.T) {
 				latestState:   1714972833273 + monitor.NetworkTolerance[network.Farcaster] + 1,
 				initialStatus: worker.StatusReady,
 			},
-			want:      worker.StatusUnhealthy,
+			want:      worker.StatusIndexing,
 			wantError: require.NoError,
 		},
 		{
@@ -260,6 +320,7 @@ func TestMonitor(t *testing.T) {
 					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
+								ID:      "farcaster-core",
 								Network: network.Farcaster,
 								Worker:  worker.Core,
 							},
@@ -284,6 +345,7 @@ func TestMonitor(t *testing.T) {
 					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
+								ID:      "farcaster-core",
 								Network: network.Farcaster,
 								Worker:  worker.Core,
 							},
@@ -309,6 +371,33 @@ func TestMonitor(t *testing.T) {
 					Component: &config.Component{
 						Decentralized: []*config.Module{
 							{
+								ID:      "farcaster-core",
+								Network: network.Farcaster,
+								Worker:  worker.Core,
+							},
+						},
+					},
+				},
+				currentState: monitor.CheckpointState{
+					EventID:          432183841886217,
+					CastsBackfill:    true,
+					ReactionBackfill: true,
+				},
+				lastState:     1714972833273 - 1,
+				latestState:   1714972833273 + monitor.NetworkTolerance[network.Farcaster] + 1,
+				initialStatus: worker.StatusIndexing,
+			},
+			want:      worker.StatusIndexing,
+			wantError: require.NoError,
+		},
+		{
+			name: "Farcaster Worker Indexing Status -> Ready Status",
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "farcaster-core",
 								Network: network.Farcaster,
 								Worker:  worker.Core,
 							},
@@ -324,7 +413,7 @@ func TestMonitor(t *testing.T) {
 				latestState:   1714972833273 + monitor.NetworkTolerance[network.Farcaster] - 1,
 				initialStatus: worker.StatusIndexing,
 			},
-			want:      worker.StatusIndexing,
+			want:      worker.StatusReady,
 			wantError: require.NoError,
 		},
 	}
@@ -361,7 +450,7 @@ func TestMonitor(t *testing.T) {
 			require.NoError(t, err)
 
 			// update worker status to initial status
-			err = instance.UpdateWorkerStatus(ctx, testcase.arguments.config.Component.Decentralized[0].Network.String(), testcase.arguments.config.Component.Decentralized[0].Worker.String(), testcase.arguments.initialStatus.String())
+			err = instance.UpdateWorkerStatusByID(ctx, testcase.arguments.config.Component.Decentralized[0].ID, testcase.arguments.initialStatus.String())
 			require.NoError(t, err)
 
 			// update worker progress
@@ -373,7 +462,7 @@ func TestMonitor(t *testing.T) {
 			require.NoError(t, err)
 
 			// check final worker status
-			status := instance.GetWorkerStatus(ctx, testcase.arguments.config.Component.Decentralized[0].Network.String(), testcase.arguments.config.Component.Decentralized[0].Worker.String())
+			status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.Decentralized[0].ID)
 			require.Equal(t, testcase.want, status)
 		})
 	}

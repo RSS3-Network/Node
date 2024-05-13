@@ -53,11 +53,6 @@ func (s *Server) Run(ctx context.Context) error {
 		errorChan = make(chan error)
 	)
 
-	// Cache worker status to Redis.
-	if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), workerx.StatusDisabled.String()); err != nil {
-		return fmt.Errorf("update worker status: %w", err)
-	}
-
 	zap.L().Info("start node", zap.String("version", constant.BuildVersion()))
 
 	s.source.Start(ctx, tasksChan, errorChan)
@@ -95,13 +90,13 @@ func (s *Server) Run(ctx context.Context) error {
 	}
 }
 
-// updateWorkerStatus caches the worker status to Redis.
-func (s *Server) updateWorkerStatus(ctx context.Context, network, workerName string, status string) error {
+// updateWorkerStatus updates the worker status in the Redis cache by id.
+func (s *Server) updateWorkerStatus(ctx context.Context, workerID string, status string) error {
 	if s.redisClient == nil {
 		return nil
 	}
 
-	command := s.redisClient.B().Set().Key(s.buildCacheKey(network, workerName)).Value(status).Build()
+	command := s.redisClient.B().Set().Key(s.buildWorkerIDStatusCacheKey(workerID)).Value(status).Build()
 
 	result := s.redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
@@ -111,9 +106,9 @@ func (s *Server) updateWorkerStatus(ctx context.Context, network, workerName str
 	return nil
 }
 
-// buildCacheKey builds cache key for Redis.
-func (s *Server) buildCacheKey(network, workerName string) string {
-	return fmt.Sprintf("worker:status::%s:%s", network, workerName)
+// buildWorkerIDStatusCacheKey builds the cache key for the worker status by id.
+func (s *Server) buildWorkerIDStatusCacheKey(workerID string) string {
+	return fmt.Sprintf("worker:status:id::%s", workerID)
 }
 
 func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
@@ -213,9 +208,9 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		return fmt.Errorf("save checkpoint: %w", err)
 	}
 
-	// Check if the worker is ready
-	if err := s.checkWorkerStatus(ctx, checkpoint); err != nil {
-		return fmt.Errorf("check worker status: %w", err)
+	// Set the worker status to indexing.
+	if err := s.updateWorkerStatus(ctx, s.config.ID, workerx.StatusIndexing.String()); err != nil {
+		return fmt.Errorf("update worker status: %w", err)
 	}
 
 	// Record the time it takes to handle tasks.
@@ -230,58 +225,6 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 	}
 
 	return nil
-}
-
-// checkWorkerStatus checks if the worker is ready.
-func (s *Server) checkWorkerStatus(ctx context.Context, checkpoint engine.Checkpoint) (err error) {
-	// Check if the worker is ready
-	var state monitor.CheckpointState
-	if err := json.Unmarshal(checkpoint.State, &state); err != nil {
-		zap.L().Error("unmarshal checkpoint state", zap.Error(err))
-		return err
-	}
-
-	// get current indexing block height, number or event id and the latest block height, number, timestamp of network
-	currentWorkerState, latestWorkerState, err := s.getWorkerIndexingStateByClient(ctx, state)
-	if err != nil {
-		zap.L().Error("get latest block height or number", zap.Error(err))
-		return err
-	}
-
-	return s.flagIndexingWorker(ctx, currentWorkerState, latestWorkerState, monitor.NetworkTolerance[s.config.Network], state)
-}
-
-// flagIndexingWorker compares the current and latest block height/number. If the difference is less than the tolerance, the worker is flagged as ready, otherwise it is flagged as indexing.
-func (s *Server) flagIndexingWorker(ctx context.Context, currentWorkerState, latestWorkerState, networkTolerance uint64, state monitor.CheckpointState) error {
-	status := workerx.StatusIndexing
-
-	switch s.config.Network {
-	case network.Farcaster:
-		if state.CastsBackfill && state.ReactionBackfill && latestWorkerState-currentWorkerState < networkTolerance {
-			status = workerx.StatusReady
-		}
-	default:
-		if latestWorkerState-currentWorkerState < networkTolerance {
-			status = workerx.StatusReady
-		}
-	}
-
-	// update worker status to ready or indexing to Redis cache.
-	if err := s.updateWorkerStatus(ctx, s.config.Network.String(), s.config.Worker.String(), status.String()); err != nil {
-		return fmt.Errorf("update worker status: %w", err)
-	}
-
-	return nil
-}
-
-// getWorkerIndexingStateByClient gets the latest block height (arweave), block number (ethereum), event id (farcaster).
-func (s *Server) getWorkerIndexingStateByClient(ctx context.Context, state monitor.CheckpointState) (uint64, uint64, error) {
-	latestState, err := s.monitorClient.LatestState(ctx)
-	if err != nil {
-		return 0, 0, fmt.Errorf("get latest state: %w", err)
-	}
-
-	return s.monitorClient.CurrentState(state), latestState, nil
 }
 
 func (s *Server) initializeMeter() (err error) {
