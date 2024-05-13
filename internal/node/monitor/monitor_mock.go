@@ -50,7 +50,7 @@ func (m *Monitor) processMockWorker(ctx context.Context, w *config.Module, curre
 	}
 
 	// check worker's current status, and flag it as unhealthy if it's left behind the latest block height/number by more than the tolerance
-	if err := m.flagUnhealthyWorkerByID(ctx, w.ID, currentWorkerState, latestWorkerState, NetworkTolerance[w.Network]); err != nil {
+	if err := m.flagWorkerStatus(ctx, w.ID, currentWorkerState, latestWorkerState, NetworkTolerance[w.Network]); err != nil {
 		return fmt.Errorf("detect unhealthy: %w", err)
 	}
 

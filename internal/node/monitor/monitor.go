@@ -71,7 +71,7 @@ func (m *Monitor) processWorker(ctx context.Context, w *config.Module) error {
 	}
 
 	// check worker's current status, and flag it as unhealthy if it's behind the latest block height/number by more than the tolerated amount
-	if err := m.flagUnhealthyWorkerByID(ctx, w.ID, currentWorkerState, latestWorkerState, NetworkTolerance[w.Network]); err != nil {
+	if err := m.flagWorkerStatus(ctx, w.ID, currentWorkerState, latestWorkerState, NetworkTolerance[w.Network]); err != nil {
 		return fmt.Errorf("detect unhealthy: %w", err)
 	}
 
@@ -98,8 +98,8 @@ func (m *Monitor) getWorkerIndexingStateByClients(ctx context.Context, n network
 	return client.CurrentState(state), latestState, nil
 }
 
-// flagUnhealthyWorkerByID detects by comparing the current and latest block height/number. If the difference is greater than the tolerance, the worker is flagged as unhealthy.
-func (m *Monitor) flagUnhealthyWorkerByID(ctx context.Context, workerID string, currentWorkerState, latestWorkerState, networkTolerance uint64) error {
+// flagWorkerStatus detects by comparing the current and latest block height/number. Could be converted to ready, indexing, unhealthy.
+func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, currentWorkerState, latestWorkerState, networkTolerance uint64) error {
 	currentStatus := m.GetWorkerStatusByID(ctx, workerID)
 	targetStatus := currentStatus
 
@@ -111,7 +111,7 @@ func (m *Monitor) flagUnhealthyWorkerByID(ctx context.Context, workerID string, 
 	case workerx.StatusReady:
 		// if the worker is ready but the difference between the current and latest block height/number is greater than the tolerance, flag it as unhealthy
 		if latestWorkerState-currentWorkerState > networkTolerance {
-			targetStatus = workerx.StatusUnhealthy
+			targetStatus = workerx.StatusIndexing
 		}
 	case workerx.StatusIndexing:
 		// if the worker is indexing but didn't make any progress in the last cycle, flag it as unhealthy
