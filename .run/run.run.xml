@@ -2,7 +2,7 @@
   <configuration default="false" name="run" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="Serving-Node" />
     <working_directory value="$PROJECT_DIR$" />
-    <parameters value="--module=hub" />
+    <parameters value="--module=core" />
     <kind value="FILE" />
     <package value="./cmd" />
     <directory value="$PROJECT_DIR$" />
