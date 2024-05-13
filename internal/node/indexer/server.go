@@ -17,7 +17,6 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
-	workerx "github.com/rss3-network/node/schema/worker"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
@@ -88,27 +87,6 @@ func (s *Server) Run(ctx context.Context) error {
 			return nil
 		}
 	}
-}
-
-// updateWorkerStatus updates the worker status in the Redis cache by id.
-func (s *Server) updateWorkerStatus(ctx context.Context, workerID string, status string) error {
-	if s.redisClient == nil {
-		return nil
-	}
-
-	command := s.redisClient.B().Set().Key(s.buildWorkerIDStatusCacheKey(workerID)).Value(status).Build()
-
-	result := s.redisClient.Do(ctx, command)
-	if err := result.Error(); err != nil {
-		return fmt.Errorf("update worker status in redis cache: %w", err)
-	}
-
-	return nil
-}
-
-// buildWorkerIDStatusCacheKey builds the cache key for the worker status by id.
-func (s *Server) buildWorkerIDStatusCacheKey(workerID string) string {
-	return fmt.Sprintf("worker:status:id::%s", workerID)
 }
 
 func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
@@ -206,11 +184,6 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 
 	if err := s.databaseClient.SaveCheckpoint(ctx, &checkpoint); err != nil {
 		return fmt.Errorf("save checkpoint: %w", err)
-	}
-
-	// Set the worker status to indexing.
-	if err := s.updateWorkerStatus(ctx, s.config.ID, workerx.StatusIndexing.String()); err != nil {
-		return fmt.Errorf("update worker status: %w", err)
 	}
 
 	// Record the time it takes to handle tasks.

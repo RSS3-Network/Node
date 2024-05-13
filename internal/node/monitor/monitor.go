@@ -64,14 +64,14 @@ func (m *Monitor) processWorker(ctx context.Context, w *config.Module) error {
 	}
 
 	// get current indexing block height, number or event id and the latest block height, number, timestamp of network
-	currentWorkerState, latestWorkerState, err := m.getWorkerIndexingStateByClients(ctx, w.Network, state)
+	currentWorkerState, targetWorkerState, latestWorkerState, err := m.getWorkerIndexingStateByClients(ctx, w.Network, state, w.Parameters)
 	if err != nil {
 		zap.L().Error("get latest block height or number", zap.Error(err))
 		return err
 	}
 
 	// check worker's current status, and flag it as unhealthy if it's behind the latest block height/number by more than the tolerated amount
-	if err := m.flagWorkerStatus(ctx, w.ID, currentWorkerState, latestWorkerState, NetworkTolerance[w.Network]); err != nil {
+	if err := m.flagWorkerStatus(ctx, w.ID, currentWorkerState, targetWorkerState, latestWorkerState, NetworkTolerance[w.Network]); err != nil {
 		return fmt.Errorf("detect unhealthy: %w", err)
 	}
 
@@ -84,22 +84,22 @@ func (m *Monitor) processWorker(ctx context.Context, w *config.Module) error {
 }
 
 // getWorkerIndexingStateByClients gets the latest block height (arweave), block number (ethereum), event id (farcaster).
-func (m *Monitor) getWorkerIndexingStateByClients(ctx context.Context, n network.Network, state CheckpointState) (uint64, uint64, error) {
+func (m *Monitor) getWorkerIndexingStateByClients(ctx context.Context, n network.Network, state CheckpointState, param *config.Parameters) (uint64, uint64, uint64, error) {
 	client, ok := m.clients[n]
 	if !ok {
-		return 0, 0, fmt.Errorf("client not ready")
+		return 0, 0, 0, fmt.Errorf("client not ready")
 	}
 
 	latestState, err := client.LatestState(ctx)
 	if err != nil {
-		return 0, 0, fmt.Errorf("get latest state: %w", err)
+		return 0, 0, 0, fmt.Errorf("get latest state: %w", err)
 	}
 
-	return client.CurrentState(state), latestState, nil
+	return client.CurrentState(state), client.TargetState(param), latestState, nil
 }
 
 // flagWorkerStatus detects by comparing the current and latest block height/number. Could be converted to ready, indexing, unhealthy.
-func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, currentWorkerState, latestWorkerState, networkTolerance uint64) error {
+func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, currentWorkerState, targetWorkerState, latestWorkerState, networkTolerance uint64) error {
 	currentStatus := m.GetWorkerStatusByID(ctx, workerID)
 	targetStatus := currentStatus
 
@@ -108,24 +108,43 @@ func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, current
 	}
 
 	switch currentStatus {
-	case workerx.StatusReady:
-		// if the worker is ready but the difference between the current and latest block height/number is greater than the tolerance, flag it as indexing
-		if latestWorkerState-currentWorkerState > networkTolerance {
+	case workerx.StatusUnknown:
+		// if the worker status is unknown and the current worker state is greater than 0, flag it as indexing
+		if currentWorkerState > 0 {
 			targetStatus = workerx.StatusIndexing
+		} else {
+			targetStatus = workerx.StatusUnhealthy
 		}
 	case workerx.StatusIndexing:
 		if currentWorkerState <= m.getWorkerProgress(ctx, workerID) {
 			// if the worker is indexing but didn't make any progress in the last cycle, flag it as unhealthy
 			targetStatus = workerx.StatusUnhealthy
-		} else if latestWorkerState-currentWorkerState < networkTolerance {
-			// if the worker is indexing and the difference between the current and latest block height/number is less than the tolerance, flag it as ready
+			break
+		}
+
+		if targetWorkerState == 0 && latestWorkerState-currentWorkerState < networkTolerance || targetWorkerState > 0 && currentWorkerState >= targetWorkerState {
+			// if the worker is indexing without a target param and the difference between the current and latest block height/number is less than the tolerance, flag it as ready
+			// or if the worker is indexing with a target param and the current state reaches the target state, flag it as ready
 			targetStatus = workerx.StatusReady
+		}
+	case workerx.StatusReady:
+		// if the worker is ready and the target block height/number is set, it will remain ready because it's finished.
+		// otherwise the difference between the current and latest block height/number is greater than the tolerance, flag it as indexing
+		if targetWorkerState == 0 && latestWorkerState-currentWorkerState > networkTolerance {
+			targetStatus = workerx.StatusIndexing
+		}
+	case workerx.StatusUnhealthy:
+		if currentWorkerState > m.getWorkerProgress(ctx, workerID) {
+			// if the worker is unhealthy and made progress in the last cycle, flag it as indexing
+			targetStatus = workerx.StatusIndexing
 		}
 	default:
 	}
 
-	if err := m.UpdateWorkerStatusByID(ctx, workerID, targetStatus.String()); err != nil {
-		return fmt.Errorf("update worker status: %w", err)
+	if targetStatus != currentStatus {
+		if err := m.UpdateWorkerStatusByID(ctx, workerID, targetStatus.String()); err != nil {
+			return fmt.Errorf("update worker status: %w", err)
+		}
 	}
 
 	return nil
