@@ -89,27 +89,6 @@ func (s *Server) Run(ctx context.Context) error {
 	}
 }
 
-// updateWorkerStatus updates the worker status in the Redis cache by id.
-func (s *Server) updateWorkerStatus(ctx context.Context, workerID string, status string) error {
-	if s.redisClient == nil {
-		return nil
-	}
-
-	command := s.redisClient.B().Set().Key(s.buildWorkerIDStatusCacheKey(workerID)).Value(status).Build()
-
-	result := s.redisClient.Do(ctx, command)
-	if err := result.Error(); err != nil {
-		return fmt.Errorf("update worker status in redis cache: %w", err)
-	}
-
-	return nil
-}
-
-// buildWorkerIDStatusCacheKey builds the cache key for the worker status by id.
-func (s *Server) buildWorkerIDStatusCacheKey(workerID string) string {
-	return fmt.Sprintf("worker:status:id::%s", workerID)
-}
-
 func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 	// Initialize the attributes of the meter.
 	meterTasksCounterAttributes := metric.WithAttributes(
