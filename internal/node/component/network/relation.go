@@ -40,7 +40,7 @@ type workerConfig struct {
 }
 
 var defaultNetworkParameters = map[network.Source]*Parameters{
-	network.EthereumSource: &Parameters{
+	network.EthereumSource: {
 		BlockNumberStart: &ConfigDetail{
 			IsRequired:  false,
 			Type:        "big.Int",
@@ -125,7 +125,7 @@ func defaultWorkerConfig(worker worker.Worker, network network.Source, parameter
 		EndpointID: &ConfigDetail{
 			IsRequired:  true,
 			Type:        "string",
-			Description: "You can fill this field with a global endpoint id (should be pre-defined in endpoints part) or a url",
+			Description: "An external endpoint to fetch data from, for example, a blockchain RPC endpoint",
 		},
 		Parameters: parameters,
 	}
