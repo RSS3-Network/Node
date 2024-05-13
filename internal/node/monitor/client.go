@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"strconv"
 	"time"
@@ -48,7 +49,7 @@ func (c *ethereumClient) TargetState(param *config.Parameters) uint64 {
 		return 0
 	}
 
-	targetBlockUint, err := strconv.ParseUint(targetBlock.(string), 10, 64)
+	targetBlockUint, err := convertToUint64(targetBlock)
 	if err != nil {
 		return 0
 	}
@@ -94,12 +95,12 @@ func (c *arweaveClient) TargetState(param *config.Parameters) uint64 {
 		return 0
 	}
 
-	targetBlock, exists := (*param)["block_number_target"]
+	targetBlock, exists := (*param)["block_height_target"]
 	if !exists || targetBlock == nil {
 		return 0
 	}
 
-	targetBlockUint, err := strconv.ParseUint(targetBlock.(string), 10, 64)
+	targetBlockUint, err := convertToUint64(targetBlock)
 	if err != nil {
 		return 0
 	}
@@ -148,6 +149,24 @@ func (c *farcasterClient) TargetState(_ *config.Parameters) uint64 {
 
 func (c *farcasterClient) LatestState(_ context.Context) (uint64, error) {
 	return uint64(time.Now().UnixMilli()), nil
+}
+
+// convertToUint64 a helper func which converts the value to uint64.
+func convertToUint64(value interface{}) (uint64, error) {
+	switch v := value.(type) {
+	case string:
+		return strconv.ParseUint(v, 10, 64)
+	case int:
+		return uint64(v), nil
+	case int64:
+		return uint64(v), nil
+	case uint:
+		return uint64(v), nil
+	case uint64:
+		return v, nil
+	default:
+		return 0, fmt.Errorf("unsupported type: %T", v)
+	}
 }
 
 // NewFarcasterClient returns a new farcaster client.
