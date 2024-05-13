@@ -130,14 +130,20 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 // at least one instance is indexing or ready, the final status is indexing
 // otherwise, the final status is unhealthy
 func determineFinalStatus(statuses []worker.Status) worker.Status {
+	hasIndexing := false
+
 	for _, status := range statuses {
 		switch status {
 		case worker.StatusIndexing:
-			return worker.StatusIndexing
+			hasIndexing = true
 		case worker.StatusReady:
 		default:
 			return worker.StatusUnhealthy
 		}
+	}
+
+	if hasIndexing {
+		return worker.StatusIndexing
 	}
 
 	return worker.StatusReady
