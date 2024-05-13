@@ -95,14 +95,17 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 	},
 }
 
-func getDefaultParameters(network network.Source) *Parameters {
+// getDefaultParametersByNetwork returns the default parameters based on the network.
+func getDefaultParametersByNetwork(network network.Source) *Parameters {
 	return defaultNetworkParameters[network]
 }
 
+// defaultWorkerConfig returns the default worker config based on the worker and network.
+// If parameters are supplied, use them instead of the default parameters.
 func defaultWorkerConfig(worker worker.Worker, network network.Source, parameters *Parameters) workerConfig {
 	// generate default parameters only if parameters are not provided
 	if parameters == nil {
-		parameters = getDefaultParameters(network)
+		parameters = getDefaultParametersByNetwork(network)
 	}
 
 	config := workerConfig{
@@ -172,7 +175,7 @@ func customWorkerConfig(worker worker.Worker, network network.Source, parameters
 	return config
 }
 
-// NetworkToWorkersMap is a map of network to workers.
+// NetworkToWorkersMap is a map of Network-has-Workers.
 var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.Ethereum: {
 		worker.Aave,
