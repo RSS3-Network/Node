@@ -289,7 +289,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			APIKey: &ConfigDetail{
 				IsRequired:  false,
 				Type:        "string",
-				Description: "API key to access your Farcaster Hubble",
+				Description: "API key to access your Farcaster Hubble on Neynar",
 			},
 		}, "A Farcaster Hubble is required"),
 	},
