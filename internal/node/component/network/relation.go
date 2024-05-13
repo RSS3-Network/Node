@@ -13,7 +13,7 @@ type ConfigDetail struct {
 }
 
 type Endpoint struct {
-	URL           *ConfigDetail `json:"network"`
+	URL           *ConfigDetail `json:"url"`
 	HTTPHeaders   *ConfigDetail `json:"http_headers"`
 	HTTP2Disabled *ConfigDetail `json:"http2_disabled"`
 }
@@ -298,11 +298,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Type:        "string",
 				Value:       worker.Core,
 				Description: "Your evm worker name",
-			},
-			IPFSGateways: &ConfigDetail{
-				IsRequired:  false,
-				Type:        "[]string",
-				Description: "You can define your own ipfs gateways instead of using the default ones if your worker heavily depends on ipfs service",
 			},
 			EndpointID: &ConfigDetail{
 				IsRequired:  false,
