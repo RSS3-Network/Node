@@ -44,48 +44,51 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 		BlockNumberStart: &ConfigDetail{
 			IsRequired:  false,
 			Type:        "big.Int",
-			Description: "Your worker will start from this block number, if it's not defined, we will use the recommended one(~3 months)"},
-		BlockNumberTarget: &ConfigDetail{
-			IsRequired:  false,
-			Type:        "big.Int",
-			Description: "Your worker will stop at this block number, if it's not defined, your worker will always indexing new blocks",
+			Description: "The block number where your worker will begin indexing. Each version of Node has a different starting block number.",
 		},
+		// unnecessary to expose
+		// BlockNumberTarget: &ConfigDetail{
+		//	IsRequired:  false,
+		//	Type:        "big.Int",
+		//	Description: "The block number where your worker will stop indexing",
+		// },
 		RPCThreadBlocks: &ConfigDetail{
 			IsRequired:  false,
 			Type:        "uint",
 			Value:       uint(8),
-			Description: "The number of concurrent RPC requests to the blockchain rpc, the default value is 8, you can adjust it based on your server performance",
+			Description: "The number of concurrent RPC requests to the blockchain rpc. Default: 8",
 		},
 		RPCBatchBlocks: &ConfigDetail{
 			IsRequired:  false,
 			Type:        "uint",
 			Value:       uint(8),
-			Description: "The number of blocks to fetch in a single RPC request, the default value is 8, you can adjust it based on your server performance",
+			Description: "The number of blocks to fetch in a single RPC request. Default: 8",
 		},
 		RPCBatchReceipts: &ConfigDetail{
 			IsRequired:  false,
 			Type:        "uint",
 			Value:       uint(200),
-			Description: "The number of receipts to fetch in a single RPC request, the default value is 200, you can adjust it based on your server performance",
+			Description: "The number of receipts to fetch in a single RPC request. Default: 200",
 		},
 		RPCBatchBlockReceipts: &ConfigDetail{
 			IsRequired:  false,
 			Type:        "uint",
 			Value:       uint(8),
-			Description: "The number of blocks to fetch receipts in a single RPC request, the default value is 8, you can adjust it based on your server performance",
+			Description: "The number of blocks to fetch receipts in a single RPC request. Default: 8",
 		},
 	},
 	network.ArweaveSource: {
 		BlockHeightStart: &ConfigDetail{
 			IsRequired:  false,
 			Type:        "big.Int",
-			Description: "Your arweave worker will start from this block height, if it's not defined, we will use the recommended one(~3 months)",
+			Description: "The block height where your worker will begin indexing. Each version of Node has a different starting block height",
 		},
-		BlockHeightTarget: &ConfigDetail{
-			IsRequired:  false,
-			Type:        "big.Int",
-			Description: "Your arweave worker will stop at this block height, if it's not defined, your worker will always indexing",
-		},
+		// unnecessary to expose
+		// BlockHeightTarget: &ConfigDetail{
+		//	IsRequired:  false,
+		//	Type:        "big.Int",
+		//	Description: "The block height where your worker will stop indexing",
+		// },
 		RPCThreadBlocks: &ConfigDetail{
 			IsRequired:  false,
 			Type:        "uint",
