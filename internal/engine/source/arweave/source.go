@@ -176,11 +176,8 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 			return fmt.Errorf("batch pull transactions: %w", err)
 		}
 
-		// Filter non batch transactions.
-		transactions = s.filterNonBatchTransaction(transactions)
-
 		// Filter transactions by owner.
-		transactions = s.filterOwnerTransaction(transactions, filter.OwnerAddresses)
+		transactions = s.filterOwnerTransaction(transactions, append(filter.OwnerAddresses, bundlrNodes...))
 
 		// Pull transaction data.
 		if err := s.batchPullData(ctx, transactions); err != nil {
@@ -454,18 +451,6 @@ func (s *source) filterOwnerTransaction(transactions []*arweave.Transaction, own
 		}
 
 		return lo.Contains(ownerAddress, transactionOwner)
-	})
-}
-
-// filterOwnerTransaction filters non batch transactions.
-func (s *source) filterNonBatchTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
-	return lo.Filter(transactions, func(transaction *arweave.Transaction, _ int) bool {
-		transactionOwner, err := arweave.PublicKeyToAddress(transaction.Owner)
-		if err != nil {
-			return false
-		}
-
-		return lo.Contains(bundlrNodes, transactionOwner)
 	})
 }
 
