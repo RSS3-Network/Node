@@ -99,9 +99,9 @@ func (s *source) initialize() (err error) {
 
 // initializeBlockHeights initializes block heights.
 func (s *source) initializeBlockHeights() {
-	if s.option.BlockHeightStart != nil && s.option.BlockHeightStart.Uint64() > s.state.BlockHeight {
-		s.pendingState.BlockHeight = s.option.BlockHeightStart.Uint64()
-		s.state.BlockHeight = s.option.BlockHeightStart.Uint64()
+	if s.option.BlockStart != nil && s.option.BlockStart.Uint64() > s.state.BlockHeight {
+		s.pendingState.BlockHeight = s.option.BlockStart.Uint64()
+		s.state.BlockHeight = s.option.BlockStart.Uint64()
 	}
 }
 
@@ -118,9 +118,9 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 
 	// Get target block height from config
 	// if not set, use the latest block height from arweave network
-	if s.option.BlockHeightTarget != nil {
-		zap.L().Info("block height target", zap.Uint64("block.height.target", s.option.BlockHeightTarget.Uint64()))
-		blockHeightLatestRemote = int64(s.option.BlockHeightTarget.Uint64())
+	if s.option.BlockTarget != nil {
+		zap.L().Info("block height target", zap.Uint64("block.height.target", s.option.BlockTarget.Uint64()))
+		blockHeightLatestRemote = int64(s.option.BlockTarget.Uint64())
 	} else {
 		// Get remote block height from arweave network.
 		blockHeightLatestRemote, err = s.arweaveClient.GetBlockHeight(ctx)
@@ -132,7 +132,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 	}
 
 	for {
-		if s.option.BlockHeightTarget != nil && s.option.BlockHeightTarget.Uint64() <= s.state.BlockHeight {
+		if s.option.BlockTarget != nil && s.option.BlockTarget.Uint64() <= s.state.BlockHeight {
 			break
 		}
 
@@ -156,7 +156,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 		// Pull blocks
 		blockHeightEnd := lo.Min([]uint64{
 			uint64(blockHeightLatestRemote),
-			s.state.BlockHeight + *s.option.RPCThreadBlocks - 1,
+			s.state.BlockHeight + *s.option.ConcurrentBlockRequests - 1,
 		})
 
 		// Pull blocks by range.

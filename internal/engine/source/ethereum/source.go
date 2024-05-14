@@ -97,8 +97,8 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks)
 	var blockNumberLatestRemote uint64
 
 	// Set the block number to the start block number if it is greater than the current block number.
-	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > s.state.BlockNumber {
-		s.state.BlockNumber = s.option.BlockNumberStart.Uint64()
+	if s.option.BlockStart != nil && s.option.BlockStart.Uint64() > s.state.BlockNumber {
+		s.state.BlockNumber = s.option.BlockStart.Uint64()
 	}
 
 	for {
@@ -106,8 +106,8 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks)
 
 		// Stop the source if the block number target is not nil and the current block number is greater than the target
 		// block number. This is useful when the source is used to index a specific range of blocks.
-		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
-			zap.L().Info("source has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockNumberTarget.Uint64()))
+		if s.option.BlockTarget != nil && s.option.BlockTarget.Uint64() < s.state.BlockNumber {
+			zap.L().Info("source has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockTarget.Uint64()))
 
 			break
 		}
@@ -135,7 +135,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks)
 			continue
 		}
 
-		blockNumbers := lo.Map(lo.Range(int(*s.option.RPCThreadBlocks)), func(item int, _ int) *big.Int {
+		blockNumbers := lo.Map(lo.Range(int(*s.option.ConcurrentBlockRequests)), func(item int, _ int) *big.Int {
 			return new(big.Int).SetUint64(blockNumberStart + uint64(item))
 		})
 
@@ -190,8 +190,8 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks)
 func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	var blockNumberLatestRemote uint64
 
-	if s.option.BlockNumberStart != nil && s.option.BlockNumberStart.Uint64() > s.state.BlockNumber {
-		s.state.BlockNumber = s.option.BlockNumberStart.Uint64()
+	if s.option.BlockStart != nil && s.option.BlockStart.Uint64() > s.state.BlockNumber {
+		s.state.BlockNumber = s.option.BlockStart.Uint64()
 	}
 
 	for {
@@ -199,8 +199,8 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 
 		// Stop the source if the block number target is not nil and the current block number is greater than the target
 		// block number. This is useful when the source is used to index a specific range of blocks.
-		if s.option.BlockNumberTarget != nil && s.option.BlockNumberTarget.Uint64() < s.state.BlockNumber {
-			zap.L().Info("source has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockNumberTarget.Uint64()))
+		if s.option.BlockTarget != nil && s.option.BlockTarget.Uint64() < s.state.BlockNumber {
+			zap.L().Info("source has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockTarget.Uint64()))
 
 			break
 		}
@@ -229,7 +229,7 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 		}
 
 		// The block number end is the start block number plus the number of blocks to be processed in parallel.
-		blockNumberEnd := min(blockNumberStart+uint64(*s.option.RPCThreadBlocks)-1, blockNumberStart)
+		blockNumberEnd := min(blockNumberStart+uint64(*s.option.ConcurrentBlockRequests)-1, blockNumberStart)
 
 		span.SetAttributes(
 			attribute.String("block.number.start", strconv.FormatUint(blockNumberStart, 10)),
@@ -347,7 +347,7 @@ func (s *source) getBlocks(ctx context.Context, blockNumbers []*big.Int) ([]*eth
 		WithFirstError().
 		WithCancelOnError()
 
-	for _, blockNumbers := range lo.Chunk(blockNumbers, int(*s.option.RPCBatchBlocks)) {
+	for _, blockNumbers := range lo.Chunk(blockNumbers, int(*s.option.BlockBatchSize)) {
 		blockNumbers := blockNumbers
 
 		resultPool.Go(func(ctx context.Context) ([]*ethereum.Block, error) {
@@ -399,7 +399,7 @@ func (s *source) getReceiptsByBlockNumbers(ctx context.Context, blockNumbers []*
 		WithFirstError().
 		WithCancelOnError()
 
-	for _, blockNumbers := range lo.Chunk(blockNumbers, int(*s.option.RPCBatchBlockReceipts)) {
+	for _, blockNumbers := range lo.Chunk(blockNumbers, int(*s.option.BlockReceiptsBatchSize)) {
 		blockNumbers := blockNumbers
 
 		resultPool.Go(func(ctx context.Context) ([]*ethereum.Receipt, error) {
@@ -426,7 +426,7 @@ func (s *source) getReceiptsByTransactionHashes(ctx context.Context, transaction
 		WithFirstError().
 		WithCancelOnError()
 
-	for _, transactionHashes := range lo.Chunk(transactionHashes, int(*s.option.RPCBatchBlockReceipts)) {
+	for _, transactionHashes := range lo.Chunk(transactionHashes, int(*s.option.BlockReceiptsBatchSize)) {
 		transactionHashes := transactionHashes
 
 		resultPool.Go(func(ctx context.Context) ([]*ethereum.Receipt, error) {

@@ -8,15 +8,16 @@ import (
 )
 
 const (
-	defaultRPCThreadBlocks = uint64(1)
+	defaultConcurrentBlockRequests = uint64(1)
 )
 
 type Option struct {
-	BlockHeightStart  *big.Int `json:"block_height_start" mapstructure:"block_height_start"`
-	BlockHeightTarget *big.Int `json:"block_height_target" mapstructure:"block_height_target"`
-
-	// RPCThreadBlocks is the number of concurrent RPC requests associated with the blocks.
-	RPCThreadBlocks *uint64 `json:"rpc_thread_blocks" mapstructure:"rpc_thread_blocks"`
+	// BlockStart is the starting block height on arweave chain.
+	BlockStart *big.Int `json:"block_start" mapstructure:"block_start"`
+	// BlockTarget is the target block height on arweave chain.
+	BlockTarget *big.Int `json:"block_target" mapstructure:"block_target"`
+	// ConcurrentBlockRequests is the number of concurrent RPC requests associated with the blocks.
+	ConcurrentBlockRequests *uint64 `json:"concurrent_block_requests" mapstructure:"concurrent_block_requests"`
 }
 
 func NewOption(options *config.Parameters) (*Option, error) {
@@ -31,8 +32,8 @@ func NewOption(options *config.Parameters) (*Option, error) {
 	}
 
 	// Set default values.
-	if instance.RPCThreadBlocks == nil {
-		instance.RPCThreadBlocks = lo.ToPtr(defaultRPCThreadBlocks)
+	if instance.ConcurrentBlockRequests == nil {
+		instance.ConcurrentBlockRequests = lo.ToPtr(defaultConcurrentBlockRequests)
 	}
 
 	return &instance, nil
