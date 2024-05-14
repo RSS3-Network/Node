@@ -32,15 +32,13 @@ type Endpoint struct {
 }
 
 type Parameters struct {
-	BlockHeightStart      *ConfigDetail `json:"block_height_start,omitempty"`
-	BlockHeightTarget     *ConfigDetail `json:"block_height_target,omitempty"`
-	BlockNumberStart      *ConfigDetail `json:"block_number_start,omitempty"`
-	BlockNumberTarget     *ConfigDetail `json:"block_number_target,omitempty"`
-	RPCThreadBlocks       *ConfigDetail `json:"rpc_thread_blocks,omitempty"`
-	RPCBatchBlocks        *ConfigDetail `json:"rpc_batch_blocks,omitempty"`
-	RPCBatchReceipts      *ConfigDetail `json:"rpc_batch_receipts,omitempty"`
-	RPCBatchBlockReceipts *ConfigDetail `json:"rpc_batch_block_receipts,omitempty"`
-	APIKey                *ConfigDetail `json:"api_key,omitempty"`
+	BlockStart              *ConfigDetail `json:"block_start,omitempty"`
+	BlockTarget             *ConfigDetail `json:"block_target,omitempty"`
+	ConcurrentBlockRequests *ConfigDetail `json:"concurrent_block_requests,omitempty"`
+	BlockBatchSize          *ConfigDetail `json:"block_batch_size,omitempty"`
+	ReceiptsBatchSize       *ConfigDetail `json:"receipts_batch_size,omitempty"`
+	BlockReceiptBatchSize   *ConfigDetail `json:"block_receipts_batch_size,omitempty"`
+	APIKey                  *ConfigDetail `json:"api_key,omitempty"`
 }
 
 type workerConfig struct {
@@ -54,7 +52,7 @@ type workerConfig struct {
 
 var defaultNetworkParameters = map[network.Source]*Parameters{
 	network.EthereumSource: {
-		BlockNumberStart: &ConfigDetail{
+		BlockStart: &ConfigDetail{
 			IsRequired:  false,
 			Type:        BigIntType,
 			Description: "The block number where your worker will begin indexing. Each version of Node has a different starting block number.",
@@ -65,25 +63,25 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 		//	Type:        BigIntType,
 		//	Description: "The block number where your worker will stop indexing",
 		// },
-		RPCThreadBlocks: &ConfigDetail{
+		ConcurrentBlockRequests: &ConfigDetail{
 			IsRequired:  false,
 			Type:        UintType,
 			Value:       uint(8),
 			Description: "The number of concurrent RPC requests to the blockchain rpc. Default: 8",
 		},
-		RPCBatchBlocks: &ConfigDetail{
+		BlockBatchSize: &ConfigDetail{
 			IsRequired:  false,
 			Type:        UintType,
 			Value:       uint(8),
 			Description: "The number of blocks to fetch in a single RPC request. Default: 8",
 		},
-		RPCBatchReceipts: &ConfigDetail{
+		ReceiptsBatchSize: &ConfigDetail{
 			IsRequired:  false,
 			Type:        UintType,
 			Value:       uint(200),
 			Description: "The number of receipts to fetch in a single RPC request. Default: 200",
 		},
-		RPCBatchBlockReceipts: &ConfigDetail{
+		BlockReceiptBatchSize: &ConfigDetail{
 			IsRequired:  false,
 			Type:        UintType,
 			Value:       uint(8),
@@ -91,18 +89,18 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 		},
 	},
 	network.ArweaveSource: {
-		BlockHeightStart: &ConfigDetail{
+		BlockStart: &ConfigDetail{
 			IsRequired:  false,
 			Type:        BigIntType,
 			Description: "The block height where your worker will begin indexing. Each version of Node has a different starting block height",
 		},
 		// unnecessary to expose
-		// BlockHeightTarget: &ConfigDetail{
+		// BlockTarget: &ConfigDetail{
 		//	IsRequired:  false,
 		//	Type:        BigIntType,
 		//	Description: "The block height where your worker will stop indexing",
 		// },
-		RPCThreadBlocks: &ConfigDetail{
+		ConcurrentBlockRequests: &ConfigDetail{
 			IsRequired:  false,
 			Type:        UintType,
 			Value:       uint(1),
