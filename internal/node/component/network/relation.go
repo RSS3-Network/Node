@@ -1,5 +1,9 @@
 package network
 
+// This file includes the relations between networks and their associated workers.
+// Results are exclusively provided to external users and do not influence internal operations within the Node.
+// Each worker has a default configuration, which can be customized based on various factors.
+
 import (
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
