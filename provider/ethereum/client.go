@@ -149,7 +149,7 @@ func (c *client) BatchBlockByNumbers(ctx context.Context, numbers []*big.Int) ([
 				formatBlockNumber(number),
 				true,
 			},
-			Result: new(Block),
+			Result: lo.ToPtr((*Block)(nil)),
 		}
 
 		batchElements = append(batchElements, batchElement)
@@ -159,21 +159,21 @@ func (c *client) BatchBlockByNumbers(ctx context.Context, numbers []*big.Int) ([
 		return nil, err
 	}
 
-	blocks, err := unwrapBatchElements[*Block](batchElements)
+	blocks, err := unwrapBatchElements[**Block](batchElements)
 	if err != nil {
 		return nil, err
 	}
 
 	// Check if blocks are not found for some block numbers.
-	nullBlockNumbers := lo.FilterMap(blocks, func(block *Block, index int) (string, bool) {
-		return numbers[index].String(), block == nil
+	nullBlockNumbers := lo.FilterMap(blocks, func(block **Block, index int) (string, bool) {
+		return numbers[index].String(), *block == nil
 	})
 
 	if len(nullBlockNumbers) > 0 {
 		return nil, fmt.Errorf("blocks of block numbers %s: %w", strings.Join(nullBlockNumbers, ",\x20"), ethereum.NotFound)
 	}
 
-	return blocks, nil
+	return derefPtrSlice(blocks), nil
 }
 
 // BlockReceipts returns the receipts of a block by block number.
@@ -265,7 +265,7 @@ func (c *client) BatchTransactionReceipt(ctx context.Context, hashes []common.Ha
 			Args: []any{
 				hash,
 			},
-			Result: new(Receipt),
+			Result: lo.ToPtr((*Receipt)(nil)),
 		}
 
 		batchElements = append(batchElements, batchElement)
@@ -275,21 +275,21 @@ func (c *client) BatchTransactionReceipt(ctx context.Context, hashes []common.Ha
 		return nil, err
 	}
 
-	receipts, err := unwrapBatchElements[*Receipt](batchElements)
+	receipts, err := unwrapBatchElements[**Receipt](batchElements)
 	if err != nil {
 		return nil, err
 	}
 
 	// Check if receipts are not found for some transaction hashes.
-	nullTransactionHashes := lo.FilterMap(receipts, func(receipt *Receipt, index int) (string, bool) {
-		return hashes[index].String(), receipt == nil
+	nullTransactionHashes := lo.FilterMap(receipts, func(receipt **Receipt, index int) (string, bool) {
+		return hashes[index].String(), *receipt == nil
 	})
 
 	if len(nullTransactionHashes) > 0 {
 		return nil, fmt.Errorf("receipts of transaction hashes %s: %w", strings.Join(nullTransactionHashes, ",\x20"), ethereum.NotFound)
 	}
 
-	return receipts, nil
+	return derefPtrSlice(receipts), nil
 }
 
 // StorageAt returns the contract storage of the given account.
@@ -366,4 +366,11 @@ func unwrapBatchElements[T any](batchElements []rpc.BatchElem) ([]T, error) {
 	}
 
 	return results, nil
+}
+
+// derefPtrSlice converts a slice of pointers to a slice of values.
+func derefPtrSlice[T any](values []*T) []T {
+	return lo.Map(values, func(value *T, _ int) T {
+		return *value
+	})
 }
