@@ -44,11 +44,33 @@ observability:
       endpoint: localhost:4318
 
 endpoints:
+  farcaster:
+    url: https://nemes.farcaster.xyz:2281
   ethereum:
     url: https://rpc.ankr.com/eth
+  polygon:
+    url: https://rpc.ankr.com/polygon
+  avax:
+    url: https://rpc.ankr.com/avalanche
+  optimism:
+    url: https://rpc.ankr.com/optimism
+  arbitrum:
+    url: https://rpc.ankr.com/arbitrum
+  gnosis:
+    url: https://rpc.ankr.com/gnosis
+  linea:
+    url: https://rpc.linea.build
+  savm:
+    url: https://alpha-rpc-node-http.svmscan.io
+  binance-smart-chain:
+    url: https://rpc.ankr.com/bsc
   base:
     url: https://rpc.ankr.com/base
     http2_disabled: true
+  crossbell:
+    url: https://rpc.crossbell.io
+  vsl:
+    url: https://rpc.rss3.io
 
 component:
   rss:
@@ -68,63 +90,63 @@ component:
     - id: ethereum-rss3
       network: ethereum
       worker: rss3
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       parameters:
         block_start:
         block_target:
     - id: polygon-lens
       network: polygon
       worker: lens
-      endpoint: https://rpc.ankr.com/polygon
+      endpoint: polygon
       ipfs_gateways:
       parameters:
         block_start:
     - id: ethereum-opensea
       network: ethereum
       worker: opensea
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       parameters:
         block_start:
     - id: ethereum-uniswap
       network: ethereum
       worker: uniswap
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       parameters:
         block_start:
     - id: ethereum-optimism
       network: ethereum
       worker: optimism
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       parameters:
         block_start:
     - id: polygon-aavegotchi
       network: polygon
       worker: aavegotchi
-      endpoint: https://rpc.ankr.com/polygon
+      endpoint: polygon
       parameters:
           block_start: 48300005
     - id: ethereum-highlight
       network: ethereum
       worker: highlight
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       parameters:
         block_start:
     - id: arbitrum-highlight
       network: arbitrum
       worker: highlight
-      endpoint: https://rpc.ankr.com/arbitrum
+      endpoint: arbitrum
       parameters:
         block_start:
     - id: polygon-highlight
       network: polygon
       worker: highlight
-      endpoint: https://rpc.ankr.com/polygon
+      endpoint: polygon
       parameters:
           block_start:
     - id: optimism-highlight
       network: optimism
       worker: highlight
-      endpoint: https://rpc.ankr.com/optimism
+      endpoint: optimism
       parameters:
         block_start:
     - id: crossbell-crossbell
@@ -137,14 +159,13 @@ component:
     - id: farcaster-core
       network: farcaster
       worker: core
-      endpoint: https://nemes.farcaster.xyz:2281
+      endpoint: farcaster
       parameters:
         api_key:
     # arweave
     - id: arweave-mirror
       network: arweave
       worker: mirror
-      endpoint: https://arweave.net/
       ipfs_gateways:
       parameters:
         block_start:
@@ -152,7 +173,6 @@ component:
     - id: arweave-paragraph
       network: arweave
       worker: paragraph
-      endpoint: https://arweave.net/
       ipfs_gateways:
       parameters:
         block_start:
@@ -160,127 +180,127 @@ component:
     - id: ethereum-looksrare
       network: ethereum
       worker: looksrare
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       parameters:
         block_start:
-    - id: polygon-matters
-      network: polygon
+    - id: optimism-matters
+      network: optimism
       worker: matters
-      endpoint: https://rpc.ankr.com/polygon
+      endpoint: optimism
       parameters:
         block_start:
     - id: arweave-momoka
       network: arweave
       worker: momoka
-      endpoint: https://rpc.ankr.com/polygon
+      endpoint: polygon
       parameters:
         block_start:
         concurrent_block_requests:
     - id: ethereum-aave
       network: ethereum
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       worker: aave
       parameters:
         block_start:
     - id: polygon-aave
       network: polygon
-      endpoint: https://rpc.ankr.com/polygon
+      endpoint: polygon
       worker: aave
       parameters:
         block_start:
     - id: avax-aave
       network: avax
-      endpoint: https://rpc.ankr.com/avalanche
+      endpoint: avax
       worker: aave
       parameters:
         block_start:
     - id: base-aave
       network: base
-      endpoint: https://rpc.ankr.com/base
+      endpoint: base
       worker: aave
       parameters:
         block_start:
     - id: optimism-aave
       network: optimism
-      endpoint: https://rpc.ankr.com/optimism
+      endpoint: optimism
       worker: aave
       parameters:
         block_start:
     - id: arbitrum-aave
       network: arbitrum
-      endpoint: https://rpc.ankr.com/arbitrum
+      endpoint: arbitrum
       worker: aave
       parameters:
         block_start:
     - id: polygon-iqwiki
       network: polygon
       worker: iqwiki
-      endpoint: https://rpc.ankr.com/polygon
+      endpoint: polygon
       parameters:
         block_start:
     - id: ethereum-lido
       network: ethereum
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       worker: lido
       parameters:
         block_start:
     - id: ethereum-ens
       network: ethereum
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       worker: ens
       parameters:
         block_start:
     - id: ethereum-1inch
       network: ethereum
       worker: 1inch
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       parameters:
         block_start:
     - id: vsl-core
       network: vsl
-      endpoint: https://rpc.rss3.io
+      endpoint: vsl
       worker: core
       parameters:
         block_start:
     - id: optimism-kiwistand
       network: optimism
-      endpoint: https://rpc.ankr.com/optimism
+      endpoint: optimism
       worker: kiwistand
       parameters:
         block_start:
     - id: savm-core
       network: savm
-      endpoint: https://alpha-rpc-node-http.svmscan.io
+      endpoint: savm
       worker: core
       parameters:
         block_start:
     - id: savm-uniswap
       network: savm
-      endpoint: https://alpha-rpc-node-http.svmscan.io
+      endpoint: savm
       worker: uniswap
       parameters:
         block_start:
     - id: savm-savm
       network: savm
-      endpoint: https://alpha-rpc-node-http.svmscan.io
+      endpoint: savm
       worker: savm
       parameters:
         block_start:
     - id: optimism-core
       network: optimism
-      endpoint: https://rpc.ankr.com/optimism
+      endpoint: optimism
       worker: core
       parameters:
         block_start:
     - id: polygon-core
       network: polygon
-      endpoint: https://rpc.ankr.com/polygon
+      endpoint: polygon
       worker: core
       parameters:
         block_start:
     - id: arbitrum-core
       network: arbitrum
-      endpoint: https://rpc.ankr.com/arbitrum
+      endpoint: arbitrum
       worker: core
       parameters:
         block_start:
@@ -292,120 +312,120 @@ component:
         block_start:
     - id: binance-smart-chain-core
       network: binance-smart-chain
-      endpoint: https://rpc.ankr.com/bsc
+      endpoint: binance-smart-chain
       worker: core
       parameters:
         block_start: 34436412
         concurrent_block_requests: 1
     - id: gnosis-core
       network: gnosis
-      endpoint: https://rpc.ankr.com/gnosis
+      endpoint: gnosis
       worker: core
       parameters:
         block_start:
     - id: linea-core
       network: linea
-      endpoint: https://rpc.linea.build
+      endpoint: linea
       worker: core
       parameters:
           block_start:
     - id: linea-uniswap
       network: linea
-      endpoint: https://rpc.linea.build
+      endpoint: linea
       worker: uniswap
       parameters:
         block_start:
     - id: vsl-rss3
       network: vsl
-      endpoint: https://rpc.rss3.io
+      endpoint: vsl
       worker: rss3
     - id: ethereum-vsl
       network: ethereum
       worker: vsl
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       parameters:
         block_start:
     - id: ethereum-stargate
       network: ethereum
       worker: stargate
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       parameters:
         block_start:
     - id: arbitrum-stargate
       network: arbitrum
       worker: stargate
-      endpoint: https://rpc.ankr.com/arbitrum
+      endpoint: arbitrum
       parameters:
         block_start:
     - id: linea-stargate
       network: linea
-      endpoint: https://rpc.linea.build
+      endpoint: linea
       worker: stargate
       parameters:
         block_start:
     - id: binance-smart-chain-stargate
       network: binance-smart-chain
-      endpoint: https://rpc.ankr.com/bsc
+      endpoint: binance-smart-chain
       worker: stargate
       parameters:
         block_start:
     - id: base-stargate
       network: base
-      endpoint: https://developer-access-mainnet.base.orgss
+      endpoint: base
       worker: stargate
       parameters:
         block_start:
     - id: optimism-stargate
       network: optimism
-      endpoint: https://rpc.ankr.com/optimism
+      endpoint: optimism
       worker: stargate
       parameters:
         block_start:
     - id: polygon-stargate
       network: polygon
       worker: stargate
-      endpoint: https://rpc.ankr.com/polygon
+      endpoint: polygon
       parameters:
         block_start:
     - id: avax-stargate
       network: avax
-      endpoint: https://rpc.ankr.com/avalanche
+      endpoint: avax
       worker: stargate
       parameters:
         block_start:
     - id: ethereum-curve
       network: ethereum
       worker: curve
-      endpoint: https://rpc.ankr.com/eth
+      endpoint: ethereum
       parameters:
         block_start:
     - id: arbitrum-curve
       network: arbitrum
       worker: curve
-      endpoint: https://rpc.ankr.com/arbitrum
+      endpoint: arbitrum
       parameters:
         block_start:
     - id: avax-curve
       network: avax
-      endpoint: https://rpc.ankr.com/avalanche
+      endpoint: avax
       worker: curve
       parameters:
         block_start:
     - id: gnosis-curve
       network: gnosis
-      endpoint: https://rpc.ankr.com/gnosis
+      endpoint: gnosis
       worker: curve
       parameters:
         block_start:
     - id: optimism-curve
       network: optimism
       worker: curve
-      endpoint: https://rpc.ankr.com/optimism
+      endpoint: optimism
       parameters:
         block_start:
     - id: polygon-curve
       network: polygon
       worker: curve
-      endpoint: https://rpc.ankr.com/polygon
+      endpoint: polygon
       parameters:
         block_start:
