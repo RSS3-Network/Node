@@ -71,6 +71,8 @@ endpoints:
     url: https://rpc.crossbell.io
   vsl:
     url: https://rpc.rss3.io
+  arweave:
+    url: https://arweave.net
 
 component:
   rss:
@@ -165,6 +167,7 @@ component:
     # arweave
     - id: arweave-mirror
       network: arweave
+      endpoint: arweave
       worker: mirror
       ipfs_gateways:
       parameters:
@@ -172,6 +175,7 @@ component:
         concurrent_block_requests:
     - id: arweave-paragraph
       network: arweave
+      endpoint: arweave
       worker: paragraph
       ipfs_gateways:
       parameters:
