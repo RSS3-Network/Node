@@ -210,7 +210,6 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		worker.Highlight,
 		worker.IQWiki,
 		worker.Lens,
-		worker.Matters,
 		worker.Stargate,
 	},
 	network.Crossbell: {
@@ -232,6 +231,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		worker.Curve,
 		worker.Highlight,
 		worker.KiwiStand,
+		worker.Matters,
 		worker.Stargate,
 	},
 	network.Arbitrum: {
