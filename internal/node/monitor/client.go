@@ -34,21 +34,7 @@ func (c *ethereumClient) CurrentState(state CheckpointState) uint64 {
 }
 
 func (c *ethereumClient) TargetState(param *config.Parameters) uint64 {
-	if param == nil {
-		return 0
-	}
-
-	targetBlock, exists := (*param)["block_number_target"]
-	if !exists || targetBlock == nil {
-		return 0
-	}
-
-	targetBlockUint, err := convertToUint64(targetBlock)
-	if err != nil {
-		return 0
-	}
-
-	return targetBlockUint
+	return getTargetBlockFromParam(param)
 }
 
 func (c *ethereumClient) LatestState(ctx context.Context) (uint64, error) {
@@ -85,21 +71,7 @@ func (c *arweaveClient) CurrentState(state CheckpointState) uint64 {
 }
 
 func (c *arweaveClient) TargetState(param *config.Parameters) uint64 {
-	if param == nil {
-		return 0
-	}
-
-	targetBlock, exists := (*param)["block_height_target"]
-	if !exists || targetBlock == nil {
-		return 0
-	}
-
-	targetBlockUint, err := convertToUint64(targetBlock)
-	if err != nil {
-		return 0
-	}
-
-	return targetBlockUint
+	return getTargetBlockFromParam(param)
 }
 
 func (c *arweaveClient) LatestState(ctx context.Context) (uint64, error) {
@@ -143,6 +115,25 @@ func (c *farcasterClient) TargetState(_ *config.Parameters) uint64 {
 
 func (c *farcasterClient) LatestState(_ context.Context) (uint64, error) {
 	return uint64(time.Now().UnixMilli()), nil
+}
+
+// getTargetBlockFromParam returns the target block number/height from the parameters.
+func getTargetBlockFromParam(param *config.Parameters) uint64 {
+	if param == nil {
+		return 0
+	}
+
+	targetBlock, exists := (*param)["block_target"]
+	if !exists || targetBlock == nil {
+		return 0
+	}
+
+	targetBlockUint, err := convertToUint64(targetBlock)
+	if err != nil {
+		return 0
+	}
+
+	return targetBlockUint
 }
 
 // convertToUint64 a helper func which converts the value to uint64.

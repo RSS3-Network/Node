@@ -71,14 +71,14 @@ component:
       worker: core
       endpoint: ethereum
       parameters:
-        block_number_start: 47370106
-        block_number_target: 456
+        block_start: 47370106
+        block_target: 456
     - network: ethereum
       worker: rss3
       endpoint: https://rpc.ankr.com/eth
       parameters:
-        block_height_start: 123
-        rpc_thread_blocks: 2
+        block_start: 123
+        concurrent_block_requests: 2
 `
 	configExampleJSON = `{
   "environment": "development",
@@ -153,8 +153,8 @@ component:
         "worker": "core",
         "endpoint": "ethereum",
         "parameters": {
-          "block_number_start": 47370106,
-          "block_number_target": 456
+          "block_start": 47370106,
+          "block_target": 456
         }
       },
       {
@@ -162,8 +162,8 @@ component:
         "worker": "rss3",
         "endpoint": "https://rpc.ankr.com/eth",
         "parameters": {
-          "block_height_start": 123,
-          "rpc_thread_blocks": 2
+          "block_start": 123,
+          "concurrent_block_requests": 2
         }
       }
     ]
@@ -227,8 +227,8 @@ worker = "core"
 endpoint = "ethereum"
 
   [component.decentralized.parameters]
-  block_number_start = 47370106
-  block_number_target = 456
+  block_start = 47370106
+  block_target = 456
 
 [[component.decentralized]]
 network = "ethereum"
@@ -236,8 +236,8 @@ worker = "rss3"
 endpoint = "https://rpc.ankr.com/eth"
 
   [component.decentralized.parameters]
-  block_height_start = 123
-  rpc_thread_blocks = 2
+  block_start = 123
+  concurrent_block_requests = 2
 
 `
 )
@@ -295,8 +295,8 @@ var configFileExcept = &File{
 					},
 				},
 				Parameters: &Parameters{
-					"block_number_start":  47370106,
-					"block_number_target": 456,
+					"block_start":  47370106,
+					"block_target": 456,
 				},
 			},
 			{
@@ -307,8 +307,8 @@ var configFileExcept = &File{
 					URL: "https://rpc.ankr.com/eth",
 				},
 				Parameters: &Parameters{
-					"block_height_start": 123,
-					"rpc_thread_blocks":  2,
+					"block_start":               123,
+					"concurrent_block_requests": 2,
 				},
 			},
 		},

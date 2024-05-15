@@ -8,21 +8,25 @@ import (
 )
 
 const (
-	defaultRPCThreadBlocks       = uint(8)
-	defaultRPCBatchBlocks        = uint(8)
-	defaultRPCBatchReceipts      = uint(200)
-	defaultRPCBatchBlockReceipts = uint(8)
+	defaultConcurrentBlockRequests = uint(8)
+	defaultBlockBatchSize          = uint(8)
+	defaultReceiptsBatchSize       = uint(200)
+	defaultBlockReceiptsBatchSize  = uint(8)
 )
 
 type Option struct {
-	BlockNumberStart  *big.Int `json:"block_number_start" mapstructure:"block_number_start"`
-	BlockNumberTarget *big.Int `json:"block_number_target" mapstructure:"block_number_target"`
-
-	// RPCThreadBlocks is the number of concurrent RPC requests associated with the blocks.
-	RPCThreadBlocks       *uint `json:"rpc_thread_blocks" mapstructure:"rpc_thread_blocks"`
-	RPCBatchBlocks        *uint `json:"rpc_batch_blocks" mapstructure:"rpc_batch_blocks"`
-	RPCBatchReceipts      *uint `json:"rpc_batch_receipts" mapstructure:"rpc_batch_blocks"`
-	RPCBatchBlockReceipts *uint `json:"rpc_batch_block_receipts" mapstructure:"rpc_batch_block_receipts"`
+	// BlockStart is the starting block number on evm chain.
+	BlockStart *big.Int `json:"block_start" mapstructure:"block_start"`
+	// BlockTarget is the target block number on evm chain.
+	BlockTarget *big.Int `json:"block_target" mapstructure:"block_target"`
+	// ConcurrentBlockRequests is the number of concurrent RPC requests associated with the blocks.
+	ConcurrentBlockRequests *uint `json:"concurrent_block_requests" mapstructure:"concurrent_block_requests"`
+	// BlockBatchSize is the number of blocks to fetch in a single batch.
+	BlockBatchSize *uint `json:"block_batch_size" mapstructure:"block_batch_size"`
+	// ReceiptsBatchSize is the number of receipts to fetch in a single batch.
+	ReceiptsBatchSize *uint `json:"receipts_batch_size" mapstructure:"receipts_batch_size"`
+	// BlockReceiptsBatchSize is the number of block receipts to fetch in a single batch.
+	BlockReceiptsBatchSize *uint `json:"block_receipts_batch_size" mapstructure:"block_receipts_batch_size"`
 }
 
 func NewOption(options *config.Parameters) (*Option, error) {
@@ -37,20 +41,20 @@ func NewOption(options *config.Parameters) (*Option, error) {
 	}
 
 	// Set default values.
-	if instance.RPCThreadBlocks == nil {
-		instance.RPCThreadBlocks = lo.ToPtr(defaultRPCThreadBlocks)
+	if instance.ConcurrentBlockRequests == nil {
+		instance.ConcurrentBlockRequests = lo.ToPtr(defaultConcurrentBlockRequests)
 	}
 
-	if instance.RPCBatchBlocks == nil {
-		instance.RPCBatchBlocks = lo.ToPtr(defaultRPCBatchBlocks)
+	if instance.BlockBatchSize == nil {
+		instance.BlockBatchSize = lo.ToPtr(defaultBlockBatchSize)
 	}
 
-	if instance.RPCBatchReceipts == nil {
-		instance.RPCBatchReceipts = lo.ToPtr(defaultRPCBatchReceipts)
+	if instance.ReceiptsBatchSize == nil {
+		instance.ReceiptsBatchSize = lo.ToPtr(defaultReceiptsBatchSize)
 	}
 
-	if instance.RPCBatchBlockReceipts == nil {
-		instance.RPCBatchBlockReceipts = lo.ToPtr(defaultRPCBatchBlockReceipts)
+	if instance.BlockReceiptsBatchSize == nil {
+		instance.BlockReceiptsBatchSize = lo.ToPtr(defaultBlockReceiptsBatchSize)
 	}
 
 	return &instance, nil
