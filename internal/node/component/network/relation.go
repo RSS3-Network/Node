@@ -292,8 +292,8 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	},
 	network.ArweaveSource: {
 		worker.Mirror:    customWorkerConfigWithIPFS(worker.Mirror, network.ArweaveSource, ""),
-		worker.Momoka:    customWorkerConfigWithIPFS(worker.Mirror, network.ArweaveSource, "A Polygon RPC is required for Momoka"),
-		worker.Paragraph: defaultWorkerConfig(worker.Mirror, network.ArweaveSource, nil),
+		worker.Momoka:    customWorkerConfigWithIPFS(worker.Momoka, network.ArweaveSource, "A Polygon RPC is required for Momoka"),
+		worker.Paragraph: defaultWorkerConfig(worker.Paragraph, network.ArweaveSource, nil),
 	},
 	network.FarcasterSource: {
 		worker.Core: customWorkerConfig(worker.Core, network.FarcasterSource, &Parameters{
