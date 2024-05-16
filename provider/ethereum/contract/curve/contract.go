@@ -28,6 +28,7 @@ var (
 	EventHashRegistryExchangeExchangeMultiple         = contract.EventHash("ExchangeMultiple(address,address,address[9],uint256[3][4],address[4],uint256,uint256)")
 	EventHashStableSwapTokenExchange                  = contract.EventHash("TokenExchange(address,int128,uint256,int128,uint256)")
 	EventHashStableSwapAddLiquidity2Coins             = contract.EventHash("AddLiquidity(address,uint256[2],uint256[2],uint256,uint256)")
+	EventHashStableSwapAddLiquidity3Coins4Params      = contract.EventHash("AddLiquidity(address,uint256[3],uint256,uint256)")
 	EventHashStableSwapAddLiquidity3Coins             = contract.EventHash("AddLiquidity(address,uint256[3],uint256[3],uint256,uint256)")
 	EventHashStableSwapAddLiquidity4Coins             = contract.EventHash("AddLiquidity(address,uint256[4],uint256[4],uint256,uint256)")
 	EventHashStableSwapRemoveLiquidity2Coins          = contract.EventHash("RemoveLiquidity(address,uint256[2],uint256[2],uint256)")

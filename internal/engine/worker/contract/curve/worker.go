@@ -297,6 +297,7 @@ func (w *worker) transformStableSwapAddLiquidityTransaction(ctx context.Context,
 			log.Topics[0],
 			curve.EventHashStableSwapAddLiquidity2Coins,
 			curve.EventHashStableSwapAddLiquidity3Coins,
+			curve.EventHashStableSwapAddLiquidity3Coins4Params,
 			curve.EventHashStableSwapAddLiquidity4Coins,
 		)
 	})
@@ -322,15 +323,20 @@ func (w *worker) transformStableSwapAddLiquidityTransaction(ctx context.Context,
 		}
 
 		switch {
-		case transferEvent.From == task.Transaction.From && transferEvent.To == poolAddress: // Add liquidity
-			action, err := w.buildExchangeLiquidityAction(ctx, task.Header.Number, task.ChainID, transferEvent.From, transferEvent.To, &transferEvent.Raw.Address, transferEvent.Value, metadata.ActionExchangeLiquidityAdd)
+		case (transferEvent.From == task.Transaction.From || transferEvent.From == *task.Transaction.To) && transferEvent.To == poolAddress: // Add liquidity
+			action, err := w.buildExchangeLiquidityAction(ctx, task.Header.Number, task.ChainID, task.Transaction.From, transferEvent.To, &transferEvent.Raw.Address, transferEvent.Value, metadata.ActionExchangeLiquidityAdd)
 			if err != nil {
 				return nil, fmt.Errorf("build exchange liquidity action: %w", err)
 			}
 
 			actions = append(actions, action)
-		case transferEvent.From == ethereum.AddressGenesis && transferEvent.To == task.Transaction.From: // Mint coin
-			action, err := w.buildTransferAction(ctx, task.Header.Number, task.ChainID, transferEvent.From, transferEvent.To, &transferEvent.Raw.Address, transferEvent.Value)
+		case transferEvent.From == ethereum.AddressGenesis && (transferEvent.To == task.Transaction.From) || (transferEvent.To == *task.Transaction.To): // Mint coin
+			mintAddr := transferEvent.To
+			if transferEvent.To == *task.Transaction.To {
+				mintAddr = task.Transaction.From
+			}
+
+			action, err := w.buildTransferAction(ctx, task.Header.Number, task.ChainID, transferEvent.From, mintAddr, &transferEvent.Raw.Address, transferEvent.Value)
 			if err != nil {
 				return nil, fmt.Errorf("build transaction transfer action: %w", err)
 			}
