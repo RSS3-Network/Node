@@ -186,7 +186,9 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 
 		// Decode Bundle transactions group by block.
 		for index, block := range blocks {
-			bundleTransactions, err := s.batchPullBundleTransactions(ctx, s.GroupBundleTransactions(transactions, block))
+			bundleTransactionIDs := s.GroupBundleTransactions(transactions, block)
+
+			bundleTransactions, err := s.batchPullBundleTransactions(ctx, bundleTransactionIDs)
 			if err != nil {
 				return fmt.Errorf("pull bundle transacctions: %w", err)
 			}
@@ -200,6 +202,14 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 
 		// Discard the Bundle transaction itself.
 		transactions = s.discardRootBundleTransaction(transactions)
+
+		// Discard duplicate bundle transactions.
+		// https://viewblock.io/arweave/block/1187748 has duplicate bundle transactions.
+		//
+		// $ sha1sum 4mdtwXkR3V9qzA2haO0TG2mgl2bhanROywKPVu6QkCQ fnsyKm1hw4xSFqXkmJ4HzPrK8wZnlpEJjGcDDn3iXvI
+		// 225c6bcb20b39b1557c80fa88ff3960dcc901031  4mdtwXkR3V9qzA2haO0TG2mgl2bhanROywKPVu6QkCQ
+		// 225c6bcb20b39b1557c80fa88ff3960dcc901031  fnsyKm1hw4xSFqXkmJ4HzPrK8wZnlpEJjGcDDn3iXvI
+		transactions = s.discardDuplicateBundleTransaction(transactions)
 
 		tasks := s.buildTasks(ctx, blocks, transactions)
 
@@ -449,6 +459,26 @@ func (s *source) discardRootBundleTransaction(transactions []*arweave.Transactio
 
 		return !lo.Contains(bundlrNodes, transactionOwner)
 	})
+}
+
+// discardDuplicateBundleTransaction discards duplicate bundle transactions.
+func (s *source) discardDuplicateBundleTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
+	var (
+		cache   = make(map[string]struct{})
+		results = make([]*arweave.Transaction, 0, len(transactions))
+	)
+
+	for index := range transactions {
+		if _, found := cache[transactions[index].ID]; found {
+			continue
+		}
+
+		cache[transactions[index].ID] = struct{}{}
+
+		results = append(results, transactions[index])
+	}
+
+	return results
 }
 
 // filterOwnerTransaction filters owner transactions.
