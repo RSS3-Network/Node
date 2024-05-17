@@ -7,7 +7,6 @@ package network
 import (
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
-	"github.com/samber/lo"
 )
 
 type ConfigDetailValueType string
@@ -19,23 +18,8 @@ const (
 	UintType        ConfigDetailValueType = "uint"
 )
 
-// set the base resource requirement for a worker
-const (
-	baseCPU = 0.25
-	baseMem = 0.25
-
-	highDemandNetworkMultiplier = 2.0
-	highDemandWorkerMultiplier  = 4.0
-	midDemandWorkerMultiplier   = 2.0
-)
-
-// defines the demand level of a network
-var highDemandNetworks = []network.Network{network.Ethereum, network.Polygon, network.Arbitrum, network.Base, network.Gnosis, network.BinanceSmartChain, network.Optimism, network.Arweave}
-var highDemandWorkers = []worker.Worker{worker.Core, worker.Momoka}
-var midDemandWorkers = []worker.Worker{worker.Uniswap, worker.OpenSea, worker.Stargate, worker.Curve}
-
 type ConfigDetail struct {
-	IsRequired  bool                  `json:"isRequired"`
+	IsRequired  bool                  `json:"is_required"`
 	Type        ConfigDetailValueType `json:"type"`
 	Value       interface{}           `json:"value"`
 	Description string                `json:"description"`
@@ -57,33 +41,14 @@ type Parameters struct {
 	APIKey                  *ConfigDetail `json:"api_key,omitempty"`
 }
 
-type Resource struct {
-	CPU    float32 `json:"cpu"`
-	Memory float32 `json:"memory"`
-}
-
-// Mul multiplies the resource by a given factor.
-func (r Resource) Mul(factor float32) Resource {
-	return Resource{
-		CPU:    r.CPU * factor,
-		Memory: r.Memory * factor,
-	}
-}
-
 type workerConfig struct {
-	ID           ConfigDetail  `json:"id"`
-	Network      ConfigDetail  `json:"network"`
-	Worker       ConfigDetail  `json:"worker"`
-	EndpointID   *ConfigDetail `json:"endpoint,omitempty"`
-	IPFSGateways *ConfigDetail `json:"ipfs_gateways,omitempty"`
-	Parameters   *Parameters   `json:"parameters,omitempty"`
-	Resource     Resource      `json:"resource"`
-}
-
-// baseResource default and minimum resource requirement of a valid worker.
-var baseResource = Resource{
-	CPU:    baseCPU,
-	Memory: baseMem,
+	ID              ConfigDetail    `json:"id"`
+	Network         ConfigDetail    `json:"network"`
+	Worker          ConfigDetail    `json:"worker"`
+	EndpointID      *ConfigDetail   `json:"endpoint,omitempty"`
+	IPFSGateways    *ConfigDetail   `json:"ipfs_gateways,omitempty"`
+	Parameters      *Parameters     `json:"parameters,omitempty"`
+	MinimumResource MinimumResource `json:"minimum_resource"`
 }
 
 var defaultNetworkParameters = map[network.Source]*Parameters{
@@ -211,24 +176,6 @@ func customWorkerConfig(worker worker.Worker, network network.Source, parameters
 	config.EndpointID.Description = endpointDescription
 
 	return config
-}
-
-// calculateRecommendedResource calculates the recommended resource based on network and worker.
-func calculateRecommendedResource(n network.Network, w worker.Worker) Resource {
-	resource := baseResource
-
-	if lo.Contains(highDemandNetworks, n) {
-		resource = resource.Mul(highDemandNetworkMultiplier)
-	}
-
-	switch {
-	case lo.Contains(highDemandWorkers, w):
-		resource = resource.Mul(highDemandWorkerMultiplier)
-	case lo.Contains(midDemandWorkers, w):
-		resource = resource.Mul(midDemandWorkerMultiplier)
-	}
-
-	return resource
 }
 
 // NetworkToWorkersMap is a map of Network-has-Workers.

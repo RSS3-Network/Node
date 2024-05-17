@@ -106,8 +106,8 @@ func (c *Component) GetWorkerConfig(ctx echo.Context) error {
 	config := WorkerToConfigMap[nid.Source()][wid]
 	config.Network.Value = nid
 
-	// calculate the recommended configuration
-	config.Resource = calculateRecommendedResource(nid, wid)
+	// calculate the minimum resources required for the worker
+	config.MinimumResource = calculateMinimumResources(nid, wid)
 
 	return ctx.JSON(http.StatusOK, WorkerConfigResponse{
 		Data: config,

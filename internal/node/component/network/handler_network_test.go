@@ -8,14 +8,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCalculateRecommendResource(t *testing.T) {
+func TestCalculateMinimumResources(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name     string
 		network  network.Network
 		worker   worker.Worker
-		expected Resource
+		expected MinimumResource
 	}{
 		// High-demand-workers + high-demand-networks
 		{
@@ -101,7 +101,7 @@ func TestCalculateRecommendResource(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			result := calculateRecommendedResource(tc.network, tc.worker)
+			result := calculateMinimumResources(tc.network, tc.worker)
 			assert.Equal(t, tc.expected, result)
 		})
 	}
