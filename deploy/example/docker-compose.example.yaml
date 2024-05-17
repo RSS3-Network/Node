@@ -1,0 +1,135 @@
+version: "3"
+
+services:
+
+  redis:
+    restart: always
+    image: redis:7-alpine
+    networks:
+      - default
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis:/data
+
+  cockroachdb:
+    restart: always
+    image: cockroachdb/cockroach:v23.1.8
+    networks:
+      - default
+    ports:
+      - "8080:8080"
+      - "26257:26257"
+    volumes:
+      - "cockroachdb:/cockroach/cockroach-data"
+    command:
+      - start-single-node
+      - --cluster-name=node
+      - --insecure
+
+  broadcaster:
+    image: rss3/node:latest
+    ports:
+      - "80"
+    volumes:
+      - ./config.min.yaml:/etc/rss3/node/config.yaml
+    environment:
+      NODE_DISCOVERY_MAINTAINER_EVM_ADDRESS: "[evm_address]"
+      NODE_DISCOVERY_MAINTAINER_SIGNATURE: "[signature_address]"
+      NODE_DISCOVERY_SERVER_ENDPOINT: "[public_endpoint]"
+      NODE_DISCOVERY_SERVER_GLOBAL_INDEXER_ENDPOINT: "https://gi.rss3.io"
+    command: ["./node","--module=broadcaster"]
+
+  core:
+    restart: always
+    image: rss3/node:latest
+    networks:
+      - default
+    volumes:
+      - ./config.min.yaml:/etc/rss3/node/config.yaml
+    depends_on:
+      - cockroachdb
+      - redis
+    entrypoint: ["./node", "--module", "core"]
+
+  monitor:
+    restart: always
+    image: rss3/node:latest
+    networks:
+      - default
+    volumes:
+      - ./config.min.yaml:/etc/rss3/node/config.yaml
+    depends_on:
+      - cockroachdb
+      - redis
+    environment:
+      - NODE_ENV=production
+      - WORKER_ID=monitor
+    entrypoint: ["./node", "--module", "monitor"]
+
+  ethereum-core:
+    restart: always
+    image: rss3/node:latest
+    networks:
+      - default
+    volumes:
+      - ./config.min.yaml:/etc/rss3/node/config.yaml
+    depends_on:
+      - cockroachdb
+      - redis
+    entrypoint: ["./node", "--worker.id=ethereum-core"]
+
+  polygon-lens:
+    restart: always
+    image: rss3/node:latest
+    networks:
+      - default
+    volumes:
+      - ./config.min.yaml:/etc/rss3/node/config.yaml
+    depends_on:
+      - cockroachdb
+      - redis
+    entrypoint: ["./node", "--worker.id=polygon-lens"]
+
+  farcaster-core:
+    restart: always
+    image: rss3/node:latest
+    networks:
+      - default
+    volumes:
+      - ./config.min.yaml:/etc/rss3/node/config.yaml
+    depends_on:
+      - cockroachdb
+      - redis
+    entrypoint: ["./node", "--worker.id=farcaster-core"]
+
+  arweave-mirror:
+    restart: always
+    image: rss3/node:latest
+    networks:
+      - default
+    volumes:
+      - ./config.min.yaml:/etc/rss3/node/config.yaml
+    depends_on:
+      - cockroachdb
+      - redis
+    entrypoint: ["./node", "--worker.id=arweave-mirror"]
+
+  arweave-momoka:
+    restart: always
+    image: rss3/node:latest
+    networks:
+      - default
+    volumes:
+      - ./config.min.yaml:/etc/rss3/node/config.yaml
+    depends_on:
+      - cockroachdb
+      - redis
+    entrypoint: ["./node", "--worker.id=arweave-momoka"]
+
+volumes:
+  cockroachdb:
+  redis:
+
+networks:
+  default:
