@@ -16,6 +16,11 @@
 
 The RSS3 Node, an RSS3 Data Sublayer (DSL) component, is responsible for indexing, transforming, storing, and ultimately serving the Open Information to the end users.
 
+## Supported Networks and Workers
+
+<!-- network-worker table starts -->
+<!-- network-worker table ends -->
+
 ## License
 
 <!-- We use MIT as it's almost unrestricted. -->
