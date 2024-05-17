@@ -19,6 +19,32 @@ The RSS3 Node, an RSS3 Data Sublayer (DSL) component, is responsible for indexin
 ## Supported Networks and Workers
 
 <!-- network-worker table starts -->
+| Network/Worker | arbitrum | arweave | avax | base | binance-smart-chain | crossbell | ethereum | farcaster | gnosis | linea | optimism | polygon | savm | vsl |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1inch |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |
+| aave | ✓ |   | ✓ | ✓ |   |   | ✓ |   |   |   | ✓ | ✓ |   |   |
+| aavegotchi |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |
+| core | ✓ |   |   | ✓ | ✓ |   | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| crossbell |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |
+| curve | ✓ |   | ✓ |   |   |   | ✓ |   | ✓ |   | ✓ | ✓ |   |   |
+| ens |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |
+| highlight | ✓ |   |   |   |   |   | ✓ |   |   |   | ✓ | ✓ |   |   |
+| iqwiki |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |
+| kiwistand |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |
+| lens |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |
+| lido |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |
+| looksrare |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |
+| matters |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |
+| mirror |   | ✓ |   |   |   |   |   |   |   |   |   |   |   |   |
+| momoka |   | ✓ |   |   |   |   |   |   |   |   |   |   |   |   |
+| opensea |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |
+| optimism |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |
+| paragraph |   | ✓ |   |   |   |   |   |   |   |   |   |   |   |   |
+| rss3 |   |   |   |   |   |   | ✓ |   |   |   |   |   |   | ✓ |
+| savm |   |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |
+| stargate | ✓ |   | ✓ | ✓ | ✓ |   | ✓ |   |   | ✓ | ✓ | ✓ |   |   |
+| uniswap |   |   |   |   |   |   | ✓ |   |   | ✓ |   |   | ✓ |   |
+| vsl |   |   |   |   |   |   |   |   |   |   |   |   |   | ✓ |
 <!-- network-worker table ends -->
 
 ## License
