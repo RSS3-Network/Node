@@ -28,4 +28,9 @@ var DefaultGateways = []string{
 	GatewayPermagate.String(),
 	GatewayLove4Src.String(),
 	GatewayARBR.String(),
+	GatewayBobInstein.String(),
+	GatewayAleko0o.String(),
+	GatewaySulapan.String(),
+	GatewayFllstck.String(),
+	GatewayBicem.String(),
 }
