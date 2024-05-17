@@ -19,7 +19,7 @@ const (
 )
 
 type ConfigDetail struct {
-	IsRequired  bool                  `json:"isRequired"`
+	IsRequired  bool                  `json:"is_required"`
 	Type        ConfigDetailValueType `json:"type"`
 	Value       interface{}           `json:"value"`
 	Description string                `json:"description"`
@@ -42,12 +42,13 @@ type Parameters struct {
 }
 
 type workerConfig struct {
-	ID           ConfigDetail  `json:"id"`
-	Network      ConfigDetail  `json:"network"`
-	Worker       ConfigDetail  `json:"worker"`
-	EndpointID   *ConfigDetail `json:"endpoint,omitempty"`
-	IPFSGateways *ConfigDetail `json:"ipfs_gateways,omitempty"`
-	Parameters   *Parameters   `json:"parameters,omitempty"`
+	ID              ConfigDetail    `json:"id"`
+	Network         ConfigDetail    `json:"network"`
+	Worker          ConfigDetail    `json:"worker"`
+	EndpointID      *ConfigDetail   `json:"endpoint,omitempty"`
+	IPFSGateways    *ConfigDetail   `json:"ipfs_gateways,omitempty"`
+	Parameters      *Parameters     `json:"parameters,omitempty"`
+	MinimumResource MinimumResource `json:"minimum_resource"`
 }
 
 var defaultNetworkParameters = map[network.Source]*Parameters{
