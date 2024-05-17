@@ -2,8 +2,6 @@ name: Update README
 
 on:
   push:
-    branches:
-      - develop
   workflow_dispatch:
   pull_request:
   schedule:
@@ -11,18 +9,20 @@ on:
 
 jobs:
   update-readme:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
         uses: actions/checkout@v2
 
-      - name: Import Secrets
-        uses: hashicorp/vault-action@v2.4.0
-        with:
-          url: ${{ secrets.VAULT_ADDR }}
-          token: ${{ secrets.VAULT_TOKEN }}
-          secrets: |
-            kv/data/network/rss3-node GLOBAL_INDEXER_ENDPOINT
+#      - name: Import Secrets
+#        uses: hashicorp/vault-action@v2.4.0
+#        with:
+#          url: ${{ secrets.VAULT_ADDR }}
+#          token: ${{ secrets.VAULT_TOKEN }}
+#          secrets: |
+#            kv/data/network/rss3-node GLOBAL_INDEXER_ENDPOINT
 
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
@@ -47,6 +47,6 @@ jobs:
             git config --global user.email "action@github.com"
             git config --global user.name "GitHub Action"
             git add README.md
-            git commit -m doc: update supported network and worker in README.md"
+            git commit -m "doc: update supported network and worker in README.md"
             git push
           fi
