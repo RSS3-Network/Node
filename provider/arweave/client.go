@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cenkalti/backoff/v4"
+	"github.com/avast/retry-go/v4"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
@@ -143,21 +143,17 @@ func (c *client) queryArweaveByRoute(ctx context.Context, path string) (io.ReadC
 		return fmt.Errorf("fetch from all gateways failed: %w", err)
 	}
 
-	onRetryFunc := func(err error, duration time.Duration) {
-		// Log the error and the backoff duration.
-		zap.L().Error("retry failed", zap.Error(err), zap.Duration("duration", duration))
-	}
-
-	// Create a new exponential backoff policy
-	backoffPolicy := backoff.NewExponentialBackOff()
-	backoffPolicy.InitialInterval = 500 * time.Millisecond
-
-	err = backoff.RetryNotify(retryableFunc, backoffPolicy, onRetryFunc)
-
+	err = retry.Do(retryableFunc,
+		retry.Attempts(0),
+		retry.Delay(500*time.Millisecond),   // Set initial delay to 500 milliseconds.
+		retry.DelayType(retry.BackOffDelay), // Use backoff delay type, increasing delay on each retry.
+		retry.MaxDelay(3*time.Minute),
+		retry.OnRetry(func(n uint, err error) {
+			zap.L().Error("retry arweave gateways", zap.Uint("retry", n), zap.Error(err))
+		}),
+	)
 	if err != nil {
-		// Log the error after all retries have failed.
-		zap.L().Error("retry failed", zap.Error(err))
-		return nil, err
+		return nil, fmt.Errorf("retry arweave gateways: %w", err)
 	}
 
 	return data, nil
