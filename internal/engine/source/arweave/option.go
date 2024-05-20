@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 )
@@ -38,7 +39,7 @@ func NewOption(n network.Network, options *config.Parameters) (*Option, error) {
 	}
 
 	if instance.BlockStart == nil {
-		instance.BlockStart = config.NetworkStartBlock[n]
+		instance.BlockStart = parameter.NetworkStartBlock[n]
 	}
 
 	return &instance, nil

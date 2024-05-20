@@ -1,5 +1,7 @@
 package constant
 
+// FIXME: should this be mvoed to config/parameter.go?
+
 import "fmt"
 
 const Name = "node"

@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/config/parameter"
 	"go.uber.org/zap"
 )
 
@@ -50,7 +51,7 @@ func (m *Monitor) processMockWorker(ctx context.Context, w *config.Module, curre
 	}
 
 	// check worker's current status, and flag it as unhealthy if it's left behind the latest block height/number by more than the tolerance
-	if err := m.flagWorkerStatus(ctx, w.ID, currentWorkerState, targetWorkerState, latestWorkerState, config.NetworkTolerance[w.Network]); err != nil {
+	if err := m.flagWorkerStatus(ctx, w.ID, currentWorkerState, targetWorkerState, latestWorkerState, parameter.NetworkTolerance[w.Network]); err != nil {
 		return fmt.Errorf("detect unhealthy: %w", err)
 	}
 
