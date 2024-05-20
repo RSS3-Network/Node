@@ -20,7 +20,7 @@ generate:
 
 lint:
 	go mod tidy
-	go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run
+	go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.58.1 run
 
 test:
 	go test -cover -race -v ./...

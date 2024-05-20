@@ -3,6 +3,7 @@ package network
 import (
 	"testing"
 
+	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/assert"
@@ -19,41 +20,50 @@ func TestCalculateMinimumResources(t *testing.T) {
 	}{
 		// High-demand-workers + high-demand-networks
 		{
-			name:     "Arweave Momoka Resource",
+			name:     "Arweave Momoka",
 			network:  network.Arweave,
 			worker:   worker.Momoka,
 			expected: baseResource.Mul(8),
 		},
 		{
-			name:     "Polygon Core Resource",
-			network:  network.Polygon,
-			worker:   worker.Core,
-			expected: baseResource.Mul(8),
+			name:    "Polygon Core",
+			network: network.Polygon,
+			worker:  worker.Core,
+			expected: MinimumResource{
+				CPUCore:       2.0,
+				MemoryInGb:    2.0,
+				DiskSpaceInGb: parameter.NetworkCoreWorkerDiskSpacePerMonth[network.Polygon] * parameter.NumberOfMonthsToCover,
+			},
 		},
 
 		// High-demand-workers + low-demand-networks
 		{
-			name:     "High Demand Worker - Low Demand Network",
-			network:  network.Linea,
-			worker:   worker.Core,
-			expected: baseResource.Mul(4),
+			name:    "Linea Core",
+			network: network.Linea,
+			worker:  worker.Core,
+			expected: MinimumResource{
+				CPUCore:       1.0,
+				MemoryInGb:    1.0,
+				DiskSpaceInGb: parameter.NetworkCoreWorkerDiskSpacePerMonth[network.Linea] * parameter.NumberOfMonthsToCover,
+			},
 		},
-		{
-			name:     "High Demand Worker - Low Demand Network (Different)",
-			network:  network.Farcaster,
-			worker:   worker.Core,
-			expected: baseResource.Mul(4),
-		},
+		// FIXME: the disk space required for Facaster core worker is unknown
+		// {
+		//	name:     "High Demand Worker - Low Demand Network (Different)",
+		//	network:  network.Farcaster,
+		//	worker:   worker.Core,
+		//	expected: baseResource.Mul(4),
+		// },
 
 		// Mid-demand-workers + high-demand-networks
 		{
-			name:     "Mid Demand Worker - High Demand Network",
+			name:     "Ethereum OpenSea",
 			network:  network.Ethereum,
 			worker:   worker.OpenSea,
 			expected: baseResource.Mul(4),
 		},
 		{
-			name:     "Mid Demand Worker - High Demand Network (Different)",
+			name:     "Arbitrum Curve",
 			network:  network.Arbitrum,
 			worker:   worker.Curve,
 			expected: baseResource.Mul(4),
@@ -61,13 +71,13 @@ func TestCalculateMinimumResources(t *testing.T) {
 
 		// Mid-demand-workers + low-demand-networks
 		{
-			name:     "Mid Demand Worker - Low Demand Network",
+			name:     "SatoshiVM Uniswap",
 			network:  network.SatoshiVM,
 			worker:   worker.Uniswap,
 			expected: baseResource.Mul(2),
 		},
 		{
-			name:     "Mid Demand Worker - Low Demand Network (Different)",
+			name:     "Linea Stargate",
 			network:  network.Linea,
 			worker:   worker.Stargate,
 			expected: baseResource.Mul(2),
@@ -75,13 +85,13 @@ func TestCalculateMinimumResources(t *testing.T) {
 
 		// Low-demand-workers + high-demand-networks
 		{
-			name:     "Low Demand Worker - High Demand Network",
+			name:     "Ethereum RSS3",
 			network:  network.Ethereum,
 			worker:   worker.RSS3,
 			expected: baseResource.Mul(2),
 		},
 		{
-			name:     "Low Demand Worker - High Demand Network (Different)",
+			name:     "Polygon Lens",
 			network:  network.Polygon,
 			worker:   worker.Lens,
 			expected: baseResource.Mul(2),
@@ -89,7 +99,7 @@ func TestCalculateMinimumResources(t *testing.T) {
 
 		// Low-demand-workers + low-demand-networks
 		{
-			name:     "Low Demand Worker - Low Demand Network",
+			name:     "Crossbell",
 			network:  network.Crossbell,
 			worker:   worker.Crossbell,
 			expected: baseResource,

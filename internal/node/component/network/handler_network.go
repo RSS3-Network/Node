@@ -30,6 +30,10 @@ type WorkerConfigResponse struct {
 	Data workerConfig `json:"data"`
 }
 
+type EndpointConfigResponse struct {
+	Data Endpoint `json:"data"`
+}
+
 // GetNetworksHandler returns the list of all networks that the node can support.
 func (c *Component) GetNetworksHandler(ctx echo.Context) error {
 	go c.CollectMetric(ctx.Request().Context(), "networks")
@@ -41,7 +45,7 @@ func (c *Component) GetNetworksHandler(ctx echo.Context) error {
 	for _, item := range networkList {
 		networkStr := item.String()
 		// skip unknown and bitcoin network
-		if networkStr == network.Unknown.String() || networkStr == network.Bitcoin.String() {
+		if networkStr == network.Unknown.String() || networkStr == network.Bitcoin.String() || networkStr == network.RSS.String() || networkStr == network.SatoshiVM.String() {
 			continue
 		}
 
@@ -102,7 +106,7 @@ func (c *Component) GetWorkerConfig(ctx echo.Context) error {
 		return fmt.Errorf("network string failed: %w", err)
 	}
 
-	// set default values for specific network architecture worker
+	// set default values for a specific worker
 	config := WorkerToConfigMap[nid.Source()][wid]
 	config.Network.Value = nid
 
@@ -110,6 +114,15 @@ func (c *Component) GetWorkerConfig(ctx echo.Context) error {
 	config.MinimumResource = calculateMinimumResources(nid, wid)
 
 	return ctx.JSON(http.StatusOK, WorkerConfigResponse{
+		Data: config,
+	})
+}
+
+// GetEndpointConfig returns possible configurations for an endpoint
+func (c *Component) GetEndpointConfig(ctx echo.Context) error {
+	config := getEndpointConfig()
+
+	return ctx.JSON(http.StatusOK, EndpointConfigResponse{
 		Data: config,
 	})
 }

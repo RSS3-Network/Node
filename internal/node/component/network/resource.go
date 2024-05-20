@@ -1,21 +1,24 @@
 package network
 
 import (
+	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 )
 
 type MinimumResource struct {
-	CPUCore    float32 `json:"CPU_core"`
-	MemoryInGb float32 `json:"memory_in_gb"`
+	CPUCore       float32 `json:"cpu_core"`
+	MemoryInGb    float32 `json:"memory_in_gb"`
+	DiskSpaceInGb uint    `json:"disk_space_in_gb"`
 }
 
 // Mul multiplies the resource by a given multiplier
 func (r MinimumResource) Mul(multiplier float32) MinimumResource {
 	return MinimumResource{
-		CPUCore:    r.CPUCore * multiplier,
-		MemoryInGb: r.MemoryInGb * multiplier,
+		CPUCore:       r.CPUCore * multiplier,
+		MemoryInGb:    r.MemoryInGb * multiplier,
+		DiskSpaceInGb: r.DiskSpaceInGb,
 	}
 }
 
@@ -23,6 +26,9 @@ func (r MinimumResource) Mul(multiplier float32) MinimumResource {
 var baseResource = MinimumResource{
 	CPUCore:    0.25,
 	MemoryInGb: 0.25,
+	// 1GB is the default disk space for a non-core worker for a month
+	// this is a ballpark figure as it's impossible to calculate the exact disk space required for all non-core workers
+	DiskSpaceInGb: 1 * parameter.NumberOfMonthsToCover,
 }
 
 // set a list of multipliers for network and worker
@@ -52,6 +58,10 @@ func calculateMinimumResources(n network.Network, w worker.Worker) MinimumResour
 		resource = resource.Mul(highDemandWorkerMultiplier)
 	case lo.Contains(midDemandWorkers, w):
 		resource = resource.Mul(midDemandWorkerMultiplier)
+	}
+
+	if w == worker.Core {
+		resource.DiskSpaceInGb = parameter.NetworkCoreWorkerDiskSpacePerMonth[n] * parameter.NumberOfMonthsToCover
 	}
 
 	return resource
