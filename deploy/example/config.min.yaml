@@ -83,7 +83,6 @@ component:
       worker: core
       endpoint: ethereum
       parameters:
-        block_start: 19465244
     - id: polygon-lens
       network: polygon
       worker: lens
@@ -91,8 +90,6 @@ component:
       ipfs_gateways:
         - https://ipfs.io
       parameters:
-        block_start: 54452073
-        concurrent_block_requests: 32
     # farcaster
     - id: farcaster-core
       network: farcaster
@@ -105,10 +102,8 @@ component:
       worker: mirror
       ipfs_gateways:
       parameters:
-        block_start: 1012124
     - id: arweave-momoka
       network: arweave
       worker: momoka
       endpoint: polygon
       parameters:
-        block_start: 1178759
