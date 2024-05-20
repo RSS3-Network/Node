@@ -48,12 +48,12 @@ func TestCalculateMinimumResources(t *testing.T) {
 			},
 		},
 		// FIXME: the disk space required for Facaster core worker is unknown
-		//{
+		// {
 		//	name:     "High Demand Worker - Low Demand Network (Different)",
 		//	network:  network.Farcaster,
 		//	worker:   worker.Core,
 		//	expected: baseResource.Mul(4),
-		//},
+		// },
 
 		// Mid-demand-workers + high-demand-networks
 		{
