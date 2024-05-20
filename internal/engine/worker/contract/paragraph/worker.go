@@ -86,7 +86,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	// Get actions and social content timestamp from the transaction.
 	actions, err := w.transformParagraphAction(ctx, arweaveTask)
 	if err != nil {
-		return nil, fmt.Errorf("handle arweave mirror transaction: %w", err)
+		return nil, fmt.Errorf("handle arweave paragraph transaction: %w", err)
 	}
 
 	activity.To = paragraph.AddressParagraph
