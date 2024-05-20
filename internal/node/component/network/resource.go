@@ -1,6 +1,7 @@
 package network
 
 import (
+	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
@@ -17,6 +18,7 @@ func (r MinimumResource) Mul(multiplier float32) MinimumResource {
 	return MinimumResource{
 		CPUCore:    r.CPUCore * multiplier,
 		MemoryInGb: r.MemoryInGb * multiplier,
+		SizeInGb:   r.SizeInGb,
 	}
 }
 
@@ -24,6 +26,7 @@ func (r MinimumResource) Mul(multiplier float32) MinimumResource {
 var baseResource = MinimumResource{
 	CPUCore:    0.25,
 	MemoryInGb: 0.25,
+	SizeInGb:   0,
 }
 
 // set a list of multipliers for network and worker
@@ -53,6 +56,10 @@ func calculateMinimumResources(n network.Network, w worker.Worker) MinimumResour
 		resource = resource.Mul(highDemandWorkerMultiplier)
 	case lo.Contains(midDemandWorkers, w):
 		resource = resource.Mul(midDemandWorkerMultiplier)
+	}
+
+	if w == worker.Core {
+		resource.SizeInGb = parameter.NetworkCoreSizePerMonth[n]
 	}
 
 	return resource

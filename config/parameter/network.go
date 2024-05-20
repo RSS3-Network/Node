@@ -38,3 +38,19 @@ var NetworkStartBlock = map[network.Network]*big.Int{
 	network.SatoshiVM:         big.NewInt(60741),
 	network.VSL:               big.NewInt(14192),
 }
+
+var NetworkCoreSizePerMonth = map[network.Network]float32{
+	network.Arbitrum:          25.86,
+	network.Arweave:           0,
+	network.Avalanche:         0,
+	network.Base:              10.08,
+	network.BinanceSmartChain: 116.54,
+	network.Crossbell:         0,
+	network.Ethereum:          50.57,
+	network.Gnosis:            8.46,
+	network.Linea:             30.70,
+	network.Optimism:          24.29,
+	network.Polygon:           153.01,
+	network.SatoshiVM:         0.04,
+	network.VSL:               0.37,
+}
