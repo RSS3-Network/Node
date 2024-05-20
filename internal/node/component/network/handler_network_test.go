@@ -3,6 +3,7 @@ package network
 import (
 	"testing"
 
+	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/assert"
@@ -29,9 +30,9 @@ func TestCalculateMinimumResources(t *testing.T) {
 			network: network.Polygon,
 			worker:  worker.Core,
 			expected: MinimumResource{
-				CPUCore:    2.0,
-				MemoryInGb: 2.0,
-				SizeInGb:   parameter.NetworkCoreSizePerMonth[network.Polygon],
+				CPUCore:       2.0,
+				MemoryInGb:    2.0,
+				DiskSpaceInGb: parameter.NetworkCoreWorkerDiskSpacePerMonth[network.Polygon],
 			},
 		},
 
@@ -41,9 +42,9 @@ func TestCalculateMinimumResources(t *testing.T) {
 			network: network.Linea,
 			worker:  worker.Core,
 			expected: MinimumResource{
-				CPUCore:    1.0,
-				MemoryInGb: 1.0,
-				SizeInGb:   parameter.NetworkCoreSizePerMonth[network.Linea],
+				CPUCore:       1.0,
+				MemoryInGb:    1.0,
+				DiskSpaceInGb: parameter.NetworkCoreWorkerDiskSpacePerMonth[network.Linea],
 			},
 		},
 		{

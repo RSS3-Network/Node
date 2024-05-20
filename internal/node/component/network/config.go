@@ -145,7 +145,7 @@ func defaultWorkerConfig(worker worker.Worker, network network.Source, parameter
 		EndpointID: &ConfigDetail{
 			IsRequired:  true,
 			Type:        StringType,
-			Description: "An external endpoint to fetch data from, for example, a blockchain RPC endpoint or a farcaster api",
+			Description: "An external endpoint to fetch data from, for example, a blockchain RPC endpoint or a Farcaster api",
 		},
 		Parameters: parameters,
 	}
@@ -202,17 +202,17 @@ func getEndpointConfig() Endpoint {
 		URL: &ConfigDetail{
 			IsRequired:  true,
 			Type:        StringType,
-			Description: "The URL of the endpoint",
+			Description: "The URL of the endpoint.",
 		},
 		HTTPHeaders: &ConfigDetail{
 			IsRequired:  false,
 			Type:        StringMapType,
-			Description: "HTTP headers to be sent with the request",
+			Description: "HTTP headers to be sent with requests to this endpoint.",
 		},
 		HTTP2Disabled: &ConfigDetail{
 			IsRequired:  false,
 			Type:        BooleanType,
-			Description: "Disable HTTP2 for the endpoint",
+			Description: "Disable HTTP2 for outgoing requests, as some endpoints may not support HTTP2.",
 		},
 	}
 }

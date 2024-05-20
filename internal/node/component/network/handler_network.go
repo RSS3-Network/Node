@@ -118,7 +118,7 @@ func (c *Component) GetWorkerConfig(ctx echo.Context) error {
 	})
 }
 
-// GetEndpointConfig returns the endpoint configuration for the node.
+// GetEndpointConfig returns possible configurations for an endpoint
 func (c *Component) GetEndpointConfig(ctx echo.Context) error {
 	config := getEndpointConfig()
 
