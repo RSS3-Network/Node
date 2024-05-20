@@ -516,7 +516,7 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 		}
 	}
 
-	if instance.option, err = NewOption(config.Parameters); err != nil {
+	if instance.option, err = NewOption(config.Network, config.Parameters); err != nil {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
