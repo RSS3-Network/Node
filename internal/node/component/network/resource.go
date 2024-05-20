@@ -26,8 +26,9 @@ func (r MinimumResource) Mul(multiplier float32) MinimumResource {
 var baseResource = MinimumResource{
 	CPUCore:    0.25,
 	MemoryInGb: 0.25,
-	// 5GB is the default disk space for all workers except Core
-	DiskSpaceInGb: 5,
+	// 1GB is the default disk space for a non-core worker for a month
+	// this is a ballpark figure as it's impossible to calculate the exact disk space required for all non-core workers
+	DiskSpaceInGb: 1 * parameter.NumberOfMonthsToCover,
 }
 
 // set a list of multipliers for network and worker

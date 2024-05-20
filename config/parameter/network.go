@@ -6,6 +6,9 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 
+// NumberOfMonthsToCover the number of months that a Node should cover data for
+const NumberOfMonthsToCover = 3
+
 var NetworkTolerance = map[network.Network]uint64{
 	network.Arbitrum:          100,
 	network.Arweave:           100,
