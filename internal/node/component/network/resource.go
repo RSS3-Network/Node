@@ -9,6 +9,7 @@ import (
 type MinimumResource struct {
 	CPUCore    float32 `json:"CPU_core"`
 	MemoryInGb float32 `json:"memory_in_gb"`
+	SizeInGb   float32 `json:"size_in_gb"`
 }
 
 // Mul multiplies the resource by a given multiplier
