@@ -1,4 +1,4 @@
-package netconfig
+package config
 
 import (
 	"math/big"
