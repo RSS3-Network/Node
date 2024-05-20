@@ -30,6 +30,10 @@ type WorkerConfigResponse struct {
 	Data workerConfig `json:"data"`
 }
 
+type EndpointConfigResponse struct {
+	Data Endpoint `json:"data"`
+}
+
 // GetNetworksHandler returns the list of all networks that the node can support.
 func (c *Component) GetNetworksHandler(ctx echo.Context) error {
 	go c.CollectMetric(ctx.Request().Context(), "networks")
@@ -110,6 +114,15 @@ func (c *Component) GetWorkerConfig(ctx echo.Context) error {
 	config.MinimumResource = calculateMinimumResources(nid, wid)
 
 	return ctx.JSON(http.StatusOK, WorkerConfigResponse{
+		Data: config,
+	})
+}
+
+// GetEndpointConfig returns the endpoint configuration for the node.
+func (c *Component) GetEndpointConfig(ctx echo.Context) error {
+	config := getEndpointConfig()
+
+	return ctx.JSON(http.StatusOK, EndpointConfigResponse{
 		Data: config,
 	})
 }

@@ -16,6 +16,8 @@ const (
 	StringArrayType ConfigDetailValueType = "[]string"
 	StringType      ConfigDetailValueType = "string"
 	UintType        ConfigDetailValueType = "uint"
+	BooleanType     ConfigDetailValueType = "bool"
+	StringMapType   ConfigDetailValueType = "map[string]string"
 )
 
 type ConfigDetail struct {
@@ -143,9 +145,26 @@ func defaultWorkerConfig(worker worker.Worker, network network.Source, parameter
 		EndpointID: &ConfigDetail{
 			IsRequired:  true,
 			Type:        StringType,
-			Description: "An external endpoint to fetch data from, for example, a blockchain RPC endpoint or an Arweave gateway",
+			Description: "An external endpoint to fetch data from, for example, a blockchain RPC endpoint or a farcaster api",
 		},
 		Parameters: parameters,
+	}
+
+	return config
+}
+
+// customWorkerConfigWithoutEndpoint generates a config with custom fields and no endpoint.
+func customWorkerConfigWithoutEndpoint(worker worker.Worker, network network.Source, parameters *Parameters, requireIPFS bool) workerConfig {
+	config := defaultWorkerConfig(worker, network, parameters)
+
+	config.EndpointID = nil
+
+	if requireIPFS {
+		config.IPFSGateways = &ConfigDetail{
+			IsRequired:  false,
+			Type:        StringArrayType,
+			Description: "A list of IPFS gateways to fetch data from, multiple gateways may improve the availability of IPFS data",
+		}
 	}
 
 	return config
@@ -176,6 +195,26 @@ func customWorkerConfig(worker worker.Worker, network network.Source, parameters
 	config.EndpointID.Description = endpointDescription
 
 	return config
+}
+
+func getEndpointConfig() Endpoint {
+	return Endpoint{
+		URL: &ConfigDetail{
+			IsRequired:  true,
+			Type:        StringType,
+			Description: "The URL of the endpoint",
+		},
+		HTTPHeaders: &ConfigDetail{
+			IsRequired:  false,
+			Type:        StringMapType,
+			Description: "HTTP headers to be sent with the request",
+		},
+		HTTP2Disabled: &ConfigDetail{
+			IsRequired:  false,
+			Type:        BooleanType,
+			Description: "Disable HTTP2 for the endpoint",
+		},
+	}
 }
 
 // NetworkToWorkersMap is a map of Network-has-Workers.
@@ -292,9 +331,9 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		worker.VSL:        defaultWorkerConfig(worker.VSL, network.EthereumSource, nil),
 	},
 	network.ArweaveSource: {
-		worker.Mirror:    customWorkerConfigWithIPFS(worker.Mirror, network.ArweaveSource, ""),
+		worker.Mirror:    customWorkerConfigWithoutEndpoint(worker.Mirror, network.ArweaveSource, nil, true),
 		worker.Momoka:    customWorkerConfigWithIPFS(worker.Momoka, network.ArweaveSource, "A Polygon RPC is required for Momoka"),
-		worker.Paragraph: defaultWorkerConfig(worker.Paragraph, network.ArweaveSource, nil),
+		worker.Paragraph: customWorkerConfigWithoutEndpoint(worker.Paragraph, network.ArweaveSource, nil, false),
 	},
 	network.FarcasterSource: {
 		worker.Core: customWorkerConfig(worker.Core, network.FarcasterSource, &Parameters{
