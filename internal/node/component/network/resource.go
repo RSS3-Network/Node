@@ -61,7 +61,7 @@ func calculateMinimumResources(n network.Network, w worker.Worker) MinimumResour
 	}
 
 	if w == worker.Core {
-		resource.DiskSpaceInGb = parameter.NetworkCoreWorkerDiskSpacePerMonth[n]
+		resource.DiskSpaceInGb = parameter.NetworkCoreWorkerDiskSpacePerMonth[n] * parameter.NumberOfMonthsToCover
 	}
 
 	return resource

@@ -106,7 +106,7 @@ func (c *Component) GetWorkerConfig(ctx echo.Context) error {
 		return fmt.Errorf("network string failed: %w", err)
 	}
 
-	// set default values for specific network architecture worker
+	// set default values for a specific worker
 	config := WorkerToConfigMap[nid.Source()][wid]
 	config.Network.Value = nid
 
