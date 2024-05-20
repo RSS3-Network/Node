@@ -25,18 +25,26 @@ func TestCalculateMinimumResources(t *testing.T) {
 			expected: baseResource.Mul(8),
 		},
 		{
-			name:     "Polygon Core Resource",
-			network:  network.Polygon,
-			worker:   worker.Core,
-			expected: baseResource.Mul(8),
+			name:    "Polygon Core Resource",
+			network: network.Polygon,
+			worker:  worker.Core,
+			expected: MinimumResource{
+				CPUCore:    2.0,
+				MemoryInGb: 2.0,
+				SizeInGb:   parameter.NetworkCoreSizePerMonth[network.Polygon],
+			},
 		},
 
 		// High-demand-workers + low-demand-networks
 		{
-			name:     "High Demand Worker - Low Demand Network",
-			network:  network.Linea,
-			worker:   worker.Core,
-			expected: baseResource.Mul(4),
+			name:    "High Demand Worker - Low Demand Network",
+			network: network.Linea,
+			worker:  worker.Core,
+			expected: MinimumResource{
+				CPUCore:    1.0,
+				MemoryInGb: 1.0,
+				SizeInGb:   parameter.NetworkCoreSizePerMonth[network.Linea],
+			},
 		},
 		{
 			name:     "High Demand Worker - Low Demand Network (Different)",
