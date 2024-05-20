@@ -8,7 +8,7 @@ import (
 )
 
 type MinimumResource struct {
-	CPUCore       float32 `json:"CPU_core"`
+	CPUCore       float32 `json:"cpu_core"`
 	MemoryInGb    float32 `json:"memory_in_gb"`
 	DiskSpaceInGb uint    `json:"disk_space_in_gb"`
 }
