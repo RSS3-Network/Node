@@ -4,6 +4,8 @@ import (
 	"math/big"
 
 	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/config/parameter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 )
 
@@ -29,7 +31,7 @@ type Option struct {
 	BlockReceiptsBatchSize *uint `json:"block_receipts_batch_size" mapstructure:"block_receipts_batch_size"`
 }
 
-func NewOption(options *config.Parameters) (*Option, error) {
+func NewOption(n network.Network, options *config.Parameters) (*Option, error) {
 	var instance Option
 
 	if options == nil {
@@ -55,6 +57,10 @@ func NewOption(options *config.Parameters) (*Option, error) {
 
 	if instance.BlockReceiptsBatchSize == nil {
 		instance.BlockReceiptsBatchSize = lo.ToPtr(defaultBlockReceiptsBatchSize)
+	}
+
+	if instance.BlockStart == nil {
+		instance.BlockStart = parameter.NetworkStartBlock[n]
 	}
 
 	return &instance, nil

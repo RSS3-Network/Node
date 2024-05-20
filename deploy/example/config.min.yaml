@@ -1,0 +1,109 @@
+environment: production
+type: beta
+
+discovery:
+    maintainer:
+      evm_address:
+      signature:
+    server:
+      endpoint: https://beta-node.rss3.io
+      global_indexer_endpoint: https://gi.rss3.dev
+
+database:
+  driver: cockroachdb
+  partition: true
+  uri: postgres://root@cockroachdb:26257/defaultdb
+
+stream:
+  enable: false
+  driver: kafka
+  topic: rss3.node.activities
+  uri: localhost:9092
+
+observability:
+  opentelemetry:
+    metrics:
+      enable: false
+      endpoint: 0.0.0.0:9090
+    traces:
+      enable: false
+      insecure: true
+      endpoint: localhost:4318
+
+redis:
+  endpoints:
+    - redis:6379
+  username:
+  password:
+  disable_cache: true
+
+endpoints:
+  farcaster:
+    url: https://nemes.farcaster.xyz:2281
+  ethereum:
+    url: https://rpc.ankr.com/eth
+  polygon:
+    url: https://rpc.ankr.com/polygon
+  avax:
+    url: https://rpc.ankr.com/avalanche
+  optimism:
+    url: https://rpc.ankr.com/optimism
+  arbitrum:
+    url: https://rpc.ankr.com/arbitrum
+  gnosis:
+    url: https://rpc.ankr.com/gnosis
+  linea:
+    url: https://rpc.linea.build
+  savm:
+    url: https://alpha-rpc-node-http.svmscan.io
+  binance-smart-chain:
+    url: https://rpc.ankr.com/bsc
+  base:
+    url: https://rpc.ankr.com/base
+    http2_disabled: true
+  crossbell:
+    url: https://rpc.crossbell.io
+  vsl:
+    url: https://rpc.rss3.io
+  arweave:
+    url: https://arweave.net
+
+component:
+  rss:
+    - network: rss
+      endpoint: https://rsshub.app/
+      parameters:
+        authentication:
+          access_key:
+
+  decentralized:
+    # ethereum
+    - id: ethereum-core
+      network: ethereum
+      worker: core
+      endpoint: ethereum
+      parameters:
+    - id: polygon-lens
+      network: polygon
+      worker: lens
+      endpoint: polygon
+      ipfs_gateways:
+        - https://ipfs.io
+      parameters:
+    # farcaster
+    - id: farcaster-core
+      network: farcaster
+      worker: core
+      endpoint: farcaster
+    # arweave
+    - id: arweave-mirror
+      network: arweave
+      endpoint: arweave
+      worker: mirror
+      ipfs_gateways:
+      parameters:
+    - id: arweave-momoka
+      network: arweave
+      worker: momoka
+      endpoint: polygon
+      parameters:

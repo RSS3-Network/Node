@@ -4,6 +4,8 @@ import (
 	"math/big"
 
 	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/config/parameter"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 )
 
@@ -20,7 +22,7 @@ type Option struct {
 	ConcurrentBlockRequests *uint64 `json:"concurrent_block_requests" mapstructure:"concurrent_block_requests"`
 }
 
-func NewOption(options *config.Parameters) (*Option, error) {
+func NewOption(n network.Network, options *config.Parameters) (*Option, error) {
 	var instance Option
 
 	if options == nil {
@@ -34,6 +36,10 @@ func NewOption(options *config.Parameters) (*Option, error) {
 	// Set default values.
 	if instance.ConcurrentBlockRequests == nil {
 		instance.ConcurrentBlockRequests = lo.ToPtr(defaultConcurrentBlockRequests)
+	}
+
+	if instance.BlockStart == nil {
+		instance.BlockStart = parameter.NetworkStartBlock[n]
 	}
 
 	return &instance, nil

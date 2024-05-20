@@ -53,13 +53,13 @@ type workerConfig struct {
 
 var defaultNetworkParameters = map[network.Source]*Parameters{
 	network.EthereumSource: {
-		BlockStart: &ConfigDetail{
-			IsRequired:  false,
-			Type:        BigIntType,
-			Description: "The block number where your worker will begin indexing. Each version of Node has a different starting block number.",
-		},
 		// unnecessary to expose
-		// BlockNumberTarget: &ConfigDetail{
+		//BlockStart: &ConfigDetail{
+		//	IsRequired:  false,
+		//	Type:        BigIntType,
+		//	Description: "The block number where your worker will begin indexing. Each version of Node has a different starting block number.",
+		// },
+		// BlockTarget: &ConfigDetail{
 		//	IsRequired:  false,
 		//	Type:        BigIntType,
 		//	Description: "The block number where your worker will stop indexing",
@@ -90,12 +90,12 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 		},
 	},
 	network.ArweaveSource: {
-		BlockStart: &ConfigDetail{
-			IsRequired:  false,
-			Type:        BigIntType,
-			Description: "The block height where your worker will begin indexing. Each version of Node has a different starting block height",
-		},
 		// unnecessary to expose
+		//BlockStart: &ConfigDetail{
+		//	IsRequired:  false,
+		//	Type:        BigIntType,
+		//	Description: "The block height where your worker will begin indexing. Each version of Node has a different starting block height",
+		// },
 		// BlockTarget: &ConfigDetail{
 		//	IsRequired:  false,
 		//	Type:        BigIntType,
