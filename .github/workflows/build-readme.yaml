@@ -40,6 +40,7 @@ jobs:
           else
             echo "README has changed"
             echo "::set-output name=changed::true"
+          fi
 
       - name: Generate datetime string for PR title
         id: datetime
