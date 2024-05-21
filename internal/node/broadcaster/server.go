@@ -10,7 +10,6 @@ import (
 	"syscall"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/robfig/cron/v3"
 	"github.com/rss3-network/node/config"
 	"go.uber.org/zap"
@@ -67,16 +66,7 @@ func NewBroadcaster(_ context.Context, config *config.File) (*Broadcaster, error
 		config:     config,
 		cron:       cron.New(),
 		httpClient: http.DefaultClient,
-		httpServer: echo.New(),
 	}
-
-	instance.httpServer.HideBanner = true
-	instance.httpServer.HidePort = true
-
-	instance.httpServer.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
-
-	// register router
-	instance.httpServer.GET("/", instance.GetNodeInfo)
 
 	return instance, nil
 }
