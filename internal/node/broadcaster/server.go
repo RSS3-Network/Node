@@ -3,40 +3,22 @@ package broadcaster
 import (
 	"context"
 	"fmt"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/labstack/echo/v4"
 	"github.com/robfig/cron/v3"
 	"github.com/rss3-network/node/config"
-	"go.uber.org/zap"
-)
-
-const (
-	DefaultHost = "0.0.0.0"
-	DefaultPort = "80"
 )
 
 type Broadcaster struct {
 	config     *config.File
 	cron       *cron.Cron
 	httpClient *http.Client
-	httpServer *echo.Echo
 }
 
 func (b *Broadcaster) Run(ctx context.Context) error {
-	// run api server
-	address := net.JoinHostPort(DefaultHost, DefaultPort)
-
-	go func() {
-		if err := b.httpServer.Start(address); err != nil {
-			zap.L().Error("failed to run http server", zap.Error(err))
-		}
-	}()
-
 	// run register cron job
 	if err := b.Register(ctx); err != nil {
 		return fmt.Errorf("register: %w", err)
