@@ -95,7 +95,9 @@ func (b *Broadcaster) sendRequest(ctx context.Context, path string, values url.V
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status: %s, response: %s", resp.Status, result)
+		marshal, _ := json.Marshal(result)
+
+		return fmt.Errorf("unexpected status: %s, response: %s", resp.Status, string(marshal))
 	}
 
 	return nil
