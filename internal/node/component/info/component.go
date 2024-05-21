@@ -31,9 +31,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File) 
 		config: config,
 	}
 
-	group := apiServer.Group(fmt.Sprintf("/%s", Name))
-
-	group.GET("/", c.GetNodeInfo)
+	apiServer.GET("/", c.GetNodeInfo)
 
 	if err := c.InitMeter(); err != nil {
 		panic(err)
