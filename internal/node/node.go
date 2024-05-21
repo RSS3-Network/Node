@@ -12,6 +12,7 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
 	"github.com/rss3-network/node/internal/node/component/decentralized"
+	"github.com/rss3-network/node/internal/node/component/info"
 	"github.com/rss3-network/node/internal/node/component/network"
 	"github.com/rss3-network/node/internal/node/component/rss"
 )
@@ -50,6 +51,9 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 	}
 
 	apiServer.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
+
+	infoComponent := info.NewComponent(ctx, apiServer, config)
+	node.components = append(node.components, &infoComponent)
 
 	if len(config.Component.RSS) > 0 {
 		rssComponent := rss.NewComponent(ctx, apiServer, config.Component.RSS)
