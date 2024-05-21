@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 0 * * *"
-  # For pr test only, remove this before merging to develop
   pull_request:
 
 jobs:
@@ -55,35 +54,6 @@ jobs:
           git add README.md
           git commit -m "doc: update supported network and worker in README.md"
           git push origin update-readme-${{ steps.datetime.outputs.datetime }}
-
-      - name: Close existing pull requests
-        if: steps.check_readme.outputs.changed == 'true'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const { data: pullRequests } = await github.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-            });
-
-            for (const pr of pullRequests) {
-              if (pr.title.startsWith('ci(README.md): update supported network and worker')) {
-                await github.pulls.update({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  pull_number: pr.number,
-                  state: 'closed',
-                });
-
-                await github.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: pr.number,
-                  body: "This pull request has been closed to make way for a new update.",
-                });
-              }
-            }
 
       - name: Create Pull Request
         if: steps.check_readme.outputs.changed == 'true'
