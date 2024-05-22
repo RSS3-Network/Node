@@ -38,8 +38,8 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 	}
 
 	apiServer.GET("/", c.GetOperator)
-	apiServer.GET("/get_activity_count", c.GetActivityCount)
-	apiServer.GET("/get_workers_status", c.GetWorkersStatus)
+	apiServer.GET("/activity_count", c.GetActivityCount)
+	apiServer.GET("/workers_status", c.GetWorkersStatus)
 
 	if err := c.InitMeter(); err != nil {
 		panic(err)
