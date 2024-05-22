@@ -34,7 +34,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File) 
 	group := apiServer.Group(fmt.Sprintf("/%s", Name))
 
 	group.GET("", c.GetNetworksHandler)
-	group.GET("/get_endpoint_config", c.GetEndpointConfig)
+	group.GET("/endpoint_config", c.GetEndpointConfig)
 	group.GET("/:network/list_workers", c.GetWorkersByNetwork)
 	group.GET("/:network/workers/:worker", c.GetWorkerConfig)
 
