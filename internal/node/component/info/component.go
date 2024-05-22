@@ -5,8 +5,10 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo/v4"
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
+	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -14,8 +16,10 @@ import (
 )
 
 type Component struct {
-	config  *config.File
-	counter metric.Int64Counter
+	config         *config.File
+	counter        metric.Int64Counter
+	databaseClient database.Client
+	redisClient    rueidis.Client
 }
 
 const Name = "info"
@@ -26,12 +30,16 @@ func (c *Component) Name() string {
 
 var _ component.Component = (*Component)(nil)
 
-func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File) component.Component {
+func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client) component.Component {
 	c := &Component{
-		config: config,
+		config:         config,
+		databaseClient: databaseClient,
+		redisClient:    redisClient,
 	}
 
-	apiServer.GET("/", c.GetNodeInfo)
+	apiServer.GET("/", c.GetOperator)
+	apiServer.GET("/get_activity_count", c.GetActivityCount)
+	apiServer.GET("/get_workers_status", c.GetWorkersStatus)
 
 	if err := c.InitMeter(); err != nil {
 		panic(err)

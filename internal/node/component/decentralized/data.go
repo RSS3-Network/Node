@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/rss3-network/node/internal/database/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
@@ -59,26 +58,4 @@ func (c *Component) transformCursor(_ context.Context, activity *activityx.Activ
 	}
 
 	return fmt.Sprintf("%s:%s", activity.ID, activity.Network)
-}
-
-func (c *Component) getIndexCount(ctx context.Context) (int64, *time.Time, error) {
-	var (
-		count      int64
-		updateTime *time.Time
-	)
-
-	checkpoints, err := c.databaseClient.LoadCheckpoints(ctx, "", networkx.Unknown, "")
-	if err != nil {
-		return count, nil, fmt.Errorf("failed to find index count: %w", err)
-	}
-
-	for _, checkpoint := range checkpoints {
-		count += checkpoint.IndexCount
-
-		if updateTime == nil || checkpoint.UpdatedAt.After(*updateTime) {
-			updateTime = lo.ToPtr(checkpoint.UpdatedAt)
-		}
-	}
-
-	return count, updateTime, nil
 }

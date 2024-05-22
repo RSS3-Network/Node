@@ -1,4 +1,4 @@
-package decentralized
+package info
 
 import (
 	"context"
@@ -36,8 +36,8 @@ type WorkerStatusAggregator struct {
 	Statuses []worker.Status
 }
 
-// GetWorkers returns the status of all workers.
-func (c *Component) GetWorkers(ctx echo.Context) error {
+// GetWorkersStatus returns the status of all workers.
+func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 	workerCount := len(c.config.Component.Decentralized)
 	workerInfoChan := make(chan *WorkerInfo, workerCount)
 
