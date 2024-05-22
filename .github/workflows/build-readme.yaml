@@ -1,30 +1,20 @@
 name: Update README
 
 on:
-  push:
-    branches:
-      - develop
   workflow_dispatch:
-  pull_request:
   schedule:
     - cron: "0 0 * * *"
+  pull_request:
 
 jobs:
   update-readme:
     permissions:
       contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
         uses: actions/checkout@v2
-
-#      - name: Import Secrets
-#        uses: hashicorp/vault-action@v2.4.0
-#        with:
-#          url: ${{ secrets.VAULT_ADDR }}
-#          token: ${{ secrets.VAULT_TOKEN }}
-#          secrets: |
-#            kv/data/network/rss3-node GLOBAL_INDEXER_ENDPOINT
 
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
@@ -40,15 +30,37 @@ jobs:
         run: |
           python build_readme.py
 
-      - name: Commit and push if changed
+      - name: Check if README has changed
+        id: check_readme
         run: |
-          git diff
-          if git diff --quiet; then
-            echo "No changes to README.md, skipping commit."
+          if git diff --quiet README.md; then
+            echo "README has not changed"
+            echo "::set-output name=changed::false"
           else
-            git config --global user.email "action@github.com"
-            git config --global user.name "GitHub Action"
-            git add README.md
-            git commit -m "doc: update supported network and worker in README.md"
-            git push
+            echo "README has changed"
+            echo "::set-output name=changed::true"
           fi
+
+      - name: Generate datetime string for PR title
+        id: datetime
+        run: echo "::set-output name=datetime::$(date +'%Y%m%d%H%M')"
+
+      - name: Commit and push changes to a new branch
+        if: steps.check_readme.outputs.changed == 'true'
+        run: |
+          git config --global user.email "pseudoyu@connect.hku.hk"
+          git config --global user.name "pseudoyu"
+          git checkout -b update-readme-${{ steps.datetime.outputs.datetime }}
+          git add README.md
+          git commit -m "doc: update supported network and worker in README.md"
+          git push origin update-readme-${{ steps.datetime.outputs.datetime }}
+
+      - name: Create Pull Request
+        if: steps.check_readme.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: "doc: update supported network and worker in README.md"
+          branch: update-readme-${{ steps.datetime.outputs.datetime }}
+          title: "ci(README.md): update supported network and worker (${{ steps.datetime.outputs.datetime }})"
+          body: "This PR updates the README.md file with the latest supported network and worker information."
+          base: develop
