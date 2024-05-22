@@ -31,7 +31,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File) 
 		config: config,
 	}
 
-	apiServer.GET("/", c.GetNodeInfo)
+	apiServer.GET("/", c.GetNodeOperator)
 
 	if err := c.InitMeter(); err != nil {
 		panic(err)

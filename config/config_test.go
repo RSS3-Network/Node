@@ -254,7 +254,7 @@ var configFileExcept = &File{
 		},
 	},
 	Discovery: &Discovery{
-		Maintainer: &Maintainer{
+		Operator: &Operator{
 			EvmAddress: common.HexToAddress("0x111222333444555666777888999aaabbbcccddde"),
 			Signature:  "0x000000000111111111222222222333333333444444444555555555666666666777777777888888888999999999aaaaaaaaabbbbbbbbbcccccccccdddddddddeeee",
 		},
