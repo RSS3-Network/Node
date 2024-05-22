@@ -212,7 +212,7 @@ func getEndpointConfig() Endpoint {
 		HTTP2Disabled: &ConfigDetail{
 			IsRequired:  false,
 			Type:        BooleanType,
-			Description: "Disable HTTP2 for outgoing requests, as some endpoints may not support HTTP2.",
+			Description: "Some endpoints may not support HTTP2, set this to true to disable HTTP2.",
 		},
 	}
 }
