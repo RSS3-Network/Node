@@ -160,11 +160,7 @@ func customWorkerConfigWithoutEndpoint(worker worker.Worker, network network.Sou
 	config.EndpointID = nil
 
 	if requireIPFS {
-		config.IPFSGateways = &ConfigDetail{
-			IsRequired:  false,
-			Type:        StringArrayType,
-			Description: "A list of IPFS gateways to fetch data from, multiple gateways may improve the availability of IPFS data",
-		}
+		setIPFSGateways(&config)
 	}
 
 	return config
@@ -174,11 +170,7 @@ func customWorkerConfigWithoutEndpoint(worker worker.Worker, network network.Sou
 func customWorkerConfigWithIPFS(worker worker.Worker, network network.Source, endpointDescription string) workerConfig {
 	config := defaultWorkerConfig(worker, network, nil)
 
-	config.IPFSGateways = &ConfigDetail{
-		IsRequired:  false,
-		Type:        StringArrayType,
-		Description: "A list of IPFS gateways to fetch data from, multiple gateways may improve the availability of IPFS data",
-	}
+	setIPFSGateways(&config)
 
 	if len(endpointDescription) > 0 {
 		config.EndpointID.Description = endpointDescription
@@ -214,6 +206,14 @@ func getEndpointConfig() Endpoint {
 			Type:        BooleanType,
 			Description: "Some endpoints may not support HTTP2, set this to true to disable HTTP2.",
 		},
+	}
+}
+
+func setIPFSGateways(config *workerConfig) {
+	config.IPFSGateways = &ConfigDetail{
+		IsRequired:  true,
+		Type:        StringArrayType,
+		Description: "A list of IPFS gateways to fetch data from, multiple gateways may improve the availability of IPFS data",
 	}
 }
 
