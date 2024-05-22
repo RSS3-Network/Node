@@ -2,7 +2,7 @@ environment: production
 type: beta
 
 discovery:
-    maintainer:
+    operator:
       evm_address:
       signature:
     server:
