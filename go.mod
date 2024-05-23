@@ -53,7 +53,7 @@ require (
 
 require (
 	github.com/cockroachdb/cockroach-go/v2 v2.3.8
-	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
 	github.com/grafana/pyroscope-go v1.1.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/redis/rueidis v1.0.34
