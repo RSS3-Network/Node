@@ -9,9 +9,9 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/creasty/defaults v1.7.0
 	github.com/ethereum/go-ethereum v1.13.15
-	github.com/gabriel-vasile/mimetype v1.4.2
+	github.com/gabriel-vasile/mimetype v1.4.3
 	github.com/go-playground/form/v4 v4.2.1
-	github.com/go-playground/validator/v10 v10.16.0
+	github.com/go-playground/validator/v10 v10.20.0
 	github.com/go-shiori/go-readability v0.0.0-20231029095239-6b97d5aba789
 	github.com/hamba/avro v1.8.0
 	github.com/ipfs/go-cid v0.4.1
@@ -115,7 +115,7 @@ require (
 	github.com/klauspost/compress v1.17.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
-	github.com/leodido/go-urn v1.2.4 // indirect
+	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
