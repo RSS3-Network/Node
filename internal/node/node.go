@@ -15,6 +15,7 @@ import (
 	"github.com/rss3-network/node/internal/node/component/info"
 	"github.com/rss3-network/node/internal/node/component/network"
 	"github.com/rss3-network/node/internal/node/component/rss"
+	"github.com/rss3-network/node/internal/node/middlewarex"
 )
 
 // default host and port for the API server
@@ -50,7 +51,10 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 		Validator: validator.New(),
 	}
 
-	apiServer.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
+	apiServer.Use(
+		middleware.CORSWithConfig(middleware.DefaultCORSConfig),
+		middlewarex.DecodePathParamsMiddleware,
+	)
 
 	infoComponent := info.NewComponent(ctx, apiServer, config, databaseClient, redisClient)
 	node.components = append(node.components, &infoComponent)
