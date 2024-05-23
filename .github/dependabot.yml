@@ -1,7 +1,17 @@
 version: 2
 updates:
-  - package-ecosystem: "gomod"
-    directory: "/"
+  - package-ecosystem: gomod
+    directory: /
     schedule:
-      interval: "daily"
-    target-branch: "develop"
+      interval: daily
+    target-branch: develop
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+    target-branch: develop
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: daily
+    target-branch: develop
