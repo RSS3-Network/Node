@@ -17,7 +17,7 @@ type StatisticResponse struct {
 	LastUpdate *time.Time `json:"last_update,omitempty"`
 }
 
-// GetActivityCountFromDB returns the total number of activities stored in the database.
+// getActivityCountFromDB returns the total number of activities stored in the database.
 func (c *Component) getActivityCountFromDB(ctx context.Context) (int64, *time.Time, error) {
 	var (
 		count      int64
