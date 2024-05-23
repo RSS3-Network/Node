@@ -37,7 +37,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 		redisClient:    redisClient,
 	}
 
-	apiServer.GET("/", c.GetOperator)
+	apiServer.GET("/", c.GetNodeOperator)
 	apiServer.GET("/activity_count", c.GetActivityCount)
 	apiServer.GET("/workers_status", c.GetWorkersStatus)
 

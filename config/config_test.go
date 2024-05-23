@@ -21,7 +21,7 @@ const (
 	configName        = "config.yaml"
 	configExampleYaml = `environment: development
 discovery:
-    maintainer:
+    operator:
       evm_address: 0x111222333444555666777888999aaabbbcccddde
       signature: 0x000000000111111111222222222333333333444444444555555555666666666777777777888888888999999999aaaaaaaaabbbbbbbbbcccccccccdddddddddeeee
     server:
@@ -91,7 +91,7 @@ component:
     }
   },
   "discovery": {
-    "maintainer": {
+    "operator": {
       "evm_address": "0x111222333444555666777888999aaabbbcccddde",
       "signature": "0x000000000111111111222222222333333333444444444555555555666666666777777777888888888999999999aaaaaaaaabbbbbbbbbcccccccccdddddddddeeee"
     },
@@ -171,7 +171,7 @@ component:
 }`
 	configExampleToml = `environment = "development"
 
-[discovery.maintainer]
+[discovery.operator]
 evm_address = "0x111222333444555666777888999aaabbbcccddde"
 signature = "0x000000000111111111222222222333333333444444444555555555666666666777777777888888888999999999aaaaaaaaabbbbbbbbbcccccccccdddddddddeeee"
 
@@ -254,7 +254,7 @@ var configFileExcept = &File{
 		},
 	},
 	Discovery: &Discovery{
-		Maintainer: &Maintainer{
+		Operator: &Operator{
 			EvmAddress: common.HexToAddress("0x111222333444555666777888999aaabbbcccddde"),
 			Signature:  "0x000000000111111111222222222333333333444444444555555555666666666777777777888888888999999999aaaaaaaaabbbbbbbbbcccccccccdddddddddeeee",
 		},

@@ -69,11 +69,11 @@ func (f *File) LoadModulesEndpoint() error {
 }
 
 type Discovery struct {
-	Maintainer *Maintainer `mapstructure:"maintainer"`
-	Server     *Server     `mapstructure:"server"`
+	Operator *Operator `mapstructure:"operator"`
+	Server   *Server   `mapstructure:"server"`
 }
 
-type Maintainer struct {
+type Operator struct {
 	EvmAddress common.Address `mapstructure:"evm_address"`
 	Signature  string         `mapstructure:"signature"`
 }
