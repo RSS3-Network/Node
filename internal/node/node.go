@@ -3,18 +3,21 @@ package node
 import (
 	"context"
 	"net"
+	"net/http"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
 	"github.com/rss3-network/node/internal/node/component/decentralized"
 	"github.com/rss3-network/node/internal/node/component/info"
 	"github.com/rss3-network/node/internal/node/component/network"
 	"github.com/rss3-network/node/internal/node/component/rss"
+	"go.uber.org/zap"
 )
 
 // default host and port for the API server
@@ -67,6 +70,21 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 
 	networksComponent := network.NewComponent(ctx, apiServer, config)
 	node.components = append(node.components, &networksComponent)
+
+	// Generate openapi.json
+	var endpoint string
+	if config.Discovery != nil && config.Discovery.Server != nil {
+		endpoint = config.Discovery.Server.Endpoint
+	}
+
+	content, err := docs.Generate(endpoint)
+	if err != nil {
+		zap.L().Error("docs generation error", zap.Error(err))
+	}
+
+	apiServer.GET("/openapi.json", func(c echo.Context) error {
+		return c.Blob(http.StatusOK, "application/json", content)
+	})
 
 	return &node
 }

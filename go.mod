@@ -54,12 +54,14 @@ require (
 require (
 	github.com/cockroachdb/cockroach-go/v2 v2.3.6
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
+	github.com/ghodss/yaml v1.0.0
 	github.com/grafana/pyroscope-go v1.1.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/redis/rueidis v1.0.34
 	github.com/rss3-network/protocol-go v0.4.3
 	github.com/spf13/afero v1.11.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+	github.com/tidwall/sjson v1.2.5
 	github.com/vincent-petithory/dataurl v1.0.0
 	golang.org/x/net v0.24.0
 )
@@ -171,6 +173,7 @@ require (
 	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
