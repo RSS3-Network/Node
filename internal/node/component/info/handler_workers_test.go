@@ -1,4 +1,4 @@
-package decentralized
+package info
 
 import (
 	"testing"
