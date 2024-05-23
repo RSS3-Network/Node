@@ -32,7 +32,7 @@ jobs:
             kv/data/network/rss3-node ENDPOINT_LINEA ;
             kv/data/network/rss3-node FARCASTER_URI
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: "1.21"
       - name: Checkout

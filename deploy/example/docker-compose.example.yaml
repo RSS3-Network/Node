@@ -34,8 +34,8 @@ services:
     volumes:
       - ./config.min.yaml:/etc/rss3/node/config.yaml
     environment:
-      NODE_DISCOVERY_MAINTAINER_EVM_ADDRESS: "[evm_address]"
-      NODE_DISCOVERY_MAINTAINER_SIGNATURE: "[signature_address]"
+      NODE_DISCOVERY_OPERATOR_EVM_ADDRESS: "[evm_address]"
+      NODE_DISCOVERY_OPERATOR_SIGNATURE: "[signature_address]"
       NODE_DISCOVERY_SERVER_ENDPOINT: "[public_endpoint]"
       NODE_DISCOVERY_SERVER_GLOBAL_INDEXER_ENDPOINT: "https://gi.rss3.io"
     command: ["./node","--module=broadcaster"]

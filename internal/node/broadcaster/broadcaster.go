@@ -16,8 +16,8 @@ import (
 
 func (b *Broadcaster) Register(ctx context.Context) error {
 	request := RegisterNodeRequest{
-		Address:   b.config.Discovery.Maintainer.EvmAddress,
-		Signature: b.config.Discovery.Maintainer.Signature,
+		Address:   b.config.Discovery.Operator.EvmAddress,
+		Signature: b.config.Discovery.Operator.Signature,
 		Endpoint:  b.config.Discovery.Server.Endpoint,
 		Stream:    b.config.Stream,
 		Config:    b.config.Component,
@@ -39,9 +39,9 @@ func (b *Broadcaster) Register(ctx context.Context) error {
 
 func (b *Broadcaster) Heartbeat(ctx context.Context) error {
 	request := NodeHeartbeatRequest{
-		Address:   b.config.Discovery.Maintainer.EvmAddress,
+		Address:   b.config.Discovery.Operator.EvmAddress,
 		Endpoint:  b.config.Discovery.Server.Endpoint,
-		Signature: b.config.Discovery.Maintainer.Signature,
+		Signature: b.config.Discovery.Operator.Signature,
 		Timestamp: time.Now().Unix(),
 	}
 
