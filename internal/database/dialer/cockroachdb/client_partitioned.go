@@ -341,6 +341,7 @@ func (c *client) findIndexPartitioned(ctx context.Context, query model.ActivityQ
 	resultChan := make(chan *table.Index, len(tables))
 	errorChan := make(chan error)
 	stopChan := make(chan struct{})
+	emptyResultChan := make(chan struct{}, len(tables))
 
 	for _, tableName := range tables {
 		tableName := tableName
@@ -355,6 +356,8 @@ func (c *client) findIndexPartitioned(ctx context.Context, query model.ActivityQ
 			}
 
 			if lo.IsEmpty(result.ID) {
+				emptyResultChan <- struct{}{}
+
 				return nil
 			}
 
@@ -376,6 +379,7 @@ func (c *client) findIndexPartitioned(ctx context.Context, query model.ActivityQ
 	defer cancel()
 
 	count := 0
+	emptyResultCount := 0
 
 	for {
 		select {
@@ -392,6 +396,12 @@ func (c *client) findIndexPartitioned(ctx context.Context, query model.ActivityQ
 			}
 
 			if count == len(tables) {
+				return nil, nil
+			}
+		case <-emptyResultChan:
+			emptyResultCount++
+
+			if emptyResultCount == len(tables) {
 				return nil, nil
 			}
 		}
