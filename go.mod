@@ -5,7 +5,7 @@ go 1.21.4
 require (
 	github.com/JohannesKaufmann/html-to-markdown v1.4.1
 	github.com/Khan/genqlient v0.6.0
-	github.com/avast/retry-go/v4 v4.5.1
+	github.com/avast/retry-go/v4 v4.6.0
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/creasty/defaults v1.7.0
 	github.com/ethereum/go-ethereum v1.13.15
@@ -29,7 +29,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.18.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/tdewolff/minify/v2 v2.20.10
 	github.com/tidwall/gjson v1.17.0
 	github.com/twmb/franz-go v1.15.4
