@@ -299,7 +299,7 @@
                         "type": "object"
                     },
                     "platform": {
-                        "$ref": "Platform"
+                        "$ref": "#/components/schemas/Platform"
                     },
                     "related_urls": {
                         "description": "A list of URLs related to the action.",

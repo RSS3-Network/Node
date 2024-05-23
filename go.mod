@@ -60,6 +60,7 @@ require (
 	github.com/rss3-network/protocol-go v0.4.3
 	github.com/spf13/afero v1.11.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+	github.com/tidwall/sjson v1.2.5
 	github.com/vincent-petithory/dataurl v1.0.0
 	golang.org/x/net v0.25.0
 )
