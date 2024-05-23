@@ -8,8 +8,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// GetNodeInfo returns the node information.
-func (c *Component) GetNodeInfo(ctx echo.Context) error {
+// GetOperator returns the node information.
+func (c *Component) GetOperator(ctx echo.Context) error {
 	go c.CollectMetric(ctx.Request().Context(), "info")
 
 	zap.L().Debug("get node info", zap.String("request.ip", ctx.Request().RemoteAddr))
