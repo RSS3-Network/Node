@@ -14,15 +14,15 @@ func TestPathParameterDecodeMiddleware_DecodesValidPathParameters(t *testing.T) 
 	t.Parallel()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/test/36kr%2Fnewsflashes", nil)
+	req := httptest.NewRequest(http.MethodGet, "/test/36kr%2Fnewsflashes+", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPath("/test/:path")
 	c.SetParamNames("path")
-	c.SetParamValues("36kr%2Fnewsflashes")
+	c.SetParamValues("36kr%2Fnewsflashes+")
 
 	handler := middlewarex.DecodePathParamsMiddleware(func(c echo.Context) error {
-		assert.Equal(t, "36kr/newsflashes", c.Param("path"))
+		assert.Equal(t, "36kr/newsflashes+", c.Param("path"))
 		return nil
 	})
 

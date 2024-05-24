@@ -13,7 +13,7 @@ func DecodePathParamsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// Decode path parameters
 		paramValues := c.ParamValues()
 		for i, value := range paramValues {
-			decodedValue, err := url.QueryUnescape(value)
+			decodedValue, err := url.PathUnescape(value)
 			if err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, "Invalid path parameter: "+err.Error())
 			}
