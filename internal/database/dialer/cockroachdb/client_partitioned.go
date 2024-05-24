@@ -354,10 +354,6 @@ func (c *client) findIndexPartitioned(ctx context.Context, query model.ActivityQ
 				return fmt.Errorf("find first index: %w", err)
 			}
 
-			if lo.IsEmpty(result.ID) {
-				return nil
-			}
-
 			select {
 			case <-stopChan:
 				return nil
@@ -386,7 +382,7 @@ func (c *client) findIndexPartitioned(ctx context.Context, query model.ActivityQ
 		case data := <-resultChan:
 			count++
 
-			if data != nil {
+			if data != nil && lo.IsNotEmpty(data.ID) {
 				close(stopChan)
 				return data, nil
 			}

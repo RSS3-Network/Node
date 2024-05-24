@@ -15,7 +15,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Import Secrets
-        uses: hashicorp/vault-action@v2.4.0
+        uses: hashicorp/vault-action@v3.0.0
         with:
           url: ${{ secrets.VAULT_ADDR }}
           token: ${{ secrets.VAULT_TOKEN }}
@@ -36,6 +36,6 @@ jobs:
         with:
           go-version: "1.21"
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Test
         run: make test
