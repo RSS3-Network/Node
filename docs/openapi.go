@@ -2,14 +2,14 @@ package docs
 
 import (
 	"fmt"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/samber/lo"
 	"os"
 
 	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/samber/lo"
 	"github.com/tidwall/sjson"
 	"go.uber.org/zap"
 )
