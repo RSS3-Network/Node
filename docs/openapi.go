@@ -3,6 +3,7 @@ package docs
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
@@ -58,26 +59,38 @@ func generateEnum(file []byte) ([]byte, error) {
 	var err error
 
 	// Generate network values.
-	file, err = sjson.SetBytes(file, "components.schemas.Network.enum", lo.Filter(network.NetworkStrings(), func(s string, _ int) bool {
+	networks := lo.Filter(network.NetworkStrings(), func(s string, _ int) bool {
 		return !lo.Contains([]string{
 			network.Unknown.String(),
 			network.Bitcoin.String(),
 			network.SatoshiVM.String(),
 			network.RSS.String(),
 		}, s)
-	}))
+	})
+
+	sort.Strings(networks)
+
+	file, err = sjson.SetBytes(file, "components.schemas.Network.enum", networks)
 	if err != nil {
 		return nil, fmt.Errorf("sjson set network enum err: %w", err)
 	}
 
 	// Generate tag values.
-	file, err = sjson.SetBytes(file, "components.schemas.Tag.enum", tag.TagStrings())
+	tags := tag.TagStrings()
+
+	sort.Strings(tags)
+
+	file, err = sjson.SetBytes(file, "components.schemas.Tag.enum", tags)
 	if err != nil {
 		return nil, fmt.Errorf("sjson set tag enum err: %w", err)
 	}
 
 	// Generate platform values.
-	file, err = sjson.SetBytes(file, "components.schemas.Platform.enum", worker.PlatformStrings())
+	platforms := worker.PlatformStrings()
+
+	sort.Strings(platforms)
+
+	file, err = sjson.SetBytes(file, "components.schemas.Platform.enum", platforms)
 	if err != nil {
 		return nil, fmt.Errorf("sjson set platform enum err: %w", err)
 	}
@@ -89,15 +102,19 @@ func generateEnum(file []byte) ([]byte, error) {
 	}
 
 	// Generate type values.
-	types := make([]schema.Type, 0)
+	types := make([]string, 0)
 
 	for _, v := range tag.TagValues() {
-		types = append(types, schema.GetTypesByTag(v)...)
+		for _, t := range schema.GetTypesByTag(v) {
+			types = append(types, t.Name())
+		}
 	}
 
-	file, err = sjson.SetBytes(file, "components.schemas.Type.enum", lo.UniqBy(types, func(t schema.Type) string {
-		return t.Name()
-	}))
+	types = lo.Uniq(types)
+
+	sort.Strings(types)
+
+	file, err = sjson.SetBytes(file, "components.schemas.Type.enum", types)
 	if err != nil {
 		return nil, fmt.Errorf("sjson set type enum err: %w", err)
 	}
