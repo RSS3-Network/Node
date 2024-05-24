@@ -33,7 +33,7 @@ require (
 	github.com/tdewolff/minify/v2 v2.20.10
 	github.com/tidwall/gjson v1.17.0
 	github.com/twmb/franz-go v1.15.4
-	github.com/twmb/franz-go/pkg/kadm v1.10.0
+	github.com/twmb/franz-go/pkg/kadm v1.11.0
 	go.opentelemetry.io/otel v1.21.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.21.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.21.0
@@ -112,7 +112,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.17.3 // indirect
+	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
