@@ -1,7 +1,7 @@
 {
     "openapi": "3.0.3",
     "info": {
-        "description": "RSS3 Node API, data query services provided",
+        "description": "RSS3 Node API, data query services provided.",
         "title": "Node API",
         "version": "0.1.0"
     },
@@ -21,7 +21,7 @@
             "get": {
                 "parameters": [
                     {
-                        "description": "Retrieve details for the specified activity ID",
+                        "description": "Retrieve details for the specified activity ID.",
                         "example": "0x000000000000000000000000113f4b4c3765e5f05fd197c5c35b8a8a9b34245b",
                         "in": "path",
                         "name": "id",
@@ -31,7 +31,7 @@
                         }
                     },
                     {
-                        "description": "Specify the number of actions within the activity to retrieve",
+                        "description": "Specify the number of actions within the activity to retrieve.",
                         "example": "10",
                         "in": "query",
                         "name": "action_limit",
@@ -44,7 +44,7 @@
                         }
                     },
                     {
-                        "description": "Specify the pagination for actions",
+                        "description": "Specify the pagination for actions.",
                         "example": 1,
                         "in": "query",
                         "name": "action_page",
@@ -87,7 +87,7 @@
             "get": {
                 "parameters": [
                     {
-                        "description": "Retrieve activities from the specified account",
+                        "description": "Retrieve activities from the specified account.",
                         "example": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
                         "in": "path",
                         "name": "account",
@@ -97,7 +97,7 @@
                         }
                     },
                     {
-                        "description": "Specify the number of activities to retrieve",
+                        "description": "Specify the number of activities to retrieve.",
                         "example": "20",
                         "in": "query",
                         "name": "limit",
@@ -110,7 +110,7 @@
                         }
                     },
                     {
-                        "description": "Specify the number of actions within the activity to retrieve",
+                        "description": "Specify the number of actions within the activity to retrieve.",
                         "example": "10",
                         "in": "query",
                         "name": "action_limit",
@@ -123,7 +123,7 @@
                         }
                     },
                     {
-                        "description": "Specify the cursor used for pagination",
+                        "description": "Specify the cursor used for pagination.",
                         "in": "query",
                         "name": "cursor",
                         "required": false,
@@ -132,7 +132,7 @@
                         }
                     },
                     {
-                        "description": "Retrieve activities starting from this timestamp",
+                        "description": "Retrieve activities starting from this timestamp.",
                         "in": "query",
                         "name": "since_timestamp",
                         "required": false,
@@ -141,7 +141,7 @@
                         }
                     },
                     {
-                        "description": "Retrieve activities up to this timestamp",
+                        "description": "Retrieve activities up to this timestamp.",
                         "in": "query",
                         "name": "until_timestamp",
                         "required": false,
@@ -150,7 +150,7 @@
                         }
                     },
                     {
-                        "description": "Retrieve activities based on success status",
+                        "description": "Retrieve activities based on success status.",
                         "in": "query",
                         "name": "success",
                         "required": false,
@@ -159,7 +159,7 @@
                         }
                     },
                     {
-                        "description": "Retrieve activities based on direction",
+                        "description": "Retrieve activities based on direction.",
                         "in": "query",
                         "name": "direction",
                         "required": false,
@@ -168,7 +168,7 @@
                         }
                     },
                     {
-                        "description": "Retrieve activities from the specified network(s)",
+                        "description": "Retrieve activities from the specified network(s).",
                         "in": "query",
                         "name": "network",
                         "required": false,
@@ -180,7 +180,7 @@
                         }
                     },
                     {
-                        "description": "Retrieve activities from the specified tag(s)",
+                        "description": "Retrieve activities from the specified tag(s).",
                         "in": "query",
                         "name": "tag",
                         "required": false,
@@ -192,7 +192,7 @@
                         }
                     },
                     {
-                        "description": "Retrieve activities from the specified type(s)",
+                        "description": "Retrieve activities from the specified type(s).",
                         "in": "query",
                         "name": "type",
                         "required": false,
@@ -204,7 +204,7 @@
                         }
                     },
                     {
-                        "description": "Retrieve activities from the specified platform(s)",
+                        "description": "Retrieve activities from the specified platform(s).",
                         "in": "query",
                         "name": "platform",
                         "required": false,
@@ -247,7 +247,7 @@
             "get": {
                 "parameters": [
                     {
-                        "description": "Retrieve details for the specified RSS path",
+                        "description": "Retrieve details for the specified RSS path.",
                         "example": "abc",
                         "in": "path",
                         "name": "path",
