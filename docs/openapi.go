@@ -2,6 +2,8 @@ package docs
 
 import (
 	"fmt"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/samber/lo"
 	"os"
 
 	"github.com/rss3-network/node/schema/worker"
@@ -55,28 +57,49 @@ func generateServers(file []byte, endpoint string) ([]byte, error) {
 func generateEnum(file []byte) ([]byte, error) {
 	var err error
 
-	// generate network values
-	file, err = sjson.SetBytes(file, "components.schemas.Network.enum", network.NetworkStrings())
+	// Generate network values.
+	file, err = sjson.SetBytes(file, "components.schemas.Network.enum", lo.Filter(network.NetworkStrings(), func(s string, _ int) bool {
+		return !lo.Contains([]string{
+			network.Unknown.String(),
+			network.Bitcoin.String(),
+			network.SatoshiVM.String(),
+			network.RSS.String(),
+		}, s)
+	}))
 	if err != nil {
 		return nil, fmt.Errorf("sjson set network enum err: %w", err)
 	}
 
-	// generate tag values
+	// Generate tag values.
 	file, err = sjson.SetBytes(file, "components.schemas.Tag.enum", tag.TagStrings())
 	if err != nil {
 		return nil, fmt.Errorf("sjson set tag enum err: %w", err)
 	}
 
-	// generate platform values
+	// Generate platform values.
 	file, err = sjson.SetBytes(file, "components.schemas.Platform.enum", worker.PlatformStrings())
 	if err != nil {
 		return nil, fmt.Errorf("sjson set platform enum err: %w", err)
 	}
 
-	// generate direction values
+	// Generate direction values.
 	file, err = sjson.SetBytes(file, "components.schemas.Direction.enum", activity.DirectionStrings())
 	if err != nil {
 		return nil, fmt.Errorf("sjson set direction enum err: %w", err)
+	}
+
+	// Generate type values.
+	types := make([]schema.Type, 0)
+
+	for _, v := range tag.TagValues() {
+		types = append(types, schema.GetTypesByTag(v)...)
+	}
+
+	file, err = sjson.SetBytes(file, "components.schemas.Type.enum", lo.UniqBy(types, func(t schema.Type) string {
+		return t.Name()
+	}))
+	if err != nil {
+		return nil, fmt.Errorf("sjson set type enum err: %w", err)
 	}
 
 	return file, nil

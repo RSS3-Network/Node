@@ -198,7 +198,7 @@
                         "required": false,
                         "schema": {
                             "items": {
-                                "type": "string"
+                                "$ref": "#/components/schemas/Type"
                             },
                             "type": "array"
                         }
@@ -317,7 +317,7 @@
                     },
                     "type": {
                         "description": "The type of action performed.",
-                        "type": "string"
+                        "$ref": "#/components/schemas/Type"
                     }
                 },
                 "type": "object"
@@ -399,7 +399,7 @@
                     },
                     "type": {
                         "description": "The type of activity performed.",
-                        "type": "string"
+                        "$ref": "#/components/schemas/Type"
                     }
                 },
                 "type": "object"
@@ -439,6 +439,10 @@
             },
             "Tag": {
                 "description": "A tag used to categorize activities.",
+                "type": "string"
+            },
+            "Type": {
+                "description": "A type used to categorize activities, it must combine with tag.",
                 "type": "string"
             },
             "Network": {
