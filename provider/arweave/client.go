@@ -3,6 +3,7 @@ package arweave
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,6 +18,8 @@ import (
 
 // DefaultClient is the default client.
 var DefaultClient = lo.Must(NewClient())
+
+var NotFound = errors.New("not found")
 
 const (
 	DefaultTimeout = 3 * time.Second
@@ -121,21 +124,32 @@ func (c *client) queryArweaveByRoute(ctx context.Context, path string) (io.ReadC
 	c.locker.RLock()
 	defer c.locker.RUnlock()
 
-	var data io.ReadCloser
-
-	var err error
+	var (
+		data io.ReadCloser
+		err  error
+		code int
+	)
 
 	retryableFunc := func() error {
+		var requestURL string
+
 		for _, gateway := range c.gateways {
-			requestURL, err := url.JoinPath(gateway, path)
+			requestURL, err = url.JoinPath(gateway, path)
 			if err != nil {
 				return fmt.Errorf("invalid gateway url: %w", err)
 			}
 
-			data, err = c.do(ctx, http.MethodGet, requestURL, nil)
+			data, code, err = c.do(ctx, http.MethodGet, requestURL, nil)
 			if err == nil {
 				// Successful response received, return the data.
 				return nil
+			}
+
+			zap.L().Error("fetch arweave error", zap.Error(err))
+
+			if gateway == GatewayArweave.String() && code == http.StatusNotFound {
+				// If the gateway is the official Arweave gateway and the response is 404, return error.
+				return NotFound
 			}
 		}
 
@@ -143,38 +157,41 @@ func (c *client) queryArweaveByRoute(ctx context.Context, path string) (io.ReadC
 		return fmt.Errorf("fetch from all gateways failed: %w", err)
 	}
 
-	err = retry.Do(retryableFunc,
+	retryErr := retry.Do(retryableFunc,
 		retry.Attempts(10),
 		retry.Delay(500*time.Millisecond),   // Set initial delay to 500 milliseconds.
 		retry.DelayType(retry.BackOffDelay), // Use backoff delay type, increasing delay on each retry.
+		retry.RetryIf(func(err error) bool {
+			return !errors.Is(err, NotFound)
+		}),
+		retry.LastErrorOnly(true),
 		retry.OnRetry(func(n uint, err error) {
 			zap.L().Error("retry arweave gateways", zap.String("path", path), zap.Uint("retry", n), zap.Error(err))
 		}),
 	)
-	if err != nil {
-		return nil, fmt.Errorf("retry arweave gateways: %w", err)
-	}
 
-	return data, nil
+	return data, retryErr
 }
 
 // do send an HTTP request with the given method, url and body.
-func (c *client) do(ctx context.Context, method string, url string, body io.Reader) (io.ReadCloser, error) {
+func (c *client) do(ctx context.Context, method string, url string, body io.Reader) (io.ReadCloser, int, error) {
 	request, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
-		return nil, fmt.Errorf("create request: %w", err)
+		return nil, 0, fmt.Errorf("create request: %w", err)
 	}
 
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("send request: %w", err)
+		return nil, 0, fmt.Errorf("send request: %w", err)
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("expected status code %d", response.StatusCode)
+		marshal, _ := json.Marshal(response.Body)
+
+		return nil, response.StatusCode, fmt.Errorf("unexpected status code: %d, response: %s, url: %s", response.StatusCode, string(marshal), url)
 	}
 
-	return response.Body, nil
+	return response.Body, 0, nil
 }
 
 // ClientOption is the type of the options passed to NewClient.

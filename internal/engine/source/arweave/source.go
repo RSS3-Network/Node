@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -302,6 +303,10 @@ func (s *source) batchPullData(ctx context.Context, transactions []*arweave.Tran
 		resultPool.Go(func(ctx context.Context) error {
 			response, err := s.arweaveClient.GetTransactionData(ctx, transaction.ID)
 			if err != nil {
+				if errors.Is(err, arweave.NotFound) {
+					return nil
+				}
+
 				return fmt.Errorf("fetch transaction data: %w", err)
 			}
 
@@ -338,6 +343,10 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 
 			response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
 			if err != nil {
+				if errors.Is(err, arweave.NotFound) {
+					return nil, nil
+				}
+
 				return nil, fmt.Errorf("fetch transaction: %w", err)
 			}
 
