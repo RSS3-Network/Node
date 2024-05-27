@@ -3,7 +3,7 @@ module github.com/rss3-network/node
 go 1.21.4
 
 require (
-	github.com/JohannesKaufmann/html-to-markdown v1.4.1
+	github.com/JohannesKaufmann/html-to-markdown v1.6.0
 	github.com/Khan/genqlient v0.7.0
 	github.com/avast/retry-go/v4 v4.6.0
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
@@ -68,7 +68,7 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/DataDog/zstd v1.5.0 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
-	github.com/PuerkitoBio/goquery v1.8.1 // indirect
+	github.com/PuerkitoBio/goquery v1.9.2 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.10.0 // indirect
