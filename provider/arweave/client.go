@@ -144,12 +144,11 @@ func (c *client) queryArweaveByRoute(ctx context.Context, path string) (io.ReadC
 	}
 
 	err = retry.Do(retryableFunc,
-		retry.Attempts(0),
+		retry.Attempts(10),
 		retry.Delay(500*time.Millisecond),   // Set initial delay to 500 milliseconds.
 		retry.DelayType(retry.BackOffDelay), // Use backoff delay type, increasing delay on each retry.
-		retry.MaxDelay(3*time.Minute),
 		retry.OnRetry(func(n uint, err error) {
-			zap.L().Error("retry arweave gateways", zap.Uint("retry", n), zap.Error(err))
+			zap.L().Error("retry arweave gateways", zap.String("path", path), zap.Uint("retry", n), zap.Error(err))
 		}),
 	)
 	if err != nil {
