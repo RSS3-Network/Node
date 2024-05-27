@@ -266,7 +266,8 @@ func (s *source) batchPullTransactions(ctx context.Context, transactionIDs []str
 
 	resultPool := pool.NewWithResults[*arweave.Transaction]().
 		WithContext(ctx).
-		WithCancelOnError()
+		WithCancelOnError().
+		WithMaxGoroutines(int(lo.FromPtr(s.option.ConcurrentBlockRequests)))
 
 	for _, transactionID := range transactionIDs {
 		transactionID := transactionID
@@ -283,7 +284,8 @@ func (s *source) batchPullTransactions(ctx context.Context, transactionIDs []str
 func (s *source) batchPullData(ctx context.Context, transactions []*arweave.Transaction) error {
 	resultPool := pool.New().
 		WithContext(ctx).
-		WithCancelOnError()
+		WithCancelOnError().
+		WithMaxGoroutines(int(lo.FromPtr(s.option.ConcurrentBlockRequests)))
 
 	for index, transaction := range transactions {
 		index, transaction := index, transaction
