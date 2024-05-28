@@ -44,7 +44,6 @@ type source struct {
 	filter        *Filter
 	arweaveClient arweave.Client
 	state         State
-	pendingState  State
 }
 
 func (s *source) Network() network.Network {
@@ -101,7 +100,6 @@ func (s *source) initialize() (err error) {
 // initializeBlockHeights initializes block heights.
 func (s *source) initializeBlockHeights() {
 	if s.option.BlockStart != nil && s.option.BlockStart.Uint64() > s.state.BlockHeight {
-		s.pendingState.BlockHeight = s.option.BlockStart.Uint64()
 		s.state.BlockHeight = s.option.BlockStart.Uint64()
 	}
 }
@@ -217,9 +215,8 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 		// TODO It might be possible to use generics to avoid manual type assertions.
 		tasksChan <- tasks
 
-		// Update state by two phase commit to avoid data inconsistency.
-		s.state = s.pendingState
-		s.pendingState.BlockHeight++
+		// Update block height to state.
+		s.state.BlockHeight = blockHeightEnd
 	}
 
 	return nil
@@ -586,10 +583,9 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 	}
 
 	instance := source{
-		config:       config,
-		filter:       new(Filter), // Set a default filter for the source.
-		state:        state,
-		pendingState: state, // Default pending state is equal to the current state.
+		config: config,
+		filter: new(Filter), // Set a default filter for the source.
+		state:  state,
 	}
 
 	// Initialize filter.
