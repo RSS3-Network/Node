@@ -17,7 +17,7 @@ import (
 // DefaultClient is the default client.
 var DefaultClient = lo.Must(NewClient())
 
-var NotFound = errors.New("not found")
+var ErrorNotFound = errors.New("not found")
 
 const (
 	DefaultTimeout = 3 * time.Second
@@ -141,7 +141,7 @@ func (c *client) queryArweaveByRoute(ctx context.Context, path string) (io.ReadC
 
 		if gateway == GatewayArweave.String() && code == http.StatusNotFound {
 			// If the gateway is the official Arweave gateway and the response is 404, return error.
-			return nil, NotFound
+			return nil, ErrorNotFound
 		}
 	}
 

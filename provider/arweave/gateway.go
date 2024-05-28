@@ -24,13 +24,13 @@ const (
 
 var DefaultGateways = []string{
 	GatewayArweave.String(),
-	//GatewayARIO.String(),
-	//GatewayPermagate.String(),
-	//GatewayLove4Src.String(),
-	//GatewayARBR.String(),
-	//GatewayBobInstein.String(),
-	//GatewayAleko0o.String(),
-	//GatewaySulapan.String(),
-	//GatewayFllstck.String(),
-	//GatewayBicem.String(),
+	GatewayARIO.String(),
+	GatewayPermagate.String(),
+	GatewayLove4Src.String(),
+	GatewayARBR.String(),
+	GatewayBobInstein.String(),
+	GatewayAleko0o.String(),
+	GatewaySulapan.String(),
+	GatewayFllstck.String(),
+	GatewayBicem.String(),
 }

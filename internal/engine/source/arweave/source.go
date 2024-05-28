@@ -325,7 +325,7 @@ func (s *source) batchPullData(ctx context.Context, transactions []*arweave.Tran
 			retryableFunc := func() (string, error) {
 				response, err := s.arweaveClient.GetTransactionData(ctx, transaction.ID)
 				if err != nil {
-					if errors.Is(err, arweave.NotFound) {
+					if errors.Is(err, arweave.ErrorNotFound) {
 						return "", nil
 					}
 
@@ -377,7 +377,7 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 
 				response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
 				if err != nil {
-					if errors.Is(err, arweave.NotFound) {
+					if errors.Is(err, arweave.ErrorNotFound) {
 						return nil, nil
 					}
 
