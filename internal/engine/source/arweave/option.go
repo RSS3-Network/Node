@@ -2,6 +2,7 @@ package arweave
 
 import (
 	"math/big"
+	"time"
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/parameter"
@@ -11,6 +12,8 @@ import (
 
 const (
 	defaultConcurrentBlockRequests = uint64(1)
+	defaultRetryAttempts           = uint(10)
+	defaultRetryDelay              = 500 * time.Millisecond
 )
 
 type Option struct {

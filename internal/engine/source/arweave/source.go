@@ -254,7 +254,19 @@ func (s *source) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) (
 		blockHeight := blockHeight
 
 		resultPool.Go(func(ctx context.Context) (*arweave.Block, error) {
-			return s.arweaveClient.GetBlockByHeight(ctx, blockHeight.Int64())
+			retryableFunc := func() (*arweave.Block, error) {
+				return s.arweaveClient.GetBlockByHeight(ctx, blockHeight.Int64())
+			}
+
+			return retry.DoWithData(
+				retryableFunc,
+				retry.Attempts(defaultRetryAttempts),
+				retry.Delay(defaultRetryDelay),
+				retry.DelayType(retry.BackOffDelay),
+				retry.OnRetry(func(attempt uint, err error) {
+					zap.L().Error("retry pull block", zap.Stringer("block.height", blockHeight), zap.Uint("attempt", attempt), zap.Error(err))
+				}),
+			)
 		})
 	}
 
@@ -274,7 +286,19 @@ func (s *source) batchPullTransactions(ctx context.Context, transactionIDs []str
 		transactionID := transactionID
 
 		resultPool.Go(func(ctx context.Context) (*arweave.Transaction, error) {
-			return s.arweaveClient.GetTransactionByID(ctx, transactionID)
+			retryableFunc := func() (*arweave.Transaction, error) {
+				return s.arweaveClient.GetTransactionByID(ctx, transactionID)
+			}
+
+			return retry.DoWithData(
+				retryableFunc,
+				retry.Attempts(defaultRetryAttempts),
+				retry.Delay(defaultRetryDelay),
+				retry.DelayType(retry.BackOffDelay),
+				retry.OnRetry(func(attempt uint, err error) {
+					zap.L().Error("retry pull transaction", zap.String("transaction.id", transactionID), zap.Uint("attempt", attempt), zap.Error(err))
+				}),
+			)
 		})
 	}
 
@@ -301,25 +325,37 @@ func (s *source) batchPullData(ctx context.Context, transactions []*arweave.Tran
 		}
 
 		resultPool.Go(func(ctx context.Context) error {
-			response, err := s.arweaveClient.GetTransactionData(ctx, transaction.ID)
-			if err != nil {
-				if errors.Is(err, arweave.NotFound) {
-					return nil
+			retryableFunc := func() (string, error) {
+				response, err := s.arweaveClient.GetTransactionData(ctx, transaction.ID)
+				if err != nil {
+					if errors.Is(err, arweave.NotFound) {
+						return "", nil
+					}
+
+					return "", fmt.Errorf("fetch transaction %s data: %w", transaction.ID, err)
 				}
 
-				return fmt.Errorf("fetch transaction data: %w", err)
+				defer lo.Try(response.Close)
+
+				buffer := new(bytes.Buffer)
+				if _, err := io.Copy(base64.NewEncoder(base64.RawURLEncoding, buffer), response); err != nil {
+					return "", fmt.Errorf("read and encode response: %w", err)
+				}
+
+				return buffer.String(), nil
 			}
 
-			defer lo.Try(response.Close)
+			transactions[index].Data, err = retry.DoWithData(
+				retryableFunc,
+				retry.Attempts(defaultRetryAttempts),
+				retry.Delay(defaultRetryDelay),
+				retry.DelayType(retry.BackOffDelay),
+				retry.OnRetry(func(attempt uint, err error) {
+					zap.L().Error("retry pull transaction data", zap.String("transaction.id", transaction.ID), zap.Uint("attempt", attempt), zap.Error(err))
+				}),
+			)
 
-			buffer := new(bytes.Buffer)
-			if _, err := io.Copy(base64.NewEncoder(base64.RawURLEncoding, buffer), response); err != nil {
-				return fmt.Errorf("read and encode response: %w", err)
-			}
-
-			transactions[index].Data = buffer.String()
-
-			return nil
+			return err
 		})
 	}
 
@@ -339,66 +375,78 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 		transactionID := transactionID
 
 		resultPool.Go(func(ctx context.Context) ([]*arweave.Transaction, error) {
-			bundleTransactions := make([]*arweave.Transaction, 0)
+			retryableFunc := func() ([]*arweave.Transaction, error) {
+				bundleTransactions := make([]*arweave.Transaction, 0)
 
-			response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
-			if err != nil {
-				if errors.Is(err, arweave.NotFound) {
-					return nil, nil
+				response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
+				if err != nil {
+					if errors.Is(err, arweave.NotFound) {
+						return nil, nil
+					}
+
+					return nil, fmt.Errorf("fetch transaction: %w", err)
 				}
 
-				return nil, fmt.Errorf("fetch transaction: %w", err)
-			}
+				defer lo.Try(response.Close)
 
-			defer lo.Try(response.Close)
+				decoder := bundle.NewDecoder(response)
 
-			decoder := bundle.NewDecoder(response)
-
-			header, err := decoder.DecodeHeader()
-			if err != nil {
-				// Ignore invalid bundle transaction.
-				zap.L().Error("discard a invalid bundle transaction", zap.String("transaction_id", transactionID))
-
-				return nil, nil
-			}
-
-			for index := 0; decoder.Next(); index++ {
-				dataItemInfo := header.DataItemInfos[index]
-
-				dataItem, err := decoder.DecodeDataItem()
+				header, err := decoder.DecodeHeader()
 				if err != nil {
-					// Ignore invalid signature and data length.
-					zap.L().Error("decode data item", zap.Error(err), zap.String("transaction_id", transactionID))
+					// Ignore invalid bundle transaction.
+					zap.L().Error("discard a invalid bundle transaction", zap.String("transaction_id", transactionID))
 
 					return nil, nil
 				}
 
-				bundleTransaction := arweave.Transaction{
-					Format: 2,
-					ID:     dataItemInfo.ID,
-					Owner:  dataItem.Owner,
-					Tags: lo.Map(dataItem.Tags, func(tag bundle.Tag, _ int) arweave.Tag {
-						return arweave.Tag{
-							Name:  arweave.Base64Encode(tag.Name),
-							Value: arweave.Base64Encode(tag.Value),
-						}
-					}),
-					Target:    dataItem.Target,
-					Signature: dataItem.Signature,
+				for index := 0; decoder.Next(); index++ {
+					dataItemInfo := header.DataItemInfos[index]
+
+					dataItem, err := decoder.DecodeDataItem()
+					if err != nil {
+						// Ignore invalid signature and data length.
+						zap.L().Error("decode data item", zap.Error(err), zap.String("transaction_id", transactionID))
+
+						return nil, nil
+					}
+
+					bundleTransaction := arweave.Transaction{
+						Format: 2,
+						ID:     dataItemInfo.ID,
+						Owner:  dataItem.Owner,
+						Tags: lo.Map(dataItem.Tags, func(tag bundle.Tag, _ int) arweave.Tag {
+							return arweave.Tag{
+								Name:  arweave.Base64Encode(tag.Name),
+								Value: arweave.Base64Encode(tag.Value),
+							}
+						}),
+						Target:    dataItem.Target,
+						Signature: dataItem.Signature,
+					}
+
+					data, err := io.ReadAll(dataItem)
+					if err != nil {
+						return nil, fmt.Errorf("read data item %s: %w", dataItemInfo.ID, err)
+					}
+
+					bundleTransaction.Data = arweave.Base64Encode(data)
+					bundleTransaction.DataSize = strconv.Itoa(len(bundleTransaction.Data))
+
+					bundleTransactions = append(bundleTransactions, &bundleTransaction)
 				}
 
-				data, err := io.ReadAll(dataItem)
-				if err != nil {
-					return nil, fmt.Errorf("read data item %s: %w", dataItemInfo.ID, err)
-				}
-
-				bundleTransaction.Data = arweave.Base64Encode(data)
-				bundleTransaction.DataSize = strconv.Itoa(len(bundleTransaction.Data))
-
-				bundleTransactions = append(bundleTransactions, &bundleTransaction)
+				return bundleTransactions, nil
 			}
 
-			return bundleTransactions, nil
+			return retry.DoWithData(
+				retryableFunc,
+				retry.Attempts(defaultRetryAttempts),
+				retry.Delay(defaultRetryDelay),
+				retry.DelayType(retry.BackOffDelay),
+				retry.OnRetry(func(attempt uint, err error) {
+					zap.L().Error("retry pull bundle transaction", zap.String("transaction.id", transactionID), zap.Uint("attempt", attempt), zap.Error(err))
+				}),
+			)
 		})
 	}
 

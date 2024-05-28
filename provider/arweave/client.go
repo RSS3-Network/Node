@@ -11,9 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/avast/retry-go/v4"
 	"github.com/samber/lo"
-	"go.uber.org/zap"
 )
 
 // DefaultClient is the default client.
@@ -124,53 +122,31 @@ func (c *client) queryArweaveByRoute(ctx context.Context, path string) (io.ReadC
 	c.locker.RLock()
 	defer c.locker.RUnlock()
 
-	var (
-		data io.ReadCloser
-		err  error
-		code int
-	)
+	var latestError error
 
-	retryableFunc := func() error {
-		var requestURL string
-
-		for _, gateway := range c.gateways {
-			requestURL, err = url.JoinPath(gateway, path)
-			if err != nil {
-				return fmt.Errorf("invalid gateway url: %w", err)
-			}
-
-			data, code, err = c.do(ctx, http.MethodGet, requestURL, nil)
-			if err == nil {
-				// Successful response received, return the data.
-				return nil
-			}
-
-			zap.L().Error("fetch arweave error", zap.Error(err))
-
-			if gateway == GatewayArweave.String() && code == http.StatusNotFound {
-				// If the gateway is the official Arweave gateway and the response is 404, return error.
-				return NotFound
-			}
+	for _, gateway := range c.gateways {
+		requestURL, err := url.JoinPath(gateway, path)
+		if err != nil {
+			return nil, fmt.Errorf("invalid gateway url: %w", err)
 		}
 
-		// If all gateways have been tried and none succeeded, return the last error.
-		return fmt.Errorf("fetch from all gateways failed: %w", err)
+		readCloser, code, err := c.do(ctx, http.MethodGet, requestURL, nil)
+		if err == nil {
+			// Successful response received, return the data.
+			return readCloser, err
+		}
+
+		// Record the latest error.
+		latestError = err
+
+		if gateway == GatewayArweave.String() && code == http.StatusNotFound {
+			// If the gateway is the official Arweave gateway and the response is 404, return error.
+			return nil, NotFound
+		}
 	}
 
-	retryErr := retry.Do(retryableFunc,
-		retry.Attempts(10),
-		retry.Delay(500*time.Millisecond),   // Set initial delay to 500 milliseconds.
-		retry.DelayType(retry.BackOffDelay), // Use backoff delay type, increasing delay on each retry.
-		retry.RetryIf(func(err error) bool {
-			return !errors.Is(err, NotFound)
-		}),
-		retry.LastErrorOnly(true),
-		retry.OnRetry(func(n uint, err error) {
-			zap.L().Error("retry arweave gateways", zap.String("path", path), zap.Uint("retry", n), zap.Error(err))
-		}),
-	)
-
-	return data, retryErr
+	// If all gateways have been tried and none succeeded, return the last error.
+	return nil, fmt.Errorf("fetch from all gateways failed: %w", latestError)
 }
 
 // do send an HTTP request with the given method, url and body.
