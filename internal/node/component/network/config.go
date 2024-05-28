@@ -12,7 +12,6 @@ import (
 type ConfigDetailValueType string
 
 const (
-	BigIntType      ConfigDetailValueType = "big.Int"
 	StringArrayType ConfigDetailValueType = "[]string"
 	StringType      ConfigDetailValueType = "string"
 	UintType        ConfigDetailValueType = "uint"
