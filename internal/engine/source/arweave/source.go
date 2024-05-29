@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -43,7 +44,6 @@ type source struct {
 	filter        *Filter
 	arweaveClient arweave.Client
 	state         State
-	pendingState  State
 }
 
 func (s *source) Network() network.Network {
@@ -100,7 +100,6 @@ func (s *source) initialize() (err error) {
 // initializeBlockHeights initializes block heights.
 func (s *source) initializeBlockHeights() {
 	if s.option.BlockStart != nil && s.option.BlockStart.Uint64() > s.state.BlockHeight {
-		s.pendingState.BlockHeight = s.option.BlockStart.Uint64()
 		s.state.BlockHeight = s.option.BlockStart.Uint64()
 	}
 }
@@ -153,14 +152,17 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 			continue
 		}
 
+		// If the block height of state is 0, force to start from 0.
+		blockHeightStart := lo.Ternary(s.state.BlockHeight == 0, 0, s.state.BlockHeight+1)
+
 		// Pull blocks
 		blockHeightEnd := lo.Min([]uint64{
 			uint64(blockHeightLatestRemote),
-			s.state.BlockHeight + *s.option.ConcurrentBlockRequests - 1,
+			blockHeightStart + *s.option.ConcurrentBlockRequests,
 		})
 
 		// Pull blocks by range.
-		blocks, err := s.batchPullBlocksByRange(ctx, s.state.BlockHeight, blockHeightEnd)
+		blocks, err := s.batchPullBlocksByRange(ctx, blockHeightStart, blockHeightEnd)
 		if err != nil {
 			return fmt.Errorf("batch pull blocks: %w", err)
 		}
@@ -216,9 +218,8 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 		// TODO It might be possible to use generics to avoid manual type assertions.
 		tasksChan <- tasks
 
-		// Update state by two phase commit to avoid data inconsistency.
-		s.state = s.pendingState
-		s.pendingState.BlockHeight++
+		// Update block height to state.
+		s.state.BlockHeight = blockHeightEnd
 	}
 
 	return nil
@@ -253,7 +254,19 @@ func (s *source) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) (
 		blockHeight := blockHeight
 
 		resultPool.Go(func(ctx context.Context) (*arweave.Block, error) {
-			return s.arweaveClient.GetBlockByHeight(ctx, blockHeight.Int64())
+			retryableFunc := func() (*arweave.Block, error) {
+				return s.arweaveClient.GetBlockByHeight(ctx, blockHeight.Int64())
+			}
+
+			return retry.DoWithData(
+				retryableFunc,
+				retry.Attempts(defaultRetryAttempts),
+				retry.Delay(defaultRetryDelay),
+				retry.DelayType(retry.BackOffDelay),
+				retry.OnRetry(func(attempt uint, err error) {
+					zap.L().Error("retry pull block", zap.Stringer("block.height", blockHeight), zap.Uint("attempt", attempt), zap.Error(err))
+				}),
+			)
 		})
 	}
 
@@ -266,13 +279,26 @@ func (s *source) batchPullTransactions(ctx context.Context, transactionIDs []str
 
 	resultPool := pool.NewWithResults[*arweave.Transaction]().
 		WithContext(ctx).
-		WithCancelOnError()
+		WithCancelOnError().
+		WithMaxGoroutines(int(lo.FromPtr(s.option.ConcurrentBlockRequests)))
 
 	for _, transactionID := range transactionIDs {
 		transactionID := transactionID
 
 		resultPool.Go(func(ctx context.Context) (*arweave.Transaction, error) {
-			return s.arweaveClient.GetTransactionByID(ctx, transactionID)
+			retryableFunc := func() (*arweave.Transaction, error) {
+				return s.arweaveClient.GetTransactionByID(ctx, transactionID)
+			}
+
+			return retry.DoWithData(
+				retryableFunc,
+				retry.Attempts(defaultRetryAttempts),
+				retry.Delay(defaultRetryDelay),
+				retry.DelayType(retry.BackOffDelay),
+				retry.OnRetry(func(attempt uint, err error) {
+					zap.L().Error("retry pull transaction", zap.String("transaction.id", transactionID), zap.Uint("attempt", attempt), zap.Error(err))
+				}),
+			)
 		})
 	}
 
@@ -283,7 +309,8 @@ func (s *source) batchPullTransactions(ctx context.Context, transactionIDs []str
 func (s *source) batchPullData(ctx context.Context, transactions []*arweave.Transaction) error {
 	resultPool := pool.New().
 		WithContext(ctx).
-		WithCancelOnError()
+		WithCancelOnError().
+		WithMaxGoroutines(int(lo.FromPtr(s.option.ConcurrentBlockRequests)))
 
 	for index, transaction := range transactions {
 		index, transaction := index, transaction
@@ -298,21 +325,37 @@ func (s *source) batchPullData(ctx context.Context, transactions []*arweave.Tran
 		}
 
 		resultPool.Go(func(ctx context.Context) error {
-			response, err := s.arweaveClient.GetTransactionData(ctx, transaction.ID)
-			if err != nil {
-				return fmt.Errorf("fetch transaction data: %w", err)
+			retryableFunc := func() (string, error) {
+				response, err := s.arweaveClient.GetTransactionData(ctx, transaction.ID)
+				if err != nil {
+					if errors.Is(err, arweave.ErrorNotFound) {
+						return "", nil
+					}
+
+					return "", fmt.Errorf("fetch transaction %s data: %w", transaction.ID, err)
+				}
+
+				defer lo.Try(response.Close)
+
+				buffer := new(bytes.Buffer)
+				if _, err := io.Copy(base64.NewEncoder(base64.RawURLEncoding, buffer), response); err != nil {
+					return "", fmt.Errorf("read and encode response: %w", err)
+				}
+
+				return buffer.String(), nil
 			}
 
-			defer lo.Try(response.Close)
+			transactions[index].Data, err = retry.DoWithData(
+				retryableFunc,
+				retry.Attempts(defaultRetryAttempts),
+				retry.Delay(defaultRetryDelay),
+				retry.DelayType(retry.BackOffDelay),
+				retry.OnRetry(func(attempt uint, err error) {
+					zap.L().Error("retry pull transaction data", zap.String("transaction.id", transaction.ID), zap.Uint("attempt", attempt), zap.Error(err))
+				}),
+			)
 
-			buffer := new(bytes.Buffer)
-			if _, err := io.Copy(base64.NewEncoder(base64.RawURLEncoding, buffer), response); err != nil {
-				return fmt.Errorf("read and encode response: %w", err)
-			}
-
-			transactions[index].Data = buffer.String()
-
-			return nil
+			return err
 		})
 	}
 
@@ -332,62 +375,78 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 		transactionID := transactionID
 
 		resultPool.Go(func(ctx context.Context) ([]*arweave.Transaction, error) {
-			bundleTransactions := make([]*arweave.Transaction, 0)
+			retryableFunc := func() ([]*arweave.Transaction, error) {
+				bundleTransactions := make([]*arweave.Transaction, 0)
 
-			response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
-			if err != nil {
-				return nil, fmt.Errorf("fetch transaction: %w", err)
-			}
-
-			defer lo.Try(response.Close)
-
-			decoder := bundle.NewDecoder(response)
-
-			header, err := decoder.DecodeHeader()
-			if err != nil {
-				// Ignore invalid bundle transaction.
-				zap.L().Error("discard a invalid bundle transaction", zap.String("transaction_id", transactionID))
-
-				return nil, nil
-			}
-
-			for index := 0; decoder.Next(); index++ {
-				dataItemInfo := header.DataItemInfos[index]
-
-				dataItem, err := decoder.DecodeDataItem()
+				response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
 				if err != nil {
-					// Ignore invalid signature and data length.
-					zap.L().Error("decode data item", zap.Error(err), zap.String("transaction_id", transactionID))
+					if errors.Is(err, arweave.ErrorNotFound) {
+						return nil, nil
+					}
+
+					return nil, fmt.Errorf("fetch transaction: %w", err)
+				}
+
+				defer lo.Try(response.Close)
+
+				decoder := bundle.NewDecoder(response)
+
+				header, err := decoder.DecodeHeader()
+				if err != nil {
+					// Ignore invalid bundle transaction.
+					zap.L().Error("discard a invalid bundle transaction", zap.String("transaction_id", transactionID))
 
 					return nil, nil
 				}
 
-				bundleTransaction := arweave.Transaction{
-					Format: 2,
-					ID:     dataItemInfo.ID,
-					Owner:  dataItem.Owner,
-					Tags: lo.Map(dataItem.Tags, func(tag bundle.Tag, _ int) arweave.Tag {
-						return arweave.Tag{
-							Name:  arweave.Base64Encode(tag.Name),
-							Value: arweave.Base64Encode(tag.Value),
-						}
-					}),
-					Target:    dataItem.Target,
-					Signature: dataItem.Signature,
+				for index := 0; decoder.Next(); index++ {
+					dataItemInfo := header.DataItemInfos[index]
+
+					dataItem, err := decoder.DecodeDataItem()
+					if err != nil {
+						// Ignore invalid signature and data length.
+						zap.L().Error("decode data item", zap.Error(err), zap.String("transaction_id", transactionID))
+
+						return nil, nil
+					}
+
+					bundleTransaction := arweave.Transaction{
+						Format: 2,
+						ID:     dataItemInfo.ID,
+						Owner:  dataItem.Owner,
+						Tags: lo.Map(dataItem.Tags, func(tag bundle.Tag, _ int) arweave.Tag {
+							return arweave.Tag{
+								Name:  arweave.Base64Encode(tag.Name),
+								Value: arweave.Base64Encode(tag.Value),
+							}
+						}),
+						Target:    dataItem.Target,
+						Signature: dataItem.Signature,
+					}
+
+					data, err := io.ReadAll(dataItem)
+					if err != nil {
+						return nil, fmt.Errorf("read data item %s: %w", dataItemInfo.ID, err)
+					}
+
+					bundleTransaction.Data = arweave.Base64Encode(data)
+					bundleTransaction.DataSize = strconv.Itoa(len(bundleTransaction.Data))
+
+					bundleTransactions = append(bundleTransactions, &bundleTransaction)
 				}
 
-				data, err := io.ReadAll(dataItem)
-				if err != nil {
-					return nil, fmt.Errorf("read data item %s: %w", dataItemInfo.ID, err)
-				}
-
-				bundleTransaction.Data = arweave.Base64Encode(data)
-				bundleTransaction.DataSize = strconv.Itoa(len(bundleTransaction.Data))
-
-				bundleTransactions = append(bundleTransactions, &bundleTransaction)
+				return bundleTransactions, nil
 			}
 
-			return bundleTransactions, nil
+			return retry.DoWithData(
+				retryableFunc,
+				retry.Attempts(defaultRetryAttempts),
+				retry.Delay(defaultRetryDelay),
+				retry.DelayType(retry.BackOffDelay),
+				retry.OnRetry(func(attempt uint, err error) {
+					zap.L().Error("retry pull bundle transaction", zap.String("transaction.id", transactionID), zap.Uint("attempt", attempt), zap.Error(err))
+				}),
+			)
 		})
 	}
 
@@ -527,10 +586,9 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 	}
 
 	instance := source{
-		config:       config,
-		filter:       new(Filter), // Set a default filter for the source.
-		state:        state,
-		pendingState: state, // Default pending state is equal to the current state.
+		config: config,
+		filter: new(Filter), // Set a default filter for the source.
+		state:  state,
 	}
 
 	// Initialize filter.

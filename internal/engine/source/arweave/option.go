@@ -1,7 +1,9 @@
 package arweave
 
 import (
+	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/parameter"
@@ -11,6 +13,8 @@ import (
 
 const (
 	defaultConcurrentBlockRequests = uint64(1)
+	defaultRetryAttempts           = uint(10)
+	defaultRetryDelay              = 500 * time.Millisecond
 )
 
 type Option struct {
@@ -26,7 +30,10 @@ func NewOption(n network.Network, options *config.Parameters) (*Option, error) {
 	var instance Option
 
 	if options == nil {
-		return &instance, nil
+		return &Option{
+			BlockStart:              parameter.NetworkStartBlock[n],
+			ConcurrentBlockRequests: lo.ToPtr(defaultConcurrentBlockRequests),
+		}, nil
 	}
 
 	if err := options.Decode(&instance); err != nil {
@@ -36,6 +43,10 @@ func NewOption(n network.Network, options *config.Parameters) (*Option, error) {
 	// Set default values.
 	if instance.ConcurrentBlockRequests == nil {
 		instance.ConcurrentBlockRequests = lo.ToPtr(defaultConcurrentBlockRequests)
+	}
+
+	if *instance.ConcurrentBlockRequests == 0 {
+		return nil, fmt.Errorf("concurrent block requests must be greater than 0")
 	}
 
 	if instance.BlockStart == nil {

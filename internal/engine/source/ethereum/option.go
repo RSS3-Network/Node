@@ -35,7 +35,13 @@ func NewOption(n network.Network, options *config.Parameters) (*Option, error) {
 	var instance Option
 
 	if options == nil {
-		return &instance, nil
+		return &Option{
+			BlockStart:              parameter.NetworkStartBlock[n],
+			ConcurrentBlockRequests: lo.ToPtr(defaultConcurrentBlockRequests),
+			BlockBatchSize:          lo.ToPtr(defaultBlockBatchSize),
+			ReceiptsBatchSize:       lo.ToPtr(defaultReceiptsBatchSize),
+			BlockReceiptsBatchSize:  lo.ToPtr(defaultBlockReceiptsBatchSize),
+		}, nil
 	}
 
 	if err := options.Decode(&instance); err != nil {

@@ -28,7 +28,7 @@ workers_dict = {}
 
 # Iterate through each network and get the supported workers list
 for network in networks:
-    WORKERS_API = f"{GLOBAL_INDEXER_ENDPOINT}/nta/networks/{network}/list-workers"
+    WORKERS_API = f"{GLOBAL_INDEXER_ENDPOINT}/nta/networks/{network}/list_workers"
     network_workers_response = requests.get(WORKERS_API)
     network_workers = network_workers_response.json().get("data", []) if network_workers_response.status_code == 200 else []
 
@@ -38,9 +38,16 @@ for network in networks:
 # Sort worker names
 sorted_workers = sorted(workers_dict.keys())
 
+# Move "core" worker to the top
+if "core" in sorted_workers:
+    sorted_workers.remove("core")
+    sorted_workers.insert(0, "core")
+
 # Generate table rows
 for worker in sorted_workers:
-    row = f"| {worker} |"
+    # Add superscript to "core" worker
+    display_name = f"**{worker}** [^1]" if worker == "core" else worker
+    row = f"| {display_name} |"
     for network in networks:
         row += " ✓ |" if network in workers_dict[worker] else "   |"
     table += row + "\n"
