@@ -152,14 +152,17 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 			continue
 		}
 
+		// If the block height of state is 0, force to start from 0.
+		blockHeightStart := lo.Ternary(s.state.BlockHeight == 0, 0, s.state.BlockHeight+1)
+
 		// Pull blocks
 		blockHeightEnd := lo.Min([]uint64{
 			uint64(blockHeightLatestRemote),
-			s.state.BlockHeight + *s.option.ConcurrentBlockRequests - 1,
+			blockHeightStart + *s.option.ConcurrentBlockRequests,
 		})
 
 		// Pull blocks by range.
-		blocks, err := s.batchPullBlocksByRange(ctx, s.state.BlockHeight, blockHeightEnd)
+		blocks, err := s.batchPullBlocksByRange(ctx, blockHeightStart, blockHeightEnd)
 		if err != nil {
 			return fmt.Errorf("batch pull blocks: %w", err)
 		}
