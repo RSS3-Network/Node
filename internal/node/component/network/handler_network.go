@@ -45,7 +45,7 @@ func (c *Component) GetNetworksHandler(ctx echo.Context) error {
 	for _, item := range networkList {
 		networkStr := item.String()
 		// skip unknown and bitcoin network
-		if networkStr == network.Unknown.String() || networkStr == network.Bitcoin.String() || networkStr == network.RSS.String() || networkStr == network.SatoshiVM.String() {
+		if networkStr == network.Unknown.String() || networkStr == network.Bitcoin.String() || networkStr == network.SatoshiVM.String() {
 			continue
 		}
 
@@ -72,7 +72,6 @@ func (c *Component) GetWorkersByNetwork(ctx echo.Context) error {
 	go c.CollectMetric(ctx.Request().Context(), request.Network)
 
 	nid, err := network.NetworkString(request.Network)
-
 	if err != nil {
 		return fmt.Errorf("network string failed: %w", err)
 	}

@@ -32,6 +32,7 @@ const (
 	Optimism                 // optimism
 	Paragraph                // paragraph
 	RSS3                     // rss3
+	RSSHub                   // rsshub
 	SAVM                     // savm
 	Stargate                 // stargate
 	Uniswap                  // uniswap

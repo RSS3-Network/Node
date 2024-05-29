@@ -33,14 +33,19 @@ type Endpoint struct {
 	HTTP2Disabled *ConfigDetail `json:"http2_disabled"`
 }
 
+type Authentication struct {
+	AccessKey *ConfigDetail `json:"access_key"`
+}
+
 type Parameters struct {
-	BlockStart              *ConfigDetail `json:"block_start,omitempty"`
-	BlockTarget             *ConfigDetail `json:"block_target,omitempty"`
-	ConcurrentBlockRequests *ConfigDetail `json:"concurrent_block_requests,omitempty"`
-	BlockBatchSize          *ConfigDetail `json:"block_batch_size,omitempty"`
-	ReceiptsBatchSize       *ConfigDetail `json:"receipts_batch_size,omitempty"`
-	BlockReceiptBatchSize   *ConfigDetail `json:"block_receipts_batch_size,omitempty"`
-	APIKey                  *ConfigDetail `json:"api_key,omitempty"`
+	BlockStart              *ConfigDetail   `json:"block_start,omitempty"`
+	BlockTarget             *ConfigDetail   `json:"block_target,omitempty"`
+	ConcurrentBlockRequests *ConfigDetail   `json:"concurrent_block_requests,omitempty"`
+	BlockBatchSize          *ConfigDetail   `json:"block_batch_size,omitempty"`
+	ReceiptsBatchSize       *ConfigDetail   `json:"receipts_batch_size,omitempty"`
+	BlockReceiptBatchSize   *ConfigDetail   `json:"block_receipts_batch_size,omitempty"`
+	APIKey                  *ConfigDetail   `json:"api_key,omitempty"`
+	Authentication          *Authentication `json:"authentication,omitempty"`
 }
 
 type workerConfig struct {
@@ -304,6 +309,9 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		worker.Stargate,
 		worker.Uniswap,
 	},
+	network.RSS: {
+		worker.RSSHub,
+	},
 }
 
 // WorkerToConfigMap is a map of worker to config.
@@ -343,5 +351,16 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Description: "API key to access your Farcaster Hubble on Neynar",
 			},
 		}, "A Farcaster Hubble is required"),
+	},
+	network.RSSSource: {
+		worker.RSSHub: customWorkerConfig(worker.RSSHub, network.RSSSource, &Parameters{
+			Authentication: &Authentication{
+				AccessKey: &ConfigDetail{
+					IsRequired:  false,
+					Type:        StringType,
+					Description: "Access key for the RSSHub instance endpoint",
+				},
+			},
+		}, "An RSSHub endpoint is required"),
 	},
 }
