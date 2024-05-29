@@ -16,6 +16,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 type ActivityRequest struct {
@@ -69,7 +70,7 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 	}
 
 	if err := ctx.Validate(&request); err != nil {
-		return response.ValidateFailedError(ctx, err)
+		return response.ValidationFailedError(ctx, err)
 	}
 
 	query := model.ActivityQuery{
@@ -80,7 +81,8 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 
 	activity, page, err := c.getActivity(ctx.Request().Context(), query)
 	if err != nil {
-		return response.InternalError(ctx, err)
+		zap.L().Error("GetActivity InternalError", zap.Error(err))
+		return response.InternalError(ctx)
 	}
 
 	// query etherface for the transaction
@@ -112,14 +114,15 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 	}
 
 	if err = ctx.Validate(&request); err != nil {
-		return response.ValidateFailedError(ctx, err)
+		return response.ValidationFailedError(ctx, err)
 	}
 
 	go c.CollectMetric(ctx.Request().Context(), common.HexToAddress(request.Account).String())
 
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
-		return response.InternalError(ctx, err)
+		zap.L().Error("getCursor InternalError", zap.Error(err))
+		return response.InternalError(ctx)
 	}
 
 	databaseRequest := model.ActivitiesQuery{
@@ -139,7 +142,8 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
 	if err != nil {
-		return response.InternalError(ctx, err)
+		zap.L().Error("getActivities InternalError", zap.Error(err))
+		return response.InternalError(ctx)
 	}
 
 	// iterate over the activities and query etherface for the transaction
