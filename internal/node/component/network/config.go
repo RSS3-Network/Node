@@ -12,12 +12,12 @@ import (
 type ConfigDetailValueType string
 
 const (
-	BigIntType      ConfigDetailValueType = "big.Int"
-	StringArrayType ConfigDetailValueType = "[]string"
-	StringType      ConfigDetailValueType = "string"
-	UintType        ConfigDetailValueType = "uint"
-	BooleanType     ConfigDetailValueType = "bool"
-	StringMapType   ConfigDetailValueType = "map[string]string"
+	BooleanType   ConfigDetailValueType = "bool"
+	StringType    ConfigDetailValueType = "string"
+	StringMapType ConfigDetailValueType = "map[string]string"
+	UintType      ConfigDetailValueType = "uint"
+	URLType       ConfigDetailValueType = "url"
+	URLArrayType  ConfigDetailValueType = "[]url"
 )
 
 type ConfigDetail struct {
@@ -144,7 +144,7 @@ func defaultWorkerConfig(worker worker.Worker, network network.Source, parameter
 		},
 		EndpointID: &ConfigDetail{
 			IsRequired:  true,
-			Type:        StringType,
+			Type:        URLType,
 			Description: "An external endpoint to fetch data from, for example, a blockchain RPC endpoint or a Farcaster api",
 		},
 		Parameters: parameters,
@@ -193,7 +193,7 @@ func getEndpointConfig() Endpoint {
 	return Endpoint{
 		URL: &ConfigDetail{
 			IsRequired:  true,
-			Type:        StringType,
+			Type:        URLType,
 			Description: "The URL of the endpoint.",
 		},
 		HTTPHeaders: &ConfigDetail{
@@ -212,7 +212,7 @@ func getEndpointConfig() Endpoint {
 func setIPFSGateways(config *workerConfig) {
 	config.IPFSGateways = &ConfigDetail{
 		IsRequired:  true,
-		Type:        StringArrayType,
+		Type:        URLArrayType,
 		Description: "A list of IPFS gateways to fetch data from, multiple gateways may improve the availability of IPFS data",
 	}
 }
