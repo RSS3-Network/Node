@@ -1,6 +1,7 @@
 package arweave
 
 import (
+	"fmt"
 	"math/big"
 	"time"
 
@@ -39,6 +40,10 @@ func NewOption(n network.Network, options *config.Parameters) (*Option, error) {
 	// Set default values.
 	if instance.ConcurrentBlockRequests == nil {
 		instance.ConcurrentBlockRequests = lo.ToPtr(defaultConcurrentBlockRequests)
+	}
+
+	if *instance.ConcurrentBlockRequests == 0 {
+		return nil, fmt.Errorf("concurrent block requests must be greater than 0")
 	}
 
 	if instance.BlockStart == nil {

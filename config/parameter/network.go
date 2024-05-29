@@ -29,7 +29,7 @@ var NetworkTolerance = map[network.Network]uint64{
 // NetworkStartBlock FIXME: provide a script to generate blocks given a data
 var NetworkStartBlock = map[network.Network]*big.Int{
 	network.Arbitrum:          big.NewInt(185724972),
-	network.Arweave:           big.NewInt(1374361),
+	network.Arweave:           big.NewInt(1374360),
 	network.Avalanche:         big.NewInt(42301570),
 	network.Base:              big.NewInt(11216527),
 	network.BinanceSmartChain: big.NewInt(36563564),
