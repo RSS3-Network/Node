@@ -6,23 +6,25 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	"go.uber.org/zap"
 )
 
 type Response struct {
 	Data []*activityx.Activity `json:"data"`
 }
 
-func (h *Component) Handler(c echo.Context) error {
-	path := c.Param("*")
+func (h *Component) Handler(ctx echo.Context) error {
+	path := ctx.Param("*")
 
-	go h.CollectMetric(c.Request().Context(), path)
+	go h.CollectMetric(ctx.Request().Context(), path)
 
-	data, err := h.getActivities(c.Request().Context(), path, c.Request().URL)
+	data, err := h.getActivities(ctx.Request().Context(), path, ctx.Request().URL)
 	if err != nil {
-		return response.InternalError(c, err)
+		zap.L().Error("getActivities InternalError", zap.Error(err))
+		return response.InternalError(ctx)
 	}
 
-	return c.JSON(http.StatusOK, Response{
+	return ctx.JSON(http.StatusOK, Response{
 		Data: data,
 	})
 }

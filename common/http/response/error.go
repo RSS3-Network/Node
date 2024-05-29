@@ -12,40 +12,34 @@ type ErrorCode int
 
 const (
 	ErrorCodeBadRequest ErrorCode = iota + 1
-	ErrorCodeValidateFailed
+	ErrorCodeValidationFailed
 	ErrorCodeBadParams
 	ErrorCodeInternalError
 )
 
 type ErrorResponse struct {
-	Error     string    `json:"error"`
-	ErrorCode ErrorCode `json:"error_code"`
+	Message string    `json:"message"`
+	Code    ErrorCode `json:"code"`
 }
 
 func BadRequestError(c echo.Context, err error) error {
 	return c.JSON(http.StatusBadRequest, &ErrorResponse{
-		ErrorCode: ErrorCodeBadRequest,
-		Error:     fmt.Sprintf("Please check your request and try again, %s", err),
+		Code:    ErrorCodeBadRequest,
+		Message: fmt.Sprintf("Please check your request and try again, %s", err),
 	})
 }
 
-func ValidateFailedError(c echo.Context, err error) error {
+func ValidationFailedError(c echo.Context, err error) error {
 	return c.JSON(http.StatusBadRequest, &ErrorResponse{
-		ErrorCode: ErrorCodeValidateFailed,
-		Error:     fmt.Sprintf("Please check your request validation and try again, %s", err),
+		Code:    ErrorCodeValidationFailed,
+		Message: fmt.Sprintf("Please check your request validation and try again, %s", err),
 	})
 }
 
-func BadParamsError(c echo.Context, err error) error {
-	return c.JSON(http.StatusBadRequest, &ErrorResponse{
-		ErrorCode: ErrorCodeBadParams,
-		Error:     fmt.Sprintf("Please check your param combination and try again, %s", err),
-	})
-}
-
-func InternalError(c echo.Context, err error) error {
+// InternalError should not return the details of the error to the client for safety reasons.
+func InternalError(c echo.Context) error {
 	return c.JSON(http.StatusInternalServerError, &ErrorResponse{
-		ErrorCode: ErrorCodeInternalError,
-		Error:     fmt.Sprintf("An internal error has occurred, please try again later, %s", err),
+		Code:    ErrorCodeInternalError,
+		Message: "An internal error has occurred, please try again later",
 	})
 }

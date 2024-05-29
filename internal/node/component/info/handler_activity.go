@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/common/http/response"
 	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 	"golang.org/x/net/context"
 )
 
@@ -44,7 +45,8 @@ func (c *Component) getActivityCountFromDB(ctx context.Context) (int64, *time.Ti
 func (c *Component) GetActivityCount(ctx echo.Context) error {
 	count, updateTime, err := c.getActivityCountFromDB(ctx.Request().Context())
 	if err != nil {
-		return response.InternalError(ctx, err)
+		zap.L().Error("getActivityCountFromDB InternalError", zap.Error(err))
+		return response.InternalError(ctx)
 	}
 
 	return ctx.JSON(http.StatusOK, StatisticResponse{
