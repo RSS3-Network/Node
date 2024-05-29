@@ -5,7 +5,6 @@ package network
 // Each worker has a default configuration, which can be customized based on various factors.
 
 import (
-	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 )
@@ -34,6 +33,10 @@ type Endpoint struct {
 	HTTP2Disabled *ConfigDetail `json:"http2_disabled"`
 }
 
+type Version struct {
+	Version string `json:"version"`
+}
+
 type Authentication struct {
 	AccessKey *ConfigDetail `json:"access_key"`
 }
@@ -57,7 +60,6 @@ type workerConfig struct {
 	IPFSGateways    *ConfigDetail   `json:"ipfs_gateways,omitempty"`
 	Parameters      *Parameters     `json:"parameters,omitempty"`
 	MinimumResource MinimumResource `json:"minimum_resource"`
-	Version         string          `json:"version"`
 }
 
 var defaultNetworkParameters = map[network.Source]*Parameters{
@@ -155,7 +157,6 @@ func defaultWorkerConfig(worker worker.Worker, network network.Source, parameter
 			Description: "An external endpoint to fetch data from, for example, a blockchain RPC endpoint or a Farcaster api",
 		},
 		Parameters: parameters,
-		Version:    constant.BuildVersion(),
 	}
 
 	return config

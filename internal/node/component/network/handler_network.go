@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 )
@@ -32,6 +33,10 @@ type WorkerConfigResponse struct {
 
 type EndpointConfigResponse struct {
 	Data Endpoint `json:"data"`
+}
+
+type VersionResponse struct {
+	Data Version `json:"data"`
 }
 
 // GetNetworksHandler returns the list of all networks that the node can support.
@@ -123,5 +128,14 @@ func (c *Component) GetEndpointConfig(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, EndpointConfigResponse{
 		Data: config,
+	})
+}
+
+// GetVersion returns the version of the network component.
+func (c *Component) GetVersion(ctx echo.Context) error {
+	return ctx.JSON(http.StatusOK, VersionResponse{
+		Data: Version{
+			Version: constant.BuildVersion(),
+		},
 	})
 }
