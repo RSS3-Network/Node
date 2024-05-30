@@ -31,10 +31,10 @@ type Option struct {
 	BlockReceiptsBatchSize *uint `json:"block_receipts_batch_size" mapstructure:"block_receipts_batch_size"`
 }
 
-func NewOption(n network.Network, options *config.Parameters) (*Option, error) {
-	var instance Option
+func NewOption(n network.Network, parameters *config.Parameters) (*Option, error) {
+	var option Option
 
-	if options == nil {
+	if parameters == nil {
 		return &Option{
 			BlockStart:              parameter.NetworkStartBlock[n],
 			ConcurrentBlockRequests: lo.ToPtr(defaultConcurrentBlockRequests),
@@ -44,30 +44,30 @@ func NewOption(n network.Network, options *config.Parameters) (*Option, error) {
 		}, nil
 	}
 
-	if err := options.Decode(&instance); err != nil {
+	if err := parameters.Decode(&option); err != nil {
 		return nil, err
 	}
 
 	// Set default values.
-	if instance.ConcurrentBlockRequests == nil {
-		instance.ConcurrentBlockRequests = lo.ToPtr(defaultConcurrentBlockRequests)
+	if option.ConcurrentBlockRequests == nil {
+		option.ConcurrentBlockRequests = lo.ToPtr(defaultConcurrentBlockRequests)
 	}
 
-	if instance.BlockBatchSize == nil {
-		instance.BlockBatchSize = lo.ToPtr(defaultBlockBatchSize)
+	if option.BlockBatchSize == nil {
+		option.BlockBatchSize = lo.ToPtr(defaultBlockBatchSize)
 	}
 
-	if instance.ReceiptsBatchSize == nil {
-		instance.ReceiptsBatchSize = lo.ToPtr(defaultReceiptsBatchSize)
+	if option.ReceiptsBatchSize == nil {
+		option.ReceiptsBatchSize = lo.ToPtr(defaultReceiptsBatchSize)
 	}
 
-	if instance.BlockReceiptsBatchSize == nil {
-		instance.BlockReceiptsBatchSize = lo.ToPtr(defaultBlockReceiptsBatchSize)
+	if option.BlockReceiptsBatchSize == nil {
+		option.BlockReceiptsBatchSize = lo.ToPtr(defaultBlockReceiptsBatchSize)
 	}
 
-	if instance.BlockStart == nil {
-		instance.BlockStart = parameter.NetworkStartBlock[n]
+	if option.BlockStart == nil {
+		option.BlockStart = parameter.NetworkStartBlock[n]
 	}
 
-	return &instance, nil
+	return &option, nil
 }
