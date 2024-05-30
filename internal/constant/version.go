@@ -23,3 +23,15 @@ func BuildVersion() string {
 
 	return fmt.Sprintf("%s (%s)", Version, Commit)
 }
+
+func BuildVersionDetail() (string, string) {
+	if Version == "" {
+		Version = "0.0.0"
+	}
+
+	if Commit == "" {
+		Commit = "000000"
+	}
+
+	return Version, Commit
+}
