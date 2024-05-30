@@ -33,11 +33,6 @@ type Endpoint struct {
 	HTTP2Disabled *ConfigDetail `json:"http2_disabled"`
 }
 
-type Version struct {
-	Tag    string `json:"tag"`
-	Commit string `json:"commit"`
-}
-
 type Parameters struct {
 	BlockStart              *ConfigDetail `json:"block_start,omitempty"`
 	BlockTarget             *ConfigDetail `json:"block_target,omitempty"`
