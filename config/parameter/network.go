@@ -10,12 +10,12 @@ import (
 const NumberOfMonthsToCover = 3
 
 var NetworkTolerance = map[network.Network]uint64{
-	network.Arbitrum:          100,
+	network.Arbitrum:          1000,
 	network.Arweave:           100,
 	network.Avalanche:         100,
 	network.Base:              100,
 	network.BinanceSmartChain: 100,
-	network.Crossbell:         100,
+	network.Crossbell:         500,
 	network.Ethereum:          100,
 	network.Farcaster:         3600000,
 	network.Gnosis:            100,
