@@ -69,7 +69,7 @@ func (w *worker) Types() []schema.Type {
 }
 
 // Filter returns a filter for source.
-func (w *worker) Filter() engine.SourceFilter {
+func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{
 		LogAddresses: []common.Address{
 			oneinch.AddressAggregationRouterV2,
