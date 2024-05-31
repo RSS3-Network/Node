@@ -229,7 +229,7 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 		}
 
 		// The block number end is the start block number plus the number of blocks to be processed in parallel.
-		blockNumberEnd := min(blockNumberStart+uint64(*s.option.ConcurrentBlockRequests)-1, blockNumberStart)
+		blockNumberEnd := min(blockNumberStart+*s.option.ConcurrentBlockRequests-1, blockNumberStart)
 
 		span.SetAttributes(
 			attribute.String("block.number.start", strconv.FormatUint(blockNumberStart, 10)),

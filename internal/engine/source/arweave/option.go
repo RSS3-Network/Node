@@ -18,11 +18,11 @@ const (
 )
 
 type Option struct {
-	// BlockStart is the starting block height on arweave chain.
+	// BlockStart is the block height on Arweave that the worker should start from.
 	BlockStart *big.Int `json:"block_start" mapstructure:"block_start"`
-	// BlockTarget is the target block height on arweave chain.
+	// BlockTarget is the block height on Arweave that the worker should stop at.
 	BlockTarget *big.Int `json:"block_target" mapstructure:"block_target"`
-	// ConcurrentBlockRequests is the number of concurrent RPC requests associated with the blocks.
+	// ConcurrentBlockRequests is the number of blocks to request concurrently.
 	ConcurrentBlockRequests *uint64 `json:"concurrent_block_requests" mapstructure:"concurrent_block_requests"`
 }
 

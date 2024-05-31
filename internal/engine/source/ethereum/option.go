@@ -10,19 +10,19 @@ import (
 )
 
 const (
-	defaultConcurrentBlockRequests = uint(8)
+	defaultConcurrentBlockRequests = uint64(8)
 	defaultBlockBatchSize          = uint(8)
 	defaultReceiptsBatchSize       = uint(200)
 	defaultBlockReceiptsBatchSize  = uint(8)
 )
 
 type Option struct {
-	// BlockStart is the starting block number on evm chain.
+	// BlockStart is the block height on Arweave that the worker should start from.
 	BlockStart *big.Int `json:"block_start" mapstructure:"block_start"`
-	// BlockTarget is the target block number on evm chain.
+	// BlockTarget is the block height on Arweave that the worker should stop at.
 	BlockTarget *big.Int `json:"block_target" mapstructure:"block_target"`
-	// ConcurrentBlockRequests is the number of concurrent RPC requests associated with the blocks.
-	ConcurrentBlockRequests *uint `json:"concurrent_block_requests" mapstructure:"concurrent_block_requests"`
+	// ConcurrentBlockRequests is the number of blocks to request concurrently.
+	ConcurrentBlockRequests *uint64 `json:"concurrent_block_requests" mapstructure:"concurrent_block_requests"`
 	// BlockBatchSize is the number of blocks to fetch in a single batch.
 	BlockBatchSize *uint `json:"block_batch_size" mapstructure:"block_batch_size"`
 	// ReceiptsBatchSize is the number of receipts to fetch in a single batch.
