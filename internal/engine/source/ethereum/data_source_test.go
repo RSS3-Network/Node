@@ -55,7 +55,7 @@ func TestSource(t *testing.T) {
 			t.Parallel()
 
 			instance, err := ethereum.NewSource(testcase.arguments.config, nil, nil)
-			require.NoError(t, err, "new ethereum source")
+			require.NoError(t, err, "new ethereum dataSource")
 
 			var (
 				tasksChan = make(chan *engine.Tasks)

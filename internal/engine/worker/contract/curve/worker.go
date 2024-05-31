@@ -84,7 +84,7 @@ func (w *worker) Types() []schema.Type {
 }
 
 // Filter curve contract address and event hash.
-func (w *worker) Filter() engine.SourceFilter {
+func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{}
 }
 

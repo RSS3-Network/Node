@@ -68,7 +68,7 @@ func (w *worker) Types() []schema.Type {
 }
 
 // Filter highlight contract address and event hash.
-func (w *worker) Filter() engine.SourceFilter {
+func (w *worker) Filter() engine.DataSourceFilter {
 	var hightlightAddress common.Address
 
 	switch w.config.Network {

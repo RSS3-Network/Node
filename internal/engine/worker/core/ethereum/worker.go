@@ -90,7 +90,7 @@ func (w *worker) Types() []schema.Type {
 }
 
 // Filter returns a source filter.
-func (w *worker) Filter() engine.SourceFilter {
+func (w *worker) Filter() engine.DataSourceFilter {
 	return nil
 }
 

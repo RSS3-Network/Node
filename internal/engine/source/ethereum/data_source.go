@@ -28,9 +28,9 @@ const (
 	defaultBlockTime = 15 * time.Second
 )
 
-var _ engine.Source = (*source)(nil)
+var _ engine.DataSource = (*dataSource)(nil)
 
-type source struct {
+type dataSource struct {
 	config         *config.Module
 	option         *Option
 	filter         *Filter
@@ -38,17 +38,17 @@ type source struct {
 	state          State
 }
 
-func (s *source) Network() network.Network {
+func (s *dataSource) Network() network.Network {
 	return s.config.Network
 }
 
-func (s *source) State() json.RawMessage {
+func (s *dataSource) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
+func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
 	if err := s.initialize(ctx); err != nil {
-		errorChan <- fmt.Errorf("initialize source: %w", err)
+		errorChan <- fmt.Errorf("initialize dataSource: %w", err)
 
 		return
 	}
@@ -75,7 +75,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 			retry.DelayType(retry.BackOffDelay), // Use backoff delay type, increasing delay on each retry.
 			retry.MaxDelay(5*time.Minute),
 			retry.OnRetry(func(n uint, err error) {
-				zap.L().Error("retry ethereum source start", zap.Uint("retry", n), zap.Error(err))
+				zap.L().Error("retry ethereum dataSource start", zap.Uint("retry", n), zap.Error(err))
 			}),
 		)
 		if err != nil {
@@ -84,7 +84,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 	}()
 }
 
-func (s *source) initialize(ctx context.Context) (err error) {
+func (s *dataSource) initialize(ctx context.Context) (err error) {
 	if s.ethereumClient, err = ethereum.Dial(ctx, s.config.Endpoint.URL, s.config.Endpoint.BuildEthereumOptions()...); err != nil {
 		return fmt.Errorf("dial to ethereum rpc endpoint: %w", err)
 	}
@@ -92,7 +92,7 @@ func (s *source) initialize(ctx context.Context) (err error) {
 	return nil
 }
 
-func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	// The latest block number of the remote RPC endpoint.
 	var blockNumberLatestRemote uint64
 
@@ -102,12 +102,12 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks)
 	}
 
 	for {
-		ctx, span := otel.Tracer("").Start(ctx, "Source pollBlocks", trace.WithSpanKind(trace.SpanKindProducer))
+		ctx, span := otel.Tracer("").Start(ctx, "DataSource pollBlocks", trace.WithSpanKind(trace.SpanKindProducer))
 
-		// Stop the source if the block number target is not nil and the current block number is greater than the target
-		// block number. This is useful when the source is used to index a specific range of blocks.
+		// Stop the dataSource if the block number target is not nil and the current block number is greater than the target
+		// block number. This is useful when the dataSource is used to index a specific range of blocks.
 		if s.option.BlockTarget != nil && s.option.BlockTarget.Uint64() < s.state.BlockNumber {
-			zap.L().Info("source has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockTarget.Uint64()))
+			zap.L().Info("dataSource has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockTarget.Uint64()))
 
 			break
 		}
@@ -175,7 +175,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks)
 
 		span.End()
 
-		// Push tasks to the source.
+		// Push tasks to the dataSource.
 		s.pushTasks(ctx, tasksChan, &tasks)
 
 		latestBlock := lo.Must(lo.Last(blocks))
@@ -187,7 +187,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks)
 	return nil
 }
 
-func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	var blockNumberLatestRemote uint64
 
 	if s.option.BlockStart != nil && s.option.BlockStart.Uint64() > s.state.BlockNumber {
@@ -195,12 +195,12 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 	}
 
 	for {
-		ctx, span := otel.GetTracerProvider().Tracer("").Start(ctx, "Source pollLogs", trace.WithSpanKind(trace.SpanKindProducer))
+		ctx, span := otel.GetTracerProvider().Tracer("").Start(ctx, "DataSource pollLogs", trace.WithSpanKind(trace.SpanKindProducer))
 
-		// Stop the source if the block number target is not nil and the current block number is greater than the target
-		// block number. This is useful when the source is used to index a specific range of blocks.
+		// Stop the dataSource if the block number target is not nil and the current block number is greater than the target
+		// block number. This is useful when the dataSource is used to index a specific range of blocks.
 		if s.option.BlockTarget != nil && s.option.BlockTarget.Uint64() < s.state.BlockNumber {
-			zap.L().Info("source has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockTarget.Uint64()))
+			zap.L().Info("dataSource has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockTarget.Uint64()))
 
 			break
 		}
@@ -229,7 +229,7 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 		}
 
 		// The block number end is the start block number plus the number of blocks to be processed in parallel.
-		blockNumberEnd := min(blockNumberStart+uint64(*s.option.ConcurrentBlockRequests)-1, blockNumberStart)
+		blockNumberEnd := min(blockNumberStart+*s.option.ConcurrentBlockRequests-1, blockNumberStart)
 
 		span.SetAttributes(
 			attribute.String("block.number.start", strconv.FormatUint(blockNumberStart, 10)),
@@ -275,7 +275,7 @@ func (s *source) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) e
 	return nil
 }
 
-func (s *source) updateLatestBlock(ctx context.Context, blockNumberEnd uint64) (*ethereum.Block, error) {
+func (s *dataSource) updateLatestBlock(ctx context.Context, blockNumberEnd uint64) (*ethereum.Block, error) {
 	latestBlock, err := s.ethereumClient.BlockByNumber(ctx, new(big.Int).SetUint64(blockNumberEnd))
 	if err != nil {
 		return nil, fmt.Errorf("get block by number %d: %w", s.state.BlockNumber, err)
@@ -284,7 +284,7 @@ func (s *source) updateLatestBlock(ctx context.Context, blockNumberEnd uint64) (
 	return latestBlock, nil
 }
 
-func (s *source) processLogs(ctx context.Context, logs []*ethereum.Log, tasksChan chan<- *engine.Tasks) (*ethereum.Block, error) {
+func (s *dataSource) processLogs(ctx context.Context, logs []*ethereum.Log, tasksChan chan<- *engine.Tasks) (*ethereum.Block, error) {
 	transactionHashes := lo.Map(logs, func(log *ethereum.Log, _ int) common.Hash {
 		return log.TransactionHash
 	})
@@ -341,7 +341,7 @@ func (s *source) processLogs(ctx context.Context, logs []*ethereum.Log, tasksCha
 }
 
 // getBlocks is used to concurrently get blocks by block number.
-func (s *source) getBlocks(ctx context.Context, blockNumbers []*big.Int) ([]*ethereum.Block, error) {
+func (s *dataSource) getBlocks(ctx context.Context, blockNumbers []*big.Int) ([]*ethereum.Block, error) {
 	resultPool := pool.NewWithResults[[]*ethereum.Block]().
 		WithContext(ctx).
 		WithFirstError().
@@ -370,7 +370,7 @@ func (s *source) getBlocks(ctx context.Context, blockNumbers []*big.Int) ([]*eth
 	return blocks, nil
 }
 
-func (s *source) getReceipts(ctx context.Context, blocks []*ethereum.Block) ([]*ethereum.Receipt, error) {
+func (s *dataSource) getReceipts(ctx context.Context, blocks []*ethereum.Block) ([]*ethereum.Receipt, error) {
 	switch s.config.Network {
 	case
 		network.Crossbell,
@@ -393,7 +393,7 @@ func (s *source) getReceipts(ctx context.Context, blocks []*ethereum.Block) ([]*
 	}
 }
 
-func (s *source) getReceiptsByBlockNumbers(ctx context.Context, blockNumbers []*big.Int) ([]*ethereum.Receipt, error) {
+func (s *dataSource) getReceiptsByBlockNumbers(ctx context.Context, blockNumbers []*big.Int) ([]*ethereum.Receipt, error) {
 	resultPool := pool.NewWithResults[[]*ethereum.Receipt]().
 		WithContext(ctx).
 		WithFirstError().
@@ -420,7 +420,7 @@ func (s *source) getReceiptsByBlockNumbers(ctx context.Context, blockNumbers []*
 	return lo.Flatten(batchResults), nil
 }
 
-func (s *source) getReceiptsByTransactionHashes(ctx context.Context, transactionHashes []common.Hash) ([]*ethereum.Receipt, error) {
+func (s *dataSource) getReceiptsByTransactionHashes(ctx context.Context, transactionHashes []common.Hash) ([]*ethereum.Receipt, error) {
 	resultPool := pool.NewWithResults[[]*ethereum.Receipt]().
 		WithContext(ctx).
 		WithFirstError().
@@ -442,7 +442,7 @@ func (s *source) getReceiptsByTransactionHashes(ctx context.Context, transaction
 	return lo.Flatten(batchResults), nil
 }
 
-func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt) ([]*Task, error) {
+func (s *dataSource) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt) ([]*Task, error) {
 	var (
 		tasks  = make([]*Task, len(block.Transactions))
 		header = block.Header()
@@ -480,16 +480,16 @@ func (s *source) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt)
 	return tasks, nil
 }
 
-func (s *source) pushTasks(ctx context.Context, tasksChan chan<- *engine.Tasks, tasks *engine.Tasks) {
+func (s *dataSource) pushTasks(ctx context.Context, tasksChan chan<- *engine.Tasks, tasks *engine.Tasks) {
 	otel.GetTextMapPropagator().Inject(ctx, tasks)
 
-	_, span := otel.Tracer("").Start(ctx, "Source pushTasks", trace.WithSpanKind(trace.SpanKindProducer))
+	_, span := otel.Tracer("").Start(ctx, "DataSource pushTasks", trace.WithSpanKind(trace.SpanKindProducer))
 	defer span.End()
 
 	tasksChan <- tasks
 }
 
-func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint) (engine.Source, error) {
+func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint) (engine.DataSource, error) {
 	var (
 		state State
 		err   error
@@ -502,9 +502,9 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 		}
 	}
 
-	instance := source{
+	instance := dataSource{
 		config: config,
-		filter: new(Filter), // Set a default filter for the source.
+		filter: new(Filter), // Set a default filter for the dataSource.
 		state:  state,
 	}
 
@@ -512,7 +512,7 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 	if sourceFilter != nil {
 		var ok bool
 		if instance.filter, ok = sourceFilter.(*Filter); !ok {
-			return nil, fmt.Errorf("invalid source filter type %T", sourceFilter)
+			return nil, fmt.Errorf("invalid dataSource filter type %T", sourceFilter)
 		}
 	}
 
