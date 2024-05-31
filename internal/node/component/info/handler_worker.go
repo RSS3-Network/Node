@@ -120,7 +120,7 @@ func (c *Component) buildWorkerResponse(aggregatedWorkers map[WorkerKey]*WorkerS
 }
 
 func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
-	// Fetch status from a specific worker by id.
+	// Fetch status and progress from a specific worker by id.
 	status, workerProgress := c.getWorkerStatusAndProgressByID(ctx, module.ID)
 
 	return &WorkerInfo{
@@ -200,7 +200,7 @@ func (c *Component) getWorkerStatusAndProgressByID(ctx context.Context, workerID
 	}
 
 	// Parse the status
-	statusValue, err := parseRedisJSONValue(values[0].String())
+	statusValue, err := c.parseRedisJSONValue(values[0].String())
 	if err != nil {
 		return worker.StatusUnknown, monitor.WorkerProgress{}
 	}
@@ -211,7 +211,7 @@ func (c *Component) getWorkerStatusAndProgressByID(ctx context.Context, workerID
 	}
 
 	// Parse the progress
-	progressValue, err := parseRedisJSONValue(values[1].String())
+	progressValue, err := c.parseRedisJSONValue(values[1].String())
 	if err != nil {
 		return status, monitor.WorkerProgress{}
 	}
@@ -229,7 +229,7 @@ func (c *Component) getWorkerStatusAndProgressByID(ctx context.Context, workerID
 }
 
 // extract the value field from the redis result string
-func parseRedisJSONValue(jsonStr string) (string, error) {
+func (c *Component) parseRedisJSONValue(jsonStr string) (string, error) {
 	var data map[string]interface{}
 
 	err := json.Unmarshal([]byte(jsonStr), &data)
@@ -250,7 +250,7 @@ func (c *Component) buildWorkerIDStatusCacheKey(workerID string) string {
 	return fmt.Sprintf("worker:status:id::%s", workerID)
 }
 
-// buildWorkerProgressCacheKey builds cache key for worker current state in each monitoring cycle.
+// buildWorkerProgressCacheKey builds the cache key for the worker progress by id.
 func (c *Component) buildWorkerProgressCacheKey(workerID string) string {
 	return fmt.Sprintf("worker:progress::%s", workerID)
 }
