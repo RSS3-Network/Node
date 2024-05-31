@@ -76,7 +76,10 @@ func (w *worker) Types() []schema.Type {
 
 // Filter returns a filter for source.
 func (w *worker) Filter() engine.DataSourceFilter {
-	return &source.Filter{OwnerAddresses: momoka.AddressesBundlr}
+	return &source.Filter{
+		OwnerAddresses:  momoka.AddressesLens,
+		BundlrAddresses: momoka.AddressesBundlr,
+	}
 }
 
 // Match returns true if the task is an Arweave task.
