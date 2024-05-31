@@ -376,73 +376,7 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 
 		resultPool.Go(func(ctx context.Context) ([]*arweave.Transaction, error) {
 			retryableFunc := func() ([]*arweave.Transaction, error) {
-				bundleTransactions := make([]*arweave.Transaction, 0)
-
-				response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
-				if err != nil {
-					if errors.Is(err, arweave.ErrorNotFound) {
-						return nil, nil
-					}
-
-					return nil, fmt.Errorf("fetch transaction: %w", err)
-				}
-
-				defer lo.Try(response.Close)
-
-				decoder := bundle.NewDecoder(response)
-
-				header, err := decoder.DecodeHeader()
-				if err != nil {
-					// Ignore invalid bundle transaction.
-					zap.L().Error("discard a invalid bundle transaction", zap.String("transaction_id", transactionID))
-
-					return nil, nil
-				}
-
-				for index := 0; decoder.Next(); index++ {
-					dataItemInfo := header.DataItemInfos[index]
-
-					dataItem, err := decoder.DecodeDataItem()
-					if err != nil {
-						// Ignore invalid signature and data length.
-						zap.L().Error("decode data item", zap.Error(err), zap.String("transaction_id", transactionID))
-
-						return nil, nil
-					}
-
-					bundleTransaction := arweave.Transaction{
-						Format: 2,
-						ID:     dataItemInfo.ID,
-						Owner:  dataItem.Owner,
-						Tags: lo.Map(dataItem.Tags, func(tag bundle.Tag, _ int) arweave.Tag {
-							return arweave.Tag{
-								Name:  arweave.Base64Encode(tag.Name),
-								Value: arweave.Base64Encode(tag.Value),
-							}
-						}),
-						Target:    dataItem.Target,
-						Signature: dataItem.Signature,
-					}
-
-					data, err := io.ReadAll(dataItem)
-					if err != nil {
-						// when pull data from arweave, sometimes it will return INTERNAL_ERROR; received from peer, we can ignore it.
-						if strings.Contains(err.Error(), "INTERNAL_ERROR; received from peer") {
-							zap.L().Warn("Ignoring INTERNAL_ERROR; received from peer", zap.String("data item", dataItemInfo.ID))
-
-							return nil, nil
-						}
-
-						return nil, fmt.Errorf("read data item %s: %w", dataItemInfo.ID, err)
-					}
-
-					bundleTransaction.Data = arweave.Base64Encode(data)
-					bundleTransaction.DataSize = strconv.Itoa(len(bundleTransaction.Data))
-
-					bundleTransactions = append(bundleTransactions, &bundleTransaction)
-				}
-
-				return bundleTransactions, nil
+				return s.processTransaction(ctx, transactionID)
 			}
 
 			return retry.DoWithData(
@@ -463,6 +397,77 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 	}
 
 	return lo.Flatten(bundleTransactions), nil
+}
+
+// processTransaction process single arweave transaction by ID
+func (s *source) processTransaction(ctx context.Context, transactionID string) ([]*arweave.Transaction, error) {
+	bundleTransactions := make([]*arweave.Transaction, 0)
+
+	response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
+	if err != nil {
+		if errors.Is(err, arweave.ErrorNotFound) {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("fetch transaction: %w", err)
+	}
+
+	defer lo.Try(response.Close)
+
+	decoder := bundle.NewDecoder(response)
+
+	header, err := decoder.DecodeHeader()
+	if err != nil {
+		// Ignore invalid bundle transaction.
+		zap.L().Error("discard a invalid bundle transaction", zap.String("transaction_id", transactionID))
+
+		return nil, nil
+	}
+
+	for index := 0; decoder.Next(); index++ {
+		dataItemInfo := header.DataItemInfos[index]
+
+		dataItem, err := decoder.DecodeDataItem()
+		if err != nil {
+			// Ignore invalid signature and data length.
+			zap.L().Error("decode data item", zap.Error(err), zap.String("transaction_id", transactionID))
+
+			return nil, nil
+		}
+
+		bundleTransaction := arweave.Transaction{
+			Format: 2,
+			ID:     dataItemInfo.ID,
+			Owner:  dataItem.Owner,
+			Tags: lo.Map(dataItem.Tags, func(tag bundle.Tag, _ int) arweave.Tag {
+				return arweave.Tag{
+					Name:  arweave.Base64Encode(tag.Name),
+					Value: arweave.Base64Encode(tag.Value),
+				}
+			}),
+			Target:    dataItem.Target,
+			Signature: dataItem.Signature,
+		}
+
+		data, err := io.ReadAll(dataItem)
+		if err != nil {
+			// when pull data from arweave, sometimes it will return INTERNAL_ERROR; received from peer, we can ignore it.
+			if strings.Contains(err.Error(), "INTERNAL_ERROR; received from peer") {
+				zap.L().Warn("Ignoring INTERNAL_ERROR; received from peer", zap.String("data item", dataItemInfo.ID))
+
+				continue
+			}
+
+			return nil, fmt.Errorf("read data item %s: %w", dataItemInfo.ID, err)
+		}
+
+		bundleTransaction.Data = arweave.Base64Encode(data)
+		bundleTransaction.DataSize = strconv.Itoa(len(bundleTransaction.Data))
+
+		bundleTransactions = append(bundleTransactions, &bundleTransaction)
+	}
+
+	return bundleTransactions, nil
 }
 
 // GroupBundleTransactions groups bundle transactions by block.
