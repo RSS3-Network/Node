@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -27,7 +28,7 @@ type ActivitiesQuery struct {
 	Network        []network.Network
 	Tags           []tag.Tag
 	Types          []schema.Type
-	Platforms      []string
+	Platforms      []worker.Platform
 	Distinct       *bool
 	RelatedActions *bool
 	Limit          int
