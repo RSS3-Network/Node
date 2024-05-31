@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -24,12 +25,7 @@ type WorkerInfo struct {
 	Tags     []tag.Tag       `json:"tags"`
 	Platform worker.Platform `json:"platform"`
 	Status   worker.Status   `json:"status"`
-	WorkerProgress
-}
-
-type WorkerProgress struct {
-	LatestRemoteBlock  uint64 `json:"latest_remote_block"`
-	LatestIndexedBlock uint64 `json:"latest_indexed_block"`
+	monitor.WorkerProgress
 }
 
 // WorkerKey is the key for the worker status aggregator.
@@ -41,7 +37,7 @@ type WorkerKey struct {
 // WorkerStatusAggregator aggregates the statuses of workers with the same Network+Worker.
 type WorkerStatusAggregator struct {
 	Statuses   []worker.Status
-	Progresses []WorkerProgress
+	Progresses []monitor.WorkerProgress
 }
 
 // GetWorkersStatus returns the status of all workers.
@@ -92,7 +88,7 @@ func (c *Component) aggregateWorkers(workerInfoChan <-chan *WorkerInfo) map[Work
 		key := WorkerKey{Network: workerInfo.Network, Worker: workerInfo.Worker}
 
 		if _, exists := aggregatedWorkers[key]; !exists {
-			aggregatedWorkers[key] = &WorkerStatusAggregator{Statuses: []worker.Status{}, Progresses: []WorkerProgress{}}
+			aggregatedWorkers[key] = &WorkerStatusAggregator{Statuses: []worker.Status{}, Progresses: []monitor.WorkerProgress{}}
 		}
 
 		aggregatedWorkers[key].Statuses = append(aggregatedWorkers[key].Statuses, workerInfo.Status)
@@ -133,7 +129,7 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 		Platform: worker.ToPlatformMap[module.Worker],
 		Tags:     worker.ToTagsMap[module.Worker],
 		Status:   status,
-		WorkerProgress: WorkerProgress{
+		WorkerProgress: monitor.WorkerProgress{
 			LatestRemoteBlock:  workerProgress.LatestRemoteBlock,
 			LatestIndexedBlock: workerProgress.LatestIndexedBlock,
 		},
@@ -166,8 +162,8 @@ func determineFinalStatus(statuses []worker.Status) worker.Status {
 
 // determineFinalProgress determines the final progress of a worker based on the progresses of its instances.
 // if user runs more than one worker instance, we can determine the final progress by getting the larger value of each progress field
-func determineFinalProgress(progresses []WorkerProgress) WorkerProgress {
-	finalProgress := WorkerProgress{}
+func determineFinalProgress(progresses []monitor.WorkerProgress) monitor.WorkerProgress {
+	finalProgress := monitor.WorkerProgress{}
 
 	for _, progress := range progresses {
 		if progress.LatestRemoteBlock > finalProgress.LatestRemoteBlock {
@@ -183,9 +179,9 @@ func determineFinalProgress(progresses []WorkerProgress) WorkerProgress {
 }
 
 // getWorkerStatusAndProgressByID gets both worker status and progress from Redis cache by worker ID.
-func (c *Component) getWorkerStatusAndProgressByID(ctx context.Context, workerID string) (worker.Status, WorkerProgress) {
+func (c *Component) getWorkerStatusAndProgressByID(ctx context.Context, workerID string) (worker.Status, monitor.WorkerProgress) {
 	if c.redisClient == nil {
-		return worker.StatusUnknown, WorkerProgress{}
+		return worker.StatusUnknown, monitor.WorkerProgress{}
 	}
 
 	statusKey := c.buildWorkerIDStatusCacheKey(workerID)
@@ -195,18 +191,18 @@ func (c *Component) getWorkerStatusAndProgressByID(ctx context.Context, workerID
 
 	result := c.redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
-		return worker.StatusUnknown, WorkerProgress{}
+		return worker.StatusUnknown, monitor.WorkerProgress{}
 	}
 
 	values, err := result.ToArray()
 	if err != nil || len(values) < 2 {
-		return worker.StatusUnknown, WorkerProgress{}
+		return worker.StatusUnknown, monitor.WorkerProgress{}
 	}
 
 	// Parse the status
 	statusValue, err := parseRedisJSONValue(values[0].String())
 	if err != nil {
-		return worker.StatusUnknown, WorkerProgress{}
+		return worker.StatusUnknown, monitor.WorkerProgress{}
 	}
 
 	status, err := worker.StatusString(statusValue)
@@ -217,15 +213,15 @@ func (c *Component) getWorkerStatusAndProgressByID(ctx context.Context, workerID
 	// Parse the progress
 	progressValue, err := parseRedisJSONValue(values[1].String())
 	if err != nil {
-		return status, WorkerProgress{}
+		return status, monitor.WorkerProgress{}
 	}
 
-	var workerProgress WorkerProgress
+	var workerProgress monitor.WorkerProgress
 
 	if progressValue != "" {
 		err = json.Unmarshal([]byte(progressValue), &workerProgress)
 		if err != nil {
-			return status, WorkerProgress{}
+			return status, monitor.WorkerProgress{}
 		}
 	}
 
