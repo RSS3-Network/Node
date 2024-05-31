@@ -1,6 +1,11 @@
+# `environment` is the environment of the Node, possible values are `development` and `production`.
+# DO NOT change this value except for local debugging purposes.
 environment: production
+# `type` is the type of the Node, possible values are `alpha`, `beta`, and `production`.
+# DO NOT change this value.
 type: beta
 
+# `discovery` is used for Node discovery and verification.
 discovery:
   operator:
     # `evm_address` is the wallet address used during your registration on the RSS3 Explorer.
@@ -20,12 +25,6 @@ database:
   driver: cockroachdb
   partition: true
   uri: postgres://root@localhost:26257/defaultdb
-
-stream:
-  enable: false
-  driver: kafka
-  topic: rss3.node.activities
-  uri: localhost:9092
 
 # Deploying a redis will significantly improve the indexing performance of some workers.
 redis:
@@ -62,11 +61,11 @@ endpoints:
   vsl:
     # `http2_disabled` is used to disable HTTP/2 when the endpoint does not support it.
     http2_disabled: true
-    url: https://rpc.rss3.io
-  arweave:
     # You can define any HTTP headers that may be required by the endpoint.
     # For example, you can use the `x-api-key`, or `any-header`.
     x-api-key: apikey
+    url: https://rpc.rss3.io
+  arweave:
     url: https://arweave.net
 
 # `component` is used to split different types of networks.
