@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"sync"
 
 	"github.com/rss3-network/node/config"
@@ -20,6 +19,11 @@ type CheckpointState struct {
 	EventID          uint64 `json:"event_id"`
 	CastsBackfill    bool   `json:"casts_backfill"`
 	ReactionBackfill bool   `json:"reaction_backfill"`
+}
+
+type WorkerProgress struct {
+	LatestRemoteBlock  uint64 `json:"latest_remote_block"`
+	LatestIndexedBlock uint64 `json:"latest_indexed_block"`
 }
 
 // MonitorWorkerStatus checks the worker status by comparing the current and latest block height/number.
@@ -76,8 +80,7 @@ func (m *Monitor) processWorker(ctx context.Context, w *config.Module) error {
 		return fmt.Errorf("detect unhealthy: %w", err)
 	}
 
-	//	update worker progress (state)
-	if err := m.UpdateWorkerProgress(ctx, w.ID, currentWorkerState); err != nil {
+	if err := m.UpdateWorkerProgress(ctx, w.ID, ConstructWorkerProgress(currentWorkerState, targetWorkerState, latestWorkerState)); err != nil {
 		return fmt.Errorf("update worker progress: %w", err)
 	}
 
@@ -117,7 +120,7 @@ func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, current
 			targetStatus = workerx.StatusUnhealthy
 		}
 	case workerx.StatusIndexing:
-		if currentWorkerState <= m.getWorkerProgress(ctx, workerID) {
+		if currentWorkerState <= m.getWorkerProgress(ctx, workerID).LatestIndexedBlock {
 			// if the worker is indexing but didn't make any progress in the last cycle, flag it as unhealthy
 			targetStatus = workerx.StatusUnhealthy
 			break
@@ -135,7 +138,7 @@ func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, current
 			targetStatus = workerx.StatusIndexing
 		}
 	case workerx.StatusUnhealthy:
-		if currentWorkerState > m.getWorkerProgress(ctx, workerID) {
+		if currentWorkerState > m.getWorkerProgress(ctx, workerID).LatestIndexedBlock {
 			// if the worker is unhealthy and made progress in the last cycle, flag it as indexing
 			targetStatus = workerx.StatusIndexing
 		}
@@ -211,38 +214,44 @@ func (m *Monitor) UpdateWorkerStatusByID(ctx context.Context, workerID string, s
 }
 
 // getWorkerProgress gets worker progress from Redis cache by worker ID.
-func (m *Monitor) getWorkerProgress(ctx context.Context, workerID string) uint64 {
+func (m *Monitor) getWorkerProgress(ctx context.Context, workerID string) WorkerProgress {
+	var progress WorkerProgress
 	if m.redisClient == nil {
-		return 0
+		return progress
 	}
 
 	command := m.redisClient.B().Get().Key(m.buildWorkerProgressCacheKey(workerID)).Build()
 
 	result := m.redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
-		return 0
+		return progress
 	}
 
-	workerProgressStr, err := result.ToString()
+	progressStr, err := result.ToString()
 	if err != nil {
-		return 0
+		return progress
 	}
 
-	workerProgress, err := strconv.ParseInt(workerProgressStr, 10, 64)
+	err = json.Unmarshal([]byte(progressStr), &progress)
 	if err != nil {
-		return 0
+		return WorkerProgress{}
 	}
 
-	return uint64(workerProgress)
+	return progress
 }
 
 // UpdateWorkerProgress updates worker progress (state) in each monitoring cycle to Redis Cache.
-func (m *Monitor) UpdateWorkerProgress(ctx context.Context, workerID string, state uint64) error {
+func (m *Monitor) UpdateWorkerProgress(ctx context.Context, workerID string, progress WorkerProgress) error {
 	if m.redisClient == nil {
 		return nil
 	}
 
-	command := m.redisClient.B().Set().Key(m.buildWorkerProgressCacheKey(workerID)).Value(strconv.FormatUint(state, 10)).Build()
+	progressJSON, err := json.Marshal(progress)
+	if err != nil {
+		return fmt.Errorf("json marshal: %w", err)
+	}
+
+	command := m.redisClient.B().Set().Key(m.buildWorkerProgressCacheKey(workerID)).Value(string(progressJSON)).Build()
 
 	result := m.redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
@@ -260,4 +269,19 @@ func (m *Monitor) buildWorkerIDStatusCacheKey(workerID string) string {
 // buildWorkerProgressCacheKey builds cache key for worker current state in each monitoring cycle.
 func (m *Monitor) buildWorkerProgressCacheKey(workerID string) string {
 	return fmt.Sprintf("worker:progress::%s", workerID)
+}
+
+// ConstructWorkerProgress constructs the worker progress from current, target and latest block height/number.
+func ConstructWorkerProgress(currentWorkerState, targetWorkerState, latestWorkerState uint64) WorkerProgress {
+	workerProgress := WorkerProgress{
+		LatestRemoteBlock:  latestWorkerState,
+		LatestIndexedBlock: currentWorkerState,
+	}
+
+	// set remote to target if it's set
+	if targetWorkerState > 0 {
+		workerProgress.LatestRemoteBlock = targetWorkerState
+	}
+
+	return workerProgress
 }

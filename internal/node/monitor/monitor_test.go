@@ -763,7 +763,7 @@ func TestMonitor(t *testing.T) {
 			require.NoError(t, err)
 
 			// update worker progress
-			err = instance.UpdateWorkerProgress(ctx, testcase.arguments.config.Component.Decentralized[0].ID, testcase.arguments.lastState)
+			err = instance.UpdateWorkerProgress(ctx, testcase.arguments.config.Component.Decentralized[0].ID, monitor.ConstructWorkerProgress(testcase.arguments.lastState, testcase.arguments.targetState, testcase.arguments.latestState))
 			require.NoError(t, err)
 
 			// run monitor
