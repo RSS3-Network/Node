@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/everFinance/goar/utils"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/arweave"
@@ -450,7 +449,7 @@ func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID s
 			Signature: dataItem.Signature,
 		}
 
-		transactionOwner, err := utils.OwnerToAddress(bundleTransaction.Owner)
+		transactionOwner, err := arweave.PublicKeyToAddress(bundleTransaction.Owner)
 		if err != nil {
 			zap.L().Error("invalid owner of transaction", zap.String("id", dataItemInfo.ID), zap.Any("owner", bundleTransaction.Owner), zap.Error(err))
 
