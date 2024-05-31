@@ -60,7 +60,7 @@ func (w *worker) Types() []schema.Type {
 }
 
 // Filter filters the source for Aavegotchi.
-func (w *worker) Filter() engine.SourceFilter {
+func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{
 		LogAddresses: []common.Address{
 			aavegotchi.AddressAavegotchi,

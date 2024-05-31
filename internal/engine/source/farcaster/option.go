@@ -8,16 +8,16 @@ type Option struct {
 	APIKey *string `json:"api_key" mapstructure:"api_key"`
 }
 
-func NewOption(options *config.Parameters) (*Option, error) {
-	var instance Option
+func NewOption(parameters *config.Parameters) (*Option, error) {
+	var option Option
 
-	if options == nil {
-		return &instance, nil
+	if parameters == nil {
+		return &option, nil
 	}
 
-	if err := options.Decode(&instance); err != nil {
+	if err := parameters.Decode(&option); err != nil {
 		return nil, err
 	}
 
-	return &instance, nil
+	return &option, nil
 }

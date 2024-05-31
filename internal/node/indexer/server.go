@@ -31,7 +31,7 @@ import (
 type Server struct {
 	id             string
 	config         *config.Module
-	source         engine.Source
+	source         engine.DataSource
 	worker         engine.Worker
 	databaseClient database.Client
 	streamClient   stream.Client

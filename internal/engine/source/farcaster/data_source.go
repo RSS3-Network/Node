@@ -23,9 +23,9 @@ const (
 	defaultBlockTime = 3 * time.Second
 )
 
-var _ engine.Source = (*source)(nil)
+var _ engine.DataSource = (*dataSource)(nil)
 
-type source struct {
+type dataSource struct {
 	config          *config.Module
 	option          *Option
 	farcasterClient farcaster.Client
@@ -34,17 +34,17 @@ type source struct {
 	pendingState    State
 }
 
-func (s *source) Network() network.Network {
+func (s *dataSource) Network() network.Network {
 	return s.config.Network
 }
 
-func (s *source) State() json.RawMessage {
+func (s *dataSource) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
+func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
 	if err := s.initialize(); err != nil {
-		errorChan <- fmt.Errorf("initialize source: %w", err)
+		errorChan <- fmt.Errorf("initialize dataSource: %w", err)
 
 		return
 	}
@@ -81,7 +81,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 	}()
 }
 
-func (s *source) initialize() (err error) {
+func (s *dataSource) initialize() (err error) {
 	client, err := farcaster.NewClient(s.config.Endpoint.URL, farcaster.WithAPIKey(s.option.APIKey))
 	if err != nil {
 		return fmt.Errorf("create farcaster client: %w", err)
@@ -94,7 +94,7 @@ func (s *source) initialize() (err error) {
 
 // pollCasts polls casts from the Farcaster Hub.
 // It will poll casts by fid from the maximum fid to the minimal fid (1).
-func (s *source) pollCasts(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+func (s *dataSource) pollCasts(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	// Check if backfill of casts is complete.
 	if s.state.CastsBackfill {
 		return nil
@@ -133,7 +133,7 @@ func (s *source) pollCasts(ctx context.Context, tasksChan chan<- *engine.Tasks) 
 }
 
 // pollCastsByFid polls casts by fid from the Farcaster Hub and send tasks to tasksChan.
-func (s *source) pollCastsByFid(ctx context.Context, fid *int64, pageToken string, tasksChan chan<- *engine.Tasks) error {
+func (s *dataSource) pollCastsByFid(ctx context.Context, fid *int64, pageToken string, tasksChan chan<- *engine.Tasks) error {
 	for {
 		// Fetch casts by fid.
 		castsByFidResponse, err := s.farcasterClient.GetCastsByFid(ctx, fid, true, nil, pageToken)
@@ -158,7 +158,7 @@ func (s *source) pollCastsByFid(ctx context.Context, fid *int64, pageToken strin
 
 // pollReactions polls reactions from the Farcaster Hub.
 // It will poll reactions by fid from the maximum fid to the minimal fid (1).
-func (s *source) pollReactions(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+func (s *dataSource) pollReactions(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	// Check if backfill of reactions is complete.
 	if s.state.ReactionsBackfill {
 		return nil
@@ -197,7 +197,7 @@ func (s *source) pollReactions(ctx context.Context, tasksChan chan<- *engine.Tas
 }
 
 // pollCastsByFid polls reactions by fid from the Farcaster Hub and send tasks to tasksChan.
-func (s *source) pollReactionsByFid(ctx context.Context, fid *int64, pageToken string, tasksChan chan<- *engine.Tasks) error {
+func (s *dataSource) pollReactionsByFid(ctx context.Context, fid *int64, pageToken string, tasksChan chan<- *engine.Tasks) error {
 	for {
 		// Fetch reactions by fid.
 		reactionsByFidResponse, err := s.farcasterClient.GetReactionsByFid(ctx, fid, true, nil, pageToken, farcaster.ReactionTypeRecast.String())
@@ -219,7 +219,7 @@ func (s *source) pollReactionsByFid(ctx context.Context, fid *int64, pageToken s
 }
 
 // buildFarcasterMessageTasks builds tasks from a slice of Farcaster messages.
-func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farcaster.Message) *engine.Tasks {
+func (s *dataSource) buildFarcasterMessageTasks(ctx context.Context, messages []farcaster.Message) *engine.Tasks {
 	var tasks engine.Tasks
 
 	for _, message := range messages {
@@ -250,7 +250,7 @@ func (s *source) buildFarcasterMessageTasks(ctx context.Context, messages []farc
 
 // pollEvents polls events from the Farcaster Hub.
 // It will poll events from the last event id to the latest event id.
-func (s *source) pollEvents(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+func (s *dataSource) pollEvents(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	// Set the cursor to the current event ID in the state.
 	cursor := s.state.EventID
 
@@ -287,7 +287,7 @@ func (s *source) pollEvents(ctx context.Context, tasksChan chan<- *engine.Tasks)
 }
 
 // buildFarcasterEventTasks filter different types of events and build tasks from them.
-func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaster.HubEvent, tasksChan chan<- *engine.Tasks) *engine.Tasks {
+func (s *dataSource) buildFarcasterEventTasks(ctx context.Context, events []farcaster.HubEvent, tasksChan chan<- *engine.Tasks) *engine.Tasks {
 	var tasks engine.Tasks
 
 	for _, event := range events {
@@ -344,7 +344,7 @@ func (s *source) buildFarcasterEventTasks(ctx context.Context, events []farcaste
 
 // updateProfileByFid update profile by fid.
 // It will fetch the username and custody address by fid and update the profile in the database.
-func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Profile, error) {
+func (s *dataSource) updateProfileByFid(ctx context.Context, fid *int64) (*model.Profile, error) {
 	var username string
 
 	// owner username(handle)
@@ -383,7 +383,7 @@ func (s *source) updateProfileByFid(ctx context.Context, fid *int64) (*model.Pro
 }
 
 // getCustodyAddress get custody address by fid.
-func (s *source) getCustodyAddress(ctx context.Context, fid *int64, username string) (string, string, error) {
+func (s *dataSource) getCustodyAddress(ctx context.Context, fid *int64, username string) (string, string, error) {
 	userProofs, err := s.farcasterClient.GetUserNameProofsByFid(ctx, fid)
 	if err != nil {
 		return "", "", fmt.Errorf("fetch custody address by fid error: %w,%d", err, fid)
@@ -416,7 +416,7 @@ func (s *source) getCustodyAddress(ctx context.Context, fid *int64, username str
 }
 
 // getEthAddresses get eth addresses by fid.
-func (s *source) getEthAddresses(ctx context.Context, fid *int64) ([]string, error) {
+func (s *dataSource) getEthAddresses(ctx context.Context, fid *int64) ([]string, error) {
 	verifications, err := s.farcasterClient.GetVerificationsByFid(ctx, fid, "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch eth address for fid %d: %w", fid, err)
@@ -436,7 +436,7 @@ func (s *source) getEthAddresses(ctx context.Context, fid *int64) ([]string, err
 // getProfileByFid get profile by fid.
 // It will fetch the profile by fid from the database.
 // If the profile is not found or the username, custody address, and eth addresses are empty, it will update the profile.
-func (s *source) getProfileByFid(ctx context.Context, fid *int64) (*model.Profile, error) {
+func (s *dataSource) getProfileByFid(ctx context.Context, fid *int64) (*model.Profile, error) {
 	var (
 		profile *model.Profile
 		err     error
@@ -460,7 +460,7 @@ func (s *source) getProfileByFid(ctx context.Context, fid *int64) (*model.Profil
 }
 
 // fillMentionsUsernames transfer mentions fid to username.
-func (s *source) fillMentionsUsernames(ctx context.Context, message *farcaster.Message) error {
+func (s *dataSource) fillMentionsUsernames(ctx context.Context, message *farcaster.Message) error {
 	message.Data.CastAddBody.MentionsUsernames = make([]string, len(message.Data.CastAddBody.Mentions))
 	for i, fid := range message.Data.CastAddBody.Mentions {
 		fid := int64(fid)
@@ -479,7 +479,7 @@ func (s *source) fillMentionsUsernames(ctx context.Context, message *farcaster.M
 }
 
 // fillProfile fill profile in each message.
-func (s *source) fillProfile(ctx context.Context, message *farcaster.Message) error {
+func (s *dataSource) fillProfile(ctx context.Context, message *farcaster.Message) error {
 	fid := int64(message.Data.Fid)
 	profile, err := s.getProfileByFid(ctx, &fid)
 
@@ -493,7 +493,7 @@ func (s *source) fillProfile(ctx context.Context, message *farcaster.Message) er
 }
 
 // fillCastParams fill params in cast add message.
-func (s *source) fillCastParams(ctx context.Context, message *farcaster.Message) error {
+func (s *dataSource) fillCastParams(ctx context.Context, message *farcaster.Message) error {
 	if message.Data.CastAddBody.ParentCastID != nil {
 		targetFid := int64(message.Data.CastAddBody.ParentCastID.Fid)
 		targetMessage, err := s.farcasterClient.GetCastByFidAndHash(ctx, &targetFid, message.Data.CastAddBody.ParentCastID.Hash)
@@ -525,7 +525,7 @@ func (s *source) fillCastParams(ctx context.Context, message *farcaster.Message)
 }
 
 // fillReactionParams fill params in recast message.
-func (s *source) fillReactionParams(ctx context.Context, message *farcaster.Message) error {
+func (s *dataSource) fillReactionParams(ctx context.Context, message *farcaster.Message) error {
 	if message.Data.ReactionBody.Type == farcaster.ReactionTypeRecast.String() {
 		targetFid := int64(message.Data.ReactionBody.TargetCastID.Fid)
 		targetMessage, err := s.farcasterClient.GetCastByFidAndHash(ctx, &targetFid, message.Data.ReactionBody.TargetCastID.Hash)
@@ -561,12 +561,12 @@ func retryOperation(ctx context.Context, operation func(ctx context.Context) err
 		retry.Delay(1*time.Second),
 		retry.DelayType(retry.BackOffDelay),
 		retry.OnRetry(func(n uint, err error) {
-			zap.L().Warn("retry farcaster source", zap.Uint("retry", n), zap.Error(err))
+			zap.L().Warn("retry farcaster dataSource", zap.Uint("retry", n), zap.Error(err))
 		}),
 	)
 }
 
-func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.Source, error) {
+func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.DataSource, error) {
 	var (
 		state State
 
@@ -580,7 +580,7 @@ func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseCli
 		}
 	}
 
-	instance := source{
+	instance := dataSource{
 		databaseClient: databaseClient,
 		config:         config,
 		state:          state,

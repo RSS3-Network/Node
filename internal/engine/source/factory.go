@@ -13,7 +13,7 @@ import (
 )
 
 // New creates a new source.
-func New(config *config.Module, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.Source, error) {
+func New(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.DataSource, error) {
 	switch config.Network.Source() {
 	case network.EthereumSource:
 		return ethereum.NewSource(config, sourceFilter, checkpoint)

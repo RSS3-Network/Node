@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
 	"github.com/rss3-network/node/internal/database/model"
+	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -37,7 +38,7 @@ type AccountActivitiesRequest struct {
 	Network        []network.Network    `query:"network"`
 	Tag            []tag.Tag            `query:"tag"`
 	Type           []schema.Type        `query:"-"`
-	Platform       []string             `query:"platform"`
+	Platform       []worker.Platform    `query:"platform"`
 }
 
 type ActivityResponse struct {

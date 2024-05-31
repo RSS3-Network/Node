@@ -35,10 +35,10 @@ var bundlrNodes = []string{
 	"ZE0N-8P9gXkhtK-07PQu9d8me5tGDxa_i4Mee5RzVYg", // Bundlr Node 2
 }
 
-// Ensure that source implements Source.
-var _ engine.Source = (*source)(nil)
+// Ensure that dataSource implements DataSource.
+var _ engine.DataSource = (*dataSource)(nil)
 
-type source struct {
+type dataSource struct {
 	config        *config.Module
 	option        *Option
 	filter        *Filter
@@ -46,18 +46,18 @@ type source struct {
 	state         State
 }
 
-func (s *source) Network() network.Network {
+func (s *dataSource) Network() network.Network {
 	return s.config.Network
 }
 
-func (s *source) State() json.RawMessage {
+func (s *dataSource) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
-	// Initialize source.
+func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
+	// Initialize dataSource.
 	if err := s.initialize(); err != nil {
-		errorChan <- fmt.Errorf("initialize source: %w", err)
+		errorChan <- fmt.Errorf("initialize dataSource: %w", err)
 
 		return
 	}
@@ -78,7 +78,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 			retry.DelayType(retry.BackOffDelay),
 			retry.MaxDelay(5*time.Minute),
 			retry.OnRetry(func(n uint, err error) {
-				zap.L().Error("retry arweave source start", zap.Uint("retry", n), zap.Error(err))
+				zap.L().Error("retry arweave dataSource start", zap.Uint("retry", n), zap.Error(err))
 			}),
 		)
 		if err != nil {
@@ -87,8 +87,8 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 	}()
 }
 
-// initialize initializes the source.
-func (s *source) initialize() (err error) {
+// initialize initializes the dataSource.
+func (s *dataSource) initialize() (err error) {
 	// Initialize arweave client.
 	if s.arweaveClient, err = arweave.NewClient(); err != nil {
 		return fmt.Errorf("create arweave client: %w", err)
@@ -98,14 +98,14 @@ func (s *source) initialize() (err error) {
 }
 
 // initializeBlockHeights initializes block heights.
-func (s *source) initializeBlockHeights() {
+func (s *dataSource) initializeBlockHeights() {
 	if s.option.BlockStart != nil && s.option.BlockStart.Uint64() > s.state.BlockHeight {
 		s.state.BlockHeight = s.option.BlockStart.Uint64()
 	}
 }
 
 // pollBlocks polls blocks from arweave network.
-func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks, filter *Filter) error {
+func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks, filter *Filter) error {
 	var (
 		blockHeightLatestRemote int64
 		err                     error
@@ -226,7 +226,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 }
 
 // batchPullBlocksByRange pulls blocks by range, from local state block height to remote block height.
-func (s *source) batchPullBlocksByRange(ctx context.Context, blockHeightStart, blockHeightEnd uint64) ([]*arweave.Block, error) {
+func (s *dataSource) batchPullBlocksByRange(ctx context.Context, blockHeightStart, blockHeightEnd uint64) ([]*arweave.Block, error) {
 	zap.L().Info("begin to batch pull transactions by range", zap.Uint64("block.height.start", blockHeightStart), zap.Uint64("block.height.end", blockHeightEnd))
 
 	// Pull blocks by block heights.
@@ -243,7 +243,7 @@ func (s *source) batchPullBlocksByRange(ctx context.Context, blockHeightStart, b
 }
 
 // batchPullBlocks pulls blocks by block heights.
-func (s *source) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) ([]*arweave.Block, error) {
+func (s *dataSource) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) ([]*arweave.Block, error) {
 	zap.L().Info("begin to pull blocks", zap.Int("blocks", len(blockHeights)))
 
 	resultPool := pool.NewWithResults[*arweave.Block]().
@@ -274,7 +274,7 @@ func (s *source) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) (
 }
 
 // batchPullTransactions pulls transactions by transaction ids.
-func (s *source) batchPullTransactions(ctx context.Context, transactionIDs []string) ([]*arweave.Transaction, error) {
+func (s *dataSource) batchPullTransactions(ctx context.Context, transactionIDs []string) ([]*arweave.Transaction, error) {
 	zap.L().Info("begin to pull transactions", zap.Int("transactions", len(transactionIDs)))
 
 	resultPool := pool.NewWithResults[*arweave.Transaction]().
@@ -306,7 +306,7 @@ func (s *source) batchPullTransactions(ctx context.Context, transactionIDs []str
 }
 
 // batchPullData pulls data by transactions.
-func (s *source) batchPullData(ctx context.Context, transactions []*arweave.Transaction) error {
+func (s *dataSource) batchPullData(ctx context.Context, transactions []*arweave.Transaction) error {
 	resultPool := pool.New().
 		WithContext(ctx).
 		WithCancelOnError().
@@ -363,7 +363,7 @@ func (s *source) batchPullData(ctx context.Context, transactions []*arweave.Tran
 }
 
 // batchPullBundleTransactions pulls bundle transactions by transaction ids.
-func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs []string) ([]*arweave.Transaction, error) {
+func (s *dataSource) batchPullBundleTransactions(ctx context.Context, transactionIDs []string) ([]*arweave.Transaction, error) {
 	zap.L().Info("begin to pull and filter bundle transactions", zap.Int("transactions", len(transactionIDs)))
 
 	resultPool := pool.NewWithResults[[]*arweave.Transaction]().
@@ -400,7 +400,7 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 }
 
 // processTransaction process single arweave transaction by ID
-func (s *source) processTransaction(ctx context.Context, transactionID string) ([]*arweave.Transaction, error) {
+func (s *dataSource) processTransaction(ctx context.Context, transactionID string) ([]*arweave.Transaction, error) {
 	bundleTransactions := make([]*arweave.Transaction, 0)
 
 	response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
@@ -471,7 +471,7 @@ func (s *source) processTransaction(ctx context.Context, transactionID string) (
 }
 
 // GroupBundleTransactions groups bundle transactions by block.
-func (s *source) GroupBundleTransactions(transactions []*arweave.Transaction, block *arweave.Block) []string {
+func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction, block *arweave.Block) []string {
 	return lo.FilterMap(transactions, func(transaction *arweave.Transaction, _ int) (string, bool) {
 		hasBundleFormatTag := lo.ContainsBy(transaction.Tags, func(tag arweave.Tag) bool {
 			tagName, err := base64.RawURLEncoding.DecodeString(tag.Name)
@@ -521,7 +521,7 @@ func (s *source) GroupBundleTransactions(transactions []*arweave.Transaction, bl
 }
 
 // discardRootBundleTransaction discards the root bundle transaction.
-func (s *source) discardRootBundleTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
+func (s *dataSource) discardRootBundleTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
 	return lo.Filter(transactions, func(transaction *arweave.Transaction, _ int) bool {
 		transactionOwner, err := arweave.PublicKeyToAddress(transaction.Owner)
 		if err != nil {
@@ -533,7 +533,7 @@ func (s *source) discardRootBundleTransaction(transactions []*arweave.Transactio
 }
 
 // discardDuplicateBundleTransaction discards duplicate bundle transactions.
-func (s *source) discardDuplicateBundleTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
+func (s *dataSource) discardDuplicateBundleTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
 	var (
 		cache   = make(map[string]struct{})
 		results = make([]*arweave.Transaction, 0, len(transactions))
@@ -553,7 +553,7 @@ func (s *source) discardDuplicateBundleTransaction(transactions []*arweave.Trans
 }
 
 // filterOwnerTransaction filters owner transactions.
-func (s *source) filterOwnerTransaction(transactions []*arweave.Transaction, ownerAddress []string) []*arweave.Transaction {
+func (s *dataSource) filterOwnerTransaction(transactions []*arweave.Transaction, ownerAddress []string) []*arweave.Transaction {
 	return lo.Filter(transactions, func(transaction *arweave.Transaction, _ int) bool {
 		transactionOwner, err := arweave.PublicKeyToAddress(transaction.Owner)
 		if err != nil {
@@ -565,7 +565,7 @@ func (s *source) filterOwnerTransaction(transactions []*arweave.Transaction, own
 }
 
 // buildTasks builds tasks from blocks and transactions.
-func (s *source) buildTasks(_ context.Context, blocks []*arweave.Block, transactions []*arweave.Transaction) *engine.Tasks {
+func (s *dataSource) buildTasks(_ context.Context, blocks []*arweave.Block, transactions []*arweave.Transaction) *engine.Tasks {
 	var tasks engine.Tasks
 
 	for _, transaction := range transactions {
@@ -583,8 +583,8 @@ func (s *source) buildTasks(_ context.Context, blocks []*arweave.Block, transact
 	return &tasks
 }
 
-// NewSource creates a new arweave source.
-func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint) (engine.Source, error) {
+// NewSource creates a new arweave dataSource.
+func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint) (engine.DataSource, error) {
 	var (
 		state State
 		err   error
@@ -597,9 +597,9 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 		}
 	}
 
-	instance := source{
+	instance := dataSource{
 		config: config,
-		filter: new(Filter), // Set a default filter for the source.
+		filter: new(Filter), // Set a default filter for the dataSource.
 		state:  state,
 	}
 
@@ -607,7 +607,7 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 	if sourceFilter != nil {
 		var ok bool
 		if instance.filter, ok = sourceFilter.(*Filter); !ok {
-			return nil, fmt.Errorf("invalid source filter type %T", sourceFilter)
+			return nil, fmt.Errorf("invalid dataSource filter type %T", sourceFilter)
 		}
 	}
 
