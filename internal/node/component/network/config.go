@@ -69,25 +69,25 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 		ConcurrentBlockRequests: &ConfigDetail{
 			IsRequired:  false,
 			Type:        UintType,
-			Value:       nil,
+			Value:       uint(8),
 			Description: "The number of concurrent RPC requests to the blockchain rpc. Default: 8",
 		},
 		BlockBatchSize: &ConfigDetail{
 			IsRequired:  false,
 			Type:        UintType,
-			Value:       nil,
+			Value:       uint(8),
 			Description: "The number of blocks to fetch in a single RPC request. Default: 8",
 		},
 		ReceiptsBatchSize: &ConfigDetail{
 			IsRequired:  false,
 			Type:        UintType,
-			Value:       nil,
+			Value:       uint(200),
 			Description: "The number of receipts to fetch in a single RPC request. Default: 200",
 		},
 		BlockReceiptBatchSize: &ConfigDetail{
 			IsRequired:  false,
 			Type:        UintType,
-			Value:       nil,
+			Value:       uint(8),
 			Description: "The number of blocks to fetch receipts in a single RPC request. Default: 8",
 		},
 	},
@@ -106,7 +106,7 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 		ConcurrentBlockRequests: &ConfigDetail{
 			IsRequired:  false,
 			Type:        UintType,
-			Value:       nil,
+			Value:       uint(1),
 			Description: "The number of concurrent RPC requests to the Arweave gateway. Default: 1",
 		},
 	},
