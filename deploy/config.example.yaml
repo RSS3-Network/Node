@@ -9,13 +9,14 @@ type: beta
 discovery:
   operator:
     # `evm_address` is the wallet address used during your registration on the RSS3 Explorer.
-    evm_address:
+    evm_address: 0x...address
     # The `signature` obtained during registration, it will be used to verify your ownership of this Node.
     # You MUST NOT share the signature with anyone.
-    signature:
+    signature: 0x...signature
   server:
     # `endpoint` is how how Global Indexers access your Node.
-    endpoint:
+    # You can use a domain or an IP address.
+    endpoint: https://your.node.com
     # If your Node is registered on the VSL Testnet, use https://gi.rss3.dev.
     # Otherwise, DO NOT change this value.
     global_indexer_endpoint: https://gi.rss3.io
@@ -40,7 +41,17 @@ redis:
     key_file: /path/to/client.key
     insecure_skip_verify: false
 
+# `stream` enables message streaming for the Node.
+# This feature is currently under development and should be disabled.
+stream:
+  enable: false
+  driver: kafka
+  topic: rss3.node.activities
+  uri: localhost:9092
+
 # `observability` tools used to monitor and inspect the Node.
+# This feature is for advanced users only.
+# DO NOT modify the values unless you know what you are doing.
 observability:
   opentelemetry:
     metrics:
@@ -73,14 +84,14 @@ component:
   # `rss` network type includes workers indexing data in RSS format.
   rss:
     - network: rss
-      endpoint: https://rsshub.app/
+      endpoint: https://your.rsshub.com/
       parameters:
         authentication:
           access_key:
   # `decentralized` network type includes workers indexing data from decentralized networks such as blockchain networks, Arweave, etc.
   decentralized:
-      # Each configuration here initializes a worker.
-      # `id` is the unique identifier
+    # Each configuration here initializes a worker.
+    # `id` is the unique identifier
     - id: vsl-core
       # `network` is the network that the worker is indexing from.
       network: vsl

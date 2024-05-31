@@ -6,8 +6,8 @@ discovery:
       evm_address:
       signature:
     server:
-      endpoint: https://beta-node.rss3.io
-      global_indexer_endpoint: https://gi.rss3.dev
+      endpoint: https://some.node.com
+      global_indexer_endpoint: https://gi.rss3.io
 
 database:
   driver: cockroachdb
@@ -16,9 +16,6 @@ database:
 
 stream:
   enable: false
-  driver: kafka
-  topic: rss3.node.activities
-  uri: localhost:9092
 
 observability:
   opentelemetry:
@@ -69,13 +66,6 @@ endpoints:
     url: https://arweave.net
 
 component:
-  rss:
-    - network: rss
-      endpoint: https://rsshub.app/
-      parameters:
-        authentication:
-          access_key:
-
   decentralized:
     # ethereum
     - id: ethereum-core
