@@ -445,15 +445,15 @@
       "Direction": {
         "description": "The direction of an activity.",
         "type": "string"
-      },
+      ,"enum":["in","out","self"]},
       "Tag": {
         "description": "A tag used to categorize activities.",
         "type": "string"
-      },
+      ,"enum":["collectible","exchange","metaverse","rss","social","transaction","unknown"]},
       "Type": {
         "description": "A type used to categorize activities, it must be present with a tag.",
         "type": "string"
-      },
+      ,"enum":["approval","bridge","burn","comment","delete","feed","liquidity","mint","post","profile","proxy","revise","reward","share","staking","swap","trade","transfer","unknown"]},
       "To": {
         "description": "The address to which the action is directed.",
         "type": "string"
@@ -461,11 +461,11 @@
       "Network": {
         "description": "The network on which activities occur.",
         "type": "string"
-      },
+      ,"enum":["arbitrum","arweave","avax","base","binance-smart-chain","crossbell","ethereum","farcaster","gnosis","linea","optimism","polygon","vsl"]},
       "Platform": {
         "description": "The platform on which activities occur.",
         "type": "string"
-      },
+      ,"enum":["1inch","AAVE","Aavegotchi","Crossbell","Curve","ENS","Farcaster","Highlight","IQWiki","KiwiStand","Lens","Lido","LooksRare","Matters","Mirror","OpenSea","Optimism","Paragraph","RSS3","SAVM","Stargate","Uniswap","Unknown","VSL"]},
       "Timestamp": {
         "description": "The timestamp of when the activity occurred.",
         "type": "integer"
