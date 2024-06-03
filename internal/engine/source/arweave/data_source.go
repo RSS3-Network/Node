@@ -467,6 +467,13 @@ func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID s
 
 		data, err := io.ReadAll(dataItem)
 		if err != nil {
+			// when pull data from arweave, sometimes it will return INTERNAL_ERROR; received from peer, we can ignore it.
+			if strings.Contains(err.Error(), "INTERNAL_ERROR; received from peer") {
+				zap.L().Warn("Ignoring INTERNAL_ERROR; received from peer", zap.String("data item", dataItemInfo.ID))
+
+				continue
+			}
+
 			return nil, fmt.Errorf("read data item %s: %w", dataItemInfo.ID, err)
 		}
 
