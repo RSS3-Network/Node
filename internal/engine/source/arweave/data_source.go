@@ -29,12 +29,6 @@ const (
 	defaultBlockTime = 120 * time.Second
 )
 
-// TODO get from command line arguments
-var bundlrNodes = []string{
-	"OXcT1sVRSA5eGwt2k6Yuz8-3e3g9WJi5uSE99CWqsBs", // Bundlr Node 1
-	"ZE0N-8P9gXkhtK-07PQu9d8me5tGDxa_i4Mee5RzVYg", // Bundlr Node 2
-}
-
 // Ensure that dataSource implements DataSource.
 var _ engine.DataSource = (*dataSource)(nil)
 
@@ -179,9 +173,9 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 		}
 
 		// Filter transactions by owner.
-		transactions = s.filterOwnerTransaction(transactions, append(filter.OwnerAddresses, bundlrNodes...))
+		transactions = s.filterOwnerTransaction(transactions, append(filter.OwnerAddresses, filter.BundlrAddresses...))
 
-		// Pull transaction data.
+		// Pull transaction data and ignore the transaction if the owner is bundlr node.
 		if err := s.batchPullData(ctx, transactions); err != nil {
 			return fmt.Errorf("batch pull data: %w", err)
 		}
@@ -306,6 +300,7 @@ func (s *dataSource) batchPullTransactions(ctx context.Context, transactionIDs [
 }
 
 // batchPullData pulls data by transactions.
+// It will discard the transaction if the owner is bundlr node.
 func (s *dataSource) batchPullData(ctx context.Context, transactions []*arweave.Transaction) error {
 	resultPool := pool.New().
 		WithContext(ctx).
@@ -320,7 +315,7 @@ func (s *dataSource) batchPullData(ctx context.Context, transactions []*arweave.
 			return fmt.Errorf("invalid owner of transaction %s: %w", transaction.ID, err)
 		}
 
-		if lo.Contains(bundlrNodes, owner) {
+		if lo.Contains(s.filter.BundlrAddresses, owner) {
 			continue
 		}
 
@@ -376,7 +371,12 @@ func (s *dataSource) batchPullBundleTransactions(ctx context.Context, transactio
 
 		resultPool.Go(func(ctx context.Context) ([]*arweave.Transaction, error) {
 			retryableFunc := func() ([]*arweave.Transaction, error) {
-				return s.processTransaction(ctx, transactionID)
+				bundleTransactions, err := s.pullBundleTransactions(ctx, transactionID)
+				if err != nil {
+					return nil, fmt.Errorf("get bundle transaction %s: %w", transactionID, err)
+				}
+
+				return bundleTransactions, nil
 			}
 
 			return retry.DoWithData(
@@ -399,8 +399,8 @@ func (s *dataSource) batchPullBundleTransactions(ctx context.Context, transactio
 	return lo.Flatten(bundleTransactions), nil
 }
 
-// processTransaction process single arweave transaction by ID
-func (s *dataSource) processTransaction(ctx context.Context, transactionID string) ([]*arweave.Transaction, error) {
+// pullBundleTransactions pulls bundle transactions by transaction id.
+func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID string) ([]*arweave.Transaction, error) {
 	bundleTransactions := make([]*arweave.Transaction, 0)
 
 	response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
@@ -447,6 +447,22 @@ func (s *dataSource) processTransaction(ctx context.Context, transactionID strin
 			}),
 			Target:    dataItem.Target,
 			Signature: dataItem.Signature,
+		}
+
+		transactionOwner, err := arweave.PublicKeyToAddress(bundleTransaction.Owner)
+		if err != nil {
+			zap.L().Error("invalid owner of transaction", zap.String("id", dataItemInfo.ID), zap.Any("owner", bundleTransaction.Owner), zap.Error(err))
+
+			continue
+		}
+
+		// Filter owner addresses.
+		if !lo.Contains(s.filter.OwnerAddresses, transactionOwner) {
+			if _, err := io.Copy(io.Discard, dataItem); err != nil {
+				return nil, fmt.Errorf("discard data item %s: %w", dataItemInfo.ID, err)
+			}
+
+			continue
 		}
 
 		data, err := io.ReadAll(dataItem)
@@ -516,7 +532,7 @@ func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction
 			return "", false
 		}
 
-		return transaction.ID, lo.Contains(bundlrNodes, owner)
+		return transaction.ID, lo.Contains(s.filter.BundlrAddresses, owner)
 	})
 }
 
@@ -528,7 +544,7 @@ func (s *dataSource) discardRootBundleTransaction(transactions []*arweave.Transa
 			return false
 		}
 
-		return !lo.Contains(bundlrNodes, transactionOwner)
+		return !lo.Contains(s.filter.BundlrAddresses, transactionOwner)
 	})
 }
 
