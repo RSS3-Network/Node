@@ -31,8 +31,7 @@ observability:
       endpoint: localhost:4318
 
 redis:
-  endpoints:
-    - redis:6379
+  endpoint: localhost:6379
   username:
   password:
   disable_cache: true

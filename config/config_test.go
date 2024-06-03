@@ -42,8 +42,7 @@ stream:
   topic: rss3.node.activities
   uri: localhost:9092
 redis:
-  endpoints:
-    - localhost:6379
+  endpoint: localhost:6379
   username:
   password:
   disable_cache: true
@@ -112,9 +111,7 @@ component:
     "uri": "localhost:9092"
   },
   "redis": {
-    "endpoints": [
-      "localhost:6379"
-    ],
+    "endpoint": "localhost:6379",
     "username": "",
     "password": "",
     "disable_cache": true
@@ -197,7 +194,7 @@ topic = "rss3.node.activities"
 uri = "localhost:9092"
 
 [redis]
-endpoints = ["localhost:6379"]
+endpoint = "localhost:6379"
 username = ""
 password = ""
 disable_cache = true
@@ -325,7 +322,7 @@ var configFileExcept = &File{
 		URI:    "localhost:9092",
 	},
 	Redis: &Redis{
-		Endpoints:    []string{"localhost:6379"},
+		Endpoint:     "localhost:6379",
 		Username:     "",
 		Password:     "",
 		DisableCache: true,

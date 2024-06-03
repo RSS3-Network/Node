@@ -21,8 +21,7 @@ stream:
   uri: localhost:9092
 
 redis:
-  endpoints:
-    - localhost:6379
+  endpoint: localhost:6379
   username:
   password:
   disable_cache: true
