@@ -11,7 +11,7 @@ require (
 	github.com/ethereum/go-ethereum v1.13.15
 	github.com/gabriel-vasile/mimetype v1.4.4
 	github.com/go-playground/form/v4 v4.2.1
-	github.com/go-playground/validator/v10 v10.20.0
+	github.com/go-playground/validator/v10 v10.21.0
 	github.com/go-shiori/go-readability v0.0.0-20231029095239-6b97d5aba789
 	github.com/hamba/avro v1.8.0
 	github.com/ipfs/go-cid v0.4.1
