@@ -42,7 +42,7 @@ func (m *Monitor) Run(ctx context.Context) error {
 	return nil
 }
 
-// initNetworkClient initializes arweave, ethereum, and other network clients.
+// initNetworkClient initializes all network clients.
 func initNetworkClient(m *config.Module) (Client, error) {
 	var client Client
 
@@ -55,8 +55,10 @@ func initNetworkClient(m *config.Module) (Client, error) {
 		client, err = NewFarcasterClient()
 	case network.RSSSource:
 		client, err = NewRssClient(m.Endpoint, m.Parameters)
-	default:
+	case network.EthereumSource:
 		client, err = NewEthereumClient(m.Endpoint)
+	default:
+		return nil, fmt.Errorf("unsupported network source: %s", m.Network)
 	}
 
 	if err != nil {
