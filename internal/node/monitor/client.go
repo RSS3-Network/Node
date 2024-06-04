@@ -21,7 +21,7 @@ type Client interface {
 	CurrentState(state CheckpointState) uint64
 	// TargetState checks if the target block number/height is set in the parameters.
 	TargetState(param *config.Parameters) uint64
-	// LatestState returns the latest block number (ethereum), height (arweave) or event id (farcaster) of the client from network rpc/api.
+	// LatestState returns the latest block number (ethereum), height (arweave) or event id (farcaster) or err (rss) of the client from network rpc/api.
 	LatestState(ctx context.Context) (uint64, error)
 }
 
@@ -163,6 +163,7 @@ func NewFarcasterClient() (Client, error) {
 	return &farcasterClient{}, nil
 }
 
+// rssClient is a client implementation for rss.
 type rssClient struct {
 	httpClient httpx.Client
 	url        string
@@ -179,6 +180,7 @@ func (c *rssClient) TargetState(_ *config.Parameters) uint64 {
 	return 0
 }
 
+// LatestState requests a URL to check if it can be accessed correctly.
 func (c *rssClient) LatestState(ctx context.Context) (uint64, error) {
 	_, err := c.httpClient.Fetch(ctx, c.url)
 
