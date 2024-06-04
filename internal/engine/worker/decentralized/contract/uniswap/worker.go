@@ -73,7 +73,7 @@ func (w *worker) Types() []schema.Type {
 	}
 }
 
-func (w *worker) Filter() engine.SourceFilter {
+func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{
 		// LogAddresses: []common.Address{
 		// 	uniswap.AddressV1Factory,

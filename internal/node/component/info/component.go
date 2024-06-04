@@ -38,6 +38,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 	}
 
 	apiServer.GET("/", c.GetNodeOperator)
+	apiServer.GET("/version", c.GetVersion)
 	apiServer.GET("/activity_count", c.GetActivityCount)
 	apiServer.GET("/workers_status", c.GetWorkersStatus)
 

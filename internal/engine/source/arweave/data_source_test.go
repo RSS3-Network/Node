@@ -31,7 +31,7 @@ package arweave_test
 //			t.Parallel()
 //
 //			instance, err := arweave.NewSource(testcase.arguments.conf, nil, nil)
-//			require.NoError(t, err, "new arweave source")
+//			require.NoError(t, err, "new arweave dataSource")
 //
 //			var (
 //				tasksChan = make(chan *engine.Tasks)

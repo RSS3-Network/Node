@@ -1,6 +1,7 @@
 package docs
 
 import (
+	"embed"
 	"fmt"
 	"os"
 	"sort"
@@ -15,14 +16,27 @@ import (
 	"go.uber.org/zap"
 )
 
+//go:embed openapi.json
+var EmbedFS embed.FS
+
 var FilePath = "./docs/openapi.json"
 
 func Generate(endpoint string) ([]byte, error) {
-	// Read the existing openapi.json file
-	file, err := os.ReadFile(FilePath)
+	// Read the existing openapi.json file from EmbedFS
+	file, err := EmbedFS.ReadFile("openapi.json")
 	if err != nil {
 		zap.L().Error("read file error", zap.Error(err))
+		return nil, err
+	}
 
+	// Generate network, tag, platform, direction enum.
+	if file, err = generateEnum(file); err != nil {
+		return nil, err
+	}
+
+	// Write the updated file back to the file system
+	if err := os.WriteFile(FilePath, file, 0600); err != nil {
+		zap.L().Error("write file error", zap.Error(err))
 		return nil, err
 	}
 
@@ -31,8 +45,10 @@ func Generate(endpoint string) ([]byte, error) {
 		return nil, err
 	}
 
-	// Generate network, tag, platform, direction enum.
-	if file, err = generateEnum(file); err != nil {
+	// Update the embedded file
+	EmbedFS, err = updateEmbedFS()
+	if err != nil {
+		zap.L().Error("update embedfs error", zap.Error(err))
 		return nil, err
 	}
 
@@ -48,7 +64,6 @@ func generateServers(file []byte, endpoint string) ([]byte, error) {
 	})
 	if err != nil {
 		zap.L().Error("sjson set servers error", zap.Error(err))
-
 		return nil, err
 	}
 
@@ -120,4 +135,12 @@ func generateEnum(file []byte) ([]byte, error) {
 	}
 
 	return file, nil
+}
+
+// updateEmbedFS updates the embedded file system.
+func updateEmbedFS() (embed.FS, error) {
+	// Re-embed the updated file
+	// Note: This is not typically how embed.FS works as it is static at compile time.
+	// This function is a placeholder to indicate the need to recompile the program to update the embedded file.
+	return EmbedFS, nil
 }

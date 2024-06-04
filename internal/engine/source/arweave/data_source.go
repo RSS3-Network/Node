@@ -29,16 +29,10 @@ const (
 	defaultBlockTime = 120 * time.Second
 )
 
-// TODO get from command line arguments
-var bundlrNodes = []string{
-	"OXcT1sVRSA5eGwt2k6Yuz8-3e3g9WJi5uSE99CWqsBs", // Bundlr Node 1
-	"ZE0N-8P9gXkhtK-07PQu9d8me5tGDxa_i4Mee5RzVYg", // Bundlr Node 2
-}
+// Ensure that dataSource implements DataSource.
+var _ engine.DataSource = (*dataSource)(nil)
 
-// Ensure that source implements Source.
-var _ engine.Source = (*source)(nil)
-
-type source struct {
+type dataSource struct {
 	config        *config.Module
 	option        *Option
 	filter        *Filter
@@ -46,18 +40,18 @@ type source struct {
 	state         State
 }
 
-func (s *source) Network() network.Network {
+func (s *dataSource) Network() network.Network {
 	return s.config.Network
 }
 
-func (s *source) State() json.RawMessage {
+func (s *dataSource) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
-	// Initialize source.
+func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
+	// Initialize dataSource.
 	if err := s.initialize(); err != nil {
-		errorChan <- fmt.Errorf("initialize source: %w", err)
+		errorChan <- fmt.Errorf("initialize dataSource: %w", err)
 
 		return
 	}
@@ -78,7 +72,7 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 			retry.DelayType(retry.BackOffDelay),
 			retry.MaxDelay(5*time.Minute),
 			retry.OnRetry(func(n uint, err error) {
-				zap.L().Error("retry arweave source start", zap.Uint("retry", n), zap.Error(err))
+				zap.L().Error("retry arweave dataSource start", zap.Uint("retry", n), zap.Error(err))
 			}),
 		)
 		if err != nil {
@@ -87,8 +81,8 @@ func (s *source) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, erro
 	}()
 }
 
-// initialize initializes the source.
-func (s *source) initialize() (err error) {
+// initialize initializes the dataSource.
+func (s *dataSource) initialize() (err error) {
 	// Initialize arweave client.
 	if s.arweaveClient, err = arweave.NewClient(); err != nil {
 		return fmt.Errorf("create arweave client: %w", err)
@@ -98,14 +92,14 @@ func (s *source) initialize() (err error) {
 }
 
 // initializeBlockHeights initializes block heights.
-func (s *source) initializeBlockHeights() {
+func (s *dataSource) initializeBlockHeights() {
 	if s.option.BlockStart != nil && s.option.BlockStart.Uint64() > s.state.BlockHeight {
 		s.state.BlockHeight = s.option.BlockStart.Uint64()
 	}
 }
 
 // pollBlocks polls blocks from arweave network.
-func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks, filter *Filter) error {
+func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks, filter *Filter) error {
 	var (
 		blockHeightLatestRemote int64
 		err                     error
@@ -179,9 +173,9 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 		}
 
 		// Filter transactions by owner.
-		transactions = s.filterOwnerTransaction(transactions, append(filter.OwnerAddresses, bundlrNodes...))
+		transactions = s.filterOwnerTransaction(transactions, append(filter.OwnerAddresses, filter.BundlrAddresses...))
 
-		// Pull transaction data.
+		// Pull transaction data and ignore the transaction if the owner is bundlr node.
 		if err := s.batchPullData(ctx, transactions); err != nil {
 			return fmt.Errorf("batch pull data: %w", err)
 		}
@@ -226,7 +220,7 @@ func (s *source) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks,
 }
 
 // batchPullBlocksByRange pulls blocks by range, from local state block height to remote block height.
-func (s *source) batchPullBlocksByRange(ctx context.Context, blockHeightStart, blockHeightEnd uint64) ([]*arweave.Block, error) {
+func (s *dataSource) batchPullBlocksByRange(ctx context.Context, blockHeightStart, blockHeightEnd uint64) ([]*arweave.Block, error) {
 	zap.L().Info("begin to batch pull transactions by range", zap.Uint64("block.height.start", blockHeightStart), zap.Uint64("block.height.end", blockHeightEnd))
 
 	// Pull blocks by block heights.
@@ -243,7 +237,7 @@ func (s *source) batchPullBlocksByRange(ctx context.Context, blockHeightStart, b
 }
 
 // batchPullBlocks pulls blocks by block heights.
-func (s *source) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) ([]*arweave.Block, error) {
+func (s *dataSource) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) ([]*arweave.Block, error) {
 	zap.L().Info("begin to pull blocks", zap.Int("blocks", len(blockHeights)))
 
 	resultPool := pool.NewWithResults[*arweave.Block]().
@@ -274,7 +268,7 @@ func (s *source) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) (
 }
 
 // batchPullTransactions pulls transactions by transaction ids.
-func (s *source) batchPullTransactions(ctx context.Context, transactionIDs []string) ([]*arweave.Transaction, error) {
+func (s *dataSource) batchPullTransactions(ctx context.Context, transactionIDs []string) ([]*arweave.Transaction, error) {
 	zap.L().Info("begin to pull transactions", zap.Int("transactions", len(transactionIDs)))
 
 	resultPool := pool.NewWithResults[*arweave.Transaction]().
@@ -306,7 +300,8 @@ func (s *source) batchPullTransactions(ctx context.Context, transactionIDs []str
 }
 
 // batchPullData pulls data by transactions.
-func (s *source) batchPullData(ctx context.Context, transactions []*arweave.Transaction) error {
+// It will discard the transaction if the owner is bundlr node.
+func (s *dataSource) batchPullData(ctx context.Context, transactions []*arweave.Transaction) error {
 	resultPool := pool.New().
 		WithContext(ctx).
 		WithCancelOnError().
@@ -320,7 +315,7 @@ func (s *source) batchPullData(ctx context.Context, transactions []*arweave.Tran
 			return fmt.Errorf("invalid owner of transaction %s: %w", transaction.ID, err)
 		}
 
-		if lo.Contains(bundlrNodes, owner) {
+		if lo.Contains(s.filter.BundlrAddresses, owner) {
 			continue
 		}
 
@@ -363,7 +358,7 @@ func (s *source) batchPullData(ctx context.Context, transactions []*arweave.Tran
 }
 
 // batchPullBundleTransactions pulls bundle transactions by transaction ids.
-func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs []string) ([]*arweave.Transaction, error) {
+func (s *dataSource) batchPullBundleTransactions(ctx context.Context, transactionIDs []string) ([]*arweave.Transaction, error) {
 	zap.L().Info("begin to pull and filter bundle transactions", zap.Int("transactions", len(transactionIDs)))
 
 	resultPool := pool.NewWithResults[[]*arweave.Transaction]().
@@ -376,63 +371,9 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 
 		resultPool.Go(func(ctx context.Context) ([]*arweave.Transaction, error) {
 			retryableFunc := func() ([]*arweave.Transaction, error) {
-				bundleTransactions := make([]*arweave.Transaction, 0)
-
-				response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
+				bundleTransactions, err := s.pullBundleTransactions(ctx, transactionID)
 				if err != nil {
-					if errors.Is(err, arweave.ErrorNotFound) {
-						return nil, nil
-					}
-
-					return nil, fmt.Errorf("fetch transaction: %w", err)
-				}
-
-				defer lo.Try(response.Close)
-
-				decoder := bundle.NewDecoder(response)
-
-				header, err := decoder.DecodeHeader()
-				if err != nil {
-					// Ignore invalid bundle transaction.
-					zap.L().Error("discard a invalid bundle transaction", zap.String("transaction_id", transactionID))
-
-					return nil, nil
-				}
-
-				for index := 0; decoder.Next(); index++ {
-					dataItemInfo := header.DataItemInfos[index]
-
-					dataItem, err := decoder.DecodeDataItem()
-					if err != nil {
-						// Ignore invalid signature and data length.
-						zap.L().Error("decode data item", zap.Error(err), zap.String("transaction_id", transactionID))
-
-						return nil, nil
-					}
-
-					bundleTransaction := arweave.Transaction{
-						Format: 2,
-						ID:     dataItemInfo.ID,
-						Owner:  dataItem.Owner,
-						Tags: lo.Map(dataItem.Tags, func(tag bundle.Tag, _ int) arweave.Tag {
-							return arweave.Tag{
-								Name:  arweave.Base64Encode(tag.Name),
-								Value: arweave.Base64Encode(tag.Value),
-							}
-						}),
-						Target:    dataItem.Target,
-						Signature: dataItem.Signature,
-					}
-
-					data, err := io.ReadAll(dataItem)
-					if err != nil {
-						return nil, fmt.Errorf("read data item %s: %w", dataItemInfo.ID, err)
-					}
-
-					bundleTransaction.Data = arweave.Base64Encode(data)
-					bundleTransaction.DataSize = strconv.Itoa(len(bundleTransaction.Data))
-
-					bundleTransactions = append(bundleTransactions, &bundleTransaction)
+					return nil, fmt.Errorf("get bundle transaction %s: %w", transactionID, err)
 				}
 
 				return bundleTransactions, nil
@@ -458,8 +399,95 @@ func (s *source) batchPullBundleTransactions(ctx context.Context, transactionIDs
 	return lo.Flatten(bundleTransactions), nil
 }
 
+// pullBundleTransactions pulls bundle transactions by transaction id.
+func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID string) ([]*arweave.Transaction, error) {
+	bundleTransactions := make([]*arweave.Transaction, 0)
+
+	response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
+	if err != nil {
+		if errors.Is(err, arweave.ErrorNotFound) {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("fetch transaction: %w", err)
+	}
+
+	defer lo.Try(response.Close)
+
+	decoder := bundle.NewDecoder(response)
+
+	header, err := decoder.DecodeHeader()
+	if err != nil {
+		// Ignore invalid bundle transaction.
+		zap.L().Error("discard a invalid bundle transaction", zap.String("transaction_id", transactionID))
+
+		return nil, nil
+	}
+
+	for index := 0; decoder.Next(); index++ {
+		dataItemInfo := header.DataItemInfos[index]
+
+		dataItem, err := decoder.DecodeDataItem()
+		if err != nil {
+			// Ignore invalid signature and data length.
+			zap.L().Error("decode data item", zap.Error(err), zap.String("transaction_id", transactionID))
+
+			return nil, nil
+		}
+
+		bundleTransaction := arweave.Transaction{
+			Format: 2,
+			ID:     dataItemInfo.ID,
+			Owner:  dataItem.Owner,
+			Tags: lo.Map(dataItem.Tags, func(tag bundle.Tag, _ int) arweave.Tag {
+				return arweave.Tag{
+					Name:  arweave.Base64Encode(tag.Name),
+					Value: arweave.Base64Encode(tag.Value),
+				}
+			}),
+			Target:    dataItem.Target,
+			Signature: dataItem.Signature,
+		}
+
+		transactionOwner, err := arweave.PublicKeyToAddress(bundleTransaction.Owner)
+		if err != nil {
+			zap.L().Error("invalid owner of transaction", zap.String("id", dataItemInfo.ID), zap.Any("owner", bundleTransaction.Owner), zap.Error(err))
+
+			continue
+		}
+
+		// Filter owner addresses.
+		if !lo.Contains(s.filter.OwnerAddresses, transactionOwner) {
+			if _, err := io.Copy(io.Discard, dataItem); err != nil {
+				return nil, fmt.Errorf("discard data item %s: %w", dataItemInfo.ID, err)
+			}
+
+			continue
+		}
+
+		data, err := io.ReadAll(dataItem)
+		if err != nil {
+			// when pull data from arweave, sometimes it will return INTERNAL_ERROR; received from peer, we can ignore it.
+			if strings.Contains(err.Error(), "INTERNAL_ERROR; received from peer") {
+				zap.L().Warn("Ignoring INTERNAL_ERROR; received from peer", zap.String("data item", dataItemInfo.ID))
+
+				continue
+			}
+
+			return nil, fmt.Errorf("read data item %s: %w", dataItemInfo.ID, err)
+		}
+
+		bundleTransaction.Data = arweave.Base64Encode(data)
+		bundleTransaction.DataSize = strconv.Itoa(len(bundleTransaction.Data))
+
+		bundleTransactions = append(bundleTransactions, &bundleTransaction)
+	}
+
+	return bundleTransactions, nil
+}
+
 // GroupBundleTransactions groups bundle transactions by block.
-func (s *source) GroupBundleTransactions(transactions []*arweave.Transaction, block *arweave.Block) []string {
+func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction, block *arweave.Block) []string {
 	return lo.FilterMap(transactions, func(transaction *arweave.Transaction, _ int) (string, bool) {
 		hasBundleFormatTag := lo.ContainsBy(transaction.Tags, func(tag arweave.Tag) bool {
 			tagName, err := base64.RawURLEncoding.DecodeString(tag.Name)
@@ -504,24 +532,24 @@ func (s *source) GroupBundleTransactions(transactions []*arweave.Transaction, bl
 			return "", false
 		}
 
-		return transaction.ID, lo.Contains(bundlrNodes, owner)
+		return transaction.ID, lo.Contains(s.filter.BundlrAddresses, owner)
 	})
 }
 
 // discardRootBundleTransaction discards the root bundle transaction.
-func (s *source) discardRootBundleTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
+func (s *dataSource) discardRootBundleTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
 	return lo.Filter(transactions, func(transaction *arweave.Transaction, _ int) bool {
 		transactionOwner, err := arweave.PublicKeyToAddress(transaction.Owner)
 		if err != nil {
 			return false
 		}
 
-		return !lo.Contains(bundlrNodes, transactionOwner)
+		return !lo.Contains(s.filter.BundlrAddresses, transactionOwner)
 	})
 }
 
 // discardDuplicateBundleTransaction discards duplicate bundle transactions.
-func (s *source) discardDuplicateBundleTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
+func (s *dataSource) discardDuplicateBundleTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
 	var (
 		cache   = make(map[string]struct{})
 		results = make([]*arweave.Transaction, 0, len(transactions))
@@ -541,7 +569,7 @@ func (s *source) discardDuplicateBundleTransaction(transactions []*arweave.Trans
 }
 
 // filterOwnerTransaction filters owner transactions.
-func (s *source) filterOwnerTransaction(transactions []*arweave.Transaction, ownerAddress []string) []*arweave.Transaction {
+func (s *dataSource) filterOwnerTransaction(transactions []*arweave.Transaction, ownerAddress []string) []*arweave.Transaction {
 	return lo.Filter(transactions, func(transaction *arweave.Transaction, _ int) bool {
 		transactionOwner, err := arweave.PublicKeyToAddress(transaction.Owner)
 		if err != nil {
@@ -553,7 +581,7 @@ func (s *source) filterOwnerTransaction(transactions []*arweave.Transaction, own
 }
 
 // buildTasks builds tasks from blocks and transactions.
-func (s *source) buildTasks(_ context.Context, blocks []*arweave.Block, transactions []*arweave.Transaction) *engine.Tasks {
+func (s *dataSource) buildTasks(_ context.Context, blocks []*arweave.Block, transactions []*arweave.Transaction) *engine.Tasks {
 	var tasks engine.Tasks
 
 	for _, transaction := range transactions {
@@ -571,8 +599,8 @@ func (s *source) buildTasks(_ context.Context, blocks []*arweave.Block, transact
 	return &tasks
 }
 
-// NewSource creates a new arweave source.
-func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoint *engine.Checkpoint) (engine.Source, error) {
+// NewSource creates a new arweave dataSource.
+func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint) (engine.DataSource, error) {
 	var (
 		state State
 		err   error
@@ -585,9 +613,9 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 		}
 	}
 
-	instance := source{
+	instance := dataSource{
 		config: config,
-		filter: new(Filter), // Set a default filter for the source.
+		filter: new(Filter), // Set a default filter for the dataSource.
 		state:  state,
 	}
 
@@ -595,7 +623,7 @@ func NewSource(config *config.Module, sourceFilter engine.SourceFilter, checkpoi
 	if sourceFilter != nil {
 		var ok bool
 		if instance.filter, ok = sourceFilter.(*Filter); !ok {
-			return nil, fmt.Errorf("invalid source filter type %T", sourceFilter)
+			return nil, fmt.Errorf("invalid dataSource filter type %T", sourceFilter)
 		}
 	}
 

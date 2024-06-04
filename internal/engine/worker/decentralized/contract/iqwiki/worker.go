@@ -63,7 +63,7 @@ func (w *worker) Types() []schema.Type {
 }
 
 // Filter IQWiki contract address and event hash.
-func (w *worker) Filter() engine.SourceFilter {
+func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{
 		LogAddresses: []common.Address{
 			iqwiki.AddressWiki,

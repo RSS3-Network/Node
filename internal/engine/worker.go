@@ -20,8 +20,8 @@ type Worker interface {
 	Tags() []tag.Tag
 	// Types the possible `type` of the worker, displayed in the final Activity response.
 	Types() []schema.Type
-	// Filter the SourceFilter of the worker(network, state, start logics, etc.).
-	Filter() SourceFilter
+	// Filter the DataSourceFilter of the worker(network, state, start logics, etc.).
+	Filter() DataSourceFilter
 	// Match the matching logic of worker and returns if the task is matched
 	Match(ctx context.Context, task Task) (bool, error)
 	// Transform the core logic of the worker and returns the Activity.
