@@ -16,8 +16,9 @@ var _WorkerIndex = [...]uint8{0, 4, 14, 18, 27, 32, 35, 44, 50, 59, 63, 67, 76, 
 const _WorkerLowerName = "aaveaavegotchicorecrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomoka1inchopenseaoptimismparagraphrss3savmstargateuniswapvsl"
 
 func (i Worker) String() string {
+	i -= 1
 	if i < 0 || i >= Worker(len(_WorkerIndex)-1) {
-		return fmt.Sprintf("Worker(%d)", i)
+		return fmt.Sprintf("Worker(%d)", i+1)
 	}
 	return _WorkerName[_WorkerIndex[i]:_WorkerIndex[i+1]]
 }
@@ -30,30 +31,30 @@ func (Worker) Values() []string {
 // Re-run the stringer command to generate them again.
 func _WorkerNoOp() {
 	var x [1]struct{}
-	_ = x[Aave-(0)]
-	_ = x[Aavegotchi-(1)]
-	_ = x[Core-(2)]
-	_ = x[Crossbell-(3)]
-	_ = x[Curve-(4)]
-	_ = x[ENS-(5)]
-	_ = x[Highlight-(6)]
-	_ = x[IQWiki-(7)]
-	_ = x[KiwiStand-(8)]
-	_ = x[Lens-(9)]
-	_ = x[Lido-(10)]
-	_ = x[Looksrare-(11)]
-	_ = x[Matters-(12)]
-	_ = x[Mirror-(13)]
-	_ = x[Momoka-(14)]
-	_ = x[Oneinch-(15)]
-	_ = x[OpenSea-(16)]
-	_ = x[Optimism-(17)]
-	_ = x[Paragraph-(18)]
-	_ = x[RSS3-(19)]
-	_ = x[SAVM-(20)]
-	_ = x[Stargate-(21)]
-	_ = x[Uniswap-(22)]
-	_ = x[VSL-(23)]
+	_ = x[Aave-(1)]
+	_ = x[Aavegotchi-(2)]
+	_ = x[Core-(3)]
+	_ = x[Crossbell-(4)]
+	_ = x[Curve-(5)]
+	_ = x[ENS-(6)]
+	_ = x[Highlight-(7)]
+	_ = x[IQWiki-(8)]
+	_ = x[KiwiStand-(9)]
+	_ = x[Lens-(10)]
+	_ = x[Lido-(11)]
+	_ = x[Looksrare-(12)]
+	_ = x[Matters-(13)]
+	_ = x[Mirror-(14)]
+	_ = x[Momoka-(15)]
+	_ = x[Oneinch-(16)]
+	_ = x[OpenSea-(17)]
+	_ = x[Optimism-(18)]
+	_ = x[Paragraph-(19)]
+	_ = x[RSS3-(20)]
+	_ = x[SAVM-(21)]
+	_ = x[Stargate-(22)]
+	_ = x[Uniswap-(23)]
+	_ = x[VSL-(24)]
 }
 
 var _WorkerValues = []Worker{Aave, Aavegotchi, Core, Crossbell, Curve, ENS, Highlight, IQWiki, KiwiStand, Lens, Lido, Looksrare, Matters, Mirror, Momoka, Oneinch, OpenSea, Optimism, Paragraph, RSS3, SAVM, Stargate, Uniswap, VSL}

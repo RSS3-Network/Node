@@ -9,8 +9,12 @@ import (
 type Worker int
 
 const (
-	Rsshub Worker = iota // rsshub
+	Rsshub Worker = iota + 1 // rsshub
 )
+
+func (w Worker) Component() string {
+	return "rss"
+}
 
 func (w Worker) Name() string {
 	return w.String()

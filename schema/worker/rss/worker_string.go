@@ -16,8 +16,9 @@ var _WorkerIndex = [...]uint8{0, 6}
 const _WorkerLowerName = "rsshub"
 
 func (i Worker) String() string {
+	i -= 1
 	if i < 0 || i >= Worker(len(_WorkerIndex)-1) {
-		return fmt.Sprintf("Worker(%d)", i)
+		return fmt.Sprintf("Worker(%d)", i+1)
 	}
 	return _WorkerName[_WorkerIndex[i]:_WorkerIndex[i+1]]
 }
@@ -30,7 +31,7 @@ func (Worker) Values() []string {
 // Re-run the stringer command to generate them again.
 func _WorkerNoOp() {
 	var x [1]struct{}
-	_ = x[Rsshub-(0)]
+	_ = x[Rsshub-(1)]
 }
 
 var _WorkerValues = []Worker{Rsshub}

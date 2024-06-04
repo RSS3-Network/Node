@@ -9,31 +9,35 @@ import (
 type Worker int
 
 const (
-	Aave       Worker = iota // aave
-	Aavegotchi               // aavegotchi
-	Core                     // core
-	Crossbell                // crossbell
-	Curve                    // curve
-	ENS                      // ens
-	Highlight                // highlight
-	IQWiki                   // iqwiki
-	KiwiStand                // kiwistand
-	Lens                     // lens
-	Lido                     // lido
-	Looksrare                // looksrare
-	Matters                  // matters
-	Mirror                   // mirror
-	Momoka                   // momoka
-	Oneinch                  // 1inch
-	OpenSea                  // opensea
-	Optimism                 // optimism
-	Paragraph                // paragraph
-	RSS3                     // rss3
-	SAVM                     // savm
-	Stargate                 // stargate
-	Uniswap                  // uniswap
-	VSL                      // vsl
+	Aave       Worker = iota + 1 // aave
+	Aavegotchi                   // aavegotchi
+	Core                         // core
+	Crossbell                    // crossbell
+	Curve                        // curve
+	ENS                          // ens
+	Highlight                    // highlight
+	IQWiki                       // iqwiki
+	KiwiStand                    // kiwistand
+	Lens                         // lens
+	Lido                         // lido
+	Looksrare                    // looksrare
+	Matters                      // matters
+	Mirror                       // mirror
+	Momoka                       // momoka
+	Oneinch                      // 1inch
+	OpenSea                      // opensea
+	Optimism                     // optimism
+	Paragraph                    // paragraph
+	RSS3                         // rss3
+	SAVM                         // savm
+	Stargate                     // stargate
+	Uniswap                      // uniswap
+	VSL                          // vsl
 )
+
+func (w Worker) Component() string {
+	return "decentralized"
+}
 
 func (w Worker) Name() string {
 	return w.String()

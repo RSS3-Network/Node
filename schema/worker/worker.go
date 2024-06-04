@@ -9,26 +9,23 @@ import (
 )
 
 type Worker interface {
+	Component() string
 	Name() string
 }
 
 func HookFunc() mapstructure.DecodeHookFuncType {
 	return func(
-		f reflect.Type, // data type
-		t reflect.Type, // target data type
-		data interface{}, // raw data
+		f reflect.Type,
+		t reflect.Type,
+		data interface{},
 	) (interface{}, error) {
-		if f.Kind() != reflect.String {
-			return data, nil
-		}
-
-		if t.Kind() != reflect.TypeOf((*Worker)(nil)).Elem().Kind() {
+		if f.Kind() != reflect.String || t.Kind() != reflect.TypeOf((*Worker)(nil)).Elem().Kind() {
 			return data, nil
 		}
 
 		// TODO: Implement the logic to determine the worker type
-		if data.(string) == rss.Rsshub.String() {
-			return rss.GetValueByWorkerStr(data.(string)), nil
+		if value := rss.GetValueByWorkerStr(data.(string)); value != 0 {
+			return value, nil
 		}
 
 		return decentralized.GetValueByWorkerStr(data.(string)), nil
