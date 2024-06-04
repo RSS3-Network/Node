@@ -2,7 +2,7 @@ version: "3"
 
 services:
 
-  redis:
+  rss3_node_redis:
     restart: always
     image: redis:7-alpine
     networks:
@@ -12,7 +12,7 @@ services:
     volumes:
       - redis:/data
 
-  cockroachdb:
+  rss3_node_cockroachdb:
     restart: always
     image: cockroachdb/cockroach:v23.1.8
     networks:
