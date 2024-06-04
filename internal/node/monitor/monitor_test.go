@@ -12,6 +12,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	redisx "github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/require"
 )
@@ -44,7 +45,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -70,7 +71,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -96,7 +97,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -123,7 +124,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -150,7 +151,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -177,7 +178,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -204,7 +205,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -231,7 +232,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -258,7 +259,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -285,7 +286,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -314,7 +315,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -337,7 +338,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -360,7 +361,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -384,7 +385,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -408,7 +409,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -432,7 +433,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -456,7 +457,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -480,7 +481,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -504,7 +505,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -528,7 +529,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -554,7 +555,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "farcaster-core",
 								Network: network.Farcaster,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 							},
 						},
 					},
@@ -579,7 +580,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "farcaster-core",
 								Network: network.Farcaster,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 							},
 						},
 					},
@@ -604,7 +605,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "farcaster-core",
 								Network: network.Farcaster,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 							},
 						},
 					},
@@ -630,7 +631,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "farcaster-core",
 								Network: network.Farcaster,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 							},
 						},
 					},
@@ -656,7 +657,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "farcaster-core",
 								Network: network.Farcaster,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 							},
 						},
 					},
@@ -682,7 +683,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "farcaster-core",
 								Network: network.Farcaster,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 							},
 						},
 					},
@@ -708,7 +709,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "farcaster-core",
 								Network: network.Farcaster,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 							},
 						},
 					},

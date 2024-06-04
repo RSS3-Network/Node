@@ -9,20 +9,28 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 )
 
 type WorkerResponse struct {
-	Data []*WorkerInfo `json:"data"`
+	Data ComponentInfo `json:"data"`
+}
+
+type ComponentInfo struct {
+	Decentralized []*WorkerInfo `json:"decentralized"`
+	RSS           []*WorkerInfo `json:"rss"`
+	Federated     []*WorkerInfo `json:"federated"`
 }
 
 type WorkerInfo struct {
-	Network  network.Network `json:"network"`
-	Worker   worker.Worker   `json:"worker"`
-	Tags     []tag.Tag       `json:"tags"`
-	Platform worker.Platform `json:"platform"`
-	Status   worker.Status   `json:"status"`
+	Network  network.Network        `json:"network"`
+	Worker   worker.Worker          `json:"worker"`
+	Tags     []tag.Tag              `json:"tags"`
+	Platform decentralized.Platform `json:"platform"`
+	Status   worker.Status          `json:"status"`
 }
 
 // WorkerKey is the key for the worker status aggregator.
@@ -38,7 +46,7 @@ type WorkerStatusAggregator struct {
 
 // GetWorkersStatus returns the status of all workers.
 func (c *Component) GetWorkersStatus(ctx echo.Context) error {
-	workerCount := len(c.config.Component.Decentralized)
+	workerCount := len(c.config.Component.Decentralized) + len(c.config.Component.RSS) + len(c.config.Component.Federated)
 	workerInfoChan := make(chan *WorkerInfo, workerCount)
 
 	// Fetch all worker info concurrently.
@@ -48,25 +56,31 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 	aggregatedWorkers := c.aggregateWorkers(workerInfoChan)
 
 	// Build the worker response.
-	workers := c.buildWorkerResponse(aggregatedWorkers)
+	response := c.buildWorkerResponse(aggregatedWorkers)
 
-	return ctx.JSON(http.StatusOK, WorkerResponse{
-		Data: workers,
-	})
+	return ctx.JSON(http.StatusOK, response)
 }
 
 // fetchAllWorkerInfo fetches the status of all workers concurrently.
 func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *WorkerInfo) {
 	var wg sync.WaitGroup
 
-	for _, w := range c.config.Component.Decentralized {
+	fetchWorkerInfo := func(w *config.Module, fetchFunc func(context.Context, *config.Module) *WorkerInfo) {
 		wg.Add(1)
 
 		go func(module *config.Module) {
 			defer wg.Done()
 
-			workerInfoChan <- c.fetchWorkerInfo(ctx.Request().Context(), module)
+			workerInfoChan <- fetchFunc(ctx.Request().Context(), module)
 		}(w)
+	}
+
+	for _, w := range c.config.Component.Decentralized {
+		fetchWorkerInfo(w, c.fetchDecentralizedWorkerInfo)
+	}
+
+	for _, w := range c.config.Component.RSS {
+		fetchWorkerInfo(w, c.fetchRssWorkerInfo)
 	}
 
 	go func() {
@@ -94,34 +108,58 @@ func (c *Component) aggregateWorkers(workerInfoChan <-chan *WorkerInfo) map[Work
 }
 
 // buildWorkerResponse aggregates statuses to determine the final status of a worker
-func (c *Component) buildWorkerResponse(aggregatedWorkers map[WorkerKey]*WorkerStatusAggregator) []*WorkerInfo {
-	workers := make([]*WorkerInfo, 0, len(aggregatedWorkers))
+func (c *Component) buildWorkerResponse(aggregatedWorkers map[WorkerKey]*WorkerStatusAggregator) *WorkerResponse {
+	decentralizedWorkers := make([]*WorkerInfo, 0, len(aggregatedWorkers))
+	rssWorkers := make([]*WorkerInfo, 0, len(aggregatedWorkers))
 
 	for key, aggregator := range aggregatedWorkers {
-		finalStatus := determineFinalStatus(aggregator.Statuses)
+		workerInfo := &WorkerInfo{
+			Network: key.Network,
+			Worker:  key.Worker,
+			Status:  determineFinalStatus(aggregator.Statuses),
+		}
 
-		workers = append(workers, &WorkerInfo{
-			Network:  key.Network,
-			Worker:   key.Worker,
-			Status:   finalStatus,
-			Tags:     worker.ToTagsMap[key.Worker],
-			Platform: worker.ToPlatformMap[key.Worker],
-		})
+		switch key.Network.Source() {
+		case network.RSSSource:
+			workerInfo.Tags = rss.ToTagsMap[key.Worker.(rss.Worker)]
+			rssWorkers = append(rssWorkers, workerInfo)
+		case network.EthereumSource, network.FarcasterSource, network.ArweaveSource:
+			workerInfo.Tags = decentralized.ToTagsMap[key.Worker.(decentralized.Worker)]
+			workerInfo.Platform = decentralized.ToPlatformMap[key.Worker.(decentralized.Worker)]
+			decentralizedWorkers = append(decentralizedWorkers, workerInfo)
+		}
 	}
 
-	return workers
+	return &WorkerResponse{
+		Data: ComponentInfo{
+			Decentralized: decentralizedWorkers,
+			RSS:           rssWorkers,
+		},
+	}
 }
 
-func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
+func (c *Component) fetchDecentralizedWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
 	// Fetch status from a specific worker by id.
 	status := c.getWorkerStatusByID(ctx, module.ID)
 
 	return &WorkerInfo{
 		Network:  module.Network,
 		Worker:   module.Worker,
-		Platform: worker.ToPlatformMap[module.Worker],
-		Tags:     worker.ToTagsMap[module.Worker],
+		Platform: decentralized.ToPlatformMap[module.Worker.(decentralized.Worker)],
+		Tags:     decentralized.ToTagsMap[module.Worker.(decentralized.Worker)],
 		Status:   status,
+	}
+}
+
+func (c *Component) fetchRssWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
+	// Fetch status from a specific worker by id.
+	status := c.getWorkerStatusByID(ctx, module.ID)
+
+	return &WorkerInfo{
+		Network: module.Network,
+		Worker:  module.Worker,
+		Tags:    rss.ToTagsMap[module.Worker.(rss.Worker)],
+		Status:  status,
 	}
 }
 

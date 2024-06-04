@@ -8,7 +8,8 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
@@ -59,6 +60,7 @@ observability:
 component:
   rss:
     - network: rss
+      worker: rsshub
       endpoint: https://rsshub.app/
       parameters:
         authentication:
@@ -136,6 +138,7 @@ component:
     "rss": [
       {
         "network": "rss",
+        "worker": "rsshub",
         "endpoint": "https://rsshub.app/",
         "parameters": {
           "authentication": {
@@ -213,6 +216,7 @@ endpoint = "localhost:4318"
 
 [[component.rss]]
 network = "rss"
+worker = "rsshub"
 endpoint = "https://rsshub.app/"
 
 [component.rss.parameters.authentication]
@@ -271,7 +275,7 @@ var configFileExcept = &File{
 				Endpoint: Endpoint{
 					URL: "https://rsshub.app/",
 				},
-				Worker: 0,
+				Worker: rss.Rsshub,
 				Parameters: &Parameters{
 					"authentication": map[string]any{
 						"access_code": "def",
@@ -286,7 +290,7 @@ var configFileExcept = &File{
 		Decentralized: []*Module{
 			{
 				Network:    network.Ethereum,
-				Worker:     workerx.Core,
+				Worker:     decentralized.Core,
 				EndpointID: "ethereum",
 				Endpoint: Endpoint{
 					URL: "https://rpc.ankr.com/eth",
@@ -301,7 +305,7 @@ var configFileExcept = &File{
 			},
 			{
 				Network:    network.Ethereum,
-				Worker:     workerx.RSS3,
+				Worker:     decentralized.RSS3,
 				EndpointID: "https://rpc.ankr.com/eth",
 				Endpoint: Endpoint{
 					URL: "https://rpc.ankr.com/eth",

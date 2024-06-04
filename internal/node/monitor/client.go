@@ -3,13 +3,17 @@ package monitor
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"path"
 	"strconv"
 	"time"
 
 	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/internal/node/component/rss"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/farcaster"
+	"github.com/rss3-network/node/provider/httpx"
 )
 
 type Client interface {
@@ -157,4 +161,62 @@ func convertToUint64(value interface{}) (uint64, error) {
 // NewFarcasterClient returns a new farcaster client.
 func NewFarcasterClient() (Client, error) {
 	return &farcasterClient{}, nil
+}
+
+type rssClient struct {
+	httpClient httpx.Client
+	url        string
+}
+
+// make sure client implements Client
+var _ Client = (*rssClient)(nil)
+
+func (c *rssClient) CurrentState(_ CheckpointState) uint64 {
+	return 0
+}
+
+func (c *rssClient) TargetState(_ *config.Parameters) uint64 {
+	return 0
+}
+
+func (c *rssClient) LatestState(ctx context.Context) (uint64, error) {
+	_, err := c.httpClient.Fetch(ctx, c.url)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return 0, nil
+}
+
+// NewRssClient returns a new rss client.
+func NewRssClient(endpoint config.Endpoint, param *config.Parameters) (Client, error) {
+	base, err := url.Parse(endpoint.URL)
+	if err != nil {
+		return nil, fmt.Errorf("parse RSSHub endpoint: %w", err)
+	}
+
+	// used for health checks
+	base.Path = path.Join(base.Path, "abc")
+
+	option, err := rss.NewOption(param)
+	if err != nil {
+		return nil, fmt.Errorf("parse config parameters: %w", err)
+	}
+
+	if option.Authentication.AccessKey != "" {
+		query := base.Query()
+		query.Set("key", option.Authentication.AccessKey)
+		base.RawQuery = query.Encode()
+	}
+
+	httpClient, err := httpx.NewHTTPClient()
+	if err != nil {
+		return nil, err
+	}
+
+	return &rssClient{
+		httpClient: httpClient,
+		url:        base.String(),
+	}, nil
 }

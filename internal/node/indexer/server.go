@@ -14,7 +14,7 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/internal/engine/source"
-	"github.com/rss3-network/node/internal/engine/worker"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
@@ -283,21 +283,26 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 		return nil, fmt.Errorf("new worker: %w", err)
 	}
 
-	switch config.Network {
-	case network.Arweave:
+	switch config.Network.Source() {
+	case network.ArweaveSource:
 		instance.monitorClient, err = monitor.NewArweaveClient()
 		if err != nil {
 			return nil, fmt.Errorf("new arweave monitorClient: %w", err)
 		}
-	case network.Farcaster:
-		instance.monitorClient, err = monitor.NewFarcasterClient()
+	case network.FarcasterSource:
+		instance.monitorClient, err = monitor.NewArweaveClient()
 		if err != nil {
-			return nil, fmt.Errorf("new farcaster monitorClient: %w", err)
+			return nil, fmt.Errorf("new arweave monitorClient: %w", err)
 		}
-	default:
+	case network.EthereumSource:
 		instance.monitorClient, err = monitor.NewEthereumClient(config.Endpoint)
 		if err != nil {
 			return nil, fmt.Errorf("new ethereum monitorClient: %w", err)
+		}
+	case network.RSSSource:
+		instance.monitorClient, err = monitor.NewRssClient(config.Endpoint, config.Parameters)
+		if err != nil {
+			return nil, fmt.Errorf("new rss monitorClient: %w", err)
 		}
 	}
 

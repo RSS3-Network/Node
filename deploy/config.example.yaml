@@ -76,7 +76,9 @@ endpoints:
 
 component:
   rss:
-    - network: rss
+    - id: rss-rsshub
+      network: rss
+      worker: rsshub
       endpoint: https://rsshub.app/
       parameters:
         authentication:
@@ -433,3 +435,4 @@ component:
       endpoint: polygon
       parameters:
         block_start:
+

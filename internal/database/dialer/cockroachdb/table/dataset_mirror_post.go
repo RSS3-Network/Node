@@ -1,7 +1,7 @@
 package table
 
 import (
-	"github.com/rss3-network/node/internal/engine/worker/contract/mirror/model"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/mirror/model"
 )
 
 var _ model.DatasetMirrorPostTransformer = (*DatasetMirrorPost)(nil)
