@@ -75,12 +75,10 @@ func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *
 		}(w)
 	}
 
-	for _, w := range c.config.Component.Decentralized {
-		fetchWorkerInfo(w, c.fetchDecentralizedWorkerInfo)
-	}
+	modules := append(append(c.config.Component.Decentralized, c.config.Component.RSS...), c.config.Component.Federated...)
 
-	for _, w := range c.config.Component.RSS {
-		fetchWorkerInfo(w, c.fetchRssWorkerInfo)
+	for _, m := range modules {
+		fetchWorkerInfo(m, c.fetchWorkerInfo)
 	}
 
 	go func() {
@@ -138,29 +136,26 @@ func (c *Component) buildWorkerResponse(aggregatedWorkers map[WorkerKey]*WorkerS
 	}
 }
 
-func (c *Component) fetchDecentralizedWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
+// fetchWorkerInfo fetches the worker info with the different network source.
+func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
 	// Fetch status from a specific worker by id.
 	status := c.getWorkerStatusByID(ctx, module.ID)
 
-	return &WorkerInfo{
-		Network:  module.Network,
-		Worker:   module.Worker,
-		Platform: decentralized.ToPlatformMap[module.Worker.(decentralized.Worker)],
-		Tags:     decentralized.ToTagsMap[module.Worker.(decentralized.Worker)],
-		Status:   status,
-	}
-}
-
-func (c *Component) fetchRssWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
-	// Fetch status from a specific worker by id.
-	status := c.getWorkerStatusByID(ctx, module.ID)
-
-	return &WorkerInfo{
+	workerInfo := &WorkerInfo{
 		Network: module.Network,
 		Worker:  module.Worker,
-		Tags:    rss.ToTagsMap[module.Worker.(rss.Worker)],
 		Status:  status,
 	}
+
+	switch module.Network.Source() {
+	case network.EthereumSource, network.ArweaveSource, network.FarcasterSource:
+		workerInfo.Platform = decentralized.ToPlatformMap[module.Worker.(decentralized.Worker)]
+		workerInfo.Tags = decentralized.ToTagsMap[module.Worker.(decentralized.Worker)]
+	case network.RSSSource:
+		workerInfo.Tags = rss.ToTagsMap[module.Worker.(rss.Worker)]
+	}
+
+	return workerInfo
 }
 
 // determineFinalStatus determines the final status of a worker based on the statuses of its instances.
