@@ -41,7 +41,7 @@ const (
 
 // defines the demand level of a network
 var (
-	highDemandNetworks = []network.Network{network.Ethereum, network.Polygon, network.Arbitrum, network.Base, network.Gnosis, network.BinanceSmartChain, network.Optimism, network.Arweave}
+	highDemandNetworks = []network.Network{network.Ethereum, network.Polygon, network.Arbitrum, network.Base, network.Gnosis, network.BinanceSmartChain, network.Optimism, network.Arweave, network.Farcaster}
 	highDemandWorkers  = []worker.Worker{decentralized.Core, decentralized.Momoka}
 	midDemandWorkers   = []worker.Worker{decentralized.Uniswap, decentralized.OpenSea, decentralized.Stargate, decentralized.Curve}
 )
