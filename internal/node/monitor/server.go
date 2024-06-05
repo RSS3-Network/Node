@@ -54,7 +54,7 @@ func initNetworkClient(m *config.Module) (Client, error) {
 	case network.FarcasterSource:
 		client, err = NewFarcasterClient()
 	case network.RSSSource:
-		client, err = NewRssClient(m.Endpoint, m.Parameters)
+		client, err = NewRssClient(m.EndpointID, m.Parameters)
 	case network.EthereumSource:
 		client, err = NewEthereumClient(m.Endpoint)
 	default:

@@ -300,7 +300,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 			return nil, fmt.Errorf("new ethereum monitorClient: %w", err)
 		}
 	case network.RSSSource:
-		instance.monitorClient, err = monitor.NewRssClient(config.Endpoint, config.Parameters)
+		instance.monitorClient, err = monitor.NewRssClient(config.EndpointID, config.Parameters)
 		if err != nil {
 			return nil, fmt.Errorf("new rss monitorClient: %w", err)
 		}

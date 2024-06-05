@@ -192,8 +192,8 @@ func (c *rssClient) LatestState(ctx context.Context) (uint64, error) {
 }
 
 // NewRssClient returns a new rss client.
-func NewRssClient(endpoint config.Endpoint, param *config.Parameters) (Client, error) {
-	base, err := url.Parse(endpoint.URL)
+func NewRssClient(endpoint string, param *config.Parameters) (Client, error) {
+	base, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("parse RSSHub endpoint: %w", err)
 	}
