@@ -1,0 +1,8 @@
+schema: schema.graphql
+documents: "*.graphql"
+extensions:
+  endpoints:
+    mainnet:
+      url: https://arweave.mainnet.irys.xyz/graphql
+    devnet:
+      url: https://arweave.devnet.irys.xyz/graphql

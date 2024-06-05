@@ -77,8 +77,8 @@ func (w *worker) Types() []schema.Type {
 // Filter returns a filter for source.
 func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{
-		OwnerAddresses:  momoka.AddressesLens,
-		BundlrAddresses: momoka.AddressesBundlr,
+		OwnerAddresses: momoka.AddressesSubmitter,
+		BundlrOnly:     true,
 	}
 }
 

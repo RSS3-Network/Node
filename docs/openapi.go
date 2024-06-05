@@ -35,20 +35,10 @@ func Generate(endpoint string) ([]byte, error) {
 	}
 
 	// Write the updated file back to the file system
-	if err := os.WriteFile(FilePath, file, 0600); err != nil {
-		zap.L().Error("write file error", zap.Error(err))
-		return nil, err
-	}
+	_ = os.WriteFile(FilePath, file, 0600)
 
 	// Generate servers.
 	if file, err = generateServers(file, endpoint); err != nil {
-		return nil, err
-	}
-
-	// Update the embedded file
-	EmbedFS, err = updateEmbedFS()
-	if err != nil {
-		zap.L().Error("update embedfs error", zap.Error(err))
 		return nil, err
 	}
 
@@ -135,12 +125,4 @@ func generateEnum(file []byte) ([]byte, error) {
 	}
 
 	return file, nil
-}
-
-// updateEmbedFS updates the embedded file system.
-func updateEmbedFS() (embed.FS, error) {
-	// Re-embed the updated file
-	// Note: This is not typically how embed.FS works as it is static at compile time.
-	// This function is a placeholder to indicate the need to recompile the program to update the embedded file.
-	return EmbedFS, nil
 }
