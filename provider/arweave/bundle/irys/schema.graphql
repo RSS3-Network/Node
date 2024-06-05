@@ -1,0 +1,93 @@
+"""Controls the rate of traffic."""
+directive @rateLimit(
+  """Number of occurrences allowed over duration."""
+  limit: Int! = 60
+
+  """Number of seconds before limit is reset."""
+  duration: Int! = 60
+) on OBJECT | FIELD_DEFINITION
+
+"""
+The `BigInt` scalar type represents non-fractional signed whole numeric values.BigInt can represent values between -(2^53) + 1 and 2^53 - 1.
+"""
+scalar BigInt
+
+type Query {
+  transactions(ids: [String!], after: String, currency: String @deprecated(reason: "Use token"), token: String, owners: [String!], limit: Int @deprecated(reason: "Use first"), first: Int, order: SortOrder, hasTags: Boolean, tags: [TagFilter!], timestamp: TimestampFilter): TransactionConnection
+  paymentApprovals(tokens: [String!], payingAddresses: [String!], approvedAddresses: [String!], limit: Int, after: String, order: SortOrder): ApprovalConnection
+}
+
+input TagFilter {
+  name: String!
+  values: [String!]!
+}
+
+input TimestampFilter {
+  """Inclusive"""
+  from: BigInt
+  to: BigInt
+}
+
+type Tag {
+  name: String!
+  value: String!
+}
+
+enum SortOrder {
+  ASC
+  DESC
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type TransactionConnection {
+  pageInfo: PageInfo
+  edges: [TransactionEdge]
+}
+
+type TransactionEdge {
+  cursor: String!
+  node: Transaction!
+}
+
+type Receipt {
+  version: String!
+  signature: String!
+  timestamp: BigInt!
+  deadlineHeight: BigInt!
+}
+
+type Transaction {
+  id: String!
+  currency: String! @deprecated(reason: "use token instead")
+  token: String!
+  address: String!
+  tags: [Tag!]
+  signature: String
+  timestamp: BigInt!
+  receipt: Receipt
+  size: String!
+  fee: String!
+}
+
+type ApprovalConnection {
+  pageInfo: PageInfo
+  edges: [ApprovalEdge]
+}
+
+type ApprovalEdge {
+  cursor: String!
+  node: PaymentApproval!
+}
+
+type PaymentApproval {
+  amount: String!
+  payingAddress: String!
+  approvedAddress: String!
+  expiresBy: BigInt
+  timestamp: BigInt!
+  token: String!
+}

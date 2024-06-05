@@ -1,0 +1,7 @@
+schema: schema.graphql
+operations:
+  - ./operation/transactions.graphql
+generated: operation.go
+bindings:
+  BigInt:
+    type: "*math/big.Int"
