@@ -1,0 +1,30 @@
+query Transactions($owners: [String!], $after: String, $first: Int) {
+    transactions(owners: $owners, after: $after, first: $first, order: ASC) {
+        edges {
+            cursor
+            node {
+                id
+                token
+                address
+                tags {
+                    name
+                    value
+                }
+                signature
+                timestamp
+                receipt {
+                    version
+                    signature
+                    timestamp
+                    deadlineHeight
+                }
+                size
+                fee
+            }
+        }
+        pageInfo {
+            endCursor
+            hasNextPage
+        }
+    }
+}

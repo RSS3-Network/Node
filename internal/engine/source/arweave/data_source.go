@@ -9,15 +9,18 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/Khan/genqlient/graphql"
 	"github.com/avast/retry-go/v4"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/arweave/bundle"
+	"github.com/rss3-network/node/provider/arweave/bundle/irys"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
@@ -59,8 +62,15 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 	// Start a goroutine to poll blocks.
 	go func() {
 		retryableFunc := func() error {
-			if err := s.pollBlocks(ctx, tasksChan, s.filter); err != nil {
-				return fmt.Errorf("poll blocks: %w", err)
+			switch {
+			case s.filter.BundlrOnly:
+				if err := s.pollTransactionsFromIrys(ctx, tasksChan, s.filter); err != nil {
+					return fmt.Errorf("poll transaction froms irys: %w", err)
+				}
+			default:
+				if err := s.pollBlocks(ctx, tasksChan, s.filter); err != nil {
+					return fmt.Errorf("poll blocks: %w", err)
+				}
 			}
 
 			return nil
@@ -167,7 +177,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 		})
 
 		// Batch pull transactions by ids.
-		transactions, err := s.batchPullTransactions(ctx, transactionIDs)
+		transactions, err := s.batchPullTransactions(ctx, s.arweaveClient, transactionIDs)
 		if err != nil {
 			return fmt.Errorf("batch pull transactions: %w", err)
 		}
@@ -176,7 +186,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 		transactions = s.filterOwnerTransaction(transactions, append(filter.OwnerAddresses, filter.BundlrAddresses...))
 
 		// Pull transaction data and ignore the transaction if the owner is bundlr node.
-		if err := s.batchPullData(ctx, transactions); err != nil {
+		if err := s.batchPullData(ctx, s.arweaveClient, transactions, true); err != nil {
 			return fmt.Errorf("batch pull data: %w", err)
 		}
 
@@ -217,6 +227,83 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 	}
 
 	return nil
+}
+
+// pollTransactionsFromIrys polls transactions from Irys GraphQL endpoint.
+func (s *dataSource) pollTransactionsFromIrys(ctx context.Context, tasksChan chan<- *engine.Tasks, filter *Filter) error {
+	// Initialize Irys GraphQL client.
+	graphqlClient := graphql.NewClient(irys.EndpointMainnet, http.DefaultClient)
+
+	// Override Arweave client with Irys gateways,
+	// because the official Arweave gateway doesn't have all of Irys' transactions.
+	arweaveClient, err := arweave.NewClient(arweave.WithGateways(irys.DefaultGateways))
+	if err != nil {
+		return fmt.Errorf("create arweave client: %w", err)
+	}
+
+	for {
+		// Get transactions from Irys GraphQL endpoint.
+		transactionsResponse, err := irys.Transactions(ctx, graphqlClient, filter.OwnerAddresses, s.state.Cursor, irys.DefaultLimit)
+		if err != nil {
+			return fmt.Errorf("get transactions from irys: %w", err)
+		}
+
+		transactionIDs := make([]string, 0, len(transactionsResponse.Transactions.Edges))
+
+		// Use timestamp of the transactions to build blocks,
+		// because Irys GraphQL response don't provide the block height field.
+		blockMap := make(map[int64]*arweave.Block)
+
+		for _, transactionEdge := range transactionsResponse.Transactions.Edges {
+			// Convert milliseconds to seconds.
+			blockTimestamp := transactionEdge.Node.Timestamp.Int64() / 1000
+
+			block, found := blockMap[blockTimestamp]
+			if !found {
+				block = &arweave.Block{
+					Timestamp: blockTimestamp,
+				}
+			}
+
+			block.Txs = append(block.Txs, transactionEdge.Node.Id)
+			blockMap[blockTimestamp] = block
+
+			transactionIDs = append(transactionIDs, transactionEdge.Node.Id)
+		}
+
+		blocks := lo.Values(blockMap)
+
+		// Batch pull transactions from Irys gateway.
+		transactions, err := s.batchPullTransactions(ctx, arweaveClient, transactionIDs)
+		if err != nil {
+			return fmt.Errorf("batch pull transactions: %w", err)
+		}
+
+		// Irys gateway does not use base64 to encode the tag's name and value.
+		transactions = lo.Map(transactions, func(transaction *arweave.Transaction, _ int) *arweave.Transaction {
+			transaction.Tags = lo.Map(transaction.Tags, func(tag arweave.Tag, _ int) arweave.Tag {
+				tag.Name = arweave.Base64Encode([]byte(tag.Name))
+				tag.Value = arweave.Base64Encode([]byte(tag.Value))
+
+				return tag
+			})
+
+			return transaction
+		})
+
+		// Batch pull transaction data from Irys gateway.
+		if err := s.batchPullData(ctx, arweaveClient, transactions, false); err != nil {
+			return fmt.Errorf("batch pull data: %w", err)
+		}
+
+		tasks := s.buildTasks(ctx, blocks, transactions)
+
+		// TODO It might be possible to use generics to avoid manual type assertions.
+		tasksChan <- tasks
+
+		// Update cursor to state.
+		s.state.Cursor = transactionsResponse.Transactions.PageInfo.EndCursor
+	}
 }
 
 // batchPullBlocksByRange pulls blocks by range, from local state block height to remote block height.
@@ -268,7 +355,7 @@ func (s *dataSource) batchPullBlocks(ctx context.Context, blockHeights []*big.In
 }
 
 // batchPullTransactions pulls transactions by transaction ids.
-func (s *dataSource) batchPullTransactions(ctx context.Context, transactionIDs []string) ([]*arweave.Transaction, error) {
+func (s *dataSource) batchPullTransactions(ctx context.Context, arweaveClient arweave.Client, transactionIDs []string) ([]*arweave.Transaction, error) {
 	zap.L().Info("begin to pull transactions", zap.Int("transactions", len(transactionIDs)))
 
 	resultPool := pool.NewWithResults[*arweave.Transaction]().
@@ -281,7 +368,7 @@ func (s *dataSource) batchPullTransactions(ctx context.Context, transactionIDs [
 
 		resultPool.Go(func(ctx context.Context) (*arweave.Transaction, error) {
 			retryableFunc := func() (*arweave.Transaction, error) {
-				return s.arweaveClient.GetTransactionByID(ctx, transactionID)
+				return arweaveClient.GetTransactionByID(ctx, transactionID)
 			}
 
 			return retry.DoWithData(
@@ -301,7 +388,7 @@ func (s *dataSource) batchPullTransactions(ctx context.Context, transactionIDs [
 
 // batchPullData pulls data by transactions.
 // It will discard the transaction if the owner is bundlr node.
-func (s *dataSource) batchPullData(ctx context.Context, transactions []*arweave.Transaction) error {
+func (s *dataSource) batchPullData(ctx context.Context, arweaveClient arweave.Client, transactions []*arweave.Transaction, skipBundler bool) error {
 	resultPool := pool.New().
 		WithContext(ctx).
 		WithCancelOnError().
@@ -315,13 +402,14 @@ func (s *dataSource) batchPullData(ctx context.Context, transactions []*arweave.
 			return fmt.Errorf("invalid owner of transaction %s: %w", transaction.ID, err)
 		}
 
-		if lo.Contains(s.filter.BundlrAddresses, owner) {
+		// If `skipBundler` is true, skip the transaction if the owner is Bundlr node.
+		if skipBundler && lo.Contains(s.filter.BundlrAddresses, owner) {
 			continue
 		}
 
 		resultPool.Go(func(ctx context.Context) error {
 			retryableFunc := func() (string, error) {
-				response, err := s.arweaveClient.GetTransactionData(ctx, transaction.ID)
+				response, err := arweaveClient.GetTransactionData(ctx, transaction.ID)
 				if err != nil {
 					if errors.Is(err, arweave.ErrorNotFound) {
 						return "", nil
