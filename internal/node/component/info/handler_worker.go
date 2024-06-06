@@ -227,10 +227,10 @@ func (c *Component) parseRedisJSONValue(jsonStr string) (string, error) {
 
 // buildWorkerIDStatusCacheKey builds the cache key for the worker status by id.
 func (c *Component) buildWorkerIDStatusCacheKey(workerID string) string {
-	return fmt.Sprintf("worker:status:id::%s", workerID)
+	return fmt.Sprintf("worker:status:id:%s", workerID)
 }
 
 // buildWorkerProgressCacheKey builds the cache key for the worker progress by id.
 func (c *Component) buildWorkerProgressCacheKey(workerID string) string {
-	return fmt.Sprintf("worker:progress::%s", workerID)
+	return fmt.Sprintf("worker:progress:%s", workerID)
 }

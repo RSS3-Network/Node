@@ -263,12 +263,12 @@ func (m *Monitor) UpdateWorkerProgress(ctx context.Context, workerID string, pro
 
 // buildWorkerIDStatusCacheKey builds the cache key for the worker status by id.
 func (m *Monitor) buildWorkerIDStatusCacheKey(workerID string) string {
-	return fmt.Sprintf("worker:status:id::%s", workerID)
+	return fmt.Sprintf("worker:status:id:%s", workerID)
 }
 
 // buildWorkerProgressCacheKey builds cache key for worker current state in each monitoring cycle.
 func (m *Monitor) buildWorkerProgressCacheKey(workerID string) string {
-	return fmt.Sprintf("worker:progress::%s", workerID)
+	return fmt.Sprintf("worker:progress:%s", workerID)
 }
 
 // ConstructWorkerProgress constructs the worker progress from current, target and latest block height/number.
