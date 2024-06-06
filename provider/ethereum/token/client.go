@@ -656,7 +656,7 @@ func (c *client) buildCacheKey(chainID uint64, address common.Address, id *big.I
 	var key string
 
 	// Only support Ethereum Virtual Machine (EVM) chain.
-	key = fmt.Sprintf("tokens:ethereum::%d:%s", chainID, address)
+	key = fmt.Sprintf("tokens:ethereum:%d:%s", chainID, address)
 
 	if id != nil {
 		key = fmt.Sprintf("%s:%s", key, id)
