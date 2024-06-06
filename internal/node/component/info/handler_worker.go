@@ -36,8 +36,8 @@ type WorkerKey struct {
 
 // WorkerStatusAggregator aggregates the statuses of workers with the same Network+Worker.
 type WorkerStatusAggregator struct {
-	Statuses   []worker.Status
-	Progresses []monitor.WorkerProgress
+	Statuses []worker.Status
+	Progress []monitor.WorkerProgress
 }
 
 // GetWorkersStatus returns the status of all workers.
@@ -88,11 +88,11 @@ func (c *Component) aggregateWorkers(workerInfoChan <-chan *WorkerInfo) map[Work
 		key := WorkerKey{Network: workerInfo.Network, Worker: workerInfo.Worker}
 
 		if _, exists := aggregatedWorkers[key]; !exists {
-			aggregatedWorkers[key] = &WorkerStatusAggregator{Statuses: []worker.Status{}, Progresses: []monitor.WorkerProgress{}}
+			aggregatedWorkers[key] = &WorkerStatusAggregator{Statuses: []worker.Status{}, Progress: []monitor.WorkerProgress{}}
 		}
 
 		aggregatedWorkers[key].Statuses = append(aggregatedWorkers[key].Statuses, workerInfo.Status)
-		aggregatedWorkers[key].Progresses = append(aggregatedWorkers[key].Progresses, workerInfo.WorkerProgress)
+		aggregatedWorkers[key].Progress = append(aggregatedWorkers[key].Progress, workerInfo.WorkerProgress)
 	}
 
 	return aggregatedWorkers
@@ -104,7 +104,7 @@ func (c *Component) buildWorkerResponse(aggregatedWorkers map[WorkerKey]*WorkerS
 
 	for key, aggregator := range aggregatedWorkers {
 		finalStatus := determineFinalStatus(aggregator.Statuses)
-		finalProgress := determineFinalProgress(aggregator.Progresses)
+		finalProgress := determineFinalProgress(aggregator.Progress)
 
 		workers = append(workers, &WorkerInfo{
 			Network:        key.Network,
@@ -147,15 +147,15 @@ func determineFinalStatus(statuses []worker.Status) worker.Status {
 	return statuses[0]
 }
 
-// determineFinalProgress determines the final progress of a worker based on the progresses of its instances.
+// determineFinalProgress determines the final progress of a worker based on the progress of its instances.
 // if user runs more than one worker instance, we can determine the final progress as empty until user adjusts the worker instances to 1
-func determineFinalProgress(progresses []monitor.WorkerProgress) monitor.WorkerProgress {
+func determineFinalProgress(progress []monitor.WorkerProgress) monitor.WorkerProgress {
 	// if user runs more than one worker instance, we can determine the final status as unhealthy
-	if len(progresses) > 1 || len(progresses) == 0 {
+	if len(progress) > 1 || len(progress) == 0 {
 		return monitor.WorkerProgress{}
 	}
 
-	return progresses[0]
+	return progress[0]
 }
 
 // getWorkerStatusAndProgressByID gets both worker status and progress from Redis cache by worker ID.
