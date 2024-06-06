@@ -117,9 +117,9 @@ func (c *Component) buildWorkerResponse(aggregatedWorkers map[WorkerKey]*WorkerS
 
 	for key, aggregator := range aggregatedWorkers {
 		workerInfo := &WorkerInfo{
-			Network: key.Network,
-			Worker:  key.Worker,
-			Status:  determineFinalStatus(aggregator.Statuses),
+			Network:        key.Network,
+			Worker:         key.Worker,
+			Status:         determineFinalStatus(aggregator.Statuses),
 			WorkerProgress: determineFinalProgress(aggregator.Progress),
 		}
 
