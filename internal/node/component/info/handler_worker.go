@@ -137,45 +137,25 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 }
 
 // determineFinalStatus determines the final status of a worker based on the statuses of its instances.
-// if all instances are ready, the final status is ready,
-// at least one instance is indexing or ready, the final status is indexing
-// otherwise, the final status is unhealthy
+// if user runs more than one worker instance, we can determine the final status as unhealthy until user adjusts the worker instances to 1
 func determineFinalStatus(statuses []worker.Status) worker.Status {
-	hasIndexing := false
-
-	for _, status := range statuses {
-		switch status {
-		case worker.StatusIndexing:
-			hasIndexing = true
-		case worker.StatusReady:
-		default:
-			return worker.StatusUnhealthy
-		}
+	// if user runs more than one worker instance, we can determine the final status as unhealthy
+	if len(statuses) > 1 || len(statuses) == 0 {
+		return worker.StatusUnhealthy
 	}
 
-	if hasIndexing {
-		return worker.StatusIndexing
-	}
-
-	return worker.StatusReady
+	return statuses[0]
 }
 
 // determineFinalProgress determines the final progress of a worker based on the progresses of its instances.
-// if user runs more than one worker instance, we can determine the final progress by getting the larger value of each progress field
+// if user runs more than one worker instance, we can determine the final progress as empty until user adjusts the worker instances to 1
 func determineFinalProgress(progresses []monitor.WorkerProgress) monitor.WorkerProgress {
-	finalProgress := monitor.WorkerProgress{}
-
-	for _, progress := range progresses {
-		if progress.LatestRemoteBlock > finalProgress.LatestRemoteBlock {
-			finalProgress.LatestRemoteBlock = progress.LatestRemoteBlock
-		}
-
-		if progress.LatestIndexedBlock > finalProgress.LatestIndexedBlock {
-			finalProgress.LatestIndexedBlock = progress.LatestIndexedBlock
-		}
+	// if user runs more than one worker instance, we can determine the final status as unhealthy
+	if len(progresses) > 1 || len(progresses) == 0 {
+		return monitor.WorkerProgress{}
 	}
 
-	return finalProgress
+	return progresses[0]
 }
 
 // getWorkerStatusAndProgressByID gets both worker status and progress from Redis cache by worker ID.

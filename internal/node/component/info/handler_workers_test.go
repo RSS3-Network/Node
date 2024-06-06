@@ -16,23 +16,28 @@ func TestDetermineFinalStatus(t *testing.T) {
 		expected worker.Status
 	}{
 		{
-			name:     "AllStatusesReady",
-			statuses: []worker.Status{worker.StatusReady, worker.StatusReady, worker.StatusReady},
+			name:     "Ready",
+			statuses: []worker.Status{worker.StatusReady},
 			expected: worker.StatusReady,
 		},
 		{
-			name:     "AtLeastOneStatusIndexing",
-			statuses: []worker.Status{worker.StatusReady, worker.StatusIndexing, worker.StatusReady},
+			name:     "Indexing",
+			statuses: []worker.Status{worker.StatusIndexing},
 			expected: worker.StatusIndexing,
 		},
 		{
-			name:     "AtLeastOneStatusUnhealthy(Ready)",
-			statuses: []worker.Status{worker.StatusReady, worker.StatusUnhealthy, worker.StatusReady},
+			name:     "Unhealthy",
+			statuses: []worker.Status{worker.StatusUnhealthy},
 			expected: worker.StatusUnhealthy,
 		},
 		{
-			name:     "AtLeastOneStatusUnhealthy(Indexing)",
-			statuses: []worker.Status{worker.StatusIndexing, worker.StatusUnhealthy, worker.StatusIndexing},
+			name:     "2 Instance, Ready + Indexing",
+			statuses: []worker.Status{worker.StatusReady, worker.StatusIndexing},
+			expected: worker.StatusUnhealthy,
+		},
+		{
+			name:     "2 Instance, Indexing + Indexing",
+			statuses: []worker.Status{worker.StatusIndexing, worker.StatusIndexing},
 			expected: worker.StatusUnhealthy,
 		},
 	}
