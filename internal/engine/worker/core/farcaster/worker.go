@@ -100,7 +100,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.Message, activity *activityx.Activity) {
 	fid := int64(message.Data.Fid)
 
-	post := w.buildPost(ctx, int64(message.Data.Fid), message.Hash, message.Data.CastAddBody)
+	post := w.buildPost(ctx, int64(message.Data.Fid), message.Hash, message.Data.CastAddBody, farcaster.CovertFarcasterTimeToTimestamp(int64(message.Data.Timestamp)))
 
 	post.Handle = message.Data.Profile.Username
 	activity.From = message.Data.Profile.CustodyAddress
@@ -113,7 +113,7 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 
 		targetMessage := message.Data.CastAddBody.ParentCast
 
-		post.Target = w.buildPost(ctx, targetFid, targetMessage.Hash, targetMessage.Data.CastAddBody)
+		post.Target = w.buildPost(ctx, targetFid, targetMessage.Hash, targetMessage.Data.CastAddBody, farcaster.CovertFarcasterTimeToTimestamp(int64(targetMessage.Data.Timestamp)))
 		// this represents a reply to self.
 		if fid == targetFid {
 			post.Target.Handle = post.Handle
@@ -155,7 +155,7 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farcaster.Message, activity *activityx.Activity) {
 	fid := int64(message.Data.Fid)
 
-	post := w.buildPost(ctx, int64(message.Data.Fid), message.Hash, nil)
+	post := w.buildPost(ctx, int64(message.Data.Fid), message.Hash, nil, farcaster.CovertFarcasterTimeToTimestamp(int64(message.Data.Timestamp)))
 
 	post.Handle = message.Data.Profile.Username
 	activity.From = message.Data.Profile.CustodyAddress
@@ -166,7 +166,7 @@ func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farc
 
 	targetMessage := message.Data.ReactionBody.TargetCast
 
-	post.Target = w.buildPost(ctx, targetFid, targetMessage.Hash, targetMessage.Data.CastAddBody)
+	post.Target = w.buildPost(ctx, targetFid, targetMessage.Hash, targetMessage.Data.CastAddBody, farcaster.CovertFarcasterTimeToTimestamp(int64(targetMessage.Data.Timestamp)))
 
 	if fid == targetFid {
 		post.Target.Handle = post.Handle
@@ -210,7 +210,7 @@ func (w *worker) buildPostActions(_ context.Context, ethAddresses []string, acti
 }
 
 // buildPost builds post from message.
-func (w *worker) buildPost(ctx context.Context, fid int64, hash string, body *farcaster.CastAddBody) *metadata.SocialPost {
+func (w *worker) buildPost(ctx context.Context, fid int64, hash string, body *farcaster.CastAddBody, timestamp int64) *metadata.SocialPost {
 	var (
 		text   string
 		embeds []string
@@ -229,6 +229,7 @@ func (w *worker) buildPost(ctx context.Context, fid int64, hash string, body *fa
 		Body:          text,
 		ProfileID:     strconv.FormatInt(fid, 10),
 		PublicationID: common.HexToAddress(hash).String(),
+		Timestamp:     uint64(timestamp),
 	}
 
 	w.buildPostMedia(ctx, post, embeds)
