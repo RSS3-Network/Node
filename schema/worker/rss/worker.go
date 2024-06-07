@@ -9,7 +9,7 @@ import (
 type Worker int
 
 const (
-	Rsshub Worker = iota + 1 // rsshub
+	RSSHub Worker = iota + 1 // rsshub
 )
 
 func (w Worker) Component() string {
@@ -39,5 +39,5 @@ func GetValueByWorkerStr(workerStr string) Worker {
 
 // ToTagsMap is a map of worker to tags
 var ToTagsMap = map[Worker][]tag.Tag{
-	Rsshub: {tag.RSS},
+	RSSHub: {tag.RSS},
 }

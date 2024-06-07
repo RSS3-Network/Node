@@ -31,14 +31,14 @@ func (Worker) Values() []string {
 // Re-run the stringer command to generate them again.
 func _WorkerNoOp() {
 	var x [1]struct{}
-	_ = x[Rsshub-(1)]
+	_ = x[RSSHub-(1)]
 }
 
-var _WorkerValues = []Worker{Rsshub}
+var _WorkerValues = []Worker{RSSHub}
 
 var _WorkerNameToValueMap = map[string]Worker{
-	_WorkerName[0:6]:      Rsshub,
-	_WorkerLowerName[0:6]: Rsshub,
+	_WorkerName[0:6]:      RSSHub,
+	_WorkerLowerName[0:6]: RSSHub,
 }
 
 var _WorkerNames = []string{

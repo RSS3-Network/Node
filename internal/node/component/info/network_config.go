@@ -312,7 +312,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Uniswap,
 	},
 	network.RSS: {
-		rss.Rsshub,
+		rss.RSSHub,
 	},
 }
 
@@ -355,7 +355,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		}, "A Farcaster Hubble is required"),
 	},
 	network.RSSSource: {
-		rss.Rsshub: customWorkerConfig(rss.Rsshub, network.RSSSource, &Parameters{
+		rss.RSSHub: customWorkerConfig(rss.RSSHub, network.RSSSource, &Parameters{
 			Authentication: &Authentication{
 				AccessKey: &ConfigDetail{
 					IsRequired:  false,

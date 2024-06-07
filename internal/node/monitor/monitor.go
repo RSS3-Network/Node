@@ -50,7 +50,7 @@ func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 	}
 
 	for _, w := range m.config.Component.RSS {
-		processWorker(w, m.processRssWorker)
+		processWorker(w, m.processRSSWorker)
 	}
 
 	go func() {
@@ -95,8 +95,8 @@ func (m *Monitor) processDecentralizedWorker(ctx context.Context, w *config.Modu
 	return nil
 }
 
-// processRssWorker processes the rss worker status.
-func (m *Monitor) processRssWorker(ctx context.Context, w *config.Module) error {
+// processRSSWorker processes the rss worker status.
+func (m *Monitor) processRSSWorker(ctx context.Context, w *config.Module) error {
 	client, ok := m.clients[w.Network]
 	if !ok {
 		return fmt.Errorf("client not exist")

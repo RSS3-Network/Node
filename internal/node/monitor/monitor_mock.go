@@ -33,7 +33,7 @@ func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState Chec
 		go func(w *config.Module) {
 			defer wg.Done()
 
-			if err := m.processRssWorker(ctx, w); err != nil {
+			if err := m.processRSSWorker(ctx, w); err != nil {
 				errChan <- err
 			}
 		}(w)

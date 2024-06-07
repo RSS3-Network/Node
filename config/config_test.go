@@ -275,7 +275,7 @@ var configFileExcept = &File{
 				Endpoint: Endpoint{
 					URL: "https://rsshub.app/",
 				},
-				Worker: rss.Rsshub,
+				Worker: rss.RSSHub,
 				Parameters: &Parameters{
 					"authentication": map[string]any{
 						"access_code": "def",
