@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/avast/retry-go/v4"
@@ -15,6 +16,7 @@ import (
 	"github.com/rss3-network/node/provider/farcaster"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
+	"github.com/sourcegraph/conc/pool"
 	"go.uber.org/zap"
 )
 
@@ -222,27 +224,42 @@ func (s *dataSource) pollReactionsByFid(ctx context.Context, fid *int64, pageTok
 func (s *dataSource) buildFarcasterMessageTasks(ctx context.Context, messages []farcaster.Message) *engine.Tasks {
 	var tasks engine.Tasks
 
+	if len(messages) == 0 {
+		return &tasks
+	}
+
+	resultPool := pool.NewWithResults[*Task]().WithMaxGoroutines(lo.Ternary(len(messages) < 20*runtime.NumCPU(), len(messages), 20*runtime.NumCPU()))
+
 	for _, message := range messages {
 		message := message
-		switch message.Data.Type {
-		case farcaster.MessageTypeCastAdd.String():
-			if err := s.fillCastParams(ctx, &message); err != nil {
-				zap.L().Warn("fill farcaster cast params error", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
 
-				continue
+		resultPool.Go(func() *Task {
+			switch message.Data.Type {
+			case farcaster.MessageTypeCastAdd.String():
+				if err := s.fillCastParams(ctx, &message); err != nil {
+					zap.L().Warn("fill farcaster cast params error", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
+
+					return nil
+				}
+			case farcaster.MessageTypeReactionAdd.String():
+				if err := s.fillReactionParams(ctx, &message); err != nil {
+					zap.L().Warn("fill farcaster reaction params error", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
+
+					return nil
+				}
 			}
-		case farcaster.MessageTypeReactionAdd.String():
-			if err := s.fillReactionParams(ctx, &message); err != nil {
-				zap.L().Warn("fill farcaster reaction params error", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
 
-				continue
+			return &Task{
+				Network: s.Network(),
+				Message: message,
 			}
-		}
-
-		tasks.Tasks = append(tasks.Tasks, &Task{
-			Network: s.Network(),
-			Message: message,
 		})
+	}
+
+	for _, task := range resultPool.Wait() {
+		if task != nil {
+			tasks.Tasks = append(tasks.Tasks, task)
+		}
 	}
 
 	return &tasks
@@ -290,52 +307,68 @@ func (s *dataSource) pollEvents(ctx context.Context, tasksChan chan<- *engine.Ta
 func (s *dataSource) buildFarcasterEventTasks(ctx context.Context, events []farcaster.HubEvent, tasksChan chan<- *engine.Tasks) *engine.Tasks {
 	var tasks engine.Tasks
 
+	if len(events) == 0 {
+		return &tasks
+	}
+
+	resultPool := pool.NewWithResults[*Task]().WithMaxGoroutines(lo.Ternary(len(events) < 20*runtime.NumCPU(), len(events), 20*runtime.NumCPU()))
+
 	for _, event := range events {
-		if event.Type == farcaster.HubEventTypeMergeMessage.String() {
-			switch event.MergeMessageBody.Message.Data.Type {
+		event := event
+
+		resultPool.Go(func() *Task {
+			if event.Type != farcaster.HubEventTypeMergeMessage.String() {
+				return nil
+			}
+
+			message := event.MergeMessageBody.Message
+			switch message.Data.Type {
 			case farcaster.MessageTypeCastAdd.String():
-				message := event.MergeMessageBody.Message
 				if err := s.fillCastParams(ctx, &message); err != nil {
 					zap.L().Warn("fill farcaster cast params error", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
 
-					continue
+					return nil
 				}
-
-				tasks.Tasks = append(tasks.Tasks, &Task{
-					Network: s.Network(),
-					Message: message,
-				})
 			case farcaster.MessageTypeReactionAdd.String():
-				if event.MergeMessageBody.Message.Data.ReactionBody.Type == farcaster.ReactionTypeRecast.String() {
-					message := event.MergeMessageBody.Message
+				if message.Data.ReactionBody.Type == farcaster.ReactionTypeRecast.String() {
 					if err := s.fillReactionParams(ctx, &message); err != nil {
 						zap.L().Warn("fill farcaster reaction params error", zap.Uint64("fid", message.Data.Fid), zap.String("hash", message.Hash))
 
-						continue
+						return nil
 					}
-
-					tasks.Tasks = append(tasks.Tasks, &Task{
-						Network: s.Network(),
-						Message: message,
-					})
+				} else {
+					return nil
 				}
 			case farcaster.MessageTypeVerificationRemove.String(),
 				farcaster.MessageTypeVerificationAddEthAddress.String(),
 				farcaster.MessageTypeUserDataAdd.String(),
 				farcaster.MessageTypeUsernameProof.String():
-				fid := int64(event.MergeMessageBody.Message.Data.Fid)
+				fid := int64(message.Data.Fid)
 
 				_, _ = s.updateProfileByFid(ctx, &fid)
 
-				if event.MergeMessageBody.Message.Data.Type == farcaster.MessageTypeVerificationAddEthAddress.String() {
+				if message.Data.Type == farcaster.MessageTypeVerificationAddEthAddress.String() {
 					_ = s.pollCastsByFid(ctx, &fid, "", tasksChan)
 					_ = s.pollReactionsByFid(ctx, &fid, "", tasksChan)
 				}
-			default:
-				zap.L().Debug("unsupported message type", zap.String("type", event.MergeMessageBody.Message.Data.Type))
 
-				continue
+				return nil
+			default:
+				zap.L().Debug("unsupported message type", zap.String("type", message.Data.Type))
+
+				return nil
 			}
+
+			return &Task{
+				Network: s.Network(),
+				Message: message,
+			}
+		})
+	}
+
+	for _, task := range resultPool.Wait() {
+		if task != nil {
+			tasks.Tasks = append(tasks.Tasks, task)
 		}
 	}
 
