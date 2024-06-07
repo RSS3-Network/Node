@@ -271,6 +271,11 @@ func (s *dataSource) pollEvents(ctx context.Context, tasksChan chan<- *engine.Ta
 	// Set the cursor to the current event ID in the state.
 	cursor := s.state.EventID
 
+	if cursor == 0 {
+		// If the cursor is 0, fetch the latest event ID from the Farcaster Hub.
+		cursor = farcaster.ConvertTimestampMilliToEventID(time.Now().Add(-10 * time.Second).UnixMilli())
+	}
+
 	for {
 		// Fetch events from the Farcaster Hub using the cursor.
 		eventsResponse, err := s.farcasterClient.GetEvents(ctx, lo.ToPtr(int64(cursor)))
