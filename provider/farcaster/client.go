@@ -305,6 +305,14 @@ func ConvertEventIDToTimestampMilli(eventID uint64) uint64 {
 	return timestampMilli + FarcasterEpoch*1000
 }
 
+// ConvertTimestampMilliToEventID Convert a timestampMilli to a farcaster event ID.
+func ConvertTimestampMilliToEventID(timestamp int64) uint64 {
+	timestampWithoutEpoch := timestamp - FarcasterEpoch*1000
+	eventID := timestampWithoutEpoch << SequenceBits
+
+	return uint64(eventID)
+}
+
 type ClientOption func(client *client) error
 
 func WithAPIKey(apiKey *string) ClientOption {
