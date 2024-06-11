@@ -91,8 +91,15 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 		activity.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx.Request().Context(), activity.Calldata.FunctionHash)
 	}
 
+	// transform the activity such as adding related urls
+	result, err := c.TransformActivity(ctx.Request().Context(), activity)
+	if err != nil {
+		zap.L().Error("TransformActivity InternalError", zap.Error(err))
+		return response.InternalError(ctx)
+	}
+
 	return ctx.JSON(http.StatusOK, ActivityResponse{
-		Data: activity,
+		Data: result,
 		Meta: lo.Ternary(page == nil, nil, &MetaTotalPages{
 			TotalPages: lo.FromPtr(page),
 		}),
