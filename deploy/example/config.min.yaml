@@ -28,8 +28,7 @@ observability:
       endpoint: localhost:4318
 
 redis:
-  endpoints:
-    - rss3_node_redis:6379
+  endpoint: rss3_node_redis:6379
   username:
   password:
   disable_cache: true

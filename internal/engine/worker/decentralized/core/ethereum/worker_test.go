@@ -49,9 +49,7 @@ func setup(t *testing.T) {
 
 		// Connect to Redis without TLS
 		redisClient, err = redisx.NewClient(config.Redis{
-			Endpoints: []string{
-				container.DefaultAddress(),
-			},
+			Endpoint: container.DefaultAddress(),
 			TLS: config.RedisTLS{
 				Enabled:            false,
 				CAFile:             "/path/to/ca.crt",

@@ -743,3 +743,13 @@ func TestClient_ConvertEventIDToTimestampMilli(t *testing.T) {
 		require.Equal(t, farcaster.ConvertEventIDToTimestampMilli(432183841886217), uint64(1714972833273))
 	})
 }
+
+func TestClient_ConvertTimestampMilliToEventID(t *testing.T) {
+	t.Parallel()
+
+	t.Run("covert unix timestamp to Farcaster event id ", func(t *testing.T) {
+		t.Parallel()
+
+		require.Equal(t, farcaster.ConvertTimestampMilliToEventID(1714972833273), uint64(432183841886208))
+	})
+}
