@@ -1022,9 +1022,7 @@ func TestWorker_Ethereum(t *testing.T) {
 
 	// Connect to Redis
 	redisClient, err := redisx.NewClient(config.Redis{
-		Endpoints: []string{
-			container.DefaultAddress(),
-		},
+		Endpoint: container.DefaultAddress(),
 	})
 	require.NoError(t, err)
 

@@ -154,7 +154,7 @@ type OpenTelemetryTracesConfig struct {
 }
 
 type Redis struct {
-	Endpoints    []string `mapstructure:"endpoints" default:"['localhost:6379']" validate:"required"`
+	Endpoint     string   `mapstructure:"endpoint" default:"localhost:6379" validate:"required"`
 	Username     string   `mapstructure:"username"`
 	Password     string   `mapstructure:"password"`
 	DisableCache bool     `mapstructure:"disable_cache" default:"true"`

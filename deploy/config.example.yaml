@@ -29,8 +29,7 @@ database:
 
 # Deploying a redis will significantly improve the indexing performance of some workers.
 redis:
-  endpoints:
-    - localhost:6379
+  endpoint: localhost:6379
   username:
   password:
   disable_cache: true

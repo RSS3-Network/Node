@@ -13,7 +13,7 @@ import (
 // NewClient creates a new Redis client.
 func NewClient(option config.Redis) (rueidis.Client, error) {
 	clientOption := rueidis.ClientOption{
-		InitAddress:  option.Endpoints,
+		InitAddress:  []string{option.Endpoint},
 		Username:     option.Username,
 		Password:     option.Password,
 		DisableCache: option.DisableCache,
