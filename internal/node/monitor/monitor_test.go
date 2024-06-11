@@ -12,6 +12,8 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	redisx "github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/require"
 )
@@ -30,13 +32,15 @@ func TestMonitor(t *testing.T) {
 
 	testcases := []struct {
 		name      string
+		source    network.Source
 		arguments arguments
 		want      worker.Status
 		wantError require.ErrorAssertionFunc
 	}{
 		// Ethereum Worker
 		{
-			name: "Ethereum Worker Ready Status -> Indexing Status",
+			name:   "Ethereum Worker Ready Status -> Indexing Status",
+			source: network.EthereumSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -44,7 +48,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -62,7 +66,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Ethereum Worker Ready Status -> Ready Status",
+			name:   "Ethereum Worker Ready Status -> Ready Status",
+			source: network.EthereumSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -70,7 +75,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -88,7 +93,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Ethereum Worker Ready Status -> Ready Status (With Target Param)",
+			name:   "Ethereum Worker Ready Status -> Ready Status (With Target Param)",
+			source: network.EthereumSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -96,7 +102,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -115,7 +121,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Ethereum Worker Indexing Status -> Ready Status (With Target Param)",
+			name:   "Ethereum Worker Indexing Status -> Ready Status (With Target Param)",
+			source: network.EthereumSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -123,7 +130,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -142,7 +149,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Ethereum Worker Indexing Status -> Indexing Status (With Target Param)",
+			name:   "Ethereum Worker Indexing Status -> Indexing Status (With Target Param)",
+			source: network.EthereumSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -150,7 +158,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -169,7 +177,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Ethereum Worker Indexing Status -> Unhealthy Status",
+			name:   "Ethereum Worker Indexing Status -> Unhealthy Status",
+			source: network.EthereumSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -177,7 +186,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -196,7 +205,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Ethereum Worker Indexing Status -> Indexing Status",
+			name:   "Ethereum Worker Indexing Status -> Indexing Status",
+			source: network.EthereumSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -204,7 +214,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -223,7 +233,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Ethereum Worker Unhealthy Status -> Indexing Status",
+			name:   "Ethereum Worker Unhealthy Status -> Indexing Status",
+			source: network.EthereumSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -231,7 +242,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -250,7 +261,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Ethereum Worker Indexing Status -> Ready Status",
+			name:   "Ethereum Worker Indexing Status -> Ready Status",
+			source: network.EthereumSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -258,7 +270,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -277,7 +289,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Ethereum Worker Unknown Status -> Indexing Status",
+			name:   "Ethereum Worker Unknown Status -> Indexing Status",
+			source: network.EthereumSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -285,7 +298,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "ethereum-core",
 								Network: network.Ethereum,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 								Endpoint: config.Endpoint{
 									URL: endpoint.MustGet(network.Ethereum),
 								},
@@ -306,7 +319,8 @@ func TestMonitor(t *testing.T) {
 
 		// Arweave Worker
 		{
-			name: "Arweave Worker Ready Status -> Indexing Status",
+			name:   "Arweave Worker Ready Status -> Indexing Status",
+			source: network.ArweaveSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -314,7 +328,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -329,7 +343,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Arweave Worker Ready Status -> Ready Status",
+			name:   "Arweave Worker Ready Status -> Ready Status",
+			source: network.ArweaveSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -337,7 +352,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -352,7 +367,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Arweave Worker Ready Status -> Ready Status (With Target Param)",
+			name:   "Arweave Worker Ready Status -> Ready Status (With Target Param)",
+			source: network.ArweaveSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -360,7 +376,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -376,7 +392,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Arweave Worker Indexing Status -> Ready Status (With Target Param)",
+			name:   "Arweave Worker Indexing Status -> Ready Status (With Target Param)",
+			source: network.ArweaveSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -384,7 +401,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -400,7 +417,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Arweave Worker Indexing Status -> Indexing Status (With Target Param)",
+			name:   "Arweave Worker Indexing Status -> Indexing Status (With Target Param)",
+			source: network.ArweaveSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -408,7 +426,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -424,7 +442,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Arweave Worker Indexing Status -> Unhealthy Status",
+			name:   "Arweave Worker Indexing Status -> Unhealthy Status",
+			source: network.ArweaveSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -432,7 +451,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -448,7 +467,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Arweave Worker Indexing Status -> Indexing Status",
+			name:   "Arweave Worker Indexing Status -> Indexing Status",
+			source: network.ArweaveSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -456,7 +476,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -472,7 +492,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Arweave Worker Unhealthy Status -> Indexing Status",
+			name:   "Arweave Worker Unhealthy Status -> Indexing Status",
+			source: network.ArweaveSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -480,7 +501,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -496,7 +517,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Arweave Worker Indexing Status -> Ready Status",
+			name:   "Arweave Worker Indexing Status -> Ready Status",
+			source: network.ArweaveSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -504,7 +526,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -520,7 +542,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Arweave Worker Unknown Status -> Indexing Status",
+			name:   "Arweave Worker Unknown Status -> Indexing Status",
+			source: network.ArweaveSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -528,7 +551,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "arweave-mirror",
 								Network: network.Arweave,
-								Worker:  worker.Mirror,
+								Worker:  decentralized.Mirror,
 							},
 						},
 					},
@@ -546,7 +569,8 @@ func TestMonitor(t *testing.T) {
 
 		// Farcaster Worker
 		{
-			name: "Farcaster Worker Ready Status -> Indexing Status",
+			name:   "Farcaster Worker Ready Status -> Indexing Status",
+			source: network.FarcasterSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -554,7 +578,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "farcaster-core",
 								Network: network.Farcaster,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 							},
 						},
 					},
@@ -571,7 +595,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Farcaster Worker Ready Status -> Ready Status",
+			name:   "Farcaster Worker Ready Status -> Ready Status",
+			source: network.FarcasterSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -579,7 +604,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "farcaster-core",
 								Network: network.Farcaster,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 							},
 						},
 					},
@@ -596,7 +621,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Farcaster Worker Indexing Status -> Unhealthy Status",
+			name:   "Farcaster Worker Indexing Status -> Unhealthy Status",
+			source: network.FarcasterSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -604,7 +630,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "farcaster-core",
 								Network: network.Farcaster,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 							},
 						},
 					},
@@ -622,7 +648,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Farcaster Worker Indexing Status -> Indexing Status",
+			name:   "Farcaster Worker Indexing Status -> Indexing Status",
+			source: network.FarcasterSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -630,7 +657,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "farcaster-core",
 								Network: network.Farcaster,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 							},
 						},
 					},
@@ -648,7 +675,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Farcaster Worker Unhealthy Status -> Indexing Status",
+			name:   "Farcaster Worker Unhealthy Status -> Indexing Status",
+			source: network.FarcasterSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -656,7 +684,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "farcaster-core",
 								Network: network.Farcaster,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 							},
 						},
 					},
@@ -674,7 +702,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Farcaster Worker Indexing Status -> Ready Status",
+			name:   "Farcaster Worker Indexing Status -> Ready Status",
+			source: network.FarcasterSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -682,7 +711,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "farcaster-core",
 								Network: network.Farcaster,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 							},
 						},
 					},
@@ -700,7 +729,8 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Farcaster Worker Unhealthy Status -> Indexing Status",
+			name:   "Farcaster Worker Unhealthy Status -> Indexing Status",
+			source: network.FarcasterSource,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -708,7 +738,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "farcaster-core",
 								Network: network.Farcaster,
-								Worker:  worker.Core,
+								Worker:  decentralized.Core,
 							},
 						},
 					},
@@ -723,6 +753,54 @@ func TestMonitor(t *testing.T) {
 				initialStatus: worker.StatusUnknown,
 			},
 			want:      worker.StatusIndexing,
+			wantError: require.NoError,
+		},
+
+		// RSS rsshub
+		{
+			name:   "Rsshub Worker Ready Status -> Unhealthy Status",
+			source: network.RSSSource,
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						RSS: []*config.Module{
+							{
+								ID:         "rss-rsshub",
+								Network:    network.RSS,
+								Worker:     rss.RSSHub,
+								EndpointID: "https://rsshub3.henry.wang",
+							},
+						},
+					},
+				},
+				currentState:  monitor.CheckpointState{},
+				latestState:   0,
+				initialStatus: worker.StatusReady,
+			},
+			want:      worker.StatusUnhealthy,
+			wantError: require.NoError,
+		},
+		{
+			name:   "Rsshub Worker Ready Status -> Ready Status",
+			source: network.RSSSource,
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						RSS: []*config.Module{
+							{
+								ID:         "rss-rsshub",
+								Network:    network.RSS,
+								Worker:     rss.RSSHub,
+								EndpointID: "https://rsshub.app",
+							},
+						},
+					},
+				},
+				currentState:  monitor.CheckpointState{},
+				latestState:   0,
+				initialStatus: worker.StatusReady,
+			},
+			want:      worker.StatusReady,
 			wantError: require.NoError,
 		},
 	}
@@ -750,27 +828,49 @@ func TestMonitor(t *testing.T) {
 	for _, testcase := range testcases {
 		testcase := testcase
 
-		t.Run(testcase.name, func(t *testing.T) {
-			ctx := context.Background()
+		switch testcase.source {
+		case network.FarcasterSource, network.ArweaveSource, network.EthereumSource:
+			t.Run(testcase.name, func(t *testing.T) {
+				ctx := context.Background()
 
-			instance, err := monitor.NewMonitor(ctx, testcase.arguments.config, nil, redisClient)
-			require.NoError(t, err)
+				instance, err := monitor.NewMonitor(ctx, testcase.arguments.config, nil, redisClient)
+				require.NoError(t, err)
 
-			// update worker status to initial status
-			err = instance.UpdateWorkerStatusByID(ctx, testcase.arguments.config.Component.Decentralized[0].ID, testcase.arguments.initialStatus.String())
-			require.NoError(t, err)
+				// update worker status to initial status
+				err = instance.UpdateWorkerStatusByID(ctx, testcase.arguments.config.Component.Decentralized[0].ID, testcase.arguments.initialStatus.String())
+				require.NoError(t, err)
 
-			// update worker progress
-			err = instance.UpdateWorkerProgress(ctx, testcase.arguments.config.Component.Decentralized[0].ID, monitor.ConstructWorkerProgress(testcase.arguments.lastState, testcase.arguments.targetState, testcase.arguments.latestState))
-			require.NoError(t, err)
+				// update worker progress
+				err = instance.UpdateWorkerProgress(ctx, testcase.arguments.config.Component.Decentralized[0].ID, monitor.ConstructWorkerProgress(testcase.arguments.lastState, testcase.arguments.targetState, testcase.arguments.latestState))
+				require.NoError(t, err)
 
-			// run monitor
-			err = instance.MonitorMockWorkerStatus(ctx, testcase.arguments.currentState, testcase.arguments.targetState, testcase.arguments.latestState)
-			require.NoError(t, err)
+				// run monitor
+				err = instance.MonitorMockWorkerStatus(ctx, testcase.arguments.currentState, testcase.arguments.targetState, testcase.arguments.latestState)
+				require.NoError(t, err)
 
-			// check final worker status
-			status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.Decentralized[0].ID)
-			require.Equal(t, testcase.want, status)
-		})
+				// check final worker status
+				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.Decentralized[0].ID)
+				require.Equal(t, testcase.want, status)
+			})
+		case network.RSSSource:
+			t.Run(testcase.name, func(t *testing.T) {
+				ctx := context.Background()
+
+				instance, err := monitor.NewMonitor(ctx, testcase.arguments.config, nil, redisClient)
+				require.NoError(t, err)
+
+				// update worker status to initial status
+				err = instance.UpdateWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS[0].ID, testcase.arguments.initialStatus.String())
+				require.NoError(t, err)
+
+				// run monitor
+				err = instance.MonitorMockWorkerStatus(ctx, testcase.arguments.currentState, testcase.arguments.targetState, testcase.arguments.latestState)
+				require.NoError(t, err)
+
+				// check final worker status
+				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS[0].ID)
+				require.Equal(t, testcase.want, status)
+			})
+		}
 	}
 }

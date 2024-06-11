@@ -15,7 +15,6 @@ import (
 	"github.com/rss3-network/node/internal/node/component"
 	"github.com/rss3-network/node/internal/node/component/decentralized"
 	"github.com/rss3-network/node/internal/node/component/info"
-	"github.com/rss3-network/node/internal/node/component/network"
 	"github.com/rss3-network/node/internal/node/component/rss"
 	"github.com/rss3-network/node/internal/node/middlewarex"
 	"go.uber.org/zap"
@@ -71,9 +70,6 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 		decentralizedComponent := decentralized.NewComponent(ctx, apiServer, config, databaseClient, redisClient)
 		node.components = append(node.components, &decentralizedComponent)
 	}
-
-	networksComponent := network.NewComponent(ctx, apiServer, config)
-	node.components = append(node.components, &networksComponent)
 
 	// Generate openapi.json
 	var endpoint string

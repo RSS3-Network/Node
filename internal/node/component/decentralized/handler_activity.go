@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -27,18 +27,18 @@ type ActivityRequest struct {
 }
 
 type AccountActivitiesRequest struct {
-	Account        string               `param:"account" validate:"required"`
-	Limit          int                  `query:"limit" validate:"min=1,max=100" default:"100"`
-	ActionLimit    int                  `query:"action_limit" validate:"min=1,max=20" default:"10"`
-	Cursor         *string              `query:"cursor"`
-	SinceTimestamp *uint64              `query:"since_timestamp"`
-	UntilTimestamp *uint64              `query:"until_timestamp"`
-	Status         *bool                `query:"success"`
-	Direction      *activityx.Direction `query:"direction"`
-	Network        []network.Network    `query:"network"`
-	Tag            []tag.Tag            `query:"tag"`
-	Type           []schema.Type        `query:"-"`
-	Platform       []worker.Platform    `query:"platform"`
+	Account        string                   `param:"account" validate:"required"`
+	Limit          int                      `query:"limit" validate:"min=1,max=100" default:"100"`
+	ActionLimit    int                      `query:"action_limit" validate:"min=1,max=20" default:"10"`
+	Cursor         *string                  `query:"cursor"`
+	SinceTimestamp *uint64                  `query:"since_timestamp"`
+	UntilTimestamp *uint64                  `query:"until_timestamp"`
+	Status         *bool                    `query:"success"`
+	Direction      *activityx.Direction     `query:"direction"`
+	Network        []network.Network        `query:"network"`
+	Tag            []tag.Tag                `query:"tag"`
+	Type           []schema.Type            `query:"-"`
+	Platform       []decentralized.Platform `query:"platform"`
 }
 
 type ActivityResponse struct {

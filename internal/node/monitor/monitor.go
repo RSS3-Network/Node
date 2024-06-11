@@ -31,18 +31,26 @@ type WorkerProgress struct {
 func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 	var wg sync.WaitGroup
 
-	errChan := make(chan error, len(m.config.Component.Decentralized))
+	errChan := make(chan error, len(m.config.Component.Decentralized)+len(m.config.Component.RSS)+len(m.config.Component.Federated))
 
-	for _, w := range m.config.Component.Decentralized {
+	processWorker := func(w *config.Module, processFunc func(context.Context, *config.Module) error) {
 		wg.Add(1)
 
 		go func(w *config.Module) {
 			defer wg.Done()
 
-			if err := m.processWorker(ctx, w); err != nil {
+			if err := processFunc(ctx, w); err != nil {
 				errChan <- err
 			}
 		}(w)
+	}
+
+	for _, w := range m.config.Component.Decentralized {
+		processWorker(w, m.processDecentralizedWorker)
+	}
+
+	for _, w := range m.config.Component.RSS {
+		processWorker(w, m.processRSSWorker)
 	}
 
 	go func() {
@@ -59,10 +67,10 @@ func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 	return nil
 }
 
-// processWorker processes the worker status.
-func (m *Monitor) processWorker(ctx context.Context, w *config.Module) error {
+// processDecentralizedWorker processes the decentralized worker status.
+func (m *Monitor) processDecentralizedWorker(ctx context.Context, w *config.Module) error {
 	// get checkpoint state from database
-	state, err := m.getCheckpointState(ctx, w.ID, w.Network, w.Worker.String())
+	state, err := m.getCheckpointState(ctx, w.ID, w.Network, w.Worker.Name())
 	if err != nil {
 		zap.L().Error("get checkpoint state", zap.Error(err))
 		return err
@@ -85,6 +93,21 @@ func (m *Monitor) processWorker(ctx context.Context, w *config.Module) error {
 	}
 
 	return nil
+}
+
+// processRSSWorker processes the rss worker status.
+func (m *Monitor) processRSSWorker(ctx context.Context, w *config.Module) error {
+	client, ok := m.clients[w.Network]
+	if !ok {
+		return fmt.Errorf("client not exist")
+	}
+
+	targetStatus := workerx.StatusReady
+	if _, err := client.LatestState(ctx); err != nil {
+		targetStatus = workerx.StatusUnhealthy
+	}
+
+	return m.UpdateWorkerStatusByID(ctx, w.ID, targetStatus.String())
 }
 
 // getWorkerIndexingStateByClients gets the latest block height (arweave), block number (ethereum), event id (farcaster).

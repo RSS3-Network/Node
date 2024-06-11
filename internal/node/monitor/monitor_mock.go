@@ -13,7 +13,7 @@ import (
 func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState CheckpointState, targetWorkerState, latestState uint64) error {
 	var wg sync.WaitGroup
 
-	errChan := make(chan error, len(m.config.Component.Decentralized))
+	errChan := make(chan error, len(m.config.Component.Decentralized)+len(m.config.Component.RSS))
 
 	for _, w := range m.config.Component.Decentralized {
 		wg.Add(1)
@@ -22,6 +22,18 @@ func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState Chec
 			defer wg.Done()
 
 			if err := m.processMockWorker(ctx, w, currentState, targetWorkerState, latestState); err != nil {
+				errChan <- err
+			}
+		}(w)
+	}
+
+	for _, w := range m.config.Component.RSS {
+		wg.Add(1)
+
+		go func(w *config.Module) {
+			defer wg.Done()
+
+			if err := m.processRSSWorker(ctx, w); err != nil {
 				errChan <- err
 			}
 		}(w)
