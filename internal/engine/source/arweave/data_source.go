@@ -258,6 +258,11 @@ func (s *dataSource) pollTransactionsFromIrys(ctx context.Context, tasksChan cha
 			// Convert milliseconds to seconds.
 			blockTimestamp := transactionEdge.Node.Timestamp.Int64() / 1000
 
+			// record arweave block timestamp (in milisec) pulled from irys graphql
+			if transactionEdge.Node.Timestamp.Uint64() > s.state.BlockTimestamp {
+				s.state.BlockTimestamp = transactionEdge.Node.Timestamp.Uint64()
+			}
+
 			block, found := blockMap[blockTimestamp]
 			if !found {
 				block = &arweave.Block{
