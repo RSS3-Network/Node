@@ -244,12 +244,12 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 
 			var current uint64
 
-			currentBlock, currentBlockHeight := s.monitorClient.CurrentState(state)
+			currentBlockHeight, currentBlockTimestamp := s.monitorClient.CurrentState(state)
 
 			if s.worker.Name() == decentralizedx.Momoka.String() {
-				current = currentBlockHeight
+				current = currentBlockTimestamp
 			} else {
-				current = currentBlock
+				current = currentBlockHeight
 			}
 
 			observer.Observe(int64(current), metric.WithAttributes(
