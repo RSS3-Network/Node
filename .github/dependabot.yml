@@ -5,6 +5,8 @@ updates:
     schedule:
       interval: weekly
     target-branch: develop
+    ignore:
+      - dependency-name: "github.com/ethereum/go-ethereum"
   - package-ecosystem: github-actions
     directory: /
     schedule:
