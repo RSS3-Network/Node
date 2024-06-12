@@ -24,8 +24,8 @@ type CheckpointState struct {
 }
 
 type WorkerProgress struct {
-	LatestRemoteBlock  uint64 `json:"latest_remote_block"`
-	LatestIndexedBlock uint64 `json:"latest_indexed_block"`
+	RemoteState  uint64 `json:"remote_state"`
+	IndexedState uint64 `json:"indexed_state"`
 }
 
 // MonitorWorkerStatus checks the worker status by comparing the current and latest block height/number.
@@ -166,7 +166,7 @@ func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, current
 			targetStatus = workerx.StatusUnhealthy
 		}
 	case workerx.StatusIndexing:
-		if currentWorkerState <= m.getWorkerProgress(ctx, workerID).LatestIndexedBlock {
+		if currentWorkerState <= m.getWorkerProgress(ctx, workerID).IndexedState {
 			// if the worker is indexing but didn't make any progress in the last cycle, flag it as unhealthy
 			targetStatus = workerx.StatusUnhealthy
 			break
@@ -184,7 +184,7 @@ func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, current
 			targetStatus = workerx.StatusIndexing
 		}
 	case workerx.StatusUnhealthy:
-		if currentWorkerState > m.getWorkerProgress(ctx, workerID).LatestIndexedBlock {
+		if currentWorkerState > m.getWorkerProgress(ctx, workerID).IndexedState {
 			// if the worker is unhealthy and made progress in the last cycle, flag it as indexing
 			targetStatus = workerx.StatusIndexing
 		}
@@ -320,13 +320,13 @@ func (m *Monitor) buildWorkerProgressCacheKey(workerID string) string {
 // ConstructWorkerProgress constructs the worker progress from current, target and latest block height/number.
 func ConstructWorkerProgress(currentWorkerState, targetWorkerState, latestWorkerState uint64) WorkerProgress {
 	workerProgress := WorkerProgress{
-		LatestRemoteBlock:  latestWorkerState,
-		LatestIndexedBlock: currentWorkerState,
+		RemoteState:  latestWorkerState,
+		IndexedState: currentWorkerState,
 	}
 
 	// set remote to target if it's set
 	if targetWorkerState > 0 {
-		workerProgress.LatestRemoteBlock = targetWorkerState
+		workerProgress.RemoteState = targetWorkerState
 	}
 
 	return workerProgress
