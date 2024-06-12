@@ -243,7 +243,7 @@ endpoint = "https://rpc.ankr.com/eth"
 `
 )
 
-var configFileExcept = &File{
+var configFileExpected = &File{
 	Environment: "development",
 	Type:        "beta",
 	Endpoints: map[string]Endpoint{
@@ -367,7 +367,7 @@ func TestSetupConfig(t *testing.T) {
 	f, err := _Setup(configName, "yaml", v)
 	assert.NoError(t, err)
 
-	AssertConfig(t, f, configFileExcept)
+	AssertConfig(t, f, configFileExpected)
 }
 
 // func TestConfigEnvOverride(t *testing.T) {
@@ -439,7 +439,7 @@ func TestConfigFilePath(t *testing.T) {
 				f, err := _Setup(configName, "yaml", v)
 				assert.NoError(t, err)
 
-				assert.Equal(t, configFileExcept, f)
+				assert.Equal(t, configFileExpected, f)
 			})
 		}(configPath)
 	}
@@ -480,7 +480,7 @@ func TestConfigFileType(t *testing.T) {
 				f, err := _Setup(configName, _type, v)
 				assert.NoError(t, err)
 
-				AssertConfig(t, configFileExcept, f)
+				AssertConfig(t, configFileExpected, f)
 			})
 		}(configType, configContext)
 	}
@@ -516,7 +516,7 @@ func AssertConfig(t *testing.T, expect, got *File) {
 					t.Parallel()
 					AssertIndexer(t, _except, got)
 				})
-			}(configFileExcept.Component.Decentralized[i], indexer)
+			}(configFileExpected.Component.Decentralized[i], indexer)
 		}
 	})
 }
