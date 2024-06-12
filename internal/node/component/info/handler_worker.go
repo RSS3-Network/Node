@@ -152,8 +152,8 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 		Worker:  module.Worker,
 		Status:  status,
 		WorkerProgress: monitor.WorkerProgress{
-			LatestRemoteBlock:  workerProgress.LatestRemoteBlock,
-			LatestIndexedBlock: workerProgress.LatestIndexedBlock,
+			RemoteState:  workerProgress.RemoteState,
+			IndexedState: workerProgress.IndexedState,
 		},
 	}
 

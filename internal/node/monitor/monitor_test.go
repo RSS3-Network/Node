@@ -567,6 +567,180 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 
+		{
+			name:   "Arweave Momoka Worker Ready Status -> Indexing Status",
+			source: network.ArweaveSource,
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "arweave-momoka",
+								Network: network.Arweave,
+								Worker:  decentralized.Momoka,
+							},
+						},
+					},
+				},
+				currentState: monitor.CheckpointState{
+					BlockTimestamp: 1637596118633,
+				},
+				latestState:   1637596118633 + parameter.NetworkTolerance[network.Arweave]*120000 + 1,
+				initialStatus: worker.StatusReady,
+			},
+			want:      worker.StatusIndexing,
+			wantError: require.NoError,
+		},
+		{
+			name:   "Arweave Momoka Worker Ready Status -> Ready Status",
+			source: network.ArweaveSource,
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "arweave-momoka",
+								Network: network.Arweave,
+								Worker:  decentralized.Momoka,
+							},
+						},
+					},
+				},
+				currentState: monitor.CheckpointState{
+					BlockTimestamp: 1637596118633,
+				},
+				latestState:   1637596118633 + parameter.NetworkTolerance[network.Arweave]*120000 - 1,
+				initialStatus: worker.StatusReady,
+			},
+			want:      worker.StatusReady,
+			wantError: require.NoError,
+		},
+		{
+			name:   "Arweave Momoka Worker Indexing Status -> Unhealthy Status",
+			source: network.ArweaveSource,
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "arweave-momoka",
+								Network: network.Arweave,
+								Worker:  decentralized.Momoka,
+							},
+						},
+					},
+				},
+				currentState: monitor.CheckpointState{
+					BlockTimestamp: 1637596118633,
+				},
+				lastState:     1637596118633,
+				latestState:   1637596118633 + parameter.NetworkTolerance[network.Arweave]*120000 - 1,
+				initialStatus: worker.StatusIndexing,
+			},
+			want:      worker.StatusUnhealthy,
+			wantError: require.NoError,
+		},
+		{
+			name:   "Arweave Momoka Worker Indexing Status -> Indexing Status",
+			source: network.ArweaveSource,
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "arweave-momoka",
+								Network: network.Arweave,
+								Worker:  decentralized.Momoka,
+							},
+						},
+					},
+				},
+				currentState: monitor.CheckpointState{
+					BlockTimestamp: 1637596118633,
+				},
+				lastState:     1637596118633 - 1,
+				latestState:   1637596118633 + parameter.NetworkTolerance[network.Arweave]*120000 + 1,
+				initialStatus: worker.StatusIndexing,
+			},
+			want:      worker.StatusIndexing,
+			wantError: require.NoError,
+		},
+		{
+			name:   "Arweave Momoka Worker Unhealthy Status -> Indexing Status",
+			source: network.ArweaveSource,
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "arweave-momoka",
+								Network: network.Arweave,
+								Worker:  decentralized.Momoka,
+							},
+						},
+					},
+				},
+				currentState: monitor.CheckpointState{
+					BlockTimestamp: 1637596118633,
+				},
+				lastState:     1637596118633 - 1,
+				latestState:   1637596118633 + parameter.NetworkTolerance[network.Arweave]*120000 + 1,
+				initialStatus: worker.StatusUnhealthy,
+			},
+			want:      worker.StatusIndexing,
+			wantError: require.NoError,
+		},
+		{
+			name:   "Arweave Momoka Worker Indexing Status -> Ready Status",
+			source: network.ArweaveSource,
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "arweave-momoka",
+								Network: network.Arweave,
+								Worker:  decentralized.Momoka,
+							},
+						},
+					},
+				},
+				currentState: monitor.CheckpointState{
+					BlockTimestamp: 1637596118633,
+				},
+				lastState:     1637596118633 - 1,
+				latestState:   1637596118633 + parameter.NetworkTolerance[network.Arweave]*120000 - 1,
+				initialStatus: worker.StatusIndexing,
+			},
+			want:      worker.StatusReady,
+			wantError: require.NoError,
+		},
+		{
+			name:   "Arweave Momoka Worker Unknown Status -> Indexing Status",
+			source: network.ArweaveSource,
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Decentralized: []*config.Module{
+							{
+								ID:      "arweave-momoka",
+								Network: network.Arweave,
+								Worker:  decentralized.Momoka,
+							},
+						},
+					},
+				},
+				currentState: monitor.CheckpointState{
+					BlockTimestamp: 1,
+				},
+				lastState:     0,
+				latestState:   1637596118633 + parameter.NetworkTolerance[network.Arweave]*120000 + 1,
+				initialStatus: worker.StatusUnknown,
+			},
+			want:      worker.StatusIndexing,
+			wantError: require.NoError,
+		},
+
 		// Farcaster Worker
 		{
 			name:   "Farcaster Worker Ready Status -> Indexing Status",

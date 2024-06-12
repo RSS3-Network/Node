@@ -17,6 +17,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/decentralized"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
+	decentralizedx "github.com/rss3-network/node/schema/worker/decentralized"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
@@ -241,7 +242,17 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 				return
 			}
 
-			observer.Observe(int64(s.monitorClient.CurrentState(state)), metric.WithAttributes(
+			var current uint64
+
+			currentBlockHeight, currentBlockTimestamp := s.monitorClient.CurrentState(state)
+
+			if s.worker.Name() == decentralizedx.Momoka.String() {
+				current = currentBlockTimestamp
+			} else {
+				current = currentBlockHeight
+			}
+
+			observer.Observe(int64(current), metric.WithAttributes(
 				attribute.String("service", constant.Name),
 				attribute.String("worker", s.worker.Name()),
 			))
@@ -254,14 +265,22 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 // latestBlockMetricHandler gets the latest block height/number from the network rpc.
 func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.Int64Observer) error {
 	go func() {
+		var latest uint64
+
 		// get latest block height
-		latestBlockHeight, err := s.monitorClient.LatestState(ctx)
+		latestBlockHeight, latestBlockTimestamp, err := s.monitorClient.LatestState(ctx)
 		if err != nil {
 			zap.L().Error("get latest block height", zap.Error(err))
 			return
 		}
 
-		observer.Observe(int64(latestBlockHeight), metric.WithAttributes(
+		if s.worker.Name() == decentralizedx.Momoka.String() {
+			latest = latestBlockTimestamp
+		} else {
+			latest = latestBlockHeight
+		}
+
+		observer.Observe(int64(latest), metric.WithAttributes(
 			attribute.String("service", constant.Name),
 			attribute.String("worker", s.worker.Name())))
 	}()
