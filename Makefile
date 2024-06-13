@@ -37,12 +37,12 @@ image: generate
     		--tag rss3-network/node:$(VERSION) \
     		.
 
-# Run a worker service locally to index and structure data from 啊decentralized source
+# Run a worker service locally to index and structure data from a decentralized source
 # into the RSS3 Protocol format. Use `make worker WORKER_ID=<worker-id>`.
 # Example: `make worker WORKER_ID=ethereum-uniswap` runs one worker to index and transform data from the Uniswap dApp source.
 #
 # To use this command:
-# - Set the decentralized network endpoint (to which the data source belongs) in the 'endpoint' section of deploy/config.yaml.
+# - Set the decentralized network endpoint (to which the decentralized source belongs) in the 'endpoint' section of deploy/config.yaml.
 # - Configure the decentralized data source component (e.g., a specific blockchain or its dApp) with the necessary parameters
 #   in the 'component' section of deploy/config.yaml.
 # - Use the worker ID of the component as WORKER_ID in the make command.
