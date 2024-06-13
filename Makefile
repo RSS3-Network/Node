@@ -37,5 +37,53 @@ image: generate
     		--tag rss3-network/node:$(VERSION) \
     		.
 
-run: generate
-	ENVIRONMENT=development go run ./cmd
+# Run a worker service locally to index and structure data from 啊decentralized source
+# into the RSS3 Protocol format. Use `make worker WORKER_ID=<worker-id>`.
+# Example: `make worker WORKER_ID=ethereum-uniswap` runs one worker to index and transform data from the Uniswap dApp source.
+#
+# To use this command:
+# - Set the decentralized network endpoint (to which the data source belongs) in the 'endpoint' section of deploy/config.yaml.
+# - Configure the decentralized data source component (e.g., a specific blockchain or its dApp) with the necessary parameters
+#   in the 'component' section of deploy/config.yaml.
+# - Use the worker ID of the component as WORKER_ID in the make command.
+worker: generate
+	@if [ -z "$(WORKER_ID)" ]; then \
+		echo "WORKER_ID is not set. Usage: make worker WORKER_ID=<worker-id>"; \
+		exit 1; \
+	fi
+	ENVIRONMENT=development go run ./cmd \
+			--module=worker \
+			--worker.id=$(WORKER_ID)
+
+
+# Run the core service of the RSS3 Node locally, providing indexed data conforming to the RSS3 protocol to end users.
+# The node serves API requests on port 80 by default. Use `make core`.
+
+# Note: When routing API requests to check indexed data, include the routing group name in some paths.
+# For example, API services within 'internal/node/component/decentralized' may require adding '/decentralized' to
+# their paths, whereas API services within 'internal/node/component/info' may not.
+core: generate
+	ENVIRONMENT=development go run ./cmd \
+			--module=core
+
+# Start the monitor service to check the status of workers. Use `make monitor`.
+monitor: generate
+	ENVIRONMENT=development go run ./cmd \
+			--module=monitor
+
+
+# Start the broadcaster service to synchronize the node's status with a global indexer through heartbeats.
+# Use `make broadcaster`.
+#
+# To use this command:
+# - Generate the config.yaml for this service by registering an RSS3 node on the testnet at
+#   'https://explorer.testnet.rss3.io/nodes'. This YAML file includes essential information needed to start the service.
+# - Place the config.yaml file within the 'deploy' directory.
+#
+# Note:
+# - Set the environment type to 'beta' at the top of config.yaml. The global indexer will verify the node's
+#   accessibility. If the type is set to 'alpha', it will not be verified.
+# - Registering an RSS3 node may require staking a certain number of RSS3 tokens (if the node is in 'Alpha' type).
+broadcaster: generate
+	ENVIRONMENT=development go run ./cmd \
+			--module=broadcaster
