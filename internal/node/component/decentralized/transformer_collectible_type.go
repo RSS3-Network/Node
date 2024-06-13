@@ -71,8 +71,6 @@ func (c *Component) transformCollectibleTrade(ctx context.Context, network netwo
 		action.RelatedURLs = append(action.RelatedURLs, c.buildCollectibleChainURL(ctx, network, lo.FromPtr(trade.Address), trade.ID.String())...)
 	}
 
-	action.Metadata = trade
-
 	return action, nil
 }
 
