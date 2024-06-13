@@ -17,7 +17,7 @@ import (
 	"github.com/rss3-network/node/internal/database/dialer/cockroachdb/table"
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
-	mirror_model "github.com/rss3-network/node/internal/engine/worker/contract/mirror/model"
+	mirror_model "github.com/rss3-network/node/internal/engine/worker/decentralized/contract/mirror/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"go.opentelemetry.io/otel"

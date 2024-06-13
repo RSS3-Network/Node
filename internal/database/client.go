@@ -8,7 +8,7 @@ import (
 	"github.com/pressly/goose/v3"
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
-	mirror_model "github.com/rss3-network/node/internal/engine/worker/contract/mirror/model"
+	mirror_model "github.com/rss3-network/node/internal/engine/worker/decentralized/contract/mirror/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"go.uber.org/zap"

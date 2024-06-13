@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/node/component"
+	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -22,6 +23,9 @@ type Component struct {
 }
 
 type configx struct {
+	id        string
+	network   network.Network
+	worker    worker.Worker
 	endpoint  string
 	accessKey string
 }
@@ -50,6 +54,9 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config []*config.Modu
 	for _, conf := range config {
 		if conf.Network == network.RSS {
 			c.rsshub = &configx{
+				id:       conf.ID,
+				network:  conf.Network,
+				worker:   conf.Worker,
 				endpoint: conf.Endpoint.URL,
 			}
 

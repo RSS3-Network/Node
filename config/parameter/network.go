@@ -60,4 +60,5 @@ var NetworkCoreWorkerDiskSpacePerMonth = map[network.Network]uint{
 	network.Polygon:           153,
 	network.SatoshiVM:         1,
 	network.VSL:               1,
+	network.Farcaster:         50,
 }

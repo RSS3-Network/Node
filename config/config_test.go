@@ -8,7 +8,8 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	workerx "github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
@@ -42,8 +43,7 @@ stream:
   topic: rss3.node.activities
   uri: localhost:9092
 redis:
-  endpoints:
-    - localhost:6379
+  endpoint: localhost:6379
   username:
   password:
   disable_cache: true
@@ -59,6 +59,7 @@ observability:
 component:
   rss:
     - network: rss
+      worker: rsshub
       endpoint: https://rsshub.app/
       parameters:
         authentication:
@@ -112,9 +113,7 @@ component:
     "uri": "localhost:9092"
   },
   "redis": {
-    "endpoints": [
-      "localhost:6379"
-    ],
+    "endpoint": "localhost:6379",
     "username": "",
     "password": "",
     "disable_cache": true
@@ -136,6 +135,7 @@ component:
     "rss": [
       {
         "network": "rss",
+        "worker": "rsshub",
         "endpoint": "https://rsshub.app/",
         "parameters": {
           "authentication": {
@@ -197,7 +197,7 @@ topic = "rss3.node.activities"
 uri = "localhost:9092"
 
 [redis]
-endpoints = ["localhost:6379"]
+endpoint = "localhost:6379"
 username = ""
 password = ""
 disable_cache = true
@@ -213,6 +213,7 @@ endpoint = "localhost:4318"
 
 [[component.rss]]
 network = "rss"
+worker = "rsshub"
 endpoint = "https://rsshub.app/"
 
 [component.rss.parameters.authentication]
@@ -242,7 +243,7 @@ endpoint = "https://rpc.ankr.com/eth"
 `
 )
 
-var configFileExcept = &File{
+var configFileExpected = &File{
 	Environment: "development",
 	Type:        "beta",
 	Endpoints: map[string]Endpoint{
@@ -271,7 +272,7 @@ var configFileExcept = &File{
 				Endpoint: Endpoint{
 					URL: "https://rsshub.app/",
 				},
-				Worker: 0,
+				Worker: rss.RSSHub,
 				Parameters: &Parameters{
 					"authentication": map[string]any{
 						"access_code": "def",
@@ -286,7 +287,7 @@ var configFileExcept = &File{
 		Decentralized: []*Module{
 			{
 				Network:    network.Ethereum,
-				Worker:     workerx.Core,
+				Worker:     decentralized.Core,
 				EndpointID: "ethereum",
 				Endpoint: Endpoint{
 					URL: "https://rpc.ankr.com/eth",
@@ -301,7 +302,7 @@ var configFileExcept = &File{
 			},
 			{
 				Network:    network.Ethereum,
-				Worker:     workerx.RSS3,
+				Worker:     decentralized.RSS3,
 				EndpointID: "https://rpc.ankr.com/eth",
 				Endpoint: Endpoint{
 					URL: "https://rpc.ankr.com/eth",
@@ -325,7 +326,7 @@ var configFileExcept = &File{
 		URI:    "localhost:9092",
 	},
 	Redis: &Redis{
-		Endpoints:    []string{"localhost:6379"},
+		Endpoint:     "localhost:6379",
 		Username:     "",
 		Password:     "",
 		DisableCache: true,
@@ -366,7 +367,7 @@ func TestSetupConfig(t *testing.T) {
 	f, err := _Setup(configName, "yaml", v)
 	assert.NoError(t, err)
 
-	AssertConfig(t, f, configFileExcept)
+	AssertConfig(t, f, configFileExpected)
 }
 
 // func TestConfigEnvOverride(t *testing.T) {
@@ -438,7 +439,7 @@ func TestConfigFilePath(t *testing.T) {
 				f, err := _Setup(configName, "yaml", v)
 				assert.NoError(t, err)
 
-				assert.Equal(t, configFileExcept, f)
+				assert.Equal(t, configFileExpected, f)
 			})
 		}(configPath)
 	}
@@ -479,7 +480,7 @@ func TestConfigFileType(t *testing.T) {
 				f, err := _Setup(configName, _type, v)
 				assert.NoError(t, err)
 
-				AssertConfig(t, configFileExcept, f)
+				AssertConfig(t, configFileExpected, f)
 			})
 		}(configType, configContext)
 	}
@@ -515,7 +516,7 @@ func AssertConfig(t *testing.T, expect, got *File) {
 					t.Parallel()
 					AssertIndexer(t, _except, got)
 				})
-			}(configFileExcept.Component.Decentralized[i], indexer)
+			}(configFileExpected.Component.Decentralized[i], indexer)
 		}
 	})
 }

@@ -6,7 +6,7 @@ import (
 	"os"
 	"sort"
 
-	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -91,7 +91,7 @@ func generateEnum(file []byte) ([]byte, error) {
 	}
 
 	// Generate platform values.
-	platforms := worker.PlatformStrings()
+	platforms := decentralized.PlatformStrings()
 
 	sort.Strings(platforms)
 
