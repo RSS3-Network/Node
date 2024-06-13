@@ -17,6 +17,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
+	lop "github.com/samber/lo/parallel"
 	"go.uber.org/zap"
 )
 
@@ -154,15 +155,29 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 		return response.InternalError(ctx)
 	}
 
-	// iterate over the activities and query etherface for the transaction
-	for _, activity := range activities {
-		if c.etherfaceClient != nil && activity.Type == typex.Unknown && activity.Calldata != nil {
-			activity.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx.Request().Context(), activity.Calldata.FunctionHash)
+	results := make([]*activityx.Activity, len(activities))
+
+	// iterate over the activities
+	// 1. transform the activity such as adding related urls and filling the author url
+	// 2. query etherface for the transaction to get parsed function name
+	lop.ForEach(activities, func(_ *activityx.Activity, index int) {
+		result, err := c.TransformActivity(ctx.Request().Context(), activities[index])
+		if err != nil {
+			zap.L().Error("failed to load activity", zap.Error(err))
+
+			return
 		}
-	}
+
+		// query etherface to get the parsed function name
+		if c.etherfaceClient != nil && result.Type == typex.Unknown && result.Calldata != nil {
+			result.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx.Request().Context(), result.Calldata.FunctionHash)
+		}
+
+		results[index] = result
+	})
 
 	return ctx.JSON(http.StatusOK, ActivitiesResponse{
-		Data: activities,
+		Data: results,
 		Meta: lo.Ternary(len(activities) < databaseRequest.Limit, nil, &MetaCursor{
 			Cursor: last,
 		}),

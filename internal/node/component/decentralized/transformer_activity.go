@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/node/schema/worker/decentralized"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -13,19 +13,23 @@ import (
 	"go.uber.org/zap"
 )
 
+// TransformActivity should add related URLs to the activity based on action tag, network and platform
 func (c *Component) TransformActivity(ctx context.Context, activity *activityx.Activity) (*activityx.Activity, error) {
 	if activity == nil {
 		return nil, nil
 	}
 
+	// iterate over actions and transform them based on tag, network and platform
 	lop.ForEach(activity.Actions, func(actionPtr *activityx.Action, index int) {
 		action := *actionPtr
 
 		var err error
 
 		switch action.Tag {
-		case tag.Transaction:
-			*activity.Actions[index], err = c.TransformTransactionType(ctx, activity.Network, *actionPtr)
+		case tag.Collectible:
+			*activity.Actions[index], err = c.TransformCollectibleType(ctx, activity.Network, *actionPtr)
+		case tag.Social:
+			*activity.Actions[index], err = c.TransformSocialType(ctx, activity.Network, activity.Platform, *actionPtr)
 		default:
 			activity.Actions[index] = actionPtr
 		}
@@ -65,7 +69,7 @@ func (c *Component) AddTransactionChainURL(_ context.Context, n network.Network,
 	case network.Arweave:
 		urls = append(urls, fmt.Sprintf("https://arweave.app/tx/%s", id))
 
-		if lo.IsNotEmpty(platform) && platform == worker.PlatformLens.String() {
+		if lo.IsNotEmpty(platform) && platform == decentralized.PlatformLens.String() {
 			urls = append(urls, fmt.Sprintf("https://momoka.lens.xyz/tx/%s", id))
 		}
 	case network.Linea:
