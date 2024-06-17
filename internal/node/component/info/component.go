@@ -13,6 +13,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Component struct {
@@ -66,11 +67,25 @@ func (c *Component) InitMeter() (err error) {
 	return nil
 }
 
-func (c *Component) CollectMetric(ctx context.Context, value string) {
+func (c *Component) CollectMetric(ctx context.Context, path, value string) {
 	measurementOption := metric.WithAttributes(
 		attribute.String("component", c.Name()),
-		attribute.String("path", value),
+		attribute.String("path", path),
+		attribute.String("value", value),
 	)
 
 	c.counter.Add(ctx, int64(1), measurementOption)
+}
+
+func (c *Component) CollectTrace(ctx context.Context, path, value string) {
+	spanStartOptions := []trace.SpanStartOption{
+		trace.WithSpanKind(trace.SpanKindServer),
+		trace.WithAttributes(
+			attribute.String("path", path),
+			attribute.String("value", value),
+		),
+	}
+
+	_, span := otel.Tracer("").Start(ctx, "Info API Query", spanStartOptions...)
+	defer span.End()
 }

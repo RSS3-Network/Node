@@ -50,6 +50,8 @@ type WorkerStatusAggregator struct {
 
 // GetWorkersStatus returns the status of all workers.
 func (c *Component) GetWorkersStatus(ctx echo.Context) error {
+	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, "status")
+
 	workerCount := len(c.config.Component.Decentralized) + len(c.config.Component.RSS) + len(c.config.Component.Federated)
 	workerInfoChan := make(chan *WorkerInfo, workerCount)
 

@@ -10,7 +10,8 @@ import (
 type Component interface {
 	Name() string
 	InitMeter() error
-	CollectMetric(ctx context.Context, value string)
+	CollectMetric(ctx context.Context, path, value string)
+	CollectTrace(ctx context.Context, path, value string)
 }
 
 var _ echo.Validator = (*Validator)(nil)

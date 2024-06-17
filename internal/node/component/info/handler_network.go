@@ -38,7 +38,7 @@ type EndpointConfigResponse struct {
 
 // GetNetworksHandler returns the list of all networks that the node can support.
 func (c *Component) GetNetworksHandler(ctx echo.Context) error {
-	go c.CollectMetric(ctx.Request().Context(), "networks")
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, "networks")
 
 	networkList := network.NetworkValues()
 
@@ -71,7 +71,7 @@ func (c *Component) GetWorkersByNetwork(ctx echo.Context) error {
 		return fmt.Errorf("validate failed: %w", err)
 	}
 
-	go c.CollectMetric(ctx.Request().Context(), request.Network)
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, request.Network)
 
 	nid, err := network.NetworkString(request.Network)
 
@@ -99,7 +99,7 @@ func (c *Component) GetWorkerConfig(ctx echo.Context) error {
 		return fmt.Errorf("validate failed: %w", err)
 	}
 
-	go c.CollectMetric(ctx.Request().Context(), fmt.Sprintf("%s-%s", request.Network, request.Worker))
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, fmt.Sprintf("%s-%s", request.Network, request.Worker))
 
 	nid, err := network.NetworkString(request.Network)
 	if err != nil {
