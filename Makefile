@@ -1,3 +1,11 @@
+# Build this project and generate the binary in the ./build directory
+.PHONY: build
+build: generate
+	mkdir -p ./build
+	go build \
+		-ldflags "-X github.com/rss3-network/node/internal/constant.Version=$(VERSION) -X github.com/rss3-network/node/internal/constant.Commit=$(COMMIT)" \
+		-o ./build/node ./cmd
+
 VERSION=$(shell git describe --tags --abbrev=0)
 COMMIT=$(shell git rev-parse --short HEAD)
 DOCKER_COMPOSE_FILE=./.devcontainer/docker-compose.yaml
@@ -22,6 +30,10 @@ align:
 generate:
 	go generate ./...
 
+# Format the codebase by running gocognit and align
+.PHONY: fmt
+fmt: gocognit align
+
 # Run golangci-lint to lint the whole codebase, ensuring code quality
 lint:
 	go mod tidy
@@ -34,26 +46,26 @@ test:
 # Start all docker services defined in the docker-compose file (located in the ./devcontainer directory)
 .PHONY: service_up
 service_up:
-	docker-compose -f $(DOCKER_COMPOSE_FILE) up -d
+	docker compose --project-name rss3-node -f $(DOCKER_COMPOSE_FILE) up -d
 
 # Stop and remove all docker services defined in the docker-compose file (located in the ./devcontainer directory)
 .PHONY: service_down
 service_down:
-	docker-compose -f $(DOCKER_COMPOSE_FILE) down
+	docker compose --project-name rss3-node -f $(DOCKER_COMPOSE_FILE) down
 
 # Function to start a docker service defined in the docker-compose file
 define start_service
-	docker-compose -f $(DOCKER_COMPOSE_FILE) up -d $(1)
+	docker compose --project-name rss3-node -f $(DOCKER_COMPOSE_FILE) up -d $(1)
 endef
 
 # Function to stop a docker service defined in the docker-compose file
 define stop_service
-	docker-compose -f $(DOCKER_COMPOSE_FILE) stop $(1)
+	docker compose --project-name rss3-node -f $(DOCKER_COMPOSE_FILE) stop $(1)
 endef
 
 # Function to remove a docker service defined in the docker-compose file
 define remove_service
-	docker-compose -f $(DOCKER_COMPOSE_FILE) rm -f $(1)
+	docker compose --project-name rss3-node -f $(DOCKER_COMPOSE_FILE) rm -f $(1)
 endef
 
 # Allow users to start a specific service by passing the SERVICE variable
@@ -86,14 +98,6 @@ docker-remove:
 	fi
 	$(call stop_service,$(SERVICE))
 	$(call remove_service,$(SERVICE))
-
-# Build this project and generate the binary in the ./build directory
-.PHONY: build
-build: generate
-	mkdir -p ./build
-	go build \
-		-ldflags "-X github.com/rss3-network/node/internal/constant.Version=$(VERSION) -X github.com/rss3-network/node/internal/constant.Commit=$(COMMIT)" \
-		-o ./build/node ./cmd
 
 # Build a Docker image for this project
 image: generate
