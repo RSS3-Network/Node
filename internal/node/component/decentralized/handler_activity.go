@@ -75,6 +75,10 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 		return response.ValidationFailedError(ctx, err)
 	}
 
+	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, request.ID)
+
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, request.ID)
+
 	query := model.ActivityQuery{
 		ID:          lo.ToPtr(request.ID),
 		ActionLimit: request.ActionLimit,
@@ -126,7 +130,9 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 		return response.ValidationFailedError(ctx, err)
 	}
 
-	go c.CollectMetric(ctx.Request().Context(), common.HexToAddress(request.Account).String())
+	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, common.HexToAddress(request.Account).String())
+
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, common.HexToAddress(request.Account).String())
 
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {

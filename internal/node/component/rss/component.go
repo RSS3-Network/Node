@@ -14,6 +14,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Component struct {
@@ -85,13 +86,27 @@ func (h *Component) InitMeter() (err error) {
 	return nil
 }
 
-func (h *Component) CollectMetric(ctx context.Context, value string) {
+func (h *Component) CollectMetric(ctx context.Context, path, value string) {
 	measurementOption := metric.WithAttributes(
 		attribute.String("component", h.Name()),
+		attribute.String("path", path),
 		attribute.String("value", value),
 	)
 
 	h.counter.Add(ctx, int64(1), measurementOption)
+}
+
+func (h *Component) CollectTrace(ctx context.Context, path, value string) {
+	spanStartOptions := []trace.SpanStartOption{
+		trace.WithSpanKind(trace.SpanKindServer),
+		trace.WithAttributes(
+			attribute.String("path", path),
+			attribute.String("value", value),
+		),
+	}
+
+	_, span := otel.Tracer("").Start(ctx, "RSS API Query", spanStartOptions...)
+	defer span.End()
 }
 
 // setAccessKey set the access code according to the RSSHub authentication specification.

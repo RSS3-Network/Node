@@ -16,7 +16,9 @@ type Response struct {
 func (h *Component) Handler(ctx echo.Context) error {
 	path := ctx.Param("*")
 
-	go h.CollectMetric(ctx.Request().Context(), path)
+	go h.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, path)
+
+	go h.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, path)
 
 	data, err := h.getActivities(ctx.Request().Context(), path, ctx.Request().URL)
 	if err != nil {

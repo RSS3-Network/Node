@@ -20,7 +20,7 @@ type Version struct {
 
 // GetNodeOperator returns the node information.
 func (c *Component) GetNodeOperator(ctx echo.Context) error {
-	go c.CollectMetric(ctx.Request().Context(), "info")
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, "info")
 
 	zap.L().Debug("get node info", zap.String("request.ip", ctx.Request().RemoteAddr))
 
