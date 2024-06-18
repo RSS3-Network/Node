@@ -1,3 +1,6 @@
+VERSION=$(shell git describe --tags --abbrev=0)
+COMMIT=$(shell git rev-parse --short HEAD)
+
 # Build this project and generate the binary in the ./build directory
 .PHONY: build
 build: generate
@@ -5,9 +8,6 @@ build: generate
 	go build \
 		-ldflags "-X github.com/rss3-network/node/internal/constant.Version=$(VERSION) -X github.com/rss3-network/node/internal/constant.Commit=$(COMMIT)" \
 		-o ./build/node ./cmd
-
-VERSION=$(shell git describe --tags --abbrev=0)
-COMMIT=$(shell git rev-parse --short HEAD)
 DOCKER_COMPOSE_FILE=./.devcontainer/docker-compose.yaml
 
 ifeq ($(VERSION),)
