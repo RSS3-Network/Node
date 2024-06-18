@@ -74,7 +74,8 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{}
 }
 
-func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
+// MatchStargate matches the Stargate contract.
+func (w *worker) MatchStargate(_ context.Context, task engine.Task) (bool, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return false, fmt.Errorf("invalid task type: %T", task)
@@ -99,6 +100,20 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 }
 
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
+	matched, err := w.MatchStargate(ctx, task)
+	if err != nil {
+		zap.L().Error("match task", zap.String("task.id", task.ID()), zap.Error(err))
+
+		return nil, nil
+	}
+
+	// If the task does not meet the filter conditions, it will be discarded.
+	if !matched {
+		zap.L().Warn("unmatched task", zap.String("task.id", task.ID()))
+
+		return nil, nil
+	}
+
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)

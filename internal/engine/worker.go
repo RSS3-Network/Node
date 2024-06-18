@@ -22,8 +22,6 @@ type Worker interface {
 	Types() []schema.Type
 	// Filter the DataSourceFilter of the worker(network, state, start logics, etc.).
 	Filter() DataSourceFilter
-	// Match the matching logic of worker and returns if the task is matched
-	Match(ctx context.Context, task Task) (bool, error)
 	// Transform the core logic of the worker and returns the Activity.
 	Transform(ctx context.Context, task Task) (*activityx.Activity, error)
 }

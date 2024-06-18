@@ -75,11 +75,6 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	}
 }
 
-func (w *worker) Match(_ context.Context, _ engine.Task) (bool, error) {
-	// TODO Delete
-	return true, nil
-}
-
 // Transform transforms the task into an aavegotchi activityx.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	// Cast the task to an Ethereum task.

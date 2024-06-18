@@ -138,22 +138,6 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		task := task
 
 		resultPool.Go(func() *activityx.Activity {
-			zap.L().Debug("start match task", zap.String("task.id", task.ID()))
-
-			matched, err := s.worker.Match(ctx, task)
-			if err != nil {
-				zap.L().Error("match task", zap.String("task.id", task.ID()), zap.Error(err))
-
-				return nil
-			}
-
-			// If the task does not meet the filter conditions, it will be discarded.
-			if !matched {
-				zap.L().Warn("unmatched task", zap.String("task.id", task.ID()))
-
-				return nil
-			}
-
 			zap.L().Debug("start transform task", zap.String("task.id", task.ID()))
 
 			activity, err := s.worker.Transform(ctx, task)

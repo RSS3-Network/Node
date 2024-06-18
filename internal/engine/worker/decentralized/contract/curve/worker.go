@@ -88,8 +88,8 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{}
 }
 
-// Match Ethereum task.
-func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
+// MatchCurve Match curve contract address and event hash.
+func (w *worker) MatchCurve(_ context.Context, task engine.Task) (bool, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return false, fmt.Errorf("invalid task type: %T", task)
@@ -127,6 +127,20 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 
 // Transform Ethereum task to feed.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
+	matched, err := w.MatchCurve(ctx, task)
+	if err != nil {
+		zap.L().Error("match task", zap.String("task.id", task.ID()), zap.Error(err))
+
+		return nil, nil
+	}
+
+	// If the task does not meet the filter conditions, it will be discarded.
+	if !matched {
+		zap.L().Warn("unmatched task", zap.String("task.id", task.ID()))
+
+		return nil, nil
+	}
+
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
