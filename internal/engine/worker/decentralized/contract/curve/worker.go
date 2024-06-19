@@ -112,6 +112,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 			curve.EventHashStableSwapAddLiquidity3Coins,
 			curve.EventHashStableSwapAddLiquidity4Coins,
 			curve.EventHashStableSwapRemoveLiquidity2Coins,
+			curve.EventHashStableSwapRemoveLiquidity2Coins3Param,
 			curve.EventHashStableSwapRemoveLiquidity3Coins,
 			curve.EventHashStableSwapRemoveLiquidity4Coins,
 			curve.EventHashStableSwapRemoveLiquidityOne,
