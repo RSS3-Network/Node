@@ -358,6 +358,7 @@ func (w *worker) transformStableSwapRemoveLiquidityTransaction(ctx context.Conte
 		return len(log.Topics) > 0 && contract.MatchEventHashes(
 			log.Topics[0],
 			curve.EventHashStableSwapRemoveLiquidity2Coins,
+			curve.EventHashStableSwapRemoveLiquidity2Coins3Param,
 			curve.EventHashStableSwapRemoveLiquidity3Coins,
 			curve.EventHashStableSwapRemoveLiquidity4Coins,
 			curve.EventHashStableSwapRemoveLiquidityOne,
