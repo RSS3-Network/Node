@@ -63,11 +63,6 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	return nil
 }
 
-func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	// The worker will handle all Farcaster message.
-	return task.GetNetwork().Source() == network.FarcasterSource, nil
-}
-
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	farcasterTask, ok := task.(*source.Task)
 	if !ok {

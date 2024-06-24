@@ -88,46 +88,22 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{}
 }
 
-// Match Ethereum task.
-func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	ethereumTask, ok := task.(*source.Task)
-	if !ok {
-		return false, fmt.Errorf("invalid task type: %T", task)
-	}
-
-	if ethereumTask.Transaction.To == nil {
-		return false, nil
-	}
-
-	// RegistryExchange
-	if curve.IsOfficeRegistryExchange(*ethereumTask.Transaction.To) {
-		return true, nil
-	}
-
-	return lo.ContainsBy(ethereumTask.Receipt.Logs, func(log *ethereum.Log) bool {
-		return len(log.Topics) > 0 && contract.MatchEventHashes(
-			log.Topics[0],
-			curve.EventHashStableSwapTokenExchange,
-			curve.EventHashStableSwapAddLiquidity2Coins,
-			curve.EventHashStableSwapAddLiquidity3Coins,
-			curve.EventHashStableSwapAddLiquidity4Coins,
-			curve.EventHashStableSwapRemoveLiquidity2Coins,
-			curve.EventHashStableSwapRemoveLiquidity2Coins3Param,
-			curve.EventHashStableSwapRemoveLiquidity3Coins,
-			curve.EventHashStableSwapRemoveLiquidity4Coins,
-			curve.EventHashStableSwapRemoveLiquidityOne,
-			curve.EventHashStableSwapRemoveLiquidityOneFactory,
-			curve.EventHashStableSwapRemoveLiquidityImbalance2Coins,
-			curve.EventHashStableSwapRemoveLiquidityImbalance3Coins,
-			curve.EventHashStableSwapRemoveLiquidityImbalance4Coins,
-			curve.EventHashLiquidityGaugeDeposit,
-			curve.EventHashLiquidityGaugeWithdraw,
-		)
-	}), nil
-}
-
 // Transform Ethereum task to feed.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
+	matched, err := w.matchCurveTransactions(ctx, task)
+	if err != nil {
+		zap.L().Error("match task", zap.String("task.id", task.ID()), zap.Error(err))
+
+		return nil, nil
+	}
+
+	// If the task does not meet the filter conditions, it will be discarded.
+	if !matched {
+		zap.L().Warn("unmatched task", zap.String("task.id", task.ID()))
+
+		return nil, nil
+	}
+
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -210,6 +186,44 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	}
 
 	return feed, nil
+}
+
+// matchCurveTransactions Match curve contract address and event hash.
+func (w *worker) matchCurveTransactions(_ context.Context, task engine.Task) (bool, error) {
+	ethereumTask, ok := task.(*source.Task)
+	if !ok {
+		return false, fmt.Errorf("invalid task type: %T", task)
+	}
+
+	if ethereumTask.Transaction.To == nil {
+		return false, nil
+	}
+
+	// RegistryExchange
+	if curve.IsOfficeRegistryExchange(*ethereumTask.Transaction.To) {
+		return true, nil
+	}
+
+	return lo.ContainsBy(ethereumTask.Receipt.Logs, func(log *ethereum.Log) bool {
+		return len(log.Topics) > 0 && contract.MatchEventHashes(
+			log.Topics[0],
+			curve.EventHashStableSwapTokenExchange,
+			curve.EventHashStableSwapAddLiquidity2Coins,
+			curve.EventHashStableSwapAddLiquidity3Coins,
+			curve.EventHashStableSwapAddLiquidity4Coins,
+			curve.EventHashStableSwapRemoveLiquidity2Coins,
+			curve.EventHashStableSwapRemoveLiquidity2Coins3Param,
+			curve.EventHashStableSwapRemoveLiquidity3Coins,
+			curve.EventHashStableSwapRemoveLiquidity4Coins,
+			curve.EventHashStableSwapRemoveLiquidityOne,
+			curve.EventHashStableSwapRemoveLiquidityOneFactory,
+			curve.EventHashStableSwapRemoveLiquidityImbalance2Coins,
+			curve.EventHashStableSwapRemoveLiquidityImbalance3Coins,
+			curve.EventHashStableSwapRemoveLiquidityImbalance4Coins,
+			curve.EventHashLiquidityGaugeDeposit,
+			curve.EventHashLiquidityGaugeWithdraw,
+		)
+	}), nil
 }
 
 // matchStableSwapEventHashStableSwapAddLiquidityTransaction matches stable swap add liquidity transaction.

@@ -74,31 +74,21 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{}
 }
 
-func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	ethereumTask, ok := task.(*source.Task)
-	if !ok {
-		return false, fmt.Errorf("invalid task type: %T", task)
-	}
-
-	if ethereumTask.Transaction.To == nil {
-		return false, nil
-	}
-
-	if contract.MatchAddresses(*ethereumTask.Transaction.To, stargate.RouterETHAddresses()...) || contract.MatchAddresses(*ethereumTask.Transaction.To, stargate.RouterAddresses()...) {
-		return true, nil
-	}
-
-	return lo.ContainsBy(ethereumTask.Receipt.Logs, func(log *ethereum.Log) bool {
-		return len(log.Topics) > 0 && contract.MatchEventHashes(
-			log.Topics[0],
-			stargate.EventHashPoolCreditChainPath,
-			stargate.EventHashPoolSwap,
-			stargate.EventHashPoolSwapRemote,
-		)
-	}), nil
-}
-
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
+	matched, err := w.matchStargateTransaction(ctx, task)
+	if err != nil {
+		zap.L().Error("match task", zap.String("task.id", task.ID()), zap.Error(err))
+
+		return nil, nil
+	}
+
+	// If the task does not meet the filter conditions, it will be discarded.
+	if !matched {
+		zap.L().Warn("unmatched task", zap.String("task.id", task.ID()))
+
+		return nil, nil
+	}
+
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -142,6 +132,31 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	}
 
 	return activity, nil
+}
+
+// matchStargateTransaction matches the Stargate contract.
+func (w *worker) matchStargateTransaction(_ context.Context, task engine.Task) (bool, error) {
+	ethereumTask, ok := task.(*source.Task)
+	if !ok {
+		return false, fmt.Errorf("invalid task type: %T", task)
+	}
+
+	if ethereumTask.Transaction.To == nil {
+		return false, nil
+	}
+
+	if contract.MatchAddresses(*ethereumTask.Transaction.To, stargate.RouterETHAddresses()...) || contract.MatchAddresses(*ethereumTask.Transaction.To, stargate.RouterAddresses()...) {
+		return true, nil
+	}
+
+	return lo.ContainsBy(ethereumTask.Receipt.Logs, func(log *ethereum.Log) bool {
+		return len(log.Topics) > 0 && contract.MatchEventHashes(
+			log.Topics[0],
+			stargate.EventHashPoolCreditChainPath,
+			stargate.EventHashPoolSwap,
+			stargate.EventHashPoolSwapRemote,
+		)
+	}), nil
 }
 
 // matchPoolSwapLog the pool swap log.

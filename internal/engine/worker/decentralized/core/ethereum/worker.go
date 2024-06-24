@@ -94,19 +94,6 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	return nil
 }
 
-func (w *worker) Match(ctx context.Context, task engine.Task) (bool, error) {
-	tracerOptions := []trace.SpanStartOption{
-		trace.WithSpanKind(trace.SpanKindConsumer),
-		trace.WithAttributes(engine.BuildTaskTraceAttributes(task)...),
-	}
-
-	_, span := otel.Tracer("").Start(ctx, "Worker match", tracerOptions...)
-	defer span.End()
-
-	// The worker will handle all Ethereum network transactions.
-	return task.GetNetwork().Source() == network.EthereumSource, nil
-}
-
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	tracerOptions := []trace.SpanStartOption{
 		trace.WithSpanKind(trace.SpanKindConsumer),

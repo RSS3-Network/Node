@@ -431,10 +431,6 @@ func TestWorker(t *testing.T) {
 			instance, err := worker.NewWorker()
 			require.NoError(t, err)
 
-			matched, err := instance.Match(ctx, testcase.arguments.task)
-			testcase.wantError(t, err)
-			require.True(t, matched)
-
 			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 

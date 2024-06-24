@@ -82,23 +82,6 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	}
 }
 
-// Match returns true if the task is an Arweave task.
-func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	switch task.GetNetwork() {
-	case network.Arweave:
-		task := task.(*source.Task)
-
-		owner, err := arweave.PublicKeyToAddress(task.Transaction.Owner)
-		if err != nil {
-			return false, fmt.Errorf("parse transaction owner: %w", err)
-		}
-
-		return owner != "" && lo.Contains(momoka.AddressesLens, owner), nil
-	default:
-		return false, nil
-	}
-}
-
 // Transform returns an activity  with the action of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	// Cast the task to an Arweave task.

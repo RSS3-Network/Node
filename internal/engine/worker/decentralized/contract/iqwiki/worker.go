@@ -76,11 +76,6 @@ func (w *worker) Filter() engine.DataSourceFilter {
 }
 
 // Match Ethereum task to IQWiki.
-func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == network.EthereumSource, nil
-}
-
-// Match Ethereum task to IQWiki.
 func matchEthereumIqWiki(task *source.Task) bool {
 	return task.Transaction.From == iqwiki.AddressSig && iqwiki.AddressWiki == *task.Transaction.To
 }

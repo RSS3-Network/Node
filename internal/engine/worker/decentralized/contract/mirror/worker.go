@@ -66,24 +66,6 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{OwnerAddresses: []string{mirror.AddressMirror}}
 }
 
-// Match returns true if the task is an Arweave task.
-func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	switch task.GetNetwork().Source() {
-	case network.ArweaveSource:
-		task := task.(*source.Task)
-
-		// Check if the transaction belongs to the mirror contract.
-		owner, err := arweave.PublicKeyToAddress(task.Transaction.Owner)
-		if err != nil {
-			return false, fmt.Errorf("parse transaction owner: %w", err)
-		}
-
-		return owner == mirror.AddressMirror, nil
-	default:
-		return false, nil
-	}
-}
-
 // Transform returns an activity  with the action of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	// Cast the task to an Arweave task.

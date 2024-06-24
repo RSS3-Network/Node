@@ -75,10 +75,6 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	}
 }
 
-func (w *worker) Match(_ context.Context, _ engine.Task) (bool, error) {
-	return true, nil // TODO Remove this function.
-}
-
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {

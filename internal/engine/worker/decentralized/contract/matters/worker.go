@@ -83,10 +83,6 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	}
 }
 
-func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
-	return task.GetNetwork().Source() == network.EthereumSource, nil
-}
-
 // Transform matters task to activityx.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	// Cast the task to a matters task.
