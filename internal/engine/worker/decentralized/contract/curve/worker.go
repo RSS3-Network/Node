@@ -112,6 +112,7 @@ func (w *worker) Match(_ context.Context, task engine.Task) (bool, error) {
 			curve.EventHashStableSwapAddLiquidity3Coins,
 			curve.EventHashStableSwapAddLiquidity4Coins,
 			curve.EventHashStableSwapRemoveLiquidity2Coins,
+			curve.EventHashStableSwapRemoveLiquidity2Coins3Param,
 			curve.EventHashStableSwapRemoveLiquidity3Coins,
 			curve.EventHashStableSwapRemoveLiquidity4Coins,
 			curve.EventHashStableSwapRemoveLiquidityOne,
@@ -292,7 +293,7 @@ func (w *worker) matchEthereumLiquidityGaugeWithdrawLog(task *source.Task, log *
 
 // transformStableSwapAddLiquidityTransaction transforms stable swap add liquidity transaction.
 func (w *worker) transformStableSwapAddLiquidityTransaction(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
-	addLiquidityLog, _ := lo.Find(task.Receipt.Logs, func(log *ethereum.Log) bool {
+	addLiquidityLog, found := lo.Find(task.Receipt.Logs, func(log *ethereum.Log) bool {
 		return len(log.Topics) > 0 && contract.MatchEventHashes(
 			log.Topics[0],
 			curve.EventHashStableSwapAddLiquidity2Coins,
@@ -301,6 +302,10 @@ func (w *worker) transformStableSwapAddLiquidityTransaction(ctx context.Context,
 			curve.EventHashStableSwapAddLiquidity4Coins,
 		)
 	})
+
+	if !found {
+		return nil, fmt.Errorf("stable swap add liquidity log not found")
+	}
 
 	var (
 		poolAddress = addLiquidityLog.Address
@@ -350,10 +355,11 @@ func (w *worker) transformStableSwapAddLiquidityTransaction(ctx context.Context,
 
 // transformStableSwapRemoveLiquidityTransaction transforms stable swap remove liquidity transaction.
 func (w *worker) transformStableSwapRemoveLiquidityTransaction(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
-	addLiquidityLog, _ := lo.Find(task.Receipt.Logs, func(log *ethereum.Log) bool {
+	removeLiquidityLog, found := lo.Find(task.Receipt.Logs, func(log *ethereum.Log) bool {
 		return len(log.Topics) > 0 && contract.MatchEventHashes(
 			log.Topics[0],
 			curve.EventHashStableSwapRemoveLiquidity2Coins,
+			curve.EventHashStableSwapRemoveLiquidity2Coins3Param,
 			curve.EventHashStableSwapRemoveLiquidity3Coins,
 			curve.EventHashStableSwapRemoveLiquidity4Coins,
 			curve.EventHashStableSwapRemoveLiquidityOne,
@@ -364,8 +370,12 @@ func (w *worker) transformStableSwapRemoveLiquidityTransaction(ctx context.Conte
 		)
 	})
 
+	if !found {
+		return nil, fmt.Errorf("stable swap remove liquidity log not found")
+	}
+
 	var (
-		poolAddress = addLiquidityLog.Address
+		poolAddress = removeLiquidityLog.Address
 		actions     = make([]*activityx.Action, 0)
 	)
 
