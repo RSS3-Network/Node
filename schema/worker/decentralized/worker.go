@@ -21,6 +21,7 @@ const (
 	Lens                         // lens
 	Lido                         // lido
 	Looksrare                    // looksrare
+	Mastodon                     // mastodon
 	Matters                      // matters
 	Mirror                       // mirror
 	Momoka                       // momoka
@@ -73,6 +74,7 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	Lens:       {tag.Social},
 	Lido:       {tag.Exchange, tag.Transaction, tag.Collectible},
 	Looksrare:  {tag.Collectible},
+	Mastodon:   {tag.Social},
 	Matters:    {tag.Social},
 	Mirror:     {tag.Social},
 	Momoka:     {tag.Social},

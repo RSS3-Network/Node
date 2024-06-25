@@ -1,0 +1,68 @@
+package mastodon
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/rss3-network/node/internal/engine"
+	"github.com/rss3-network/node/provider/httpx"
+	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/protocol-go/schema"
+	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/typex"
+)
+
+type worker struct {
+	httpClient httpx.Client
+}
+
+func (w *worker) Name() string {
+	return decentralized.Core.String()
+}
+
+func (w *worker) Platform() string {
+	return decentralized.PlatformMastodon.String()
+}
+
+func (w *worker) Network() []network.Network {
+	return []network.Network{
+		network.Farcaster,
+	}
+}
+
+func (w *worker) Tags() []tag.Tag {
+	return []tag.Tag{
+		tag.Social,
+	}
+}
+
+func (w *worker) Types() []schema.Type {
+	return []schema.Type{
+		typex.SocialComment,
+		typex.SocialPost,
+		typex.SocialShare,
+	}
+}
+
+// Filter returns a source filter.
+func (w *worker) Filter() engine.DataSourceFilter {
+	return nil
+}
+
+func (w *worker) Transform(_ context.Context, _ engine.Task) (*activityx.Activity, error) {
+	return nil, nil
+}
+
+func NewWorker() (engine.Worker, error) {
+	httpClient, err := httpx.NewHTTPClient()
+
+	if err != nil {
+		return nil, fmt.Errorf("new http client: %w", err)
+	}
+
+	return &worker{
+		httpClient: httpClient,
+	}, nil
+}

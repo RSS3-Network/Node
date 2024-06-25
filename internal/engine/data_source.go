@@ -11,7 +11,7 @@ import (
 type DataSource interface {
 	Network() network.Network
 	State() json.RawMessage
-	Start(ctx context.Context, tasksChan chan<- *Tasks, errorChan chan<- error)
+	Start(_ context.Context, tasksChan chan<- *Tasks, errorChan chan<- error)
 }
 
 type DataSourceFilter interface{}
