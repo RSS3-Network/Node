@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/creasty/defaults"
 	"github.com/ethereum/go-ethereum/common"
@@ -29,6 +30,21 @@ type ActivityRequest struct {
 
 type AccountActivitiesRequest struct {
 	Account        string                   `param:"account" validate:"required"`
+	Limit          int                      `query:"limit" validate:"min=1,max=100" default:"100"`
+	ActionLimit    int                      `query:"action_limit" validate:"min=1,max=20" default:"10"`
+	Cursor         *string                  `query:"cursor"`
+	SinceTimestamp *uint64                  `query:"since_timestamp"`
+	UntilTimestamp *uint64                  `query:"until_timestamp"`
+	Status         *bool                    `query:"success"`
+	Direction      *activityx.Direction     `query:"direction"`
+	Network        []network.Network        `query:"network"`
+	Tag            []tag.Tag                `query:"tag"`
+	Type           []schema.Type            `query:"-"`
+	Platform       []decentralized.Platform `query:"platform"`
+}
+
+type AccountsActivitiesRequest struct {
+	Accounts       []string                 `query:"accounts" validate:"required"`
 	Limit          int                      `query:"limit" validate:"min=1,max=100" default:"100"`
 	ActionLimit    int                      `query:"action_limit" validate:"min=1,max=20" default:"10"`
 	Cursor         *string                  `query:"cursor"`
@@ -145,6 +161,86 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
 		Owner:          lo.ToPtr(common.HexToAddress(request.Account).String()),
+		Limit:          request.Limit,
+		ActionLimit:    request.ActionLimit,
+		Status:         request.Status,
+		Direction:      request.Direction,
+		Network:        lo.Uniq(request.Network),
+		Tags:           lo.Uniq(request.Tag),
+		Types:          lo.Uniq(request.Type),
+		Platforms:      lo.Uniq(request.Platform),
+	}
+
+	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
+	if err != nil {
+		zap.L().Error("getActivities InternalError", zap.Error(err))
+		return response.InternalError(ctx)
+	}
+
+	results := make([]*activityx.Activity, len(activities))
+
+	// iterate over the activities
+	// 1. transform the activity such as adding related urls and filling the author url
+	// 2. query etherface for the transaction to get parsed function name
+	lop.ForEach(activities, func(_ *activityx.Activity, index int) {
+		result, err := c.TransformActivity(ctx.Request().Context(), activities[index])
+		if err != nil {
+			zap.L().Error("failed to load activity", zap.Error(err))
+
+			return
+		}
+
+		// query etherface to get the parsed function name
+		if c.etherfaceClient != nil && result.Type == typex.Unknown && result.Calldata != nil {
+			result.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx.Request().Context(), result.Calldata.FunctionHash)
+		}
+
+		results[index] = result
+	})
+
+	return ctx.JSON(http.StatusOK, ActivitiesResponse{
+		Data: results,
+		Meta: lo.Ternary(len(activities) < databaseRequest.Limit, nil, &MetaCursor{
+			Cursor: last,
+		}),
+	})
+}
+
+// BatchGetAccountsActivities returns the activities of multiple accounts in a single request
+func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
+	var request AccountsActivitiesRequest
+
+	if err = ctx.Bind(&request); err != nil {
+		return response.BadRequestError(ctx, err)
+	}
+
+	if request.Type, err = c.parseParams(ctx.QueryParams(), request.Tag); err != nil {
+		return response.BadRequestError(ctx, err)
+	}
+
+	if err = defaults.Set(&request); err != nil {
+		return response.BadRequestError(ctx, err)
+	}
+
+	if err = ctx.Validate(&request); err != nil {
+		return response.ValidationFailedError(ctx, err)
+	}
+
+	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, strconv.Itoa(len(request.Accounts)))
+
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, strconv.Itoa(len(request.Accounts)))
+
+	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
+	if err != nil {
+		zap.L().Error("getCursor InternalError", zap.Error(err))
+		return response.InternalError(ctx)
+	}
+
+	databaseRequest := model.ActivitiesQuery{
+		Cursor:         cursor,
+		StartTimestamp: request.SinceTimestamp,
+		EndTimestamp:   request.UntilTimestamp,
+		Owners:         request.Accounts,
 		Limit:          request.Limit,
 		ActionLimit:    request.ActionLimit,
 		Status:         request.Status,
