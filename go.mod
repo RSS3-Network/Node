@@ -56,7 +56,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
 	github.com/grafana/pyroscope-go v1.1.1
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/redis/rueidis v1.0.39
+	github.com/redis/rueidis v1.0.40
 	github.com/rss3-network/protocol-go v0.5.1
 	github.com/spf13/afero v1.11.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
