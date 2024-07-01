@@ -10,6 +10,7 @@ import (
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/flag"
+	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/database/dialer"
@@ -86,6 +87,12 @@ var command = cobra.Command{
 
 			if err := databaseClient.Migrate(cmd.Context()); err != nil {
 				return fmt.Errorf("migrate database: %w", err)
+			}
+
+			// when start or restart the core, worker or monitor module, it will pull network parameters from VSL
+			err := parameter.PullNetworkParamsFromVSL()
+			if err != nil {
+				zap.L().Error("pull network parameters from VSL", zap.Error(err))
 			}
 		}
 

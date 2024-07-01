@@ -31,7 +31,7 @@ func NewOption(n network.Network, parameters *config.Parameters) (*Option, error
 
 	if parameters == nil {
 		return &Option{
-			BlockStart:              parameter.NetworkStartBlock[n],
+			BlockStart:              parameter.CurrentNetworkStartBlock[n.String()],
 			ConcurrentBlockRequests: lo.ToPtr(defaultConcurrentBlockRequests),
 		}, nil
 	}
@@ -50,7 +50,7 @@ func NewOption(n network.Network, parameters *config.Parameters) (*Option, error
 	}
 
 	if option.BlockStart == nil {
-		option.BlockStart = parameter.NetworkStartBlock[n]
+		option.BlockStart = parameter.CurrentNetworkStartBlock[n.String()]
 	}
 
 	return &option, nil
