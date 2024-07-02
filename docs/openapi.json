@@ -1,549 +1,1018 @@
 {
-  "openapi": "3.0.3",
-  "info": {
-    "description": "RSS3 Node API, data query services provided.",
-    "title": "Node API",
-    "version": "0.1.0"
-  },
-  "servers": [],
-  "tags": [
-    {
-      "description": "Retrieve the details of RSS activities.",
-      "name": "RSS"
+    "openapi": "3.0.3",
+    "info": {
+        "description": "RSS3 Node API, data query services provided.",
+        "title": "Node API",
+        "version": "0.1.0"
     },
-    {
-      "description": "Retrieve the details of decentralized activities.",
-      "name": "Decentralized"
-    }
-  ],
-  "paths": {
-    "/decentralized/tx/{id}": {
-      "get": {
-        "parameters": [
-          {
-            "description": "Retrieve details for the specified activity ID.",
-            "example": "0x000000000000000000000000113f4b4c3765e5f05fd197c5c35b8a8a9b34245b",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "Specify the number of actions within the activity to retrieve.",
-            "example": "10",
-            "in": "query",
-            "name": "action_limit",
-            "required": false,
-            "schema": {
-              "default": 10,
-              "maximum": 20,
-              "minimum": 1,
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Specify the pagination for actions.",
-            "example": 1,
-            "in": "query",
-            "name": "action_page",
-            "required": false,
-            "schema": {
-              "default": 1,
-              "minimum": 1,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/ActivityResponse"
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalError"
-          }
+    "servers": [],
+    "tags": [
+        {
+            "description": "Retrieve the details of RSS activities.",
+            "name": "RSS"
         },
-        "summary": "Get Activity by ID",
-        "tags": [
-          "Decentralized"
-        ]
-      }
+        {
+            "description": "Retrieve the details of decentralized activities.",
+            "name": "Decentralized"
+        }
+    ],
+    "paths": {
+        "/decentralized/tx/{id}": {
+            "get": {
+                "summary": "Get Activity by ID",
+                "description": "Retrieve details for the specified activity ID.",
+                "tags": [
+                    "Decentralized"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/activity_id_path"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_page_query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivityResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+        "/decentralized/{account}": {
+            "get": {
+                "summary": "Get Account Activities",
+                "description": "This endpoint retrieves the activities associated with a specified account in the decentralized system. You can use various query parameters to filter and paginate the results, including limits on the number of activities and actions, timestamps, success status, direction, and more.",
+                "tags": [
+                    "Decentralized",
+                    "DSL"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/account_path"
+                    },
+                    {
+                        "$ref": "#/components/parameters/limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/cursor_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/since_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/until_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/success_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/direction_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/network_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/tag_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/type_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/platform_query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivitiesResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+        "/decentralized/accounts": {
+            "post": {
+                "summary": "Batch Get Accounts Activities",
+                "description": "Retrieve a batch of activities associated with multiple specified accounts in the decentralized system. You can use various query parameters to filter and paginate the results, including limits on the number of activities and actions, timestamps, success status, direction, and more.",
+                "tags": [
+                    "Decentralized"
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/BatchGetAccountsActivities"
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivitiesResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+        "/decentralized/network/{network}": {
+            "get": {
+                "summary": "Get Network Activities",
+                "description": "Retrieve a list of activities from the specified decentralized network. This endpoint allows you to filter activities by various parameters such as limit, timestamp, success status, and more.",
+                "tags": [
+                    "Decentralized"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/network_path"
+                    },
+                    {
+                        "$ref": "#/components/parameters/limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/cursor_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/since_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/until_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/success_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/direction_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/tag_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/type_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/platform_query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivitiesResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+        "/decentralized/platform/{platform}": {
+            "get": {
+                "summary": "Get Platform Activities",
+                "description": "Retrieve a list of activities from the specified decentralized platform. This endpoint allows you to filter activities by various parameters such as limit, timestamp, success status, and more.",
+                "tags": [
+                    "Decentralized"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/platform_path"
+                    },
+                    {
+                        "$ref": "#/components/parameters/limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/cursor_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/since_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/until_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/success_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/direction_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/tag_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/type_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/network_query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivitiesResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+        "/rss/{path}": {
+            "get": {
+                "summary": "Get RSS Activity by Path",
+                "description": "Retrieve details from the specified RSS path.",
+                "tags": [
+                    "RSS"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/rss_path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/RSSActivitiesResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        }
     },
-    "/decentralized/{account}": {
-      "get": {
-        "parameters": [
-          {
-            "description": "Retrieve activities from the specified account.",
-            "example": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-            "in": "path",
-            "name": "account",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "Specify the number of activities to retrieve.",
-            "example": "20",
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 100,
-              "maximum": 100,
-              "minimum": 1,
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Specify the number of actions within the activity to retrieve.",
-            "example": "10",
-            "in": "query",
-            "name": "action_limit",
-            "required": false,
-            "schema": {
-              "default": 10,
-              "maximum": 20,
-              "minimum": 1,
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Specify the cursor used for pagination.",
-            "in": "query",
-            "name": "cursor",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "Retrieve activities starting from this timestamp.",
-            "in": "query",
-            "name": "since_timestamp",
-            "required": false,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Retrieve activities up to this timestamp.",
-            "in": "query",
-            "name": "until_timestamp",
-            "required": false,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Retrieve activities based on success status.",
-            "in": "query",
-            "name": "success",
-            "required": false,
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "description": "Retrieve activities based on direction.",
-            "in": "query",
-            "name": "direction",
-            "required": false,
-            "schema": {
-              "$ref": "#/components/schemas/Direction"
-            }
-          },
-          {
-            "description": "Retrieve activities from the specified network(s).",
-            "in": "query",
-            "name": "network",
-            "required": false,
-            "schema": {
-              "items": {
-                "$ref": "#/components/schemas/Network"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Retrieve activities for the specified tag(s).",
-            "in": "query",
-            "name": "tag",
-            "required": false,
-            "schema": {
-              "items": {
-                "$ref": "#/components/schemas/Tag"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Retrieve activities for the specified type(s).",
-            "in": "query",
-            "name": "type",
-            "required": false,
-            "schema": {
-              "items": {
-                "$ref": "#/components/schemas/Type"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Retrieve activities from the specified platform(s).",
-            "in": "query",
-            "name": "platform",
-            "required": false,
-            "schema": {
-              "items": {
-                "$ref": "#/components/schemas/Platform"
-              },
-              "type": "array"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/ActivitiesResponse"
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalError"
-          }
-        },
-        "summary": "Get Account Activities",
-        "tags": [
-          "Decentralized"
-        ]
-      }
-    },
-    "/rss/{path}": {
-      "get": {
-        "parameters": [
-          {
-            "description": "Retrieve details from the specified RSS path.",
-            "example": "abc",
-            "in": "path",
-            "name": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/ActivitiesResponse"
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalError"
-          }
-        },
-        "summary": "Get RSS Activity by Path",
-        "tags": [
-          "RSS"
-        ]
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Action": {
-        "description": "Represents an individual action within an activity.",
-        "properties": {
-          "from": {
-            "$ref": "#/components/schemas/From"
-          },
-          "metadata": {
-            "$ref": "#/components/schemas/Metadata"
-          },
-          "platform": {
-            "$ref": "#/components/schemas/Platform"
-          },
-          "related_urls": {
-            "description": "A list of URLs related to the action.",
-            "items": {
-              "type": "string"
+    "components": {
+        "parameters": {
+            "activity_id_path": {
+                "description": "Retrieve details for the specified activity ID",
+                "example": "0x840e42d573ebe1ff27a9e4914573b4e0518fcd685c7f9331d319abe854f780e3",
+                "in": "path",
+                "name": "id",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
             },
-            "type": "array"
-          },
-          "tag": {
-            "$ref": "#/components/schemas/Tag"
-          },
-          "to": {
-            "$ref": "#/components/schemas/To"
-          },
-          "type": {
-            "$ref": "#/components/schemas/Type"
-          }
-        },
-        "type": "object"
-      },
-      "Activity": {
-        "properties": {
-          "actions": {
-            "description": "The list of actions within the activity.",
-            "items": {
-              "$ref": "#/components/schemas/Action"
+            "activity_id_query": {
+                "description": "Retrieve details for the specified activity ID",
+                "example": "0x840e42d573ebe1ff27a9e4914573b4e0518fcd685c7f9331d319abe854f780e3",
+                "in": "query",
+                "name": "id",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
             },
-            "type": "array"
-          },
-          "calldata": {
-            "$ref": "#/components/schemas/Calldata"
-          },
-          "direction": {
-            "$ref": "#/components/schemas/Direction"
-          },
-          "fee": {
-            "$ref": "#/components/schemas/Fee"
-          },
-          "from": {
-            "$ref": "#/components/schemas/From"
-          },
-          "id": {
-            "description": "The unique identifier for the activity.",
-            "type": "string"
-          },
-          "index": {
-            "description": "The index of the activity in the list.",
-            "type": "integer"
-          },
-          "network": {
-            "$ref": "#/components/schemas/Network"
-          },
-          "owner": {
-            "description": "The owner of the activity.",
-            "type": "string"
-          },
-          "platform": {
-            "$ref": "#/components/schemas/Platform"
-          },
-          "success": {
-            "description": "Indicates whether the activity was successful.",
-            "type": "boolean"
-          },
-          "tag": {
-            "$ref": "#/components/schemas/Tag"
-          },
-          "timestamp": {
-            "$ref": "#/components/schemas/Timestamp"
-          },
-          "to": {
-            "$ref": "#/components/schemas/To"
-          },
-          "total_actions": {
-            "description": "The total number of actions within the activity.",
-            "type": "integer"
-          },
-          "type": {
-            "$ref": "#/components/schemas/Type"
-          }
-        },
-        "type": "object"
-      },
-      "ActivityResponse": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/Activity"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/MetaTotalPages"
-          }
-        },
-        "type": "object"
-      },
-      "ActivitiesResponse": {
-        "description": "The response structure for a list of activities.",
-        "properties": {
-          "data": {
-            "description": "The list of activities.",
-            "items": {
-              "$ref": "#/components/schemas/Activity"
+            "account_path": {
+                "description": "Retrieve activities from the specified account.",
+                "example": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+                "in": "path",
+                "name": "account",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
             },
-            "type": "array"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/MetaCursor"
-          }
-        },
-        "type": "object"
-      },
-      "Calldata": {
-        "description": "Represents the call data associated with an activity.",
-        "properties": {
-          "function_hash": {
-            "description": "The hash of the function called.",
-            "type": "string"
-          },
-          "parsed_function": {
-            "description": "The parsed function name.",
-            "type": "string"
-          },
-          "raw": {
-            "description": "The raw calldata.",
-            "type": "string"
-          }
-        },
-        "type": "object"
-      },
-      "Fee": {
-        "description": "Represents fee information for an activity.",
-        "properties": {
-          "address": {
-            "description": "The address to which the fee is paid.",
-            "type": "string"
-          },
-          "amount": {
-            "description": "The amount of the fee.",
-            "type": "string"
-          },
-          "decimal": {
-            "description": "The decimal precision of the fee amount.",
-            "type": "integer"
-          }
-        },
-        "type": "object"
-      },
-      "MetaCursor": {
-        "description": "Metadata for paginated responses.",
-        "properties": {
-          "cursor": {
-            "description": "The cursor for the next set of results.",
-            "type": "string"
-          }
-        },
-        "type": "object"
-      },
-      "MetaTotalPages": {
-        "description": "Metadata indicating the total number of pages.",
-        "properties": {
-          "totalPages": {
-            "description": "The total number of pages available.",
-            "type": "integer"
-          }
-        },
-        "type": "object"
-      },
-      "Direction": {
-        "description": "The direction of an activity.",
-        "type": "string"
-      ,"enum":["in","out","self"]},
-      "Tag": {
-        "description": "A tag used to categorize activities.",
-        "type": "string"
-      ,"enum":["collectible","exchange","metaverse","rss","social","transaction","unknown"]},
-      "Type": {
-        "description": "A type used to categorize activities, it must be present with a tag.",
-        "type": "string"
-      ,"enum":["approval","bridge","burn","comment","delete","feed","liquidity","mint","post","profile","proxy","revise","reward","share","staking","swap","trade","transfer","unknown"]},
-      "To": {
-        "description": "The address to which the action is directed.",
-        "type": "string"
-      },
-      "Network": {
-        "description": "The network on which activities occur.",
-        "type": "string"
-      ,"enum":["arbitrum","arweave","avax","base","binance-smart-chain","crossbell","ethereum","farcaster","gnosis","linea","optimism","polygon","vsl"]},
-      "Platform": {
-        "description": "The platform on which activities occur.",
-        "type": "string"
-      ,"enum":["1inch","AAVE","Aavegotchi","Crossbell","Curve","ENS","Farcaster","Highlight","IQWiki","KiwiStand","Lens","Lido","LooksRare","Matters","Mirror","OpenSea","Optimism","Paragraph","RSS3","SAVM","Stargate","Uniswap","Unknown","VSL"]},
-      "Timestamp": {
-        "description": "The timestamp of when the activity occurred.",
-        "type": "integer"
-      },
-      "From": {
-        "description": "The address from which the action originated.",
-        "type": "string"
-      },
-      "Metadata": {
-        "description": "Additional metadata related to the action.",
-        "type": "object"
-      },
-      "Error": {
-        "description": "An error response.",
-        "properties": {
-          "code": {
-            "description": "The error code.",
-            "type": "integer"
-          },
-          "message": {
-            "description": "The error message.",
-            "type": "string"
-          }
-        },
-        "type": "object"
-      }
-    },
-    "responses": {
-      "ActivitiesResponse": {
-        "description": "The request was successful.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ActivitiesResponse"
+            "network_path": {
+                "description": "Retrieve activities from the specified network.",
+                "example": "ethereum",
+                "in": "path",
+                "name": "network",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "platform_path": {
+                "description": "Retrieve activities from the specified platform.",
+                "example": "Uniswap",
+                "in": "path",
+                "name": "platform",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "limit_query": {
+                "description": "Specify the number of activities to retrieve.",
+                "example": "20",
+                "in": "query",
+                "name": "limit",
+                "required": false,
+                "schema": {
+                    "default": 100,
+                    "maximum": 100,
+                    "minimum": 1,
+                    "type": "integer"
+                }
+            },
+            "action_limit_query": {
+                "description": "Specify the number of actions within the activity to retrieve.",
+                "example": "10",
+                "in": "query",
+                "name": "action_limit",
+                "required": false,
+                "schema": {
+                    "default": 10,
+                    "maximum": 20,
+                    "minimum": 1,
+                    "type": "integer"
+                }
+            },
+            "action_page_query": {
+                "description": "Specify the pagination for actions",
+                "example": 1,
+                "in": "query",
+                "name": "action_page",
+                "required": false,
+                "schema": {
+                    "default": 1,
+                    "minimum": 1,
+                    "type": "integer"
+                }
+            },
+            "cursor_query": {
+                "description": "Specify the cursor used for pagination.",
+                "in": "query",
+                "name": "cursor",
+                "required": false,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "since_timestamp_query": {
+                "description": "Retrieve activities starting from this timestamp.",
+                "in": "query",
+                "name": "since_timestamp",
+                "required": false,
+                "schema": {
+                    "type": "integer"
+                }
+            },
+            "until_timestamp_query": {
+                "description": "Retrieve activities up to this timestamp.",
+                "in": "query",
+                "name": "until_timestamp",
+                "required": false,
+                "schema": {
+                    "type": "integer"
+                }
+            },
+            "success_query": {
+                "description": "Retrieve activities based on success status.",
+                "in": "query",
+                "name": "success",
+                "required": false,
+                "schema": {
+                    "type": "boolean"
+                }
+            },
+            "direction_query": {
+                "description": "Retrieve activities based on direction.",
+                "in": "query",
+                "name": "direction",
+                "required": false,
+                "schema": {
+                    "$ref": "#/components/schemas/Direction"
+                }
+            },
+            "network_query": {
+                "description": "Retrieve activities from the specified network(s).",
+                "in": "query",
+                "name": "network",
+                "required": false,
+                "schema": {
+                    "items": {
+                        "$ref": "#/components/schemas/Network"
+                    },
+                    "type": "array"
+                }
+            },
+            "tag_query": {
+                "description": "Retrieve activities for the specified tag(s).",
+                "in": "query",
+                "name": "tag",
+                "required": false,
+                "schema": {
+                    "items": {
+                        "$ref": "#/components/schemas/Tag"
+                    },
+                    "type": "array"
+                }
+            },
+            "type_query": {
+                "description": "Retrieve activities for the specified type(s).",
+                "in": "query",
+                "name": "type",
+                "required": false,
+                "schema": {
+                    "items": {
+                        "$ref": "#/components/schemas/Type"
+                    },
+                    "type": "array"
+                }
+            },
+            "platform_query": {
+                "description": "Retrieve activities from the specified platform(s).",
+                "in": "query",
+                "name": "platform",
+                "required": false,
+                "schema": {
+                    "items": {
+                        "$ref": "#/components/schemas/Platform"
+                    },
+                    "type": "array"
+                }
+            },
+            "rss_path": {
+                "description": "Retrieve details for the specified RSS path",
+                "example": "abc",
+                "in": "path",
+                "name": "path",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
             }
-          }
-        }
-      },
-      "ActivityResponse": {
-        "description": "The request was successful.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ActivityResponse"
+        },
+        "requestBodies": {
+            "BatchGetAccountsActivities": {
+                "description": "Request body for batch retrieving activities for multiple accounts",
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "accounts": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "List of accounts to retrieve activities for",
+                                    "example": [
+                                        "0xd8da6bf26964af9d7eed9e03e53415d37aa96045"
+                                    ]
+                                },
+                                "limit": {
+                                    "type": "integer",
+                                    "description": "Specify the number of activities to retrieve",
+                                    "example": 20,
+                                    "default": 100,
+                                    "minimum": 1,
+                                    "maximum": 100
+                                },
+                                "action_limit": {
+                                    "type": "integer",
+                                    "description": "Specify the number of actions within the activity to retrieve",
+                                    "example": 10,
+                                    "default": 10,
+                                    "minimum": 1,
+                                    "maximum": 20
+                                },
+                                "cursor": {
+                                    "type": "string",
+                                    "description": "Specify the cursor used for pagination"
+                                },
+                                "since_timestamp": {
+                                    "type": "integer",
+                                    "description": "Retrieve activities starting from this timestamp"
+                                },
+                                "until_timestamp": {
+                                    "type": "integer",
+                                    "description": "Retrieve activities up to this timestamp"
+                                },
+                                "success": {
+                                    "type": "boolean",
+                                    "description": "Retrieve activities based on success status"
+                                },
+                                "direction": {
+                                    "$ref": "#/components/schemas/Direction"
+                                },
+                                "network": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Network"
+                                    },
+                                    "description": "Retrieve activities from the specified network(s)"
+                                },
+                                "tag": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Tag"
+                                    },
+                                    "description": "Retrieve activities for the specified tag(s)"
+                                },
+                                "type": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Type"
+                                    },
+                                    "description": "Retrieve activities for the specified type(s)"
+                                },
+                                "platform": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Platform"
+                                    },
+                                    "description": "Retrieve activities from the specified platform(s)"
+                                }
+                            }
+                        }
+                    }
+                }
             }
-          }
-        }
-      },
-      "BadRequest": {
-        "description": "The request is malformed or contains invalid parameters.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
+        },
+        "schemas": {
+            "Action": {
+                "description": "Represents an individual action within an activity.",
+                "properties": {
+                    "from": {
+                        "$ref": "#/components/schemas/From"
+                    },
+                    "metadata": {
+                        "$ref": "#/components/schemas/Metadata"
+                    },
+                    "platform": {
+                        "$ref": "#/components/schemas/Platform"
+                    },
+                    "related_urls": {
+                        "description": "A list of URLs related to the action.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "tag": {
+                        "$ref": "#/components/schemas/Tag"
+                    },
+                    "to": {
+                        "$ref": "#/components/schemas/To"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/Type"
+                    }
+                },
+                "type": "object"
+            },
+            "Activity": {
+                "properties": {
+                    "actions": {
+                        "description": "The list of actions within the activity.",
+                        "items": {
+                            "$ref": "#/components/schemas/Action"
+                        },
+                        "type": "array"
+                    },
+                    "calldata": {
+                        "$ref": "#/components/schemas/Calldata"
+                    },
+                    "direction": {
+                        "$ref": "#/components/schemas/Direction"
+                    },
+                    "fee": {
+                        "$ref": "#/components/schemas/Fee"
+                    },
+                    "from": {
+                        "$ref": "#/components/schemas/From"
+                    },
+                    "id": {
+                        "description": "The unique identifier for the activity.",
+                        "type": "string"
+                    },
+                    "index": {
+                        "description": "The index of the activity in the list.",
+                        "type": "integer"
+                    },
+                    "network": {
+                        "$ref": "#/components/schemas/Network"
+                    },
+                    "owner": {
+                        "description": "The owner of the activity.",
+                        "type": "string"
+                    },
+                    "platform": {
+                        "$ref": "#/components/schemas/Platform"
+                    },
+                    "success": {
+                        "description": "Indicates whether the activity was successful.",
+                        "type": "boolean"
+                    },
+                    "tag": {
+                        "$ref": "#/components/schemas/Tag"
+                    },
+                    "timestamp": {
+                        "$ref": "#/components/schemas/Timestamp"
+                    },
+                    "to": {
+                        "$ref": "#/components/schemas/To"
+                    },
+                    "total_actions": {
+                        "description": "The total number of actions within the activity.",
+                        "type": "integer"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/Type"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "id": "0x840e42d573ebe1ff27a9e4914573b4e0518fcd685c7f9331d319abe854f780e3",
+                    "owner": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+                    "network": "ethereum",
+                    "index": 0,
+                    "from": "0xBAB4d1f27bAA7762a4d822B80C647F715922492f",
+                    "to": "0x7964B6A8aE5a71409e7E17a5b2669903A27997Ac",
+                    "tag": "transaction",
+                    "type": "transfer",
+                    "fee": {
+                        "amount": "315699955320960",
+                        "decimal": 18
+                    },
+                    "calldata": {
+                        "function_hash": "0x4022b75e"
+                    },
+                    "total_actions": 10,
+                    "actions": [
+                        {
+                            "tag": "transaction",
+                            "type": "transfer",
+                            "from": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+                            "to": "0xefC5f77c5AD5DB85bc287E80d8c3B88c3f27662C",
+                            "metadata": {
+                                "address": "0x7964B6A8aE5a71409e7E17a5b2669903A27997Ac",
+                                "value": "10000000000000000000000",
+                                "name": "PlayDoge",
+                                "symbol": "PLAY",
+                                "decimals": 18,
+                                "standard": "ERC-20"
+                            },
+                            "related_urls": [
+                                "https://etherscan.io/tx/0x840e42d573ebe1ff27a9e4914573b4e0518fcd685c7f9331d319abe854f780e3"
+                            ]
+                        }
+                    ],
+                    "direction": "out",
+                    "success": true,
+                    "timestamp": 1718689727
+                }
+            },
+            "ActivityResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/Activity"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/MetaTotalPages"
+                    }
+                },
+                "type": "object"
+            },
+            "ActivitiesResponse": {
+                "description": "The response structure for a list of activities.",
+                "properties": {
+                    "data": {
+                        "description": "The list of activities.",
+                        "items": {
+                            "$ref": "#/components/schemas/Activity"
+                        },
+                        "type": "array"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/MetaCursor"
+                    }
+                },
+                "type": "object"
+            },
+            "Calldata": {
+                "description": "Represents the call data associated with an activity.",
+                "properties": {
+                    "function_hash": {
+                        "description": "The hash of the function called.",
+                        "type": "string"
+                    },
+                    "parsed_function": {
+                        "description": "The parsed function name.",
+                        "type": "string"
+                    },
+                    "raw": {
+                        "description": "The raw calldata.",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "Fee": {
+                "description": "Represents fee information for an activity.",
+                "properties": {
+                    "address": {
+                        "description": "The address to which the fee is paid.",
+                        "type": "string"
+                    },
+                    "amount": {
+                        "description": "The amount of the fee.",
+                        "type": "string"
+                    },
+                    "decimal": {
+                        "description": "The decimal precision of the fee amount.",
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "MetaCursor": {
+                "description": "Metadata for paginated responses.",
+                "properties": {
+                    "cursor": {
+                        "description": "The cursor for the next set of results.",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "MetaTotalPages": {
+                "description": "Metadata indicating the total number of pages.",
+                "properties": {
+                    "totalPages": {
+                        "description": "The total number of pages available.",
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "Direction": {
+                "description": "The direction of an activity.",
+                "type": "string",
+                "enum": [
+                    "in",
+                    "out",
+                    "self"
+                ]
+            },
+            "Tag": {
+                "description": "A tag used to categorize activities.",
+                "type": "string",
+                "example": "transaction",
+                "enum": [
+                    "collectible",
+                    "exchange",
+                    "metaverse",
+                    "rss",
+                    "social",
+                    "transaction",
+                    "unknown"
+                ]
+            },
+            "Type": {
+                "description": "A type used to categorize activities, it must be present with a tag.",
+                "type": "string",
+                "example": "transfer",
+                "enum": [
+                    "approval",
+                    "bridge",
+                    "burn",
+                    "comment",
+                    "delete",
+                    "feed",
+                    "liquidity",
+                    "mint",
+                    "post",
+                    "profile",
+                    "proxy",
+                    "revise",
+                    "reward",
+                    "share",
+                    "staking",
+                    "swap",
+                    "trade",
+                    "transfer",
+                    "unknown"
+                ]
+            },
+            "To": {
+                "description": "The address to which the action is directed.",
+                "type": "string"
+            },
+            "Network": {
+                "description": "The network on which activities occur.",
+                "type": "string",
+                "example": "ethereum",
+                "enum": [
+                    "arbitrum",
+                    "arweave",
+                    "avax",
+                    "base",
+                    "binance-smart-chain",
+                    "crossbell",
+                    "ethereum",
+                    "farcaster",
+                    "gnosis",
+                    "linea",
+                    "mastodon",
+                    "optimism",
+                    "polygon",
+                    "vsl"
+                ]
+            },
+            "Platform": {
+                "description": "The platform on which activities occur.",
+                "type": "string",
+                "example": "Uniswap",
+                "enum": [
+                    "1inch",
+                    "AAVE",
+                    "Aavegotchi",
+                    "Crossbell",
+                    "Curve",
+                    "ENS",
+                    "Farcaster",
+                    "Highlight",
+                    "IQWiki",
+                    "KiwiStand",
+                    "Lens",
+                    "Lido",
+                    "LooksRare",
+                    "Matters",
+                    "Mirror",
+                    "OpenSea",
+                    "Optimism",
+                    "Paragraph",
+                    "RSS3",
+                    "SAVM",
+                    "Stargate",
+                    "Uniswap",
+                    "Unknown",
+                    "VSL"
+                ]
+            },
+            "Timestamp": {
+                "description": "The timestamp of when the activity occurred.",
+                "type": "integer"
+            },
+            "From": {
+                "description": "The address from which the action originated.",
+                "type": "string"
+            },
+            "Metadata": {
+                "description": "Additional metadata related to the action.",
+                "type": "object"
+            },
+            "Error": {
+                "description": "An error response.",
+                "properties": {
+                    "code": {
+                        "description": "The error code.",
+                        "type": "integer"
+                    },
+                    "message": {
+                        "description": "The error message.",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
             }
-          }
-        }
-      },
-      "InternalError": {
-        "description": "An internal server error occurred while processing the request.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
+        },
+        "responses": {
+            "ActivitiesResponse": {
+                "description": "The request was successful.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ActivitiesResponse"
+                        }
+                    }
+                }
+            },
+            "RSSActivitiesResponse": {
+                "description": "The request was successful.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ActivitiesResponse"
+                        },
+                        "example": {
+                            "data": [
+                                {
+                                    "id": "https://www.abc.net.au/news/2024-07-02/nicheliving-home-building-delays-causing-hardship/104047810",
+                                    "owner": "www.abc.net.au",
+                                    "network": "rss",
+                                    "index": 0,
+                                    "from": "www.abc.net.au",
+                                    "to": "www.abc.net.au",
+                                    "tag": "rss",
+                                    "type": "feed",
+                                    "total_actions": 1,
+                                    "actions": [
+                                        {
+                                            "tag": "rss",
+                                            "type": "feed",
+                                            "platform": "www.abc.net.au",
+                                            "from": "www.abc.net.au",
+                                            "to": "www.abc.net.au",
+                                            "metadata": {
+                                                "title": "Cindy was supposed to be living in a new home by now. Instead she's facing bankruptcy",
+                                                "description": "<div><h2>In short:</h2><p>Nicheliving customer Cindy Richardson says she is overwhelmed with costs, including rent, mortgage and rates due to the long delays completing her house.</p><p>She has applied to access her superannuation on hardship grounds but was rejected.</p><h2>What's next?</h2><p>WA Commerce Minister Sue Ellery is in talks with the company about resolving the long completion delays many customers are facing.</p></div>\n",
+                                                "pub_date": "2024-07-02T04:13:38.000Z",
+                                                "authors": [
+                                                    {
+                                                        "name": "Emma Wynne"
+                                                    }
+                                                ]
+                                            },
+                                            "related_urls": [
+                                                "https://www.abc.net.au/news/2024-07-02/nicheliving-home-building-delays-causing-hardship/104047810"
+                                            ]
+                                        }
+                                    ],
+                                    "direction": "out",
+                                    "success": false,
+                                    "timestamp": 1719895289
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "ActivityResponse": {
+                "description": "The request was successful.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ActivityResponse"
+                        }
+                    }
+                }
+            },
+            "BadRequest": {
+                "description": "The request is malformed or contains invalid parameters.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        }
+                    }
+                }
+            },
+            "InternalError": {
+                "description": "An internal server error occurred while processing the request.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        }
+                    }
+                }
+            },
+            "NotFound": {
+                "description": "The specified resource was not found.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        }
+                    }
+                }
             }
-          }
         }
-      },
-      "NotFound": {
-        "description": "The specified resource was not found.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
-            }
-          }
-        }
-      }
     }
-  }
 }
