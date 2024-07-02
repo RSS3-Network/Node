@@ -402,7 +402,7 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.Activit
 		Timestamp: time.Now(),
 	}
 
-	if query.EndTimestamp != nil && lo.FromPtr(query.EndTimestamp) < uint64(index.Timestamp.Unix()) {
+	if query.EndTimestamp != nil && *query.EndTimestamp > 0 && *query.EndTimestamp < uint64(index.Timestamp.Unix()) {
 		index.Timestamp = time.Unix(int64(lo.FromPtr(query.EndTimestamp)), 0)
 	}
 
@@ -546,11 +546,11 @@ func (c *client) buildFindIndexesStatement(ctx context.Context, partition string
 		databaseStatement = databaseStatement.Where("direction = ?", query.Direction)
 	}
 
-	if query.StartTimestamp != nil {
+	if query.StartTimestamp != nil && *query.StartTimestamp > 0 {
 		databaseStatement = databaseStatement.Where("timestamp >= ?", time.Unix(int64(*query.StartTimestamp), 0))
 	}
 
-	if query.EndTimestamp != nil {
+	if query.EndTimestamp != nil && *query.EndTimestamp > 0 {
 		databaseStatement = databaseStatement.Where("timestamp <= ?", time.Unix(int64(*query.EndTimestamp), 0))
 	}
 
