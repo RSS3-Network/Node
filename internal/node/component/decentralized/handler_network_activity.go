@@ -23,7 +23,7 @@ func (c *Component) GetNetworkActivities(ctx echo.Context) (err error) {
 		return response.BadRequestError(ctx, err)
 	}
 
-	if request.Type, err = c.parseParams(ctx.QueryParams(), request.Tag); err != nil {
+	if request.Type, err = c.parseTypes(ctx.QueryParams()["type"], request.Tag); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
 

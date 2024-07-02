@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 
 	"github.com/creasty/defaults"
@@ -22,60 +21,6 @@ import (
 	lop "github.com/samber/lo/parallel"
 	"go.uber.org/zap"
 )
-
-type ActivityRequest struct {
-	ID          string `param:"id"`
-	ActionLimit int    `query:"action_limit"  validate:"min=1,max=20" default:"10"`
-	ActionPage  int    `query:"action_page" validate:"min=1" default:"1"`
-}
-
-type AccountActivitiesRequest struct {
-	Account        string                   `param:"account" validate:"required"`
-	Limit          int                      `query:"limit" validate:"min=1,max=100" default:"100"`
-	ActionLimit    int                      `query:"action_limit" validate:"min=1,max=20" default:"10"`
-	Cursor         *string                  `query:"cursor"`
-	SinceTimestamp *uint64                  `query:"since_timestamp"`
-	UntilTimestamp *uint64                  `query:"until_timestamp"`
-	Status         *bool                    `query:"success"`
-	Direction      *activityx.Direction     `query:"direction"`
-	Network        []network.Network        `query:"network"`
-	Tag            []tag.Tag                `query:"tag"`
-	Type           []schema.Type            `query:"-"`
-	Platform       []decentralized.Platform `query:"platform"`
-}
-
-type AccountsActivitiesRequest struct {
-	Accounts       []string                 `query:"accounts" validate:"required"`
-	Limit          int                      `query:"limit" validate:"min=1,max=100" default:"100"`
-	ActionLimit    int                      `query:"action_limit" validate:"min=1,max=20" default:"10"`
-	Cursor         *string                  `query:"cursor"`
-	SinceTimestamp *uint64                  `query:"since_timestamp"`
-	UntilTimestamp *uint64                  `query:"until_timestamp"`
-	Status         *bool                    `query:"success"`
-	Direction      *activityx.Direction     `query:"direction"`
-	Network        []network.Network        `query:"network"`
-	Tag            []tag.Tag                `query:"tag"`
-	Type           []schema.Type            `query:"-"`
-	Platform       []decentralized.Platform `query:"platform"`
-}
-
-type ActivityResponse struct {
-	Data *activityx.Activity `json:"data"`
-	Meta *MetaTotalPages     `json:"meta"`
-}
-
-type ActivitiesResponse struct {
-	Data []*activityx.Activity `json:"data"`
-	Meta *MetaCursor           `json:"meta,omitempty"`
-}
-
-type MetaTotalPages struct {
-	TotalPages int `json:"totalPages"`
-}
-
-type MetaCursor struct {
-	Cursor string `json:"cursor"`
-}
 
 func (c *Component) GetActivity(ctx echo.Context) error {
 	var request ActivityRequest
@@ -129,13 +74,13 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 }
 
 func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
-	request := AccountActivitiesRequest{}
+	var request AccountActivitiesRequest
 
 	if err = ctx.Bind(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
 
-	if request.Type, err = c.parseParams(ctx.QueryParams(), request.Tag); err != nil {
+	if request.Type, err = c.parseTypes(ctx.QueryParams()["type"], request.Tag); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
 
@@ -186,31 +131,6 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 	})
 }
 
-func (c *Component) TransformActivities(ctx context.Context, activities []*activityx.Activity) []*activityx.Activity {
-	results := make([]*activityx.Activity, len(activities))
-
-	// iterate over the activities
-	// 1. transform the activity such as adding related urls and filling the author url
-	// 2. query etherface for the transaction to get parsed function name
-	lop.ForEach(activities, func(_ *activityx.Activity, index int) {
-		result, err := c.TransformActivity(ctx, activities[index])
-		if err != nil {
-			zap.L().Error("failed to load activity", zap.Error(err))
-
-			return
-		}
-
-		// query etherface to get the parsed function name
-		if c.etherfaceClient != nil && result.Type == typex.Unknown && result.Calldata != nil {
-			result.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx, result.Calldata.FunctionHash)
-		}
-
-		results[index] = result
-	})
-
-	return results
-}
-
 // BatchGetAccountsActivities returns the activities of multiple accounts in a single request
 func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 	var request AccountsActivitiesRequest
@@ -219,7 +139,8 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		return response.BadRequestError(ctx, err)
 	}
 
-	if request.Type, err = c.parseParams(ctx.QueryParams(), request.Tag); err != nil {
+	types, err := c.parseTypes(request.Type, request.Tag)
+	if err != nil {
 		return response.BadRequestError(ctx, err)
 	}
 
@@ -252,7 +173,7 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		Direction:      request.Direction,
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
-		Types:          lo.Uniq(request.Type),
+		Types:          lo.Uniq(types),
 		Platforms:      lo.Uniq(request.Platform),
 	}
 
@@ -262,13 +183,22 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		return response.InternalError(ctx)
 	}
 
+	return ctx.JSON(http.StatusOK, ActivitiesResponse{
+		Data: c.TransformActivities(ctx.Request().Context(), activities),
+		Meta: lo.Ternary(len(activities) < databaseRequest.Limit, nil, &MetaCursor{
+			Cursor: last,
+		}),
+	})
+}
+
+func (c *Component) TransformActivities(ctx context.Context, activities []*activityx.Activity) []*activityx.Activity {
 	results := make([]*activityx.Activity, len(activities))
 
 	// iterate over the activities
 	// 1. transform the activity such as adding related urls and filling the author url
 	// 2. query etherface for the transaction to get parsed function name
 	lop.ForEach(activities, func(_ *activityx.Activity, index int) {
-		result, err := c.TransformActivity(ctx.Request().Context(), activities[index])
+		result, err := c.TransformActivity(ctx, activities[index])
 		if err != nil {
 			zap.L().Error("failed to load activity", zap.Error(err))
 
@@ -277,28 +207,23 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 
 		// query etherface to get the parsed function name
 		if c.etherfaceClient != nil && result.Type == typex.Unknown && result.Calldata != nil {
-			result.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx.Request().Context(), result.Calldata.FunctionHash)
+			result.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx, result.Calldata.FunctionHash)
 		}
 
 		results[index] = result
 	})
 
-	return ctx.JSON(http.StatusOK, ActivitiesResponse{
-		Data: results,
-		Meta: lo.Ternary(len(activities) < databaseRequest.Limit, nil, &MetaCursor{
-			Cursor: last,
-		}),
-	})
+	return results
 }
 
-func (c *Component) parseParams(params url.Values, tags []tag.Tag) ([]schema.Type, error) {
+func (c *Component) parseTypes(types []string, tags []tag.Tag) ([]schema.Type, error) {
 	if len(tags) == 0 {
 		return nil, nil
 	}
 
-	types := make([]schema.Type, 0)
+	schemaTypes := make([]schema.Type, 0)
 
-	for _, typex := range params["type"] {
+	for _, typex := range types {
 		var (
 			value schema.Type
 			err   error
@@ -307,7 +232,7 @@ func (c *Component) parseParams(params url.Values, tags []tag.Tag) ([]schema.Typ
 		for _, tagx := range tags {
 			value, err = schema.ParseTypeFromString(tagx, typex)
 			if err == nil {
-				types = append(types, value)
+				schemaTypes = append(schemaTypes, value)
 
 				break
 			}
@@ -318,5 +243,59 @@ func (c *Component) parseParams(params url.Values, tags []tag.Tag) ([]schema.Typ
 		}
 	}
 
-	return types, nil
+	return schemaTypes, nil
+}
+
+type ActivityRequest struct {
+	ID          string `param:"id"`
+	ActionLimit int    `query:"action_limit"  validate:"min=1,max=20" default:"10"`
+	ActionPage  int    `query:"action_page" validate:"min=1" default:"1"`
+}
+
+type AccountActivitiesRequest struct {
+	Account        string                   `param:"account" validate:"required"`
+	Limit          int                      `query:"limit" validate:"min=1,max=100" default:"100"`
+	ActionLimit    int                      `query:"action_limit" validate:"min=1,max=20" default:"10"`
+	Cursor         *string                  `query:"cursor"`
+	SinceTimestamp *uint64                  `query:"since_timestamp"`
+	UntilTimestamp *uint64                  `query:"until_timestamp"`
+	Status         *bool                    `query:"success"`
+	Direction      *activityx.Direction     `query:"direction"`
+	Network        []network.Network        `query:"network"`
+	Tag            []tag.Tag                `query:"tag"`
+	Type           []schema.Type            `query:"-"`
+	Platform       []decentralized.Platform `query:"platform"`
+}
+
+type AccountsActivitiesRequest struct {
+	Accounts       []string                 `json:"accounts" validate:"required"`
+	Limit          int                      `json:"limit" validate:"min=1,max=100" default:"100"`
+	ActionLimit    int                      `json:"action_limit" validate:"min=1,max=20" default:"10"`
+	Cursor         *string                  `json:"cursor"`
+	SinceTimestamp *uint64                  `json:"since_timestamp"`
+	UntilTimestamp *uint64                  `json:"until_timestamp"`
+	Status         *bool                    `json:"success"`
+	Direction      *activityx.Direction     `json:"direction"`
+	Network        []network.Network        `json:"network"`
+	Tag            []tag.Tag                `json:"tag"`
+	Type           []string                 `json:"type"`
+	Platform       []decentralized.Platform `json:"platform"`
+}
+
+type ActivityResponse struct {
+	Data *activityx.Activity `json:"data"`
+	Meta *MetaTotalPages     `json:"meta"`
+}
+
+type ActivitiesResponse struct {
+	Data []*activityx.Activity `json:"data"`
+	Meta *MetaCursor           `json:"meta,omitempty"`
+}
+
+type MetaTotalPages struct {
+	TotalPages int `json:"totalPages"`
+}
+
+type MetaCursor struct {
+	Cursor string `json:"cursor"`
 }
