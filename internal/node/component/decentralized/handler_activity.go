@@ -1,6 +1,7 @@
 package decentralized
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -161,13 +162,22 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 		return response.InternalError(ctx)
 	}
 
+	return ctx.JSON(http.StatusOK, ActivitiesResponse{
+		Data: c.TransformActivities(ctx.Request().Context(), activities),
+		Meta: lo.Ternary(len(activities) < databaseRequest.Limit, nil, &MetaCursor{
+			Cursor: last,
+		}),
+	})
+}
+
+func (c *Component) TransformActivities(ctx context.Context, activities []*activityx.Activity) []*activityx.Activity {
 	results := make([]*activityx.Activity, len(activities))
 
 	// iterate over the activities
 	// 1. transform the activity such as adding related urls and filling the author url
 	// 2. query etherface for the transaction to get parsed function name
 	lop.ForEach(activities, func(_ *activityx.Activity, index int) {
-		result, err := c.TransformActivity(ctx.Request().Context(), activities[index])
+		result, err := c.TransformActivity(ctx, activities[index])
 		if err != nil {
 			zap.L().Error("failed to load activity", zap.Error(err))
 
@@ -176,18 +186,13 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 
 		// query etherface to get the parsed function name
 		if c.etherfaceClient != nil && result.Type == typex.Unknown && result.Calldata != nil {
-			result.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx.Request().Context(), result.Calldata.FunctionHash)
+			result.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx, result.Calldata.FunctionHash)
 		}
 
 		results[index] = result
 	})
 
-	return ctx.JSON(http.StatusOK, ActivitiesResponse{
-		Data: results,
-		Meta: lo.Ternary(len(activities) < databaseRequest.Limit, nil, &MetaCursor{
-			Cursor: last,
-		}),
-	})
+	return results
 }
 
 func (c *Component) parseParams(params url.Values, tags []tag.Tag) ([]schema.Type, error) {

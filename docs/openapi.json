@@ -229,6 +229,290 @@
         ]
       }
     },
+    "/decentralized/network/{network}": {
+      "get": {
+        "summary": "Get Network Activities",
+        "description": "Retrieve a list of activities from the specified decentralized network. This endpoint allows you to filter activities by various parameters such as limit, timestamp, success status, and more.",
+        "parameters": [
+          {
+            "description": "Retrieve activities from the specified network.",
+            "example": "ethereum",
+            "in": "path",
+            "name": "network",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Specify the number of activities to retrieve.",
+            "example": "20",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Specify the number of actions within the activity to retrieve.",
+            "example": "10",
+            "in": "query",
+            "name": "action_limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 20,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Specify the cursor used for pagination.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Retrieve activities starting from this timestamp.",
+            "in": "query",
+            "name": "since_timestamp",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Retrieve activities up to this timestamp.",
+            "in": "query",
+            "name": "until_timestamp",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Retrieve activities based on success status.",
+            "in": "query",
+            "name": "success",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Retrieve activities based on direction.",
+            "in": "query",
+            "name": "direction",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Direction"
+            }
+          },
+          {
+            "description": "Retrieve activities for the specified tag(s).",
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/Tag"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Retrieve activities for the specified type(s).",
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/Type"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Retrieve activities from the specified platform(s).",
+            "in": "query",
+            "name": "platform",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/Platform"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ActivitiesResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Decentralized"
+        ]
+      }
+    },
+    "/decentralized/platform/{platform}": {
+      "get": {
+        "summary": "Get Platform Activities",
+        "description": "Retrieve a list of activities from the specified decentralized platform. This endpoint allows you to filter activities by various parameters such as limit, timestamp, success status, and more.",
+        "parameters": [
+          {
+            "description": "Retrieve activities from the specified platform.",
+            "example": "opensea",
+            "in": "path",
+            "name": "platform",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Specify the number of activities to retrieve.",
+            "example": "20",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Specify the number of actions within the activity to retrieve.",
+            "example": "10",
+            "in": "query",
+            "name": "action_limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 20,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Specify the cursor used for pagination.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Retrieve activities starting from this timestamp.",
+            "in": "query",
+            "name": "since_timestamp",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Retrieve activities up to this timestamp.",
+            "in": "query",
+            "name": "until_timestamp",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Retrieve activities based on success status.",
+            "in": "query",
+            "name": "success",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Retrieve activities based on direction.",
+            "in": "query",
+            "name": "direction",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Direction"
+            }
+          },
+          {
+            "description": "Retrieve activities for the specified tag(s).",
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/Tag"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Retrieve activities for the specified type(s).",
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/Type"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Retrieve activities from the specified network(s).",
+            "in": "query",
+            "name": "network",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/Network"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ActivitiesResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "tags": [
+          "Decentralized"
+        ]
+      }
+    },
     "/rss/{path}": {
       "get": {
         "parameters": [
@@ -461,7 +745,7 @@
       "Network": {
         "description": "The network on which activities occur.",
         "type": "string"
-      ,"enum":["arbitrum","arweave","avax","base","binance-smart-chain","crossbell","ethereum","farcaster","gnosis","linea","optimism","polygon","vsl"]},
+      ,"enum":["arbitrum","arweave","avax","base","binance-smart-chain","crossbell","ethereum","farcaster","gnosis","linea","mastodon","optimism","polygon","vsl"]},
       "Platform": {
         "description": "The platform on which activities occur.",
         "type": "string"

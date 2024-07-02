@@ -45,6 +45,8 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 
 	group.GET("/tx/:id", c.GetActivity)
 	group.GET("/:account", c.GetAccountActivities)
+	group.GET("/network/:network", c.GetNetworkActivities)
+	group.GET("/platform/:platform", c.GetPlatformActivities)
 
 	if err := c.InitMeter(); err != nil {
 		panic(err)
