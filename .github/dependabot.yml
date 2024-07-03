@@ -7,6 +7,7 @@ updates:
     target-branch: develop
     ignore:
       - dependency-name: "github.com/ethereum/go-ethereum"
+      - dependency-name: "github.com/rss3-network/protocol-go"
   - package-ecosystem: github-actions
     directory: /
     schedule:
