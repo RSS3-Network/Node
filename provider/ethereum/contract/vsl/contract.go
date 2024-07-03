@@ -11,6 +11,8 @@ import (
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/L2StandardBridge.abi --pkg vsl --type L2StandardBridge --out contract_l2_standard_bridge.go
 // NetworkParams https://scan.testnet.rss3.io/address/0x65CBC3c424818499a36ab2055012553F7B04707B
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/NetworkParams.abi --pkg vsl --type NetworkParams --out contract_network_params.go
+// Settlement https://scan.rss3.io/address/0x0cE3159BF19F3C55B648D04E8f0Ae1Ae118D2A0B
+//go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/Settlement.abi --pkg vsl --type Settlement --out contract_settlement.go
 
 var (
 	AddressL1RSS3           = common.HexToAddress("0xc98D64DA73a6616c42117b582e832812e7B8D57F")
@@ -20,6 +22,7 @@ var (
 	AddressL1OptimismPortal = common.HexToAddress("0x6A12432491bbbE8d3babf75F759766774C778Db4")
 	// AddressNetworkParams TODO should use vsl mainnet address in prod
 	AddressNetworkParams = common.HexToAddress("0x65CBC3c424818499a36ab2055012553F7B04707B")
+	AddressSettlement    = common.HexToAddress("0x0cE3159BF19F3C55B648D04E8f0Ae1Ae118D2A0B")
 
 	EventHashAddressL1StandardBridgeETHDepositInitiated      = contract.EventHash("ETHDepositInitiated(address,address,uint256,bytes)")
 	EventHashAddressL1StandardBridgeERC20DepositInitiated    = contract.EventHash("ERC20DepositInitiated(address,address,address,address,uint256,bytes)")

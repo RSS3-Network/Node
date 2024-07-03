@@ -20,6 +20,7 @@ import (
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
 	"github.com/rss3-network/node/internal/stream/provider"
+	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
 	"github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/provider/telemetry"
 	"github.com/samber/lo"
@@ -89,8 +90,23 @@ var command = cobra.Command{
 				return fmt.Errorf("migrate database: %w", err)
 			}
 
+			vslClient, err := parameter.InitVSLClient()
+			if err != nil {
+				return fmt.Errorf("init vsl client: %w", err)
+			}
+
+			networkParams, err := vsl.NewNetworkParamsCaller(vsl.AddressNetworkParams, vslClient)
+			if err != nil {
+				return fmt.Errorf("new network params caller: %w", err)
+			}
+
+			_, err = vsl.NewSettlementCaller(vsl.AddressSettlement, vslClient)
+			if err != nil {
+				return fmt.Errorf("new settlement caller: %w", err)
+			}
+
 			// when start or restart the core, worker or monitor module, it will pull network parameters from VSL
-			err := parameter.PullNetworkParamsFromVSL()
+			err = parameter.PullNetworkParamsFromVSL(networkParams)
 			if err != nil {
 				zap.L().Error("pull network parameters from VSL", zap.Error(err))
 			}

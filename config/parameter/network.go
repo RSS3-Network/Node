@@ -15,6 +15,8 @@ import (
 // NumberOfMonthsToCover the number of months that a Node should cover data for
 const NumberOfMonthsToCover = 3
 
+var CurrentEpoch uint64
+
 type NetworkTolerance map[string]uint64
 type NetworkStartBlock map[string]*big.Int
 type NetworkCoreWorkerDiskSpacePerMonth map[string]uint
@@ -82,17 +84,7 @@ var CurrentNetworkCoreWorkerDiskSpacePerMonth = NetworkCoreWorkerDiskSpacePerMon
 }
 
 // PullNetworkParamsFromVSL pulls the network parameters from the VSL
-func PullNetworkParamsFromVSL() error {
-	vslClient, err := initVSLClient()
-	if err != nil {
-		return fmt.Errorf("init vsl client: %w", err)
-	}
-
-	networkParams, err := vsl.NewNetworkParamsCaller(vsl.AddressNetworkParams, vslClient)
-	if err != nil {
-		return fmt.Errorf("new network params caller: %w", err)
-	}
-
+func PullNetworkParamsFromVSL(networkParams *vsl.NetworkParamsCaller) error {
 	params, err := networkParams.GetParams(&bind.CallOpts{})
 	if err != nil {
 		return err
@@ -120,7 +112,18 @@ func PullNetworkParamsFromVSL() error {
 	return nil
 }
 
-func initVSLClient() (ethereum.Client, error) {
+// GetCurrentEpoch Get the current epoch
+func GetCurrentEpoch(settlement *vsl.SettlementCaller) (uint64, error) {
+	epoch, err := settlement.CurrentEpoch(&bind.CallOpts{})
+	if err != nil {
+		return 0, err
+	}
+
+	return epoch.Uint64(), nil
+}
+
+// InitVSLClient initializes the VSL client
+func InitVSLClient() (ethereum.Client, error) {
 	// TODO should use vsl rpc url in prod
 	// vslEndpoint := endpoint.MustGet(network.VSL)
 	vslEndpoint := "https://rpc.testnet.rss3.io"
