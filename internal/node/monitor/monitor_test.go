@@ -1007,7 +1007,7 @@ func TestMonitor(t *testing.T) {
 			t.Run(testcase.name, func(t *testing.T) {
 				ctx := context.Background()
 
-				instance, err := monitor.NewMonitor(ctx, testcase.arguments.config, nil, redisClient)
+				instance, err := monitor.NewMonitor(ctx, testcase.arguments.config, nil, redisClient, nil, nil)
 				require.NoError(t, err)
 
 				// update worker status to initial status
@@ -1030,7 +1030,7 @@ func TestMonitor(t *testing.T) {
 			t.Run(testcase.name, func(t *testing.T) {
 				ctx := context.Background()
 
-				instance, err := monitor.NewMonitor(ctx, testcase.arguments.config, nil, redisClient)
+				instance, err := monitor.NewMonitor(ctx, testcase.arguments.config, nil, redisClient, nil, nil)
 				require.NoError(t, err)
 
 				// update worker status to initial status

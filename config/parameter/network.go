@@ -4,83 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
-	"github.com/rss3-network/protocol-go/schema/network"
 )
-
-// NumberOfMonthsToCover the number of months that a Node should cover data for
-const NumberOfMonthsToCover = 3
-
-type NetworkTolerance map[string]uint64
-type NetworkStartBlock map[string]*big.Int
-type NetworkCoreWorkerDiskSpacePerMonth map[string]uint
 
 // NetworkParamsData contains the network parameters
 type NetworkParamsData struct {
 	NetworkTolerance                   NetworkTolerance                   `json:"NetworkTolerance"`
 	NetworkStartBlock                  NetworkStartBlock                  `json:"NetworkStartBlock"`
 	NetworkCoreWorkerDiskSpacePerMonth NetworkCoreWorkerDiskSpacePerMonth `json:"NetworkCoreWorkerDiskSpacePerMonth"`
-}
-
-// CurrentNetworkTolerance should be updated each epoch from vsl
-var CurrentNetworkTolerance = NetworkTolerance{
-	network.Arbitrum.String():          1000,
-	network.Arweave.String():           100,
-	network.Avalanche.String():         100,
-	network.Base.String():              100,
-	network.BinanceSmartChain.String(): 100,
-	network.Crossbell.String():         500,
-	network.Ethereum.String():          100,
-	network.Farcaster.String():         3600000,
-	network.Gnosis.String():            100,
-	network.Linea.String():             100,
-	network.Optimism.String():          100,
-	network.Polygon.String():           100,
-	network.SatoshiVM.String():         100,
-	network.VSL.String():               100,
-}
-
-// CurrentNetworkStartBlock should be updated each epoch from vsl
-var CurrentNetworkStartBlock = NetworkStartBlock{
-	network.Arbitrum.String():          big.NewInt(185724972),
-	network.Arweave.String():           big.NewInt(1374360),
-	network.Avalanche.String():         big.NewInt(42301570),
-	network.Base.String():              big.NewInt(11216527),
-	network.BinanceSmartChain.String(): big.NewInt(36563564),
-	network.Crossbell.String():         big.NewInt(58846671),
-	network.Ethereum.String():          big.NewInt(19334220),
-	network.Gnosis.String():            big.NewInt(32695982),
-	network.Linea.String():             big.NewInt(2591120),
-	network.Optimism.String():          big.NewInt(116811812),
-	network.Polygon.String():           big.NewInt(54103805),
-	network.SatoshiVM.String():         big.NewInt(60741),
-	network.VSL.String():               big.NewInt(14192),
-}
-
-// CurrentNetworkCoreWorkerDiskSpacePerMonth the disk space required for the network's core worker to store a month worth of data
-// The data is calculated based on the average disk space usage during 2024 Q1.
-// Actually usage may vary depending on the network's activity.
-var CurrentNetworkCoreWorkerDiskSpacePerMonth = NetworkCoreWorkerDiskSpacePerMonth{
-	network.Arbitrum.String():          26,
-	network.Arweave.String():           0,
-	network.Avalanche.String():         0,
-	network.Base.String():              10,
-	network.BinanceSmartChain.String(): 117,
-	network.Crossbell.String():         0,
-	network.Ethereum.String():          51,
-	network.Gnosis.String():            9,
-	network.Linea.String():             31,
-	network.Optimism.String():          25,
-	network.Polygon.String():           153,
-	network.SatoshiVM.String():         1,
-	network.VSL.String():               1,
-	network.Farcaster.String():         50,
 }
 
 // PullNetworkParamsFromVSL pulls the network parameters from the VSL
@@ -113,17 +49,17 @@ func PullNetworkParamsFromVSL(networkParams *vsl.NetworkParamsCaller) error {
 }
 
 // GetCurrentEpochFromVSL Get the current epoch from VSL blockchain
-func GetCurrentEpochFromVSL(settlement *vsl.SettlementCaller) (uint64, error) {
+func GetCurrentEpochFromVSL(settlement *vsl.SettlementCaller) (int64, error) {
 	epoch, err := settlement.CurrentEpoch(&bind.CallOpts{})
 	if err != nil {
 		return 0, err
 	}
 
-	return epoch.Uint64(), nil
+	return epoch.Int64(), nil
 }
 
 // GetCurrentEpochFromCache Get the current epoch from redis cache
-func GetCurrentEpochFromCache(ctx context.Context, redisClient rueidis.Client) uint64 {
+func GetCurrentEpochFromCache(ctx context.Context, redisClient rueidis.Client) int64 {
 	if redisClient == nil {
 		return 0
 	}
@@ -135,22 +71,28 @@ func GetCurrentEpochFromCache(ctx context.Context, redisClient rueidis.Client) u
 		return 0
 	}
 
-	// Convert the result to worker.Status.
-	epoch, err := result.ToInt64()
+	// Retrieve the result as a string
+	epochStr, err := result.ToString()
 	if err != nil {
 		return 0
 	}
 
-	return uint64(epoch)
+	// Convert the string to an int64
+	epoch, err := strconv.ParseInt(epochStr, 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	return epoch
 }
 
 // UpdateCurrentEpoch updates the current epoch in redis cache
-func UpdateCurrentEpoch(ctx context.Context, redisClient rueidis.Client, epoch uint64) error {
+func UpdateCurrentEpoch(ctx context.Context, redisClient rueidis.Client, epoch int64) error {
 	if redisClient == nil {
 		return nil
 	}
 
-	command := redisClient.B().Set().Key(buildCurrentEpochCacheKey()).Value(strconv.FormatUint(epoch, 10)).Build()
+	command := redisClient.B().Set().Key(buildCurrentEpochCacheKey()).Value(strconv.FormatInt(epoch, 10)).Build()
 
 	result := redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
@@ -178,4 +120,27 @@ func InitVSLClient() (ethereum.Client, error) {
 	}
 
 	return vslClient, nil
+}
+
+func CheckParamsTask(ctx context.Context, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
+	localEpoch := GetCurrentEpochFromCache(ctx, redisClient)
+
+	remoteEpoch, err := GetCurrentEpochFromVSL(settlementCaller)
+	if err != nil {
+		return fmt.Errorf("failed to get epoch from vsl: %w", err)
+	}
+
+	if remoteEpoch > localEpoch {
+		err = PullNetworkParamsFromVSL(networkParamsCaller)
+		if err != nil {
+			return fmt.Errorf("failed to pull network params from vsl: %w", err)
+		}
+
+		err = UpdateCurrentEpoch(ctx, redisClient, remoteEpoch)
+		if err != nil {
+			return fmt.Errorf("failed to update epoch in cache: %w", err)
+		}
+	}
+
+	return nil
 }

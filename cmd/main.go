@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/grafana/pyroscope-go"
 	"github.com/redis/rueidis"
@@ -79,6 +81,10 @@ var command = cobra.Command{
 
 		module := lo.Must(flags.GetString(flag.KeyModule))
 
+		var networkParamsCaller *vsl.NetworkParamsCaller
+
+		var settlementCaller *vsl.SettlementCaller
+
 		// Apply database migrations for all modules except the broadcaster.
 		if module != BroadcasterArg {
 			databaseClient, err = dialer.Dial(cmd.Context(), config.Database)
@@ -95,14 +101,20 @@ var command = cobra.Command{
 				return fmt.Errorf("init vsl client: %w", err)
 			}
 
-			networkParamsCaller, err := vsl.NewNetworkParamsCaller(vsl.AddressNetworkParams, vslClient)
+			networkParamsCaller, err = vsl.NewNetworkParamsCaller(vsl.AddressNetworkParams, vslClient)
 			if err != nil {
 				return fmt.Errorf("new network params caller: %w", err)
 			}
 
-			settlementCaller, err := vsl.NewSettlementCaller(vsl.AddressSettlement, vslClient)
+			settlementCaller, err = vsl.NewSettlementCaller(vsl.AddressSettlement, vslClient)
 			if err != nil {
 				return fmt.Errorf("new settlement caller: %w", err)
+			}
+
+			// when start or restart the core, worker or monitor module, it will pull network parameters from VSL and record current epoch
+			err = parameter.PullNetworkParamsFromVSL(networkParamsCaller)
+			if err != nil {
+				zap.L().Error("pull network parameters from VSL", zap.Error(err))
 			}
 
 			epoch, err := parameter.GetCurrentEpochFromVSL(settlementCaller)
@@ -115,33 +127,54 @@ var command = cobra.Command{
 			if err != nil {
 				return fmt.Errorf("update current epoch: %w", err)
 			}
-
-			// when start or restart the core, worker or monitor module, it will pull network parameters from VSL
-			err = parameter.PullNetworkParamsFromVSL(networkParamsCaller)
-			if err != nil {
-				zap.L().Error("pull network parameters from VSL", zap.Error(err))
-			}
 		}
 
 		switch module {
 		case CoreServiceArg:
-			return runCoreService(cmd.Context(), config, databaseClient, redisClient)
+			return runCoreService(cmd.Context(), config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 		case WorkerArg:
 			return runWorker(cmd.Context(), config, databaseClient, streamClient, redisClient)
 		case BroadcasterArg:
 			return runBroadcaster(cmd.Context(), config)
 		case MonitorArg:
-			return runMonitor(cmd.Context(), config, databaseClient, redisClient)
+			return runMonitor(cmd.Context(), config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 		}
 
 		return fmt.Errorf("unsupported module %s", lo.Must(flags.GetString(flag.KeyModule)))
 	},
 }
 
-func runCoreService(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client) error {
-	server := node.NewCoreService(ctx, config, databaseClient, redisClient)
+func runCoreService(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
+	server := node.NewCoreService(ctx, config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 
-	return server.Run(ctx)
+	checkCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	// Start CheckParams as a separate goroutine to continuously check parameters
+	go func() {
+		_ = node.CheckParams(checkCtx, redisClient, networkParamsCaller, settlementCaller)
+	}()
+
+	apiErrChan := make(chan error, 1)
+	go func() {
+		apiErrChan <- server.Run(ctx)
+	}()
+
+	stopChan := make(chan os.Signal, 1)
+	signal.Notify(stopChan, syscall.SIGINT, syscall.SIGTERM)
+
+	select {
+	case <-stopChan:
+		fmt.Println("Shutdown signal received.")
+	case err := <-apiErrChan:
+		cancel()
+
+		return err
+	}
+
+	cancel() // Signal all goroutines to stop
+
+	return nil
 }
 
 func runWorker(ctx context.Context, configFile *config.File, databaseClient database.Client, streamClient stream.Client, redisClient rueidis.Client) error {
@@ -175,8 +208,8 @@ func runBroadcaster(ctx context.Context, config *config.File) error {
 	return server.Run(ctx)
 }
 
-func runMonitor(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client) error {
-	server, err := monitor.NewMonitor(ctx, config, databaseClient, redisClient)
+func runMonitor(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
+	server, err := monitor.NewMonitor(ctx, config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 	if err != nil {
 		return fmt.Errorf("new monitor: %w", err)
 	}
