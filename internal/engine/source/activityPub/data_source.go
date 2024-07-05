@@ -8,7 +8,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/engine"
-	"github.com/rss3-network/node/provider/activityPub/mastodon"
+	"github.com/rss3-network/node/provider/activitypub/mastodon"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 )
@@ -40,7 +40,7 @@ func (s *dataSource) Start(_ context.Context, _ chan<- *engine.Tasks, errorChan 
 func (s *dataSource) initialize() (err error) {
 	client, err := mastodon.NewClient(s.config.Endpoint.URL)
 	if err != nil {
-		return fmt.Errorf("create activityPub client: %w", err)
+		return fmt.Errorf("create activitypub client: %w", err)
 	}
 
 	s.mastodonClient = client

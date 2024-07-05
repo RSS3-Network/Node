@@ -11,6 +11,7 @@ import (
 
 	"github.com/avast/retry-go/v4"
 	"github.com/go-playground/form/v4"
+	"github.com/rss3-network/node/provider/activitypub"
 	"go.uber.org/zap"
 )
 
@@ -22,7 +23,7 @@ const (
 var _ Client = (*client)(nil)
 
 type Client interface {
-	GetUserProfileByFid(ctx context.Context, fid *int64) (*MessageResponse, error)
+	GetUserProfileByFid(ctx context.Context, fid *int64) (*activitypub.MessageResponse, error)
 }
 
 type client struct {
@@ -33,8 +34,8 @@ type client struct {
 }
 
 // GetCastsByFid
-func (c *client) GetUserProfileByFid(ctx context.Context, fid *int64) (*MessageResponse, error) {
-	if err := c.call(ctx, "/api", mastodonQuery{}, nil); err != nil {
+func (c *client) GetUserProfileByFid(ctx context.Context, fid *int64) (*activitypub.MessageResponse, error) {
+	if err := c.call(ctx, "/api", activitypub.MastodonQuery{}, nil); err != nil {
 		return nil, fmt.Errorf("fetch: %w", err)
 	}
 
@@ -43,7 +44,7 @@ func (c *client) GetUserProfileByFid(ctx context.Context, fid *int64) (*MessageR
 	return nil, nil
 }
 
-func (c *client) call(ctx context.Context, path string, query mastodonQuery, response any) error {
+func (c *client) call(ctx context.Context, path string, query activitypub.MastodonQuery, response any) error {
 	values, err := c.encoder.Encode(query)
 
 	if err != nil {
@@ -51,7 +52,7 @@ func (c *client) call(ctx context.Context, path string, query mastodonQuery, res
 	}
 
 	onRetry := retry.OnRetry(func(n uint, err error) {
-		zap.L().Error("fetch activityPub request, retrying", zap.Error(err), zap.Uint("attempts", n))
+		zap.L().Error("fetch activitypub request, retrying", zap.Error(err), zap.Uint("attempts", n))
 	})
 
 	retryableFunc := func() error {
@@ -61,7 +62,7 @@ func (c *client) call(ctx context.Context, path string, query mastodonQuery, res
 
 			// If the error is an HTTP error and the status code is 4xx, we will not retry.
 			if errors.As(err, &httpErr) && httpErr.StatusCode >= http.StatusBadRequest && httpErr.StatusCode < http.StatusInternalServerError {
-				zap.L().Warn("failed to fetch activityPub request, will not retry", zap.Error(err), zap.Int("status.code", httpErr.StatusCode))
+				zap.L().Warn("failed to fetch activitypub request, will not retry", zap.Error(err), zap.Int("status.code", httpErr.StatusCode))
 
 				return retry.Unrecoverable(err)
 			}
