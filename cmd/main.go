@@ -95,18 +95,29 @@ var command = cobra.Command{
 				return fmt.Errorf("init vsl client: %w", err)
 			}
 
-			networkParams, err := vsl.NewNetworkParamsCaller(vsl.AddressNetworkParams, vslClient)
+			networkParamsCaller, err := vsl.NewNetworkParamsCaller(vsl.AddressNetworkParams, vslClient)
 			if err != nil {
 				return fmt.Errorf("new network params caller: %w", err)
 			}
 
-			_, err = vsl.NewSettlementCaller(vsl.AddressSettlement, vslClient)
+			settlementCaller, err := vsl.NewSettlementCaller(vsl.AddressSettlement, vslClient)
 			if err != nil {
 				return fmt.Errorf("new settlement caller: %w", err)
 			}
 
+			epoch, err := parameter.GetCurrentEpochFromVSL(settlementCaller)
+			if err != nil {
+				return fmt.Errorf("get current epoch: %w", err)
+			}
+
+			// save epoch to redis cache
+			err = parameter.UpdateCurrentEpoch(cmd.Context(), redisClient, epoch)
+			if err != nil {
+				return fmt.Errorf("update current epoch: %w", err)
+			}
+
 			// when start or restart the core, worker or monitor module, it will pull network parameters from VSL
-			err = parameter.PullNetworkParamsFromVSL(networkParams)
+			err = parameter.PullNetworkParamsFromVSL(networkParamsCaller)
 			if err != nil {
 				zap.L().Error("pull network parameters from VSL", zap.Error(err))
 			}

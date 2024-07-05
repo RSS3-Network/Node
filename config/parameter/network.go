@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"strconv"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -14,8 +16,6 @@ import (
 
 // NumberOfMonthsToCover the number of months that a Node should cover data for
 const NumberOfMonthsToCover = 3
-
-var CurrentEpoch uint64
 
 type NetworkTolerance map[string]uint64
 type NetworkStartBlock map[string]*big.Int
@@ -112,14 +112,57 @@ func PullNetworkParamsFromVSL(networkParams *vsl.NetworkParamsCaller) error {
 	return nil
 }
 
-// GetCurrentEpoch Get the current epoch
-func GetCurrentEpoch(settlement *vsl.SettlementCaller) (uint64, error) {
+// GetCurrentEpochFromVSL Get the current epoch from VSL blockchain
+func GetCurrentEpochFromVSL(settlement *vsl.SettlementCaller) (uint64, error) {
 	epoch, err := settlement.CurrentEpoch(&bind.CallOpts{})
 	if err != nil {
 		return 0, err
 	}
 
 	return epoch.Uint64(), nil
+}
+
+// GetCurrentEpochFromCache Get the current epoch from redis cache
+func GetCurrentEpochFromCache(ctx context.Context, redisClient rueidis.Client) uint64 {
+	if redisClient == nil {
+		return 0
+	}
+
+	command := redisClient.B().Get().Key(buildCurrentEpochCacheKey()).Build()
+
+	result := redisClient.Do(ctx, command)
+	if err := result.Error(); err != nil {
+		return 0
+	}
+
+	// Convert the result to worker.Status.
+	epoch, err := result.ToInt64()
+	if err != nil {
+		return 0
+	}
+
+	return uint64(epoch)
+}
+
+// UpdateCurrentEpoch updates the current epoch in redis cache
+func UpdateCurrentEpoch(ctx context.Context, redisClient rueidis.Client, epoch uint64) error {
+	if redisClient == nil {
+		return nil
+	}
+
+	command := redisClient.B().Set().Key(buildCurrentEpochCacheKey()).Value(strconv.FormatUint(epoch, 10)).Build()
+
+	result := redisClient.Do(ctx, command)
+	if err := result.Error(); err != nil {
+		return fmt.Errorf("redis result: %w", err)
+	}
+
+	return nil
+}
+
+// buildWorkerIDStatusCacheKey builds the cache key for the epoch
+func buildCurrentEpochCacheKey() string {
+	return "vsl:settlement:epoch"
 }
 
 // InitVSLClient initializes the VSL client

@@ -22,7 +22,7 @@ var (
 	AddressL1OptimismPortal = common.HexToAddress("0x6A12432491bbbE8d3babf75F759766774C778Db4")
 	// AddressNetworkParams TODO should use vsl mainnet address in prod
 	AddressNetworkParams = common.HexToAddress("0x65CBC3c424818499a36ab2055012553F7B04707B")
-	AddressSettlement    = common.HexToAddress("0x0cE3159BF19F3C55B648D04E8f0Ae1Ae118D2A0B")
+	AddressSettlement    = common.HexToAddress("0xA37a6Ef0c3635824be2b6c87A23F6Df5d0E2ba1b")
 
 	EventHashAddressL1StandardBridgeETHDepositInitiated      = contract.EventHash("ETHDepositInitiated(address,address,uint256,bytes)")
 	EventHashAddressL1StandardBridgeERC20DepositInitiated    = contract.EventHash("ERC20DepositInitiated(address,address,address,address,uint256,bytes)")
