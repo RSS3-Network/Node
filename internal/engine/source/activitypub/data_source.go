@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
@@ -30,11 +31,25 @@ func (s *dataSource) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-func (s *dataSource) Start(_ context.Context, _ chan<- *engine.Tasks, errorChan chan<- error) {
+func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
 	if err := s.initialize(); err != nil {
 		errorChan <- fmt.Errorf("initialize dataSource: %w", err)
 		return
 	}
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				err := s.requestActivityPubData(ctx)
+				if err != nil {
+					errorChan <- err
+				}
+				time.Sleep(10 * time.Second) // Adjust the interval as needed
+			}
+		}
+	}()
 }
 
 func (s *dataSource) initialize() (err error) {
