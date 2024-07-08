@@ -56,8 +56,7 @@
                 "summary": "Get Account Activities",
                 "description": "This endpoint retrieves the activities associated with a specified account in the decentralized system. You can use various query parameters to filter and paginate the results, including limits on the number of activities and actions, timestamps, success status, direction, and more.",
                 "tags": [
-                    "Decentralized",
-                    "DSL"
+                    "Decentralized"
                 ],
                 "parameters": [
                     {
