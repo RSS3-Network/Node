@@ -35,7 +35,7 @@ func (t Task) Validate() error {
 
 func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, error) {
 	activity := activityx.Activity{
-		ID:        "mock id",
+		ID:        t.ID(),
 		Network:   t.Network,
 		Type:      typex.Unknown,
 		Status:    true,

@@ -98,10 +98,11 @@ func (s *dataSource) consumeKafkaMessages(ctx context.Context, tasksChan chan<- 
 			tasks := s.buildMastodonMessageTasks(ctx, object)
 
 			// Print the tasks for debugging
-			// fmt.Println("Generated tasks:")
-			// for _, task := range tasks.Tasks {
-			//	fmt.Printf("Task: %+v\n", task)
-			// }
+			fmt.Println("Generated tasks:")
+
+			for _, task := range tasks.Tasks {
+				fmt.Printf("Task: %+v\n", task)
+			}
 
 			tasksChan <- tasks
 
@@ -180,7 +181,6 @@ func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activit
 			fmt.Println("[buildMastodonMessageTasks] Object in Like type")
 		default:
 			zap.L().Debug("unsupported message type", zap.String("type", object.Type))
-			return nil
 		}
 
 		return &Task{
