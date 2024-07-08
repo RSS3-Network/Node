@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/rss3-network/node/provider/activitypub"
-	"github.com/sourcegraph/conc/pool"
 	"runtime"
 	"time"
 
@@ -14,9 +12,11 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/engine"
+	"github.com/rss3-network/node/provider/activitypub"
 	"github.com/rss3-network/node/provider/activitypub/mastodon"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
+	"github.com/sourcegraph/conc/pool"
 	"go.uber.org/zap"
 )
 
@@ -82,9 +82,11 @@ func (s *dataSource) consumeKafkaMessages(ctx context.Context, tasksChan chan<- 
 
 			fmt.Printf("Consumed message offset: %d, value: %s\n", msg.Offset, string(msg.Value))
 
-			//unmarshal the message and store it as a ActivityPub object
+			// unmarshal the message and store it as a ActivityPub object
 			messageValue := string(msg.Value)
+
 			var object activitypub.Object
+
 			if err := json.Unmarshal([]byte(messageValue), &object); err != nil {
 				zap.L().Error("failed to unmarshal message value", zap.Error(err))
 				return nil
@@ -92,14 +94,14 @@ func (s *dataSource) consumeKafkaMessages(ctx context.Context, tasksChan chan<- 
 
 			fmt.Printf("Unmarshal object is %+v\n", object)
 
-			//Build the corresponding message task for transformation
+			// Build the corresponding message task for transformation
 			tasks := s.buildMastodonMessageTasks(ctx, object)
 
 			// Print the tasks for debugging
-			//fmt.Println("Generated tasks:")
-			//for _, task := range tasks.Tasks {
+			// fmt.Println("Generated tasks:")
+			// for _, task := range tasks.Tasks {
 			//	fmt.Printf("Task: %+v\n", task)
-			//}
+			// }
 
 			tasksChan <- tasks
 
@@ -148,8 +150,7 @@ func retryOperation(ctx context.Context, operation func(ctx context.Context) err
 }
 
 // buildMastodonMessageTasks processes the Kafka message and creates tasks for the engine
-func (s *dataSource) buildMastodonMessageTasks(ctx context.Context, object activitypub.Object) *engine.Tasks {
-
+func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activitypub.Object) *engine.Tasks {
 	var tasks engine.Tasks
 
 	// If the object is empty, return an empty task
@@ -162,7 +163,6 @@ func (s *dataSource) buildMastodonMessageTasks(ctx context.Context, object activ
 
 	// Process the ActivityPub object based on its type
 	resultPool.Go(func() *Task {
-
 		// Filter the message based on type
 		switch object.Type {
 		case "Create":

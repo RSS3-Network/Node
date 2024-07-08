@@ -1,11 +1,10 @@
-package farcaster
+package activitypub
 
 import (
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/internal/engine"
-	"github.com/rss3-network/node/provider/farcaster"
+	"github.com/rss3-network/node/provider/activitypub"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
@@ -15,11 +14,11 @@ var _ engine.Task = (*Task)(nil)
 
 type Task struct {
 	Network network.Network
-	Message farcaster.Message
+	Message activitypub.Object
 }
 
 func (t Task) ID() string {
-	return fmt.Sprintf("%s.%s", t.Network, t.Message.Hash)
+	return t.Message.ID
 }
 
 func (t Task) GetNetwork() network.Network {
@@ -27,7 +26,7 @@ func (t Task) GetNetwork() network.Network {
 }
 
 func (t Task) GetTimestamp() uint64 {
-	return uint64(farcaster.CovertFarcasterTimeToTimestamp(int64(t.Message.Data.Timestamp)))
+	return 0
 }
 
 func (t Task) Validate() error {
@@ -36,7 +35,7 @@ func (t Task) Validate() error {
 
 func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, error) {
 	activity := activityx.Activity{
-		ID:        common.HexToHash(t.Message.Hash).String(),
+		ID:        "mock id",
 		Network:   t.Network,
 		Type:      typex.Unknown,
 		Status:    true,
