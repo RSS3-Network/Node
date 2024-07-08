@@ -6,7 +6,7 @@ import (
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
-	"github.com/rss3-network/node/internal/engine/worker/decentralized/core/activityPub/mastodon"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/core/activitypub/mastodon"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/core/arweave"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/core/ethereum"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/core/farcaster"
