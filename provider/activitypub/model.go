@@ -9,7 +9,7 @@ type MessageResponse struct {
 
 // This struct represents a general ActivityPub object or activity.
 type Object struct {
-	Context    string                 `json:"@context,omitempty"`
+	Context    interface{}            `json:"@context,omitempty"`
 	ID         string                 `json:"id"`
 	Type       string                 `json:"type"`
 	Actor      string                 `json:"actor,omitempty"`
