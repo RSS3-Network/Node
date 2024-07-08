@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/rss3-network/node/provider/activitypub"
+	"github.com/sourcegraph/conc/pool"
+	"runtime"
 	"time"
 
 	"github.com/IBM/sarama"
@@ -18,9 +21,9 @@ import (
 )
 
 const (
-	defaultBlockTime         = 3 * time.Second
-	kafkaTopic               = "activitypub_events" // kafka topic name
-	MASTODON_SOURCE_ENDPOINT = "34.125.79.79"       // External IP of the Mastodon VM instance
+	defaultBlockTime       = 3 * time.Second
+	kafkaTopic             = "activitypub_events" // kafka topic name
+	mastodonSourceEndpoint = "34.125.79.79"       // External IP of the Mastodon VM instance
 )
 
 var _ engine.DataSource = (*dataSource)(nil)
@@ -45,7 +48,6 @@ func (s *dataSource) State() json.RawMessage {
 
 // Start initializes the data source and starts consuming Kafka messages
 func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
-
 	if err := s.initialize(); err != nil {
 		errorChan <- fmt.Errorf("initialize dataSource: %w", err)
 		return
@@ -63,7 +65,6 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 
 // consumeKafkaMessages consumes messages from a Kafka topic and processes them
 func (s *dataSource) consumeKafkaMessages(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
-
 	// Start consuming messages from the specified Kafka partition
 	partitionConsumer, err := s.kafkaConsumer.ConsumePartition(kafkaTopic, 0, sarama.OffsetNewest)
 	if err != nil {
@@ -76,15 +77,31 @@ func (s *dataSource) consumeKafkaMessages(ctx context.Context, tasksChan chan<- 
 	for {
 		select {
 		case msg := <-partitionConsumer.Messages():
-
 			// Update the state with the last processed message offset
 			s.state.LastOffset = msg.Offset
 
 			fmt.Printf("Consumed message offset: %d, value: %s\n", msg.Offset, string(msg.Value))
 
-			// Uncomment and implement task processing
-			//tasks := s.buildMastodonMessageTasks(ctx, msg.Value)
-			//tasksChan <- tasks
+			//unmarshal the message and store it as a ActivityPub object
+			messageValue := string(msg.Value)
+			var object activitypub.Object
+			if err := json.Unmarshal([]byte(messageValue), &object); err != nil {
+				zap.L().Error("failed to unmarshal message value", zap.Error(err))
+				return nil
+			}
+
+			fmt.Printf("Unmarshal object is %+v\n", object)
+
+			//Build the corresponding message task for transformation
+			tasks := s.buildMastodonMessageTasks(ctx, object)
+
+			// Print the tasks for debugging
+			//fmt.Println("Generated tasks:")
+			//for _, task := range tasks.Tasks {
+			//	fmt.Printf("Task: %+v\n", task)
+			//}
+
+			tasksChan <- tasks
 
 		case <-ctx.Done():
 			return ctx.Err()
@@ -94,8 +111,7 @@ func (s *dataSource) consumeKafkaMessages(ctx context.Context, tasksChan chan<- 
 
 // initialize sets up the Kafka consumer and Mastodon client
 func (s *dataSource) initialize() (err error) {
-
-	var kafkaBrokers = []string{MASTODON_SOURCE_ENDPOINT + ":9092"}
+	var kafkaBrokers = []string{mastodonSourceEndpoint + ":9092"}
 
 	// Create a new Kafka consumer
 	consumer, err := sarama.NewConsumer(kafkaBrokers, nil)
@@ -129,6 +145,58 @@ func retryOperation(ctx context.Context, operation func(ctx context.Context) err
 			zap.L().Warn("retry farcaster dataSource", zap.Uint("retry", n), zap.Error(err))
 		}),
 	)
+}
+
+// buildMastodonMessageTasks processes the Kafka message and creates tasks for the engine
+func (s *dataSource) buildMastodonMessageTasks(ctx context.Context, object activitypub.Object) *engine.Tasks {
+
+	var tasks engine.Tasks
+
+	// If the object is empty, return an empty task
+	if object.Type == "" {
+		return &tasks
+	}
+
+	// Create a pool to process tasks concurrently (Note: Currently disabled concurrent processing)
+	resultPool := pool.NewWithResults[*Task]().WithMaxGoroutines(lo.Ternary(len(object.To) < 20*runtime.NumCPU(), len(object.To), 20*runtime.NumCPU()))
+
+	// Process the ActivityPub object based on its type
+	resultPool.Go(func() *Task {
+
+		// Filter the message based on type
+		switch object.Type {
+		case "Create":
+			if note, ok := object.Object.(map[string]interface{}); ok {
+				if noteType, exists := note["type"].(string); exists && noteType == "Note" {
+					// Example: Create task for a Note object
+					fmt.Println("[buildMastodonMessageTasks] Object in Create type (for a Note Object)")
+				}
+			}
+		case "Follow":
+			// Process Follow type messages
+			fmt.Println("[buildMastodonMessageTasks] Object in Follow type")
+		case "Like":
+			// Process Like type messages
+			fmt.Println("[buildMastodonMessageTasks] Object in Like type")
+		default:
+			zap.L().Debug("unsupported message type", zap.String("type", object.Type))
+			return nil
+		}
+
+		return &Task{
+			Network: s.Network(),
+			Message: object,
+		}
+	})
+
+	// Wait for all tasks to complete and handle them
+	for _, task := range resultPool.Wait() {
+		if task != nil {
+			tasks.Tasks = append(tasks.Tasks, task)
+		}
+	}
+
+	return &tasks
 }
 
 // NewSource creates a new data source instance

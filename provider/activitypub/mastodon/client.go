@@ -23,7 +23,7 @@ const (
 var _ Client = (*client)(nil)
 
 type Client interface {
-	GetUserProfileByFid(ctx context.Context, fid *int64) (*activitypub.MessageResponse, error)
+	requestActivityPubData(ctx context.Context) (*activitypub.MessageResponse, error)
 }
 
 type client struct {
@@ -34,12 +34,11 @@ type client struct {
 }
 
 // GetCastsByFid
-func (c *client) GetUserProfileByFid(ctx context.Context, fid *int64) (*activitypub.MessageResponse, error) {
-	if err := c.call(ctx, "/api", activitypub.MastodonQuery{}, nil); err != nil {
+func (c *client) requestActivityPubData(ctx context.Context) (*activitypub.MessageResponse, error) {
+	if err := c.call(ctx, "/activitypub/data", activitypub.MastodonQuery{}, nil); err != nil {
 		return nil, fmt.Errorf("fetch: %w", err)
 	}
 
-	fmt.Println(fid)
 	// return &response, nil
 	return nil, nil
 }
