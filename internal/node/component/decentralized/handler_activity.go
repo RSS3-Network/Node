@@ -166,15 +166,17 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
-		Owners:         request.Accounts,
-		Limit:          request.Limit,
-		ActionLimit:    request.ActionLimit,
-		Status:         request.Status,
-		Direction:      request.Direction,
-		Network:        lo.Uniq(request.Network),
-		Tags:           lo.Uniq(request.Tag),
-		Types:          lo.Uniq(types),
-		Platforms:      lo.Uniq(request.Platform),
+		Owners: lo.Uniq(lo.Map(request.Accounts, func(account string, _ int) string {
+			return common.HexToAddress(account).String()
+		})),
+		Limit:       request.Limit,
+		ActionLimit: request.ActionLimit,
+		Status:      request.Status,
+		Direction:   request.Direction,
+		Network:     lo.Uniq(request.Network),
+		Tags:        lo.Uniq(request.Tag),
+		Types:       lo.Uniq(types),
+		Platforms:   lo.Uniq(request.Platform),
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
