@@ -117,6 +117,21 @@ var command = cobra.Command{
 				zap.L().Error("pull network parameters from VSL", zap.Error(err))
 			}
 
+			for network, blockStart := range parameter.CurrentNetworkStartBlock {
+				if blockStart == nil {
+					continue // Skip if the start block is not defined.
+				}
+
+				// Convert big.Int to int64; safe as long as the value fits in int64.
+				blockStartInt64 := blockStart.Int64()
+
+				// Update the current block start for the network in Redis.
+				err := parameter.UpdateCurrentBlockStart(cmd.Context(), redisClient, network, blockStartInt64)
+				if err != nil {
+					return fmt.Errorf("update current block start: %w", err)
+				}
+			}
+
 			epoch, err := parameter.GetCurrentEpochFromVSL(settlementCaller)
 			if err != nil {
 				return fmt.Errorf("get current epoch: %w", err)

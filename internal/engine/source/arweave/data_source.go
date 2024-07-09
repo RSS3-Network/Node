@@ -16,7 +16,9 @@ import (
 
 	"github.com/Khan/genqlient/graphql"
 	"github.com/avast/retry-go/v4"
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/arweave/bundle"
@@ -40,6 +42,7 @@ type dataSource struct {
 	option        *Option
 	filter        *Filter
 	arweaveClient arweave.Client
+	redisClient   rueidis.Client
 	state         State
 }
 
@@ -108,6 +111,16 @@ func (s *dataSource) initializeBlockHeights() {
 	}
 }
 
+// updateBlockHeightFromRemote checks and updates the dataSource's block height
+// if the remote start block is greater than the current block height.
+func (s *dataSource) updateBlockHeightFromRemote(ctx context.Context) {
+	remoteBlockStart := parameter.GetCurrentNetworkBlockStartFromCache(ctx, s.redisClient, s.config.Network.String())
+	if remoteBlockStart > s.state.BlockHeight {
+		s.state.BlockHeight = remoteBlockStart
+		zap.L().Info("Updated block height from remote", zap.Uint64("newBlockHeight", s.state.BlockHeight))
+	}
+}
+
 // pollBlocks polls blocks from arweave network.
 func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks, filter *Filter) error {
 	var (
@@ -138,6 +151,10 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 		if s.option.BlockTarget != nil && s.option.BlockTarget.Uint64() <= s.state.BlockHeight {
 			break
 		}
+
+		// Check if remote block start is larger than current one
+		// if so, update the current block height to remote block start
+		s.updateBlockHeightFromRemote(ctx)
 
 		// Check if block height is latest.
 		if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {
@@ -693,7 +710,7 @@ func (s *dataSource) buildTasks(_ context.Context, blocks []*arweave.Block, tran
 }
 
 // NewSource creates a new arweave dataSource.
-func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint) (engine.DataSource, error) {
+func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint, redisClient rueidis.Client) (engine.DataSource, error) {
 	var (
 		state State
 		err   error
@@ -707,9 +724,10 @@ func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, chec
 	}
 
 	instance := dataSource{
-		config: config,
-		filter: new(Filter), // Set a default filter for the dataSource.
-		state:  state,
+		config:      config,
+		filter:      new(Filter), // Set a default filter for the dataSource.
+		state:       state,
+		redisClient: redisClient,
 	}
 
 	// Initialize filter.
