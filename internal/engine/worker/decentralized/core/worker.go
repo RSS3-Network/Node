@@ -6,6 +6,7 @@ import (
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/core/activitypub/mastodon"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/core/arweave"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/core/ethereum"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/core/farcaster"
@@ -15,6 +16,8 @@ import (
 // NewWorker creates a new core worker.
 func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker, error) {
 	switch config.Network.Source() {
+	case network.ActivityPubSource:
+		return mastodon.NewWorker()
 	case network.EthereumSource:
 		return ethereum.NewWorker(config, redisClient)
 	case network.ArweaveSource:
