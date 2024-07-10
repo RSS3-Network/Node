@@ -62,7 +62,7 @@ func calculateMinimumResources(n network.Network, w worker.Worker) MinimumResour
 	}
 
 	if w.Name() == decentralized.Core.Name() {
-		resource.DiskSpaceInGb = parameter.CurrentNetworkCoreWorkerDiskSpacePerMonth[n.String()] * parameter.NumberOfMonthsToCover
+		resource.DiskSpaceInGb = parameter.CurrentNetworkCoreWorkerDiskSpacePerMonth[n] * parameter.NumberOfMonthsToCover
 	}
 
 	return resource

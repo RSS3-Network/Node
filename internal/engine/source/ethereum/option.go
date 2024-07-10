@@ -36,7 +36,7 @@ func NewOption(n network.Network, parameters *config.Parameters) (*Option, error
 
 	if parameters == nil {
 		return &Option{
-			BlockStart:              parameter.CurrentNetworkStartBlock[n.String()],
+			BlockStart:              parameter.CurrentNetworkStartBlock[n],
 			ConcurrentBlockRequests: lo.ToPtr(defaultConcurrentBlockRequests),
 			BlockBatchSize:          lo.ToPtr(defaultBlockBatchSize),
 			ReceiptsBatchSize:       lo.ToPtr(defaultReceiptsBatchSize),
@@ -66,7 +66,7 @@ func NewOption(n network.Network, parameters *config.Parameters) (*Option, error
 	}
 
 	if option.BlockStart == nil {
-		option.BlockStart = parameter.CurrentNetworkStartBlock[n.String()]
+		option.BlockStart = parameter.CurrentNetworkStartBlock[n]
 	}
 
 	return &option, nil

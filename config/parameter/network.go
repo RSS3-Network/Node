@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
 
@@ -11,13 +12,60 @@ import (
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
+	"github.com/rss3-network/protocol-go/schema/network"
 )
 
 // NetworkParamsData contains the network parameters
 type NetworkParamsData struct {
-	NetworkTolerance                   NetworkTolerance                   `json:"NetworkTolerance"`
-	NetworkStartBlock                  NetworkStartBlock                  `json:"NetworkStartBlock"`
-	NetworkCoreWorkerDiskSpacePerMonth NetworkCoreWorkerDiskSpacePerMonth `json:"NetworkCoreWorkerDiskSpacePerMonth"`
+	NetworkTolerance                   NetworkTolerance                   `json:"network_tolerance"`
+	NetworkStartBlock                  NetworkStartBlock                  `json:"network_start_block"`
+	NetworkCoreWorkerDiskSpacePerMonth NetworkCoreWorkerDiskSpacePerMonth `json:"network_core_worker_disk_space_per_month"`
+}
+
+// UnmarshalJSON defines a custom UnmarshalJSON method for NetworkParamsData
+func (npd *NetworkParamsData) UnmarshalJSON(data []byte) error {
+	networkParam := struct {
+		NetworkTolerance                   map[string]uint64   `json:"network_tolerance"`
+		NetworkStartBlock                  map[string]*big.Int `json:"network_start_block"`
+		NetworkCoreWorkerDiskSpacePerMonth map[string]uint     `json:"network_core_worker_disk_space_per_month"`
+	}{}
+
+	if err := json.Unmarshal(data, &networkParam); err != nil {
+		return err
+	}
+
+	npd.NetworkTolerance = make(map[network.Network]uint64)
+	npd.NetworkStartBlock = make(map[network.Network]*big.Int)
+	npd.NetworkCoreWorkerDiskSpacePerMonth = make(map[network.Network]uint)
+
+	for key, value := range networkParam.NetworkTolerance {
+		netValue, err := network.NetworkString(key)
+		if err != nil {
+			return err
+		}
+
+		npd.NetworkTolerance[netValue] = value
+	}
+
+	for key, value := range networkParam.NetworkStartBlock {
+		netValue, err := network.NetworkString(key)
+		if err != nil {
+			return err
+		}
+
+		npd.NetworkStartBlock[netValue] = value
+	}
+
+	for key, value := range networkParam.NetworkCoreWorkerDiskSpacePerMonth {
+		netValue, err := network.NetworkString(key)
+		if err != nil {
+			return err
+		}
+
+		npd.NetworkCoreWorkerDiskSpacePerMonth[netValue] = value
+	}
+
+	return nil
 }
 
 // PullNetworkParamsFromVSL pulls the network parameters from the VSL
@@ -196,7 +244,7 @@ func CheckParamsTask(ctx context.Context, redisClient rueidis.Client, networkPar
 			blockStartInt64 := blockStart.Int64()
 
 			// Update the current block start for the network in Redis.
-			err := UpdateCurrentBlockStart(ctx, redisClient, network, blockStartInt64)
+			err := UpdateCurrentBlockStart(ctx, redisClient, network.String(), blockStartInt64)
 			if err != nil {
 				return fmt.Errorf("update current block start: %w", err)
 			}

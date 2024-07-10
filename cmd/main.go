@@ -126,7 +126,7 @@ var command = cobra.Command{
 				blockStartInt64 := blockStart.Int64()
 
 				// Update the current block start for the network in Redis.
-				err := parameter.UpdateCurrentBlockStart(cmd.Context(), redisClient, network, blockStartInt64)
+				err := parameter.UpdateCurrentBlockStart(cmd.Context(), redisClient, network.String(), blockStartInt64)
 				if err != nil {
 					return fmt.Errorf("update current block start: %w", err)
 				}
@@ -165,9 +165,10 @@ func runCoreService(ctx context.Context, config *config.File, databaseClient dat
 	checkCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	// Start CheckParams as a separate goroutine to continuously check parameters
 	go func() {
-		_ = node.CheckParams(checkCtx, redisClient, networkParamsCaller, settlementCaller)
+		if err := node.CheckParams(checkCtx, redisClient, networkParamsCaller, settlementCaller); err != nil {
+			fmt.Printf("Error checking parameters: %v\n", err)
+		}
 	}()
 
 	apiErrChan := make(chan error, 1)
@@ -175,19 +176,19 @@ func runCoreService(ctx context.Context, config *config.File, databaseClient dat
 		apiErrChan <- server.Run(ctx)
 	}()
 
+	// Set up signal handling
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, syscall.SIGINT, syscall.SIGTERM)
 
 	select {
-	case <-stopChan:
-		fmt.Println("Shutdown signal received.")
+	case sig := <-stopChan:
+		fmt.Printf("Shutdown signal received: %v.\n", sig)
 	case err := <-apiErrChan:
-		cancel()
-
+		cancel() // signal all goroutines to stop on error
 		return err
 	}
 
-	cancel() // Signal all goroutines to stop
+	cancel() // ensure cancellation if exiting normally
 
 	return nil
 }
