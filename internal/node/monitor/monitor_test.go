@@ -21,6 +21,8 @@ import (
 func TestMonitor(t *testing.T) {
 	t.Parallel()
 
+	mockNetworkTolerance()
+
 	type arguments struct {
 		config        *config.File
 		currentState  monitor.CheckpointState
@@ -1046,5 +1048,24 @@ func TestMonitor(t *testing.T) {
 				require.Equal(t, testcase.want, status)
 			})
 		}
+	}
+}
+
+func mockNetworkTolerance() {
+	parameter.CurrentNetworkTolerance = parameter.NetworkTolerance{
+		network.Arbitrum:          1000,
+		network.Arweave:           100,
+		network.Avalanche:         100,
+		network.Base:              100,
+		network.BinanceSmartChain: 100,
+		network.Crossbell:         500,
+		network.Ethereum:          100,
+		network.Farcaster:         3600000,
+		network.Gnosis:            100,
+		network.Linea:             100,
+		network.Optimism:          100,
+		network.Polygon:           100,
+		network.SatoshiVM:         100,
+		network.VSL:               100,
 	}
 }
