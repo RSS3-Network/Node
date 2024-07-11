@@ -26,7 +26,7 @@ const (
 
 var _ engine.DataSource = (*dataSource)(nil)
 
-// dataSource struct defines the fields needed for the data source
+// dataSource struct defines the fields for the data source
 type dataSource struct {
 	config         *config.Module
 	databaseClient database.Client
@@ -97,10 +97,10 @@ func (s *dataSource) consumeKafkaMessages(ctx context.Context, tasksChan chan<- 
 
 // processMessage processes a single Kafka message
 func (s *dataSource) processMessage(ctx context.Context, msg *sarama.ConsumerMessage) *engine.Tasks {
-	// Update the state with the last processed message offset
+	// Update the state with the last processed message count number (offset)
 	s.state.LastOffset = msg.Offset
 
-	fmt.Printf("Consumed message offset: %d, value: %s\n", msg.Offset, string(msg.Value))
+	// fmt.Printf("[activitypub/data_source.go] Consumed message offset: %d, value: %s\n", msg.Offset, string(msg.Value))
 
 	// Unmarshal the message and store it as an ActivityPub object
 	messageValue := string(msg.Value)
@@ -112,13 +112,13 @@ func (s *dataSource) processMessage(ctx context.Context, msg *sarama.ConsumerMes
 		return nil
 	}
 
-	fmt.Printf("Unmarshal object is %+v\n", object)
+	// fmt.Printf("[activitypub/data_source.go] Unmarshal object is %+v\n", object)
 
 	// Build the corresponding message task for transformation
 	tasks := s.buildMastodonMessageTasks(ctx, object)
 
 	// Print the tasks for debugging
-	fmt.Println("Generated tasks:")
+	fmt.Println("[activitypub/data_source.go] Generated tasks:")
 
 	for _, task := range tasks.Tasks {
 		fmt.Printf("Task: %+v\n", task)
@@ -165,23 +165,23 @@ func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activit
 	}
 
 	// Filter the message based on type
-	switch object.Type {
-	case "Create":
-		if note, ok := object.Object.(map[string]interface{}); ok {
-			if noteType, exists := note["type"].(string); exists && noteType == "Note" {
-				// Example: Create task for a Note object
-				fmt.Println("[buildMastodonMessageTasks] Object in Create type (for a Note Object)")
-			}
-		}
-	case "Follow":
-		// Process Follow type messages
-		fmt.Println("[buildMastodonMessageTasks] Object in Follow type")
-	case "Like":
-		// Process Like type messages
-		fmt.Println("[buildMastodonMessageTasks] Object in Like type")
-	default:
-		zap.L().Debug("unsupported message type", zap.String("type", object.Type))
-	}
+	// switch object.Type {
+	// case "Create":
+	//	if note, ok := object.Object.(map[string]interface{}); ok {
+	//		if noteType, exists := note["type"].(string); exists && noteType == "Note" {
+	//			// Example: Create task for a Note object
+	//			fmt.Println("[buildMastodonMessageTasks] Object in Create type (for a Note Object)")
+	//		}
+	//	}
+	// case "Follow":
+	//	// Process Follow type messages
+	//	fmt.Println("[buildMastodonMessageTasks] Object in Follow type")
+	// case "Like":
+	//	// Process Like type messages
+	//	fmt.Println("[buildMastodonMessageTasks] Object in Like type")
+	// default:
+	//	zap.L().Debug("unsupported message type", zap.String("type", object.Type))
+	//}
 
 	tasks.Tasks = append(tasks.Tasks, &Task{
 		Network: s.Network(),

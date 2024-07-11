@@ -2,6 +2,7 @@ package activitypub
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/activitypub"
@@ -26,7 +27,10 @@ func (t Task) GetNetwork() network.Network {
 }
 
 func (t Task) GetTimestamp() uint64 {
-	return 0
+	publishedTimeStamp := t.Message.Published
+	timestamp, _ := strconv.ParseUint(publishedTimeStamp, 10, 64)
+
+	return timestamp
 }
 
 func (t Task) Validate() error {

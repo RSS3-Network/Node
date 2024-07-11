@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	DefaultTimeout         = 5 * time.Second
-	DefaultAttempts        = 3
+	DefaultTimeout         = 3 * time.Second
+	DefaultAttempts        = 2
 	mastodonSourceEndpoint = "34.125.35.124" // External IP of the Mastodon VM instance
 )
 
@@ -46,7 +46,6 @@ func NewClient(endpoint string) (Client, error) {
 	)
 	// form the kafka broker endpoint
 	var kafkaBrokers = []string{mastodonSourceEndpoint + ":9092"}
-
 	// Create a new Kafka consumer using the broker endpoint
 	consumer, err := sarama.NewConsumer(kafkaBrokers, nil)
 	if err != nil {
