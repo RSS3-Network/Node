@@ -27,8 +27,8 @@ type Monitor struct {
 }
 
 func (m *Monitor) Run(ctx context.Context) error {
-	_, err := m.cron.AddFunc("@every 15m", func() {
-		if err := parameter.CheckParamsTask(ctx, m.redisClient, m.networkParamsCaller, m.settlementCaller); err != nil {
+	_, err := m.cron.AddFunc("@every 5m", func() {
+		if err := parameter.CheckParamsTask(ctx, m.redisClient, m.networkParamsCaller); err != nil {
 			return
 		}
 

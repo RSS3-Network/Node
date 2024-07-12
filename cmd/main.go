@@ -111,8 +111,19 @@ var command = cobra.Command{
 				return fmt.Errorf("new settlement caller: %w", err)
 			}
 
+			epoch, err := parameter.GetCurrentEpochFromVSL(settlementCaller)
+			if err != nil {
+				return fmt.Errorf("get current epoch: %w", err)
+			}
+
+			// save epoch to redis cache
+			err = parameter.UpdateCurrentEpoch(cmd.Context(), redisClient, epoch)
+			if err != nil {
+				return fmt.Errorf("update current epoch: %w", err)
+			}
+
 			// when start or restart the core, worker or monitor module, it will pull network parameters from VSL and record current epoch
-			err = parameter.PullNetworkParamsFromVSL(networkParamsCaller)
+			err = parameter.PullNetworkParamsFromVSL(networkParamsCaller, uint64(epoch))
 			if err != nil {
 				zap.L().Error("pull network parameters from VSL", zap.Error(err))
 			}
@@ -130,17 +141,6 @@ var command = cobra.Command{
 				if err != nil {
 					return fmt.Errorf("update current block start: %w", err)
 				}
-			}
-
-			epoch, err := parameter.GetCurrentEpochFromVSL(settlementCaller)
-			if err != nil {
-				return fmt.Errorf("get current epoch: %w", err)
-			}
-
-			// save epoch to redis cache
-			err = parameter.UpdateCurrentEpoch(cmd.Context(), redisClient, epoch)
-			if err != nil {
-				return fmt.Errorf("update current epoch: %w", err)
 			}
 		}
 

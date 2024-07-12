@@ -69,29 +69,28 @@ func (npd *NetworkParamsData) UnmarshalJSON(data []byte) error {
 }
 
 // PullNetworkParamsFromVSL pulls the network parameters from the VSL
-func PullNetworkParamsFromVSL(networkParams *vsl.NetworkParamsCaller) error {
-	params, err := networkParams.GetParams(&bind.CallOpts{})
+func PullNetworkParamsFromVSL(networkParams *vsl.NetworkParamsCaller, epoch uint64) error {
+	// Get parameters for the current epoch from networkParams
+	params, err := networkParams.GetParams(&bind.CallOpts{}, epoch)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get params for epoch %d: %w", epoch, err)
 	}
 
-	// unmarshal params to update CurrentNetworkTolerance, CurrentNetworkStartBlock and CurrentNetworkCoreWorkerDiskSpacePerMonth
+	// Unmarshal and update network parameters
+	return updateNetworkParams(params)
+}
+
+func updateNetworkParams(params string) error {
 	var paramsData NetworkParamsData
 
-	err = json.Unmarshal([]byte(params), &paramsData)
+	err := json.Unmarshal([]byte(params), &paramsData)
 	if err != nil {
 		return fmt.Errorf("json unmarshal: %w", err)
 	}
 
-	// CurrentNetworkTolerance should be updated each epoch from vsl
+	// Update network parameters
 	CurrentNetworkTolerance = paramsData.NetworkTolerance
-
-	// CurrentNetworkStartBlock should be updated each epoch from vsl
 	CurrentNetworkStartBlock = paramsData.NetworkStartBlock
-
-	// CurrentNetworkCoreWorkerDiskSpacePerMonth the disk space required for the network's core worker to store a month worth of data
-	// The data is calculated based on the average disk space usage during 2024 Q1.
-	// Actually usage may vary depending on the network's activity.
 	CurrentNetworkCoreWorkerDiskSpacePerMonth = paramsData.NetworkCoreWorkerDiskSpacePerMonth
 
 	return nil
@@ -138,7 +137,7 @@ func GetCurrentEpochFromCache(ctx context.Context, redisClient rueidis.Client) i
 // UpdateCurrentEpoch updates the current epoch in redis cache
 func UpdateCurrentEpoch(ctx context.Context, redisClient rueidis.Client, epoch int64) error {
 	if redisClient == nil {
-		return nil
+		return fmt.Errorf("redis client is nil")
 	}
 
 	command := redisClient.B().Set().Key(buildCurrentEpochCacheKey()).Value(strconv.FormatInt(epoch, 10)).Build()
@@ -183,7 +182,7 @@ func GetCurrentNetworkBlockStartFromCache(ctx context.Context, redisClient rueid
 // UpdateCurrentBlockStart updates the current start block in redis cache
 func UpdateCurrentBlockStart(ctx context.Context, redisClient rueidis.Client, network string, blockStart int64) error {
 	if redisClient == nil {
-		return nil
+		return fmt.Errorf("redis client is nil")
 	}
 
 	command := redisClient.B().Set().Key(buildNetworkBlockStartCacheKey(network)).Value(strconv.FormatInt(blockStart, 10)).Build()
@@ -221,38 +220,26 @@ func InitVSLClient() (ethereum.Client, error) {
 	return vslClient, nil
 }
 
-func CheckParamsTask(ctx context.Context, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
-	localEpoch := GetCurrentEpochFromCache(ctx, redisClient)
+func CheckParamsTask(ctx context.Context, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller) error {
+	currentEpoch := GetCurrentEpochFromCache(ctx, redisClient)
 
-	remoteEpoch, err := GetCurrentEpochFromVSL(settlementCaller)
+	err := PullNetworkParamsFromVSL(networkParamsCaller, uint64(currentEpoch))
 	if err != nil {
-		return fmt.Errorf("failed to get epoch from vsl: %w", err)
+		return fmt.Errorf("failed to pull network params from vsl: %w", err)
 	}
 
-	if remoteEpoch > localEpoch {
-		err = PullNetworkParamsFromVSL(networkParamsCaller)
-		if err != nil {
-			return fmt.Errorf("failed to pull network params from vsl: %w", err)
+	for n, blockStart := range CurrentNetworkStartBlock {
+		if blockStart == nil {
+			continue // Skip if the start block is not defined.
 		}
 
-		for network, blockStart := range CurrentNetworkStartBlock {
-			if blockStart == nil {
-				continue // Skip if the start block is not defined.
-			}
+		// Convert big.Int to int64; safe as long as the value fits in int64.
+		blockStartInt64 := blockStart.Int64()
 
-			// Convert big.Int to int64; safe as long as the value fits in int64.
-			blockStartInt64 := blockStart.Int64()
-
-			// Update the current block start for the network in Redis.
-			err := UpdateCurrentBlockStart(ctx, redisClient, network.String(), blockStartInt64)
-			if err != nil {
-				return fmt.Errorf("update current block start: %w", err)
-			}
-		}
-
-		err = UpdateCurrentEpoch(ctx, redisClient, remoteEpoch)
+		// Update the current block start for the network in Redis.
+		err := UpdateCurrentBlockStart(ctx, redisClient, n.String(), blockStartInt64)
 		if err != nil {
-			return fmt.Errorf("failed to update epoch in cache: %w", err)
+			return fmt.Errorf("update current block start: %w", err)
 		}
 	}
 

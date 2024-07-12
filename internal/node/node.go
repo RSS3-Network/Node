@@ -105,8 +105,24 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 func CheckParams(ctx context.Context, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
 	checkParamsCron := cron.New()
 
-	_, err := checkParamsCron.AddFunc("@every 15m", func() {
-		if err := parameter.CheckParamsTask(ctx, redisClient, networkParamsCaller, settlementCaller); err != nil {
+	_, err := checkParamsCron.AddFunc("@every 15s", func() {
+		localEpoch := parameter.GetCurrentEpochFromCache(ctx, redisClient)
+
+		remoteEpoch, err := parameter.GetCurrentEpochFromVSL(settlementCaller)
+		if err != nil {
+			zap.L().Error("get current epoch", zap.Error(err))
+			return
+		}
+
+		if remoteEpoch > localEpoch {
+			err = parameter.UpdateCurrentEpoch(ctx, redisClient, remoteEpoch)
+			if err != nil {
+				zap.L().Error("update current epoch", zap.Error(err))
+				return
+			}
+		}
+
+		if err := parameter.CheckParamsTask(ctx, redisClient, networkParamsCaller); err != nil {
 			zap.L().Error("check params tasks", zap.Error(err))
 		}
 	})
