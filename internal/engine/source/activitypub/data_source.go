@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/IBM/sarama"
 	"github.com/avast/retry-go/v4"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
@@ -17,11 +16,8 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
+	"github.com/twmb/franz-go/pkg/kgo"
 	"go.uber.org/zap"
-)
-
-const (
-	kafkaTopic = "activitypub_events" // kafka topic name
 )
 
 var _ engine.DataSource = (*dataSource)(nil)
@@ -31,6 +27,7 @@ type dataSource struct {
 	config         *config.Module
 	databaseClient database.Client
 	mastodonClient mastodon.Client
+	option         *Option
 	state          State
 }
 
@@ -63,47 +60,54 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 // consumeKafkaMessages consumes messages from a Kafka topic and processes them
 func (s *dataSource) consumeKafkaMessages(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	consumer := s.mastodonClient.GetKafkaConsumer()
-	// Start consuming messages from the specified Kafka partition
-	partitionConsumer, err := consumer.ConsumePartition(kafkaTopic, 0, sarama.OffsetNewest)
-	if err != nil {
-		return fmt.Errorf("consume partition: %w", err)
-	}
-
-	defer partitionConsumer.Close()
 
 	// Create a pool to process messages concurrently
 	resultPool := pool.NewWithResults[*engine.Tasks]().WithMaxGoroutines(runtime.NumCPU())
 
 	// Loop to continuously process incoming messages
 	for {
-		select {
-		case msg := <-partitionConsumer.Messages():
-			// Send the message to the result pool for concurrent processing
+		// Start polling messages from the specified Kafka partition
+		fetches := consumer.PollFetches(ctx)
+		if errs := fetches.Errors(); len(errs) > 0 {
+			for _, e := range errs {
+				zap.L().Error("consumer poll fetch error", zap.Error(e.Err))
+			}
+
+			return fmt.Errorf("consumer poll fetch error: %v", errs)
+		}
+
+		fetches.EachRecord(func(record *kgo.Record) {
+			// Process each message in a separate goroutine for concurrent processing
 			resultPool.Go(func() *engine.Tasks {
-				// process each message
-				tasks := s.processMessage(ctx, msg)
+				// Process each message
+				tasks := s.processMessage(ctx, record)
 				if tasks != nil {
 					tasksChan <- tasks
 				}
 
 				return tasks
 			})
+		})
+
+		select {
+		// Check if the context is done
 		case <-ctx.Done():
 			resultPool.Wait()
 			return ctx.Err()
+		default:
 		}
 	}
 }
 
 // processMessage processes a single Kafka message
-func (s *dataSource) processMessage(ctx context.Context, msg *sarama.ConsumerMessage) *engine.Tasks {
+func (s *dataSource) processMessage(ctx context.Context, record *kgo.Record) *engine.Tasks {
 	// Update the state with the last processed message count number (offset)
-	s.state.LastOffset = msg.Offset
+	s.state.LastOffset = record.Offset
 
-	// fmt.Printf("[activitypub/data_source.go] Consumed message offset: %d, value: %s\n", msg.Offset, string(msg.Value))
+	fmt.Printf("[activitypub/data_source.go] Consumed message offset: %d, value: %s\n", record.Offset, string(record.Value))
 
 	// Unmarshal the message and store it as an ActivityPub object
-	messageValue := string(msg.Value)
+	messageValue := string(record.Value)
 
 	var object activitypub.Object
 
@@ -129,8 +133,11 @@ func (s *dataSource) processMessage(ctx context.Context, msg *sarama.ConsumerMes
 
 // initialize sets up the Kafka consumer and Mastodon client
 func (s *dataSource) initialize() (err error) {
-	// Create a new Client instance
-	client, err := mastodon.NewClient(s.config.Endpoint.URL)
+	// Get the kafka topic parameter from the config.yaml file
+	kafkaTopic := s.option.KafkaTopic
+
+	// Create a new Client instance with required kafka parameters
+	client, err := mastodon.NewClient(s.config.Endpoint.URL, kafkaTopic)
 	if err != nil {
 		return fmt.Errorf("create activitypub client: %w", err)
 	}
@@ -195,6 +202,8 @@ func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activit
 func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.DataSource, error) {
 	var (
 		state State
+
+		err error
 	)
 
 	// Initialize state from checkpoint.
@@ -210,6 +219,12 @@ func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseCli
 		config:         config,
 		state:          state,
 	}
+
+	if instance.option, err = NewOption(config.Parameters); err != nil {
+		return nil, fmt.Errorf("parse config: %w", err)
+	}
+
+	zap.L().Info("apply option", zap.Any("option", instance.option))
 
 	return &instance, nil
 }
