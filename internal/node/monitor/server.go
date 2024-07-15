@@ -23,16 +23,18 @@ type Monitor struct {
 }
 
 func (m *Monitor) Run(ctx context.Context) error {
-	_, err := m.cron.AddFunc("@every 15m", func() {
-		if err := m.MonitorWorkerStatus(ctx); err != nil {
-			return
+	if m.databaseClient != nil && m.redisClient != nil {
+		_, err := m.cron.AddFunc("@every 15m", func() {
+			if err := m.MonitorWorkerStatus(ctx); err != nil {
+				return
+			}
+		})
+		if err != nil {
+			return fmt.Errorf("add heartbeat cron job: %w", err)
 		}
-	})
-	if err != nil {
-		return fmt.Errorf("add heartbeat cron job: %w", err)
-	}
 
-	m.cron.Start()
+		m.cron.Start()
+	}
 
 	stopchan := make(chan os.Signal, 1)
 
