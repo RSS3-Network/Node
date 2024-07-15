@@ -52,7 +52,6 @@ require (
 )
 
 require (
-	github.com/IBM/sarama v1.43.2
 	github.com/cockroachdb/cockroach-go/v2 v2.3.8
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
 	github.com/grafana/pyroscope-go v1.1.1
@@ -86,9 +85,6 @@ require (
 	github.com/docker/docker v26.1.3+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
-	github.com/eapache/go-resiliency v1.6.0 // indirect
-	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
-	github.com/eapache/queue v1.1.0 // indirect
 	github.com/ethereum/c-kzg-4844 v0.4.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
@@ -108,9 +104,6 @@ require (
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.6 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0 // indirect
-	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/holiman/uint256 v1.2.4 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -118,11 +111,6 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
 	github.com/jackc/pgx/v5 v5.5.5 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
-	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
-	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
-	github.com/jcmturner/gofork v1.7.6 // indirect
-	github.com/jcmturner/gokrb5/v8 v8.4.4 // indirect
-	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -155,7 +143,6 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
-	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sethvargo/go-retry v0.2.4 // indirect

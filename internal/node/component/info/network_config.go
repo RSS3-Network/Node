@@ -48,6 +48,7 @@ type Parameters struct {
 	BlockReceiptBatchSize   *ConfigDetail   `json:"block_receipts_batch_size,omitempty"`
 	APIKey                  *ConfigDetail   `json:"api_key,omitempty"`
 	Authentication          *Authentication `json:"authentication,omitempty"`
+	MastodonKafkaTopic      *ConfigDetail   `json:"mastodon_kafka_topic,omitempty"`
 }
 
 type workerConfig struct {

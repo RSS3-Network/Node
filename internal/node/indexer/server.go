@@ -14,7 +14,8 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/internal/engine/source"
-	"github.com/rss3-network/node/internal/engine/worker/decentralized"
+	decentralizedWorker "github.com/rss3-network/node/internal/engine/worker/decentralized"
+	federatedWorker "github.com/rss3-network/node/internal/engine/worker/federated"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
 	decentralizedx "github.com/rss3-network/node/schema/worker/decentralized"
@@ -282,8 +283,17 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 	}
 
 	// Initialize worker.
-	if instance.worker, err = worker.New(instance.config, databaseClient, instance.redisClient); err != nil {
-		return nil, fmt.Errorf("new worker: %w", err)
+	switch config.Type {
+	case "decentralized":
+		if instance.worker, err = decentralizedWorker.New(instance.config, databaseClient, instance.redisClient); err != nil {
+			return nil, fmt.Errorf("new decentralized worker: %w", err)
+		}
+	case "federated":
+		if instance.worker, err = federatedWorker.New(instance.config, databaseClient, instance.redisClient); err != nil {
+			return nil, fmt.Errorf("new federated worker: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("unknown worker type: %s", config.Type)
 	}
 
 	switch config.Network.Source() {
