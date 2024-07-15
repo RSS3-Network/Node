@@ -1,13 +1,6 @@
 package activitypub
 
-type MastodonQuery struct {
-	Limit *int64 `form:"limit,omitempty"`
-}
-
-type MessageResponse struct {
-}
-
-// This struct represents a general ActivityPub object or activity.
+// Object represents a general ActivityPub object or activity.
 type Object struct {
 	Context    interface{}            `json:"@context,omitempty"`
 	ID         string                 `json:"id"`
@@ -28,19 +21,19 @@ type Object struct {
 	Attributes map[string]interface{} `json:"attributes,omitempty"`
 }
 
-// this struct represents an attachment to an ActivityPub object.
+// Attachment represents an attachment to an ActivityPub object.
 type Attachment struct {
 	Type string `json:"type"`
 	URL  string `json:"url"`
 }
 
-// this struct represents a tag in an ActivityPub object.
+// Tag represents a tag in an ActivityPub object.
 type Tag struct {
 	Type string `json:"type"`
 	Name string `json:"name"`
 }
 
-// this struct represents a Note object in ActivityPub.
+// Note represents a note object in ActivityPub.
 type Note struct {
 	ID        string   `json:"id"`
 	Type      string   `json:"type"`
