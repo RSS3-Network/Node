@@ -43,6 +43,12 @@ func (c *Component) getActivityCountFromDB(ctx context.Context) (int64, *time.Ti
 
 // GetActivityCount returns the total number of activities indexed by this Node.
 func (c *Component) GetActivityCount(ctx echo.Context) error {
+	if c.databaseClient == nil {
+		return ctx.JSON(http.StatusOK, StatisticResponse{
+			Count: 0,
+		})
+	}
+
 	count, updateTime, err := c.getActivityCountFromDB(ctx.Request().Context())
 	if err != nil {
 		zap.L().Error("getActivityCountFromDB InternalError", zap.Error(err))

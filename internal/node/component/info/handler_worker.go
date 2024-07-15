@@ -55,14 +55,34 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 	workerCount := len(c.config.Component.Decentralized) + len(c.config.Component.RSS) + len(c.config.Component.Federated)
 	workerInfoChan := make(chan *WorkerInfo, workerCount)
 
-	// Fetch all worker info concurrently.
-	c.fetchAllWorkerInfo(ctx, workerInfoChan)
+	var response *WorkerResponse
 
-	// Aggregate the statuses of workers.
-	aggregatedWorkers := c.aggregateWorkers(workerInfoChan)
+	if c.redisClient != nil {
+		// Fetch all worker info concurrently.
+		c.fetchAllWorkerInfo(ctx, workerInfoChan)
 
-	// Build the worker response.
-	response := c.buildWorkerResponse(aggregatedWorkers)
+		// Aggregate the statuses of workers.
+		aggregatedWorkers := c.aggregateWorkers(workerInfoChan)
+
+		// Build the worker response.
+		response = c.buildWorkerResponse(aggregatedWorkers)
+	} else if len(c.config.Component.RSS) > 0 {
+		response = &WorkerResponse{
+			Data: ComponentInfo{
+				RSS: make([]*WorkerInfo, 0, len(c.config.Component.RSS)),
+			},
+		}
+
+		for _, m := range c.config.Component.RSS {
+			response.Data.RSS = append(response.Data.RSS, &WorkerInfo{
+				Network:  m.Network,
+				Worker:   m.Worker,
+				Tags:     []tag.Tag{tag.RSS},
+				Platform: decentralized.PlatformUnknown,
+				Status:   worker.StatusReady,
+			})
+		}
+	}
 
 	return ctx.JSON(http.StatusOK, response)
 }
