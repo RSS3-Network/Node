@@ -71,13 +71,10 @@ var command = cobra.Command{
 			}
 		}
 
-		// Init redis client
-		redisClient, err := redis.NewClient(*config.Redis)
-		if err != nil {
-			return fmt.Errorf("new redis client: %w", err)
-		}
-
-		var databaseClient database.Client
+		var (
+			redisClient    rueidis.Client
+			databaseClient database.Client
+		)
 
 		module := lo.Must(flags.GetString(flag.KeyModule))
 
@@ -86,7 +83,7 @@ var command = cobra.Command{
 		var settlementCaller *vsl.SettlementCaller
 
 		// Apply database migrations for all modules except the broadcaster.
-		if module != BroadcasterArg {
+		if module != BroadcasterArg && len(config.Component.Decentralized) > 0 {
 			databaseClient, err = dialer.Dial(cmd.Context(), config.Database)
 			if err != nil {
 				return fmt.Errorf("dial database: %w", err)
@@ -94,6 +91,12 @@ var command = cobra.Command{
 
 			if err := databaseClient.Migrate(cmd.Context()); err != nil {
 				return fmt.Errorf("migrate database: %w", err)
+			}
+
+			// Init redis client
+			redisClient, err = redis.NewClient(*config.Redis)
+			if err != nil {
+				return fmt.Errorf("new redis client: %w", err)
 			}
 
 			vslClient, err := parameter.InitVSLClient()

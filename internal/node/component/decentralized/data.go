@@ -21,8 +21,8 @@ func (c *Component) getActivities(ctx context.Context, request model.ActivitiesQ
 		return nil, "", fmt.Errorf("failed to find activities: %w", err)
 	}
 
-	last, err := lo.Last(activities)
-	if err == nil {
+	last, exist := lo.Last(activities)
+	if exist {
 		return activities, c.transformCursor(ctx, last), nil
 	}
 
