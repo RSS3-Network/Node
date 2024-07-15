@@ -20,7 +20,6 @@ const (
 	PlatformLens                       // Lens
 	PlatformLido                       // Lido
 	PlatformLooksRare                  // LooksRare
-	PlatformMastodon                   // Mastodon
 	PlatformMatters                    // Matters
 	PlatformMirror                     // Mirror
 	PlatformOpenSea                    // OpenSea
@@ -59,7 +58,6 @@ var ToPlatformMap = map[Worker]Platform{
 	Lens:       PlatformLens,
 	Lido:       PlatformLido,
 	Looksrare:  PlatformLooksRare,
-	Mastodon:   PlatformMastodon,
 	Matters:    PlatformMatters,
 	Mirror:     PlatformMirror,
 	Momoka:     PlatformLens,
