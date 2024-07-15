@@ -314,9 +314,9 @@ func (s *dataSource) processLogs(ctx context.Context, logs []*ethereum.Log, task
 		return block
 	})
 
-	latestBlock, err := lo.Last(blocks)
-	if err != nil {
-		return nil, fmt.Errorf("get latest block: %w", err)
+	latestBlock, exist := lo.Last(blocks)
+	if !exist {
+		return nil, fmt.Errorf("empty blocks")
 	}
 
 	receipts, err := s.getReceiptsByTransactionHashes(ctx, transactionHashes)
