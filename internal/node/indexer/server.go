@@ -283,12 +283,12 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 	}
 
 	// Initialize worker.
-	switch config.Type {
-	case "decentralized":
+	switch config.Network.Source() {
+	case network.ArweaveSource, network.EthereumSource, network.FarcasterSource, network.RSSSource:
 		if instance.worker, err = decentralizedWorker.New(instance.config, databaseClient, instance.redisClient); err != nil {
 			return nil, fmt.Errorf("new decentralized worker: %w", err)
 		}
-	case "federated":
+	case network.ActivityPubSource:
 		if instance.worker, err = federatedWorker.New(instance.config, databaseClient, instance.redisClient); err != nil {
 			return nil, fmt.Errorf("new federated worker: %w", err)
 		}
