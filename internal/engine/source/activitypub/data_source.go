@@ -104,7 +104,9 @@ func (s *dataSource) processMessage(ctx context.Context, record *kgo.Record) *en
 	// Update the state with the last processed message count number (offset)
 	s.state.LastOffset = record.Offset
 
-	fmt.Printf("[activitypub/data_source.go] Consumed message offset: %d, value: %s\n", record.Offset, string(record.Value))
+	zap.L().Info("[activitypub/data_source.go] Consumed message",
+		zap.Int64("offset", record.Offset),
+		zap.String("value", string(record.Value)))
 
 	// Unmarshal the message and store it as an ActivityPub object
 	messageValue := string(record.Value)
@@ -116,16 +118,17 @@ func (s *dataSource) processMessage(ctx context.Context, record *kgo.Record) *en
 		return nil
 	}
 
-	// fmt.Printf("[activitypub/data_source.go] Unmarshal object is %+v\n", object)
+	// zap.L().Info("[activitypub/data_source.go] Unmarshal object",
+	//	zap.Any("object", object))
 
 	// Build the corresponding message task for transformation
 	tasks := s.buildMastodonMessageTasks(ctx, object)
 
 	// Print the tasks for debugging
-	fmt.Println("[activitypub/data_source.go] Generated tasks:")
+	zap.L().Info("[activitypub/data_source.go] Generated tasks")
 
 	for _, task := range tasks.Tasks {
-		fmt.Printf("Task: %+v\n", task)
+		zap.L().Info("Task", zap.Any("task", task))
 	}
 
 	return tasks
@@ -177,18 +180,18 @@ func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activit
 	//	if note, ok := object.Object.(map[string]interface{}); ok {
 	//		if noteType, exists := note["type"].(string); exists && noteType == "Note" {
 	//			// Example: Create task for a Note object
-	//			fmt.Println("[buildMastodonMessageTasks] Object in Create type (for a Note Object)")
+	//			zap.L().Info("[buildMastodonMessageTasks] Object in Create type (for a Note Object)")
 	//		}
 	//	}
 	// case "Follow":
 	//	// Process Follow type messages
-	//	fmt.Println("[buildMastodonMessageTasks] Object in Follow type")
+	//	zap.L().Info("[buildMastodonMessageTasks] Object in Follow type")
 	// case "Like":
 	//	// Process Like type messages
-	//	fmt.Println("[buildMastodonMessageTasks] Object in Like type")
+	//	zap.L().Info("[buildMastodonMessageTasks] Object in Like type")
 	// default:
 	//	zap.L().Debug("unsupported message type", zap.String("type", object.Type))
-	//}
+	// }
 
 	tasks.Tasks = append(tasks.Tasks, &Task{
 		Network: s.Network(),

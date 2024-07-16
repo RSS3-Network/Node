@@ -11,6 +11,7 @@ import (
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
+	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -49,7 +50,7 @@ func (w *worker) Filter() engine.DataSourceFilter {
 }
 
 func (w *worker) Transform(_ context.Context, _ engine.Task) (*activityx.Activity, error) {
-	fmt.Println("[mastodon/worker.go] reached Transform().")
+	zap.L().Info("[mastodon/worker.go] reached Transform()")
 	return nil, nil
 }
 
