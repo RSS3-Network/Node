@@ -12,6 +12,7 @@ import (
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
+	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 
@@ -207,9 +208,7 @@ func buildNetworkBlockStartCacheKey(network string) string {
 
 // InitVSLClient initializes the VSL client
 func InitVSLClient() (ethereum.Client, error) {
-	// TODO should use vsl rpc url in prod
-	// vslEndpoint := endpoint.MustGet(network.VSL)
-	vslEndpoint := "https://rpc.testnet.rss3.io"
+	vslEndpoint := endpoint.MustGet(network.VSL)
 
 	// Initialize vsl ethereum client.
 	vslClient, err := ethereum.Dial(context.Background(), vslEndpoint)

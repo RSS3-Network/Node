@@ -9,7 +9,7 @@ import (
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/L1StandardBridge.abi --pkg vsl --type L1StandardBridge --out contract_l1_standard_bridge.go
 // L2StandardBridge https://optimistic.etherscan.io/address/0x4200000000000000000000000000000000000010
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/L2StandardBridge.abi --pkg vsl --type L2StandardBridge --out contract_l2_standard_bridge.go
-// NetworkParams https://scan.testnet.rss3.io/address/0x65CBC3c424818499a36ab2055012553F7B04707B
+// NetworkParams https://scan.rss3.io/address/0x2Ec4BA9A586b7884dEe57a0b92ec450864123eb6
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/NetworkParams.abi --pkg vsl --type NetworkParams --out contract_network_params.go
 // Settlement https://scan.rss3.io/address/0x0cE3159BF19F3C55B648D04E8f0Ae1Ae118D2A0B
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/Settlement.abi --pkg vsl --type Settlement --out contract_settlement.go
@@ -20,9 +20,8 @@ var (
 	AddressL1StandardBridge = common.HexToAddress("0x4cbab69108Aa72151EDa5A3c164eA86845f18438")
 	AddressL2StandardBridge = common.HexToAddress("0x4200000000000000000000000000000000000010")
 	AddressL1OptimismPortal = common.HexToAddress("0x6A12432491bbbE8d3babf75F759766774C778Db4")
-	// AddressNetworkParams TODO should use vsl mainnet address in prod
-	AddressNetworkParams = common.HexToAddress("0x5d768cAef86d3DA8eC6009eE4B3d9b7Fe26A43CB")
-	AddressSettlement    = common.HexToAddress("0xA37a6Ef0c3635824be2b6c87A23F6Df5d0E2ba1b")
+	AddressNetworkParams    = common.HexToAddress("0x2Ec4BA9A586b7884dEe57a0b92ec450864123eb6")
+	AddressSettlement       = common.HexToAddress("0x0cE3159BF19F3C55B648D04E8f0Ae1Ae118D2A0B")
 
 	EventHashAddressL1StandardBridgeETHDepositInitiated      = contract.EventHash("ETHDepositInitiated(address,address,uint256,bytes)")
 	EventHashAddressL1StandardBridgeERC20DepositInitiated    = contract.EventHash("ERC20DepositInitiated(address,address,address,address,uint256,bytes)")
