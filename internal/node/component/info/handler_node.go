@@ -1,11 +1,12 @@
 package info
 
 import (
-	"fmt"
 	"net/http"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/internal/constant"
+	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
@@ -18,25 +19,52 @@ type Version struct {
 	Commit string `json:"commit"`
 }
 
-// GetNodeOperator returns the node information.
-func (c *Component) GetNodeOperator(ctx echo.Context) error {
+type NodeInfoResponse struct {
+	Data NodeInfo `json:"data"`
+}
+
+type NodeInfo struct {
+	Operator common.Address `json:"operator"`
+	Version  Version        `json:"version"`
+	Uptime   string         `json:"uptime"`
+}
+
+// GetNodeInfo returns the node information.
+func (c *Component) GetNodeInfo(ctx echo.Context) error {
 	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, "info")
 
 	zap.L().Debug("get node info", zap.String("request.ip", ctx.Request().RemoteAddr))
 
-	response := fmt.Sprintf("This is an RSS3 Node operated by %s.", c.config.Discovery.Operator.EvmAddress)
+	version := c.buildVersion()
 
-	return ctx.JSON(http.StatusOK, response)
+	evmAddress := common.Address{}
+
+	if !lo.IsEmpty(c.config.Discovery.Operator.EvmAddress) {
+		evmAddress = c.config.Discovery.Operator.EvmAddress
+	}
+
+	return ctx.JSON(http.StatusOK, NodeInfoResponse{
+		Data: NodeInfo{
+			Version:  version,
+			Operator: evmAddress,
+		},
+	})
 }
 
 // GetVersion returns the version of the network component.
 func (c *Component) GetVersion(ctx echo.Context) error {
-	tag, commit := constant.BuildVersionDetail()
+	version := c.buildVersion()
 
 	return ctx.JSON(http.StatusOK, VersionResponse{
-		Data: Version{
-			Tag:    tag,
-			Commit: commit,
-		},
+		Data: version,
 	})
+}
+
+func (c *Component) buildVersion() Version {
+	tag, commit := constant.BuildVersionDetail()
+
+	return Version{
+		Tag:    tag,
+		Commit: commit,
+	}
 }
