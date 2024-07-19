@@ -140,7 +140,7 @@ var command = cobra.Command{
 				blockStartInt64 := blockStart.Int64()
 
 				// Update the current block start for the network in Redis.
-				err := parameter.UpdateCurrentBlockStart(cmd.Context(), redisClient, network.String(), blockStartInt64)
+				err := parameter.UpdateBlockStart(cmd.Context(), redisClient, network.String(), blockStartInt64)
 				if err != nil {
 					return fmt.Errorf("update current block start: %w", err)
 				}

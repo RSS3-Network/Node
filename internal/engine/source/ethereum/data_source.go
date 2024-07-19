@@ -115,7 +115,11 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 			break
 		}
 
-		remoteBlockStart := parameter.GetCurrentNetworkBlockStartFromCache(ctx, s.redisClient, s.config.Network.String())
+		remoteBlockStart, err := parameter.GetNetworkBlockStartFromCache(ctx, s.redisClient, s.config.Network.String())
+		if err != nil {
+			return fmt.Errorf("get network block start from cache: %w", err)
+		}
+
 		if remoteBlockStart > s.state.BlockNumber {
 			s.state.BlockNumber = remoteBlockStart
 			zap.L().Info("Updated block number from remote", zap.Uint64("newBlockNumber", s.state.BlockNumber))
@@ -214,7 +218,11 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 			break
 		}
 
-		remoteBlockStart := parameter.GetCurrentNetworkBlockStartFromCache(ctx, s.redisClient, s.config.Network.String())
+		remoteBlockStart, err := parameter.GetNetworkBlockStartFromCache(ctx, s.redisClient, s.config.Network.String())
+		if err != nil {
+			return fmt.Errorf("get network block start from cache: %w", err)
+		}
+
 		if remoteBlockStart > s.state.BlockNumber {
 			s.state.BlockNumber = remoteBlockStart
 			zap.L().Info("Updated block number from remote", zap.Uint64("newBlockNumber", s.state.BlockNumber))

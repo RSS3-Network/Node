@@ -108,31 +108,31 @@ func GetCurrentEpochFromVSL(settlement *vsl.SettlementCaller) (int64, error) {
 }
 
 // GetCurrentEpochFromCache Get the current epoch from redis cache
-func GetCurrentEpochFromCache(ctx context.Context, redisClient rueidis.Client) int64 {
+func GetCurrentEpochFromCache(ctx context.Context, redisClient rueidis.Client) (int64, error) {
 	if redisClient == nil {
-		return 0
+		return 0, fmt.Errorf("redis client is nil")
 	}
 
 	command := redisClient.B().Get().Key(buildCurrentEpochCacheKey()).Build()
 
 	result := redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
-		return 0
+		return 0, fmt.Errorf("redis result: %w", err)
 	}
 
 	// Retrieve the result as a string
 	epochStr, err := result.ToString()
 	if err != nil {
-		return 0
+		return 0, fmt.Errorf("redis result to string: %w", err)
 	}
 
 	// Convert the string to an int64
 	epoch, err := strconv.ParseInt(epochStr, 10, 64)
 	if err != nil {
-		return 0
+		return 0, fmt.Errorf("parse int: %w", err)
 	}
 
-	return epoch
+	return epoch, nil
 }
 
 // UpdateCurrentEpoch updates the current epoch in redis cache
@@ -151,37 +151,36 @@ func UpdateCurrentEpoch(ctx context.Context, redisClient rueidis.Client, epoch i
 	return nil
 }
 
-// GetCurrentNetworkBlockStartFromCache Get the current network block start from redis cache
-func GetCurrentNetworkBlockStartFromCache(ctx context.Context, redisClient rueidis.Client, network string) uint64 {
+// GetNetworkBlockStartFromCache Get the current network block start from redis cache
+func GetNetworkBlockStartFromCache(ctx context.Context, redisClient rueidis.Client, network string) (uint64, error) {
 	if redisClient == nil {
-		return 0
+		return 0, fmt.Errorf("redis client is nil")
 	}
 
 	command := redisClient.B().Get().Key(buildNetworkBlockStartCacheKey(network)).Build()
 
 	result := redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
-		fmt.Println("err", err)
-		return 0
+		return 0, fmt.Errorf("redis result: %w", err)
 	}
 
 	// Retrieve the result as a string
 	blockStartStr, err := result.ToString()
 	if err != nil {
-		return 0
+		return 0, fmt.Errorf("redis result to string: %w", err)
 	}
 
 	// Convert the string to an int64
 	blockStart, err := strconv.ParseInt(blockStartStr, 10, 64)
 	if err != nil {
-		return 0
+		return 0, fmt.Errorf("parse int: %w", err)
 	}
 
-	return uint64(blockStart)
+	return uint64(blockStart), nil
 }
 
-// UpdateCurrentBlockStart updates the current start block in redis cache
-func UpdateCurrentBlockStart(ctx context.Context, redisClient rueidis.Client, network string, blockStart int64) error {
+// UpdateBlockStart updates the current start block in redis cache
+func UpdateBlockStart(ctx context.Context, redisClient rueidis.Client, network string, blockStart int64) error {
 	if redisClient == nil {
 		return fmt.Errorf("redis client is nil")
 	}
@@ -220,9 +219,12 @@ func InitVSLClient() (ethereum.Client, error) {
 }
 
 func CheckParamsTask(ctx context.Context, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller) error {
-	currentEpoch := GetCurrentEpochFromCache(ctx, redisClient)
+	currentEpoch, err := GetCurrentEpochFromCache(ctx, redisClient)
+	if err != nil {
+		return fmt.Errorf("failed to get current epoch from cache: %w", err)
+	}
 
-	err := PullNetworkParamsFromVSL(networkParamsCaller, uint64(currentEpoch))
+	err = PullNetworkParamsFromVSL(networkParamsCaller, uint64(currentEpoch))
 	if err != nil {
 		return fmt.Errorf("failed to pull network params from vsl: %w", err)
 	}
@@ -236,7 +238,7 @@ func CheckParamsTask(ctx context.Context, redisClient rueidis.Client, networkPar
 		blockStartInt64 := blockStart.Int64()
 
 		// Update the current block start for the network in Redis.
-		err := UpdateCurrentBlockStart(ctx, redisClient, n.String(), blockStartInt64)
+		err := UpdateBlockStart(ctx, redisClient, n.String(), blockStartInt64)
 		if err != nil {
 			return fmt.Errorf("update current block start: %w", err)
 		}

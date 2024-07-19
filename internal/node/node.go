@@ -106,7 +106,11 @@ func CheckParams(ctx context.Context, redisClient rueidis.Client, networkParamsC
 	checkParamsCron := cron.New()
 
 	_, err := checkParamsCron.AddFunc("@every 5m", func() {
-		localEpoch := parameter.GetCurrentEpochFromCache(ctx, redisClient)
+		localEpoch, err := parameter.GetCurrentEpochFromCache(ctx, redisClient)
+		if err != nil {
+			zap.L().Error("get current epoch", zap.Error(err))
+			return
+		}
 
 		remoteEpoch, err := parameter.GetCurrentEpochFromVSL(settlementCaller)
 		if err != nil {
