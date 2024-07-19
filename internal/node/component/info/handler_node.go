@@ -1,10 +1,12 @@
 package info
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/labstack/echo/v4"
+	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
@@ -24,9 +26,11 @@ type NodeInfoResponse struct {
 }
 
 type NodeInfo struct {
-	Operator common.Address `json:"operator"`
-	Version  Version        `json:"version"`
-	Uptime   string         `json:"uptime"`
+	Operator      common.Address `json:"operator"`
+	Version       Version        `json:"version"`
+	Uptime        string         `json:"uptime"`
+	PublicAddress string         `json:"public_address"`
+	Parameters    string         `json:"parameters"`
 }
 
 // GetNodeInfo returns the node information.
@@ -43,10 +47,22 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 		evmAddress = c.config.Discovery.Operator.EvmAddress
 	}
 
+	currentEpoch, err := parameter.GetCurrentEpoch(ctx.Request().Context(), c.redisClient)
+	if err != nil {
+		return fmt.Errorf("failed to get current epoch from cache: %w", err)
+	}
+
+	// Get parameters from the network
+	params, err := parameter.PullNetworkParamsFromVSL(c.networkParamsCaller, uint64(currentEpoch))
+	if err != nil {
+		return err
+	}
+
 	return ctx.JSON(http.StatusOK, NodeInfoResponse{
 		Data: NodeInfo{
-			Version:  version,
-			Operator: evmAddress,
+			Version:    version,
+			Operator:   evmAddress,
+			Parameters: params,
 		},
 	})
 }

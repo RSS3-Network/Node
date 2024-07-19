@@ -10,6 +10,7 @@ import (
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
+	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -17,10 +18,11 @@ import (
 )
 
 type Component struct {
-	config         *config.File
-	counter        metric.Int64Counter
-	databaseClient database.Client
-	redisClient    rueidis.Client
+	config              *config.File
+	counter             metric.Int64Counter
+	databaseClient      database.Client
+	redisClient         rueidis.Client
+	networkParamsCaller *vsl.NetworkParamsCaller
 }
 
 const Name = "info"
@@ -31,11 +33,12 @@ func (c *Component) Name() string {
 
 var _ component.Component = (*Component)(nil)
 
-func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client) component.Component {
+func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller) component.Component {
 	c := &Component{
-		config:         config,
-		databaseClient: databaseClient,
-		redisClient:    redisClient,
+		config:              config,
+		databaseClient:      databaseClient,
+		redisClient:         redisClient,
+		networkParamsCaller: networkParamsCaller,
 	}
 
 	apiServer.GET("/", c.GetNodeInfo)
