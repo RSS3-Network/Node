@@ -85,10 +85,10 @@ func (m *Monitor) processDecentralizedWorker(ctx context.Context, w *config.Modu
 		return err
 	}
 
-	networkTolerance := parameter.NetworkTolerance[w.Network]
+	networkTolerance := parameter.CurrentNetworkTolerance[w.Network]
 
 	if w.Worker.Name() == decentralized.Momoka.String() {
-		networkTolerance = parameter.NetworkTolerance[w.Network] * 120000
+		networkTolerance = parameter.CurrentNetworkTolerance[w.Network] * 120000
 	}
 
 	// check worker's current status, and flag it as unhealthy if it's behind the latest block height/number by more than the tolerated amount

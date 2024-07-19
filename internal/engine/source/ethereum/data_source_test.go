@@ -54,7 +54,7 @@ func TestSource(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
-			instance, err := ethereum.NewSource(testcase.arguments.config, nil, nil)
+			instance, err := ethereum.NewSource(testcase.arguments.config, nil, nil, nil)
 			require.NoError(t, err, "new ethereum dataSource")
 
 			var (
