@@ -2,7 +2,7 @@ package activitypub
 
 import (
 	"fmt"
-	"strconv"
+	"time"
 
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/activitypub"
@@ -28,7 +28,20 @@ func (t Task) GetNetwork() network.Network {
 
 func (t Task) GetTimestamp() uint64 {
 	publishedTimeStamp := t.Message.Published
-	timestamp, _ := strconv.ParseUint(publishedTimeStamp, 10, 64)
+
+	// if the Task does not have an empty 'Published' field
+	if publishedTimeStamp == "" {
+		return 0
+	}
+
+	parsedTime, err := time.Parse(time.RFC3339, publishedTimeStamp)
+	if err != nil {
+		fmt.Println("Error parsing time:", err)
+		return 0
+	}
+
+	// Convert the time.Time object to a Unix timestamp and cast to uint64
+	timestamp := uint64(parsedTime.Unix())
 
 	return timestamp
 }
