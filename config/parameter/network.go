@@ -1,64 +1,248 @@
 package parameter
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"math/big"
+	"strconv"
+	"strings"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/redis/rueidis"
+	"github.com/rss3-network/node/provider/ethereum"
+	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
+	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 
-// NumberOfMonthsToCover the number of months that a Node should cover data for
-const NumberOfMonthsToCover = 3
-
-var NetworkTolerance = map[network.Network]uint64{
-	network.Arbitrum:          1000,
-	network.Arweave:           100,
-	network.Avalanche:         100,
-	network.Base:              100,
-	network.BinanceSmartChain: 100,
-	network.Crossbell:         500,
-	network.Ethereum:          100,
-	network.Farcaster:         3600000,
-	network.Gnosis:            100,
-	network.Linea:             100,
-	network.Optimism:          100,
-	network.Polygon:           100,
-	network.SatoshiVM:         100,
-	network.VSL:               100,
+// NetworkParamsData contains the network parameters
+type NetworkParamsData struct {
+	NetworkTolerance                   NetworkTolerance                   `json:"network_tolerance"`
+	NetworkStartBlock                  NetworkStartBlock                  `json:"network_start_block"`
+	NetworkCoreWorkerDiskSpacePerMonth NetworkCoreWorkerDiskSpacePerMonth `json:"network_core_worker_disk_space_per_month"`
 }
 
-// NetworkStartBlock FIXME: provide a script to generate blocks given a data
-var NetworkStartBlock = map[network.Network]*big.Int{
-	network.Arbitrum:          big.NewInt(185724972),
-	network.Arweave:           big.NewInt(1374360),
-	network.Avalanche:         big.NewInt(42301570),
-	network.Base:              big.NewInt(11216527),
-	network.BinanceSmartChain: big.NewInt(36563564),
-	network.Crossbell:         big.NewInt(58846671),
-	network.Ethereum:          big.NewInt(19334220),
-	network.Gnosis:            big.NewInt(32695982),
-	network.Linea:             big.NewInt(2591120),
-	network.Optimism:          big.NewInt(116811812),
-	network.Polygon:           big.NewInt(54103805),
-	network.SatoshiVM:         big.NewInt(60741),
-	network.VSL:               big.NewInt(14192),
+// UnmarshalJSON defines a custom UnmarshalJSON method for NetworkParamsData
+func (npd *NetworkParamsData) UnmarshalJSON(data []byte) error {
+	networkParam := struct {
+		NetworkTolerance                   map[string]uint64   `json:"network_tolerance"`
+		NetworkStartBlock                  map[string]*big.Int `json:"network_start_block"`
+		NetworkCoreWorkerDiskSpacePerMonth map[string]uint     `json:"network_core_worker_disk_space_per_month"`
+	}{}
+
+	if err := json.Unmarshal(data, &networkParam); err != nil {
+		return err
+	}
+
+	npd.NetworkTolerance = make(map[network.Network]uint64)
+	npd.NetworkStartBlock = make(map[network.Network]*big.Int)
+	npd.NetworkCoreWorkerDiskSpacePerMonth = make(map[network.Network]uint)
+
+	for key, value := range networkParam.NetworkTolerance {
+		netValue, err := network.NetworkString(key)
+		if err != nil {
+			return err
+		}
+
+		npd.NetworkTolerance[netValue] = value
+	}
+
+	for key, value := range networkParam.NetworkStartBlock {
+		netValue, err := network.NetworkString(key)
+		if err != nil {
+			return err
+		}
+
+		npd.NetworkStartBlock[netValue] = value
+	}
+
+	for key, value := range networkParam.NetworkCoreWorkerDiskSpacePerMonth {
+		netValue, err := network.NetworkString(key)
+		if err != nil {
+			return err
+		}
+
+		npd.NetworkCoreWorkerDiskSpacePerMonth[netValue] = value
+	}
+
+	return nil
 }
 
-// NetworkCoreWorkerDiskSpacePerMonth the disk space required for the network's core worker to store a month worth of data
-// The data is calculated based on the average disk space usage during 2024 Q1.
-// Actually usage may vary depending on the network's activity.
-var NetworkCoreWorkerDiskSpacePerMonth = map[network.Network]uint{
-	network.Arbitrum:          26,
-	network.Arweave:           0,
-	network.Avalanche:         0,
-	network.Base:              10,
-	network.BinanceSmartChain: 117,
-	network.Crossbell:         0,
-	network.Ethereum:          51,
-	network.Gnosis:            9,
-	network.Linea:             31,
-	network.Optimism:          25,
-	network.Polygon:           153,
-	network.SatoshiVM:         1,
-	network.VSL:               1,
-	network.Farcaster:         50,
+// PullNetworkParamsFromVSL pulls the network parameters from the VSL
+func PullNetworkParamsFromVSL(networkParams *vsl.NetworkParamsCaller, epoch uint64) error {
+	// Get parameters for the current epoch from networkParams
+	params, err := networkParams.GetParams(&bind.CallOpts{}, epoch)
+	if err != nil {
+		return fmt.Errorf("failed to get params for epoch %d: %w", epoch, err)
+	}
+
+	// Unmarshal and update network parameters
+	return updateNetworkParams(params)
+}
+
+func updateNetworkParams(params string) error {
+	var paramsData NetworkParamsData
+
+	err := json.Unmarshal([]byte(params), &paramsData)
+	if err != nil {
+		return fmt.Errorf("json unmarshal: %w", err)
+	}
+
+	// Update network parameters
+	CurrentNetworkTolerance = paramsData.NetworkTolerance
+	CurrentNetworkStartBlock = paramsData.NetworkStartBlock
+	CurrentNetworkCoreWorkerDiskSpacePerMonth = paramsData.NetworkCoreWorkerDiskSpacePerMonth
+
+	return nil
+}
+
+// GetCurrentEpochFromVSL Get the current epoch from VSL blockchain
+func GetCurrentEpochFromVSL(settlement *vsl.SettlementCaller) (int64, error) {
+	epoch, err := settlement.CurrentEpoch(&bind.CallOpts{})
+	if err != nil {
+		return 0, err
+	}
+
+	return epoch.Int64(), nil
+}
+
+// GetCurrentEpoch Get the current epoch from redis cache
+func GetCurrentEpoch(ctx context.Context, redisClient rueidis.Client) (int64, error) {
+	if redisClient == nil {
+		return 0, fmt.Errorf("redis client is nil")
+	}
+
+	command := redisClient.B().Get().Key(buildCurrentEpochCacheKey()).Build()
+
+	result := redisClient.Do(ctx, command)
+	if err := result.Error(); err != nil {
+		return 0, fmt.Errorf("redis result: %w", err)
+	}
+
+	// Retrieve the result as a string
+	epochStr, err := result.ToString()
+	if err != nil {
+		return 0, fmt.Errorf("redis result to string: %w", err)
+	}
+
+	// Convert the string to an int64
+	epoch, err := strconv.ParseInt(epochStr, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse int: %w", err)
+	}
+
+	return epoch, nil
+}
+
+// UpdateCurrentEpoch updates the current epoch in redis cache
+func UpdateCurrentEpoch(ctx context.Context, redisClient rueidis.Client, epoch int64) error {
+	if redisClient == nil {
+		return fmt.Errorf("redis client is nil")
+	}
+
+	command := redisClient.B().Set().Key(buildCurrentEpochCacheKey()).Value(strconv.FormatInt(epoch, 10)).Build()
+
+	result := redisClient.Do(ctx, command)
+	if err := result.Error(); err != nil {
+		return fmt.Errorf("redis result: %w", err)
+	}
+
+	return nil
+}
+
+// GetNetworkBlockStart Get the current network block start from redis cache
+func GetNetworkBlockStart(ctx context.Context, redisClient rueidis.Client, network string) (uint64, error) {
+	if redisClient == nil {
+		return 0, fmt.Errorf("redis client is nil")
+	}
+
+	command := redisClient.B().Get().Key(buildNetworkBlockStartCacheKey(network)).Build()
+
+	result := redisClient.Do(ctx, command)
+	if err := result.Error(); err != nil {
+		return 0, fmt.Errorf("redis result: %w", err)
+	}
+
+	// Retrieve the result as a string
+	blockStartStr, err := result.ToString()
+	if err != nil {
+		return 0, fmt.Errorf("redis result to string: %w", err)
+	}
+
+	// Convert the string to an int64
+	blockStart, err := strconv.ParseInt(blockStartStr, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse int: %w", err)
+	}
+
+	return uint64(blockStart), nil
+}
+
+// UpdateBlockStart updates the current start block in redis cache
+func UpdateBlockStart(ctx context.Context, redisClient rueidis.Client, network string, blockStart int64) error {
+	if redisClient == nil {
+		return fmt.Errorf("redis client is nil")
+	}
+
+	command := redisClient.B().Set().Key(buildNetworkBlockStartCacheKey(network)).Value(strconv.FormatInt(blockStart, 10)).Build()
+
+	result := redisClient.Do(ctx, command)
+	if err := result.Error(); err != nil {
+		return fmt.Errorf("redis result: %w", err)
+	}
+
+	return nil
+}
+
+// buildWorkerIDStatusCacheKey builds the cache key for the epoch
+func buildCurrentEpochCacheKey() string {
+	return "vsl:settlement:epoch"
+}
+
+// buildNetworkBlockStartCacheKey builds the cache key for the network block start
+func buildNetworkBlockStartCacheKey(network string) string {
+	return fmt.Sprintf("source:network:start:%s", strings.ToLower(network))
+}
+
+// InitVSLClient initializes the VSL client
+func InitVSLClient() (ethereum.Client, error) {
+	vslEndpoint := endpoint.MustGet(network.VSL)
+
+	// Initialize vsl ethereum client.
+	vslClient, err := ethereum.Dial(context.Background(), vslEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	return vslClient, nil
+}
+
+func CheckParamsTask(ctx context.Context, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller) error {
+	currentEpoch, err := GetCurrentEpoch(ctx, redisClient)
+	if err != nil {
+		return fmt.Errorf("failed to get current epoch from cache: %w", err)
+	}
+
+	err = PullNetworkParamsFromVSL(networkParamsCaller, uint64(currentEpoch))
+	if err != nil {
+		return fmt.Errorf("failed to pull network params from vsl: %w", err)
+	}
+
+	for n, blockStart := range CurrentNetworkStartBlock {
+		if blockStart == nil {
+			continue // Skip if the start block is not defined.
+		}
+
+		// Convert big.Int to int64; safe as long as the value fits in int64.
+		blockStartInt64 := blockStart.Int64()
+
+		// Update the current block start for the network in Redis.
+		err := UpdateBlockStart(ctx, redisClient, n.String(), blockStartInt64)
+		if err != nil {
+			return fmt.Errorf("update current block start: %w", err)
+		}
+	}
+
+	return nil
 }
