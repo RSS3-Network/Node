@@ -111,10 +111,10 @@ func (s *dataSource) initializeBlockHeights() {
 	}
 }
 
-// updateBlockHeightFromRemote checks and updates the dataSource's block height
+// updateBlockHeight checks and updates the dataSource's block height
 // if the remote start block is greater than the current block height.
-func (s *dataSource) updateBlockHeightFromRemote(ctx context.Context) {
-	remoteBlockStart, err := parameter.GetNetworkBlockStartFromCache(ctx, s.redisClient, s.config.Network.String())
+func (s *dataSource) updateBlockHeight(ctx context.Context) {
+	remoteBlockStart, err := parameter.GetNetworkBlockStart(ctx, s.redisClient, s.config.Network.String())
 	if err != nil {
 		zap.L().Error("get network block start from cache", zap.Error(err))
 		return
@@ -159,7 +159,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 
 		// Check if remote block start is larger than current one
 		// if so, update the current block height to remote block start
-		s.updateBlockHeightFromRemote(ctx)
+		s.updateBlockHeight(ctx)
 
 		// Check if block height is latest.
 		if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {

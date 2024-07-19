@@ -107,8 +107,8 @@ func GetCurrentEpochFromVSL(settlement *vsl.SettlementCaller) (int64, error) {
 	return epoch.Int64(), nil
 }
 
-// GetCurrentEpochFromCache Get the current epoch from redis cache
-func GetCurrentEpochFromCache(ctx context.Context, redisClient rueidis.Client) (int64, error) {
+// GetCurrentEpoch Get the current epoch from redis cache
+func GetCurrentEpoch(ctx context.Context, redisClient rueidis.Client) (int64, error) {
 	if redisClient == nil {
 		return 0, fmt.Errorf("redis client is nil")
 	}
@@ -151,8 +151,8 @@ func UpdateCurrentEpoch(ctx context.Context, redisClient rueidis.Client, epoch i
 	return nil
 }
 
-// GetNetworkBlockStartFromCache Get the current network block start from redis cache
-func GetNetworkBlockStartFromCache(ctx context.Context, redisClient rueidis.Client, network string) (uint64, error) {
+// GetNetworkBlockStart Get the current network block start from redis cache
+func GetNetworkBlockStart(ctx context.Context, redisClient rueidis.Client, network string) (uint64, error) {
 	if redisClient == nil {
 		return 0, fmt.Errorf("redis client is nil")
 	}
@@ -219,7 +219,7 @@ func InitVSLClient() (ethereum.Client, error) {
 }
 
 func CheckParamsTask(ctx context.Context, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller) error {
-	currentEpoch, err := GetCurrentEpochFromCache(ctx, redisClient)
+	currentEpoch, err := GetCurrentEpoch(ctx, redisClient)
 	if err != nil {
 		return fmt.Errorf("failed to get current epoch from cache: %w", err)
 	}
