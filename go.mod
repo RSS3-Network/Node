@@ -30,7 +30,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
-	github.com/tdewolff/minify/v2 v2.20.34
+	github.com/tdewolff/minify/v2 v2.20.37
 	github.com/tidwall/gjson v1.17.1
 	github.com/twmb/franz-go v1.17.0
 	github.com/twmb/franz-go/pkg/kadm v1.12.0
