@@ -10,16 +10,20 @@ import (
 	"github.com/redis/rueidis"
 	"github.com/robfig/cron/v3"
 	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/internal/database"
+	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 
 type Monitor struct {
-	config         *config.File
-	cron           *cron.Cron
-	databaseClient database.Client
-	redisClient    rueidis.Client
-	clients        map[network.Network]Client
+	config              *config.File
+	cron                *cron.Cron
+	databaseClient      database.Client
+	redisClient         rueidis.Client
+	networkParamsCaller *vsl.NetworkParamsCaller
+	settlementCaller    *vsl.SettlementCaller
+	clients             map[network.Network]Client
 }
 
 func (m *Monitor) Run(ctx context.Context) error {
@@ -29,6 +33,20 @@ func (m *Monitor) Run(ctx context.Context) error {
 				return
 			}
 		})
+		if err != nil {
+			return fmt.Errorf("add heartbeat cron job: %w", err)
+		}
+
+		_, err = m.cron.AddFunc("@every 5m", func() {
+			if err := parameter.CheckParamsTask(ctx, m.redisClient, m.networkParamsCaller); err != nil {
+				return
+			}
+
+			if err := m.MonitorWorkerStatus(ctx); err != nil {
+				return
+			}
+		})
+
 		if err != nil {
 			return fmt.Errorf("add heartbeat cron job: %w", err)
 		}
@@ -71,7 +89,7 @@ func initNetworkClient(m *config.Module) (Client, error) {
 }
 
 // NewMonitor creates a new monitor instance.
-func NewMonitor(_ context.Context, configFile *config.File, databaseClient database.Client, redisClient rueidis.Client) (*Monitor, error) {
+func NewMonitor(_ context.Context, configFile *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) (*Monitor, error) {
 	modules := append(append(configFile.Component.Decentralized, configFile.Component.RSS...), configFile.Component.Federated...)
 
 	clients := make(map[network.Network]Client)
@@ -87,11 +105,13 @@ func NewMonitor(_ context.Context, configFile *config.File, databaseClient datab
 	}
 
 	instance := &Monitor{
-		config:         configFile,
-		cron:           cron.New(),
-		databaseClient: databaseClient,
-		redisClient:    redisClient,
-		clients:        clients,
+		config:              configFile,
+		cron:                cron.New(),
+		databaseClient:      databaseClient,
+		redisClient:         redisClient,
+		clients:             clients,
+		networkParamsCaller: networkParamsCaller,
+		settlementCaller:    settlementCaller,
 	}
 
 	// register router
