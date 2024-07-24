@@ -13,6 +13,8 @@ import (
 
 var _ engine.Task = (*Task)(nil)
 
+var defaultStartTime = "2024-07-22T00:00:00Z"
+
 type Task struct {
 	Network network.Network
 	Message activitypub.Object
@@ -27,23 +29,19 @@ func (t Task) GetNetwork() network.Network {
 }
 
 func (t Task) GetTimestamp() uint64 {
-	publishedTimeStamp := t.Message.Published
-
-	// if the Task does not have an empty 'Published' field
-	if publishedTimeStamp == "" {
-		return 0
+	// Use default time if Published is empty
+	timeStr := t.Message.Published
+	if timeStr == "" {
+		timeStr = defaultStartTime
 	}
 
-	parsedTime, err := time.Parse(time.RFC3339, publishedTimeStamp)
+	parsedTime, err := time.Parse(time.RFC3339, timeStr)
 	if err != nil {
 		fmt.Println("Error parsing time:", err)
 		return 0
 	}
-
 	// Convert the time.Time object to a Unix timestamp and cast to uint64
-	timestamp := uint64(parsedTime.Unix())
-
-	return timestamp
+	return uint64(parsedTime.Unix())
 }
 
 func (t Task) Validate() error {
