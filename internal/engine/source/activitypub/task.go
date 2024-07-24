@@ -13,6 +13,7 @@ import (
 
 var _ engine.Task = (*Task)(nil)
 
+// TODO: should be pulled from VSL (NetworkParams contract)
 var defaultStartTime = "2024-07-22T00:00:00Z"
 
 type Task struct {
