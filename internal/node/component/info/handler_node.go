@@ -14,6 +14,8 @@ import (
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/internal/constant"
+	"github.com/rss3-network/node/internal/node/broadcaster"
+	"github.com/rss3-network/node/internal/node/component/decentralized"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
@@ -39,6 +41,14 @@ type NodeInfo struct {
 	Uptime     int64          `json:"uptime"`
 	Parameters string         `json:"parameters"`
 	Coverage   float64        `json:"coverage"`
+	Records    Record         `json:"records"`
+}
+
+type Record struct {
+	LastHeartbeat int64    `json:"last_heartbeat"`
+	LastRequests  []string `json:"last_requests"`
+	LastReward    string   `json:"last_reward"`
+	LastSlashing  string   `json:"last_slashing"`
 }
 
 // GetNodeInfo returns the node information.
@@ -101,6 +111,18 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 		workerCoverage = math.Round(workerCoverage*10000) / 10000
 	}
 
+	// Get last heartbeat time
+	lastHeartbeatTime, err := broadcaster.GetHeartbeatTime(ctx.Request().Context(), c.redisClient)
+	if err != nil {
+		return fmt.Errorf("failed to get last heartbeat time: %w", err)
+	}
+
+	// Get record info
+	records := Record{
+		LastHeartbeat: lastHeartbeatTime,
+		LastRequests:  decentralized.RecentRequests,
+	}
+
 	return ctx.JSON(http.StatusOK, NodeInfoResponse{
 		Data: NodeInfo{
 			Version:    version,
@@ -108,6 +130,7 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 			Parameters: params,
 			Uptime:     uptime,
 			Coverage:   workerCoverage,
+			Records:    records,
 		},
 	})
 }

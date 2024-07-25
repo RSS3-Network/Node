@@ -35,6 +35,12 @@ func (c *Component) GetNetworkActivities(ctx echo.Context) (err error) {
 		return response.ValidationFailedError(ctx, err)
 	}
 
+	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, request.Network.String())
+
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, request.Network.String())
+
+	addRecentRequest(ctx.Request().RequestURI)
+
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
 		zap.L().Error("getCursor InternalError", zap.Error(err))

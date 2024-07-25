@@ -35,6 +35,12 @@ func (c *Component) GetPlatformActivities(ctx echo.Context) (err error) {
 		return response.ValidationFailedError(ctx, err)
 	}
 
+	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, request.Platform.String())
+
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, request.Platform.String())
+
+	addRecentRequest(ctx.Request().RequestURI)
+
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
 		zap.L().Error("getCursor InternalError", zap.Error(err))
