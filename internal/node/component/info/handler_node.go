@@ -72,7 +72,7 @@ type Reward struct {
 	Epoch            uint64 `json:"epoch"`
 	OperationRewards string `json:"operation_rewards"`
 	StakingRewards   string `json:"staking_rewards"`
-	RequestCounts    uint64 `json:"request_counts"`
+	RequestCounts    string `json:"request_counts"`
 }
 
 // GetNodeInfo returns the node information.
@@ -231,16 +231,11 @@ func (c *Component) getNodeRewards(ctx context.Context, address common.Address) 
 	rewards := make([]Reward, 0, len(Resp.Data))
 
 	for _, data := range Resp.Data {
-		totalRequestCounts, err := strconv.ParseUint(data.TotalRequestCounts, 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse total request counts: %w", err)
-		}
-
 		reward := Reward{
 			Epoch:            data.ID,
 			OperationRewards: data.TotalOperationRewards,
 			StakingRewards:   data.TotalStakingRewards,
-			RequestCounts:    totalRequestCounts,
+			RequestCounts:    data.TotalRequestCounts,
 		}
 		rewards = append(rewards, reward)
 	}
