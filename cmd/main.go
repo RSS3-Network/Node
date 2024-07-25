@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/grafana/pyroscope-go"
 	"github.com/redis/rueidis"
@@ -18,6 +19,7 @@ import (
 	"github.com/rss3-network/node/internal/database/dialer"
 	"github.com/rss3-network/node/internal/node"
 	"github.com/rss3-network/node/internal/node/broadcaster"
+	"github.com/rss3-network/node/internal/node/component/info"
 	"github.com/rss3-network/node/internal/node/indexer"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
@@ -145,6 +147,21 @@ var command = cobra.Command{
 					return fmt.Errorf("update current block start: %w", err)
 				}
 			}
+
+			//	set first start time
+			firstStartTime, err := info.GetFirstStartTime(cmd.Context(), redisClient)
+			if err != nil {
+				return fmt.Errorf("get first start time: %w", err)
+			}
+
+			if firstStartTime == 0 {
+				//	update first start time to current timestamp in seconds
+				err = info.UpdateFirstStartTime(cmd.Context(), redisClient, time.Now().Unix())
+				if err != nil {
+					return fmt.Errorf("update first start time: %w", err)
+				}
+			}
+
 		}
 
 		switch module {

@@ -3,6 +3,7 @@ package parameter
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -121,6 +122,11 @@ func GetCurrentEpoch(ctx context.Context, redisClient rueidis.Client) (int64, er
 
 	result := redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
+		if errors.Is(err, rueidis.Nil) {
+			// Key doesn't exist, return 0 or a default value
+			return 0, nil
+		}
+
 		return 0, fmt.Errorf("redis result: %w", err)
 	}
 
@@ -149,6 +155,11 @@ func UpdateCurrentEpoch(ctx context.Context, redisClient rueidis.Client, epoch i
 
 	result := redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
+		if errors.Is(err, rueidis.Nil) {
+			// Key doesn't exist, return 0 or a default value
+			return nil
+		}
+
 		return fmt.Errorf("redis result: %w", err)
 	}
 
@@ -165,6 +176,11 @@ func GetNetworkBlockStart(ctx context.Context, redisClient rueidis.Client, netwo
 
 	result := redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
+		if errors.Is(err, rueidis.Nil) {
+			// Key doesn't exist, return 0 or a default value
+			return 0, nil
+		}
+
 		return 0, fmt.Errorf("redis result: %w", err)
 	}
 
