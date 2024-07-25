@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -13,6 +14,8 @@ import (
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/internal/constant"
+	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
@@ -35,6 +38,7 @@ type NodeInfo struct {
 	Version    Version        `json:"version"`
 	Uptime     int64          `json:"uptime"`
 	Parameters string         `json:"parameters"`
+	Coverage   float64        `json:"coverage"`
 }
 
 // GetNodeInfo returns the node information.
@@ -43,16 +47,17 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 
 	zap.L().Debug("get node info", zap.String("request.ip", ctx.Request().RemoteAddr))
 
-	var uptime int64
-
+	// Get Version info
 	version := c.buildVersion()
 
+	// Get Operator address info
 	evmAddress := common.Address{}
 
 	if !lo.IsEmpty(c.config.Discovery.Operator.EvmAddress) {
 		evmAddress = c.config.Discovery.Operator.EvmAddress
 	}
 
+	// Get network params info
 	currentEpoch, err := parameter.GetCurrentEpoch(ctx.Request().Context(), c.redisClient)
 	if err != nil {
 		return fmt.Errorf("failed to get current epoch from cache: %w", err)
@@ -63,6 +68,9 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
+
+	// Get uptime info
+	var uptime int64
 
 	// get first start time from redis cache and calculate uptime
 	firstStartTime, err := GetFirstStartTime(ctx.Request().Context(), c.redisClient)
@@ -81,12 +89,25 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 		uptime = time.Now().Unix() - firstStartTime
 	}
 
+	// Get worker coverage info
+	// should be divided by the total workers to get worker coverage
+	currentWorkerCount := len(c.config.Component.Decentralized) + len(c.config.Component.RSS) + len(c.config.Component.Federated)
+	totalWorkerCount := calculateTotalWorkers(NetworkToWorkersMap)
+
+	// Calculate worker coverage
+	workerCoverage := 0.0
+	if totalWorkerCount > 0 {
+		workerCoverage = float64(currentWorkerCount) / float64(totalWorkerCount)
+		workerCoverage = math.Round(workerCoverage*10000) / 10000
+	}
+
 	return ctx.JSON(http.StatusOK, NodeInfoResponse{
 		Data: NodeInfo{
 			Version:    version,
 			Operator:   evmAddress,
 			Parameters: params,
 			Uptime:     uptime,
+			Coverage:   workerCoverage,
 		},
 	})
 }
@@ -107,6 +128,16 @@ func (c *Component) buildVersion() Version {
 		Tag:    tag,
 		Commit: commit,
 	}
+}
+
+// calculateTotalWorkers calculates the total number of workers in the network.
+func calculateTotalWorkers(networkToWorkersMap map[network.Network][]worker.Worker) int {
+	totalWorkerCount := 0
+	for _, workers := range networkToWorkersMap {
+		totalWorkerCount += len(workers)
+	}
+
+	return totalWorkerCount
 }
 
 // GetFirstStartTime Get the first start time from redis cache
