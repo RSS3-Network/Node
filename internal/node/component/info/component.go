@@ -3,6 +3,7 @@ package info
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/redis/rueidis"
@@ -23,6 +24,7 @@ type Component struct {
 	databaseClient      database.Client
 	redisClient         rueidis.Client
 	networkParamsCaller *vsl.NetworkParamsCaller
+	httpClient          *http.Client
 }
 
 const Name = "info"
@@ -39,6 +41,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 		databaseClient:      databaseClient,
 		redisClient:         redisClient,
 		networkParamsCaller: networkParamsCaller,
+		httpClient:          http.DefaultClient,
 	}
 
 	apiServer.GET("/", c.GetNodeInfo)
