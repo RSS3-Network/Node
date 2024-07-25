@@ -8,16 +8,14 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/redis/rueidis"
 	"github.com/robfig/cron/v3"
 	"github.com/rss3-network/node/config"
 )
 
 type Broadcaster struct {
-	config      *config.File
-	cron        *cron.Cron
-	httpClient  *http.Client
-	redisClient rueidis.Client
+	config     *config.File
+	cron       *cron.Cron
+	httpClient *http.Client
 }
 
 func (b *Broadcaster) Run(ctx context.Context) error {
@@ -45,12 +43,11 @@ func (b *Broadcaster) Run(ctx context.Context) error {
 	return nil
 }
 
-func NewBroadcaster(_ context.Context, config *config.File, redisClient rueidis.Client) (*Broadcaster, error) {
+func NewBroadcaster(_ context.Context, config *config.File) (*Broadcaster, error) {
 	instance := &Broadcaster{
-		config:      config,
-		cron:        cron.New(),
-		httpClient:  http.DefaultClient,
-		redisClient: redisClient,
+		config:     config,
+		cron:       cron.New(),
+		httpClient: http.DefaultClient,
 	}
 
 	return instance, nil

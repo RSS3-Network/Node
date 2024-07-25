@@ -4,15 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"go.uber.org/zap"
 )
@@ -58,12 +55,6 @@ func (b *Broadcaster) Heartbeat(ctx context.Context) error {
 		zap.L().Error("failed to send heartbeat", zap.Error(err))
 
 		return fmt.Errorf("send heartbeat: %w", err)
-	}
-
-	// record heartbeat
-	err = UpdateHeartbeatTime(ctx, b.redisClient, request.Timestamp)
-	if err != nil {
-		return fmt.Errorf("update last heartbeat time: %w", err)
 	}
 
 	return nil
@@ -126,58 +117,4 @@ type NodeHeartbeatRequest struct {
 	Signature string         `json:"signature" validate:"required"`
 	Endpoint  string         `json:"endpoint" validate:"required"`
 	Timestamp int64          `json:"timestamp" validate:"required"`
-}
-
-// GetHeartbeatTime Get the last heartbeat time from redis cache
-func GetHeartbeatTime(ctx context.Context, redisClient rueidis.Client) (int64, error) {
-	if redisClient == nil {
-		return 0, fmt.Errorf("redis client is nil")
-	}
-
-	command := redisClient.B().Get().Key(buildLastHeatbeatTimeCacheKey()).Build()
-
-	result := redisClient.Do(ctx, command)
-	if err := result.Error(); err != nil {
-		if errors.Is(err, rueidis.Nil) {
-			// Key doesn't exist, return 0 or a default value
-			return 0, nil
-		}
-
-		return 0, fmt.Errorf("redis result: %w", err)
-	}
-
-	// Retrieve the result as a string
-	timestampStr, err := result.ToString()
-	if err != nil {
-		return 0, fmt.Errorf("redis result to string: %w", err)
-	}
-
-	// Convert the string to an uint64
-	lastHeatbeatTime, err := strconv.ParseInt(timestampStr, 10, 64)
-	if err != nil {
-		return 0, fmt.Errorf("parse int: %w", err)
-	}
-
-	return lastHeatbeatTime, nil
-}
-
-// UpdateHeartbeatTime updates the first start time in redis cache
-func UpdateHeartbeatTime(ctx context.Context, redisClient rueidis.Client, timestamp int64) error {
-	if redisClient == nil {
-		return fmt.Errorf("redis client is nil")
-	}
-
-	command := redisClient.B().Set().Key(buildLastHeatbeatTimeCacheKey()).Value(strconv.FormatInt(timestamp, 10)).Build()
-
-	result := redisClient.Do(ctx, command)
-	if err := result.Error(); err != nil {
-		return fmt.Errorf("redis result: %w", err)
-	}
-
-	return nil
-}
-
-// buildLastHeatbeatTimeCacheKey builds the cache key for last heartbeat time
-func buildLastHeatbeatTimeCacheKey() string {
-	return "node:info:last_heartbeat_time"
 }

@@ -80,12 +80,6 @@ var command = cobra.Command{
 
 		module := lo.Must(flags.GetString(flag.KeyModule))
 
-		// Init redis client
-		redisClient, err = redis.NewClient(*config.Redis)
-		if err != nil {
-			return fmt.Errorf("new redis client: %w", err)
-		}
-
 		var networkParamsCaller *vsl.NetworkParamsCaller
 
 		var settlementCaller *vsl.SettlementCaller
@@ -99,6 +93,12 @@ var command = cobra.Command{
 
 			if err := databaseClient.Migrate(cmd.Context()); err != nil {
 				return fmt.Errorf("migrate database: %w", err)
+			}
+
+			// Init redis client
+			redisClient, err = redis.NewClient(*config.Redis)
+			if err != nil {
+				return fmt.Errorf("new redis client: %w", err)
 			}
 
 			vslClient, err := parameter.InitVSLClient()
@@ -170,7 +170,7 @@ var command = cobra.Command{
 		case WorkerArg:
 			return runWorker(cmd.Context(), config, databaseClient, streamClient, redisClient)
 		case BroadcasterArg:
-			return runBroadcaster(cmd.Context(), config, redisClient)
+			return runBroadcaster(cmd.Context(), config)
 		case MonitorArg:
 			return runMonitor(cmd.Context(), config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 		}
@@ -235,8 +235,8 @@ func runWorker(ctx context.Context, configFile *config.File, databaseClient data
 	return server.Run(ctx)
 }
 
-func runBroadcaster(ctx context.Context, config *config.File, redisClient rueidis.Client) error {
-	server, err := broadcaster.NewBroadcaster(ctx, config, redisClient)
+func runBroadcaster(ctx context.Context, config *config.File) error {
+	server, err := broadcaster.NewBroadcaster(ctx, config)
 	if err != nil {
 		return fmt.Errorf("new broadcaster: %w", err)
 	}

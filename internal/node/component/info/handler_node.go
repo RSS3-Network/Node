@@ -16,7 +16,6 @@ import (
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/internal/constant"
-	"github.com/rss3-network/node/internal/node/broadcaster"
 	"github.com/rss3-network/node/internal/node/component/decentralized"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -46,6 +45,13 @@ type GIRewardsResponse struct {
 	} `json:"data"`
 }
 
+type GINodeInfoResponse struct {
+	Data struct {
+		LastHeartbeat int64  `json:"last_heartbeat"`
+		SlashedTokens string `json:"slashed_tokens"`
+	} `json:"data"`
+}
+
 type NodeInfo struct {
 	Operator   common.Address `json:"operator"`
 	Version    Version        `json:"version"`
@@ -59,7 +65,7 @@ type Record struct {
 	LastHeartbeat  int64    `json:"last_heartbeat"`
 	RecentRequests []string `json:"recent_requests"`
 	RecentRewards  []Reward `json:"recent_rewards"`
-	RecentSlashing string   `json:"recent_slashing"`
+	SlashedTokens  string   `json:"slashed_tokens"`
 }
 
 type Reward struct {
@@ -100,16 +106,16 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 	// Get worker coverage info
 	workerCoverage := c.getNodeWorkerCoverage()
 
-	// Get last heartbeat time
-	lastHeartbeatTime, err := broadcaster.GetHeartbeatTime(ctx.Request().Context(), c.redisClient)
-	if err != nil {
-		return fmt.Errorf("failed to get last heartbeat time: %w", err)
-	}
-
 	// get reward info
 	rewards, err := c.getNodeRewards(ctx.Request().Context(), evmAddress)
 	if err != nil {
 		return fmt.Errorf("failed to get node rewards: %w", err)
+	}
+
+	// get last heartbeat and slashed tokens
+	lastHeartbeat, slashedTokens, err := c.getNodeBasicInfo(ctx.Request().Context(), evmAddress)
+	if err != nil {
+		return fmt.Errorf("failed to get node slashed tokens: %w", err)
 	}
 
 	return ctx.JSON(http.StatusOK, NodeInfoResponse{
@@ -120,9 +126,10 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 			Uptime:     uptime,
 			Coverage:   workerCoverage,
 			Records: Record{
-				LastHeartbeat:  lastHeartbeatTime,
+				LastHeartbeat:  lastHeartbeat,
 				RecentRequests: decentralized.RecentRequests,
 				RecentRewards:  rewards,
+				SlashedTokens:  slashedTokens,
 			},
 		},
 	})
@@ -224,11 +231,16 @@ func (c *Component) getNodeRewards(ctx context.Context, address common.Address) 
 	rewards := make([]Reward, 0, len(Resp.Data))
 
 	for _, data := range Resp.Data {
+		totalRequestCounts, err := strconv.ParseUint(data.TotalRequestCounts, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse total request counts: %w", err)
+		}
+
 		reward := Reward{
 			Epoch:            data.ID,
 			OperationRewards: data.TotalOperationRewards,
 			StakingRewards:   data.TotalStakingRewards,
-			RequestCounts:    parseUint64(data.TotalRequestCounts),
+			RequestCounts:    totalRequestCounts,
 		}
 		rewards = append(rewards, reward)
 	}
@@ -236,11 +248,19 @@ func (c *Component) getNodeRewards(ctx context.Context, address common.Address) 
 	return rewards, nil
 }
 
-func parseUint64(s string) uint64 {
-	v, _ := strconv.ParseUint(s, 10, 64)
-	return v
+// getNodeInfo returns the node slashed token.
+func (c *Component) getNodeBasicInfo(ctx context.Context, address common.Address) (int64, string, error) {
+	var Resp GINodeInfoResponse
+
+	err := c.sendRequest(ctx, fmt.Sprintf("/nta/nodes/%s", address.Hex()), &Resp)
+	if err != nil {
+		return 0, "", fmt.Errorf("failed to get node slashed tokens: %w", err)
+	}
+
+	return Resp.Data.LastHeartbeat, Resp.Data.SlashedTokens, nil
 }
 
+// sendRequest sends a request to the global indexer.
 func (c *Component) sendRequest(ctx context.Context, path string, result any) error {
 	internalURL, err := url.Parse(c.config.Discovery.Server.GlobalIndexerEndpoint)
 	if err != nil {
