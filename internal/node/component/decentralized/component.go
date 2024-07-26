@@ -3,8 +3,8 @@ package decentralized
 import (
 	"context"
 	"fmt"
-	"sync"
 
+	cb "github.com/emirpasic/gods/queues/circularbuffer"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
@@ -32,8 +32,7 @@ const Name = "decentralized"
 const MaxRecentRequests = 10
 
 var (
-	RecentRequests      []string
-	recentRequestsMutex sync.RWMutex
+	RecentRequests *cb.Queue
 )
 
 func (c *Component) Name() string {
@@ -43,6 +42,8 @@ func (c *Component) Name() string {
 var _ component.Component = (*Component)(nil)
 
 func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client) component.Component {
+	RecentRequests = cb.New(MaxRecentRequests)
+
 	c := &Component{
 		config:         config,
 		databaseClient: databaseClient,
@@ -104,17 +105,4 @@ func (c *Component) CollectTrace(ctx context.Context, path, value string) {
 
 	_, span := otel.Tracer("").Start(ctx, "Decentralized API Query", spanStartOptions...)
 	defer span.End()
-}
-
-func addRecentRequest(path string) {
-	recentRequestsMutex.Lock()
-	defer recentRequestsMutex.Unlock()
-
-	// Add the new request path to the beginning of the slice
-	RecentRequests = append([]string{path}, RecentRequests...)
-
-	// If we have more than MaxRecentRequests, remove the oldest ones
-	if len(RecentRequests) > MaxRecentRequests {
-		RecentRequests = RecentRequests[:MaxRecentRequests]
-	}
 }

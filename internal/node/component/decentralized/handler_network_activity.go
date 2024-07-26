@@ -39,7 +39,7 @@ func (c *Component) GetNetworkActivities(ctx echo.Context) (err error) {
 
 	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, request.Network.String())
 
-	addRecentRequest(ctx.Request().RequestURI)
+	RecentRequests.Enqueue(ctx.Request().RequestURI)
 
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {

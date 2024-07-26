@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	cb "github.com/emirpasic/gods/queues/circularbuffer"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/rueidis"
@@ -127,7 +128,7 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 			Coverage:   workerCoverage,
 			Records: Record{
 				LastHeartbeat:  lastHeartbeat,
-				RecentRequests: decentralized.RecentRequests,
+				RecentRequests: getFilteredRecentRequests(decentralized.RecentRequests),
 				RecentRewards:  rewards,
 				SlashedTokens:  slashedTokens,
 			},
@@ -221,16 +222,16 @@ func (c *Component) getNetworkParams(ctx context.Context) (string, error) {
 
 // getNodeRewards returns the node rewards.
 func (c *Component) getNodeRewards(ctx context.Context, address common.Address) ([]Reward, error) {
-	var Resp GIRewardsResponse
+	var resp GIRewardsResponse
 
-	err := c.sendRequest(ctx, fmt.Sprintf("/nta/epochs/%s/rewards", address.Hex()), &Resp)
+	err := c.sendRequest(ctx, fmt.Sprintf("/nta/epochs/%s/rewards", address), &resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get node rewards: %w", err)
 	}
 
-	rewards := make([]Reward, 0, len(Resp.Data))
+	rewards := make([]Reward, 0, len(resp.Data))
 
-	for _, data := range Resp.Data {
+	for _, data := range resp.Data {
 		reward := Reward{
 			Epoch:            data.ID,
 			OperationRewards: data.TotalOperationRewards,
@@ -245,14 +246,14 @@ func (c *Component) getNodeRewards(ctx context.Context, address common.Address) 
 
 // getNodeInfo returns the node slashed token.
 func (c *Component) getNodeBasicInfo(ctx context.Context, address common.Address) (int64, string, error) {
-	var Resp GINodeInfoResponse
+	var resp GINodeInfoResponse
 
-	err := c.sendRequest(ctx, fmt.Sprintf("/nta/nodes/%s", address.Hex()), &Resp)
+	err := c.sendRequest(ctx, fmt.Sprintf("/nta/nodes/%s", address), &resp)
 	if err != nil {
 		return 0, "", fmt.Errorf("failed to get node slashed tokens: %w", err)
 	}
 
-	return Resp.Data.LastHeartbeat, Resp.Data.SlashedTokens, nil
+	return resp.Data.LastHeartbeat, resp.Data.SlashedTokens, nil
 }
 
 // sendRequest sends a request to the global indexer.
@@ -291,6 +292,20 @@ func (c *Component) sendRequest(ctx context.Context, path string, result any) er
 	}
 
 	return nil
+}
+
+// getFilteredRecentRequests returns the filtered recent requests.
+func getFilteredRecentRequests(queue *cb.Queue) []string {
+	// Convert queue to slice
+	values := queue.Values()
+
+	// Filter out empty strings and convert to []string
+	filteredRequests := lo.FilterMap(values, func(item interface{}, _ int) (string, bool) {
+		str, ok := item.(string)
+		return str, ok && str != ""
+	})
+
+	return filteredRequests
 }
 
 // GetFirstStartTime Get the first start time from redis cache

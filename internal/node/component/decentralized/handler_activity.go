@@ -41,7 +41,7 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 
 	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, request.ID)
 
-	addRecentRequest(ctx.Request().RequestURI)
+	RecentRequests.Enqueue(ctx.Request().RequestURI)
 
 	query := model.ActivityQuery{
 		ID:          lo.ToPtr(request.ID),
@@ -98,7 +98,7 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 
 	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, common.HexToAddress(request.Account).String())
 
-	addRecentRequest(ctx.Request().RequestURI)
+	RecentRequests.Enqueue(ctx.Request().RequestURI)
 
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
@@ -160,7 +160,7 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 
 	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, strconv.Itoa(len(request.Accounts)))
 
-	addRecentRequest(ctx.Request().RequestURI)
+	RecentRequests.Enqueue(ctx.Request().RequestURI)
 
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
