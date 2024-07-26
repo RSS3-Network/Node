@@ -21,6 +21,7 @@ import (
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
+	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
 
@@ -39,17 +40,17 @@ type NodeInfoResponse struct {
 
 type GIRewardsResponse struct {
 	Data []struct {
-		ID                    uint64 `json:"id"`
-		TotalOperationRewards string `json:"total_operation_rewards"`
-		TotalStakingRewards   string `json:"total_staking_rewards"`
-		TotalRequestCounts    string `json:"total_request_counts"`
+		ID                    uint64          `json:"id"`
+		TotalOperationRewards decimal.Decimal `json:"total_operation_rewards"`
+		TotalStakingRewards   decimal.Decimal `json:"total_staking_rewards"`
+		TotalRequestCounts    decimal.Decimal `json:"total_request_counts"`
 	} `json:"data"`
 }
 
 type GINodeInfoResponse struct {
 	Data struct {
-		LastHeartbeat int64  `json:"last_heartbeat"`
-		SlashedTokens string `json:"slashed_tokens"`
+		LastHeartbeat int64           `json:"last_heartbeat"`
+		SlashedTokens decimal.Decimal `json:"slashed_tokens"`
 	} `json:"data"`
 }
 
@@ -63,17 +64,17 @@ type NodeInfo struct {
 }
 
 type Record struct {
-	LastHeartbeat  int64    `json:"last_heartbeat"`
-	RecentRequests []string `json:"recent_requests"`
-	RecentRewards  []Reward `json:"recent_rewards"`
-	SlashedTokens  string   `json:"slashed_tokens"`
+	LastHeartbeat  int64           `json:"last_heartbeat"`
+	RecentRequests []string        `json:"recent_requests"`
+	RecentRewards  []Reward        `json:"recent_rewards"`
+	SlashedTokens  decimal.Decimal `json:"slashed_tokens"`
 }
 
 type Reward struct {
-	Epoch            uint64 `json:"epoch"`
-	OperationRewards string `json:"operation_rewards"`
-	StakingRewards   string `json:"staking_rewards"`
-	RequestCounts    string `json:"request_counts"`
+	Epoch            uint64          `json:"epoch"`
+	OperationRewards decimal.Decimal `json:"operation_rewards"`
+	StakingRewards   decimal.Decimal `json:"staking_rewards"`
+	RequestCounts    decimal.Decimal `json:"request_counts"`
 }
 
 // GetNodeInfo returns the node information.
@@ -245,12 +246,12 @@ func (c *Component) getNodeRewards(ctx context.Context, address common.Address) 
 }
 
 // getNodeInfo returns the node slashed token.
-func (c *Component) getNodeBasicInfo(ctx context.Context, address common.Address) (int64, string, error) {
+func (c *Component) getNodeBasicInfo(ctx context.Context, address common.Address) (int64, decimal.Decimal, error) {
 	var resp GINodeInfoResponse
 
 	err := c.sendRequest(ctx, fmt.Sprintf("/nta/nodes/%s", address), &resp)
 	if err != nil {
-		return 0, "", fmt.Errorf("failed to get node slashed tokens: %w", err)
+		return 0, decimal.Decimal{}, fmt.Errorf("failed to get node slashed tokens: %w", err)
 	}
 
 	return resp.Data.LastHeartbeat, resp.Data.SlashedTokens, nil
