@@ -33,7 +33,7 @@ const MaxRecentRequests = 10
 
 var (
 	RecentRequests      []string
-	recentRequestsMutex sync.Mutex
+	recentRequestsMutex sync.RWMutex
 )
 
 func (c *Component) Name() string {
