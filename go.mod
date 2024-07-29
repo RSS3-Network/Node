@@ -9,7 +9,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/creasty/defaults v1.7.0
 	github.com/ethereum/go-ethereum v1.13.15
-	github.com/gabriel-vasile/mimetype v1.4.4
+	github.com/gabriel-vasile/mimetype v1.4.5
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.22.0
 	github.com/go-shiori/go-readability v0.0.0-20231029095239-6b97d5aba789
@@ -57,7 +57,7 @@ require (
 	github.com/emirpasic/gods v1.18.1
 	github.com/grafana/pyroscope-go v1.1.1
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/redis/rueidis v1.0.41
+	github.com/redis/rueidis v1.0.43
 	github.com/rss3-network/protocol-go v0.5.1
 	github.com/spf13/afero v1.11.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
