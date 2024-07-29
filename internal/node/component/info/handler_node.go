@@ -76,6 +76,24 @@ type Reward struct {
 	RequestCounts    decimal.Decimal `json:"request_counts"`
 }
 
+// GetNodeOperator returns the node information.
+func (c *Component) GetNodeOperator(ctx echo.Context) error {
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, "info")
+
+	zap.L().Debug("get node info", zap.String("request.ip", ctx.Request().RemoteAddr))
+
+	// Get Operator address info
+	evmAddress := common.Address{}
+
+	if !lo.IsEmpty(c.config.Discovery.Operator.EvmAddress) {
+		evmAddress = c.config.Discovery.Operator.EvmAddress
+	}
+
+	response := fmt.Sprintf("This is an RSS3 Node operated by %s.", evmAddress)
+
+	return ctx.JSON(http.StatusOK, response)
+}
+
 // GetNodeInfo returns the node information.
 func (c *Component) GetNodeInfo(ctx echo.Context) error {
 	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, "info")

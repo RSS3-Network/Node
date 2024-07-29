@@ -279,7 +279,7 @@
                 }
             }
         },
-        "/": {
+        "/info": {
             "get": {
                 "summary": "Get Node Status Info",
                 "description": "Retrieve node status details.",
