@@ -3,6 +3,7 @@ package decentralized
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	cb "github.com/emirpasic/gods/queues/circularbuffer"
 	"github.com/labstack/echo/v4"
@@ -12,6 +13,7 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
 	"github.com/rss3-network/node/provider/ethereum/etherface"
+	"github.com/samber/lo"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -32,7 +34,8 @@ const Name = "decentralized"
 const MaxRecentRequests = 10
 
 var (
-	RecentRequests *cb.Queue
+	RecentRequests      *cb.Queue
+	recentRequestsMutex sync.RWMutex
 )
 
 func (c *Component) Name() string {
@@ -105,4 +108,25 @@ func (c *Component) CollectTrace(ctx context.Context, path, value string) {
 
 	_, span := otel.Tracer("").Start(ctx, "Decentralized API Query", spanStartOptions...)
 	defer span.End()
+}
+
+func addRecentRequest(path string) {
+	recentRequestsMutex.Lock()
+	defer recentRequestsMutex.Unlock()
+
+	RecentRequests.Enqueue(path)
+}
+
+// GetRecentRequest returns the filtered recent requests.
+func GetRecentRequest() []string {
+	// Convert queue to slice
+	values := RecentRequests.Values()
+
+	// Filter out empty strings and convert to []string
+	filteredRequests := lo.FilterMap(values, func(item interface{}, _ int) (string, bool) {
+		str, ok := item.(string)
+		return str, ok && str != ""
+	})
+
+	return filteredRequests
 }

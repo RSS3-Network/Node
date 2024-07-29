@@ -39,7 +39,7 @@ func (c *Component) GetPlatformActivities(ctx echo.Context) (err error) {
 
 	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, request.Platform.String())
 
-	RecentRequests.Enqueue(ctx.Request().RequestURI)
+	addRecentRequest(ctx.Request().RequestURI)
 
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {

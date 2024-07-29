@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"time"
 
-	cb "github.com/emirpasic/gods/queues/circularbuffer"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/rueidis"
@@ -129,7 +128,7 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 			Coverage:   workerCoverage,
 			Records: Record{
 				LastHeartbeat:  lastHeartbeat,
-				RecentRequests: getFilteredRecentRequests(decentralized.RecentRequests),
+				RecentRequests: decentralized.GetRecentRequest(),
 				RecentRewards:  rewards,
 				SlashedTokens:  slashedTokens,
 			},
@@ -295,20 +294,6 @@ func (c *Component) sendRequest(ctx context.Context, path string, result any) er
 	return nil
 }
 
-// getFilteredRecentRequests returns the filtered recent requests.
-func getFilteredRecentRequests(queue *cb.Queue) []string {
-	// Convert queue to slice
-	values := queue.Values()
-
-	// Filter out empty strings and convert to []string
-	filteredRequests := lo.FilterMap(values, func(item interface{}, _ int) (string, bool) {
-		str, ok := item.(string)
-		return str, ok && str != ""
-	})
-
-	return filteredRequests
-}
-
 // GetFirstStartTime Get the first start time from redis cache
 func GetFirstStartTime(ctx context.Context, redisClient rueidis.Client) (int64, error) {
 	if redisClient == nil {
@@ -327,16 +312,9 @@ func GetFirstStartTime(ctx context.Context, redisClient rueidis.Client) (int64, 
 		return 0, fmt.Errorf("redis result: %w", err)
 	}
 
-	// Retrieve the result as a string
-	timestampStr, err := result.ToString()
+	firstStartTime, err := result.AsInt64()
 	if err != nil {
-		return 0, fmt.Errorf("redis result to string: %w", err)
-	}
-
-	// Convert the string to an uint64
-	firstStartTime, err := strconv.ParseInt(timestampStr, 10, 64)
-	if err != nil {
-		return 0, fmt.Errorf("parse int: %w", err)
+		return 0, fmt.Errorf("redis result to int64: %w", err)
 	}
 
 	return firstStartTime, nil
