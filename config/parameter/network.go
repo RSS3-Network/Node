@@ -3,6 +3,7 @@ package parameter
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -70,15 +71,19 @@ func (npd *NetworkParamsData) UnmarshalJSON(data []byte) error {
 }
 
 // PullNetworkParamsFromVSL pulls the network parameters from the VSL
-func PullNetworkParamsFromVSL(networkParams *vsl.NetworkParamsCaller, epoch uint64) error {
+func PullNetworkParamsFromVSL(networkParams *vsl.NetworkParamsCaller, epoch uint64) (string, error) {
 	// Get parameters for the current epoch from networkParams
 	params, err := networkParams.GetParams(&bind.CallOpts{}, epoch)
 	if err != nil {
-		return fmt.Errorf("failed to get params for epoch %d: %w", epoch, err)
+		return "", fmt.Errorf("failed to get params for epoch %d: %w", epoch, err)
+	}
+
+	if err := updateNetworkParams(params); err != nil {
+		return "", fmt.Errorf("update network params: %w", err)
 	}
 
 	// Unmarshal and update network parameters
-	return updateNetworkParams(params)
+	return params, nil
 }
 
 func updateNetworkParams(params string) error {
@@ -117,6 +122,11 @@ func GetCurrentEpoch(ctx context.Context, redisClient rueidis.Client) (int64, er
 
 	result := redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
+		if errors.Is(err, rueidis.Nil) {
+			// Key doesn't exist, return 0 or a default value
+			return 0, nil
+		}
+
 		return 0, fmt.Errorf("redis result: %w", err)
 	}
 
@@ -145,6 +155,11 @@ func UpdateCurrentEpoch(ctx context.Context, redisClient rueidis.Client, epoch i
 
 	result := redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
+		if errors.Is(err, rueidis.Nil) {
+			// Key doesn't exist, return 0 or a default value
+			return nil
+		}
+
 		return fmt.Errorf("redis result: %w", err)
 	}
 
@@ -161,6 +176,11 @@ func GetNetworkBlockStart(ctx context.Context, redisClient rueidis.Client, netwo
 
 	result := redisClient.Do(ctx, command)
 	if err := result.Error(); err != nil {
+		if errors.Is(err, rueidis.Nil) {
+			// Key doesn't exist, return 0 or a default value
+			return 0, nil
+		}
+
 		return 0, fmt.Errorf("redis result: %w", err)
 	}
 
@@ -224,7 +244,7 @@ func CheckParamsTask(ctx context.Context, redisClient rueidis.Client, networkPar
 		return fmt.Errorf("failed to get current epoch from cache: %w", err)
 	}
 
-	err = PullNetworkParamsFromVSL(networkParamsCaller, uint64(currentEpoch))
+	_, err = PullNetworkParamsFromVSL(networkParamsCaller, uint64(currentEpoch))
 	if err != nil {
 		return fmt.Errorf("failed to pull network params from vsl: %w", err)
 	}
