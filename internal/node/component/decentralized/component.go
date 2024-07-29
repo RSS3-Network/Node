@@ -119,6 +119,9 @@ func addRecentRequest(path string) {
 
 // GetRecentRequest returns the filtered recent requests.
 func GetRecentRequest() []string {
+	recentRequestsMutex.RLock()
+	defer recentRequestsMutex.RUnlock()
+
 	// Convert queue to slice
 	values := RecentRequests.Values()
 
