@@ -176,6 +176,7 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 		WorkerProgress: monitor.WorkerProgress{
 			RemoteState:  workerProgress.RemoteState,
 			IndexedState: workerProgress.IndexedState,
+			IndexCount:   workerProgress.IndexCount,
 		},
 	}
 
