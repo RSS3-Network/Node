@@ -279,9 +279,29 @@
                 }
             }
         },
+        "/workers_status": {
+            "get": {
+                "summary": "Get Node Worker Status",
+                "description": "Retrieve node worker status details.",
+                "tags": [
+                    "Info"
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/WorkerInfoResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
         "/info": {
             "get": {
-                "summary": "Get Node Status Info",
+                "summary": "Get Node Status",
                 "description": "Retrieve node status details.",
                 "tags": [
                     "Info"
@@ -751,6 +771,14 @@
                 },
                 "type": "object"
             },
+            "WorkerInfoResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/WorkerInfo"
+                    }
+                },
+                "type": "object"
+            },
             "NodeInfo": {
                 "properties": {
                     "operator": {
@@ -919,6 +947,128 @@
                     "request_counts": {
                         "description": "The request counts of reward.",
                         "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "WorkerInfo": {
+                "properties": {
+                    "decentralized": {
+                        "description": "The decentralized worker status.",
+                        "items": {
+                            "$ref": "#/components/schemas/WorkerStatus"
+                        },
+                        "type": "array"
+                    },
+                    "rss": {
+                        "description": "The rss worker status.",
+                        "items": {
+                            "$ref": "#/components/schemas/WorkerStatus"
+                        },
+                        "type": "array"
+                    },
+                    "federated": {
+                        "description": "The federated worker status.",
+                        "items": {
+                            "$ref": "#/components/schemas/WorkerStatus"
+                        },
+                        "type": "array"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "decentralized": [
+                        {
+                            "network": "ethereum",
+                            "worker": "vsl",
+                            "tags": [
+                                "transaction"
+                            ],
+                            "platform": "VSL",
+                            "status": "Ready",
+                            "remote_state": 20416809,
+                            "indexed_state": 20416808,
+                            "index_count": 1174
+                        },
+                        {
+                            "network": "polygon",
+                            "worker": "curve",
+                            "tags": [
+                                "exchange",
+                                "transaction"
+                            ],
+                            "platform": "Curve",
+                            "status": "Ready",
+                            "remote_state": 59974392,
+                            "indexed_state": 59974383,
+                            "index_count": 2138457
+                        },
+                        {
+                            "network": "arweave",
+                            "worker": "mirror",
+                            "tags": [
+                                "social"
+                            ],
+                            "platform": "Mirror",
+                            "status": "Ready",
+                            "remote_state": 1475386,
+                            "indexed_state": 1475385,
+                            "index_count": 697886
+                        }
+                    ],
+                    "rss": [
+                        {
+                            "network": "rss",
+                            "worker": "rsshub",
+                            "tags": [
+                                "rss"
+                            ],
+                            "platform": "Unknown",
+                            "status": "Ready",
+                            "remote_state": 0,
+                            "indexed_state": 0
+                        }
+                    ],
+                    "federated": null
+                }
+            },
+            "WorkerStatus": {
+                "description": "The status of the worker.",
+                "properties": {
+                    "network": {
+                        "description": "The network which the worker belongs to.",
+                        "type": "string"
+                    },
+                    "worker": {
+                        "description": "The worker name.",
+                        "type": "string"
+                    },
+                    "tags": {
+                        "description": "The tag of worker.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "platform": {
+                        "description": "The platform of worker.",
+                        "type": "string"
+                    },
+                    "status": {
+                        "description": "The indexing status of worker.",
+                        "type": "string"
+                    },
+                    "remote_state": {
+                        "description": "The remote state of worker.",
+                        "type": "integer"
+                    },
+                    "indexed_state": {
+                        "description": "The indexed state of worker.",
+                        "type": "integer"
+                    },
+                    "index_count": {
+                        "description": "The index count of worker.",
+                        "type": "integer"
                     }
                 },
                 "type": "object"
@@ -1116,6 +1266,16 @@
                     "application/json": {
                         "schema": {
                             "$ref": "#/components/schemas/NodeInfoResponse"
+                        }
+                    }
+                }
+            },
+            "WorkerInfoResponse": {
+                "description": "The request was successful.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/WorkerInfoResponse"
                         }
                     }
                 }

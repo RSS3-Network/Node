@@ -28,7 +28,7 @@ type Monitor struct {
 
 func (m *Monitor) Run(ctx context.Context) error {
 	if m.databaseClient != nil && m.redisClient != nil {
-		_, err := m.cron.AddFunc("@every 15s", func() {
+		_, err := m.cron.AddFunc("@every 15m", func() {
 			if err := m.MonitorWorkerStatus(ctx); err != nil {
 				return
 			}
