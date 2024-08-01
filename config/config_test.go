@@ -28,6 +28,7 @@ discovery:
     server:
       endpoint: https://node.mydomain.com/
       global_indexer_endpoint: https://gi.rss3.dev/
+      access_token: test
 endpoints:
     ethereum:
       url: https://rpc.ankr.com/eth
@@ -98,7 +99,8 @@ component:
     },
     "server": {
       "endpoint": "https://node.mydomain.com/",
-      "global_indexer_endpoint": "https://gi.rss3.dev/"
+      "global_indexer_endpoint": "https://gi.rss3.dev/",
+      "access_token": "test"
     }
   },
   "database": {
@@ -184,6 +186,7 @@ url = "https://rpc.ankr.com/eth"
 [discovery.server]
 endpoint = "https://node.mydomain.com/"
 global_indexer_endpoint = "https://gi.rss3.dev/"
+access_token = "test"
 
 [database]
 driver = "cockroachdb"
@@ -262,6 +265,7 @@ var configFileExpected = &File{
 		Server: &Server{
 			Endpoint:              "https://node.mydomain.com/",
 			GlobalIndexerEndpoint: "https://gi.rss3.dev/",
+			AccessToken:           "test",
 		},
 	},
 	Component: &Component{

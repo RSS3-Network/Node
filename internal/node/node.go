@@ -74,7 +74,7 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 	node.components = append(node.components, &infoComponent)
 
 	if len(config.Component.RSS) > 0 {
-		rssComponent := rss.NewComponent(ctx, apiServer, config.Component.RSS)
+		rssComponent := rss.NewComponent(ctx, apiServer, config)
 		node.components = append(node.components, &rssComponent)
 	}
 
