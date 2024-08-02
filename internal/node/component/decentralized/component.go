@@ -12,6 +12,7 @@ import (
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
+	"github.com/rss3-network/node/internal/node/component/middleware"
 	"github.com/rss3-network/node/provider/ethereum/etherface"
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel"
@@ -54,6 +55,9 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 	}
 
 	group := apiServer.Group(fmt.Sprintf("/%s", Name))
+
+	// Add middleware for bearer token authentication
+	group.Use(middleware.BearerAuth(config.Discovery.Server.AccessToken))
 
 	group.GET("/tx/:id", c.GetActivity)
 	group.GET("/:account", c.GetAccountActivities)

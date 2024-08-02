@@ -81,6 +81,7 @@ type Operator struct {
 type Server struct {
 	Endpoint              string `mapstructure:"endpoint"`
 	GlobalIndexerEndpoint string `mapstructure:"global_indexer_endpoint"`
+	AccessToken           string `mapstructure:"access_token"`
 }
 
 type Component struct {

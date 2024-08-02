@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/node/component"
+	"github.com/rss3-network/node/internal/node/component/middleware"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"go.opentelemetry.io/otel"
@@ -18,6 +19,7 @@ import (
 )
 
 type Component struct {
+	config     *config.File
 	httpClient *http.Client
 	rsshub     *configx
 	counter    metric.Int64Counter
@@ -39,12 +41,16 @@ func (h *Component) Name() string {
 
 var _ component.Component = (*Component)(nil)
 
-func NewComponent(_ context.Context, apiServer *echo.Echo, config []*config.Module) component.Component {
+func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File) component.Component {
 	c := &Component{
+		config:     config,
 		httpClient: http.DefaultClient,
 	}
 
 	group := apiServer.Group(fmt.Sprintf("/%s", Name))
+
+	// Add middleware for bearer token authentication
+	group.Use(middleware.BearerAuth(config.Discovery.Server.AccessToken))
 
 	group.GET("/*", c.Handler)
 
@@ -52,7 +58,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config []*config.Modu
 		panic(err)
 	}
 
-	for _, conf := range config {
+	for _, conf := range config.Component.RSS {
 		if conf.Network == network.RSS {
 			c.rsshub = &configx{
 				id:       conf.ID,

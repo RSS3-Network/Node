@@ -24,6 +24,11 @@
                 "tags": [
                     "Decentralized"
                 ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/activity_id_path"
@@ -57,6 +62,11 @@
                 "description": "This endpoint retrieves the activities associated with a specified account in the decentralized system. You can use various query parameters to filter and paginate the results, including limits on the number of activities and actions, timestamps, success status, direction, and more.",
                 "tags": [
                     "Decentralized"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
                 ],
                 "parameters": [
                     {
@@ -119,6 +129,11 @@
                 "tags": [
                     "Decentralized"
                 ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/BatchGetAccountsActivities"
                 },
@@ -141,6 +156,11 @@
                 "description": "Retrieve a list of activities from the specified decentralized network. This endpoint allows you to filter activities by various parameters such as limit, timestamp, success status, and more.",
                 "tags": [
                     "Decentralized"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
                 ],
                 "parameters": [
                     {
@@ -200,6 +220,11 @@
                 "tags": [
                     "Decentralized"
                 ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/platform_path"
@@ -257,6 +282,11 @@
                 "description": "Retrieve details from the specified RSS path.",
                 "tags": [
                     "RSS"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
                 ],
                 "parameters": [
                     {
@@ -321,6 +351,12 @@
         }
     },
     "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        },
         "parameters": {
             "activity_id_path": {
                 "description": "Retrieve details for the specified activity ID",
