@@ -248,7 +248,7 @@ endpoint = "https://rpc.ankr.com/eth"
 
 var configFileExpected = &File{
 	Environment: "development",
-	Type:        "beta",
+	Type:        "normal",
 	Endpoints: map[string]Endpoint{
 		"ethereum": {
 			URL: "https://rpc.ankr.com/eth",
