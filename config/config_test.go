@@ -449,6 +449,8 @@ func TestConfigFilePath(t *testing.T) {
 }
 
 func TestConfigFileType(t *testing.T) {
+	t.Parallel()
+
 	configDir := "/etc/rss3/node"
 	configFiles := map[string]string{
 		"yaml": configExampleYaml,

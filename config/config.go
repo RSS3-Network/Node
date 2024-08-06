@@ -265,44 +265,6 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	return &configFile, nil
 }
 
-func getAllKeys(iface interface{}, parts ...string) []string {
-	var keys []string
-
-	ifv := reflect.ValueOf(iface)
-	if ifv.Kind() == reflect.Ptr {
-		ifv = ifv.Elem()
-	}
-
-	for i := 0; i < ifv.NumField(); i++ {
-		v := ifv.Field(i)
-		t := ifv.Type().Field(i)
-		tv, ok := t.Tag.Lookup("mapstructure")
-
-		if !ok {
-			continue
-		}
-
-		switch v.Kind() {
-		case reflect.Struct:
-			keys = append(keys, getAllKeys(v.Interface(), append(parts, tv)...)...)
-		case reflect.Ptr:
-			if v.IsNil() && v.CanSet() {
-				v.Set(reflect.New(v.Type().Elem()))
-			}
-
-			if v.Elem().Kind() == reflect.Struct {
-				keys = append(keys, getAllKeys(v.Interface(), append(parts, tv)...)...)
-			}
-
-			keys = append(keys, strings.Join(append(parts, tv), "."))
-		default:
-			keys = append(keys, strings.Join(append(parts, tv), "."))
-		}
-	}
-
-	return keys
-}
-
 func EvmAddressHookFunc() mapstructure.DecodeHookFuncType {
 	return func(
 		f reflect.Type, // data type
