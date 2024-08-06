@@ -235,21 +235,6 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 		return nil, err
 	}
 
-	for _, key := range getAllKeys(&File{}) {
-		envKey := strings.ReplaceAll(
-			strings.ToUpper(fmt.Sprintf("%s_%s", EnvPrefix, key)),
-			".",
-			"_",
-		)
-		if err := v.BindEnv(key, envKey); err != nil {
-			continue
-		}
-
-		if val, ok := os.LookupEnv(envKey); ok {
-			v.Set(key, val)
-		}
-	}
-
 	// Unmarshal config file.
 	var configFile File
 	if err := v.Unmarshal(&configFile, viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
