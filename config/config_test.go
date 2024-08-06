@@ -374,39 +374,38 @@ func TestSetupConfig(t *testing.T) {
 	AssertConfig(t, f, configFileExpected)
 }
 
-// func TestConfigEnvOverride(t *testing.T) {
-//	t.Parallel()
-//
-//	exceptEnvironment := "testing"
-//	exceptDatabaseURI := "postgres://mock@localhost:26257/defaultdb"
-//	exceptMetricsEndpoint := "127.0.0.1:9000"
-//
-//	t.Setenv("NODE_ENVIRONMENT", exceptEnvironment)
-//	t.Setenv("NODE_DATABASE_URI", exceptDatabaseURI)
-//	t.Setenv("NODE_OBSERVABILITY_OPENTELEMETRY_METRICS_ENDPOINT", exceptMetricsEndpoint)
-//
-//	configDir := "/etc/rss3/node"
-//	fs := afero.NewMemMapFs()
-//
-//	err := fs.Mkdir(configDir, 0o777)
-//	assert.NoError(t, err)
-//
-//	file, err := fs.Create(path.Join(configDir, configName))
-//	assert.NoError(t, err)
-//
-//	_, err = file.WriteString(configExampleYaml)
-//	require.NoError(t, err)
-//
-//	v := viper.New()
-//	v.SetFs(fs)
-//
-//	f, err := _Setup(configName, "yaml", v)
-//	assert.NoError(t, err)
-//
-//	assert.Equal(t, exceptEnvironment, f.Environment)
-//	assert.Equal(t, exceptDatabaseURI, f.Database.URI)
-//	assert.Equal(t, exceptMetricsEndpoint, f.Observability.OpenTelemetry.Metrics.Endpoint)
-// }
+//nolint:paralleltest
+func TestConfigEnvOverride(t *testing.T) {
+	exceptEnvironment := "testing"
+	exceptDatabaseURI := "postgres://mock@localhost:26257/defaultdb"
+	exceptMetricsEndpoint := "127.0.0.1:9000"
+
+	t.Setenv("NODE_ENVIRONMENT", exceptEnvironment)
+	t.Setenv("NODE_DATABASE_URI", exceptDatabaseURI)
+	t.Setenv("NODE_OBSERVABILITY_OPENTELEMETRY_METRICS_ENDPOINT", exceptMetricsEndpoint)
+
+	configDir := "/etc/rss3/node"
+	fs := afero.NewMemMapFs()
+
+	err := fs.Mkdir(configDir, 0o777)
+	assert.NoError(t, err)
+
+	file, err := fs.Create(path.Join(configDir, configName))
+	assert.NoError(t, err)
+
+	_, err = file.WriteString(configExampleYaml)
+	require.NoError(t, err)
+
+	v := viper.New()
+	v.SetFs(fs)
+
+	f, err := _Setup(configName, "yaml", v)
+	assert.NoError(t, err)
+
+	assert.Equal(t, exceptEnvironment, f.Environment)
+	assert.Equal(t, exceptDatabaseURI, f.Database.URI)
+	assert.Equal(t, exceptMetricsEndpoint, f.Observability.OpenTelemetry.Metrics.Endpoint)
+}
 
 func TestConfigFilePath(t *testing.T) {
 	t.Parallel()
