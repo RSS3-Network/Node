@@ -28,24 +28,13 @@ type ComponentInfo struct {
 }
 
 type WorkerInfo struct {
-	Network  network.Network        `json:"network"`
+	WorkerID string                 `json:"worker_id"`
 	Worker   worker.Worker          `json:"worker"`
+	Network  network.Network        `json:"network"`
 	Tags     []tag.Tag              `json:"tags"`
 	Platform decentralized.Platform `json:"platform"`
 	Status   worker.Status          `json:"status"`
 	monitor.WorkerProgress
-}
-
-// WorkerKey is the key for the worker status aggregator.
-type WorkerKey struct {
-	Network network.Network
-	Worker  worker.Worker
-}
-
-// WorkerStatusAggregator aggregates the statuses of workers with the same Network+Worker.
-type WorkerStatusAggregator struct {
-	Statuses []worker.Status
-	Progress []monitor.WorkerProgress
 }
 
 // GetWorkersStatus returns the status of all workers.
@@ -61,11 +50,8 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 		// Fetch all worker info concurrently.
 		c.fetchAllWorkerInfo(ctx, workerInfoChan)
 
-		// Aggregate the statuses of workers.
-		aggregatedWorkers := c.aggregateWorkers(workerInfoChan)
-
 		// Build the worker response.
-		response = c.buildWorkerResponse(aggregatedWorkers)
+		response = c.buildWorkerResponse(workerInfoChan)
 	} else if len(c.config.Component.RSS) > 0 {
 		response = &WorkerResponse{
 			Data: ComponentInfo{
@@ -75,6 +61,7 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 
 		for _, m := range c.config.Component.RSS {
 			response.Data.RSS = append(response.Data.RSS, &WorkerInfo{
+				WorkerID: m.ID,
 				Network:  m.Network,
 				Worker:   m.Worker,
 				Tags:     []tag.Tag{tag.RSS},
@@ -113,55 +100,28 @@ func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *
 	}()
 }
 
-// aggregateWorkers aggregates the same workers through network + worker.
-func (c *Component) aggregateWorkers(workerInfoChan <-chan *WorkerInfo) map[WorkerKey]*WorkerStatusAggregator {
-	aggregatedWorkers := make(map[WorkerKey]*WorkerStatusAggregator)
-
-	for workerInfo := range workerInfoChan {
-		// construct the key for the worker status aggregator.
-		key := WorkerKey{Network: workerInfo.Network, Worker: workerInfo.Worker}
-
-		if _, exists := aggregatedWorkers[key]; !exists {
-			aggregatedWorkers[key] = &WorkerStatusAggregator{Statuses: []worker.Status{}, Progress: []monitor.WorkerProgress{}}
-		}
-
-		aggregatedWorkers[key].Statuses = append(aggregatedWorkers[key].Statuses, workerInfo.Status)
-		aggregatedWorkers[key].Progress = append(aggregatedWorkers[key].Progress, workerInfo.WorkerProgress)
-	}
-
-	return aggregatedWorkers
-}
-
-// buildWorkerResponse aggregates statuses to determine the final status of a worker
-func (c *Component) buildWorkerResponse(aggregatedWorkers map[WorkerKey]*WorkerStatusAggregator) *WorkerResponse {
-	decentralizedWorkers := make([]*WorkerInfo, 0, len(aggregatedWorkers))
-	rssWorkers := make([]*WorkerInfo, 0, len(aggregatedWorkers))
-
-	for key, aggregator := range aggregatedWorkers {
-		workerInfo := &WorkerInfo{
-			Network:        key.Network,
-			Worker:         key.Worker,
-			Status:         determineFinalStatus(aggregator.Statuses),
-			WorkerProgress: determineFinalProgress(aggregator.Progress),
-		}
-
-		switch key.Network.Source() {
-		case network.RSSSource:
-			workerInfo.Tags = rss.ToTagsMap[key.Worker.(rss.Worker)]
-			rssWorkers = append(rssWorkers, workerInfo)
-		case network.EthereumSource, network.FarcasterSource, network.ArweaveSource:
-			workerInfo.Tags = decentralized.ToTagsMap[key.Worker.(decentralized.Worker)]
-			workerInfo.Platform = decentralized.ToPlatformMap[key.Worker.(decentralized.Worker)]
-			decentralizedWorkers = append(decentralizedWorkers, workerInfo)
-		}
-	}
-
-	return &WorkerResponse{
+// buildWorkerResponse builds the worker response from the worker info channel
+func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *WorkerResponse {
+	response := &WorkerResponse{
 		Data: ComponentInfo{
-			Decentralized: decentralizedWorkers,
-			RSS:           rssWorkers,
+			Decentralized: []*WorkerInfo{},
+			RSS:           []*WorkerInfo{},
+			Federated:     []*WorkerInfo{},
 		},
 	}
+
+	for workerInfo := range workerInfoChan {
+		switch workerInfo.Network.Source() {
+		case network.RSSSource:
+			response.Data.RSS = append(response.Data.RSS, workerInfo)
+		case network.EthereumSource, network.FarcasterSource, network.ArweaveSource:
+			response.Data.Decentralized = append(response.Data.Decentralized, workerInfo)
+		default:
+			response.Data.Federated = append(response.Data.Federated, workerInfo)
+		}
+	}
+
+	return response
 }
 
 // fetchWorkerInfo fetches the worker info with the different network source.
@@ -170,9 +130,10 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 	status, workerProgress := c.getWorkerStatusAndProgressByID(ctx, module.ID)
 
 	workerInfo := &WorkerInfo{
-		Network: module.Network,
-		Worker:  module.Worker,
-		Status:  status,
+		WorkerID: module.ID,
+		Network:  module.Network,
+		Worker:   module.Worker,
+		Status:   status,
 		WorkerProgress: monitor.WorkerProgress{
 			RemoteState:  workerProgress.RemoteState,
 			IndexedState: workerProgress.IndexedState,
@@ -189,28 +150,6 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 	}
 
 	return workerInfo
-}
-
-// determineFinalStatus determines the final status of a worker based on the statuses of its instances.
-// if user runs more than one worker instance, we can determine the final status as unhealthy until user adjusts the worker instances to 1
-func determineFinalStatus(statuses []worker.Status) worker.Status {
-	// if user runs more than one worker instance, we can determine the final status as unhealthy
-	if len(statuses) > 1 || len(statuses) == 0 {
-		return worker.StatusUnhealthy
-	}
-
-	return statuses[0]
-}
-
-// determineFinalProgress determines the final progress of a worker based on the progress of its instances.
-// if user runs more than one worker instance, we can determine the final progress as empty until user adjusts the worker instances to 1
-func determineFinalProgress(progress []monitor.WorkerProgress) monitor.WorkerProgress {
-	// if user runs more than one worker instance, we can determine the final status as unhealthy
-	if len(progress) > 1 || len(progress) == 0 {
-		return monitor.WorkerProgress{}
-	}
-
-	return progress[0]
 }
 
 // getWorkerStatusAndProgressByID gets both worker status and progress from Redis cache by worker ID.
