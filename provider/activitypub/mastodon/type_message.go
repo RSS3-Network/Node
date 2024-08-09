@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-const _MessageTypeName = "MESSAGE_TYPE_NONEMESSAGE_TYPE_CREATEMESSAGE_TYPE_ANNOUNCEMESSAGE_TYPE_LIKE"
+const _MessageTypeName = "NoneCreateAnnounceLike"
 
-var _MessageTypeIndex = [...]uint8{0, 17, 36, 57, 74}
+var _MessageTypeIndex = [...]uint8{0, 4, 10, 18, 22}
 
-const _MessageTypeLowerName = "message_type_nonemessage_type_createmessage_type_announcemessage_type_like"
+const _MessageTypeLowerName = "nonecreateannouncelike"
 
 func (i MessageType) String() string {
 	if i < 0 || i >= MessageType(len(_MessageTypeIndex)-1) {
@@ -37,21 +37,21 @@ func _MessageTypeNoOp() {
 var _MessageTypeValues = []MessageType{MessageTypeNone, MessageTypeCreate, MessageTypeAnnounce, MessageTypeLike}
 
 var _MessageTypeNameToValueMap = map[string]MessageType{
-	_MessageTypeName[0:17]:       MessageTypeNone,
-	_MessageTypeLowerName[0:17]:  MessageTypeNone,
-	_MessageTypeName[17:36]:      MessageTypeCreate,
-	_MessageTypeLowerName[17:36]: MessageTypeCreate,
-	_MessageTypeName[36:57]:      MessageTypeAnnounce,
-	_MessageTypeLowerName[36:57]: MessageTypeAnnounce,
-	_MessageTypeName[57:74]:      MessageTypeLike,
-	_MessageTypeLowerName[57:74]: MessageTypeLike,
+	_MessageTypeName[0:4]:        MessageTypeNone,
+	_MessageTypeLowerName[0:4]:   MessageTypeNone,
+	_MessageTypeName[4:10]:       MessageTypeCreate,
+	_MessageTypeLowerName[4:10]:  MessageTypeCreate,
+	_MessageTypeName[10:18]:      MessageTypeAnnounce,
+	_MessageTypeLowerName[10:18]: MessageTypeAnnounce,
+	_MessageTypeName[18:22]:      MessageTypeLike,
+	_MessageTypeLowerName[18:22]: MessageTypeLike,
 }
 
 var _MessageTypeNames = []string{
-	_MessageTypeName[0:17],
-	_MessageTypeName[17:36],
-	_MessageTypeName[36:57],
-	_MessageTypeName[57:74],
+	_MessageTypeName[0:4],
+	_MessageTypeName[4:10],
+	_MessageTypeName[10:18],
+	_MessageTypeName[18:22],
 }
 
 // MessageTypeString retrieves an enum value from the enum constants string name.
