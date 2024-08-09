@@ -1015,6 +1015,7 @@
                 "example": {
                     "decentralized": [
                         {
+                            "worker_id": "ethereum-core",
                             "network": "ethereum",
                             "worker": "vsl",
                             "tags": [
@@ -1027,6 +1028,7 @@
                             "index_count": 1174
                         },
                         {
+                            "worker_id": "polygon-curve",
                             "network": "polygon",
                             "worker": "curve",
                             "tags": [
@@ -1040,6 +1042,7 @@
                             "index_count": 2138457
                         },
                         {
+                            "worker_id": "arweave-mirror",
                             "network": "arweave",
                             "worker": "mirror",
                             "tags": [
@@ -1071,6 +1074,10 @@
             "WorkerStatus": {
                 "description": "The status of the worker.",
                 "properties": {
+                    "worker_id": {
+                        "description": "The worker ID.",
+                        "type": "string"
+                    },
                     "network": {
                         "description": "The network which the worker belongs to.",
                         "type": "string"
