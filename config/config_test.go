@@ -35,7 +35,7 @@ endpoints:
       http_headers:
         user-agent: rss3-node
     mastodon:
-      url: https://30.10.000.00:9092/
+      url: https://0.0.0.0:9092/
       http_headers:
         user-agent: rss3-node
 database:
@@ -102,7 +102,7 @@ component:
       }
     },
      "mastodon": {
-      "url": "https://30.10.000.00:9092/",
+      "url": "https://0.0.0.0:9092/",
       "http_headers": {
         "user-agent": "rss3-node"
       }
@@ -209,7 +209,7 @@ url = "https://rpc.ankr.com/eth"
 	user-agent = "rss3-node"
 
 [endpoints.mastodon]
-url = "https://30.10.000.00:9092/"
+url = "https://0.0.0.0:9092/"
 
 	[endpoints.mastodon.http_headers]
 	user-agent = "rss3-node"
@@ -295,7 +295,7 @@ var configFileExpected = &File{
 			},
 		},
 		"mastodon": {
-			URL: "https://30.10.000.00:9092/",
+			URL: "https://0.0.0.0:9092/",
 			HTTPHeaders: map[string]string{
 				"user-agent": "rss3-node",
 			},
@@ -336,7 +336,7 @@ var configFileExpected = &File{
 				Worker:     federated.Mastodon,
 				EndpointID: "mastodon",
 				Endpoint: Endpoint{
-					URL: "https://30.10.000.00:9092/",
+					URL: "https://0.0.0.0:9092/",
 					HTTPHeaders: map[string]string{
 						"user-agent": "rss3-node",
 					},

@@ -300,7 +300,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 	case network.ActivityPubSource:
 		instance.monitorClient, err = monitor.NewActivityPubClient(config.EndpointID, config.Parameters)
 		if err != nil {
-			return nil, fmt.Errorf("new arweave monitorClient: %w", err)
+			return nil, fmt.Errorf("error occurred in creating new activitypub monitorClient: %w", err)
 		}
 	case network.ArweaveSource:
 		instance.monitorClient, err = monitor.NewArweaveClient()

@@ -78,26 +78,26 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 	// Handle ActivityPub message.
 	switch activityPubTask.Message.Type {
-	case "Create":
+	case mastodon.MessageTypeCreate.String():
 		err := w.handleActivityPubCreate(ctx, activityPubTask.Message, activity)
 		if err != nil {
-			return nil, fmt.Errorf("error occured in handleActivityPubCreate")
+			return nil, fmt.Errorf("error occurred in handleActivityPubCreate: %w", err)
 		}
-	case "Announce":
+	case mastodon.MessageTypeAnnounce.String():
 		err := w.handleActivityPubAnnounce(ctx, activityPubTask.Message, activity)
 		if err != nil {
 			return nil, fmt.Errorf("error occurred in handleActivityPubAnnounce: %w", err)
 		}
-	case "Like":
+	case mastodon.MessageTypeLike.String():
 		err := w.handleActivityPubLike(ctx, activityPubTask.Message, activity)
 		if err != nil {
 			return nil, fmt.Errorf("error occurred in handleActivityPubLike: %w", err)
 		}
 	default:
-		zap.L().Debug("unsupported type", zap.String("type", activityPubTask.Message.Type))
+		zap.L().Info("unsupported type", zap.String("type", activityPubTask.Message.Type))
 	}
 
-	zap.L().Info("Successfully transformed task", zap.String("task_id", task.ID()), zap.String("activity_id", activity.ID))
+	zap.L().Info("unsupported type", zap.String("type", activityPubTask.Message.Type))
 
 	return activity, nil
 }
@@ -106,7 +106,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 func (w *worker) handleActivityPubCreate(ctx context.Context, message activitypub.Object, activity *activityx.Activity) error {
 	noteObject, ok := message.Object.(map[string]interface{})
 	if !ok || noteObject["type"] != "Note" {
-		zap.L().Debug("unsupported object type for Create", zap.String("type", fmt.Sprintf("%T", message.Object)))
+		zap.L().Info("unsupported object type for Create", zap.String("type", fmt.Sprintf("%T", message.Object)))
 		return fmt.Errorf("invalid object type for Create activity")
 	}
 
@@ -172,7 +172,7 @@ func (w *worker) handleActivityPubAnnounce(_ context.Context, message activitypu
 	// Extract object IDs from the message
 	objectIDs, err := extractObjectIDs(message.Object)
 	if err != nil {
-		zap.L().Debug("unsupported object type for Announce", zap.String("type", fmt.Sprintf("%T", message.Object)))
+		zap.L().Info("unsupported object type for Announce", zap.String("type", fmt.Sprintf("%T", message.Object)))
 		return err
 	}
 
@@ -204,7 +204,7 @@ func (w *worker) handleActivityPubLike(_ context.Context, message activitypub.Ob
 	// Extract object IDs from the message
 	objectIDs, err := extractObjectIDs(message.Object)
 	if err != nil {
-		zap.L().Debug("unsupported object type for Like", zap.String("type", fmt.Sprintf("%T", message.Object)))
+		zap.L().Info("unsupported object type for Like", zap.String("type", fmt.Sprintf("%T", message.Object)))
 		return err
 	}
 
