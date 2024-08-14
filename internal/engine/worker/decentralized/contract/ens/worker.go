@@ -10,6 +10,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/rss3-network/node/common/errorsx"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/database/model"
@@ -115,7 +116,7 @@ func (w *worker) Filter() engine.DataSourceFilter {
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
-		return nil, fmt.Errorf("invalid task type: %T", task)
+		return nil, errorsx.InvalidTask(errorsx.WithErr(fmt.Errorf("invalid task type: %T", task)))
 	}
 
 	// Build default ens _activities from task.

@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/rss3-network/node/common/errorsx"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
@@ -80,13 +81,13 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	// Cast the task to an Ethereum task.
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
-		return nil, fmt.Errorf("invalid task type: %T", task)
+		return nil, errorsx.InvalidTask(errorsx.WithErr(fmt.Errorf("invalid task type: %T", task)))
 	}
 
 	// Build the activity.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build activity: %w", err)
+		return nil, errorsx.BuildActionFailed(errorsx.WithErr(fmt.Errorf("build activity: %w", err)))
 	}
 
 	for _, log := range ethereumTask.Receipt.Logs {

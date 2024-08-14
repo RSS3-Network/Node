@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/rss3-network/node/common/errorsx"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/source/arweave"
@@ -64,13 +65,13 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
-		return nil, fmt.Errorf("invalid task type: %T", task)
+		return nil, errorsx.InvalidTask(errorsx.WithErr(fmt.Errorf("invalid task type: %T", task)))
 	}
 
 	// Build the activity.
 	activity, err := task.BuildActivity()
 	if err != nil {
-		return nil, fmt.Errorf("build activity: %w", err)
+		return nil, errorsx.BuildActivityFailed(errorsx.WithErr(fmt.Errorf("build activity: %w", err)))
 	}
 
 	// If the task is a native transfer transaction, handle it.
@@ -78,7 +79,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		// Handle the native transfer transaction.
 		action, err := w.handleArweaveNativeTransferTransaction(ctx, arweaveTask)
 		if err != nil {
-			return nil, fmt.Errorf("handle native transfer transaction: %w", err)
+			return nil, errorsx.HandleTransactionFailed(errorsx.WithErr(fmt.Errorf("handle native transfer transaction: %w", err)))
 		}
 
 		activity.Type = action.Type
@@ -104,13 +105,13 @@ func (w *worker) matchArweaveNativeTransferTransaction(task *source.Task) bool {
 func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, task *source.Task) (*activityx.Action, error) {
 	value, ok := new(big.Int).SetString(task.Transaction.Quantity, 10)
 	if !ok {
-		return nil, fmt.Errorf("parse transaction quantity %s", task.Transaction.Quantity)
+		return nil, errorsx.HandleTransactionFailed(errorsx.WithErr(fmt.Errorf("parse transaction quantity %s", task.Transaction.Quantity)))
 	}
 
 	// from address is the owner of the transaction.
 	from, err := arweave.PublicKeyToAddress(task.Transaction.Owner)
 	if err != nil {
-		return nil, fmt.Errorf("parse transaction owner: %w", err)
+		return nil, errorsx.HandleTransactionFailed(errorsx.WithErr(fmt.Errorf("parse transaction owner: %w", err)))
 	}
 
 	// Build the native transfer transaction action.
