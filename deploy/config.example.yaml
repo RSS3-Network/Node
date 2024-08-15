@@ -56,10 +56,10 @@ stream:
 observability:
   opentelemetry:
     metrics:
-      enable: true
+      enable: false
       endpoint: 0.0.0.0:9090
     traces:
-      enable: true
+      enable: false
       endpoint: localhost:4318
       insecure: true
 
