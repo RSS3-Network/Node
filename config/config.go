@@ -227,8 +227,14 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	}
 
 	v.SetEnvPrefix(EnvPrefix)
-	v.SetEnvKeyReplacer(strings.NewReplacer(`.`, `_`))
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	v.AutomaticEnv()
+
+	// Explicitly bind environment variables
+	err := v.BindEnv("discovery.server.access_token")
+	if err != nil {
+		return nil, err
+	}
 
 	// Read config file
 	if err := v.ReadInConfig(); err != nil {
@@ -254,6 +260,11 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	// Set default values.
 	if err := defaults.Set(&configFile); err != nil {
 		return nil, fmt.Errorf("set default values: %w", err)
+	}
+
+	// Explicitly set the access token from the environment if it exists
+	if envAccessToken := v.GetString("discovery.server.access_token"); envAccessToken != "" {
+		configFile.Discovery.Server.AccessToken = envAccessToken
 	}
 
 	// validate config values.
