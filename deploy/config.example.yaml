@@ -77,6 +77,8 @@ endpoints:
     # For example, you can use the `x-api-key`, or `any-header`.
     x-api-key: apikey
     url: https://rpc.rss3.io
+  arweave:
+    url: https://arweave.net
 
 # `component` is used to split different types of networks.
 component:
