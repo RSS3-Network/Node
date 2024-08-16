@@ -39,8 +39,6 @@ observability:
 
 endpoints:
   vsl:
-    http2_disabled: true
-    x-api-key: apikey
     url: https://rpc.rss3.io
 
 component:
