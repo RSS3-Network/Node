@@ -105,3 +105,15 @@ component:
       # `worker` is the actual worker that processes the data.
       # You can find the list of available workers here: https://github.com/RSS3-Network/Node/blob/develop/README.md#supported-networks-and-workers.
       worker: core
+    - id: arweave-mirror
+      network: arweave
+      endpoint: arweave
+      worker: mirror
+      # `ipfs_gateways` is used to specify the IPFS gateways used by the worker.
+      # Supplying multiple gateways may improve the indexing performance and reliability.
+      ipfs_gateways:
+        - https://ipfs.io
+        - https://cloudflare-ipfs.com
+      parameters:
+        # `concurrent_block_requests` is used to specify the number of concurrent block requests.
+        concurrent_block_requests: 2
