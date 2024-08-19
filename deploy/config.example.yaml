@@ -20,6 +20,8 @@ discovery:
     # If your Node is registered on the VSL Testnet, use https://gi.rss3.dev.
     # Otherwise, DO NOT change this value.
     global_indexer_endpoint: https://gi.rss3.io
+    # Use access_token to protect your Node from unauthorized access.
+    access_token: your_access_token
 
 # Database configuration
 database:
@@ -54,10 +56,10 @@ stream:
 observability:
   opentelemetry:
     metrics:
-      enable: true
+      enable: false
       endpoint: 0.0.0.0:9090
     traces:
-      enable: true
+      enable: false
       endpoint: localhost:4318
       insecure: true
 
