@@ -60,15 +60,15 @@ observability:
       endpoint: localhost:4318
 component:
   rss:
-    - network: rss
-      worker: rsshub
-      endpoint: https://rsshub.app/
-      parameters:
-        authentication:
-          username: user
-          password: pass
-          access_key: abc
-          access_code: def
+    network: rss
+    worker: rsshub
+    endpoint: https://rsshub.app/
+    parameters:
+      authentication:
+       username: user
+       password: pass
+       access_key: abc
+       access_code: def
   decentralized:
     - network: ethereum
       worker: core
@@ -135,7 +135,7 @@ component:
     }
   },
   "component": {
-    "rss": [
+    "rss": 
       {
         "network": "rss",
         "worker": "rsshub",
@@ -148,8 +148,7 @@ component:
             "access_code": "def"
           }
         }
-      }
-    ],
+      },
     "decentralized": [
       {
         "network": "ethereum",
@@ -215,7 +214,7 @@ enable = true
 insecure = true
 endpoint = "localhost:4318"
 
-[[component.rss]]
+[component.rss]
 network = "rss"
 worker = "rsshub"
 endpoint = "https://rsshub.app/"
@@ -270,21 +269,19 @@ var configFileExpected = &File{
 		},
 	},
 	Component: &Component{
-		RSS: []*Module{
-			{
-				Network:    network.RSS,
-				EndpointID: "https://rsshub.app/",
-				Endpoint: Endpoint{
-					URL: "https://rsshub.app/",
-				},
-				Worker: rss.RSSHub,
-				Parameters: &Parameters{
-					"authentication": map[string]any{
-						"access_code": "def",
-						"access_key":  "abc",
-						"password":    "pass",
-						"username":    "user",
-					},
+		RSS: &Module{
+			Network:    network.RSS,
+			EndpointID: "https://rsshub.app/",
+			Endpoint: Endpoint{
+				URL: "https://rsshub.app/",
+			},
+			Worker: rss.RSSHub,
+			Parameters: &Parameters{
+				"authentication": map[string]any{
+					"access_code": "def",
+					"access_key":  "abc",
+					"password":    "pass",
+					"username":    "user",
 				},
 			},
 		},
@@ -542,20 +539,18 @@ func AssertConfig(t *testing.T, expect, got *File) {
 	})
 
 	t.Run("decentralized", func(t *testing.T) {
-		for i, rss := range expect.Component.RSS {
-			func(_except, got *Module) {
-				t.Run(fmt.Sprintf("rss-%d", i), func(t *testing.T) {
-					t.Parallel()
-					assert.Equal(t, _except, got)
-				})
-			}(rss, got.Component.RSS[i])
-		}
+		func(_expect, got *Module) {
+			t.Run("rss", func(t *testing.T) {
+				t.Parallel()
+				assert.Equal(t, _expect, got)
+			})
+		}(expect.Component.RSS, got.Component.RSS)
 
 		for i, indexer := range got.Component.Decentralized {
-			func(_except, got *Module) {
+			func(_expect, got *Module) {
 				t.Run(fmt.Sprintf("%s-%s", indexer.Network, indexer.Worker), func(t *testing.T) {
 					t.Parallel()
-					AssertIndexer(t, _except, got)
+					AssertIndexer(t, _expect, got)
 				})
 			}(configFileExpected.Component.Decentralized[i], indexer)
 		}

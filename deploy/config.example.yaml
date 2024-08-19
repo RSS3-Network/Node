@@ -80,15 +80,15 @@ endpoints:
 
 # `component` is used to split different types of networks.
 component:
-  # `rss` network type includes workers indexing data in RSS format.
+  # `rss` network type includes the worker indexing data in RSS format.
   rss:
-    - id: rss-rsshub
-      network: rss
-      worker: rsshub
-      endpoint: https://your.rsshub.com/
-      parameters:
-        authentication:
-          access_key:
+    id: rss-rsshub
+    network: rss
+    worker: rsshub
+    endpoint: https://your.rsshub.com/
+    parameters:
+      authentication:
+        access_key:
   # `decentralized` network type includes workers indexing data from decentralized networks such as blockchain networks, Arweave, etc.
   decentralized:
     # Each configuration here initializes a worker.

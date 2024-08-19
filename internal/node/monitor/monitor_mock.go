@@ -8,13 +8,14 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
 func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState CheckpointState, targetWorkerState, latestState uint64) error {
 	var wg sync.WaitGroup
 
-	errChan := make(chan error, len(m.config.Component.Decentralized)+len(m.config.Component.RSS))
+	errChan := make(chan error, len(m.config.Component.Decentralized)+lo.Ternary(m.config.Component.RSS != nil, 1, 0))
 
 	for _, w := range m.config.Component.Decentralized {
 		wg.Add(1)
@@ -28,16 +29,16 @@ func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState Chec
 		}(w)
 	}
 
-	for _, w := range m.config.Component.RSS {
+	if m.config.Component.RSS != nil {
 		wg.Add(1)
 
 		go func(w *config.Module) {
 			defer wg.Done()
 
-			if err := m.processRSSWorker(ctx, w); err != nil {
+			if err := m.processMockWorker(ctx, w, currentState, targetWorkerState, latestState); err != nil {
 				errChan <- err
 			}
-		}(w)
+		}(m.config.Component.RSS)
 	}
 
 	go func() {

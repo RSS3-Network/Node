@@ -11,6 +11,7 @@ import (
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
@@ -34,7 +35,7 @@ type WorkerProgress struct {
 func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 	var wg sync.WaitGroup
 
-	errChan := make(chan error, len(m.config.Component.Decentralized)+len(m.config.Component.RSS)+len(m.config.Component.Federated))
+	errChan := make(chan error, len(m.config.Component.Decentralized)+lo.Ternary(m.config.Component.RSS != nil, 1, 0)+len(m.config.Component.Federated))
 
 	processWorker := func(w *config.Module, processFunc func(context.Context, *config.Module) error) {
 		wg.Add(1)
@@ -52,8 +53,8 @@ func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 		processWorker(w, m.processDecentralizedWorker)
 	}
 
-	for _, w := range m.config.Component.RSS {
-		processWorker(w, m.processRSSWorker)
+	if m.config.Component.RSS != nil {
+		processWorker(m.config.Component.RSS, m.processRSSWorker)
 	}
 
 	go func() {

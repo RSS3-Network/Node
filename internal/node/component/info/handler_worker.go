@@ -15,6 +15,7 @@ import (
 	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/samber/lo"
 )
 
 type WorkerResponse struct {
@@ -23,7 +24,7 @@ type WorkerResponse struct {
 
 type ComponentInfo struct {
 	Decentralized []*WorkerInfo `json:"decentralized"`
-	RSS           []*WorkerInfo `json:"rss"`
+	RSS           *WorkerInfo   `json:"rss"`
 	Federated     []*WorkerInfo `json:"federated"`
 }
 
@@ -41,7 +42,7 @@ type WorkerInfo struct {
 func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, "status")
 
-	workerCount := len(c.config.Component.Decentralized) + len(c.config.Component.RSS) + len(c.config.Component.Federated)
+	workerCount := len(c.config.Component.Decentralized) + lo.Ternary(c.config.Component.RSS != nil, 1, 0) + len(c.config.Component.Federated)
 	workerInfoChan := make(chan *WorkerInfo, workerCount)
 
 	var response *WorkerResponse
@@ -52,22 +53,19 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 
 		// Build the worker response.
 		response = c.buildWorkerResponse(workerInfoChan)
-	} else if len(c.config.Component.RSS) > 0 {
+	} else if c.config.Component.RSS != nil {
+		m := c.config.Component.RSS
+
 		response = &WorkerResponse{
 			Data: ComponentInfo{
-				RSS: make([]*WorkerInfo, 0, len(c.config.Component.RSS)),
+				RSS: &WorkerInfo{
+					WorkerID: m.ID,
+					Network:  m.Network,
+					Worker:   m.Worker,
+					Tags:     []tag.Tag{tag.RSS},
+					Platform: decentralized.PlatformUnknown,
+					Status:   worker.StatusReady},
 			},
-		}
-
-		for _, m := range c.config.Component.RSS {
-			response.Data.RSS = append(response.Data.RSS, &WorkerInfo{
-				WorkerID: m.ID,
-				Network:  m.Network,
-				Worker:   m.Worker,
-				Tags:     []tag.Tag{tag.RSS},
-				Platform: decentralized.PlatformUnknown,
-				Status:   worker.StatusReady,
-			})
 		}
 	}
 
@@ -88,7 +86,7 @@ func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *
 		}(w)
 	}
 
-	modules := append(append(c.config.Component.Decentralized, c.config.Component.RSS...), c.config.Component.Federated...)
+	modules := append(append(c.config.Component.Decentralized, c.config.Component.RSS), c.config.Component.Federated...)
 
 	for _, m := range modules {
 		fetchWorkerInfo(m, c.fetchWorkerInfo)
@@ -105,7 +103,7 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 	response := &WorkerResponse{
 		Data: ComponentInfo{
 			Decentralized: []*WorkerInfo{},
-			RSS:           []*WorkerInfo{},
+			RSS:           &WorkerInfo{},
 			Federated:     []*WorkerInfo{},
 		},
 	}
@@ -113,7 +111,7 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 	for workerInfo := range workerInfoChan {
 		switch workerInfo.Network.Source() {
 		case network.RSSSource:
-			response.Data.RSS = append(response.Data.RSS, workerInfo)
+			response.Data.RSS = workerInfo
 		case network.EthereumSource, network.FarcasterSource, network.ArweaveSource:
 			response.Data.Decentralized = append(response.Data.Decentralized, workerInfo)
 		default:
