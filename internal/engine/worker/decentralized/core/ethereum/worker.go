@@ -17,6 +17,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum/contract/erc1155"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
+	"github.com/rss3-network/node/provider/ethereum/contract/rss3"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	workerx "github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
@@ -35,12 +36,14 @@ import (
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
-	config          *config.Module
-	ethereumClient  ethereum.Client
-	tokenClient     token.Client
-	erc20Filterer   *erc20.ERC20Filterer
-	erc721Filterer  *erc721.ERC721Filterer
-	erc1155Filterer *erc1155.ERC1155Filterer
+	config             *config.Module
+	ethereumClient     ethereum.Client
+	tokenClient        token.Client
+	erc20Filterer      *erc20.ERC20Filterer
+	erc721Filterer     *erc721.ERC721Filterer
+	erc1155Filterer    *erc1155.ERC1155Filterer
+	stakingVSLFilterer *rss3.StakingVSLFilterer
+	chipsFilterer      *rss3.ChipsFilterer
 }
 
 func (w *worker) Name() string {
@@ -73,6 +76,7 @@ func (w *worker) Tags() []tag.Tag {
 		tag.Unknown,
 		tag.Collectible,
 		tag.Transaction,
+		tag.Exchange,
 	}
 }
 
@@ -86,6 +90,7 @@ func (w *worker) Types() []schema.Type {
 		typex.CollectibleApproval,
 		typex.CollectibleMint,
 		typex.TransactionBurn,
+		typex.ExchangeStaking,
 	}
 }
 
@@ -151,6 +156,16 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			)
 
 			switch {
+			//	VSL Staking
+			case w.matchStakingVSLDeposited(ethereumTask, log):
+				logActions, err = w.handleStakingVSLDeposited(ctx, ethereumTask, log)
+				activity.Platform = workerx.PlatformVSL.String()
+			case w.matchStakingVSLStaked(ethereumTask, log):
+				logActions, err = w.handleStakingVSLStaked(ctx, ethereumTask, log)
+				activity.Platform = workerx.PlatformVSL.String()
+			case w.matchChipsTransfer(ethereumTask, log):
+				logActions, err = w.handleChipsMint(ctx, ethereumTask, log)
+				activity.Platform = workerx.PlatformVSL.String()
 			case w.matchERC20TransferLog(ethereumTask, log):
 				logActions, err = w.handleERC20TransferLog(ctx, ethereumTask, log)
 			case w.matchERC20ApprovalLog(ethereumTask, log):
@@ -223,6 +238,21 @@ func (w *worker) matchERC1155TransferLog(_ *source.Task, log *ethereum.Log) bool
 
 func (w *worker) matchERC1155ApprovalLog(_ *source.Task, log *ethereum.Log) bool {
 	return len(log.Topics) == 3 && contract.MatchEventHashes(log.Topics[0], erc1155.EventHashApprovalForAll)
+}
+
+// matchStakingVSLDeposited matches the staking VSL deposited event.
+func (w *worker) matchStakingVSLDeposited(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == rss3.AddressStakingVSL && contract.MatchEventHashes(log.Topics[0], rss3.EventHashStakingVSLDeposited)
+}
+
+// matchStakingVSLStaked matches the staking VSL staked event.
+func (w *worker) matchStakingVSLStaked(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == rss3.AddressStakingVSL && contract.MatchEventHashes(log.Topics[0], rss3.EventHashStakingVSLStaked)
+}
+
+// matchTransfer matches the transfer event.
+func (w *worker) matchChipsTransfer(_ *source.Task, log *ethereum.Log) bool {
+	return log.Address == rss3.AddressChipsVSL && contract.MatchEventHashes(log.Topics[0], rss3.EventHashTransfer)
 }
 
 func (w *worker) handleNativeTransferTransaction(ctx context.Context, task *source.Task) (*activityx.Action, error) {
@@ -392,6 +422,62 @@ func (w *worker) handleERC1155ApproveLog(ctx context.Context, task *source.Task,
 	return actions, nil
 }
 
+// handleStakingVSLDeposited  handles the staking VSL deposited event.
+func (w *worker) handleStakingVSLDeposited(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+	event, err := w.stakingVSLFilterer.ParseDeposited(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Deposited event: %w", err)
+	}
+
+	action, err := w.buildExchangeStakingVSLAction(ctx, task, task.Transaction.From, event.NodeAddr, event.Amount, metadata.ActionExchangeStakingStake)
+	if err != nil {
+		return nil, fmt.Errorf("build exchange staking action: %w", err)
+	}
+
+	actions := []*activityx.Action{
+		action,
+	}
+
+	return actions, nil
+}
+
+// handleStakingVSLStaked  handles the staking VSL staked event.
+func (w *worker) handleStakingVSLStaked(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+	event, err := w.stakingVSLFilterer.ParseStaked(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Deposited event: %w", err)
+	}
+
+	stakingAction, err := w.buildExchangeStakingVSLAction(ctx, task, task.Transaction.From, event.NodeAddr, event.Amount, metadata.ActionExchangeStakingStake)
+	if err != nil {
+		return nil, fmt.Errorf("build exchange staking action: %w", err)
+	}
+
+	actions := []*activityx.Action{
+		stakingAction,
+	}
+
+	return actions, nil
+}
+
+// handleChipsMint  handles the transfer event.
+func (w *worker) handleChipsMint(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+	// Parse Transfer event.
+	event, err := w.chipsFilterer.ParseTransfer(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Transfer event: %w", err)
+	}
+
+	action, err := w.buildChipsMintAction(ctx, task, event.From, event.To, log.Address, event.TokenId, big.NewInt(1))
+	if err != nil {
+		return nil, fmt.Errorf("build ChipsMint action: %w", err)
+	}
+
+	return []*activityx.Action{
+		action,
+	}, nil
+}
+
 func (w *worker) buildTransactionTransferAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*activityx.Action, error) {
 	chainID, err := network.EthereumChainIDString(task.GetNetwork().String())
 	if err != nil {
@@ -529,6 +615,48 @@ func (w *worker) buildCollectibleApprovalAction(ctx context.Context, task *sourc
 	return &action, nil
 }
 
+// buildExchangeStakingVSLAction builds the exchange staking VSL action.
+func (w *worker) buildExchangeStakingVSLAction(ctx context.Context, task *source.Task, from, to common.Address, tokenValue *big.Int, stakingAction metadata.ExchangeStakingAction) (*activityx.Action, error) {
+	// The Token always is $RSS3.
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, nil, nil, task.Header.Number)
+	if err != nil {
+		return nil, fmt.Errorf("lookup token: %w", err)
+	}
+
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+
+	action := activityx.Action{
+		Type:     typex.ExchangeStaking,
+		Platform: workerx.PlatformVSL.String(),
+		From:     from.String(),
+		To:       to.String(),
+		Metadata: metadata.ExchangeStaking{
+			Action: stakingAction,
+			Token:  *tokenMetadata,
+		},
+	}
+
+	return &action, nil
+}
+
+// buildChipsMintAction builds the ChipsMint action.
+func (w *worker) buildChipsMintAction(ctx context.Context, task *source.Task, from, to common.Address, contract common.Address, id *big.Int, value *big.Int) (*activityx.Action, error) {
+	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &contract, id, task.Header.Number)
+	if err != nil {
+		return nil, fmt.Errorf("lookup token metadata: %w", err)
+	}
+
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
+
+	return &activityx.Action{
+		Type:     typex.CollectibleMint,
+		Platform: workerx.PlatformVSL.String(),
+		From:     from.String(),
+		To:       to.String(),
+		Metadata: metadata.CollectibleTransfer(*tokenMetadata),
+	}, nil
+}
+
 // Handle invalid token error.
 func isInvalidTokenErr(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "unsupported NFT standard")
@@ -550,6 +678,11 @@ func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker
 	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
 	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
 	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
+
+	if instance.config.Network == network.VSL {
+		instance.stakingVSLFilterer = lo.Must(rss3.NewStakingVSLFilterer(ethereum.AddressGenesis, nil))
+		instance.chipsFilterer = lo.Must(rss3.NewChipsFilterer(ethereum.AddressGenesis, nil))
+	}
 
 	return &instance, nil
 }
