@@ -27,6 +27,12 @@ redis:
     key_file: /path/to/client.key
     insecure_skip_verify: false
 
+stream:
+  enable: false
+  driver: kafka
+  topic: rss3.node.activities
+  uri: localhost:9092
+
 observability:
   opentelemetry:
     metrics:
