@@ -943,7 +943,7 @@ func TestMonitor(t *testing.T) {
 							ID:         "rss-rsshub",
 							Network:    network.RSS,
 							Worker:     rss.RSSHub,
-							EndpointID: "https://rsshub3.henry.wang",
+							EndpointID: "https://rsshub3.bruce.com",
 						},
 					},
 				},

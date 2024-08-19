@@ -7,6 +7,7 @@ import (
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/parameter"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
@@ -35,7 +36,7 @@ func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState Chec
 		go func(w *config.Module) {
 			defer wg.Done()
 
-			if err := m.processMockWorker(ctx, w, currentState, targetWorkerState, latestState); err != nil {
+			if err := m.processMockRSSWorker(ctx, w); err != nil {
 				errChan <- err
 			}
 		}(m.config.Component.RSS)
@@ -55,7 +56,7 @@ func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState Chec
 	return nil
 }
 
-// processWorker processes the worker status.
+// processWorker processes the decentralized worker status.
 func (m *Monitor) processMockWorker(ctx context.Context, w *config.Module, currentState CheckpointState, targetWorkerState, latestWorkerState uint64) error {
 	// get current indexing block height, number or event id and the latest block height, number, timestamp of network
 	currentWorkerState, _, _, err := m.getWorkerIndexingStateByClients(ctx, w.Network, w.Worker.Name(), currentState, w.Parameters)
@@ -81,4 +82,19 @@ func (m *Monitor) processMockWorker(ctx context.Context, w *config.Module, curre
 	}
 
 	return nil
+}
+
+// processMockRSSWorker processes the rss worker status.
+func (m *Monitor) processMockRSSWorker(ctx context.Context, w *config.Module) error {
+	client, ok := m.clients[w.Network]
+	if !ok {
+		return fmt.Errorf("client not exist")
+	}
+
+	targetStatus := workerx.StatusReady
+	if _, _, err := client.LatestState(ctx); err != nil {
+		targetStatus = workerx.StatusUnhealthy
+	}
+
+	return m.UpdateWorkerStatusByID(ctx, w.ID, targetStatus.String())
 }

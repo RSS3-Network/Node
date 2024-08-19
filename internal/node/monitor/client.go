@@ -199,8 +199,7 @@ func NewRssClient(endpoint string, param *config.Parameters) (Client, error) {
 	}
 
 	// used for health checks
-	// https://rsshub.app/api/reference#tag/namespace
-	base.Path = path.Join(base.Path, "api/namespace")
+	base.Path = path.Join(base.Path, "healthz")
 
 	option, err := rss.NewOption(param)
 	if err != nil {
