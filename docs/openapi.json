@@ -833,8 +833,12 @@
                         "type": "string"
                     },
                     "coverage": {
-                        "description": "The coverage rate of supported workers.",
-                        "type": "number"
+                        "description": "The supported worker list of the node.",
+                        "items":{
+                            "description": "The worker name.",
+                            "type": "string"
+                        },
+                        "type": "array"
                     },
                     "records": {
                         "$ref": "#/components/schemas/Records"

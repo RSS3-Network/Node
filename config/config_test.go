@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -405,6 +406,43 @@ func TestConfigEnvOverride(t *testing.T) {
 	assert.Equal(t, exceptEnvironment, f.Environment)
 	assert.Equal(t, exceptDatabaseURI, f.Database.URI)
 	assert.Equal(t, exceptMetricsEndpoint, f.Observability.OpenTelemetry.Metrics.Endpoint)
+}
+
+//nolint:paralleltest
+func TestConfigEnvOverrideAccessToken(t *testing.T) {
+	configDir := "/etc/rss3/node"
+	fs := afero.NewMemMapFs()
+
+	err := fs.Mkdir(configDir, 0o777)
+	assert.NoError(t, err)
+
+	// Create a config file without access_token
+	configWithoutToken := strings.Replace(configExampleYaml,
+		"access_token: test",
+		"# access_token: test", 1)
+
+	file, err := fs.Create(path.Join(configDir, configName))
+	assert.NoError(t, err)
+
+	_, err = file.WriteString(configWithoutToken)
+	require.NoError(t, err)
+
+	v := viper.New()
+	v.SetFs(fs)
+
+	// Set the environment variable
+	envToken := "env_access_token"
+	t.Setenv("NODE_DISCOVERY_SERVER_ACCESS_TOKEN", envToken)
+
+	f, err := _Setup(configName, "yaml", v)
+	assert.NoError(t, err)
+
+	// Check if the access token is set from the environment variable
+	assert.Equal(t, envToken, f.Discovery.Server.AccessToken)
+
+	// Check other config values to ensure they're still correctly set
+	assert.Equal(t, "development", f.Environment)
+	assert.Equal(t, "postgres://root@localhost:26257/defaultdb", f.Database.URI)
 }
 
 func TestConfigFilePath(t *testing.T) {

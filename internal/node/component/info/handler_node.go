@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -17,8 +16,6 @@ import (
 	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/node/component/decentralized"
-	"github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -39,10 +36,16 @@ type NodeInfoResponse struct {
 
 type GIRewardsResponse struct {
 	Data []struct {
-		ID                    uint64          `json:"id"`
-		TotalOperationRewards decimal.Decimal `json:"total_operation_rewards"`
-		TotalStakingRewards   decimal.Decimal `json:"total_staking_rewards"`
-		TotalRequestCounts    decimal.Decimal `json:"total_request_counts"`
+		ID            uint64 `json:"id"`
+		Distributions []struct {
+			ID            uint64 `json:"id"`
+			RewardedNodes []struct {
+				EpochID          uint64          `json:"epoch_id"`
+				OperationRewards decimal.Decimal `json:"operation_rewards"`
+				StakingRewards   decimal.Decimal `json:"staking_rewards"`
+				RequestCount     decimal.Decimal `json:"request_count"`
+			} `json:"rewarded_nodes"`
+		} `json:"distributions"`
 	} `json:"data"`
 }
 
@@ -58,7 +61,7 @@ type NodeInfo struct {
 	Version    Version        `json:"version"`
 	Uptime     int64          `json:"uptime"`
 	Parameters string         `json:"parameters"`
-	Coverage   float64        `json:"coverage"`
+	Coverage   []string       `json:"coverage"`
 	Records    Record         `json:"records"`
 }
 
@@ -173,29 +176,23 @@ func (c *Component) buildVersion() Version {
 }
 
 // getNodeWorkerCoverage returns the worker coverage.
-func (c *Component) getNodeWorkerCoverage() float64 {
-	// should be divided by the total workers to get worker coverage
-	currentWorkerCount := len(c.config.Component.Decentralized) + len(c.config.Component.RSS) + len(c.config.Component.Federated)
-	totalWorkerCount := calculateTotalWorkers(NetworkToWorkersMap)
+func (c *Component) getNodeWorkerCoverage() []string {
+	workerCoverage := make([]string, 0, len(c.config.Component.Decentralized)+len(c.config.Component.RSS)+len(c.config.Component.Federated))
 
-	// Calculate worker coverage
-	workerCoverage := 0.0
-	if totalWorkerCount > 0 {
-		workerCoverage = float64(currentWorkerCount) / float64(totalWorkerCount)
-		workerCoverage = math.Round(workerCoverage*10000) / 10000
+	// append all workers
+	for _, worker := range c.config.Component.Decentralized {
+		workerCoverage = append(workerCoverage, worker.Worker.Name())
 	}
 
-	return workerCoverage
-}
-
-// calculateTotalWorkers calculates the total number of workers in the network.
-func calculateTotalWorkers(networkToWorkersMap map[network.Network][]worker.Worker) int {
-	totalWorkerCount := 0
-	for _, workers := range networkToWorkersMap {
-		totalWorkerCount += len(workers)
+	for _, worker := range c.config.Component.RSS {
+		workerCoverage = append(workerCoverage, worker.Worker.Name())
 	}
 
-	return totalWorkerCount
+	for _, worker := range c.config.Component.Federated {
+		workerCoverage = append(workerCoverage, worker.Worker.Name())
+	}
+
+	return lo.Uniq(workerCoverage)
 }
 
 // getNodeUptime returns the node uptime.
@@ -250,13 +247,22 @@ func (c *Component) getNodeRewards(ctx context.Context, address common.Address) 
 	rewards := make([]Reward, 0, len(resp.Data))
 
 	for _, data := range resp.Data {
-		reward := Reward{
-			Epoch:            data.ID,
-			OperationRewards: data.TotalOperationRewards,
-			StakingRewards:   data.TotalStakingRewards,
-			RequestCounts:    data.TotalRequestCounts,
+		if len(data.Distributions) > 0 && len(data.Distributions[0].RewardedNodes) > 0 {
+			rewardedNode := data.Distributions[0].RewardedNodes[0]
+
+			var reward Reward
+
+			if rewardedNode.EpochID == data.ID {
+				reward = Reward{
+					Epoch:            data.ID,
+					OperationRewards: rewardedNode.OperationRewards,
+					StakingRewards:   rewardedNode.StakingRewards,
+					RequestCounts:    rewardedNode.RequestCount,
+				}
+			}
+
+			rewards = append(rewards, reward)
 		}
-		rewards = append(rewards, reward)
 	}
 
 	return rewards, nil

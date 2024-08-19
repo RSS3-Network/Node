@@ -7,7 +7,7 @@ import (
 )
 
 // NumberOfMonthsToCover the number of months that a Node should cover data for
-const NumberOfMonthsToCover = 3
+const NumberOfMonthsToCover = 4
 
 type NetworkTolerance map[network.Network]uint64
 type NetworkStartBlock map[network.Network]*big.Int
