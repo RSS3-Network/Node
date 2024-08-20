@@ -291,7 +291,6 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.VSL: {
 		decentralized.Core,
 		decentralized.RSS3,
-		decentralized.VSL,
 	},
 	network.SatoshiVM: {
 		decentralized.Core,
@@ -338,7 +337,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.SAVM:       defaultWorkerConfig(decentralized.SAVM, network.EthereumSource, nil),
 		decentralized.Stargate:   defaultWorkerConfig(decentralized.Stargate, network.EthereumSource, nil),
 		decentralized.Uniswap:    defaultWorkerConfig(decentralized.Uniswap, network.EthereumSource, nil),
-		decentralized.VSL:        defaultWorkerConfig(decentralized.VSL, network.EthereumSource, nil),
 	},
 	network.ArweaveSource: {
 		decentralized.Mirror:    customWorkerConfigWithoutEndpoint(decentralized.Mirror, network.ArweaveSource, nil, true),

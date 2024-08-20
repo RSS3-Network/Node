@@ -1,4 +1,4 @@
-package cockroachdb
+package postgres
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rss3-network/node/internal/database/dialer/cockroachdb/table"
+	"github.com/rss3-network/node/internal/database/dialer/postgres/table"
 	"github.com/rss3-network/node/internal/database/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/samber/lo"
@@ -522,19 +522,15 @@ func (c *client) buildFindIndexStatement(ctx context.Context, partitionedName st
 func (c *client) buildFindIndexesStatement(ctx context.Context, partition string, query model.ActivitiesQuery) *gorm.DB {
 	databaseStatement := c.database.WithContext(ctx).Table(partition)
 
-	var tbl *string
-
 	if query.Distinct != nil && lo.FromPtr(query.Distinct) {
 		databaseStatement = databaseStatement.Select("DISTINCT (id) id, timestamp, index, network")
 	}
 
 	if query.Owner != nil {
-		tbl = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
 		databaseStatement = databaseStatement.Where("owner = ?", query.Owner)
 	}
 
 	if len(query.Owners) > 0 {
-		tbl = lo.ToPtr(fmt.Sprintf(`%s@idx_indexes_owner`, partition))
 		databaseStatement = databaseStatement.Where("owner IN ?", query.Owners)
 	}
 
@@ -576,10 +572,6 @@ func (c *client) buildFindIndexesStatement(ctx context.Context, partition string
 
 	if query.Cursor != nil && query.Cursor.Timestamp > 0 {
 		databaseStatement = databaseStatement.Where("timestamp < ? OR (timestamp = ? AND index < ?)", time.Unix(int64(query.Cursor.Timestamp), 0), time.Unix(int64(query.Cursor.Timestamp), 0), query.Cursor.Index)
-	}
-
-	if tbl != nil {
-		databaseStatement.Statement.TableExpr.SQL = *tbl
 	}
 
 	return databaseStatement.Order("timestamp DESC, index DESC").Limit(query.Limit)
