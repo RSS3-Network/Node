@@ -62,4 +62,4 @@ jobs:
           branch: update-readme-${{ steps.datetime.outputs.datetime }}
           title: "ci(README.md): update supported network and worker (${{ steps.datetime.outputs.datetime }})"
           body: "This PR updates the README.md file with the latest supported network and worker information."
-          base: develop
+          base: main

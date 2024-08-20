@@ -2,7 +2,7 @@ name: Test
 on:
   push:
     branches:
-      - develop
+      - main
     paths-ignore:
       - "deploy/**"
   pull_request:

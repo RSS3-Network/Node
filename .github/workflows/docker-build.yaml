@@ -3,7 +3,7 @@ name: build & push
 on:
   push:
     branches:
-      - develop
+      - main
     tags:
       - "*"
   pull_request:
@@ -120,5 +120,3 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           docker buildx imagetools inspect rss3/node:${{ steps.meta.outputs.version }}
-
-
