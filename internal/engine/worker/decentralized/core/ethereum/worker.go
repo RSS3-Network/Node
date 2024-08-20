@@ -858,17 +858,13 @@ func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker
 	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
 	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
 
-	// Initialize VSL contract filterers.
-	if instance.config.Network == network.Ethereum {
-		instance.contractL1StandardBridgeFilterer = lo.Must(vsl.NewL1StandardBridgeFilterer(ethereum.AddressGenesis, nil))
-		instance.contractL2StandardBridgeFilterer = lo.Must(vsl.NewL2StandardBridgeFilterer(ethereum.AddressGenesis, nil))
-	}
-
 	// Initialize RSS3 contract filterers.
-	if instance.config.Network == network.VSL {
-		instance.stakingVSLFilterer = lo.Must(rss3.NewStakingVSLFilterer(ethereum.AddressGenesis, nil))
-		instance.chipsFilterer = lo.Must(rss3.NewChipsFilterer(ethereum.AddressGenesis, nil))
-	}
+	instance.stakingVSLFilterer = lo.Must(rss3.NewStakingVSLFilterer(ethereum.AddressGenesis, nil))
+	instance.chipsFilterer = lo.Must(rss3.NewChipsFilterer(ethereum.AddressGenesis, nil))
+
+	// Initialize VSL contract filterers.
+	instance.contractL1StandardBridgeFilterer = lo.Must(vsl.NewL1StandardBridgeFilterer(ethereum.AddressGenesis, nil))
+	instance.contractL2StandardBridgeFilterer = lo.Must(vsl.NewL2StandardBridgeFilterer(ethereum.AddressGenesis, nil))
 
 	return &instance, nil
 }
