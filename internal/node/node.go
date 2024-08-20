@@ -73,7 +73,7 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 	infoComponent := info.NewComponent(ctx, apiServer, config, databaseClient, redisClient, networkParamsCaller)
 	node.components = append(node.components, &infoComponent)
 
-	if len(config.Component.RSS) > 0 {
+	if config.Component.RSS != nil {
 		rssComponent := rss.NewComponent(ctx, apiServer, config)
 		node.components = append(node.components, &rssComponent)
 	}

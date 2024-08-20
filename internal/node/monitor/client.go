@@ -199,7 +199,7 @@ func NewRssClient(endpoint string, param *config.Parameters) (Client, error) {
 	}
 
 	// used for health checks
-	base.Path = path.Join(base.Path, "abc")
+	base.Path = path.Join(base.Path, "healthz")
 
 	option, err := rss.NewOption(param)
 	if err != nil {
