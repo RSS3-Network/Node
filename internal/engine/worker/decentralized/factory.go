@@ -29,7 +29,6 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/savm"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/stargate"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/uniswap"
-	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/vsl"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/core"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 )
@@ -78,8 +77,6 @@ func New(config *config.Module, databaseClient database.Client, redisClient ruei
 		return kiwistand.NewWorker(config)
 	case decentralized.SAVM:
 		return savm.NewWorker(config)
-	case decentralized.VSL:
-		return vsl.NewWorker(config)
 	case decentralized.Stargate:
 		return stargate.NewWorker(config)
 	case decentralized.Curve:
