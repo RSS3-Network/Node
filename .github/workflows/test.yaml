@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - prod
     paths-ignore:
       - "deploy/**"
   pull_request:
