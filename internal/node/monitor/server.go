@@ -54,10 +54,10 @@ func (m *Monitor) Run(ctx context.Context) error {
 		m.cron.Start()
 	}
 
-	stopchan := make(chan os.Signal, 1)
+	stopChan := make(chan os.Signal, 1)
 
-	signal.Notify(stopchan, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
-	<-stopchan
+	signal.Notify(stopChan, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
+	<-stopChan
 
 	return nil
 }
@@ -90,7 +90,20 @@ func initNetworkClient(m *config.Module) (Client, error) {
 
 // NewMonitor creates a new monitor instance.
 func NewMonitor(_ context.Context, configFile *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) (*Monitor, error) {
-	modules := append(append(configFile.Component.Decentralized, configFile.Component.RSS...), configFile.Component.Federated...)
+	totalModules := len(configFile.Component.Decentralized) + len(configFile.Component.Federated)
+	if configFile.Component.RSS != nil {
+		totalModules++
+	}
+
+	modules := make([]*config.Module, 0, totalModules)
+
+	modules = append(modules, configFile.Component.Decentralized...)
+
+	modules = append(modules, configFile.Component.Federated...)
+
+	if configFile.Component.RSS != nil {
+		modules = append(modules, configFile.Component.RSS)
+	}
 
 	clients := make(map[network.Network]Client)
 

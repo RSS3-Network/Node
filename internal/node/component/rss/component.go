@@ -58,20 +58,16 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File) 
 		panic(err)
 	}
 
-	for _, conf := range config.Component.RSS {
-		if conf.Network == network.RSS {
-			c.rsshub = &configx{
-				id:       conf.ID,
-				network:  conf.Network,
-				worker:   conf.Worker,
-				endpoint: conf.Endpoint.URL,
-			}
+	if config.Component.RSS != nil && config.Component.RSS.Network == network.RSS {
+		c.rsshub = &configx{
+			id:       config.Component.RSS.ID,
+			network:  config.Component.RSS.Network,
+			worker:   config.Component.RSS.Worker,
+			endpoint: config.Component.RSS.Endpoint.URL,
+		}
 
-			if err := c.setAccessKey(conf); err != nil {
-				c.rsshub = nil
-			}
-
-			break
+		if err := c.setAccessKey(config.Component.RSS); err != nil {
+			c.rsshub = nil
 		}
 	}
 

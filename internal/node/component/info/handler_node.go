@@ -177,15 +177,15 @@ func (c *Component) buildVersion() Version {
 
 // getNodeWorkerCoverage returns the worker coverage.
 func (c *Component) getNodeWorkerCoverage() []string {
-	workerCoverage := make([]string, 0, len(c.config.Component.Decentralized)+len(c.config.Component.RSS)+len(c.config.Component.Federated))
+	workerCoverage := make([]string, 0, len(c.config.Component.Decentralized)+lo.Ternary(c.config.Component.RSS != nil, 1, 0)+len(c.config.Component.Federated))
 
 	// append all workers
 	for _, worker := range c.config.Component.Decentralized {
 		workerCoverage = append(workerCoverage, worker.Worker.Name())
 	}
 
-	for _, worker := range c.config.Component.RSS {
-		workerCoverage = append(workerCoverage, worker.Worker.Name())
+	if c.config.Component.RSS != nil {
+		workerCoverage = append(workerCoverage, c.config.Component.RSS.Worker.Name())
 	}
 
 	for _, worker := range c.config.Component.Federated {

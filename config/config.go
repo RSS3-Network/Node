@@ -61,7 +61,7 @@ func (f *File) LoadModulesEndpoint() error {
 		}
 	}
 
-	assignEndpoint(f.Component.RSS)
+	assignEndpoint([]*Module{f.Component.RSS})
 	assignEndpoint(f.Component.Decentralized)
 	assignEndpoint(f.Component.Federated)
 
@@ -85,7 +85,7 @@ type Server struct {
 }
 
 type Component struct {
-	RSS           []*Module `mapstructure:"rss" validate:"dive"`
+	RSS           *Module   `mapstructure:"rss"`
 	Federated     []*Module `mapstructure:"federated" validate:"dive"`
 	Decentralized []*Module `mapstructure:"decentralized" validate:"dive"`
 }
