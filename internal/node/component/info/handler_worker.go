@@ -143,6 +143,19 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 	case network.EthereumSource, network.ArweaveSource, network.FarcasterSource:
 		workerInfo.Platform = decentralized.ToPlatformMap[module.Worker.(decentralized.Worker)]
 		workerInfo.Tags = decentralized.ToTagsMap[module.Worker.(decentralized.Worker)]
+
+		// Handle special tags for decentralized core workers.
+		if module.Worker == decentralized.Core {
+			switch module.Network {
+			case network.Farcaster:
+				workerInfo.Tags = []tag.Tag{tag.Social}
+			case network.Arweave:
+				workerInfo.Tags = []tag.Tag{tag.Transaction}
+			case network.VSL:
+				workerInfo.Tags = append(workerInfo.Tags, tag.Exchange)
+			default:
+			}
+		}
 	case network.RSSSource:
 		workerInfo.Tags = rss.ToTagsMap[module.Worker.(rss.Worker)]
 	}
