@@ -240,6 +240,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.RSS3,
 		decentralized.Stargate,
 		decentralized.Uniswap,
+		decentralized.VSL,
 	},
 	network.Arweave: {
 		decentralized.Mirror,
@@ -260,10 +261,12 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Stargate,
 	},
 	network.Crossbell: {
+		decentralized.Core,
 		decentralized.Crossbell,
 	},
 	network.Avalanche: {
 		decentralized.Aave,
+		decentralized.Core,
 		decentralized.Curve,
 		decentralized.Stargate,
 	},
@@ -279,6 +282,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Highlight,
 		decentralized.KiwiStand,
 		decentralized.Matters,
+		decentralized.Optimism,
 		decentralized.Stargate,
 	},
 	network.Arbitrum: {
@@ -290,7 +294,6 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	},
 	network.VSL: {
 		decentralized.Core,
-		decentralized.RSS3,
 	},
 	network.SatoshiVM: {
 		decentralized.Core,
@@ -337,6 +340,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.SAVM:       defaultWorkerConfig(decentralized.SAVM, network.EthereumSource, nil),
 		decentralized.Stargate:   defaultWorkerConfig(decentralized.Stargate, network.EthereumSource, nil),
 		decentralized.Uniswap:    defaultWorkerConfig(decentralized.Uniswap, network.EthereumSource, nil),
+		decentralized.VSL:        defaultWorkerConfig(decentralized.VSL, network.EthereumSource, nil),
 	},
 	network.ArweaveSource: {
 		decentralized.Mirror:    customWorkerConfigWithoutEndpoint(decentralized.Mirror, network.ArweaveSource, nil, true),
