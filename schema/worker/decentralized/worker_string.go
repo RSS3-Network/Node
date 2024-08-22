@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _WorkerName = "aaveaavegotchicorecrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomoka1inchopenseaoptimismparagraphrss3savmstargateuniswap"
+const _WorkerName = "aaveaavegotchicorecrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomoka1inchopenseaoptimismparagraphrss3savmstargateuniswapvsl"
 
-var _WorkerIndex = [...]uint8{0, 4, 14, 18, 27, 32, 35, 44, 50, 59, 63, 67, 76, 83, 89, 95, 100, 107, 115, 124, 128, 132, 140, 147}
+var _WorkerIndex = [...]uint8{0, 4, 14, 18, 27, 32, 35, 44, 50, 59, 63, 67, 76, 83, 89, 95, 100, 107, 115, 124, 128, 132, 140, 147, 150}
 
-const _WorkerLowerName = "aaveaavegotchicorecrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomoka1inchopenseaoptimismparagraphrss3savmstargateuniswap"
+const _WorkerLowerName = "aaveaavegotchicorecrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomoka1inchopenseaoptimismparagraphrss3savmstargateuniswapvsl"
 
 func (i Worker) String() string {
 	i -= 1
@@ -54,9 +54,10 @@ func _WorkerNoOp() {
 	_ = x[SAVM-(21)]
 	_ = x[Stargate-(22)]
 	_ = x[Uniswap-(23)]
+	_ = x[VSL-(24)]
 }
 
-var _WorkerValues = []Worker{Aave, Aavegotchi, Core, Crossbell, Curve, ENS, Highlight, IQWiki, KiwiStand, Lens, Lido, Looksrare, Matters, Mirror, Momoka, Oneinch, OpenSea, Optimism, Paragraph, RSS3, SAVM, Stargate, Uniswap}
+var _WorkerValues = []Worker{Aave, Aavegotchi, Core, Crossbell, Curve, ENS, Highlight, IQWiki, KiwiStand, Lens, Lido, Looksrare, Matters, Mirror, Momoka, Oneinch, OpenSea, Optimism, Paragraph, RSS3, SAVM, Stargate, Uniswap, VSL}
 
 var _WorkerNameToValueMap = map[string]Worker{
 	_WorkerName[0:4]:          Aave,
@@ -105,6 +106,8 @@ var _WorkerNameToValueMap = map[string]Worker{
 	_WorkerLowerName[132:140]: Stargate,
 	_WorkerName[140:147]:      Uniswap,
 	_WorkerLowerName[140:147]: Uniswap,
+	_WorkerName[147:150]:      VSL,
+	_WorkerLowerName[147:150]: VSL,
 }
 
 var _WorkerNames = []string{
@@ -131,6 +134,7 @@ var _WorkerNames = []string{
 	_WorkerName[128:132],
 	_WorkerName[132:140],
 	_WorkerName[140:147],
+	_WorkerName[147:150],
 }
 
 // WorkerString retrieves an enum value from the enum constants string name.

@@ -32,6 +32,7 @@ const (
 	SAVM                         // savm
 	Stargate                     // stargate
 	Uniswap                      // uniswap
+	VSL                          // vsl
 )
 
 func (w Worker) Component() string {
@@ -83,4 +84,5 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	SAVM:       {tag.Transaction},
 	Stargate:   {tag.Transaction},
 	Uniswap:    {tag.Exchange, tag.Transaction},
+	VSL:        {tag.Transaction},
 }
