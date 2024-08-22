@@ -135,7 +135,7 @@ component:
     }
   },
   "component": {
-    "rss": 
+    "rss":
       {
         "network": "rss",
         "worker": "rsshub",
@@ -374,13 +374,13 @@ func TestSetupConfig(t *testing.T) {
 
 //nolint:paralleltest
 func TestConfigEnvOverride(t *testing.T) {
-	exceptEnvironment := "testing"
-	exceptDatabaseURI := "postgres://mock@localhost:26257/defaultdb"
-	exceptMetricsEndpoint := "127.0.0.1:9000"
+	expectEnvironment := "testing"
+	expectDatabaseURI := "postgres://mock@localhost:26257/defaultdb"
+	expectMetricsEndpoint := "127.0.0.1:9000"
 
-	t.Setenv("NODE_ENVIRONMENT", exceptEnvironment)
-	t.Setenv("NODE_DATABASE_URI", exceptDatabaseURI)
-	t.Setenv("NODE_OBSERVABILITY_OPENTELEMETRY_METRICS_ENDPOINT", exceptMetricsEndpoint)
+	t.Setenv("NODE_ENVIRONMENT", expectEnvironment)
+	t.Setenv("NODE_DATABASE_URI", expectDatabaseURI)
+	t.Setenv("NODE_OBSERVABILITY_OPENTELEMETRY_METRICS_ENDPOINT", expectMetricsEndpoint)
 
 	configDir := "/etc/rss3/node"
 	fs := afero.NewMemMapFs()
@@ -400,9 +400,9 @@ func TestConfigEnvOverride(t *testing.T) {
 	f, err := _Setup(configName, "yaml", v)
 	assert.NoError(t, err)
 
-	assert.Equal(t, exceptEnvironment, f.Environment)
-	assert.Equal(t, exceptDatabaseURI, f.Database.URI)
-	assert.Equal(t, exceptMetricsEndpoint, f.Observability.OpenTelemetry.Metrics.Endpoint)
+	assert.Equal(t, expectEnvironment, f.Environment)
+	assert.Equal(t, expectDatabaseURI, f.Database.URI)
+	assert.Equal(t, expectMetricsEndpoint, f.Observability.OpenTelemetry.Metrics.Endpoint)
 }
 
 //nolint:paralleltest

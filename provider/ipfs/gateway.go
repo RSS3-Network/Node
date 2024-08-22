@@ -9,14 +9,14 @@ import (
 )
 
 const (
-	DrfaultGatewayRSS3       = "https://ipfs.rss3.page/"
+	DefaultGatewayRSS3       = "https://ipfs.rss3.page/"
 	DefaultGatewayIPFS       = "https://ipfs.io/"
 	DefaultGatewayCloudflare = "https://cloudflare-ipfs.com/"
 	DefaultGateway4EVERLAND  = "https://4everland.io/"
 )
 
 var DefaultGateways = []string{
-	DrfaultGatewayRSS3,
+	DefaultGatewayRSS3,
 	DefaultGatewayIPFS,
 	DefaultGatewayCloudflare,
 	DefaultGateway4EVERLAND,
