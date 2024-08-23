@@ -105,9 +105,9 @@ component:
     }
   },
   "database": {
-    "driver": "cockroachdb",
+    "driver": "postgres",
     "partition": true,
-    "uri": "postgres://root@localhost:26257/defaultdb"
+    "uri": "postgres://postgres@localhost:5432/postgres"
   },
   "stream": {
     "enable": false,
@@ -189,9 +189,9 @@ global_indexer_endpoint = "https://gi.rss3.dev/"
 access_token = "test"
 
 [database]
-driver = "cockroachdb"
+driver = "postgres"
 partition = true
-uri = "postgres://root@localhost:26257/defaultdb"
+uri = "postgres://postgres@localhost:5432/postgres"
 
 [stream]
 enable = false
