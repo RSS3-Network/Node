@@ -399,7 +399,8 @@ func (s *dataSource) getReceipts(ctx context.Context, blocks []*ethereum.Block) 
 		network.Crossbell,
 		network.Arbitrum,
 		network.SatoshiVM,
-		network.Linea:
+		network.Linea,
+		network.XLayer:
 		transactionHashes := lo.Map(blocks, func(block *ethereum.Block, _ int) []common.Hash {
 			return lo.Map(block.Transactions, func(transaction *ethereum.Transaction, _ int) common.Hash {
 				return transaction.Hash
