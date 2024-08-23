@@ -317,9 +317,9 @@ var configFileExpected = &File{
 		},
 	},
 	Database: &Database{
-		Driver:    "cockroachdb",
+		Driver:    "postgres",
 		Partition: lo.ToPtr(true),
-		URI:       "postgres://root@localhost:26257/defaultdb",
+		URI:       "postgres://root@localhost:5432/defaultdb",
 	},
 	Stream: &Stream{
 		Enable: lo.ToPtr(false),

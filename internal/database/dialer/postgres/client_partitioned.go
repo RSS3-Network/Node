@@ -1,4 +1,4 @@
-package cockroachdb
+package postgres
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rss3-network/node/internal/database/dialer/cockroachdb/table"
+	"github.com/rss3-network/node/internal/database/dialer/postgres/table"
 	"github.com/rss3-network/node/internal/database/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/samber/lo"

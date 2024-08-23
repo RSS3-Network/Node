@@ -10,9 +10,9 @@ discovery:
       global_indexer_endpoint: https://gi.rss3.io
 
 database:
-  driver: cockroachdb
+  driver: postgres
   partition: true
-  uri: postgres://root@rss3_node_cockroachdb:26257/defaultdb
+  uri: postgres://root@rss3_node_database:26257/defaultdb
 
 stream:
   enable: false

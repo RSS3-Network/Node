@@ -1,4 +1,4 @@
-package cockroachdb_test
+package postgres_test
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/orlangure/gnomock"
-	"github.com/orlangure/gnomock/preset/cockroachdb"
+	"github.com/adrianbrad/psqldocker"
+	_ "github.com/lib/pq"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/database/dialer"
@@ -30,8 +30,8 @@ func TestClient(t *testing.T) {
 		activityUpdated []*activityx.Activity
 	}{
 		{
-			name:      "cockroach",
-			driver:    database.DriverCockroachDB,
+			name:      "postgres",
+			driver:    database.DriverPostgreSQL,
 			partition: lo.ToPtr(true),
 			activityCreated: []*activityx.Activity{
 				{
@@ -97,7 +97,7 @@ func TestClient(t *testing.T) {
 			t.Parallel()
 
 			var (
-				container      *gnomock.Container
+				container      *psqldocker.Container
 				dataSourceName string
 				err            error
 			)
@@ -110,7 +110,7 @@ func TestClient(t *testing.T) {
 			}
 
 			t.Cleanup(func() {
-				require.NoError(t, gnomock.Stop(container))
+				require.NoError(t, container.Close())
 			})
 
 			// Dial the database.
@@ -160,54 +160,29 @@ func TestClient(t *testing.T) {
 	}
 }
 
-func createContainer(ctx context.Context, driver database.Driver, partition bool) (container *gnomock.Container, dataSourceName string, err error) {
-	config := config.Database{
-		Driver:    driver,
-		Partition: &partition,
-	}
-
+func createContainer(_ context.Context, driver database.Driver, _ bool) (container *psqldocker.Container, dataSourceName string, err error) {
 	switch driver {
-	case database.DriverCockroachDB:
-		preset := cockroachdb.Preset(
-			cockroachdb.WithDatabase("test"),
-			cockroachdb.WithVersion("v23.1.8"),
+	case database.DriverPostgreSQL:
+		c, err := psqldocker.NewContainer(
+			"user",
+			"password",
+			"test",
 		)
-
-		// Use a health check function to wait for the database to be ready.
-		healthcheckFunc := func(ctx context.Context, container *gnomock.Container) error {
-			config.URI = formatContainerURI(container)
-
-			client, err := dialer.Dial(ctx, &config)
-			if err != nil {
-				return err
-			}
-
-			transaction, err := client.Begin(ctx)
-			if err != nil {
-				return err
-			}
-
-			defer lo.Try(transaction.Rollback)
-
-			return nil
-		}
-
-		container, err = gnomock.Start(preset, gnomock.WithContext(ctx), gnomock.WithHealthCheck(healthcheckFunc))
 		if err != nil {
-			return nil, "", err
+			return nil, "", fmt.Errorf("create psql container: %w", err)
 		}
 
-		return container, formatContainerURI(container), nil
+		return c, formatContainerURI(c), nil
 	default:
 		return nil, "", fmt.Errorf("unsupported driver: %s", driver)
 	}
 }
 
-func formatContainerURI(container *gnomock.Container) string {
+func formatContainerURI(container *psqldocker.Container) string {
 	return fmt.Sprintf(
-		"postgres://root@%s:%d/%s?sslmode=disable",
-		container.Host,
-		container.DefaultPort(),
+		"postgres://user:password@%s:%s/%s?sslmode=disable",
+		"127.0.0.1",
+		container.Port(),
 		"test",
 	)
 }
