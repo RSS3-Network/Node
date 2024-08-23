@@ -36,9 +36,9 @@ endpoints:
       http_headers:
         user-agent: rss3-node
 database:
-  driver: cockroachdb
+  driver: postgres
   partition: true
-  uri: postgres://root@localhost:26257/defaultdb
+  uri: postgres://postgres@localhost:5432/postgres
 stream:
   enable: false
   driver: kafka
@@ -105,9 +105,9 @@ component:
     }
   },
   "database": {
-    "driver": "cockroachdb",
+    "driver": "postgres",
     "partition": true,
-    "uri": "postgres://root@localhost:26257/defaultdb"
+    "uri": "postgres://postgres@localhost:5432/postgres"
   },
   "stream": {
     "enable": false,
@@ -189,9 +189,9 @@ global_indexer_endpoint = "https://gi.rss3.dev/"
 access_token = "test"
 
 [database]
-driver = "cockroachdb"
+driver = "postgres"
 partition = true
-uri = "postgres://root@localhost:26257/defaultdb"
+uri = "postgres://postgres@localhost:5432/postgres"
 
 [stream]
 enable = false
@@ -317,9 +317,9 @@ var configFileExpected = &File{
 		},
 	},
 	Database: &Database{
-		Driver:    "cockroachdb",
+		Driver:    "postgres",
 		Partition: lo.ToPtr(true),
-		URI:       "postgres://root@localhost:26257/defaultdb",
+		URI:       "postgres://postgres@localhost:5432/postgres",
 	},
 	Stream: &Stream{
 		Enable: lo.ToPtr(false),
@@ -375,7 +375,7 @@ func TestSetupConfig(t *testing.T) {
 //nolint:paralleltest
 func TestConfigEnvOverride(t *testing.T) {
 	expectEnvironment := "testing"
-	expectDatabaseURI := "postgres://mock@localhost:26257/defaultdb"
+	expectDatabaseURI := "postgres://mock@localhost:5432/postgres"
 	expectMetricsEndpoint := "127.0.0.1:9000"
 
 	t.Setenv("NODE_ENVIRONMENT", expectEnvironment)
@@ -439,7 +439,7 @@ func TestConfigEnvOverrideAccessToken(t *testing.T) {
 
 	// Check other config values to ensure they're still correctly set
 	assert.Equal(t, "development", f.Environment)
-	assert.Equal(t, "postgres://root@localhost:26257/defaultdb", f.Database.URI)
+	assert.Equal(t, "postgres://postgres@localhost:5432/postgres", f.Database.URI)
 }
 
 func TestConfigFilePath(t *testing.T) {

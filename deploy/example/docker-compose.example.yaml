@@ -12,16 +12,16 @@ services:
     volumes:
       - redis:/data
 
-  rss3_node_cockroachdb:
+  rss3_node_postgres:
     restart: always
-    image: cockroachdb/cockroach:v23.1.8
+    image: postgres/postgres:v16.2
     networks:
       - default
     ports:
       - "8080:8080"
-      - "26257:26257"
+      - "5432:5432"
     volumes:
-      - "cockroachdb:/cockroach/cockroach-data"
+      - "postgres:/postgres/postgres-data"
     command:
       - start-single-node
       - --cluster-name=node

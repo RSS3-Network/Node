@@ -25,9 +25,9 @@ discovery:
 
 # Database configuration
 database:
-  driver: cockroachdb
+  driver: postgres
   partition: true
-  uri: postgres://root@localhost:26257/defaultdb
+  uri: postgres://postgres@localhost:5432/postgres
 
 # Deploying a redis will significantly improve the indexing performance of some workers.
 redis:

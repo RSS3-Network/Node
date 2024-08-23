@@ -122,9 +122,9 @@ func (e Endpoint) BuildEthereumOptions() []ethereum.Option {
 }
 
 type Database struct {
-	Driver    database.Driver `mapstructure:"driver" validate:"required" default:"cockroachdb"`
+	Driver    database.Driver `mapstructure:"driver" validate:"required" default:"postgres"`
 	Partition *bool           `mapstructure:"partition" validate:"required" default:"true"`
-	URI       string          `mapstructure:"uri" validate:"required" default:"postgres://root@localhost:26257/defaultdb"`
+	URI       string          `mapstructure:"uri" validate:"required" default:"postgres://postgres@localhost:5432/postgres"`
 }
 
 type Stream struct {
