@@ -58,6 +58,10 @@ var endpointsMap = map[networkx.Network][]string{
 	networkx.Linea: {
 		"https://rpc.linea.build",
 	},
+	networkx.XLayer: {
+		"https://rpc.xlayer.tech",
+		"https://xlayerrpc.okx.com",
+	},
 }
 
 func Get(n networkx.Network) ([]string, bool) {
