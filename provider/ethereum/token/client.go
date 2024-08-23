@@ -104,6 +104,11 @@ var nativeTokenMap = map[uint64]metadata.Token{
 		Symbol:   "ETH",
 		Decimals: 18,
 	},
+	uint64(network.EthereumChainIDXLayer): {
+		Name:     "OKB",
+		Symbol:   "OKB",
+		Decimals: 18,
+	},
 }
 
 var _ Client = (*client)(nil)

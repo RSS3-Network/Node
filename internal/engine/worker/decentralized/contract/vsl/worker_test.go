@@ -2,7 +2,6 @@ package vsl_test
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 	"testing"
 
@@ -206,7 +205,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
 			require.Equal(t, testcase.want, activity)
 		})

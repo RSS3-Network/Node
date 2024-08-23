@@ -546,7 +546,7 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 	case ethereum.IsBurnAddress(to):
 		actionType = typex.TransactionBurn
 	case ethereum.AddressGenesis == from:
-		actionType = typex.TransactionBurn
+		actionType = typex.TransactionMint
 	default:
 		actionType = typex.TransactionTransfer
 	}
