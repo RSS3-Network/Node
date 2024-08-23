@@ -32,6 +32,7 @@ const (
 	SAVM                         // savm
 	Stargate                     // stargate
 	Uniswap                      // uniswap
+	VSL                          // vsl
 )
 
 func (w Worker) Component() string {
@@ -63,6 +64,7 @@ func GetValueByWorkerStr(workerStr string) Worker {
 var ToTagsMap = map[Worker][]tag.Tag{
 	Aave:       {tag.Exchange},
 	Aavegotchi: {tag.Metaverse},
+	Core:       {tag.Collectible, tag.Transaction},
 	Crossbell:  {tag.Social},
 	Curve:      {tag.Exchange, tag.Transaction},
 	ENS:        {tag.Social, tag.Collectible},
@@ -83,4 +85,5 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	SAVM:       {tag.Transaction},
 	Stargate:   {tag.Transaction},
 	Uniswap:    {tag.Exchange, tag.Transaction},
+	VSL:        {tag.Transaction},
 }

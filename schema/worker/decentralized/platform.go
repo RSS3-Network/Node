@@ -69,4 +69,5 @@ var ToPlatformMap = map[Worker]Platform{
 	SAVM:       PlatformSAVM,
 	Stargate:   PlatformStargate,
 	Uniswap:    PlatformUniswap,
+	VSL:        PlatformVSL,
 }
