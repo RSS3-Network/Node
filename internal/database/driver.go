@@ -3,6 +3,6 @@ package database
 type Driver string
 
 const (
-	DriverPostgreSQL Driver = "postgresql"
+	DriverPostgreSQL Driver = "postgres"
 	DriverMySQL      Driver = "mysql"
 )
