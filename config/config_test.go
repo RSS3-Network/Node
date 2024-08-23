@@ -36,9 +36,9 @@ endpoints:
       http_headers:
         user-agent: rss3-node
 database:
-  driver: cockroachdb
+  driver: postgres
   partition: true
-  uri: postgres://root@localhost:26257/defaultdb
+  uri: postgres://postgres@localhost:5432/postgres
 stream:
   enable: false
   driver: kafka
