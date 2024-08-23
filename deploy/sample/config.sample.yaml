@@ -12,9 +12,9 @@ discovery:
     access_token: your_access_token
 
 database:
-  driver: cockroachdb
+  driver: postgres
   partition: true
-  uri: postgres://root@localhost:26257/defaultdb
+  uri: postgres://postgres@localhost:5432/postgres
 
 redis:
   endpoint: localhost:6379

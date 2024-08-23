@@ -319,7 +319,7 @@ var configFileExpected = &File{
 	Database: &Database{
 		Driver:    "postgres",
 		Partition: lo.ToPtr(true),
-		URI:       "postgres://root@localhost:5432/defaultdb",
+		URI:       "postgres://postgres@localhost:5432/postgres",
 	},
 	Stream: &Stream{
 		Enable: lo.ToPtr(false),
@@ -375,7 +375,7 @@ func TestSetupConfig(t *testing.T) {
 //nolint:paralleltest
 func TestConfigEnvOverride(t *testing.T) {
 	expectEnvironment := "testing"
-	expectDatabaseURI := "postgres://mock@localhost:26257/defaultdb"
+	expectDatabaseURI := "postgres://mock@localhost:5432/postgres"
 	expectMetricsEndpoint := "127.0.0.1:9000"
 
 	t.Setenv("NODE_ENVIRONMENT", expectEnvironment)
@@ -439,7 +439,7 @@ func TestConfigEnvOverrideAccessToken(t *testing.T) {
 
 	// Check other config values to ensure they're still correctly set
 	assert.Equal(t, "development", f.Environment)
-	assert.Equal(t, "postgres://root@localhost:26257/defaultdb", f.Database.URI)
+	assert.Equal(t, "postgres://postgres@localhost:5432/postgres", f.Database.URI)
 }
 
 func TestConfigFilePath(t *testing.T) {
