@@ -27,7 +27,7 @@ discovery:
 database:
   driver: postgres
   partition: true
-  uri: postgres://postgres@localhost:5432/postgres
+  uri: postgres://postgres:password@localhost:5432/postgres
 
 # Deploying a redis will significantly improve the indexing performance of some workers.
 redis:

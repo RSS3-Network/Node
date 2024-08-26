@@ -14,7 +14,7 @@ discovery:
 database:
   driver: postgres
   partition: true
-  uri: postgres://postgres@localhost:5432/postgres
+  uri: postgres://postgres:password@localhost:5432/postgres
 
 redis:
   endpoint: localhost:6379

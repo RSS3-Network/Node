@@ -12,7 +12,7 @@ discovery:
 database:
   driver: postgres
   partition: true
-  uri: postgres://root@rss3_node_database:5432/postgres
+  uri: postgres://postgres:password@rss3_node_database:5432/postgres
 
 stream:
   enable: false
