@@ -89,6 +89,10 @@ func (c *Component) GetWorkersInfo(ctx echo.Context) error {
 
 	// Aggregate decentralized workers
 	for _, w := range decentralized.WorkerValues() {
+		if w.Name() == decentralized.SAVM.Name() {
+			continue
+		}
+
 		platform := decentralized.ToPlatformMap[w]
 		workers = append(workers, WorkerDetail{
 			Name:     w.Name(),
@@ -180,13 +184,13 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 		},
 	}
 
-	switch w := module.Worker.(type) {
-	case decentralized.Worker:
-		workerInfo.Platform = decentralized.ToPlatformMap[w]
-		workerInfo.Tags = decentralized.ToTagsMap[w]
+	switch module.Network.Source() {
+	case network.EthereumSource, network.ArweaveSource, network.FarcasterSource:
+		workerInfo.Platform = decentralized.ToPlatformMap[module.Worker.(decentralized.Worker)]
+		workerInfo.Tags = decentralized.ToTagsMap[module.Worker.(decentralized.Worker)]
 
 		// Handle special tags for decentralized core workers.
-		if w == decentralized.Core {
+		if module.Worker == decentralized.Core {
 			switch module.Network {
 			case network.Farcaster:
 				workerInfo.Tags = []tag.Tag{tag.Social}
@@ -194,10 +198,11 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 				workerInfo.Tags = []tag.Tag{tag.Transaction}
 			case network.VSL:
 				workerInfo.Tags = append(workerInfo.Tags, tag.Exchange)
+			default:
 			}
 		}
-	case rss.Worker:
-		workerInfo.Tags = rss.ToTagsMap[w]
+	case network.RSSSource:
+		workerInfo.Tags = rss.ToTagsMap[module.Worker.(rss.Worker)]
 	}
 
 	return workerInfo
