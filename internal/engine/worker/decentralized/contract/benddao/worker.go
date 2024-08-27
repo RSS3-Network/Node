@@ -347,7 +347,7 @@ func (w *worker) transformEthereumLendPoolWithdraw(ctx context.Context, task *so
 		return nil, fmt.Errorf("parse withdraw event: %w", err)
 	}
 
-	action, err := w.buildEthereumLendPoolLiquidityAction(ctx, task, log.Address, event.To, metadata.ActionExchangeLiquiditySupply, []metadata.Token{
+	action, err := w.buildEthereumLendPoolLiquidityAction(ctx, task, log.Address, event.To, metadata.ActionExchangeLiquidityWithdraw, []metadata.Token{
 		{
 			Address: lo.ToPtr(event.Reserve.String()),
 			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount, 0)),
