@@ -18,7 +18,9 @@ func NewOption(n network.Network, parameters *config.Parameters) (*Option, error
 	var option Option
 
 	if parameters == nil {
-		return &option, nil
+		return &Option{
+			TimestampStart: parameter.CurrentNetworkStartBlock[n],
+		}, nil
 	}
 
 	if err := parameters.Decode(&option); err != nil {

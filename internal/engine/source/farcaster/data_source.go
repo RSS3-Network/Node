@@ -639,7 +639,9 @@ func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseCli
 
 	zap.L().Info("apply option", zap.Any("option", instance.option))
 
-	instance.startFarcasterTimestamp = farcaster.CovertTimestampToFarcasterTime(instance.option.TimestampStart.Int64())
+	if instance.option.TimestampStart != nil {
+		instance.startFarcasterTimestamp = farcaster.CovertTimestampToFarcasterTime(instance.option.TimestampStart.Int64())
+	}
 
 	return &instance, nil
 }
