@@ -33,6 +33,7 @@ const (
 	Stargate                     // stargate
 	Uniswap                      // uniswap
 	VSL                          // vsl
+	BendDAO                      // benddao
 )
 
 func (w Worker) Component() string {
