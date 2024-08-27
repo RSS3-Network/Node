@@ -12,9 +12,13 @@ services:
     volumes:
       - redis:/data
 
-  rss3_node_postgres:
+  rss3_node_database:
     restart: always
-    image: postgres/postgres:v16.2
+    image: postgres:16
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     networks:
       - default
     ports:
@@ -22,10 +26,6 @@ services:
       - "5432:5432"
     volumes:
       - "postgres:/postgres/postgres-data"
-    command:
-      - start-single-node
-      - --cluster-name=node
-      - --insecure
 
   broadcaster:
     image: rss3/node:latest
