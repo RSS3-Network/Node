@@ -145,12 +145,8 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	}, nil
 }
 
-func (w *worker) matchBendExchange(_ *source.Task, log *ethereum.Log) bool {
-	return contract.MatchEventHashes(
-		log.Topics[0],
-		benddao.EventTakerAsk,
-		benddao.EventTakerBid,
-	)
+func (w *worker) matchBendExchange(task *source.Task, _ *ethereum.Log) bool {
+	return benddao.AddressBendExchange == *task.Transaction.To
 }
 
 func (w *worker) matchLendPool(_ *source.Task, log *ethereum.Log) bool {
