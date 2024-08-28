@@ -60,7 +60,10 @@ func (f *File) LoadModulesEndpoint() error {
 		}
 	}
 
-	assignEndpoint([]*Module{f.Component.RSS})
+	if f.Component.RSS != nil {
+		assignEndpoint([]*Module{f.Component.RSS})
+	}
+
 	assignEndpoint(f.Component.Decentralized)
 	assignEndpoint(f.Component.Federated)
 
@@ -277,9 +280,12 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 
 func EvmAddressHookFunc() mapstructure.DecodeHookFuncType {
 	return func(
-		f reflect.Type, // data type
-		t reflect.Type, // target data type
-		data interface{}, // raw data
+		// data type
+		f reflect.Type,
+		// target data type
+		t reflect.Type,
+		// raw data
+		data interface{},
 	) (interface{}, error) {
 		if f.Kind() != reflect.String {
 			return data, nil
