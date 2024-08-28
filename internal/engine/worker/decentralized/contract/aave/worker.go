@@ -164,7 +164,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		}
 
 		activity.Type = typex.ExchangeLiquidity
-		activity.Actions = append(activity.Actions, actions...)
+
+		if actions != nil {
+			activity.Actions = append(activity.Actions, actions...)
+		}
 	}
 
 	return activity, nil
