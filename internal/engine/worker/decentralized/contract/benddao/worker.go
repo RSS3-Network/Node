@@ -113,10 +113,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		)
 
 		switch {
-		case w.matchLendPool(ethereumTask, log):
-			actions, activity.Type, err = w.handleLendPool(ctx, ethereumTask, log)
 		case w.matchBendExchange(ethereumTask, log):
 			actions, activity.Type, err = w.handleBendExchange(ctx, ethereumTask, log)
+		case w.matchLendPool(ethereumTask, log):
+			actions, activity.Type, err = w.handleLendPool(ctx, ethereumTask, log)
 		default:
 			continue
 		}
@@ -145,8 +145,19 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	}, nil
 }
 
-func (w *worker) matchBendExchange(task *source.Task, _ *ethereum.Log) bool {
-	return benddao.AddressBendExchange == *task.Transaction.To
+func (w *worker) matchBendExchange(_ *source.Task, log *ethereum.Log) bool {
+	if len(log.Topics) == 0 {
+		return false
+	}
+
+	return contract.MatchAddresses(
+		log.Address,
+		benddao.AddressBendExchange,
+	) && contract.MatchEventHashes(
+		log.Topics[0],
+		benddao.EventTakerAsk,
+		benddao.EventTakerBid,
+	)
 }
 
 func (w *worker) matchLendPool(_ *source.Task, log *ethereum.Log) bool {
