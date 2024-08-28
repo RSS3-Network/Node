@@ -113,10 +113,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		)
 
 		switch {
-		case w.matchBendExchange(ethereumTask, log):
-			actions, activity.Type, err = w.handleBendExchange(ctx, ethereumTask)
 		case w.matchLendPool(ethereumTask, log):
 			actions, activity.Type, err = w.handleLendPool(ctx, ethereumTask)
+		case w.matchBendExchange(ethereumTask, log):
+			actions, activity.Type, err = w.handleBendExchange(ctx, ethereumTask)
 		default:
 			continue
 		}
@@ -150,7 +150,14 @@ func (w *worker) matchBendExchange(task *source.Task, _ *ethereum.Log) bool {
 }
 
 func (w *worker) matchLendPool(_ *source.Task, log *ethereum.Log) bool {
-	return contract.MatchEventHashes(
+	if len(log.Topics) == 0 {
+		return false
+	}
+
+	return contract.MatchAddresses(
+		log.Address,
+		benddao.AddressLendPool,
+	) && contract.MatchEventHashes(
 		log.Topics[0],
 		benddao.EventDeposit,
 		benddao.EventWithdraw,
