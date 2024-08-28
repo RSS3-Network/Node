@@ -1,6 +1,5 @@
 # Default configuration file for the RSS3 Node.
 environment: production
-type: normal
 
 discovery:
   operator:
