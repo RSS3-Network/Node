@@ -114,9 +114,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		switch {
 		case w.matchLendPool(ethereumTask, log):
-			actions, activity.Type, err = w.handleLendPool(ctx, ethereumTask)
+			actions, activity.Type, err = w.handleLendPool(ctx, ethereumTask, log)
 		case w.matchBendExchange(ethereumTask, log):
-			actions, activity.Type, err = w.handleBendExchange(ctx, ethereumTask)
+			actions, activity.Type, err = w.handleBendExchange(ctx, ethereumTask, log)
 		default:
 			continue
 		}
@@ -169,96 +169,70 @@ func (w *worker) matchLendPool(_ *source.Task, log *ethereum.Log) bool {
 	)
 }
 
-func (w *worker) handleBendExchange(ctx context.Context, task *source.Task) ([]*activityx.Action, schema.Type, error) {
-	actions := make([]*activityx.Action, 0)
+func (w *worker) handleBendExchange(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, schema.Type, error) {
+	var (
+		activityType schema.Type
+		action       []*activityx.Action
+		err          error
+	)
 
-	var activityType schema.Type
-
-	for _, log := range task.Receipt.Logs {
-		if len(log.Topics) == 0 {
-			continue
-		}
-
-		var (
-			action []*activityx.Action
-			err    error
-		)
-
-		switch {
-		case w.matchEthereumBendExchangeTakerAsk(log):
-			action, err = w.transformEthereumBendExchangeTakerAsk(ctx, task, log)
-			activityType = typex.CollectibleTrade
-		case w.matchEthereumBendExchangeTakerBid(log):
-			action, err = w.transformEthereumBendExchangeTakerBid(ctx, task, log)
-			activityType = typex.CollectibleTrade
-
-		default:
-			continue
-		}
-
-		if err != nil {
-			return nil, activityType, fmt.Errorf("handle bend exchange: %w", err)
-		}
-
-		if action != nil {
-			actions = append(actions, action...)
-		}
+	switch {
+	case w.matchEthereumBendExchangeTakerAsk(log):
+		action, err = w.transformEthereumBendExchangeTakerAsk(ctx, task, log)
+		activityType = typex.CollectibleTrade
+	case w.matchEthereumBendExchangeTakerBid(log):
+		action, err = w.transformEthereumBendExchangeTakerBid(ctx, task, log)
+		activityType = typex.CollectibleTrade
+	default:
+		return nil, activityType, nil
 	}
 
-	return actions, activityType, nil
+	if err != nil {
+		return nil, activityType, fmt.Errorf("handle bend exchange: %w", err)
+	}
+
+	return action, activityType, nil
 }
 
-func (w *worker) handleLendPool(ctx context.Context, task *source.Task) ([]*activityx.Action, schema.Type, error) {
-	actions := make([]*activityx.Action, 0)
-
+func (w *worker) handleLendPool(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, schema.Type, error) {
 	var activityType schema.Type
 
-	for _, log := range task.Receipt.Logs {
-		if len(log.Topics) == 0 {
-			continue
-		}
+	var (
+		action []*activityx.Action
+		err    error
+	)
 
-		var (
-			action []*activityx.Action
-			err    error
-		)
-
-		switch {
-		case w.matchEthereumLendPoolDeposit(log):
-			action, err = w.transformEthereumLendPoolDeposit(ctx, task, log)
-			activityType = typex.ExchangeLiquidity
-		case w.matchEthereumLendPoolWithdraw(log):
-			action, err = w.transformEthereumLendPoolWithdraw(ctx, task, log)
-			activityType = typex.ExchangeLiquidity
-		case w.matchEthereumLendPoolBorrow(log):
-			action, err = w.transformEthereumLendPoolBorrow(ctx, task, log)
-			activityType = typex.ExchangeLoan
-		case w.matchEthereumLendPoolRepay(log):
-			action, err = w.transformEthereumLendPoolRepay(ctx, task, log)
-			activityType = typex.ExchangeLoan
-		case w.matchEthereumLendPoolAuction(log):
-			action, err = w.transformEthereumLendPoolAuction(ctx, task, log)
-			activityType = typex.CollectibleAuction
-		case w.matchEthereumLendPoolRedeem(log):
-			action, err = w.transformEthereumLendPoolRedeem(ctx, task, log)
-			activityType = typex.ExchangeLoan
-		case w.matchEthereumLendPoolLiquidate(log):
-			action, err = w.transformEthereumLendPoolLiquidate(ctx, task, log)
-			activityType = typex.ExchangeLoan
-		default:
-			continue
-		}
-
-		if err != nil {
-			return nil, activityType, fmt.Errorf("handle lend pool: %w", err)
-		}
-
-		if action != nil {
-			actions = append(actions, action...)
-		}
+	switch {
+	case w.matchEthereumLendPoolDeposit(log):
+		action, err = w.transformEthereumLendPoolDeposit(ctx, task, log)
+		activityType = typex.ExchangeLiquidity
+	case w.matchEthereumLendPoolWithdraw(log):
+		action, err = w.transformEthereumLendPoolWithdraw(ctx, task, log)
+		activityType = typex.ExchangeLiquidity
+	case w.matchEthereumLendPoolBorrow(log):
+		action, err = w.transformEthereumLendPoolBorrow(ctx, task, log)
+		activityType = typex.ExchangeLoan
+	case w.matchEthereumLendPoolRepay(log):
+		action, err = w.transformEthereumLendPoolRepay(ctx, task, log)
+		activityType = typex.ExchangeLoan
+	case w.matchEthereumLendPoolAuction(log):
+		action, err = w.transformEthereumLendPoolAuction(ctx, task, log)
+		activityType = typex.CollectibleAuction
+	case w.matchEthereumLendPoolRedeem(log):
+		action, err = w.transformEthereumLendPoolRedeem(ctx, task, log)
+		activityType = typex.ExchangeLoan
+	case w.matchEthereumLendPoolLiquidate(log):
+		action, err = w.transformEthereumLendPoolLiquidate(ctx, task, log)
+		activityType = typex.ExchangeLoan
+	default:
+		return nil, activityType, nil
 	}
 
-	return actions, activityType, nil
+	if err != nil {
+		return nil, activityType, fmt.Errorf("handle lend pool: %w", err)
+	}
+
+	return action, activityType, nil
 }
 
 func (w *worker) matchEthereumBendExchangeTakerAsk(log *ethereum.Log) bool {
