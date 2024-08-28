@@ -1,5 +1,4 @@
 environment: production
-type: normal
 
 discovery:
     operator:

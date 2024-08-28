@@ -1,9 +1,6 @@
 # `environment` is the environment of the Node, possible values are `development` and `production`.
 # DO NOT change this value except for local debugging purposes.
 environment: production
-# `type` is the type of the Node, possible values are `alpha`, `beta`, and `normal`.
-# DO NOT change this value.
-type: normal
 
 # `discovery` is used for Node discovery and verification.
 discovery:

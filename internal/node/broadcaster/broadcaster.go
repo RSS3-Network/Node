@@ -22,7 +22,6 @@ func (b *Broadcaster) Register(ctx context.Context) error {
 		AccessToken: b.config.Discovery.Server.AccessToken,
 		Stream:      b.config.Stream,
 		Config:      b.config.Component,
-		Type:        b.config.Type,
 	}
 
 	var response any
