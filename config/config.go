@@ -38,9 +38,9 @@ type File struct {
 	Discovery     *Discovery          `mapstructure:"discovery" validate:"required"`
 	Component     *Component          `mapstructure:"component" validate:"required"`
 	Database      *Database           `mapstructure:"database" validate:"required"`
-	Stream        *Stream             `mapstructure:"stream" validate:"required"`
+	Stream        *Stream             `mapstructure:"stream"`
 	Redis         *Redis              `mapstructure:"redis" validate:"required"`
-	Observability *Telemetry          `mapstructure:"observability" validate:"required"`
+	Observability *Telemetry          `mapstructure:"observability"`
 }
 
 // LoadModulesEndpoint loads the endpoint url and headers for each module.

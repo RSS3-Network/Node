@@ -26,6 +26,6 @@ WORKDIR /root/node
 COPY --from=builder /root/node/etherface /root/node/etherface
 
 COPY --from=builder /root/node/build/node .
-COPY deploy/sample/config.sample.yaml /etc/rss3/node/config.yaml
+COPY deploy/default/config.default.yaml /etc/rss3/node/config.yaml
 
 ENTRYPOINT ["./node"]
