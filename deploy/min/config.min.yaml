@@ -2,11 +2,12 @@ environment: production
 
 discovery:
     operator:
-      evm_address:
-      signature:
+      evm_address: 0x...address
+      signature: 0x...signature
     server:
       endpoint: https://some.node.com
       global_indexer_endpoint: https://gi.rss3.io
+      access_token: your_access_token
 
 database:
   driver: postgres
@@ -50,6 +51,14 @@ endpoints:
     url: https://arweave.net
 
 component:
+  rss:
+    id: rss-rsshub
+    network: rss
+    worker: rsshub
+    endpoint: https://your.rsshub.com/
+    parameters:
+      authentication:
+        access_key:
   decentralized:
     # ethereum
     - id: ethereum-core
