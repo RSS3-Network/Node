@@ -2,7 +2,6 @@ package worker
 
 import (
 	"fmt"
-	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/base"
 
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
@@ -11,6 +10,7 @@ import (
 	oneinch "github.com/rss3-network/node/internal/engine/worker/decentralized/contract/1inch"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/aave"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/aavegotchi"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/base"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/crossbell"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/curve"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/ens"

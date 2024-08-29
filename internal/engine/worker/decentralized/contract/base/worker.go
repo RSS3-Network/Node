@@ -3,6 +3,8 @@ package base
 import (
 	"context"
 	"fmt"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
@@ -21,7 +23,6 @@ import (
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
-	"math/big"
 )
 
 // make sure worker implements engine.Worker
@@ -94,7 +95,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	}
 
 	for _, log := range ethereumTask.Receipt.Logs {
-
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
 			continue
@@ -104,6 +104,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			action *activityx.Action
 			err    error
 		)
+
 		switch {
 		case w.matchEthereumOptimismPortalTransactionDepositedLog(log):
 			action, err = w.handleEthereumOptimismPortalTransactionDepositedLog(ctx, *ethereumTask, activity, log)
@@ -133,6 +134,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	if len(activity.Actions) == 0 {
 		return nil, nil
 	}
+
 	return activity, nil
 }
 
@@ -221,7 +223,7 @@ func (w *worker) handleEthereumL1StandardBridgeETHWithdrawalFinalizedLog(ctx con
 		return nil, fmt.Errorf("parse ETHWithdrawalFinalized event: %w", err)
 	}
 
-	return w.buildEthereumTransactionBridgeAction(ctx, task.Header.Number, task.ChainID, event.From, event.To, network.Ethereum, network.Base, metadata.ActionTransactionBridgeWithdraw, nil, event.Amount)
+	return w.buildEthereumTransactionBridgeAction(ctx, task.Header.Number, task.ChainID, event.From, event.To, network.Base, network.Ethereum, metadata.ActionTransactionBridgeWithdraw, nil, event.Amount)
 }
 func (w *worker) handleEthereumL1StandardBridgeERC20WithdrawalFinalizedLog(ctx context.Context, task source.Task, activity *activityx.Activity, log *ethereum.Log) (*activityx.Action, error) {
 	activity.Type = typex.TransactionBridge
@@ -231,11 +233,10 @@ func (w *worker) handleEthereumL1StandardBridgeERC20WithdrawalFinalizedLog(ctx c
 		return nil, fmt.Errorf("parse ERC20WithdrawalFinalized event: %w", err)
 	}
 
-	return w.buildEthereumTransactionBridgeAction(ctx, task.Header.Number, task.ChainID, event.From, event.To, network.Ethereum, network.Base, metadata.ActionTransactionBridgeWithdraw, &event.L1Token, event.Amount)
+	return w.buildEthereumTransactionBridgeAction(ctx, task.Header.Number, task.ChainID, event.From, event.To, network.Base, network.Ethereum, metadata.ActionTransactionBridgeWithdraw, &event.L1Token, event.Amount)
 }
 
 func (w *worker) buildEthereumTransactionBridgeAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver common.Address, source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int) (*activityx.Action, error) {
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -262,7 +263,6 @@ func (w *worker) buildEthereumTransactionBridgeAction(ctx context.Context, block
 
 // NewWorker returns a new matters worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
-
 	instance := worker{
 		baseOptimismPortalFilterer:   lo.Must(base.NewOptimismPortalFilterer(ethereum.AddressGenesis, nil)),
 		baseL1StandardBridgeFilterer: lo.Must(base.NewL1StandardBridgeFilterer(ethereum.AddressGenesis, nil)),

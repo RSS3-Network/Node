@@ -2,7 +2,7 @@ package base_test
 
 import (
 	"context"
-	"github.com/rss3-network/node/provider/ethereum/contract/base"
+	"encoding/json"
 	"math/big"
 	"testing"
 
@@ -12,6 +12,7 @@ import (
 	source "github.com/rss3-network/node/internal/engine/source/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/decentralized/contract/base"
 	"github.com/rss3-network/node/provider/ethereum"
+	"github.com/rss3-network/node/provider/ethereum/contract/base"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	workerx "github.com/rss3-network/node/schema/worker/decentralized"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
@@ -483,6 +484,10 @@ func TestWorker_Base(t *testing.T) {
 			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
+			data, err := json.MarshalIndent(activity, "", "\x20\x20")
+			require.NoError(t, err)
+
+			t.Log(string(data))
 			require.Equal(t, testcase.want, activity)
 		})
 	}
