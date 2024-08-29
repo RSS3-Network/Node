@@ -87,6 +87,7 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	Stargate:   {tag.Transaction},
 	Uniswap:    {tag.Exchange, tag.Transaction},
 	VSL:        {tag.Transaction},
+	BendDAO:    {tag.Collectible, tag.Exchange},
 }
 
 var ToIconURLMap = map[Worker]string{
@@ -114,4 +115,5 @@ var ToIconURLMap = map[Worker]string{
 	Stargate:   "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/stargate.svg",
 	Uniswap:    "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/uniswap.svg",
 	VSL:        "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/rss3-vsl.svg",
+	BendDAO:    "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/benddao.svg",
 }
