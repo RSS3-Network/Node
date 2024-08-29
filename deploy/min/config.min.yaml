@@ -13,24 +13,10 @@ database:
   partition: true
   uri: postgres://postgres:password@rss3_node_database:5432/postgres
 
-stream:
-  enable: false
-
-observability:
-  opentelemetry:
-    metrics:
-      enable: false
-      endpoint: 0.0.0.0:9090
-    traces:
-      enable: false
-      insecure: true
-      endpoint: localhost:4318
-
 redis:
   endpoint: rss3_node_redis:6379
   username:
   password:
-  disable_cache: true
 
 endpoints:
   farcaster:
