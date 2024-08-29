@@ -10,6 +10,7 @@ import (
 	oneinch "github.com/rss3-network/node/internal/engine/worker/decentralized/contract/1inch"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/aave"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/aavegotchi"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/arbitrum"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/crossbell"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/curve"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/ens"
@@ -48,6 +49,8 @@ func New(config *config.Module, databaseClient database.Client, redisClient ruei
 		return opensea.NewWorker(config)
 	case decentralized.Uniswap:
 		return uniswap.NewWorker(config)
+	case decentralized.Arbitrum:
+		return arbitrum.NewWorker(config)
 	case decentralized.Optimism:
 		return optimism.NewWorker(config)
 	case decentralized.Aavegotchi:

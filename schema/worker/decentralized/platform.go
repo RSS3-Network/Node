@@ -10,6 +10,7 @@ const (
 	Platform1Inch                      // 1inch
 	PlatformAAVE                       // AAVE
 	PlatformAavegotchi                 // Aavegotchi
+	PlatformArbitrum                   // Arbitrum
 	PlatformCrossbell                  // Crossbell
 	PlatformCurve                      // Curve
 	PlatformENS                        // ENS
@@ -49,6 +50,7 @@ func (p *Platform) UnmarshalParam(param string) error {
 var ToPlatformMap = map[Worker]Platform{
 	Aave:       PlatformAAVE,
 	Aavegotchi: PlatformAavegotchi,
+	Arbitrum:   PlatformArbitrum,
 	Crossbell:  PlatformCrossbell,
 	Curve:      PlatformCurve,
 	ENS:        PlatformENS,
