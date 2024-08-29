@@ -12,7 +12,6 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/arbitrum"
-	"github.com/rss3-network/node/provider/ethereum/contract/optimism"
 	"github.com/rss3-network/node/provider/ethereum/token"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
@@ -122,7 +121,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			actions, err = w.transformL2ReverseCustomGatewayDepositFinalizedLog(ctx, ethereumTask, log)
 		default:
 			zap.L().Warn("unsupported log", zap.String("task", task.ID()), zap.Uint("topic.index", log.Index))
-
 			continue
 		}
 
@@ -131,13 +129,13 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		if err != nil {
 			zap.L().Warn("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
-			// return nil, err
 			continue
 		}
 
-		activity.Type = typex.TransactionBridge
 		activity.Actions = append(activity.Actions, actions...)
 	}
+
+	activity.Type = typex.TransactionBridge
 
 	return activity, nil
 }
@@ -283,11 +281,6 @@ func (w *worker) transformArbSysL2ToL1TxLog(ctx context.Context, task *source.Ta
 func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address,
 	source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address,
 	tokenValue *big.Int, blockNumber *big.Int) (*activityx.Action, error) {
-	// Ignore L2 ETH token address.
-	if tokenAddress != nil && (*tokenAddress == optimism.AddressL1ETH || *tokenAddress == optimism.AddressL2ETH) {
-		tokenAddress = nil
-	}
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
