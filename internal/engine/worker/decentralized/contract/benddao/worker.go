@@ -113,10 +113,36 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		)
 
 		switch {
-		case w.matchBendExchange(ethereumTask, log):
-			actions, activity.Type, err = w.handleBendExchange(ctx, ethereumTask, log)
-		case w.matchLendPool(ethereumTask, log):
-			actions, activity.Type, err = w.handleLendPool(ctx, ethereumTask, log)
+		// Bend exchange
+		case w.matchBendExchangeTakerAsk(log):
+			actions, err = w.transformBendExchangeTakerAsk(ctx, ethereumTask, log)
+			activity.Type = typex.CollectibleTrade
+		case w.matchBendExchangeTakerBid(log):
+			actions, err = w.transformBendExchangeTakerBid(ctx, ethereumTask, log)
+			activity.Type = typex.CollectibleTrade
+
+		// Lend pool
+		case w.matchLendPoolDeposit(log):
+			actions, err = w.transformLendPoolDeposit(ctx, ethereumTask, log)
+			activity.Type = typex.ExchangeLiquidity
+		case w.matchLendPoolWithdraw(log):
+			actions, err = w.transformLendPoolWithdraw(ctx, ethereumTask, log)
+			activity.Type = typex.ExchangeLiquidity
+		case w.matchLendPoolBorrow(log):
+			actions, err = w.transformLendPoolBorrow(ctx, ethereumTask, log)
+			activity.Type = typex.ExchangeLoan
+		case w.matchLendPoolRepay(log):
+			actions, err = w.transformLendPoolRepay(ctx, ethereumTask, log)
+			activity.Type = typex.ExchangeLoan
+		case w.matchLendPoolAuction(log):
+			actions, err = w.transformLendPoolAuction(ctx, ethereumTask, log)
+			activity.Type = typex.CollectibleAuction
+		case w.matchLendPoolRedeem(log):
+			actions, err = w.transformLendPoolRedeem(ctx, ethereumTask, log)
+			activity.Type = typex.ExchangeLoan
+		case w.matchLendPoolLiquidate(log):
+			actions, err = w.transformLendPoolLiquidate(ctx, ethereumTask, log)
+			activity.Type = typex.ExchangeLoan
 		default:
 			continue
 		}
@@ -145,144 +171,43 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	}, nil
 }
 
-func (w *worker) matchBendExchange(_ *source.Task, log *ethereum.Log) bool {
-	if len(log.Topics) == 0 {
-		return false
-	}
-
-	return contract.MatchAddresses(
-		log.Address,
-		benddao.AddressBendExchange,
-	) && contract.MatchEventHashes(
-		log.Topics[0],
-		benddao.EventTakerAsk,
-		benddao.EventTakerBid,
-	)
-}
-
-func (w *worker) matchLendPool(_ *source.Task, log *ethereum.Log) bool {
-	if len(log.Topics) == 0 {
-		return false
-	}
-
-	return contract.MatchAddresses(
-		log.Address,
-		benddao.AddressLendPool,
-	) && contract.MatchEventHashes(
-		log.Topics[0],
-		benddao.EventDeposit,
-		benddao.EventWithdraw,
-		benddao.EventBorrow,
-		benddao.EventRepay,
-		benddao.EventAuction,
-		benddao.EventRedeem,
-		benddao.EventLiquidate,
-	)
-}
-
-func (w *worker) handleBendExchange(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, schema.Type, error) {
-	var (
-		activityType schema.Type
-		action       []*activityx.Action
-		err          error
-	)
-
-	switch {
-	case w.matchEthereumBendExchangeTakerAsk(log):
-		action, err = w.transformEthereumBendExchangeTakerAsk(ctx, task, log)
-		activityType = typex.CollectibleTrade
-	case w.matchEthereumBendExchangeTakerBid(log):
-		action, err = w.transformEthereumBendExchangeTakerBid(ctx, task, log)
-		activityType = typex.CollectibleTrade
-	default:
-		return nil, activityType, nil
-	}
-
-	if err != nil {
-		return nil, activityType, fmt.Errorf("handle bend exchange: %w", err)
-	}
-
-	return action, activityType, nil
-}
-
-func (w *worker) handleLendPool(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, schema.Type, error) {
-	var activityType schema.Type
-
-	var (
-		action []*activityx.Action
-		err    error
-	)
-
-	switch {
-	case w.matchEthereumLendPoolDeposit(log):
-		action, err = w.transformEthereumLendPoolDeposit(ctx, task, log)
-		activityType = typex.ExchangeLiquidity
-	case w.matchEthereumLendPoolWithdraw(log):
-		action, err = w.transformEthereumLendPoolWithdraw(ctx, task, log)
-		activityType = typex.ExchangeLiquidity
-	case w.matchEthereumLendPoolBorrow(log):
-		action, err = w.transformEthereumLendPoolBorrow(ctx, task, log)
-		activityType = typex.ExchangeLoan
-	case w.matchEthereumLendPoolRepay(log):
-		action, err = w.transformEthereumLendPoolRepay(ctx, task, log)
-		activityType = typex.ExchangeLoan
-	case w.matchEthereumLendPoolAuction(log):
-		action, err = w.transformEthereumLendPoolAuction(ctx, task, log)
-		activityType = typex.CollectibleAuction
-	case w.matchEthereumLendPoolRedeem(log):
-		action, err = w.transformEthereumLendPoolRedeem(ctx, task, log)
-		activityType = typex.ExchangeLoan
-	case w.matchEthereumLendPoolLiquidate(log):
-		action, err = w.transformEthereumLendPoolLiquidate(ctx, task, log)
-		activityType = typex.ExchangeLoan
-	default:
-		return nil, activityType, nil
-	}
-
-	if err != nil {
-		return nil, activityType, fmt.Errorf("handle lend pool: %w", err)
-	}
-
-	return action, activityType, nil
-}
-
-func (w *worker) matchEthereumBendExchangeTakerAsk(log *ethereum.Log) bool {
+func (w *worker) matchBendExchangeTakerAsk(log *ethereum.Log) bool {
 	return contract.MatchAddresses(log.Address, benddao.AddressBendExchange) && contract.MatchEventHashes(log.Topics[0], benddao.EventTakerAsk)
 }
 
-func (w *worker) matchEthereumBendExchangeTakerBid(log *ethereum.Log) bool {
+func (w *worker) matchBendExchangeTakerBid(log *ethereum.Log) bool {
 	return contract.MatchAddresses(log.Address, benddao.AddressBendExchange) && contract.MatchEventHashes(log.Topics[0], benddao.EventTakerBid)
 }
 
-func (w *worker) matchEthereumLendPoolDeposit(log *ethereum.Log) bool {
+func (w *worker) matchLendPoolDeposit(log *ethereum.Log) bool {
 	return contract.MatchAddresses(log.Address, benddao.AddressLendPool) && contract.MatchEventHashes(log.Topics[0], benddao.EventDeposit)
 }
 
-func (w *worker) matchEthereumLendPoolWithdraw(log *ethereum.Log) bool {
+func (w *worker) matchLendPoolWithdraw(log *ethereum.Log) bool {
 	return contract.MatchAddresses(log.Address, benddao.AddressLendPool) && contract.MatchEventHashes(log.Topics[0], benddao.EventWithdraw)
 }
 
-func (w *worker) matchEthereumLendPoolBorrow(log *ethereum.Log) bool {
+func (w *worker) matchLendPoolBorrow(log *ethereum.Log) bool {
 	return contract.MatchAddresses(log.Address, benddao.AddressLendPool) && contract.MatchEventHashes(log.Topics[0], benddao.EventBorrow)
 }
 
-func (w *worker) matchEthereumLendPoolRepay(log *ethereum.Log) bool {
+func (w *worker) matchLendPoolRepay(log *ethereum.Log) bool {
 	return contract.MatchAddresses(log.Address, benddao.AddressLendPool) && contract.MatchEventHashes(log.Topics[0], benddao.EventRepay)
 }
 
-func (w *worker) matchEthereumLendPoolAuction(log *ethereum.Log) bool {
+func (w *worker) matchLendPoolAuction(log *ethereum.Log) bool {
 	return contract.MatchAddresses(log.Address, benddao.AddressLendPool) && contract.MatchEventHashes(log.Topics[0], benddao.EventAuction)
 }
 
-func (w *worker) matchEthereumLendPoolRedeem(log *ethereum.Log) bool {
+func (w *worker) matchLendPoolRedeem(log *ethereum.Log) bool {
 	return contract.MatchAddresses(log.Address, benddao.AddressLendPool) && contract.MatchEventHashes(log.Topics[0], benddao.EventRedeem)
 }
 
-func (w *worker) matchEthereumLendPoolLiquidate(log *ethereum.Log) bool {
+func (w *worker) matchLendPoolLiquidate(log *ethereum.Log) bool {
 	return contract.MatchAddresses(log.Address, benddao.AddressLendPool) && contract.MatchEventHashes(log.Topics[0], benddao.EventLiquidate)
 }
 
-func (w *worker) transformEthereumBendExchangeTakerAsk(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+func (w *worker) transformBendExchangeTakerAsk(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.bendExchangeFilterer.ParseTakerAsk(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse takerAsk event: %w", err)
@@ -296,7 +221,7 @@ func (w *worker) transformEthereumBendExchangeTakerAsk(ctx context.Context, task
 	return []*activityx.Action{action}, nil
 }
 
-func (w *worker) transformEthereumBendExchangeTakerBid(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+func (w *worker) transformBendExchangeTakerBid(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.bendExchangeFilterer.ParseTakerBid(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse takerBid event: %w", err)
@@ -310,7 +235,7 @@ func (w *worker) transformEthereumBendExchangeTakerBid(ctx context.Context, task
 	return []*activityx.Action{action}, nil
 }
 
-func (w *worker) transformEthereumLendPoolDeposit(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+func (w *worker) transformLendPoolDeposit(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.lendPoolFilterer.ParseDeposit(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse deposit event: %w", err)
@@ -329,7 +254,7 @@ func (w *worker) transformEthereumLendPoolDeposit(ctx context.Context, task *sou
 	return []*activityx.Action{action}, nil
 }
 
-func (w *worker) transformEthereumLendPoolWithdraw(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+func (w *worker) transformLendPoolWithdraw(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.lendPoolFilterer.ParseWithdraw(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse withdraw event: %w", err)
@@ -348,7 +273,7 @@ func (w *worker) transformEthereumLendPoolWithdraw(ctx context.Context, task *so
 	return []*activityx.Action{action}, nil
 }
 
-func (w *worker) transformEthereumLendPoolBorrow(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+func (w *worker) transformLendPoolBorrow(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.lendPoolFilterer.ParseBorrow(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse borrow event: %w", err)
@@ -362,7 +287,7 @@ func (w *worker) transformEthereumLendPoolBorrow(ctx context.Context, task *sour
 	return []*activityx.Action{action}, nil
 }
 
-func (w *worker) transformEthereumLendPoolRepay(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+func (w *worker) transformLendPoolRepay(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.lendPoolFilterer.ParseRepay(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse repay event: %w", err)
@@ -376,7 +301,7 @@ func (w *worker) transformEthereumLendPoolRepay(ctx context.Context, task *sourc
 	return []*activityx.Action{action}, nil
 }
 
-func (w *worker) transformEthereumLendPoolAuction(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+func (w *worker) transformLendPoolAuction(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.lendPoolFilterer.ParseAuction(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse auction event: %w", err)
@@ -390,7 +315,7 @@ func (w *worker) transformEthereumLendPoolAuction(ctx context.Context, task *sou
 	return []*activityx.Action{action}, nil
 }
 
-func (w *worker) transformEthereumLendPoolRedeem(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+func (w *worker) transformLendPoolRedeem(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.lendPoolFilterer.ParseRedeem(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse redeem event: %w", err)
@@ -409,7 +334,7 @@ func (w *worker) transformEthereumLendPoolRedeem(ctx context.Context, task *sour
 	return []*activityx.Action{actionTransfer, actionLoan}, nil
 }
 
-func (w *worker) transformEthereumLendPoolLiquidate(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+func (w *worker) transformLendPoolLiquidate(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.lendPoolFilterer.ParseLiquidate(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse redeem event: %w", err)
