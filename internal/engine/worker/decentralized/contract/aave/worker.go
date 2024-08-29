@@ -287,7 +287,7 @@ func (w *worker) handleV1LendingPool(ctx context.Context, task *source.Task, log
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("handle ethereum v3 pool: %w", err)
+		return nil, fmt.Errorf("handle v1 pool: %w", err)
 	}
 
 	return []*activityx.Action{action}, nil
@@ -313,7 +313,7 @@ func (w *worker) handleV2LendingPool(ctx context.Context, task *source.Task, log
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("handle ethereum v3 pool: %w", err)
+		return nil, fmt.Errorf("handle v2 pool: %w", err)
 	}
 
 	return []*activityx.Action{action}, nil
@@ -339,7 +339,7 @@ func (w *worker) handleV3Pool(ctx context.Context, task *source.Task, log *ether
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("handle ethereum v3 pool: %w", err)
+		return nil, fmt.Errorf("handle v3 pool: %w", err)
 	}
 
 	return []*activityx.Action{action}, nil
