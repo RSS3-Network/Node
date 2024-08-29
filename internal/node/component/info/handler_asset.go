@@ -92,17 +92,17 @@ var NetworkToNameMap = map[network.Network]string{
 
 var NetworkToIconURLMap = map[network.Network]string{
 	network.Arbitrum:          "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/arbitrum.svg",
-	network.Arweave:           "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/arweave.svg",
+	network.Arweave:           "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/arweave-mono.svg",
 	network.Avalanche:         "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/avalanche.svg",
 	network.Base:              "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/base.svg",
 	network.BinanceSmartChain: "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/binance-smart-chain.svg",
 	network.Crossbell:         "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/crossbell.svg",
-	network.Ethereum:          "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/ethereum.svg",
+	network.Ethereum:          "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/ethereum-mono.svg",
 	network.Farcaster:         "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/farcaster.svg",
-	network.Gnosis:            "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/gnosis-chain.svg",
-	network.Linea:             "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/linea.svg",
+	network.Gnosis:            "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/gnosis-chain-mono.svg",
+	network.Linea:             "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/linea-mono.svg",
 	network.Optimism:          "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/optimism.svg",
 	network.Polygon:           "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/polygon.svg",
 	network.VSL:               "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/rss3-vsl.svg",
-	network.XLayer:            "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/x-layer.svg",
+	network.XLayer:            "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/x-layer-mono.svg",
 }
