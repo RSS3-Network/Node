@@ -27,7 +27,7 @@ services:
       - "postgres:/postgres/postgres-data"
 
   broadcaster:
-    image: ghcr.io/rss3-network/node:v0.6.0
+    image: ghcr.io/rss3-network/node:v1.0.0
     networks:
       - default
     ports:
@@ -39,11 +39,11 @@ services:
       NODE_DISCOVERY_OPERATOR_SIGNATURE: "[signature_address]"
       NODE_DISCOVERY_SERVER_ENDPOINT: "[public_endpoint]"
       NODE_DISCOVERY_SERVER_GLOBAL_INDEXER_ENDPOINT: "https://gi.rss3.io"
-    command: ["./node","--module=broadcaster"]
+    command: [ "./node", "--module=broadcaster" ]
 
   core:
     restart: always
-    image: ghcr.io/rss3-network/node:v0.6.0
+    image: ghcr.io/rss3-network/node:v1.0.0
     networks:
       - default
     volumes:
@@ -51,11 +51,11 @@ services:
     depends_on:
       - rss3_node_database
       - rss3_node_redis
-    entrypoint: ["./node", "--module", "core"]
+    entrypoint: [ "./node", "--module", "core" ]
 
   monitor:
     restart: always
-    image: ghcr.io/rss3-network/node:v0.6.0
+    image: ghcr.io/rss3-network/node:v1.0.0
     networks:
       - default
     volumes:
@@ -66,11 +66,11 @@ services:
     environment:
       - NODE_ENV=production
       - WORKER_ID=monitor
-    entrypoint: ["./node", "--module", "monitor"]
+    entrypoint: [ "./node", "--module", "monitor" ]
 
   ethereum-core:
     restart: always
-    image: ghcr.io/rss3-network/node:v0.6.0
+    image: ghcr.io/rss3-network/node:v1.0.0
     networks:
       - default
     volumes:
@@ -78,11 +78,11 @@ services:
     depends_on:
       - rss3_node_database
       - rss3_node_redis
-    entrypoint: ["./node", "--worker.id=ethereum-core"]
+    entrypoint: [ "./node", "--worker.id=ethereum-core" ]
 
   polygon-lens:
     restart: always
-    image: ghcr.io/rss3-network/node:v0.6.0
+    image: ghcr.io/rss3-network/node:v1.0.0
     networks:
       - default
     volumes:
@@ -90,11 +90,11 @@ services:
     depends_on:
       - rss3_node_database
       - rss3_node_redis
-    entrypoint: ["./node", "--worker.id=polygon-lens"]
+    entrypoint: [ "./node", "--worker.id=polygon-lens" ]
 
   farcaster-core:
     restart: always
-    image: ghcr.io/rss3-network/node:v0.6.0
+    image: ghcr.io/rss3-network/node:v1.0.0
     networks:
       - default
     volumes:
@@ -102,11 +102,11 @@ services:
     depends_on:
       - rss3_node_database
       - rss3_node_redis
-    entrypoint: ["./node", "--worker.id=farcaster-core"]
+    entrypoint: [ "./node", "--worker.id=farcaster-core" ]
 
   arweave-mirror:
     restart: always
-    image: ghcr.io/rss3-network/node:v0.6.0
+    image: ghcr.io/rss3-network/node:v1.0.0
     networks:
       - default
     volumes:
@@ -114,11 +114,11 @@ services:
     depends_on:
       - rss3_node_database
       - rss3_node_redis
-    entrypoint: ["./node", "--worker.id=arweave-mirror"]
+    entrypoint: [ "./node", "--worker.id=arweave-mirror" ]
 
   arweave-momoka:
     restart: always
-    image: ghcr.io/rss3-network/node:v0.6.0
+    image: ghcr.io/rss3-network/node:v1.0.0
     networks:
       - default
     volumes:
@@ -126,11 +126,12 @@ services:
     depends_on:
       - rss3_node_database
       - rss3_node_redis
-    entrypoint: ["./node", "--worker.id=arweave-momoka"]
+    entrypoint: [ "./node", "--worker.id=arweave-momoka" ]
 
 volumes:
   postgres:
   redis:
+
 
 networks:
   default:
