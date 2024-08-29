@@ -82,7 +82,7 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform base task to activity.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	// Cast the task to a matters task.
+	// Cast the task to a base task.
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -261,7 +261,7 @@ func (w *worker) buildEthereumTransactionBridgeAction(ctx context.Context, block
 	return &action, nil
 }
 
-// NewWorker returns a new matters worker.
+// NewWorker returns a new base worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance := worker{
 		baseOptimismPortalFilterer:   lo.Must(base.NewOptimismPortalFilterer(ethereum.AddressGenesis, nil)),
