@@ -33,6 +33,7 @@ const (
 	Stargate                     // stargate
 	Uniswap                      // uniswap
 	VSL                          // vsl
+	Base                         // base
 )
 
 func (w Worker) Component() string {

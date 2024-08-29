@@ -2,6 +2,7 @@ package worker
 
 import (
 	"fmt"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/base"
 
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
@@ -84,6 +85,8 @@ func New(config *config.Module, databaseClient database.Client, redisClient ruei
 		return stargate.NewWorker(config)
 	case decentralized.Curve:
 		return curve.NewWorker(config, redisClient)
+	case decentralized.Base:
+		return base.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}
