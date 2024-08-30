@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _WorkerName = "aaveaavegotchicorecrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomoka1inchopenseaoptimismparagraphrss3savmstargateuniswapvsl"
+const _WorkerName = "aaveaavegotchicorecrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomoka1inchopenseaoptimismparagraphparaswaprss3savmstargateuniswapvsl"
 
-var _WorkerIndex = [...]uint8{0, 4, 14, 18, 27, 32, 35, 44, 50, 59, 63, 67, 76, 83, 89, 95, 100, 107, 115, 124, 128, 132, 140, 147, 150}
+var _WorkerIndex = [...]uint8{0, 4, 14, 18, 27, 32, 35, 44, 50, 59, 63, 67, 76, 83, 89, 95, 100, 107, 115, 124, 132, 136, 140, 148, 155, 158}
 
-const _WorkerLowerName = "aaveaavegotchicorecrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomoka1inchopenseaoptimismparagraphrss3savmstargateuniswapvsl"
+const _WorkerLowerName = "aaveaavegotchicorecrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomoka1inchopenseaoptimismparagraphparaswaprss3savmstargateuniswapvsl"
 
 func (i Worker) String() string {
 	i -= 1
@@ -50,14 +50,15 @@ func _WorkerNoOp() {
 	_ = x[OpenSea-(17)]
 	_ = x[Optimism-(18)]
 	_ = x[Paragraph-(19)]
-	_ = x[RSS3-(20)]
-	_ = x[SAVM-(21)]
-	_ = x[Stargate-(22)]
-	_ = x[Uniswap-(23)]
-	_ = x[VSL-(24)]
+	_ = x[Paraswap-(20)]
+	_ = x[RSS3-(21)]
+	_ = x[SAVM-(22)]
+	_ = x[Stargate-(23)]
+	_ = x[Uniswap-(24)]
+	_ = x[VSL-(25)]
 }
 
-var _WorkerValues = []Worker{Aave, Aavegotchi, Core, Crossbell, Curve, ENS, Highlight, IQWiki, KiwiStand, Lens, Lido, Looksrare, Matters, Mirror, Momoka, Oneinch, OpenSea, Optimism, Paragraph, RSS3, SAVM, Stargate, Uniswap, VSL}
+var _WorkerValues = []Worker{Aave, Aavegotchi, Core, Crossbell, Curve, ENS, Highlight, IQWiki, KiwiStand, Lens, Lido, Looksrare, Matters, Mirror, Momoka, Oneinch, OpenSea, Optimism, Paragraph, Paraswap, RSS3, SAVM, Stargate, Uniswap, VSL}
 
 var _WorkerNameToValueMap = map[string]Worker{
 	_WorkerName[0:4]:          Aave,
@@ -98,16 +99,18 @@ var _WorkerNameToValueMap = map[string]Worker{
 	_WorkerLowerName[107:115]: Optimism,
 	_WorkerName[115:124]:      Paragraph,
 	_WorkerLowerName[115:124]: Paragraph,
-	_WorkerName[124:128]:      RSS3,
-	_WorkerLowerName[124:128]: RSS3,
-	_WorkerName[128:132]:      SAVM,
-	_WorkerLowerName[128:132]: SAVM,
-	_WorkerName[132:140]:      Stargate,
-	_WorkerLowerName[132:140]: Stargate,
-	_WorkerName[140:147]:      Uniswap,
-	_WorkerLowerName[140:147]: Uniswap,
-	_WorkerName[147:150]:      VSL,
-	_WorkerLowerName[147:150]: VSL,
+	_WorkerName[124:132]:      Paraswap,
+	_WorkerLowerName[124:132]: Paraswap,
+	_WorkerName[132:136]:      RSS3,
+	_WorkerLowerName[132:136]: RSS3,
+	_WorkerName[136:140]:      SAVM,
+	_WorkerLowerName[136:140]: SAVM,
+	_WorkerName[140:148]:      Stargate,
+	_WorkerLowerName[140:148]: Stargate,
+	_WorkerName[148:155]:      Uniswap,
+	_WorkerLowerName[148:155]: Uniswap,
+	_WorkerName[155:158]:      VSL,
+	_WorkerLowerName[155:158]: VSL,
 }
 
 var _WorkerNames = []string{
@@ -130,11 +133,12 @@ var _WorkerNames = []string{
 	_WorkerName[100:107],
 	_WorkerName[107:115],
 	_WorkerName[115:124],
-	_WorkerName[124:128],
-	_WorkerName[128:132],
-	_WorkerName[132:140],
-	_WorkerName[140:147],
-	_WorkerName[147:150],
+	_WorkerName[124:132],
+	_WorkerName[132:136],
+	_WorkerName[136:140],
+	_WorkerName[140:148],
+	_WorkerName[148:155],
+	_WorkerName[155:158],
 }
 
 // WorkerString retrieves an enum value from the enum constants string name.

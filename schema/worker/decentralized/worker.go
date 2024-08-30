@@ -28,6 +28,7 @@ const (
 	OpenSea                      // opensea
 	Optimism                     // optimism
 	Paragraph                    // paragraph
+	Paraswap                     // paraswap
 	RSS3                         // rss3
 	SAVM                         // savm
 	Stargate                     // stargate
@@ -81,6 +82,7 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	OpenSea:    {tag.Collectible},
 	Optimism:   {tag.Transaction},
 	Paragraph:  {tag.Social},
+	Paraswap:   {tag.Exchange},
 	RSS3:       {tag.Exchange, tag.Collectible},
 	SAVM:       {tag.Transaction},
 	Stargate:   {tag.Transaction},
@@ -108,6 +110,7 @@ var ToIconURLMap = map[Worker]string{
 	OpenSea:    "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/opensea.svg",
 	Optimism:   "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/optimism.svg",
 	Paragraph:  "https://storage.googleapis.com/rss3-icon/paragraph.png",
+	Paraswap:   "https://storage.googleapis.com/rss3-icon/paraswap.png",
 	RSS3:       "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/rss3.svg",
 	SAVM:       "",
 	Stargate:   "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/stargate.svg",
