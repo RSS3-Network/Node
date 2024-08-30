@@ -316,6 +316,9 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.RSS: {
 		rss.RSSHub,
 	},
+	network.XLayer: {
+		decentralized.Core,
+	},
 }
 
 // WorkerToConfigMap is a map of worker to config.

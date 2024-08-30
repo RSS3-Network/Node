@@ -95,7 +95,7 @@ var ToIconURLMap = map[Worker]string{
 	Aavegotchi: "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/aavegotchi.svg",
 	Core:       "",
 	Cow:        "",
-	Crossbell:  "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/crossbell.svg",
+	Crossbell:  "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/crossbell-alt.svg",
 	Curve:      "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/curve.svg",
 	ENS:        "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/ens.svg",
 	Highlight:  "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/highlight.svg",
