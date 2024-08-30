@@ -12,6 +12,7 @@ const (
 	Aave       Worker = iota + 1 // aave
 	Aavegotchi                   // aavegotchi
 	Core                         // core
+	Cow                          // cow
 	Crossbell                    // crossbell
 	Curve                        // curve
 	ENS                          // ens
@@ -65,6 +66,7 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	Aave:       {tag.Exchange},
 	Aavegotchi: {tag.Metaverse},
 	Core:       {tag.Collectible, tag.Transaction},
+	Cow:        {tag.Exchange},
 	Crossbell:  {tag.Social},
 	Curve:      {tag.Exchange, tag.Transaction},
 	ENS:        {tag.Social, tag.Collectible},
@@ -92,6 +94,7 @@ var ToIconURLMap = map[Worker]string{
 	Aave:       "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/aave.svg",
 	Aavegotchi: "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/aavegotchi.svg",
 	Core:       "",
+	Cow:        "",
 	Crossbell:  "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/crossbell.svg",
 	Curve:      "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/curve.svg",
 	ENS:        "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/ens.svg",
