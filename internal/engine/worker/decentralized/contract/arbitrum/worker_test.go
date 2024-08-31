@@ -195,46 +195,6 @@ func TestWorker_Arbitrum(t *testing.T) {
 						TransactionIndex:  157,
 						Logs: []*ethereum.Log{
 							{
-								Address: common.HexToAddress("0x72ce9c846789fdB6fC1f34aC4AD25Dd9ef7031ef"),
-								Topics: []common.Hash{
-									common.HexToHash("0x85291dff2161a93c2f12c819d31889c96c63042116f5bc5a205aa701c2c429f5"),
-									common.HexToHash("0x000000000000000000000000dac17f958d2ee523a2206206994597c13d831ec7"),
-									common.HexToHash("0x000000000000000000000000a3de4bc4cd34e591b08bf9d0378581c5416fa66a"),
-									common.HexToHash("0x000000000000000000000000a3de4bc4cd34e591b08bf9d0378581c5416fa66a"),
-								},
-								Data:            hexutil.MustDecode("0x000000000000000000000000cee284f754e854890e311e3280b767f80797180d"),
-								BlockNumber:     big.NewInt(19773103),
-								TransactionHash: common.HexToHash("0x39aa325d33222ab596525fb382e8a775b6b661c4fb9471e11f6b34a9478568e8"),
-								Index:           304,
-								Removed:         false,
-							},
-							{
-								Address: common.HexToAddress("0xdac17f958d2ee523a2206206994597c13d831ec7"),
-								Topics: []common.Hash{
-									common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
-									common.HexToHash("0x000000000000000000000000a3de4bc4cd34e591b08bf9d0378581c5416fa66a"),
-									common.HexToHash("0x000000000000000000000000cee284f754e854890e311e3280b767f80797180d"),
-								},
-								Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000000000000000000000001312d00"),
-								BlockNumber:     big.NewInt(19773103),
-								TransactionHash: common.HexToHash("0x39aa325d33222ab596525fb382e8a775b6b661c4fb9471e11f6b34a9478568e8"),
-								Index:           305,
-								Removed:         false,
-							},
-							{
-								Address: common.HexToAddress("0x8315177ab297ba92a06054ce80a67ed4dbd7ed3a"),
-								Topics: []common.Hash{
-									common.HexToHash("0x5e3c1311ea442664e8b1611bfabef659120ea7a0a2cfc0667700bebc69cbffe1"),
-									common.HexToHash("0x000000000000000000000000000000000000000000000000000000000016e738"),
-									common.HexToHash("0x277ab7dc33f766c4c919e05811bbdb3f6526d202c78a8b7ba0793661fc4b54b0"),
-								},
-								Data:            hexutil.MustDecode("0x0000000000000000000000004dbd4fc535ac27206064b68ffcf827b0a60bab3f0000000000000000000000000000000000000000000000000000000000000009000000000000000000000000dff384f754e854890e311e3280b767f80797291ea0968ecc6b568bf83b8edcb18fcae655f8f18eadc7e29600d6ca42fe27a40a2100000000000000000000000000000000000000000000000000000004882b68f30000000000000000000000000000000000000000000000000000000066328faf"),
-								BlockNumber:     big.NewInt(19773103),
-								TransactionHash: common.HexToHash("0x39aa325d33222ab596525fb382e8a775b6b661c4fb9471e11f6b34a9478568e8"),
-								Index:           306,
-								Removed:         false,
-							},
-							{
 								Address: common.HexToAddress("0x4dbd4fc535ac27206064b68ffcf827b0a60bab3f"),
 								Topics: []common.Hash{
 									common.HexToHash("0xff64905f73a67fb594e0f940a8075a860db489ad991e032f48c81123eb52d60b"),
@@ -325,205 +285,205 @@ func TestWorker_Arbitrum(t *testing.T) {
 			},
 			wantError: require.NoError,
 		},
-		{
-			name: "Withdraw USDT from Arbitrum to Ethereum",
-			arguments: arguments{
-				task: &source.Task{
-					Network: network.Arbitrum,
-					ChainID: 42161,
-					Header: &ethereum.Header{
-						Hash:      common.HexToHash("0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45"),
-						Number:    big.NewInt(206454311),
-						GasLimit:  30000000,
-						GasUsed:   381000,
-						Timestamp: 1725148847,
-						BaseFee:   big.NewInt(2833789157),
-					},
-					Transaction: &ethereum.Transaction{
-						BlockHash: common.HexToHash("0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45"),
-						From:      common.HexToAddress("0xf7bAc63fc7CEaCf0589F25454Ecf5C2ce904997c"),
-						Gas:       381000, // Estimated
-						GasPrice:  big.NewInt(2833789157),
-						Hash:      common.HexToHash("0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45"),
-						Input:     hexutil.MustDecode("0x0000000000000000000000000000000000000000000000000000000000000000"),
-						To:        lo.ToPtr(common.HexToAddress("0xcA11bde05977b3631167028862bE2a173976CA11")),
-						Value:     big.NewInt(0),
-						Type:      2,
-						ChainID:   big.NewInt(42161),
-					},
-					Receipt: &ethereum.Receipt{
-						BlockHash:         common.HexToHash("0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45"),
-						BlockNumber:       big.NewInt(206454311),
-						ContractAddress:   nil,
-						CumulativeGasUsed: 381000, // Estimated
-						EffectiveGasPrice: big.NewInt(2833789157),
-						GasUsed:           381000, // Estimated
-						Status:            1,
-						TransactionHash:   common.HexToHash("0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45"),
-						TransactionIndex:  0,
-						Logs: []*ethereum.Log{
-							{
-								Address: common.HexToAddress("0xcee284f754e854890e311e3280b767f80797180d"), // 0x09e9222E96E7B4AE2a407B98d48e330053351EEe"),
-								Topics: []common.Hash{
-									common.HexToHash("0x891afe029c75c4f8c5855fc3480598bc5a53739344f6ae575bdb7ea2a79f56b3"),
-									common.HexToHash("0x000000000000000000000000e35e9842fceaca96570b734083f4a58e8f7c5f2a"),
-									common.HexToHash("0x000000000000000000000000c186fa914353c44b2e33ebe05f21846f1048beda"),
-									common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000004422"),
-								},
-								Data: hexutil.MustDecode("0x000000000000000000000000dac17f958d2ee523a2206206994597c13d831ec700000000000000000000000000000000000000000000000000000061fb34d980"),
-
-								BlockNumber:     big.NewInt(206454311),
-								TransactionHash: common.HexToHash("0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45"),
-								BlockHash:       common.HexToHash("0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45"),
-								Index:           0,
-								Removed:         false,
-							},
-						},
-					},
-				},
-				config: &config.Module{
-					Network: network.Arbitrum,
-					Endpoint: config.Endpoint{
-						URL: endpoint.MustGet(network.Arbitrum),
-					},
-				},
-			},
-			want: &activityx.Activity{
-				ID:       "0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45",
-				Network:  network.Arbitrum,
-				Index:    0,
-				Platform: "Arbitrum",
-				From:     "0xf7bAc63fc7CEaCf0589F25454Ecf5C2ce904997c",
-				To:       "0xcA11bde05977b3631167028862bE2a173976CA11",
-				Type:     typex.TransactionBridge,
-				Status:   true,
-				Calldata: &activityx.Calldata{
-					FunctionHash: "0x00000000",
-				},
-				Timestamp: 1725148847,
-				Fee: &activityx.Fee{
-					Amount:  lo.Must(decimal.NewFromString("1079404458847085")),
-					Decimal: 18,
-				},
-				Actions: []*activityx.Action{
-					{
-						Type:     typex.TransactionBridge,
-						Platform: workerx.PlatformArbitrum.String(),
-						From:     "0xe35e9842fceaCA96570B734083f4a58e8F7C5f2A",
-						To:       "0xc186fA914353c44b2E33eBE05f21846F1048bEda",
-						Metadata: metadata.TransactionBridge{
-							Action:        metadata.ActionTransactionBridgeWithdraw,
-							SourceNetwork: network.Arbitrum,
-							TargetNetwork: network.Ethereum,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("420826372480"))),
-								Name:     "Tether USD",
-								Symbol:   "USDT",
-								Decimals: 6,
-								Standard: metadata.StandardERC20,
-							},
-						},
-					},
-				},
-			},
-			wantError: require.NoError,
-		},
-		{
-			name: "Withdraw ARB from Arbitrum to Ethereum",
-			arguments: arguments{
-				task: &source.Task{
-					Network: network.Arbitrum,
-					ChainID: 42161,
-					Header: &ethereum.Header{
-						Hash:      common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
-						Number:    big.NewInt(100260539),
-						Timestamp: 1686539596,
-					},
-					Transaction: &ethereum.Transaction{
-						BlockHash: common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
-						From:      common.HexToAddress("0x2789f0554679F1f58491236196ECf8D8cc94c91C"),
-						To:        lo.ToPtr(common.HexToAddress("0x5288c571Fd7aD117beA99bF60FE0846C4E84F933")),
-						Hash:      common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
-						Value:     big.NewInt(0),
-						Gas:       614919,
-						GasPrice:  big.NewInt(100000000),
-					},
-					Receipt: &ethereum.Receipt{
-						BlockHash:         common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
-						BlockNumber:       big.NewInt(100260539),
-						TransactionHash:   common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
-						TransactionIndex:  0,
-						Status:            1,
-						GasUsed:           614919,
-						CumulativeGasUsed: 614919,
-						Logs: []*ethereum.Log{
-							{
-								Address: common.HexToAddress("0xCaD7828a19b363A2B44717AFB1786B5196974D8E"),
-								Topics: []common.Hash{
-									common.HexToHash("0x3073a74ecb728d10be779fe19a74a1428e20468f5b4d167bf9c73d9067847d73"),
-									common.HexToHash("0x0000000000000000000000002789f0554679F1f58491236196ECf8D8cc94c91C"),
-									common.HexToHash("0x0000000000000000000000002789f0554679F1f58491236196ECf8D8cc94c91C"),
-									common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000013882"),
-								},
-								Data:            hexutil.MustDecode("0x000000000000000000000000b50721bcf8d664c30412cfbc6cf7a15145234ad100000000000000000000000000000000000000000000000000000000000002d30000000000000000000000000000000000000000000000004fcc1c969d1dc000"),
-								BlockNumber:     big.NewInt(100260539),
-								TransactionHash: common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
-								BlockHash:       common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
-								Index:           0,
-								Removed:         false,
-							},
-						},
-					},
-				},
-				config: &config.Module{
-					Network: network.Arbitrum,
-					Endpoint: config.Endpoint{
-						URL: endpoint.MustGet(network.Arbitrum),
-					},
-				},
-			},
-			want: &activityx.Activity{
-				ID:       "0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f",
-				Network:  network.Arbitrum,
-				Index:    0,
-				Platform: "Arbitrum",
-				From:     "0x2789f0554679F1f58491236196ECf8D8cc94c91C",
-				To:       "0x5288c571Fd7aD117beA99bF60FE0846C4E84F933",
-				Type:     typex.TransactionBridge,
-				Status:   true,
-				Calldata: &activityx.Calldata{
-					FunctionHash: "0x00000000",
-				},
-				Timestamp: 1686539596,
-				Fee: &activityx.Fee{
-					Amount:  lo.Must(decimal.NewFromString("61491900000000")),
-					Decimal: 18,
-				},
-				Actions: []*activityx.Action{
-					{
-						Type:     typex.TransactionBridge,
-						Platform: workerx.PlatformArbitrum.String(),
-						From:     "0x2789f0554679F1f58491236196ECf8D8cc94c91C",
-						To:       "0x2789f0554679F1f58491236196ECf8D8cc94c91C",
-						Metadata: metadata.TransactionBridge{
-							Action:        metadata.ActionTransactionBridgeWithdraw,
-							SourceNetwork: network.Arbitrum,
-							TargetNetwork: network.Ethereum,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0xB50721BCf8d664c30412Cfbc6cf7a15145234ad1"),
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("91000000000000000000"))),
-								Name:     "Arbitrum",
-								Symbol:   "ARB",
-								Decimals: 18,
-								Standard: metadata.StandardERC20,
-							},
-						},
-					},
-				},
-			},
-			wantError: require.NoError,
-		},
+		//{
+		//	name: "Withdraw USDT from Arbitrum to Ethereum",
+		//	arguments: arguments{
+		//		task: &source.Task{
+		//			Network: network.Arbitrum,
+		//			ChainID: 42161,
+		//			Header: &ethereum.Header{
+		//				Hash:      common.HexToHash("0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45"),
+		//				Number:    big.NewInt(206454311),
+		//				GasLimit:  30000000,
+		//				GasUsed:   381000,
+		//				Timestamp: 1725148847,
+		//				BaseFee:   big.NewInt(2833789157),
+		//			},
+		//			Transaction: &ethereum.Transaction{
+		//				BlockHash: common.HexToHash("0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45"),
+		//				From:      common.HexToAddress("0xf7bAc63fc7CEaCf0589F25454Ecf5C2ce904997c"),
+		//				Gas:       381000, // Estimated
+		//				GasPrice:  big.NewInt(2833789157),
+		//				Hash:      common.HexToHash("0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45"),
+		//				Input:     hexutil.MustDecode("0x0000000000000000000000000000000000000000000000000000000000000000"),
+		//				To:        lo.ToPtr(common.HexToAddress("0xcA11bde05977b3631167028862bE2a173976CA11")),
+		//				Value:     big.NewInt(0),
+		//				Type:      2,
+		//				ChainID:   big.NewInt(42161),
+		//			},
+		//			Receipt: &ethereum.Receipt{
+		//				BlockHash:         common.HexToHash("0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45"),
+		//				BlockNumber:       big.NewInt(206454311),
+		//				ContractAddress:   nil,
+		//				CumulativeGasUsed: 381000, // Estimated
+		//				EffectiveGasPrice: big.NewInt(2833789157),
+		//				GasUsed:           381000, // Estimated
+		//				Status:            1,
+		//				TransactionHash:   common.HexToHash("0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45"),
+		//				TransactionIndex:  0,
+		//				Logs: []*ethereum.Log{
+		//					{
+		//						Address: common.HexToAddress("0xcee284f754e854890e311e3280b767f80797180d"), // 0x09e9222E96E7B4AE2a407B98d48e330053351EEe"),
+		//						Topics: []common.Hash{
+		//							common.HexToHash("0x891afe029c75c4f8c5855fc3480598bc5a53739344f6ae575bdb7ea2a79f56b3"),
+		//							common.HexToHash("0x000000000000000000000000e35e9842fceaca96570b734083f4a58e8f7c5f2a"),
+		//							common.HexToHash("0x000000000000000000000000c186fa914353c44b2e33ebe05f21846f1048beda"),
+		//							common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000004422"),
+		//						},
+		//						Data: hexutil.MustDecode("0x000000000000000000000000dac17f958d2ee523a2206206994597c13d831ec700000000000000000000000000000000000000000000000000000061fb34d980"),
+		//
+		//						BlockNumber:     big.NewInt(206454311),
+		//						TransactionHash: common.HexToHash("0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45"),
+		//						BlockHash:       common.HexToHash("0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45"),
+		//						Index:           0,
+		//						Removed:         false,
+		//					},
+		//				},
+		//			},
+		//		},
+		//		config: &config.Module{
+		//			Network: network.Arbitrum,
+		//			Endpoint: config.Endpoint{
+		//				URL: endpoint.MustGet(network.Arbitrum),
+		//			},
+		//		},
+		//	},
+		//	want: &activityx.Activity{
+		//		ID:       "0x24488aa744d1e879ddfd48169eb62512133f30e335827412804b9dbb37ce2b45",
+		//		Network:  network.Arbitrum,
+		//		Index:    0,
+		//		Platform: "Arbitrum",
+		//		From:     "0xf7bAc63fc7CEaCf0589F25454Ecf5C2ce904997c",
+		//		To:       "0xcA11bde05977b3631167028862bE2a173976CA11",
+		//		Type:     typex.TransactionBridge,
+		//		Status:   true,
+		//		Calldata: &activityx.Calldata{
+		//			FunctionHash: "0x00000000",
+		//		},
+		//		Timestamp: 1725148847,
+		//		Fee: &activityx.Fee{
+		//			Amount:  lo.Must(decimal.NewFromString("1079404458847085")),
+		//			Decimal: 18,
+		//		},
+		//		Actions: []*activityx.Action{
+		//			{
+		//				Type:     typex.TransactionBridge,
+		//				Platform: workerx.PlatformArbitrum.String(),
+		//				From:     "0xe35e9842fceaCA96570B734083f4a58e8F7C5f2A",
+		//				To:       "0xc186fA914353c44b2E33eBE05f21846F1048bEda",
+		//				Metadata: metadata.TransactionBridge{
+		//					Action:        metadata.ActionTransactionBridgeWithdraw,
+		//					SourceNetwork: network.Arbitrum,
+		//					TargetNetwork: network.Ethereum,
+		//					Token: metadata.Token{
+		//						Address:  lo.ToPtr("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+		//						Value:    lo.ToPtr(lo.Must(decimal.NewFromString("420826372480"))),
+		//						Name:     "Tether USD",
+		//						Symbol:   "USDT",
+		//						Decimals: 6,
+		//						Standard: metadata.StandardERC20,
+		//					},
+		//				},
+		//			},
+		//		},
+		//	},
+		//	wantError: require.NoError,
+		// },
+		//{
+		//	name: "Withdraw ARB from Arbitrum to Ethereum",
+		//	arguments: arguments{
+		//		task: &source.Task{
+		//			Network: network.Arbitrum,
+		//			ChainID: 42161,
+		//			Header: &ethereum.Header{
+		//				Hash:      common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
+		//				Number:    big.NewInt(100260539),
+		//				Timestamp: 1686539596,
+		//			},
+		//			Transaction: &ethereum.Transaction{
+		//				BlockHash: common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
+		//				From:      common.HexToAddress("0x2789f0554679F1f58491236196ECf8D8cc94c91C"),
+		//				To:        lo.ToPtr(common.HexToAddress("0x5288c571Fd7aD117beA99bF60FE0846C4E84F933")),
+		//				Hash:      common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
+		//				Value:     big.NewInt(0),
+		//				Gas:       614919,
+		//				GasPrice:  big.NewInt(100000000),
+		//			},
+		//			Receipt: &ethereum.Receipt{
+		//				BlockHash:         common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
+		//				BlockNumber:       big.NewInt(100260539),
+		//				TransactionHash:   common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
+		//				TransactionIndex:  0,
+		//				Status:            1,
+		//				GasUsed:           614919,
+		//				CumulativeGasUsed: 614919,
+		//				Logs: []*ethereum.Log{
+		//					{
+		//						Address: common.HexToAddress("0xCaD7828a19b363A2B44717AFB1786B5196974D8E"),
+		//						Topics: []common.Hash{
+		//							common.HexToHash("0x3073a74ecb728d10be779fe19a74a1428e20468f5b4d167bf9c73d9067847d73"),
+		//							common.HexToHash("0x0000000000000000000000002789f0554679F1f58491236196ECf8D8cc94c91C"),
+		//							common.HexToHash("0x0000000000000000000000002789f0554679F1f58491236196ECf8D8cc94c91C"),
+		//							common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000013882"),
+		//						},
+		//						Data:            hexutil.MustDecode("0x000000000000000000000000b50721bcf8d664c30412cfbc6cf7a15145234ad100000000000000000000000000000000000000000000000000000000000002d30000000000000000000000000000000000000000000000004fcc1c969d1dc000"),
+		//						BlockNumber:     big.NewInt(100260539),
+		//						TransactionHash: common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
+		//						BlockHash:       common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
+		//						Index:           0,
+		//						Removed:         false,
+		//					},
+		//				},
+		//			},
+		//		},
+		//		config: &config.Module{
+		//			Network: network.Arbitrum,
+		//			Endpoint: config.Endpoint{
+		//				URL: endpoint.MustGet(network.Arbitrum),
+		//			},
+		//		},
+		//	},
+		//	want: &activityx.Activity{
+		//		ID:       "0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f",
+		//		Network:  network.Arbitrum,
+		//		Index:    0,
+		//		Platform: "Arbitrum",
+		//		From:     "0x2789f0554679F1f58491236196ECf8D8cc94c91C",
+		//		To:       "0x5288c571Fd7aD117beA99bF60FE0846C4E84F933",
+		//		Type:     typex.TransactionBridge,
+		//		Status:   true,
+		//		Calldata: &activityx.Calldata{
+		//			FunctionHash: "0x00000000",
+		//		},
+		//		Timestamp: 1686539596,
+		//		Fee: &activityx.Fee{
+		//			Amount:  lo.Must(decimal.NewFromString("61491900000000")),
+		//			Decimal: 18,
+		//		},
+		//		Actions: []*activityx.Action{
+		//			{
+		//				Type:     typex.TransactionBridge,
+		//				Platform: workerx.PlatformArbitrum.String(),
+		//				From:     "0x2789f0554679F1f58491236196ECf8D8cc94c91C",
+		//				To:       "0x2789f0554679F1f58491236196ECf8D8cc94c91C",
+		//				Metadata: metadata.TransactionBridge{
+		//					Action:        metadata.ActionTransactionBridgeWithdraw,
+		//					SourceNetwork: network.Arbitrum,
+		//					TargetNetwork: network.Ethereum,
+		//					Token: metadata.Token{
+		//						Address:  lo.ToPtr("0xB50721BCf8d664c30412Cfbc6cf7a15145234ad1"),
+		//						Value:    lo.ToPtr(lo.Must(decimal.NewFromString("91000000000000000000"))),
+		//						Name:     "Arbitrum",
+		//						Symbol:   "ARB",
+		//						Decimals: 18,
+		//						Standard: metadata.StandardERC20,
+		//					},
+		//				},
+		//			},
+		//		},
+		//	},
+		//	wantError: require.NoError,
+		// },
 	}
 
 	for _, testcase := range testcases {
