@@ -15,7 +15,7 @@ import (
 // https://etherscan.io/address/0xcEe284F754E854890e311e3280b767F80797180d
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/L1CustomGateway.abi --pkg arbitrum --type L1CustomGateway --out contract_l1_custom_gateway.go
 // L1ERC20Gateway
-// https://etherscan.io/address/0xB2535b988dcE19f9D71dfB22dB6da744aCac21bf
+// https://etherscan.io/address/0xa3A7B6F88361F48403514059F1F16C8E78d60EeC
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/L1ERC20Gateway.abi --pkg arbitrum --type L1ERC20Gateway --out contract_l1_erc20_gateway.go
 // L1GatewayRouter
 // https://arbiscan.io/address/0x5288c571fd7ad117bea99bf60fe0846c4e84f933
@@ -35,6 +35,7 @@ var (
 	AddressBridgeOne              = common.HexToAddress("0x8315177ab297ba92a06054ce80a67ed4dbd7ed3a")
 	AddressInboxOne               = common.HexToAddress("0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f")
 	AddressL1CustomGatewayOne     = common.HexToAddress("0xcEe284F754E854890e311e3280b767F80797180d")
+	AddressL1ERC20GatewayOne      = common.HexToAddress("0xa3A7B6F88361F48403514059F1F16C8E78d60EeC")
 	AddressL1GatewayRouterOne     = common.HexToAddress("0x72Ce9c846789fdB6fC1f34aC4AD25Dd9ef7031ef")
 	AddressL2GatewayRouter        = common.HexToAddress("0x5288c571fd7ad117bea99bf60fe0846c4e84f933")
 	AddressL2ReverseCustomGateway = common.HexToAddress("0xCaD7828a19b363A2B44717AFB1786B5196974D8E")
@@ -42,9 +43,9 @@ var (
 
 	EventHashBridgeMessageDelivered                    = contract.EventHash("MessageDelivered(uint256,bytes32,address,uint8,address,bytes32,uint256,uint64)")
 	EventHashL1CustomGatewayDepositInitiated           = contract.EventHash("DepositInitiated(address,address,address,uint256,uint256)")
-	EventHashL1CustomGatewayWithdrawalFinalized        = contract.EventHash("WithdrawalFinalized(address, address, address, uint256, uint256)")
+	EventHashL1CustomGatewayWithdrawalFinalized        = contract.EventHash("WithdrawalFinalized(address,address,address,uint256,uint256)")
 	EventHashL2ReverseCustomGatewayWithdrawalInitiated = contract.EventHash("WithdrawalInitiated(address,address,address,uint256,uint256,uint256)")
-	EventHashL2ReverseCustomGatewayDepositFinalized    = contract.EventHash("DepositFinalized(address, address, address, uint256)")
+	EventHashL2ReverseCustomGatewayDepositFinalized    = contract.EventHash("DepositFinalized(address,address,address,uint256)")
 	EventHashArbSysL2ToL1Tx                            = contract.EventHash("L2ToL1Tx(address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes)")
 )
 
