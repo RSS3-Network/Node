@@ -156,8 +156,24 @@ func (w *worker) matchL1CustomGatewayDepositInitiatedLog(_ *source.Task, log *et
 	return contract.MatchAddresses(log.Address, arbitrum.AddressL1CustomGatewayOne)
 }
 
+func (w *worker) matchL1CustomGatewayWithdrawalFinalizedLog(_ *source.Task, log *ethereum.Log) bool {
+	if !contract.MatchEventHashes(log.Topics[0], arbitrum.EventHashL1CustomGatewayWithdrawalFinalized) {
+		return false
+	}
+
+	return contract.MatchAddresses(log.Address, arbitrum.AddressL1CustomGatewayOne)
+}
+
 func (w *worker) matchL2ReverseCustomGatewayWithdrawalInitiatedLog(_ *source.Task, log *ethereum.Log) bool {
 	if !contract.MatchEventHashes(log.Topics[0], arbitrum.EventHashL2ReverseCustomGatewayWithdrawalInitiated) {
+		return false
+	}
+
+	return contract.MatchAddresses(log.Address, arbitrum.AddressL2ReverseCustomGateway)
+}
+
+func (w *worker) matchL2ReverseCustomGatewayDepositFinalizedLog(_ *source.Task, log *ethereum.Log) bool {
+	if !contract.MatchEventHashes(log.Topics[0], arbitrum.EventHashL2ReverseCustomGatewayDepositFinalized) {
 		return false
 	}
 
@@ -172,29 +188,13 @@ func (w *worker) matchArbSysL2ToL1TxLog(_ *source.Task, log *ethereum.Log) bool 
 	return contract.MatchAddresses(log.Address, arbitrum.AddressArbSys)
 }
 
-func (w *worker) matchL1CustomGatewayWithdrawalFinalizedLog(_ *source.Task, log *ethereum.Log) bool {
-	if !contract.MatchEventHashes(log.Topics[0], arbitrum.EventHashL1CustomGatewayWithdrawalFinalized) {
-		return false
-	}
-
-	return contract.MatchAddresses(log.Address, arbitrum.AddressL1CustomGatewayOne)
-}
-
-func (w *worker) matchL2ReverseCustomGatewayDepositFinalizedLog(_ *source.Task, log *ethereum.Log) bool {
-	if !contract.MatchEventHashes(log.Topics[0], arbitrum.EventHashL2ReverseCustomGatewayDepositFinalized) {
-		return false
-	}
-
-	return contract.MatchAddresses(log.Address, arbitrum.AddressL2ReverseCustomGateway)
-}
-
 func (w *worker) transformBridgeMessageDeliveredLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.contractBridgeFilterer.ParseMessageDelivered(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse MessageDelivered event: %w", err)
 	}
 
-	if event.Kind != arbitrum.L1MessageTypeETHDeposit {
+	if event.Kind != arbitrum.L1MessageTypeETHDeposit && event.Kind != arbitrum.L1MessageTypeTransactCall {
 		return nil, fmt.Errorf("unspoorted message kind: %d", event.Kind)
 	}
 
