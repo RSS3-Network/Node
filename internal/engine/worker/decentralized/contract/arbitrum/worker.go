@@ -125,7 +125,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		}
 
 		// Log the entire task using zap.Any for structured logging
-		// zap.L().Info("Processing task", zap.Any("task", ethereumTask))
 
 		if err != nil {
 			zap.L().Warn("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
