@@ -284,7 +284,9 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 	if source == network.Arbitrum {
 		blockNumber = nil
 	}
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
+
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
