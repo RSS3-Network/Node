@@ -57,7 +57,7 @@ require (
 	github.com/emirpasic/gods v1.18.1
 	github.com/grafana/pyroscope-go v1.1.2
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/redis/rueidis v1.0.44
+	github.com/redis/rueidis v1.0.45
 	github.com/rss3-network/protocol-go v0.5.3
 	github.com/spf13/afero v1.11.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
@@ -177,7 +177,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
-	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8 // indirect
+	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
