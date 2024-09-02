@@ -49,13 +49,15 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=ghcr.io/rss3-network/node,push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=ghcr.io/rss3-network/node,push-by-digest=true,name-canonical=true,push=${{ github.actor != 'dependabot[bot]' }}
       - name: Export digest
+        if: github.actor != 'dependabot[bot]'
         run: |
           mkdir -p /tmp/digests
           digest="${{ steps.build.outputs.digest }}"
           touch "/tmp/digests/${digest#sha256:}"
       - name: Upload digest
+        if: github.actor != 'dependabot[bot]'
         uses: actions/upload-artifact@v4
         with:
           name: digests-${{ env.PLATFORM_PAIR }}
@@ -70,6 +72,7 @@ jobs:
       id-token: write
     needs:
       - build
+    if: github.actor != 'dependabot[bot]'
     steps:
       - name: Download digests
         uses: actions/download-artifact@v4
