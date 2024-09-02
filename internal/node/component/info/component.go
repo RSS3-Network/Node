@@ -49,7 +49,6 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 	apiServer.GET("/version", c.GetVersion)
 	apiServer.GET("/activity_count", c.GetActivityCount)
 	apiServer.GET("/workers_status", c.GetWorkersStatus)
-	apiServer.GET("/assets", c.GetNodeAssets)
 
 	networks := apiServer.Group("/networks")
 
