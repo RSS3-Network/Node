@@ -280,6 +280,10 @@ func (w *worker) transformArbSysL2ToL1TxLog(ctx context.Context, task *source.Ta
 func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address,
 	source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address,
 	tokenValue *big.Int, blockNumber *big.Int) (*activityx.Action, error) {
+	// If the chain is 'Arbitrum', then set blockNumber to be nil by default to use Lookup()
+	if source == network.Arbitrum {
+		blockNumber = nil
+	}
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)

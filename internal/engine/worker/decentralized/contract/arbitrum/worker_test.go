@@ -463,6 +463,142 @@ func TestWorker_Arbitrum(t *testing.T) {
 			},
 			wantError: require.NoError,
 		},
+		{
+			name: "Withdraw ARB from Arbitrum to Ethereum",
+			arguments: arguments{
+				task: &source.Task{
+					Network: network.Ethereum,
+					ChainID: 42161,
+					Header: &ethereum.Header{
+						Hash:         common.HexToHash("0x7e22efbf9570e9bf21695248c751de8479f58c1162485a8fb5fc9fbae78b6175"),
+						ParentHash:   common.HexToHash("0x3e8af39ae25740a3d1b45ad53909ee84c2466c79963998f90162a8e02d31e56e"),
+						UncleHash:    common.HexToHash("0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"),
+						Coinbase:     common.HexToAddress("0xA4b000000000000000000073657175656e636572"),
+						Number:       lo.Must(new(big.Int).SetString("100260539", 0)),
+						GasLimit:     1125899906842624,
+						GasUsed:      614919,
+						Timestamp:    1686538396,
+						BaseFee:      lo.Must(new(big.Int).SetString("100000000", 0)),
+						Transactions: nil,
+					},
+					Transaction: &ethereum.Transaction{
+						BlockHash: common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
+						From:      common.HexToAddress("0x2789f0554679F1f58491236196ECf8D8cc94c91C"),
+						Gas:       724081,
+						GasPrice:  lo.Must(new(big.Int).SetString("100000000", 10)),
+						Hash:      common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
+						Input:     hexutil.MustDecode("0x7b3a3c8b000000000000000000000000b50721bcf8d664c30412cfbc6cf7a15145234ad10000000000000000000000002789f0554679f1f58491236196ecf8d8cc94c91c000000000000000000000000000000000000000000000004eee0f1dc808c000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000"),
+						To:        lo.ToPtr(common.HexToAddress("0x5288c571Fd7aD117beA99bF60FE0846C4E84F933")),
+						Value:     lo.Must(new(big.Int).SetString("0", 0)),
+						Type:      2,
+						ChainID:   lo.Must(new(big.Int).SetString("42161", 0)),
+					},
+					Receipt: &ethereum.Receipt{
+						BlockHash:         common.HexToHash("0x7e22efbf9570e9bf21695248c751de8479f58c1162485a8fb5fc9fbae78b6175"),
+						BlockNumber:       lo.Must(new(big.Int).SetString("100260539", 0)),
+						ContractAddress:   nil,
+						CumulativeGasUsed: 614919,
+						EffectiveGasPrice: hexutil.MustDecodeBig("0x5f5e100"),
+						GasUsed:           614919,
+
+						Logs: []*ethereum.Log{{
+							Address: common.HexToAddress("0x0000000000000000000000000000000000000064"),
+							Topics: []common.Hash{
+								common.HexToHash("0x3e7aafa77dbf186b7fd488006beff893744caa3c4f6f299e8a709fa2087374fc"),
+								common.HexToHash("0x000000000000000000000000bbce8aa77782f13d4202a230d978f361b011db27"),
+								common.HexToHash("0xea45bd538103218f8a1a43aae971ec8530336ebc16cccf9ea60f8107d50561cf"),
+								common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000013892"),
+							},
+							Data:            hexutil.MustDecode("0x000000000000000000000000cad7828a19b363a2b44717afb1786b5196974d8e0000000000000000000000000000000000000000000000000000000005f9dabb00000000000000000000000000000000000000000000000000000000010a6f92000000000000000000000000000000000000000000000000000000006486889c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000001242e567b36000000000000000000000000b50721bcf8d664c30412cfbc6cf7a15145234ad10000000000000000000000002789f0554679f1f58491236196ecf8d8cc94c91c0000000000000000000000002789f0554679f1f58491236196ecf8d8cc94c91c000000000000000000000000000000000000000000000004eee0f1dc808c000000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000002d30000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("100260539", 0)),
+							TransactionHash: common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
+							Index:           3,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xCaD7828a19b363A2B44717AFB1786B5196974D8E"),
+							Topics: []common.Hash{
+								common.HexToHash("0x3073a74ecb728d10be779fe19a74a1428e20468f5b4d167bf9c73d9067847d73"),
+								common.HexToHash("0x0000000000000000000000002789f0554679f1f58491236196ecf8d8cc94c91c"),
+								common.HexToHash("0x0000000000000000000000002789f0554679f1f58491236196ecf8d8cc94c91c"),
+								common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000013892"),
+							},
+							Data:            hexutil.MustDecode("0x000000000000000000000000b50721bcf8d664c30412cfbc6cf7a15145234ad100000000000000000000000000000000000000000000000000000000000002d3000000000000000000000000000000000000000000000004eee0f1dc808c0000"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("100260539", 0)),
+							TransactionHash: common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
+							Index:           5,
+							Removed:         false,
+						}},
+						Status:           1,
+						TransactionHash:  common.HexToHash("0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f"),
+						TransactionIndex: 1,
+					},
+				},
+				config: &config.Module{
+					Network: network.Arbitrum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Arbitrum),
+					},
+				},
+			},
+
+			want: &activityx.Activity{
+				ID:       "0x974e267c3601b535d2f7965c24473ba500a495450bbf3822569ad18d929b752f",
+				Network:  network.Ethereum,
+				Index:    1,
+				From:     "0x2789f0554679F1f58491236196ECf8D8cc94c91C",
+				To:       "0x5288c571Fd7aD117beA99bF60FE0846C4E84F933",
+				Type:     typex.TransactionBridge,
+				Platform: workerx.PlatformArbitrum.String(),
+				Fee: &activityx.Fee{
+					Amount:  lo.Must(decimal.NewFromString("61491900000000")),
+					Decimal: 18,
+				},
+				Calldata: &activityx.Calldata{
+					FunctionHash: "0x7b3a3c8b",
+				},
+				Actions: []*activityx.Action{
+					{
+						Type:     typex.TransactionBridge,
+						Platform: workerx.PlatformArbitrum.String(),
+						From:     "0xCaD7828a19b363A2B44717AFB1786B5196974D8E",
+						To:       "0xbbcE8aA77782F13D4202a230d978F361B011dB27",
+						Metadata: metadata.TransactionBridge{
+							Action:        metadata.ActionTransactionBridgeWithdraw,
+							SourceNetwork: network.Arbitrum,
+							TargetNetwork: network.Ethereum,
+							Token: metadata.Token{
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("0"))),
+								Name:     "Ethereum",
+								Symbol:   "ETH",
+								Decimals: 18,
+							},
+						},
+					},
+					{
+						Type:     typex.TransactionBridge,
+						Platform: workerx.PlatformArbitrum.String(),
+						From:     "0x2789f0554679F1f58491236196ECf8D8cc94c91C",
+						To:       "0x2789f0554679F1f58491236196ECf8D8cc94c91C",
+						Metadata: metadata.TransactionBridge{
+							Action:        metadata.ActionTransactionBridgeWithdraw,
+							SourceNetwork: network.Arbitrum,
+							TargetNetwork: network.Ethereum,
+							Token: metadata.Token{
+								Address:  lo.ToPtr("0x912CE59144191C1204E64559FE8253a0e49E6548"),
+								Name:     "Arbitrum",
+								Symbol:   "ARB",
+								Decimals: 18,
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("91000000000000000000"))),
+								Standard: metadata.StandardERC20,
+							},
+						},
+					},
+				},
+				Status:    true,
+				Timestamp: 1686538396,
+			},
+			wantError: require.NoError,
+		},
 	}
 
 	for _, testcase := range testcases {
