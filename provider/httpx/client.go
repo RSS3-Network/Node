@@ -26,6 +26,7 @@ const (
 type Client interface {
 	Fetch(ctx context.Context, path string) (io.ReadCloser, error)
 	GetContentType(ctx context.Context, path string) (string, error)
+	Post(ctx context.Context, path string, body io.Reader) (io.ReadCloser, error)
 }
 
 var _ Client = (*httpClient)(nil)
@@ -103,6 +104,30 @@ func (h *httpClient) GetContentType(ctx context.Context, uri string) (string, er
 	}
 
 	return mimeType.String(), nil
+}
+
+func (h *httpClient) Post(ctx context.Context, path string, body io.Reader) (io.ReadCloser, error) {
+	return h.doRequest(ctx, http.MethodPost, path, body)
+}
+
+func (h *httpClient) doRequest(ctx context.Context, method, path string, body io.Reader) (io.ReadCloser, error) {
+	request, err := http.NewRequestWithContext(ctx, method, path, body)
+	if err != nil {
+		return nil, fmt.Errorf("new request: %w", err)
+	}
+
+	response, err := h.httpClient.Do(request)
+	if err != nil {
+		return nil, fmt.Errorf("send request: %w", err)
+	}
+
+	if response.StatusCode != http.StatusOK {
+		defer lo.Try(response.Body.Close)
+
+		return nil, fmt.Errorf("unexpected status code: %d", response.StatusCode)
+	}
+
+	return response.Body, nil
 }
 
 func NewHTTPClient(options ...ClientOption) (Client, error) {
