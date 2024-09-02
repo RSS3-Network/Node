@@ -49,13 +49,15 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=ghcr.io/rss3-network/node,push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=ghcr.io/rss3-network/node,push-by-digest=true,name-canonical=true,push=${{ github.actor != 'dependabot[bot]' }}
       - name: Export digest
+        if: github.actor != 'dependabot[bot]'
         run: |
           mkdir -p /tmp/digests
           digest="${{ steps.build.outputs.digest }}"
           touch "/tmp/digests/${digest#sha256:}"
       - name: Upload digest
+        if: github.actor != 'dependabot[bot]'
         uses: actions/upload-artifact@v4
         with:
           name: digests-${{ env.PLATFORM_PAIR }}
@@ -114,16 +116,12 @@ jobs:
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          if [ "${{ github.actor }}" != "dependabot[bot]" ]; then
-            if [ "${{ github.event_name }}" == "pull_request" ]; then
-              ARGS="--dry-run"
-            fi
-            docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-              $(printf 'ghcr.io/rss3-network/node@sha256:%s ' *) $ARGS
-          else
-            echo "Skipping manifest creation and push for Dependabot"
+          if [ ${{ github.event_name }} == 'pull_request' ]; then
+            ARGS="--dry-run"
           fi
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf 'ghcr.io/rss3-network/node@sha256:%s ' *) $ARGS
       - name: Inspect image
-        if: github.event_name != 'pull_request' && github.actor != 'dependabot[bot]'
+        if: github.event_name != 'pull_request'
         run: |
           docker buildx imagetools inspect ghcr.io/rss3-network/node:${{ steps.meta.outputs.version }}
