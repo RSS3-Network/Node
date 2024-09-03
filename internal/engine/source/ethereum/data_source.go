@@ -49,7 +49,7 @@ func (s *dataSource) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
+func (s *dataSource) Start(ctx context.Context, tasksBuffer *engine.TaskBuffer, errorChan chan<- error) {
 	if err := s.initialize(ctx); err != nil {
 		errorChan <- fmt.Errorf("initialize dataSource: %w", err)
 
@@ -60,11 +60,11 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 		retryableFunc := func() error {
 			switch {
 			case s.filter.LogAddresses != nil || s.filter.LogTopics != nil:
-				if err := s.pollLogs(ctx, tasksChan); err != nil {
+				if err := s.pollLogs(ctx, tasksBuffer); err != nil {
 					return fmt.Errorf("poll logs: %w", err)
 				}
 			default:
-				if err := s.pollBlocks(ctx, tasksChan); err != nil {
+				if err := s.pollBlocks(ctx, tasksBuffer); err != nil {
 					return fmt.Errorf("poll blocks: %w", err)
 				}
 			}
@@ -95,7 +95,7 @@ func (s *dataSource) initialize(ctx context.Context) (err error) {
 	return nil
 }
 
-func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+func (s *dataSource) pollBlocks(ctx context.Context, tasksBuffer *engine.TaskBuffer) error {
 	// The latest block number of the remote RPC endpoint.
 	var blockNumberLatestRemote uint64
 
@@ -189,7 +189,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 		span.End()
 
 		// Push tasks to the dataSource.
-		s.pushTasks(ctx, tasksChan, &tasks)
+		s.pushTasks(ctx, tasksBuffer, &tasks)
 
 		latestBlock := lo.Must(lo.Last(blocks))
 
@@ -200,7 +200,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 	return nil
 }
 
-func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+func (s *dataSource) pollLogs(ctx context.Context, tasksBuffer *engine.TaskBuffer) error {
 	var blockNumberLatestRemote uint64
 
 	if s.option.BlockStart != nil && s.option.BlockStart.Uint64() > s.state.BlockNumber {
@@ -283,9 +283,9 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 
 			span.End()
 
-			s.pushTasks(ctx, tasksChan, new(engine.Tasks))
+			s.pushTasks(ctx, tasksBuffer, new(engine.Tasks))
 		} else {
-			latestBlock, err = s.processLogs(ctx, logs, tasksChan)
+			latestBlock, err = s.processLogs(ctx, logs, tasksBuffer)
 			if err != nil {
 				return err
 			}
@@ -307,7 +307,7 @@ func (s *dataSource) updateLatestBlock(ctx context.Context, blockNumberEnd uint6
 	return latestBlock, nil
 }
 
-func (s *dataSource) processLogs(ctx context.Context, logs []*ethereum.Log, tasksChan chan<- *engine.Tasks) (*ethereum.Block, error) {
+func (s *dataSource) processLogs(ctx context.Context, logs []*ethereum.Log, tasksBuffer *engine.TaskBuffer) (*ethereum.Block, error) {
 	transactionHashes := lo.Map(logs, func(log *ethereum.Log, _ int) common.Hash {
 		return log.TransactionHash
 	})
@@ -358,7 +358,7 @@ func (s *dataSource) processLogs(ctx context.Context, logs []*ethereum.Log, task
 		tasks.Tasks = append(tasks.Tasks, lo.Map(blockTasks, func(blockTask *Task, _ int) engine.Task { return blockTask })...)
 	}
 
-	s.pushTasks(ctx, tasksChan, &tasks)
+	s.pushTasks(ctx, tasksBuffer, &tasks)
 
 	return latestBlock, nil
 }
@@ -504,13 +504,14 @@ func (s *dataSource) buildTasks(block *ethereum.Block, receipts []*ethereum.Rece
 	return tasks, nil
 }
 
-func (s *dataSource) pushTasks(ctx context.Context, tasksChan chan<- *engine.Tasks, tasks *engine.Tasks) {
+func (s *dataSource) pushTasks(ctx context.Context, tasksBuffer *engine.TaskBuffer, tasks *engine.Tasks) {
 	otel.GetTextMapPropagator().Inject(ctx, tasks)
 
 	_, span := otel.Tracer("").Start(ctx, "DataSource pushTasks", trace.WithSpanKind(trace.SpanKindProducer))
 	defer span.End()
 
-	tasksChan <- tasks
+	// Add the current task to the task buffer
+	tasksBuffer.Add(tasks)
 }
 
 func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint, redisClient rueidis.Client) (engine.DataSource, error) {
