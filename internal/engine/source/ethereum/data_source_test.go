@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
@@ -58,22 +59,26 @@ func TestSource(t *testing.T) {
 			require.NoError(t, err, "new ethereum dataSource")
 
 			var (
-				tasksChan = make(chan *engine.Tasks)
-				errorChan = make(chan error)
+				taskBuffer = engine.NewTaskBuffer(1000)
+				errorChan  = make(chan error)
 			)
 
-			instance.Start(context.Background(), tasksChan, errorChan)
+			instance.Start(context.Background(), taskBuffer, errorChan)
 
 			for {
 				select {
-				case tasks := <-tasksChan:
-					for _, task := range tasks.Tasks {
-						t.Logf("Task %s", task.ID())
-					}
 				case err := <-errorChan:
 					require.NoError(t, err)
-
 					return
+				default:
+					tasks := taskBuffer.Get()
+					if tasks != nil {
+						for _, task := range tasks.Tasks {
+							t.Logf("Task %s", task.ID())
+						}
+					} else {
+						time.Sleep(100 * time.Millisecond) // Avoid busy-waiting
+					}
 				}
 			}
 		})
