@@ -2,7 +2,6 @@ package linea_test
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 	"testing"
 
@@ -810,9 +809,9 @@ func TestWorker_Linea(t *testing.T) {
 			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			data, err := json.MarshalIndent(activity, "", "\x20\x20")
-
-			t.Log(string(data))
+			// data, err := json.MarshalIndent(activity, "", "\x20\x20")
+			//
+			// t.Log(string(data))
 			require.Equal(t, testcase.want, activity)
 		})
 	}
