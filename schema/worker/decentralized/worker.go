@@ -24,6 +24,7 @@ const (
 	Matters                      // matters
 	Mirror                       // mirror
 	Momoka                       // momoka
+	Nouns                        // nouns
 	Oneinch                      // 1inch
 	OpenSea                      // opensea
 	Optimism                     // optimism
@@ -77,6 +78,7 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	Matters:    {tag.Social},
 	Mirror:     {tag.Social},
 	Momoka:     {tag.Social},
+	Nouns:      {tag.Collectible},
 	Oneinch:    {tag.Exchange},
 	OpenSea:    {tag.Collectible},
 	Optimism:   {tag.Transaction},
@@ -104,6 +106,7 @@ var ToIconURLMap = map[Worker]string{
 	Matters:    "https://storage.googleapis.com/rss3-icon/matters.jpg",
 	Mirror:     "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/mirror.svg",
 	Momoka:     "https://storage.googleapis.com/rss3-icon/momoka.png",
+	Nouns:      "https://storage.googleapis.com/rss3-icon/nouns.png",
 	Oneinch:    "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/1inch.svg",
 	OpenSea:    "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/opensea.svg",
 	Optimism:   "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/optimism.svg",
