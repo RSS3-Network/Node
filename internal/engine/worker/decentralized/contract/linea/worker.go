@@ -31,6 +31,7 @@ var _ engine.Worker = (*worker)(nil)
 type worker struct {
 	lineaZKEVMV2Filter       *linea.ZKEVMV2Filterer
 	lineaTokenBridgeFilterer *linea.TokenBridgeFilterer
+	lineaL1USDCBridgeFilter  *linea.L1USDCBridgeFilterer
 	ethereumClient           ethereum.Client
 	tokenClient              token.Client
 }
@@ -111,6 +112,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			actions, err = w.handleEthereumTokenBridgeBridgingInitiatedLog(ctx, *ethereumTask, *log, activity)
 		case w.matchEthereumTokenBridgeBridgingFinalizedLog(*ethereumTask, log):
 			actions, err = w.handleEthereumTokenBridgeBridgingFinalizedLog(ctx, *ethereumTask, *log, activity)
+		case w.matchEthereumL1USDCBridgeDepositedLog(*ethereumTask, log):
+			actions, err = w.handleEthereumL1USDCBridgeDepositedLog(ctx, *ethereumTask, *log, activity)
+		case w.matchEthereumL1USDCBridgeReceivedFromOtherLayerLog(*ethereumTask, log):
+			actions, err = w.handleEthereumL1USDCBridgeReceivedFromOtherLayerLog(ctx, *ethereumTask, *log, activity)
 		default:
 			zap.L().Debug("unsupported log", zap.String("task", task.ID()), zap.Uint("topic_index", log.Index))
 
@@ -165,6 +170,21 @@ func (w *worker) matchEthereumTokenBridgeBridgingFinalizedLog(_ source.Task, log
 	}
 
 	return contract.MatchAddresses(log.Address, linea.AddressTokenBridge)
+}
+func (w *worker) matchEthereumL1USDCBridgeDepositedLog(_ source.Task, log *ethereum.Log) bool {
+	if !contract.MatchEventHashes(log.Topics[0], linea.EventHashL1USDCBridgeDeposited) {
+		return false
+	}
+
+	return contract.MatchAddresses(log.Address, linea.AddressL1USDCBridge)
+}
+
+func (w *worker) matchEthereumL1USDCBridgeReceivedFromOtherLayerLog(_ source.Task, log *ethereum.Log) bool {
+	if !contract.MatchEventHashes(log.Topics[0], linea.EventHashL1USDCBridgeReceivedFromOtherLayer) {
+		return false
+	}
+
+	return contract.MatchAddresses(log.Address, linea.AddressL1USDCBridge)
 }
 
 func (w *worker) handleEthereumZKEVMV2MessageSentLog(ctx context.Context, task source.Task, log ethereum.Log, activity *activityx.Activity) ([]*activityx.Action, error) {
@@ -277,6 +297,45 @@ func (w *worker) handleEthereumTokenBridgeBridgingFinalizedLog(ctx context.Conte
 
 	return actions, nil
 }
+func (w *worker) handleEthereumL1USDCBridgeDepositedLog(ctx context.Context, task source.Task, log ethereum.Log, activity *activityx.Activity) ([]*activityx.Action, error) {
+	activity.Type = typex.TransactionBridge
+
+	event, err := w.lineaL1USDCBridgeFilter.ParseDeposited(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse Deposited event: %w", err)
+	}
+
+	action, err := w.buildEthereumTransactionBridgeAction(ctx, task.ChainID, event.Depositor, event.To, network.Ethereum, network.Linea, metadata.ActionTransactionBridgeDeposit, &linea.AddressUSDC, event.Amount, log.BlockNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	actions := []*activityx.Action{
+		action,
+	}
+
+	return actions, nil
+}
+
+func (w *worker) handleEthereumL1USDCBridgeReceivedFromOtherLayerLog(ctx context.Context, task source.Task, log ethereum.Log, activity *activityx.Activity) ([]*activityx.Action, error) {
+	activity.Type = typex.TransactionBridge
+
+	event, err := w.lineaL1USDCBridgeFilter.ParseReceivedFromOtherLayer(log.Export())
+	if err != nil {
+		return nil, fmt.Errorf("parse ReceivedFromOtherLayer event: %w", err)
+	}
+
+	action, err := w.buildEthereumTransactionBridgeAction(ctx, task.ChainID, task.Transaction.From, event.Recipient, network.Linea, network.Ethereum, metadata.ActionTransactionBridgeWithdraw, &linea.AddressUSDC, event.Amount, log.BlockNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	actions := []*activityx.Action{
+		action,
+	}
+
+	return actions, nil
+}
 
 func (w *worker) buildEthereumTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address, source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int, blockNumber *big.Int) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
@@ -308,6 +367,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance := worker{
 		lineaZKEVMV2Filter:       lo.Must(linea.NewZKEVMV2Filterer(ethereum.AddressGenesis, nil)),
 		lineaTokenBridgeFilterer: lo.Must(linea.NewTokenBridgeFilterer(ethereum.AddressGenesis, nil)),
+		lineaL1USDCBridgeFilter:  lo.Must(linea.NewL1USDCBridgeFilterer(ethereum.AddressGenesis, nil)),
 	}
 
 	var err error
