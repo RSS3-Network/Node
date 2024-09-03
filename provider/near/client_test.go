@@ -13,16 +13,25 @@ func TestNearClient(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	endpoint := "https://rpc.mainnet.near.org/"
+	endpoint := "https://archival-rpc.mainnet.near.org"
 
 	client, err := near.Dial(ctx, endpoint)
 	require.NoError(t, err)
 
-	t.Run("BlockByNumber", func(t *testing.T) {
+	t.Run("GetBlockHeight", func(t *testing.T) {
 		t.Parallel()
 
-		blockNumber := big.NewInt(127103648)
-		block, err := client.BlockByNumber(ctx, blockNumber)
+		blockHeight, err := client.GetBlockHeight(ctx)
+
+		require.NoError(t, err)
+		require.Greater(t, blockHeight, int64(0))
+	})
+
+	t.Run("BlockByHeight", func(t *testing.T) {
+		t.Parallel()
+
+		blockHeight := big.NewInt(127103648)
+		block, err := client.BlockByHeight(ctx, blockHeight)
 
 		require.NoError(t, err)
 		require.NotNil(t, block)
@@ -38,6 +47,17 @@ func TestNearClient(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, chunk)
 		require.Equal(t, chunkID, chunk.Header.ChunkHash)
+	})
+
+	t.Run("ChunkByHeight", func(t *testing.T) {
+		t.Parallel()
+
+		blockHeight := big.NewInt(127170738)
+		shardID := 0
+		chunk, err := client.ChunkByHeight(ctx, blockHeight, shardID)
+
+		require.NoError(t, err)
+		require.NotNil(t, chunk)
 	})
 
 	t.Run("TransactionByHash", func(t *testing.T) {

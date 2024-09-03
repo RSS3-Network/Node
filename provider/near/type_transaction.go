@@ -66,3 +66,29 @@ type ReceiptOutcome struct {
 		Metadata    TransactionOutcomeMetadata `json:"metadata"`
 	} `json:"outcome"`
 }
+
+type Action struct {
+	Delegate     *DelegateAction     `json:"Delegate,omitempty"`
+	FunctionCall *FunctionCallAction `json:"FunctionCall,omitempty"`
+}
+
+type DelegateAction struct {
+	DelegateAction DelegateActionDetails `json:"delegate_action"`
+	Signature      string                `json:"signature"`
+}
+
+type DelegateActionDetails struct {
+	SenderID       string   `json:"sender_id"`
+	ReceiverID     string   `json:"receiver_id"`
+	Actions        []Action `json:"actions"`
+	Nonce          int64    `json:"nonce"`
+	MaxBlockHeight int      `json:"max_block_height"`
+	PublicKey      string   `json:"public_key"`
+}
+
+type FunctionCallAction struct {
+	MethodName string `json:"method_name"`
+	Args       string `json:"args"`
+	Gas        int64  `json:"gas"`
+	Deposit    string `json:"deposit"`
+}

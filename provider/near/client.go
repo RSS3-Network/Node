@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"math/big"
-	"time"
 
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/samber/lo"
@@ -13,9 +12,11 @@ import (
 
 // Client provides basic RPC methods for NEAR Protocol.
 type Client interface {
-	BlockByNumber(ctx context.Context, blockNumber *big.Int) (*Block, error)
+	BlockByHeight(ctx context.Context, blockHeight *big.Int) (*Block, error)
 	ChunkByHash(ctx context.Context, hash string) (*Chunk, error)
+	ChunkByHeight(ctx context.Context, blockHeight *big.Int, shardID int) (*Chunk, error)
 	TransactionByHash(ctx context.Context, txHash string, senderAccountID string) (*Transaction, error)
+	GetBlockHeight(ctx context.Context) (int64, error)
 }
 
 var _ Client = (*client)(nil)
@@ -27,7 +28,7 @@ type client struct {
 
 // Dial creates a new client for a given URL.
 func Dial(_ context.Context, endpoint string) (Client, error) {
-	httpClient, err := httpx.NewHTTPClient(httpx.WithTimeout(15 * time.Second))
+	httpClient, err := httpx.NewHTTPClient()
 	if err != nil {
 		return nil, err
 	}
@@ -86,6 +87,21 @@ func (c *client) ChunkByHash(ctx context.Context, hash string) (*Chunk, error) {
 	return &result, nil
 }
 
+// ChunkByHeight returns the chunk for the given block height and shard ID.
+func (c *client) ChunkByHeight(ctx context.Context, blockHeight *big.Int, shardID int) (*Chunk, error) {
+	var result Chunk
+
+	err := c.rpcCall(ctx, "chunk", map[string]interface{}{
+		"block_id": blockHeight.Int64(),
+		"shard_id": shardID,
+	}, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
 // TransactionByHash returns the transaction for the given transaction hash and sender account ID.
 func (c *client) TransactionByHash(ctx context.Context, txHash string, senderAccountID string) (*Transaction, error) {
 	var result Transaction
@@ -98,14 +114,26 @@ func (c *client) TransactionByHash(ctx context.Context, txHash string, senderAcc
 	return &result, nil
 }
 
-// BlockByNumber returns the block for the given block number.
-func (c *client) BlockByNumber(ctx context.Context, blockNumber *big.Int) (*Block, error) {
+// BlockByHeight returns the block for the given block height.
+func (c *client) BlockByHeight(ctx context.Context, blockHeight *big.Int) (*Block, error) {
 	var result Block
 
-	err := c.rpcCall(ctx, "block", map[string]interface{}{"block_id": blockNumber.Int64()}, &result)
+	err := c.rpcCall(ctx, "block", map[string]interface{}{"block_id": blockHeight.Int64()}, &result)
 	if err != nil {
 		return nil, err
 	}
 
 	return &result, nil
+}
+
+// GetBlockHeight returns the current block height.
+func (c *client) GetBlockHeight(ctx context.Context) (int64, error) {
+	var result Block
+
+	err := c.rpcCall(ctx, "block", map[string]interface{}{"finality": "final"}, &result)
+	if err != nil {
+		return 0, err
+	}
+
+	return int64(result.Header.Height), nil
 }

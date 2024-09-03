@@ -1,11 +1,11 @@
 package near
 
 type Chunk struct {
-	Author         string              `json:"author"`
-	Header         ChunkHeader         `json:"header"`
-	CongestionInfo ChunkCongestionInfo `json:"congestion_info"`
-	Transactions   []ChunkTransaction  `json:"transactions"`
-	Receipts       []ChunkReceipt      `json:"receipts"`
+	Author         string               `json:"author"`
+	Header         ChunkHeader          `json:"header"`
+	CongestionInfo ChunkCongestionInfo  `json:"congestion_info"`
+	Transactions   []TransactionDetails `json:"transactions"`
+	Receipts       []ChunkReceipt       `json:"receipts"`
 }
 
 type ChunkHeader struct {
@@ -36,43 +36,6 @@ type ChunkCongestionInfo struct {
 	AllowedShard        int    `json:"allowed_shard"`
 }
 
-type ChunkTransaction struct {
-	SignerID    string        `json:"signer_id"`
-	PublicKey   string        `json:"public_key"`
-	Nonce       int64         `json:"nonce"`
-	ReceiverID  string        `json:"receiver_id"`
-	Actions     []ChunkAction `json:"actions"`
-	PriorityFee int           `json:"priority_fee"`
-	Signature   string        `json:"signature"`
-	Hash        string        `json:"hash"`
-}
-
-type ChunkAction struct {
-	Delegate     *DelegateAction     `json:"Delegate,omitempty"`
-	FunctionCall *FunctionCallAction `json:"FunctionCall,omitempty"`
-}
-
-type DelegateAction struct {
-	DelegateAction DelegateActionDetails `json:"delegate_action"`
-	Signature      string                `json:"signature"`
-}
-
-type DelegateActionDetails struct {
-	SenderID       string        `json:"sender_id"`
-	ReceiverID     string        `json:"receiver_id"`
-	Actions        []ChunkAction `json:"actions"`
-	Nonce          int64         `json:"nonce"`
-	MaxBlockHeight int           `json:"max_block_height"`
-	PublicKey      string        `json:"public_key"`
-}
-
-type FunctionCallAction struct {
-	MethodName string `json:"method_name"`
-	Args       string `json:"args"`
-	Gas        int64  `json:"gas"`
-	Deposit    string `json:"deposit"`
-}
-
 type ChunkReceipt struct {
 	PredecessorID string        `json:"predecessor_id"`
 	ReceiverID    string        `json:"receiver_id"`
@@ -91,6 +54,6 @@ type ReceiptActionDetails struct {
 	GasPrice            string        `json:"gas_price"`
 	OutputDataReceivers []interface{} `json:"output_data_receivers"`
 	InputDataIDs        []interface{} `json:"input_data_ids"`
-	Actions             []ChunkAction `json:"actions"`
+	Actions             []Action      `json:"actions"`
 	IsPromiseYield      bool          `json:"is_promise_yield"`
 }
