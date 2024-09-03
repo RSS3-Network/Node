@@ -67,7 +67,7 @@ func (s *Server) Run(ctx context.Context) error {
 			return nil
 
 		default:
-			// Get task from the sliding-window task buffer
+			// Get task from the task buffer
 			task := s.TaskBuffer.Get()
 
 			retryableFunc := func() error {

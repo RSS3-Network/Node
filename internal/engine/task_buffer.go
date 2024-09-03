@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-// TaskBuffer represents a fixed-size buffer, it operates as a sliding-window buffer(FIFO)
+// TaskBuffer represents a fixed-size buffer, it operates as a FIFO buffer
 type TaskBuffer struct {
 	tasks    []*Tasks
 	size     int
@@ -25,7 +25,7 @@ func NewTaskBuffer(size int) *TaskBuffer {
 	return sw
 }
 
-// Add adds a new task to the sliding window, wait if the buffer is full
+// Add adds a new task to the task buffer, wait while the buffer is full
 func (sw *TaskBuffer) Add(task *Tasks) {
 	sw.mu.Lock()
 	defer sw.mu.Unlock()
@@ -38,7 +38,7 @@ func (sw *TaskBuffer) Add(task *Tasks) {
 	sw.notEmpty.Signal()
 }
 
-// Get retrieves the oldest task from the sliding window and removes it
+// Get retrieves the oldest task from the task buffer and removes it
 func (sw *TaskBuffer) Get() *Tasks {
 	sw.mu.Lock()
 	defer sw.mu.Unlock()
