@@ -41,7 +41,3 @@ func GetValueByWorkerStr(workerStr string) Worker {
 var ToTagsMap = map[Worker][]tag.Tag{
 	RSSHub: {tag.RSS},
 }
-
-var ToIconURLMap = map[Worker]string{
-	RSSHub: "https://storage.googleapis.com/rss3-icon/rsshub.png",
-}
