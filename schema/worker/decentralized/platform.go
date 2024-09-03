@@ -30,6 +30,7 @@ const (
 	PlatformStargate                   // Stargate
 	PlatformUniswap                    // Uniswap
 	PlatformVSL                        // VSL
+	PlatformLinea                      // Linear
 )
 
 var _ echo.BindUnmarshaler = (*Platform)(nil)
