@@ -48,6 +48,10 @@ func (sw *TaskBuffer) Get() *Tasks {
 	}
 
 	task := sw.tasks[0]
+
+	// Set the starting cell to be nil for releasing used memory
+	sw.tasks[0] = nil
+
 	sw.tasks = sw.tasks[1:]
 	sw.notFull.Signal()
 

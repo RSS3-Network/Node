@@ -64,18 +64,12 @@ func (s *Server) Run(ctx context.Context) error {
 				return fmt.Errorf("an error occurred in the source: %w", err)
 			}
 
-			return nil
-
 		default:
 			// Get task from the task buffer
 			task := s.TaskBuffer.Get()
 
 			retryableFunc := func() error {
-				if err := s.handleTasks(ctx, task); err != nil {
-					errorChan <- fmt.Errorf("handle tasks error: %w", err)
-				}
-
-				return nil
+				return s.handleTasks(ctx, task)
 			}
 
 			err := retry.Do(retryableFunc,
