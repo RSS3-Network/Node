@@ -47,16 +47,22 @@ var command = &cobra.Command{
 				},
 				"UppercaseFirst": func(network networkx.Network) string {
 					networkStr := network.String()
-					if networkStr == "vsl" {
+					switch networkStr {
+					case "":
+						return "Ethereum"
+					case "vsl":
 						return "VSL"
+					default:
+						words := strings.Split(networkStr, "-")
+						for i, word := range words {
+							if word != "" {
+								r := []rune(word)
+								r[0] = unicode.ToUpper(r[0])
+								words[i] = string(r)
+							}
+						}
+						return strings.Join(words, "")
 					}
-					words := strings.Split(networkStr, "-")
-					for i, word := range words {
-						r := []rune(word)
-						r[0] = unicode.ToUpper(r[0])
-						words[i] = string(r)
-					}
-					return strings.Join(words, "")
 				},
 			})
 
