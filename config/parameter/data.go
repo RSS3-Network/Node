@@ -9,8 +9,14 @@ import (
 // NumberOfMonthsToCover the number of months that a Node should cover data for
 const NumberOfMonthsToCover = 4
 
+type StartBlock struct {
+	Block     *big.Int
+	Timestamp int64
+}
+
 type NetworkTolerance map[network.Network]uint64
-type NetworkStartBlock map[network.Network]*big.Int
+type NetworkStartBlock map[network.Network]*StartBlock
+
 type NetworkCoreWorkerDiskSpacePerMonth map[network.Network]uint
 
 // CurrentNetworkTolerance should be updated each epoch from vsl

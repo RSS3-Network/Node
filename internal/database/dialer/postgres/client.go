@@ -293,6 +293,15 @@ func (c *client) FindActivities(ctx context.Context, query model.ActivitiesQuery
 	return nil, fmt.Errorf("not implemented")
 }
 
+// DeleteExpiredActivities deletes expired activities.
+func (c *client) DeleteExpiredActivities(ctx context.Context, network networkx.Network, expiredAt time.Time) error {
+	if c.partition {
+		return c.deleteExpiredActivitiesPartitioned(ctx, network, expiredAt)
+	}
+
+	return fmt.Errorf("not implemented")
+}
+
 // LoadDatasetFarcasterProfile loads a profile.
 func (c *client) LoadDatasetFarcasterProfile(ctx context.Context, fid int64) (*model.Profile, error) {
 	var value table.DatasetFarcasterProfile

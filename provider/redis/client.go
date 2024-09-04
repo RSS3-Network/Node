@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 )
 
-// NewClient creates a new Redis client.
-func NewClient(option config.Redis) (rueidis.Client, error) {
+// NewRueidisClient creates a new Redis client.
+func NewRueidisClient(option config.Redis) (rueidis.Client, error) {
 	clientOption := rueidis.ClientOption{
 		InitAddress:  []string{option.Endpoint},
 		Username:     option.Username,
@@ -61,4 +62,18 @@ func buildTLSConfig(tlsConfig config.RedisTLS) (*tls.Config, error) {
 	tlsConf.InsecureSkipVerify = tlsConfig.InsecureSkipVerify
 
 	return tlsConf, nil
+}
+
+func NewRedisClient(option config.Redis) (*redis.Client, error) {
+	tls, err := buildTLSConfig(option.TLS)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build TLS config: %w", err)
+	}
+
+	return redis.NewClient(&redis.Options{
+		Addr:      option.Endpoint,
+		Username:  option.Username,
+		Password:  option.Password,
+		TLSConfig: tls,
+	}), nil
 }

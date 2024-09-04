@@ -12,6 +12,7 @@ import (
 	"github.com/rss3-network/node/internal/database/dialer/postgres/table"
 	"github.com/rss3-network/node/internal/database/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.uber.org/zap"
@@ -36,6 +37,19 @@ func (c *client) createPartitionTable(ctx context.Context, name, template string
 	}
 
 	return nil
+}
+
+// findPartitionTableExists check if a partition table exists.
+func (c *client) findPartitionTableExists(ctx context.Context, name string) (bool, error) {
+	statement := fmt.Sprintf(`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = '%s')`, name)
+
+	var exists bool
+
+	if err := c.database.WithContext(ctx).Raw(statement).Scan(&exists).Error; err != nil {
+		return false, err
+	}
+
+	return exists, nil
 }
 
 // findIndexesPartitionTable finds partition table names of indexes in the past year.
@@ -497,6 +511,85 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.Activit
 			}
 		}
 	}
+}
+
+// deleteExpiredActivitiesPartitioned deletes expired activities.
+func (c *client) deleteExpiredActivitiesPartitioned(ctx context.Context, network network.Network, timestamp time.Time) error {
+	var (
+		quarter       = (timestamp.Month()-1)/3 + 1
+		activityTable = fmt.Sprintf("%s_%s_%d_q%d", (*table.Activity).TableName(nil), network, timestamp.Year(), quarter)
+		indexTable    = fmt.Sprintf("%s_%d_q%d", (*table.Index).TableName(nil), timestamp.Year(), quarter)
+		batchSize     = 1000
+	)
+
+	databaseTransaction := c.database.WithContext(ctx).Begin()
+	defer func() {
+		if err := databaseTransaction.Rollback().Error; err != nil {
+			zap.L().Error("failed to rollback transaction", zap.Error(err))
+		}
+	}()
+
+	if lo.Contains([]time.Month{time.March, time.June, time.September, time.December}, timestamp.Month()) {
+		if err := databaseTransaction.Exec(fmt.Sprintf(`DROP TABLE IF EXISTS "%s"`, activityTable)).Error; err != nil {
+			zap.L().Error("failed to drop activity table", zap.Error(err), zap.String("table", activityTable))
+
+			return fmt.Errorf("drop activity table: %w", err)
+		}
+	}
+
+	activityTableExists, err := c.findPartitionTableExists(ctx, activityTable)
+	if err != nil {
+		return fmt.Errorf("find partition table exists: %w", err)
+	}
+
+	indexTableExists, err := c.findPartitionTableExists(ctx, indexTable)
+	if err != nil {
+		return fmt.Errorf("find partition table exists: %w", err)
+	}
+
+	for {
+		if !indexTableExists {
+			break
+		}
+
+		var transactionIDs []string
+
+		databaseStatement := c.database.WithContext(ctx).Table(indexTable).Select("id").Where("network = ?", network.String()).Where("timestamp <= ?", timestamp).Limit(batchSize)
+
+		if err = databaseStatement.Pluck("id", &transactionIDs).Error; err != nil {
+			zap.L().Error("failed to find expired activities", zap.Error(err), zap.String("table", indexTable))
+
+			return fmt.Errorf("find expired activities: %w", err)
+		}
+
+		if len(transactionIDs) == 0 {
+			break
+		}
+
+		// Delete expired indexes.
+		if err = databaseTransaction.Table(indexTable).Where("id IN ?", transactionIDs).Delete(&table.Index{}).Error; err != nil {
+			zap.L().Error("failed to delete expired indexes", zap.Error(err), zap.String("table", indexTable))
+
+			return fmt.Errorf("delete expired indexes: %w", err)
+		}
+
+		if activityTableExists {
+			// Delete expired activities.
+			if err = databaseTransaction.Table(activityTable).Where("id IN ?", transactionIDs).Delete(&table.Activity{}).Error; err != nil {
+				zap.L().Error("failed to delete expired activities", zap.Error(err), zap.String("table", activityTable))
+
+				return fmt.Errorf("delete expired activities: %w", err)
+			}
+		}
+
+		if err = databaseTransaction.Commit().Error; err != nil {
+			zap.L().Error("failed to commit transaction", zap.Error(err))
+
+			return fmt.Errorf("commit transaction: %w", err)
+		}
+	}
+
+	return nil
 }
 
 // buildFindIndexStatement builds the query index statement.

@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pressly/goose/v3"
@@ -28,6 +29,7 @@ type Client interface {
 	SaveActivities(ctx context.Context, activities []*activityx.Activity) error
 	FindActivity(ctx context.Context, query model.ActivityQuery) (*activityx.Activity, *int, error)
 	FindActivities(ctx context.Context, query model.ActivitiesQuery) ([]*activityx.Activity, error)
+	DeleteExpiredActivities(ctx context.Context, network network.Network, expiredAt time.Time) error
 }
 
 type Session interface {

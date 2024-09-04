@@ -98,7 +98,7 @@ var command = cobra.Command{
 			}
 
 			// Init redis client
-			redisClient, err = redis.NewClient(*config.Redis)
+			redisClient, err = redis.NewRueidisClient(*config.Redis)
 			if err != nil {
 				return fmt.Errorf("new redis client: %w", err)
 			}
@@ -140,7 +140,7 @@ var command = cobra.Command{
 				}
 
 				// Convert big.Int to int64; safe as long as the value fits in int64.
-				blockStartInt64 := blockStart.Int64()
+				blockStartInt64 := blockStart.Block.Int64()
 
 				// Update the current block start for the network in Redis.
 				err := parameter.UpdateBlockStart(cmd.Context(), redisClient, network.String(), blockStartInt64)
