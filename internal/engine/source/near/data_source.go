@@ -167,7 +167,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 		// Pull blocks
 		blockHeightEnd := lo.Min([]uint64{
 			uint64(blockHeightLatestRemote),
-			blockHeightStart + *s.option.ConcurrentBlockRequests,
+			blockHeightStart + *s.option.ConcurrentBlockRequests - 1,
 		})
 		// Pull blocks by range.
 		blocks, err := s.batchPullBlocksByRange(ctx, blockHeightStart, blockHeightEnd)

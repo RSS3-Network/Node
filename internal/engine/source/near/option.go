@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultConcurrentBlockRequests = uint64(1)
+	defaultConcurrentBlockRequests = uint64(8)
 	defaultRetryAttempts           = uint(10)
 	defaultRetryDelay              = 500 * time.Millisecond
 )
