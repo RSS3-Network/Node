@@ -1,6 +1,6 @@
 {{ define "ethereum" }}
 {
-    Network: network.Ethereum,
+    Network: network.{{ UppercaseFirst .Network }},
     ChainID: {{ .ChainID }},
     Header: &ethereum.Header{
         Hash: common.HexToHash("{{ .Header.Hash}}"),
