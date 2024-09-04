@@ -16,7 +16,8 @@ permissions:
   packages: write
 
 env:
-  GAR_IMAGE: us-central1-docker.pkg.dev/rss3-409706/node
+  GAR_REGISTRY: us-central1-docker.pkg.dev/rss3-409706/docker
+  GAR_IMAGE: ${{ env.GAR_REGISTRY }}/node
 
 jobs:
   build:
