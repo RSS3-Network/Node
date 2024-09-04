@@ -17,7 +17,6 @@ permissions:
 
 env:
   GAR_REGISTRY: us-central1-docker.pkg.dev/rss3-409706/docker
-  GAR_IMAGE: ${{ env.GAR_REGISTRY }}/node
 
 jobs:
   build:
@@ -61,7 +60,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.GAR_IMAGE }}
+          images: ${{ env.GAR_REGISTRY }}/node
       - name: Build and push by digest
         id: build
         uses: docker/build-push-action@v6
@@ -69,7 +68,7 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ env.GAR_IMAGE }},push-by-digest=true,name-canonical=true,push=${{ github.actor != 'dependabot[bot]' }}
+          outputs: type=image,name=${{ env.GAR_REGISTRY }}/node,push-by-digest=true,name-canonical=true,push=${{ github.actor != 'dependabot[bot]' }}
       - name: Export digest
         if: github.actor != 'dependabot[bot]'
         run: |
@@ -135,7 +134,7 @@ jobs:
           images: |
             rss3/node
             ghcr.io/${{ github.repository }}
-            ${{ env.GAR_IMAGE }}
+            ${{ env.GAR_REGISTRY }}/node
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=${{ matrix.arch }},enable={{is_default_branch}}
@@ -153,8 +152,8 @@ jobs:
             ARGS="--dry-run"
           fi
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.GAR_IMAGE }}@sha256:%s ' *) $ARGS
+            $(printf '${{ env.GAR_REGISTRY }}/node@sha256:%s ' *) $ARGS
       - name: Inspect image
         if: github.event_name != 'pull_request'
         run: |
-          docker buildx imagetools inspect ${{ env.GAR_IMAGE }}:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ${{ env.GAR_REGISTRY }}/node:${{ steps.meta.outputs.version }}
