@@ -9,6 +9,15 @@ on:
       - "*"
   pull_request:
 
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+  packages: write
+
+env:
+  GAR_IMAGE: us-central1-docker.pkg.dev/rss3-409706/node
+
 jobs:
   build:
     runs-on:
@@ -31,17 +40,26 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           platforms: ${{ matrix.platform }}
-      - name: Log in to the Container registry
+
+      - name: Google auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/987979088361/locations/global/workloadIdentityPools/github/providers/github-action
+          service_account: gh-action@naturalselectionlabs.iam.gserviceaccount.com
+          create_credentials_file: true
+
+      - name: Login to GAR
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
+          registry: us-central1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/rss3-network/node
+          images: ${{ env.GAR_IMAGE }}
       - name: Build and push by digest
         id: build
         uses: docker/build-push-action@v6
@@ -49,7 +67,7 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=ghcr.io/rss3-network/node,push-by-digest=true,name-canonical=true,push=${{ github.actor != 'dependabot[bot]' }}
+          outputs: type=image,name=${{ env.GAR_IMAGE }},push-by-digest=true,name-canonical=true,push=${{ github.actor != 'dependabot[bot]' }}
       - name: Export digest
         if: github.actor != 'dependabot[bot]'
         run: |
@@ -66,10 +84,6 @@ jobs:
           retention-days: 1
   merge:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
     needs:
       - build
     if: github.actor != 'dependabot[bot]'
@@ -103,6 +117,7 @@ jobs:
           images: |
             rss3/node
             ghcr.io/${{ github.repository }}
+            ${{ env.GAR_IMAGE }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=${{ matrix.arch }},enable={{is_default_branch}}
@@ -120,8 +135,8 @@ jobs:
             ARGS="--dry-run"
           fi
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf 'ghcr.io/rss3-network/node@sha256:%s ' *) $ARGS
+            $(printf '${{ env.GAR_IMAGE }}@sha256:%s ' *) $ARGS
       - name: Inspect image
         if: github.event_name != 'pull_request'
         run: |
-          docker buildx imagetools inspect ghcr.io/rss3-network/node:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ${{ env.GAR_IMAGE }}:${{ steps.meta.outputs.version }}
