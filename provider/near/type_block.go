@@ -7,25 +7,30 @@ type Block struct {
 }
 
 type BlockChunk struct {
-	BalanceBurnt         string              `json:"balance_burnt"`
-	ChunkHash            string              `json:"chunk_hash"`
-	CongestionInfo       ChunkCongestionInfo `json:"congestion_info"`
-	EncodedLength        int                 `json:"encoded_length"`
-	EncodedMerkleRoot    string              `json:"encoded_merkle_root"`
-	GasLimit             int64               `json:"gas_limit"`
-	GasUsed              int64               `json:"gas_used"`
-	HeightCreated        int                 `json:"height_created"`
-	HeightIncluded       int                 `json:"height_included"`
-	OutcomeRoot          string              `json:"outcome_root"`
-	OutgoingReceiptsRoot string              `json:"outgoing_receipts_root"`
-	PrevBlockHash        string              `json:"prev_block_hash"`
-	PrevStateRoot        string              `json:"prev_state_root"`
-	RentPaid             string              `json:"rent_paid"`
-	ShardID              int                 `json:"shard_id"`
-	Signature            string              `json:"signature"`
-	TxRoot               string              `json:"tx_root"`
-	ValidatorProposals   []interface{}       `json:"validator_proposals"`
-	ValidatorReward      string              `json:"validator_reward"`
+	ChunkHash            string        `json:"chunk_hash"`
+	PrevBlockHash        string        `json:"prev_block_hash"`
+	OutcomeRoot          string        `json:"outcome_root"`
+	PrevStateRoot        string        `json:"prev_state_root"`
+	EncodedMerkleRoot    string        `json:"encoded_merkle_root"`
+	EncodedLength        int           `json:"encoded_length"`
+	HeightCreated        int           `json:"height_created"`
+	HeightIncluded       int           `json:"height_included"`
+	ShardID              int           `json:"shard_id"`
+	GasUsed              int64         `json:"gas_used"`
+	GasLimit             int64         `json:"gas_limit"`
+	RentPaid             string        `json:"rent_paid"`
+	ValidatorReward      string        `json:"validator_reward"`
+	BalanceBurnt         string        `json:"balance_burnt"`
+	OutgoingReceiptsRoot string        `json:"outgoing_receipts_root"`
+	TxRoot               string        `json:"tx_root"`
+	ValidatorProposals   []interface{} `json:"validator_proposals"`
+	Signature            string        `json:"signature"`
+	CongestionInfo       struct {
+		DelayedReceiptsGas  string `json:"delayed_receipts_gas"`
+		BufferedReceiptsGas string `json:"buffered_receipts_gas"`
+		ReceiptBytes        int    `json:"receipt_bytes"`
+		AllowedShard        int    `json:"allowed_shard"`
+	} `json:"congestion_info"`
 }
 
 type BlockHeader struct {

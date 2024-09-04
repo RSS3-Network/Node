@@ -12,17 +12,6 @@ type TransactionStatus struct {
 	SuccessValue string `json:"SuccessValue"`
 }
 
-type TransactionDetails struct {
-	SignerID    string               `json:"signer_id"`
-	PublicKey   string               `json:"public_key"`
-	Nonce       int64                `json:"nonce"`
-	ReceiverID  string               `json:"receiver_id"`
-	Actions     []FunctionCallAction `json:"actions"`
-	PriorityFee int                  `json:"priority_fee"`
-	Signature   string               `json:"signature"`
-	Hash        string               `json:"hash"`
-}
-
 type TransactionOutcome struct {
 	Proof     []TransactionOutcomeProof `json:"proof"`
 	BlockHash string                    `json:"block_hash"`
@@ -68,27 +57,31 @@ type ReceiptOutcome struct {
 }
 
 type Action struct {
-	Delegate     *DelegateAction     `json:"Delegate,omitempty"`
 	FunctionCall *FunctionCallAction `json:"FunctionCall,omitempty"`
+	Transfer     *TransferAction     `json:"Transfer,omitempty"`
+	Delegate     *DelegateAction     `json:"Delegate,omitempty"`
+	// Add other action types as needed
 }
 
 type DelegateAction struct {
-	DelegateAction DelegateActionDetails `json:"delegate_action"`
-	Signature      string                `json:"signature"`
-}
-
-type DelegateActionDetails struct {
-	SenderID       string   `json:"sender_id"`
-	ReceiverID     string   `json:"receiver_id"`
-	Actions        []Action `json:"actions"`
-	Nonce          int64    `json:"nonce"`
-	MaxBlockHeight int      `json:"max_block_height"`
-	PublicKey      string   `json:"public_key"`
+	DelegateAction struct {
+		Actions        []Action `json:"actions"`
+		MaxBlockHeight int      `json:"max_block_height"`
+		Nonce          int64    `json:"nonce"`
+		PublicKey      string   `json:"public_key"`
+		ReceiverID     string   `json:"receiver_id"`
+		SenderID       string   `json:"sender_id"`
+	} `json:"delegate_action"`
+	Signature string `json:"signature"`
 }
 
 type FunctionCallAction struct {
-	MethodName string `json:"method_name"`
 	Args       string `json:"args"`
-	Gas        int64  `json:"gas"`
 	Deposit    string `json:"deposit"`
+	Gas        int64  `json:"gas"`
+	MethodName string `json:"method_name"`
+}
+
+type TransferAction struct {
+	Deposit string `json:"deposit"`
 }

@@ -1,11 +1,10 @@
 package near
 
 type Chunk struct {
-	Author         string               `json:"author"`
-	Header         ChunkHeader          `json:"header"`
-	CongestionInfo ChunkCongestionInfo  `json:"congestion_info"`
-	Transactions   []TransactionDetails `json:"transactions"`
-	Receipts       []ChunkReceipt       `json:"receipts"`
+	Author       string               `json:"author"`
+	Header       ChunkHeader          `json:"header"`
+	Transactions []TransactionDetails `json:"transactions"`
+	Receipts     []ChunkReceipt       `json:"receipts"`
 }
 
 type ChunkHeader struct {
@@ -27,13 +26,12 @@ type ChunkHeader struct {
 	TxRoot               string        `json:"tx_root"`
 	ValidatorProposals   []interface{} `json:"validator_proposals"`
 	Signature            string        `json:"signature"`
-}
-
-type ChunkCongestionInfo struct {
-	DelayedReceiptsGas  string `json:"delayed_receipts_gas"`
-	BufferedReceiptsGas string `json:"buffered_receipts_gas"`
-	ReceiptBytes        int    `json:"receipt_bytes"`
-	AllowedShard        int    `json:"allowed_shard"`
+	CongestionInfo       struct {
+		DelayedReceiptsGas  string `json:"delayed_receipts_gas"`
+		BufferedReceiptsGas string `json:"buffered_receipts_gas"`
+		ReceiptBytes        int    `json:"receipt_bytes"`
+		AllowedShard        int    `json:"allowed_shard"`
+	} `json:"congestion_info"`
 }
 
 type ChunkReceipt struct {
@@ -54,6 +52,17 @@ type ReceiptActionDetails struct {
 	GasPrice            string        `json:"gas_price"`
 	OutputDataReceivers []interface{} `json:"output_data_receivers"`
 	InputDataIDs        []interface{} `json:"input_data_ids"`
-	Actions             []Action      `json:"actions"`
+	Actions             []interface{} `json:"actions"` // Change to interface{} to accept any action type
 	IsPromiseYield      bool          `json:"is_promise_yield"`
+}
+
+type TransactionDetails struct {
+	SignerID    string        `json:"signer_id"`
+	PublicKey   string        `json:"public_key"`
+	Nonce       int64         `json:"nonce"`
+	ReceiverID  string        `json:"receiver_id"`
+	Actions     []interface{} `json:"actions"` // Change to interface{} to accept any action type
+	Signature   string        `json:"signature"`
+	Hash        string        `json:"hash"`
+	PriorityFee int           `json:"priority_fee"`
 }

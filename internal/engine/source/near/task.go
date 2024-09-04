@@ -2,9 +2,9 @@ package near
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/rss3-network/node/internal/engine"
-	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/near"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -31,14 +31,15 @@ func (t Task) GetNetwork() network.Network {
 }
 
 func (t Task) GetTimestamp() uint64 {
-	return uint64(t.Block.Header.Timestamp)
+	// Convert nanoseconds to seconds using time package
+	return uint64(time.Duration(t.Block.Header.Timestamp).Seconds())
 }
 
 func (t Task) Validate() error {
 	return nil
 }
 
-// BuildActivity builds an activity  from the task.
+// BuildActivity builds an activity from the task.
 func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, error) {
 	var feeValue decimal.Decimal
 
@@ -55,10 +56,7 @@ func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, e
 	}
 
 	// From address is the owner of the transaction.
-	from, err := arweave.PublicKeyToAddress(t.Transaction.SignerID)
-	if err != nil {
-		return nil, fmt.Errorf("parse transaction owner: %w", err)
-	}
+	from := t.Transaction.SignerID
 
 	activity := activityx.Activity{
 		ID:      t.Transaction.Hash,
@@ -72,7 +70,7 @@ func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, e
 			Decimal: defaultFeeDecimal,
 		},
 		Actions:   make([]*activityx.Action, 0),
-		Timestamp: uint64(t.Block.Header.Timestamp),
+		Timestamp: uint64(time.Duration(t.Block.Header.Timestamp).Seconds()),
 	}
 
 	for _, option := range options {

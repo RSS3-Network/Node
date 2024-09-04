@@ -194,6 +194,9 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 					})
 				}
 			}
+
+			// Update BlockTimestamp in state
+			s.state.BlockTimestamp = uint64(time.Duration(block.Header.Timestamp).Seconds())
 		}
 
 		// TODO It might be possible to use generics to avoid manual type assertions.
@@ -206,24 +209,6 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 	return nil
 }
 
-// batchPullChunksByRange pulls chunks by range, from local state block height to remote block height.
-// func (s *dataSource) batchPullChunksByRange(ctx context.Context, blockHeightStart, blockHeightEnd uint64) ([]*near.Chunk, error) {
-// 	zap.L().Info("begin to batch pull transactions by range", zap.Uint64("block.height.start", blockHeightStart), zap.Uint64("block.height.end", blockHeightEnd))
-
-// 	// Pull blocks by block heights.
-// 	blockHeights := lo.Map(lo.RangeWithSteps(blockHeightStart, blockHeightEnd+1, 1), func(blockHeight uint64, _ int) *big.Int {
-// 		return new(big.Int).SetUint64(blockHeight)
-// 	})
-
-// 	chunks, err := s.batchPullChunks(ctx, blockHeights)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("batch pull chunks: %w", err)
-// 	}
-
-// 	return chunks, nil
-// }
-
-// batchPullBlocks pulls blocks by block heights.
 // batchPullBlocksByRange pulls blocks by range, from local state block height to remote block height.
 func (s *dataSource) batchPullBlocksByRange(ctx context.Context, blockHeightStart, blockHeightEnd uint64) ([]*near.Block, error) {
 	zap.L().Info("begin to batch pull blocks by range", zap.Uint64("block.height.start", blockHeightStart), zap.Uint64("block.height.end", blockHeightEnd))
@@ -267,69 +252,6 @@ func (s *dataSource) batchPullBlocks(ctx context.Context, blockHeights []*big.In
 
 	return resultPool.Wait()
 }
-
-// batchPullChunks pulls chunks by block heights.
-// func (s *dataSource) batchPullChunks(ctx context.Context, blockHeights []*big.Int) ([]*near.Chunk, error) {
-// 	zap.L().Info("begin to pull chunks", zap.Int("chunks", len(blockHeights)))
-
-// 	resultPool := pool.NewWithResults[*near.Chunk]().
-// 		WithContext(ctx).
-// 		WithCancelOnError()
-
-// 	for _, blockHeight := range blockHeights {
-// 		blockHeight := blockHeight
-
-// 		resultPool.Go(func(ctx context.Context) (*near.Chunk, error) {
-// 			retryableFunc := func() (*near.Chunk, error) {
-// 				return s.nearClient.ChunkByHeight(ctx, blockHeight, 0)
-// 			}
-
-// 			return retry.DoWithData(
-// 				retryableFunc,
-// 				retry.Attempts(defaultRetryAttempts),
-// 				retry.Delay(defaultRetryDelay),
-// 				retry.DelayType(retry.BackOffDelay),
-// 				retry.OnRetry(func(attempt uint, err error) {
-// 					zap.L().Error("retry pull block", zap.Stringer("block.height", blockHeight), zap.Uint("attempt", attempt), zap.Error(err))
-// 				}),
-// 			)
-// 		})
-// 	}
-
-// 	return resultPool.Wait()
-// }
-
-// batchPullTransactions pulls transactions by transaction ids.
-// func (s *dataSource) batchPullTransactions(ctx context.Context, nearClient near.Client, transactionIDs []string) ([]*near.Transaction, error) {
-// 	zap.L().Info("begin to pull transactions", zap.Int("transactions", len(transactionIDs)))
-
-// 	resultPool := pool.NewWithResults[*near.Transaction]().
-// 		WithContext(ctx).
-// 		WithCancelOnError().
-// 		WithMaxGoroutines(int(lo.FromPtr(s.option.ConcurrentBlockRequests)))
-
-// 	for _, transactionID := range transactionIDs {
-// 		transactionID := transactionID
-
-// 		resultPool.Go(func(ctx context.Context) (*near.Transaction, error) {
-// 			retryableFunc := func() (*near.Transaction, error) {
-// 				return nearClient.TransactionByHash(ctx, transactionID, "")
-// 			}
-
-// 			return retry.DoWithData(
-// 				retryableFunc,
-// 				retry.Attempts(defaultRetryAttempts),
-// 				retry.Delay(defaultRetryDelay),
-// 				retry.DelayType(retry.BackOffDelay),
-// 				retry.OnRetry(func(attempt uint, err error) {
-// 					zap.L().Error("retry pull transaction", zap.String("transaction.id", transactionID), zap.Uint("attempt", attempt), zap.Error(err))
-// 				}),
-// 			)
-// 		})
-// 	}
-
-// 	return resultPool.Wait()
-// }
 
 // NewSource creates a new arweave dataSource.
 func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint, redisClient rueidis.Client) (engine.DataSource, error) {
