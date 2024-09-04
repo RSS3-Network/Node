@@ -279,9 +279,6 @@ func (w *worker) handleNounsProposal(_ context.Context, _ *source.Task, log *eth
 	}
 
 	action := w.buildGovernanceProposalAction(event.Proposer, nouns.AddressNounsDAO, event.Id, event.Description, event.StartBlock, event.EndBlock)
-	// if err != nil {
-	//	return nil, fmt.Errorf("build collectible proposal action: %w", err)
-	// }
 
 	return []*activityx.Action{action}, nil
 }
@@ -308,10 +305,30 @@ func (w *worker) handleNounsVote(_ context.Context, _ *source.Task, log *ethereu
 		return nil, fmt.Errorf("parse vote cast event: %w", err)
 	}
 
-	action := w.buildGovernanceVoteAction(event.Voter, nouns.AddressNounsDAO, event.ProposalId, event.Votes, event.Reason, metadata.ActionGovernanceFor) // ToDo: 1. eventSupport -> GovernanceVoteAction 2. add return error case
-	// if err != nil {
-	//	return nil, fmt.Errorf("build collectible vote action: %w", err)
-	// }
+	// Check for nil addresses and proposalID
+	if event.Voter == (common.Address{}) {
+		return nil, fmt.Errorf("voter address is nil")
+	}
+
+	if event.ProposalId == nil {
+		return nil, fmt.Errorf("proposalID is nil")
+	}
+
+	// Set voteAction using the event.Support
+	var voteAction metadata.GovernanceVoteAction
+
+	switch event.Support {
+	case 0:
+		voteAction = metadata.ActionGovernanceAgainst
+	case 1:
+		voteAction = metadata.ActionGovernanceFor
+	case 2:
+		voteAction = metadata.ActionGovernanceAbstain
+	default:
+		return nil, fmt.Errorf("invalid support value: %d", event.Support)
+	}
+
+	action := w.buildGovernanceVoteAction(event.Voter, nouns.AddressNounsDAO, event.ProposalId, event.Votes, event.Reason, voteAction)
 
 	return []*activityx.Action{action}, nil
 }
@@ -323,9 +340,6 @@ func (w *worker) buildGovernanceVoteAction(from, to common.Address, proposalID, 
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.GovernanceVote{
-			//Choice: lo.If(support == 0, metadata.ChoiceGovernanceAgainst.String()).
-			//	ElseIf(support == 1, metadata.ChoiceGovernanceFor.String()).
-			//	Else(metadata.ChoiceGovernanceAbstain.String()),
 			Action: action,
 			Count:  uint64(decimal.NewFromBigInt(votes, 0).IntPart()),
 			Reason: reason,
