@@ -137,7 +137,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	// fmt.Printf("processing task:%#v\n", task)
+	// zap.L().Info("Processing task", zap.Any("task", ethereumTask))
 
 	return activity, nil
 }
