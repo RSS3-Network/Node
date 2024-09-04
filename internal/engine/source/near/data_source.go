@@ -3,12 +3,15 @@ package near
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
+	"sync"
 	"time"
 
 	"github.com/avast/retry-go/v4"
 	"github.com/redis/rueidis"
+	syncx "github.com/rss3-network/node/common/sync"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/internal/engine"
@@ -20,8 +23,7 @@ import (
 )
 
 const (
-	// The block time in Near mainnet is designed to be approximately 1 min.
-	defaultBlockTime = 1 * time.Second
+	defaultBlockTime = 3 * time.Second
 )
 
 // Ensure that dataSource implements DataSource.
@@ -48,33 +50,34 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 	// Initialize dataSource.
 	if err := s.initialize(ctx); err != nil {
 		errorChan <- fmt.Errorf("initialize dataSource: %w", err)
-
 		return
 	}
 
 	// Start a goroutine to poll blocks.
-	go func() {
-		retryableFunc := func() error {
-			if err := s.pollBlocks(ctx, tasksChan, s.filter); err != nil {
-				return fmt.Errorf("poll blocks: %w", err)
-			}
+	go s.startPolling(ctx, tasksChan, errorChan)
+}
 
-			return nil
+func (s *dataSource) startPolling(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
+	retryableFunc := func() error {
+		if err := s.pollBlocks(ctx, tasksChan); err != nil {
+			return fmt.Errorf("poll blocks: %w", err)
 		}
 
-		err := retry.Do(retryableFunc,
-			retry.Attempts(0),
-			retry.Delay(time.Second),
-			retry.DelayType(retry.BackOffDelay),
-			retry.MaxDelay(5*time.Minute),
-			retry.OnRetry(func(n uint, err error) {
-				zap.L().Error("retry near dataSource start", zap.Uint("retry", n), zap.Error(err))
-			}),
-		)
-		if err != nil {
-			errorChan <- err
-		}
-	}()
+		return nil
+	}
+
+	err := retry.Do(retryableFunc,
+		retry.Attempts(0),
+		retry.Delay(time.Second),
+		retry.DelayType(retry.BackOffDelay),
+		retry.MaxDelay(5*time.Minute),
+		retry.OnRetry(func(n uint, err error) {
+			zap.L().Error("retry near dataSource start", zap.Uint("retry", n), zap.Error(err))
+		}),
+	)
+	if err != nil {
+		errorChan <- err
+	}
 }
 
 // initialize initializes the dataSource.
@@ -109,104 +112,138 @@ func (s *dataSource) updateBlockHeight(ctx context.Context) {
 	}
 }
 
-// pollBlocks polls blocks from arweave network.
-func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks, _ *Filter) error {
-	var (
-		blockHeightLatestRemote int64
-		err                     error
-	)
-
-	// Get start block height from config
-	// if not set, use default value 0
+// pollBlocks polls blocks from near network.
+func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	s.initializeBlockHeights()
 
-	// Get target block height from config
-	// if not set, use the latest block height from arweave network
-	if s.option.BlockTarget != nil {
-		zap.L().Info("block height target", zap.Uint64("block.height.target", s.option.BlockTarget.Uint64()))
-		blockHeightLatestRemote = int64(s.option.BlockTarget.Uint64())
-	} else {
-		// Get remote block height from arweave network.
-		blockHeightLatestRemote, err = s.nearClient.GetBlockHeight(ctx)
-		if err != nil {
-			return fmt.Errorf("get latest block height: %w", err)
+	for {
+		if err := s.processSingleIteration(ctx, tasksChan); err != nil {
+			return err
 		}
 
-		zap.L().Info("get latest block height", zap.Int64("block.height", blockHeightLatestRemote))
-	}
-
-	for {
-		if s.option.BlockTarget != nil && s.option.BlockTarget.Uint64() <= s.state.BlockHeight {
+		if s.shouldBreak() {
 			break
 		}
 
-		// Check if remote block start is larger than current one
-		// if so, update the current block height to remote block start
-		s.updateBlockHeight(ctx)
-
-		// Check if block height is latest.
-		if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {
-			// Get the latest block height from arweave network for reconfirming.
-			if blockHeightLatestRemote, err = s.nearClient.GetBlockHeight(ctx); err != nil {
-				return fmt.Errorf("get latest block height: %w", err)
-			}
-
-			zap.L().Info("get latest block height", zap.Int64("block.height", blockHeightLatestRemote))
-
-			if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {
-				// Wait for the next block on arweave network.
-				time.Sleep(defaultBlockTime)
-			}
-
-			continue
-		}
-
-		// If the block height of state is 0, force to start from 0.
-		blockHeightStart := lo.Ternary(s.state.BlockHeight == 0, 0, s.state.BlockHeight+1)
-
-		// Pull blocks
-		blockHeightEnd := lo.Min([]uint64{
-			uint64(blockHeightLatestRemote),
-			blockHeightStart + *s.option.ConcurrentBlockRequests - 1,
-		})
-		// Pull blocks by range.
-		blocks, err := s.batchPullBlocksByRange(ctx, blockHeightStart, blockHeightEnd)
-		if err != nil {
-			return fmt.Errorf("batch pull blocks: %w", err)
-		}
-
-		tasks := &engine.Tasks{}
-
-		// Get chunks from blocks
-		for _, block := range blocks {
-			for _, chunkHash := range block.Chunks {
-				chunk, err := s.nearClient.ChunkByHash(ctx, chunkHash.ChunkHash)
-				if err != nil {
-					return fmt.Errorf("get chunk by hash: %w", err)
-				}
-
-				for _, transaction := range chunk.Transactions {
-					// Build tasks from chunks
-					tasks.Tasks = append(tasks.Tasks, &Task{
-						Network:     s.Network(),
-						Block:       *block,
-						Transaction: transaction,
-					})
-				}
-			}
-
-			// Update BlockTimestamp in state
-			s.state.BlockTimestamp = uint64(time.Duration(block.Header.Timestamp).Seconds())
-		}
-
-		// TODO It might be possible to use generics to avoid manual type assertions.
-		tasksChan <- tasks
-
-		// Update block height to state.
-		s.state.BlockHeight = blockHeightEnd
+		time.Sleep(defaultBlockTime)
 	}
 
 	return nil
+}
+
+func (s *dataSource) processSingleIteration(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+	blockHeightLatestRemote, err := s.getLatestBlockHeight(ctx)
+	if err != nil {
+		return err
+	}
+
+	s.updateBlockHeight(ctx)
+
+	if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {
+		return nil
+	}
+
+	blockHeightStart := lo.Ternary(s.state.BlockHeight == 0, 0, s.state.BlockHeight+1)
+	blockHeightEnd := lo.Min([]uint64{
+		uint64(blockHeightLatestRemote),
+		blockHeightStart + *s.option.ConcurrentBlockRequests - 1,
+	})
+
+	blocks, err := s.batchPullBlocksByRange(ctx, blockHeightStart, blockHeightEnd)
+	if err != nil {
+		return fmt.Errorf("batch pull blocks: %w", err)
+	}
+
+	tasks := s.processBlocks(ctx, blocks)
+
+	tasksChan <- tasks
+
+	s.state.BlockHeight = blockHeightEnd
+
+	return nil
+}
+
+func (s *dataSource) getLatestBlockHeight(ctx context.Context) (int64, error) {
+	if s.option.BlockTarget != nil {
+		zap.L().Info("block height target", zap.Uint64("block.height.target", s.option.BlockTarget.Uint64()))
+		return int64(s.option.BlockTarget.Uint64()), nil
+	}
+
+	blockHeightLatestRemote, err := s.nearClient.GetBlockHeight(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("get latest block height: %w", err)
+	}
+
+	zap.L().Info("get latest block height", zap.Int64("block.height", blockHeightLatestRemote))
+
+	return blockHeightLatestRemote, nil
+}
+
+func (s *dataSource) shouldBreak() bool {
+	return s.option.BlockTarget != nil && s.option.BlockTarget.Uint64() <= s.state.BlockHeight
+}
+
+func (s *dataSource) processBlocks(ctx context.Context, blocks []*near.Block) *engine.Tasks {
+	tasks := &engine.Tasks{}
+
+	var mu sync.Mutex
+
+	blockPool := pool.New().WithMaxGoroutines(int(*s.option.ConcurrentBlockRequests))
+
+	for _, block := range blocks {
+		block := block // Capture loop variable
+
+		blockPool.Go(func() {
+			chunkTasks, err := s.processChunks(ctx, block)
+			if err != nil {
+				zap.L().Error("error processing chunks", zap.Error(err))
+				return
+			}
+
+			mu.Lock()
+			tasks.Tasks = append(tasks.Tasks, chunkTasks...)
+			s.state.BlockTimestamp = uint64(time.Duration(block.Header.Timestamp).Seconds())
+			mu.Unlock()
+		})
+	}
+
+	blockPool.Wait()
+
+	return tasks
+}
+
+func (s *dataSource) processChunks(ctx context.Context, block *near.Block) ([]engine.Task, error) {
+	chunkGroup := syncx.NewQuickGroup[[]engine.Task](ctx)
+
+	for _, chunkHash := range block.Chunks {
+		chunkHash := chunkHash // Capture loop variable
+
+		chunkGroup.Go(func(ctx context.Context) ([]engine.Task, error) {
+			chunk, err := s.nearClient.ChunkByHash(ctx, chunkHash.ChunkHash)
+			if err != nil {
+				if errors.Is(err, context.Canceled) {
+					return nil, err
+				}
+
+				zap.L().Error("get chunk by hash", zap.Error(err))
+
+				return nil, err
+			}
+
+			localTasks := make([]engine.Task, 0, len(chunk.Transactions))
+			for _, transaction := range chunk.Transactions {
+				localTasks = append(localTasks, &Task{
+					Network:     s.Network(),
+					Block:       *block,
+					Transaction: transaction,
+				})
+			}
+
+			return localTasks, nil
+		})
+	}
+
+	return chunkGroup.Wait()
 }
 
 // batchPullBlocksByRange pulls blocks by range, from local state block height to remote block height.
@@ -253,7 +290,7 @@ func (s *dataSource) batchPullBlocks(ctx context.Context, blockHeights []*big.In
 	return resultPool.Wait()
 }
 
-// NewSource creates a new arweave dataSource.
+// NewSource creates a new near dataSource.
 func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint, redisClient rueidis.Client) (engine.DataSource, error) {
 	var (
 		state State
