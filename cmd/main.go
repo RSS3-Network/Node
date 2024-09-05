@@ -103,17 +103,17 @@ var command = cobra.Command{
 				return fmt.Errorf("new redis client: %w", err)
 			}
 
-			vslClient, err := parameter.InitVSLClient()
+			vslClient, err := parameter.InitVSLClient(config.Environment)
 			if err != nil {
 				return fmt.Errorf("init vsl client: %w", err)
 			}
 
-			networkParamsCaller, err = vsl.NewNetworkParamsCaller(vsl.AddressNetworkParams, vslClient)
+			networkParamsCaller, err = vsl.NewNetworkParamsCaller(vsl.AddressNetworkParams[config.Environment], vslClient)
 			if err != nil {
 				return fmt.Errorf("new network params caller: %w", err)
 			}
 
-			settlementCaller, err = vsl.NewSettlementCaller(vsl.AddressSettlement, vslClient)
+			settlementCaller, err = vsl.NewSettlementCaller(vsl.AddressSettlement[config.Environment], vslClient)
 			if err != nil {
 				return fmt.Errorf("new settlement caller: %w", err)
 			}

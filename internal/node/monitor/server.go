@@ -48,7 +48,7 @@ func (m *Monitor) Run(ctx context.Context) error {
 		monitorWorkerStatus.Start()
 
 		// Start the database maintenance cron job.
-		databaseMaintenance, err := NewCronJob(m.config, "database_maintenance", 2*24*time.Hour)
+		databaseMaintenance, err := NewCronJob(m.config, "database_maintenance", 5*24*time.Hour)
 		if err != nil {
 			return fmt.Errorf("new cron job: %w", err)
 		}

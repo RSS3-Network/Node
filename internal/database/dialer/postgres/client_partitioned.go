@@ -528,8 +528,12 @@ func (c *client) deleteExpiredActivitiesPartitioned(ctx context.Context, network
 
 	// Drop expired activities tables.
 	for _, name := range dropActivitiesTables {
+		zap.L().Info("dropping table", zap.String("table", name))
+
 		if err := c.database.WithContext(ctx).Exec(fmt.Sprintf(`DROP TABLE IF EXISTS "%s"`, name)).Error; err != nil {
 			zap.L().Error("failed to drop table", zap.Error(err), zap.String("table", name))
+
+			return fmt.Errorf("drop table: %w", err)
 		}
 	}
 
@@ -570,9 +574,7 @@ func (c *client) deleteExpiredActivitiesPartitioned(ctx context.Context, network
 func (c *client) batchDeleteExpiredActivities(ctx context.Context, network network.Network, timestamp time.Time, batchSize int, indexTable *string, activityTable *string) (bool, error) {
 	databaseTransaction := c.database.WithContext(ctx).Debug().Begin()
 	defer func() {
-		if err := databaseTransaction.Rollback().Error; err != nil {
-			zap.L().Error("failed to rollback transaction", zap.Error(err))
-		}
+		_ = databaseTransaction.Rollback().Error
 	}()
 
 	var transactionIDs []string
