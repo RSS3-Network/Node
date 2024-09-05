@@ -20,7 +20,7 @@ func BenchmarkDataTransmissionPerformance(b *testing.B) {
 	zap.ReplaceGlobals(logger)
 
 	// Test parameters
-	dataCounts := []int{1000}
+	dataCounts := []int{1000, 3000, 5000}
 
 	const (
 		producerCount = 4
@@ -39,8 +39,8 @@ func BenchmarkDataTransmissionPerformance(b *testing.B) {
 }
 
 func simulateWork() {
-	n, _ := rand.Int(rand.Reader, big.NewInt(5))
-	time.Sleep(time.Duration(5+n.Int64()) * time.Millisecond)
+	n, _ := rand.Int(rand.Reader, big.NewInt(50))
+	time.Sleep(time.Duration(50+n.Int64()) * time.Millisecond) // Nanosecond
 }
 
 func benchmarkTaskBuffer(b *testing.B, dataCount, producerCount, workerCount int) {
