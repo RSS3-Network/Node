@@ -11,6 +11,7 @@ type Worker int
 const (
 	Aave       Worker = iota + 1 // aave
 	Aavegotchi                   // aavegotchi
+	Base                         // base
 	Core                         // core
 	Crossbell                    // crossbell
 	Curve                        // curve
@@ -33,7 +34,6 @@ const (
 	Stargate                     // stargate
 	Uniswap                      // uniswap
 	VSL                          // vsl
-	Base                         // base
 )
 
 func (w Worker) Component() string {

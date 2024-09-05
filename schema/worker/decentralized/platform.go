@@ -10,6 +10,7 @@ const (
 	Platform1Inch                      // 1inch
 	PlatformAAVE                       // AAVE
 	PlatformAavegotchi                 // Aavegotchi
+	PlatformBase                       // Base
 	PlatformCrossbell                  // Crossbell
 	PlatformCurve                      // Curve
 	PlatformENS                        // ENS
@@ -30,7 +31,6 @@ const (
 	PlatformStargate                   // Stargate
 	PlatformUniswap                    // Uniswap
 	PlatformVSL                        // VSL
-	PlatformBase                       // Base
 )
 
 var _ echo.BindUnmarshaler = (*Platform)(nil)
