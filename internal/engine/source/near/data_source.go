@@ -3,15 +3,12 @@ package near
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math/big"
-	"sync"
 	"time"
 
 	"github.com/avast/retry-go/v4"
 	"github.com/redis/rueidis"
-	syncx "github.com/rss3-network/node/common/sync"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/internal/engine"
@@ -184,66 +181,109 @@ func (s *dataSource) shouldBreak() bool {
 }
 
 func (s *dataSource) processBlocks(ctx context.Context, blocks []*near.Block) *engine.Tasks {
-	tasks := &engine.Tasks{}
+	zap.L().Info("begin to process blocks", zap.Int("blocks", len(blocks)))
 
-	var mu sync.Mutex
-
-	blockPool := pool.New().WithMaxGoroutines(int(*s.option.ConcurrentBlockRequests))
+	resultPool := pool.NewWithResults[[]engine.Task]().
+		WithContext(ctx).
+		WithCancelOnError().
+		WithMaxGoroutines(int(lo.FromPtr(s.option.ConcurrentBlockRequests)))
 
 	for _, block := range blocks {
 		block := block // Capture loop variable
 
-		blockPool.Go(func() {
+		resultPool.Go(func(ctx context.Context) ([]engine.Task, error) {
 			chunkTasks, err := s.processChunks(ctx, block)
 			if err != nil {
-				zap.L().Error("error processing chunks", zap.Error(err))
-				return
+				return nil, fmt.Errorf("process chunks: %w", err)
 			}
 
-			mu.Lock()
-			tasks.Tasks = append(tasks.Tasks, chunkTasks...)
 			s.state.BlockTimestamp = uint64(time.Duration(block.Header.Timestamp).Seconds())
-			mu.Unlock()
+
+			return chunkTasks, nil
 		})
 	}
 
-	blockPool.Wait()
+	allTasks, err := resultPool.Wait()
+	if err != nil {
+		zap.L().Error("error processing blocks", zap.Error(err))
+		return &engine.Tasks{}
+	}
+
+	tasks := &engine.Tasks{
+		Tasks: lo.Flatten(allTasks),
+	}
 
 	return tasks
 }
 
 func (s *dataSource) processChunks(ctx context.Context, block *near.Block) ([]engine.Task, error) {
-	chunkGroup := syncx.NewQuickGroup[[]engine.Task](ctx)
+	zap.L().Info("begin to process chunks", zap.Int("chunks", len(block.Chunks)))
+
+	resultPool := pool.NewWithResults[[]engine.Task]().
+		WithContext(ctx).
+		WithCancelOnError().
+		WithMaxGoroutines(int(lo.FromPtr(s.option.ConcurrentBlockRequests)))
 
 	for _, chunkHash := range block.Chunks {
 		chunkHash := chunkHash // Capture loop variable
 
-		chunkGroup.Go(func(ctx context.Context) ([]engine.Task, error) {
-			chunk, err := s.nearClient.ChunkByHash(ctx, chunkHash.ChunkHash)
-			if err != nil {
-				if errors.Is(err, context.Canceled) {
-					return nil, err
+		resultPool.Go(func(ctx context.Context) ([]engine.Task, error) {
+			retryableFunc := func() ([]engine.Task, error) {
+				chunk, err := s.nearClient.ChunkByHash(ctx, chunkHash.ChunkHash)
+				if err != nil {
+					return nil, fmt.Errorf("get chunk by hash: %w", err)
 				}
 
-				zap.L().Error("get chunk by hash", zap.Error(err))
+				localTasks := make([]engine.Task, 0, len(chunk.Transactions))
+				zap.L().Info("begin to pull transactions", zap.Int("transactions", len(chunk.Transactions)))
 
-				return nil, err
+				transactionPool := pool.NewWithResults[*near.Transaction]().
+					WithContext(ctx).
+					WithCancelOnError().
+					WithMaxGoroutines(int(lo.FromPtr(s.option.ConcurrentBlockRequests)))
+
+				for _, transaction := range chunk.Transactions {
+					transaction := transaction
+
+					transactionPool.Go(func(ctx context.Context) (*near.Transaction, error) {
+						return s.nearClient.TransactionByHash(ctx, transaction.Hash, transaction.SignerID)
+					})
+				}
+
+				fullTransactions, err := transactionPool.Wait()
+				if err != nil {
+					return nil, fmt.Errorf("pull transactions: %w", err)
+				}
+
+				for _, fullTx := range fullTransactions {
+					localTasks = append(localTasks, &Task{
+						Network:     s.Network(),
+						Block:       *block,
+						Transaction: *fullTx,
+					})
+				}
+
+				return localTasks, nil
 			}
 
-			localTasks := make([]engine.Task, 0, len(chunk.Transactions))
-			for _, transaction := range chunk.Transactions {
-				localTasks = append(localTasks, &Task{
-					Network:     s.Network(),
-					Block:       *block,
-					Transaction: transaction,
-				})
-			}
-
-			return localTasks, nil
+			return retry.DoWithData(
+				retryableFunc,
+				retry.Attempts(defaultRetryAttempts),
+				retry.Delay(defaultRetryDelay),
+				retry.DelayType(retry.BackOffDelay),
+				retry.OnRetry(func(attempt uint, err error) {
+					zap.L().Error("retry process chunk", zap.String("chunk.hash", chunkHash.ChunkHash), zap.Uint("attempt", attempt), zap.Error(err))
+				}),
+			)
 		})
 	}
 
-	return chunkGroup.Wait()
+	allTasks, err := resultPool.Wait()
+	if err != nil {
+		return nil, fmt.Errorf("process chunks: %w", err)
+	}
+
+	return lo.Flatten(allTasks), nil
 }
 
 // batchPullBlocksByRange pulls blocks by range, from local state block height to remote block height.

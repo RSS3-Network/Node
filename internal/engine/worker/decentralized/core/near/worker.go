@@ -88,15 +88,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 // matchNearNativeTransferTransaction returns true if the transaction is a native transfer transaction.
 func (w *worker) matchNearNativeTransferTransaction(task *source.Task) bool {
-	return task.Transaction.PriorityFee > 0
+	return task.Transaction.Transaction.PriorityFee > 0
 }
 
 // handleNearNativeTransferTransaction returns the action of the native transfer transaction.
 func (w *worker) handleNearNativeTransferTransaction(ctx context.Context, task *source.Task) (*activityx.Action, error) {
-	value := decimal.NewFromInt(int64(task.Transaction.PriorityFee))
+	value := decimal.NewFromInt(int64(task.Transaction.Transaction.PriorityFee))
 
 	// Build the native transfer transaction action.
-	return w.buildNearTransactionTransferAction(ctx, task.Transaction.PublicKey, task.Transaction.ReceiverID, value.BigInt())
+	return w.buildNearTransactionTransferAction(ctx, task.Transaction.Transaction.PublicKey, task.Transaction.Transaction.ReceiverID, value.BigInt())
 }
 
 // buildNearTransactionTransferAction returns the native transfer transaction action.

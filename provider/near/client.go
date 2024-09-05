@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"math/big"
+	"time"
 
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/samber/lo"
@@ -28,7 +29,7 @@ type client struct {
 
 // Dial creates a new client for a given URL.
 func Dial(_ context.Context, endpoint string) (Client, error) {
-	httpClient, err := httpx.NewHTTPClient()
+	httpClient, err := httpx.NewHTTPClient(httpx.WithTimeout(15 * time.Second))
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +107,7 @@ func (c *client) ChunkByHeight(ctx context.Context, blockHeight *big.Int, shardI
 func (c *client) TransactionByHash(ctx context.Context, txHash string, senderAccountID string) (*Transaction, error) {
 	var result Transaction
 
-	err := c.rpcCall(ctx, "tx", map[string]interface{}{"tx_hash": txHash, "sender_account_id": senderAccountID, "wait_until": "EXECUTED"}, &result)
+	err := c.rpcCall(ctx, "tx", map[string]interface{}{"tx_hash": txHash, "sender_account_id": senderAccountID}, &result)
 	if err != nil {
 		return nil, err
 	}
