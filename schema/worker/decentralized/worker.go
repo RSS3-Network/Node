@@ -20,6 +20,7 @@ const (
 	KiwiStand                    // kiwistand
 	Lens                         // lens
 	Lido                         // lido
+	Linea                        // linea
 	Looksrare                    // looksrare
 	Matters                      // matters
 	Mirror                       // mirror
@@ -33,7 +34,6 @@ const (
 	Stargate                     // stargate
 	Uniswap                      // uniswap
 	VSL                          // vsl
-	Linea                        // linea
 )
 
 func (w Worker) Component() string {

@@ -19,6 +19,7 @@ const (
 	PlatformKiwiStand                  // KiwiStand
 	PlatformLens                       // Lens
 	PlatformLido                       // Lido
+	PlatformLinea                      // Linear
 	PlatformLooksRare                  // LooksRare
 	PlatformMatters                    // Matters
 	PlatformMirror                     // Mirror
@@ -30,7 +31,6 @@ const (
 	PlatformStargate                   // Stargate
 	PlatformUniswap                    // Uniswap
 	PlatformVSL                        // VSL
-	PlatformLinea                      // Linear
 )
 
 var _ echo.BindUnmarshaler = (*Platform)(nil)
