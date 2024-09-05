@@ -109,57 +109,6 @@ func (s *dataSource) updateBlockHeight(ctx context.Context) {
 	}
 }
 
-// pollBlocks polls blocks from near network.
-func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
-	s.initializeBlockHeights()
-
-	for {
-		if err := s.processSingleIteration(ctx, tasksChan); err != nil {
-			return err
-		}
-
-		if s.shouldBreak() {
-			break
-		}
-
-		time.Sleep(defaultBlockTime)
-	}
-
-	return nil
-}
-
-func (s *dataSource) processSingleIteration(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
-	blockHeightLatestRemote, err := s.getLatestBlockHeight(ctx)
-	if err != nil {
-		return err
-	}
-
-	s.updateBlockHeight(ctx)
-
-	if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {
-		return nil
-	}
-
-	blockHeightStart := lo.Ternary(s.state.BlockHeight == 0, 0, s.state.BlockHeight+1)
-	blockHeightEnd := lo.Min([]uint64{
-		uint64(blockHeightLatestRemote),
-		blockHeightStart + *s.option.ConcurrentBlockRequests - 1,
-	})
-
-	blocks, err := s.batchPullBlocksByRange(ctx, blockHeightStart, blockHeightEnd)
-	if err != nil {
-		return fmt.Errorf("batch pull blocks: %w", err)
-	}
-
-	tasks := s.processBlocks(ctx, blocks)
-
-	tasksChan <- tasks
-
-	s.state.BlockHeight = blockHeightEnd
-
-	return nil
-}
-
 func (s *dataSource) getLatestBlockHeight(ctx context.Context) (int64, error) {
 	if s.option.BlockTarget != nil {
 		zap.L().Info("block height target", zap.Uint64("block.height.target", s.option.BlockTarget.Uint64()))
@@ -176,8 +125,47 @@ func (s *dataSource) getLatestBlockHeight(ctx context.Context) (int64, error) {
 	return blockHeightLatestRemote, nil
 }
 
-func (s *dataSource) shouldBreak() bool {
-	return s.option.BlockTarget != nil && s.option.BlockTarget.Uint64() <= s.state.BlockHeight
+// pollBlocks polls blocks from near network.
+func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+	s.initializeBlockHeights()
+
+	for {
+		blockHeightLatestRemote, err := s.getLatestBlockHeight(ctx)
+		if err != nil {
+			return err
+		}
+
+		s.updateBlockHeight(ctx)
+
+		if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {
+			if s.option.BlockTarget != nil && s.option.BlockTarget.Uint64() <= s.state.BlockHeight {
+				break
+			}
+
+			time.Sleep(defaultBlockTime)
+
+			continue
+		}
+
+		blockHeightStart := lo.Ternary(s.state.BlockHeight == 0, 0, s.state.BlockHeight+1)
+		blockHeightEnd := lo.Min([]uint64{
+			uint64(blockHeightLatestRemote),
+			blockHeightStart + *s.option.ConcurrentBlockRequests - 1,
+		})
+
+		blocks, err := s.batchPullBlocksByRange(ctx, blockHeightStart, blockHeightEnd)
+		if err != nil {
+			return fmt.Errorf("batch pull blocks: %w", err)
+		}
+
+		tasks := s.processBlocks(ctx, blocks)
+
+		tasksChan <- tasks
+
+		s.state.BlockHeight = blockHeightEnd
+	}
+
+	return nil
 }
 
 func (s *dataSource) processBlocks(ctx context.Context, blocks []*near.Block) *engine.Tasks {
