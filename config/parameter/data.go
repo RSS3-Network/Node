@@ -10,8 +10,8 @@ import (
 const NumberOfMonthsToCover = 4
 
 type StartBlock struct {
-	Block     *big.Int
-	Timestamp int64
+	Block     *big.Int `json:"block"`
+	Timestamp int64    `json:"timestamp"`
 }
 
 type NetworkTolerance map[network.Network]uint64

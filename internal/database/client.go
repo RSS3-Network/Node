@@ -29,7 +29,7 @@ type Client interface {
 	SaveActivities(ctx context.Context, activities []*activityx.Activity) error
 	FindActivity(ctx context.Context, query model.ActivityQuery) (*activityx.Activity, *int, error)
 	FindActivities(ctx context.Context, query model.ActivitiesQuery) ([]*activityx.Activity, error)
-	DeleteExpiredActivities(ctx context.Context, network network.Network, expiredAt time.Time) error
+	DeleteExpiredActivities(ctx context.Context, network network.Network, timestamp time.Time) error
 }
 
 type Session interface {

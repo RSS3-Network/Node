@@ -294,9 +294,9 @@ func (c *client) FindActivities(ctx context.Context, query model.ActivitiesQuery
 }
 
 // DeleteExpiredActivities deletes expired activities.
-func (c *client) DeleteExpiredActivities(ctx context.Context, network networkx.Network, expiredAt time.Time) error {
+func (c *client) DeleteExpiredActivities(ctx context.Context, network networkx.Network, timestamp time.Time) error {
 	if c.partition {
-		return c.deleteExpiredActivitiesPartitioned(ctx, network, expiredAt)
+		return c.deleteExpiredActivitiesPartitioned(ctx, network, timestamp)
 	}
 
 	return fmt.Errorf("not implemented")

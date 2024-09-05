@@ -30,14 +30,14 @@ func (m *Monitor) MaintainCoveragePeriod(ctx context.Context) error {
 
 	var paramsData parameter.NetworkParamsData
 
-	if err = json.Unmarshal([]byte(params), &paramsData); err != nil {
+	if err := json.Unmarshal([]byte(params), &paramsData); err != nil {
 		return fmt.Errorf("json unmarshal: %w", err)
 	}
 
 	// Load the coverage period from the config file.
 	year, month, _ := time.Now().AddDate(0, -m.config.Database.CoveragePeriod, 0).Date()
 
-	configTimestamp := time.Date(year, month, 1, 0, 0, 0, 0, time.Local).Add(-time.Nanosecond)
+	configTimestamp := time.Date(year, month, 1, 0, 0, 0, 0, time.Local)
 
 	for network, start := range paramsData.NetworkStartBlock {
 		timestamp := time.Unix(start.Timestamp, 0)
