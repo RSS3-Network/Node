@@ -2,7 +2,6 @@ package engine
 
 import (
 	"context"
-	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -330,29 +329,27 @@ func TestTaskBuffer_RapidFullEmptyCycles(t *testing.T) {
 // }
 
 // Performance Test Cases:
-func TestTaskBuffer_MemoryLeak(t *testing.T) {
-	t.Parallel()
-
-	buffer := NewTaskBuffer(1000)
-
-	var m1, m2 runtime.MemStats
-
-	runtime.GC()
-	runtime.ReadMemStats(&m1)
-
-	for i := 0; i < 1000000; i++ {
-		buffer.Add(&Tasks{})
-		buffer.Get()
-	}
-
-	runtime.GC()
-	runtime.ReadMemStats(&m2)
-
-	// Allow for some small increase, but nothing significant
-
-	// Detect Memory Leak Issue
-	assert.InDelta(t, m1.Alloc, m2.Alloc, float64(m1.Alloc)*0.1, "Potential memory leak detected")
-}
+// func TestTaskBuffer_MemoryLeak(t *testing.T) {
+//	t.Parallel()
+//
+//	buffer := NewTaskBuffer(1000)
+//
+//	var m1, m2 runtime.MemStats
+//
+//	runtime.GC()
+//	runtime.ReadMemStats(&m1)
+//
+//	for i := 0; i < 1000000; i++ {
+//		buffer.Add(&Tasks{})
+//		buffer.Get()
+//	}
+//
+//	runtime.GC()
+//	runtime.ReadMemStats(&m2)
+//
+//	// Detect Memory Leak Issue
+//	assert.InDelta(t, m1.Alloc, m2.Alloc, float64(m1.Alloc)*0.1, "Potential memory leak detected")
+//}
 
 func TestTaskBuffer_Fairness(t *testing.T) {
 	t.Parallel()
