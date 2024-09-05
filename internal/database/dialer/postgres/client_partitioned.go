@@ -526,13 +526,6 @@ func (c *client) deleteExpiredActivitiesPartitioned(ctx context.Context, network
 		checkTablesTimestamp = append(checkTablesTimestamp, timestamp.AddDate(0, -3*i, 0))
 	}
 
-	databaseTransaction := c.database.WithContext(ctx).Debug().Begin()
-	defer func() {
-		if err := databaseTransaction.Rollback().Error; err != nil {
-			zap.L().Error("failed to rollback transaction", zap.Error(err))
-		}
-	}()
-
 	// Drop expired activities tables.
 	for _, name := range dropActivitiesTables {
 		if err := c.database.WithContext(ctx).Exec(fmt.Sprintf(`DROP TABLE IF EXISTS "%s"`, name)).Error; err != nil {
@@ -560,45 +553,66 @@ func (c *client) deleteExpiredActivitiesPartitioned(ctx context.Context, network
 		}
 
 		for {
-			var transactionIDs []string
-
-			databaseStatement := c.database.WithContext(ctx).Table(indexTable).Select("id").Where("network = ?", network.String()).Where("timestamp < ?", timestamp).Limit(batchSize)
-
-			if err = databaseStatement.Pluck("id", &transactionIDs).Error; err != nil {
-				zap.L().Error("failed to find expired activities", zap.Error(err), zap.String("table", indexTable))
-
-				return fmt.Errorf("find expired activities: %w", err)
+			done, err := c.batchDeleteExpiredActivities(ctx, network, timestamp, batchSize, &indexTable, lo.Ternary(activityTableExists, &activityTable, nil))
+			if err != nil {
+				return fmt.Errorf("batch delete expired activities: %w", err)
 			}
 
-			if len(transactionIDs) == 0 {
+			if done {
 				break
-			}
-
-			// Delete expired indexes.
-			if err = databaseTransaction.Table(indexTable).Where("id IN ?", transactionIDs).Delete(&table.Index{}).Error; err != nil {
-				zap.L().Error("failed to delete expired indexes", zap.Error(err), zap.String("table", indexTable))
-
-				return fmt.Errorf("delete expired indexes: %w", err)
-			}
-
-			if activityTableExists {
-				// Delete expired activities.
-				if err = databaseTransaction.Table(activityTable).Where("id IN ?", transactionIDs).Delete(&table.Activity{}).Error; err != nil {
-					zap.L().Error("failed to delete expired activities", zap.Error(err), zap.String("table", activityTable))
-
-					return fmt.Errorf("delete expired activities: %w", err)
-				}
-			}
-
-			if err = databaseTransaction.Commit().Error; err != nil {
-				zap.L().Error("failed to commit transaction", zap.Error(err))
-
-				return fmt.Errorf("commit transaction: %w", err)
 			}
 		}
 	}
 
 	return nil
+}
+
+func (c *client) batchDeleteExpiredActivities(ctx context.Context, network network.Network, timestamp time.Time, batchSize int, indexTable *string, activityTable *string) (bool, error) {
+	databaseTransaction := c.database.WithContext(ctx).Debug().Begin()
+	defer func() {
+		if err := databaseTransaction.Rollback().Error; err != nil {
+			zap.L().Error("failed to rollback transaction", zap.Error(err))
+		}
+	}()
+
+	var transactionIDs []string
+
+	// Find expired activities.
+	if err := c.database.WithContext(ctx).Table(*indexTable).Select("id").Where("network = ?", network.String()).
+		Where("timestamp < ?", timestamp).Limit(batchSize).
+		Pluck("id", &transactionIDs).Error; err != nil {
+		zap.L().Error("failed to find expired activities", zap.Error(err), zap.String("table", *indexTable))
+
+		return false, fmt.Errorf("find expired activities: %w", err)
+	}
+
+	if len(transactionIDs) == 0 {
+		return true, nil
+	}
+
+	// Delete expired indexes.
+	if err := databaseTransaction.Table(*indexTable).Where("id IN ?", transactionIDs).Delete(&table.Index{}).Error; err != nil {
+		zap.L().Error("failed to delete expired indexes", zap.Error(err), zap.String("table", *indexTable))
+
+		return false, fmt.Errorf("delete expired indexes: %w", err)
+	}
+
+	if activityTable != nil {
+		// Delete expired activities.
+		if err := databaseTransaction.Table(*activityTable).Where("id IN ?", transactionIDs).Delete(&table.Activity{}).Error; err != nil {
+			zap.L().Error("failed to delete expired activities", zap.Error(err), zap.String("table", *activityTable))
+
+			return false, fmt.Errorf("delete expired activities: %w", err)
+		}
+	}
+
+	if err := databaseTransaction.Commit().Error; err != nil {
+		zap.L().Error("failed to commit transaction", zap.Error(err))
+
+		return false, fmt.Errorf("commit transaction: %w", err)
+	}
+
+	return false, nil
 }
 
 // buildFindIndexStatement builds the query index statement.
