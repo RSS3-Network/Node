@@ -10,6 +10,7 @@ const (
 	Platform1Inch                      // 1inch
 	PlatformAAVE                       // AAVE
 	PlatformAavegotchi                 // Aavegotchi
+	PlatformBendDAO                    // BendDAO
 	PlatformCrossbell                  // Crossbell
 	PlatformCurve                      // Curve
 	PlatformENS                        // ENS
@@ -30,7 +31,6 @@ const (
 	PlatformStargate                   // Stargate
 	PlatformUniswap                    // Uniswap
 	PlatformVSL                        // VSL
-	PlatformBendDAO                    // BendDAO
 )
 
 var _ echo.BindUnmarshaler = (*Platform)(nil)
@@ -50,6 +50,7 @@ func (p *Platform) UnmarshalParam(param string) error {
 var ToPlatformMap = map[Worker]Platform{
 	Aave:       PlatformAAVE,
 	Aavegotchi: PlatformAavegotchi,
+	BendDAO:    PlatformBendDAO,
 	Crossbell:  PlatformCrossbell,
 	Curve:      PlatformCurve,
 	ENS:        PlatformENS,
@@ -71,5 +72,4 @@ var ToPlatformMap = map[Worker]Platform{
 	Stargate:   PlatformStargate,
 	Uniswap:    PlatformUniswap,
 	VSL:        PlatformVSL,
-	BendDAO:    PlatformBendDAO,
 }

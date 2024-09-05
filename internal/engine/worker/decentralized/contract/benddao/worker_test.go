@@ -5681,9 +5681,10 @@ func TestWorker_Ethereum(t *testing.T) {
 
 			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
-			require.Equal(t, testcase.want, activity)
 
-			t.Log(activity)
+			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
+
+			require.Equal(t, testcase.want, activity)
 		})
 	}
 }

@@ -316,6 +316,9 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.RSS: {
 		rss.RSSHub,
 	},
+	network.XLayer: {
+		decentralized.Core,
+	},
 }
 
 // WorkerToConfigMap is a map of worker to config.
@@ -323,6 +326,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	network.EthereumSource: {
 		decentralized.Aave:       defaultWorkerConfig(decentralized.Aave, network.EthereumSource, nil),
 		decentralized.Aavegotchi: defaultWorkerConfig(decentralized.Aavegotchi, network.EthereumSource, nil),
+		decentralized.BendDAO:    defaultWorkerConfig(decentralized.BendDAO, network.EthereumSource, nil),
 		decentralized.Core:       defaultWorkerConfig(decentralized.Core, network.EthereumSource, nil),
 		decentralized.Crossbell:  customWorkerConfigWithIPFS(decentralized.Crossbell, network.EthereumSource, ""),
 		decentralized.Curve:      defaultWorkerConfig(decentralized.Curve, network.EthereumSource, nil),
@@ -334,6 +338,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.Lido:       defaultWorkerConfig(decentralized.Lido, network.EthereumSource, nil),
 		decentralized.Looksrare:  defaultWorkerConfig(decentralized.Looksrare, network.EthereumSource, nil),
 		decentralized.Matters:    customWorkerConfigWithIPFS(decentralized.Matters, network.EthereumSource, ""),
+		decentralized.Oneinch:    defaultWorkerConfig(decentralized.Oneinch, network.EthereumSource, nil),
 		decentralized.OpenSea:    defaultWorkerConfig(decentralized.OpenSea, network.EthereumSource, nil),
 		decentralized.Optimism:   defaultWorkerConfig(decentralized.Optimism, network.EthereumSource, nil),
 		decentralized.RSS3:       defaultWorkerConfig(decentralized.RSS3, network.EthereumSource, nil),
