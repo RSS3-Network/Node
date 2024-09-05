@@ -49,7 +49,6 @@ type Server struct {
 
 func (s *Server) Run(ctx context.Context) error {
 	var (
-		// TODO Develop a more effective solution to implement back pressure. - Resolving using utils.TaskBuffer
 		errorChan = make(chan error)
 	)
 
@@ -277,7 +276,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 		databaseClient: databaseClient,
 		streamClient:   streamClient,
 		redisClient:    redisClient,
-		TaskBuffer:     engine.NewTaskBuffer(1000), // set the default buffer size to be 1000 tasks
+		TaskBuffer:     engine.NewTaskBuffer(1500), // set the default buffer size to be 1000 tasks
 	}
 
 	// Initialize worker
