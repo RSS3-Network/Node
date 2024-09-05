@@ -11,6 +11,7 @@ type Worker int
 const (
 	Aave       Worker = iota + 1 // aave
 	Aavegotchi                   // aavegotchi
+	BendDAO                      // benddao
 	Core                         // core
 	Crossbell                    // crossbell
 	Curve                        // curve
@@ -86,4 +87,31 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	Stargate:   {tag.Transaction},
 	Uniswap:    {tag.Exchange, tag.Transaction},
 	VSL:        {tag.Transaction},
+}
+
+var ToIconURLMap = map[Worker]string{
+	Aave:       "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/aave.svg",
+	Aavegotchi: "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/aavegotchi.svg",
+	Core:       "",
+	Crossbell:  "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/crossbell.svg",
+	Curve:      "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/curve.svg",
+	ENS:        "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/ens.svg",
+	Highlight:  "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/highlight.svg",
+	IQWiki:     "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/iqwiki.svg",
+	KiwiStand:  "https://storage.googleapis.com/rss3-icon/kiwistand.png",
+	Lens:       "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/lens.svg",
+	Lido:       "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/lido.svg",
+	Looksrare:  "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/looks-rare.svg",
+	Matters:    "https://storage.googleapis.com/rss3-icon/matters.jpg",
+	Mirror:     "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/mirror.svg",
+	Momoka:     "https://storage.googleapis.com/rss3-icon/momoka.png",
+	Oneinch:    "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/1inch.svg",
+	OpenSea:    "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/opensea.svg",
+	Optimism:   "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/optimism.svg",
+	Paragraph:  "https://storage.googleapis.com/rss3-icon/paragraph.png",
+	RSS3:       "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/rss3.svg",
+	SAVM:       "",
+	Stargate:   "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/stargate.svg",
+	Uniswap:    "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/uniswap.svg",
+	VSL:        "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/rss3-vsl.svg",
 }
