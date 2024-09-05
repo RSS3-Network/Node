@@ -39,7 +39,7 @@ func BenchmarkDataTransmissionPerformance(b *testing.B) {
 }
 
 func simulateWork() {
-	n, _ := rand.Int(rand.Reader, big.NewInt(300))
+	n, _ := rand.Int(rand.Reader, big.NewInt(5))
 	time.Sleep(time.Duration(5+n.Int64()) * time.Millisecond)
 }
 
