@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _PlatformName = "Unknown1inchAAVEAavegotchiCrossbellCurveENSFarcasterHighlightIQWikiKiwiStandLensLidoLooksRareMattersMirrorOpenSeaOptimismParagraphParaswapRSS3SAVMStargateUniswapVSL"
+const _PlatformName = "Unknown1inchAAVEAavegotchiBendDAOCrossbellCurveENSFarcasterHighlightIQWikiKiwiStandLensLidoLooksRareMattersMirrorOpenSeaOptimismParagraphParaswapRSS3SAVMStargateUniswapVSL"
 
-var _PlatformIndex = [...]uint8{0, 7, 12, 16, 26, 35, 40, 43, 52, 61, 67, 76, 80, 84, 93, 100, 106, 113, 121, 130, 138, 142, 146, 154, 161, 164}
+var _PlatformIndex = [...]uint8{0, 7, 12, 16, 26, 33, 42, 47, 50, 59, 68, 74, 83, 87, 91, 100, 107, 113, 120, 128, 137, 145, 149, 153, 161, 168, 171}
 
-const _PlatformLowerName = "unknown1inchaaveaavegotchicrossbellcurveensfarcasterhighlightiqwikikiwistandlenslidolooksraremattersmirroropenseaoptimismparagraphparaswaprss3savmstargateuniswapvsl"
+const _PlatformLowerName = "unknown1inchaaveaavegotchibenddaocrossbellcurveensfarcasterhighlightiqwikikiwistandlenslidolooksraremattersmirroropenseaoptimismparagraphparaswaprss3savmstargateuniswapvsl"
 
 func (i Platform) String() string {
 	if i >= Platform(len(_PlatformIndex)-1) {
@@ -34,30 +34,31 @@ func _PlatformNoOp() {
 	_ = x[Platform1Inch-(1)]
 	_ = x[PlatformAAVE-(2)]
 	_ = x[PlatformAavegotchi-(3)]
-	_ = x[PlatformCrossbell-(4)]
-	_ = x[PlatformCurve-(5)]
-	_ = x[PlatformENS-(6)]
-	_ = x[PlatformFarcaster-(7)]
-	_ = x[PlatformHighlight-(8)]
-	_ = x[PlatformIQWiki-(9)]
-	_ = x[PlatformKiwiStand-(10)]
-	_ = x[PlatformLens-(11)]
-	_ = x[PlatformLido-(12)]
-	_ = x[PlatformLooksRare-(13)]
-	_ = x[PlatformMatters-(14)]
-	_ = x[PlatformMirror-(15)]
-	_ = x[PlatformOpenSea-(16)]
-	_ = x[PlatformOptimism-(17)]
-	_ = x[PlatformParagraph-(18)]
-	_ = x[PlatformParaswap-(19)]
-	_ = x[PlatformRSS3-(20)]
-	_ = x[PlatformSAVM-(21)]
-	_ = x[PlatformStargate-(22)]
-	_ = x[PlatformUniswap-(23)]
-	_ = x[PlatformVSL-(24)]
+	_ = x[PlatformBendDAO-(4)]
+	_ = x[PlatformCrossbell-(5)]
+	_ = x[PlatformCurve-(6)]
+	_ = x[PlatformENS-(7)]
+	_ = x[PlatformFarcaster-(8)]
+	_ = x[PlatformHighlight-(9)]
+	_ = x[PlatformIQWiki-(10)]
+	_ = x[PlatformKiwiStand-(11)]
+	_ = x[PlatformLens-(12)]
+	_ = x[PlatformLido-(13)]
+	_ = x[PlatformLooksRare-(14)]
+	_ = x[PlatformMatters-(15)]
+	_ = x[PlatformMirror-(16)]
+	_ = x[PlatformOpenSea-(17)]
+	_ = x[PlatformOptimism-(18)]
+	_ = x[PlatformParagraph-(19)]
+	_ = x[PlatformParaswap-(20)]
+	_ = x[PlatformRSS3-(21)]
+	_ = x[PlatformSAVM-(22)]
+	_ = x[PlatformStargate-(23)]
+	_ = x[PlatformUniswap-(24)]
+	_ = x[PlatformVSL-(25)]
 }
 
-var _PlatformValues = []Platform{PlatformUnknown, Platform1Inch, PlatformAAVE, PlatformAavegotchi, PlatformCrossbell, PlatformCurve, PlatformENS, PlatformFarcaster, PlatformHighlight, PlatformIQWiki, PlatformKiwiStand, PlatformLens, PlatformLido, PlatformLooksRare, PlatformMatters, PlatformMirror, PlatformOpenSea, PlatformOptimism, PlatformParagraph, PlatformParaswap, PlatformRSS3, PlatformSAVM, PlatformStargate, PlatformUniswap, PlatformVSL}
+var _PlatformValues = []Platform{PlatformUnknown, Platform1Inch, PlatformAAVE, PlatformAavegotchi, PlatformBendDAO, PlatformCrossbell, PlatformCurve, PlatformENS, PlatformFarcaster, PlatformHighlight, PlatformIQWiki, PlatformKiwiStand, PlatformLens, PlatformLido, PlatformLooksRare, PlatformMatters, PlatformMirror, PlatformOpenSea, PlatformOptimism, PlatformParagraph, PlatformParaswap, PlatformRSS3, PlatformSAVM, PlatformStargate, PlatformUniswap, PlatformVSL}
 
 var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformName[0:7]:          PlatformUnknown,
@@ -68,48 +69,50 @@ var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformLowerName[12:16]:   PlatformAAVE,
 	_PlatformName[16:26]:        PlatformAavegotchi,
 	_PlatformLowerName[16:26]:   PlatformAavegotchi,
-	_PlatformName[26:35]:        PlatformCrossbell,
-	_PlatformLowerName[26:35]:   PlatformCrossbell,
-	_PlatformName[35:40]:        PlatformCurve,
-	_PlatformLowerName[35:40]:   PlatformCurve,
-	_PlatformName[40:43]:        PlatformENS,
-	_PlatformLowerName[40:43]:   PlatformENS,
-	_PlatformName[43:52]:        PlatformFarcaster,
-	_PlatformLowerName[43:52]:   PlatformFarcaster,
-	_PlatformName[52:61]:        PlatformHighlight,
-	_PlatformLowerName[52:61]:   PlatformHighlight,
-	_PlatformName[61:67]:        PlatformIQWiki,
-	_PlatformLowerName[61:67]:   PlatformIQWiki,
-	_PlatformName[67:76]:        PlatformKiwiStand,
-	_PlatformLowerName[67:76]:   PlatformKiwiStand,
-	_PlatformName[76:80]:        PlatformLens,
-	_PlatformLowerName[76:80]:   PlatformLens,
-	_PlatformName[80:84]:        PlatformLido,
-	_PlatformLowerName[80:84]:   PlatformLido,
-	_PlatformName[84:93]:        PlatformLooksRare,
-	_PlatformLowerName[84:93]:   PlatformLooksRare,
-	_PlatformName[93:100]:       PlatformMatters,
-	_PlatformLowerName[93:100]:  PlatformMatters,
-	_PlatformName[100:106]:      PlatformMirror,
-	_PlatformLowerName[100:106]: PlatformMirror,
-	_PlatformName[106:113]:      PlatformOpenSea,
-	_PlatformLowerName[106:113]: PlatformOpenSea,
-	_PlatformName[113:121]:      PlatformOptimism,
-	_PlatformLowerName[113:121]: PlatformOptimism,
-	_PlatformName[121:130]:      PlatformParagraph,
-	_PlatformLowerName[121:130]: PlatformParagraph,
-	_PlatformName[130:138]:      PlatformParaswap,
-	_PlatformLowerName[130:138]: PlatformParaswap,
-	_PlatformName[138:142]:      PlatformRSS3,
-	_PlatformLowerName[138:142]: PlatformRSS3,
-	_PlatformName[142:146]:      PlatformSAVM,
-	_PlatformLowerName[142:146]: PlatformSAVM,
-	_PlatformName[146:154]:      PlatformStargate,
-	_PlatformLowerName[146:154]: PlatformStargate,
-	_PlatformName[154:161]:      PlatformUniswap,
-	_PlatformLowerName[154:161]: PlatformUniswap,
-	_PlatformName[161:164]:      PlatformVSL,
-	_PlatformLowerName[161:164]: PlatformVSL,
+	_PlatformName[26:33]:        PlatformBendDAO,
+	_PlatformLowerName[26:33]:   PlatformBendDAO,
+	_PlatformName[33:42]:        PlatformCrossbell,
+	_PlatformLowerName[33:42]:   PlatformCrossbell,
+	_PlatformName[42:47]:        PlatformCurve,
+	_PlatformLowerName[42:47]:   PlatformCurve,
+	_PlatformName[47:50]:        PlatformENS,
+	_PlatformLowerName[47:50]:   PlatformENS,
+	_PlatformName[50:59]:        PlatformFarcaster,
+	_PlatformLowerName[50:59]:   PlatformFarcaster,
+	_PlatformName[59:68]:        PlatformHighlight,
+	_PlatformLowerName[59:68]:   PlatformHighlight,
+	_PlatformName[68:74]:        PlatformIQWiki,
+	_PlatformLowerName[68:74]:   PlatformIQWiki,
+	_PlatformName[74:83]:        PlatformKiwiStand,
+	_PlatformLowerName[74:83]:   PlatformKiwiStand,
+	_PlatformName[83:87]:        PlatformLens,
+	_PlatformLowerName[83:87]:   PlatformLens,
+	_PlatformName[87:91]:        PlatformLido,
+	_PlatformLowerName[87:91]:   PlatformLido,
+	_PlatformName[91:100]:       PlatformLooksRare,
+	_PlatformLowerName[91:100]:  PlatformLooksRare,
+	_PlatformName[100:107]:      PlatformMatters,
+	_PlatformLowerName[100:107]: PlatformMatters,
+	_PlatformName[107:113]:      PlatformMirror,
+	_PlatformLowerName[107:113]: PlatformMirror,
+	_PlatformName[113:120]:      PlatformOpenSea,
+	_PlatformLowerName[113:120]: PlatformOpenSea,
+	_PlatformName[120:128]:      PlatformOptimism,
+	_PlatformLowerName[120:128]: PlatformOptimism,
+	_PlatformName[128:137]:      PlatformParagraph,
+	_PlatformLowerName[128:137]: PlatformParagraph,
+	_PlatformName[137:145]:      PlatformParaswap,
+	_PlatformLowerName[137:145]: PlatformParaswap,
+	_PlatformName[145:149]:      PlatformRSS3,
+	_PlatformLowerName[145:149]: PlatformRSS3,
+	_PlatformName[149:153]:      PlatformSAVM,
+	_PlatformLowerName[149:153]: PlatformSAVM,
+	_PlatformName[153:161]:      PlatformStargate,
+	_PlatformLowerName[153:161]: PlatformStargate,
+	_PlatformName[161:168]:      PlatformUniswap,
+	_PlatformLowerName[161:168]: PlatformUniswap,
+	_PlatformName[168:171]:      PlatformVSL,
+	_PlatformLowerName[168:171]: PlatformVSL,
 }
 
 var _PlatformNames = []string{
@@ -117,27 +120,28 @@ var _PlatformNames = []string{
 	_PlatformName[7:12],
 	_PlatformName[12:16],
 	_PlatformName[16:26],
-	_PlatformName[26:35],
-	_PlatformName[35:40],
-	_PlatformName[40:43],
-	_PlatformName[43:52],
-	_PlatformName[52:61],
-	_PlatformName[61:67],
-	_PlatformName[67:76],
-	_PlatformName[76:80],
-	_PlatformName[80:84],
-	_PlatformName[84:93],
-	_PlatformName[93:100],
-	_PlatformName[100:106],
-	_PlatformName[106:113],
-	_PlatformName[113:121],
-	_PlatformName[121:130],
-	_PlatformName[130:138],
-	_PlatformName[138:142],
-	_PlatformName[142:146],
-	_PlatformName[146:154],
-	_PlatformName[154:161],
-	_PlatformName[161:164],
+	_PlatformName[26:33],
+	_PlatformName[33:42],
+	_PlatformName[42:47],
+	_PlatformName[47:50],
+	_PlatformName[50:59],
+	_PlatformName[59:68],
+	_PlatformName[68:74],
+	_PlatformName[74:83],
+	_PlatformName[83:87],
+	_PlatformName[87:91],
+	_PlatformName[91:100],
+	_PlatformName[100:107],
+	_PlatformName[107:113],
+	_PlatformName[113:120],
+	_PlatformName[120:128],
+	_PlatformName[128:137],
+	_PlatformName[137:145],
+	_PlatformName[145:149],
+	_PlatformName[149:153],
+	_PlatformName[153:161],
+	_PlatformName[161:168],
+	_PlatformName[168:171],
 }
 
 // PlatformString retrieves an enum value from the enum constants string name.
