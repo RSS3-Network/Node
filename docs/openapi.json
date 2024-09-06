@@ -329,26 +329,6 @@
                 }
             }
         },
-        "/assets": {
-            "get": {
-                "summary": "Get Node Assets",
-                "description": "Retrieve node assets details.",
-                "tags": [
-                    "Info"
-                ],
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/AssetsResponse"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/BadRequest"
-                    },
-                    "500": {
-                        "$ref": "#/components/responses/InternalError"
-                    }
-                }
-            }
-        },
         "/info": {
             "get": {
                 "summary": "Get Node Status",
@@ -885,250 +865,6 @@
                 },
                 "type": "object"
             },
-            "AssetsResponse": {
-                "properties": {
-                    "data": {
-                        "type": "object",
-                        "properties": {
-                            "networks": {
-                                "type": "array",
-                                "items":{
-                                    "$ref": "#/components/schemas/AssetDetail"
-                                }
-                            },
-                            "workers": {
-                                "type": "array",
-                                "items":{
-                                    "$ref": "#/components/schemas/AssetDetail"
-                                }
-                            }
-                        }
-                    }
-                },
-                "type": "object",
-                "example": {
-                    "data": {
-                        "networks": {
-                            "arbitrum": {
-                                "type": "ethereum",
-                                "name": "Arbitrum",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/arbitrum.svg"
-                            },
-                            "arweave": {
-                                "type": "arweave",
-                                "name": "Arweave",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/arweave.svg"
-                            },
-                            "avax": {
-                                "type": "ethereum",
-                                "name": "Avalanche",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/avalanche.svg"
-                            },
-                            "base": {
-                                "type": "ethereum",
-                                "name": "Base",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/base.svg"
-                            },
-                            "binance-smart-chain": {
-                                "type": "ethereum",
-                                "name": "Binance Smart Chain",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/binance-smart-chain.svg"
-                            },
-                            "crossbell": {
-                                "type": "ethereum",
-                                "name": "Crossbell",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/crossbell.svg"
-                            },
-                            "ethereum": {
-                                "type": "ethereum",
-                                "name": "Ethereum",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/ethereum.svg"
-                            },
-                            "farcaster": {
-                                "type": "farcaster",
-                                "name": "Farcaster",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/farcaster.svg"
-                            },
-                            "gnosis": {
-                                "type": "ethereum",
-                                "name": "Gnosis",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/gnosis-chain.svg"
-                            },
-                            "linea": {
-                                "type": "ethereum",
-                                "name": "Linea",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/linea.svg"
-                            },
-                            "optimism": {
-                                "type": "ethereum",
-                                "name": "Optimism",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/optimism.svg"
-                            },
-                            "polygon": {
-                                "type": "ethereum",
-                                "name": "Polygon",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/polygon.svg"
-                            },
-                            "vsl": {
-                                "type": "ethereum",
-                                "name": "VSL",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/rss3-vsl.svg"
-                            },
-                            "x-layer": {
-                                "type": "ethereum",
-                                "name": "X Layer",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/x-layer.svg"
-                            }
-                        },
-                        "workers": {
-                            "1inch": {
-                                "type": "decentralized",
-                                "name": "1inch",
-                                "platform": "1inch",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/1inch.svg"
-                            },
-                            "aave": {
-                                "type": "decentralized",
-                                "name": "aave",
-                                "platform": "AAVE",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/aave.svg"
-                            },
-                            "aavegotchi": {
-                                "type": "decentralized",
-                                "name": "aavegotchi",
-                                "platform": "Aavegotchi",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/aavegotchi.svg"
-                            },
-                            "core": {
-                                "type": "decentralized",
-                                "name": "core",
-                                "platform": "Unknown",
-                                "icon_url": ""
-                            },
-                            "crossbell": {
-                                "type": "decentralized",
-                                "name": "crossbell",
-                                "platform": "Crossbell",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/crossbell.svg"
-                            },
-                            "curve": {
-                                "type": "decentralized",
-                                "name": "curve",
-                                "platform": "Curve",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/curve.svg"
-                            },
-                            "ens": {
-                                "type": "decentralized",
-                                "name": "ens",
-                                "platform": "ENS",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/ens.svg"
-                            },
-                            "highlight": {
-                                "type": "decentralized",
-                                "name": "highlight",
-                                "platform": "Highlight",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/highlight.svg"
-                            },
-                            "iqwiki": {
-                                "type": "decentralized",
-                                "name": "iqwiki",
-                                "platform": "IQWiki",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/iqwiki.svg"
-                            },
-                            "kiwistand": {
-                                "type": "decentralized",
-                                "name": "kiwistand",
-                                "platform": "KiwiStand",
-                                "icon_url": "https://storage.googleapis.com/rss3-icon/kiwistand.png"
-                            },
-                            "lens": {
-                                "type": "decentralized",
-                                "name": "lens",
-                                "platform": "Lens",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/lens.svg"
-                            },
-                            "lido": {
-                                "type": "decentralized",
-                                "name": "lido",
-                                "platform": "Lido",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/lido.svg"
-                            },
-                            "looksrare": {
-                                "type": "decentralized",
-                                "name": "looksrare",
-                                "platform": "LooksRare",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/looks-rare.svg"
-                            },
-                            "matters": {
-                                "type": "decentralized",
-                                "name": "matters",
-                                "platform": "Matters",
-                                "icon_url": "https://storage.googleapis.com/rss3-icon/matters.jpg"
-                            },
-                            "mirror": {
-                                "type": "decentralized",
-                                "name": "mirror",
-                                "platform": "Mirror",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/mirror.svg"
-                            },
-                            "momoka": {
-                                "type": "decentralized",
-                                "name": "momoka",
-                                "platform": "Lens",
-                                "icon_url": "https://storage.googleapis.com/rss3-icon/momoka.png"
-                            },
-                            "opensea": {
-                                "type": "decentralized",
-                                "name": "opensea",
-                                "platform": "OpenSea",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/opensea.svg"
-                            },
-                            "optimism": {
-                                "type": "decentralized",
-                                "name": "optimism",
-                                "platform": "Optimism",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/optimism.svg"
-                            },
-                            "paragraph": {
-                                "type": "decentralized",
-                                "name": "paragraph",
-                                "platform": "Paragraph",
-                                "icon_url": "https://storage.googleapis.com/rss3-icon/paragraph.png"
-                            },
-                            "rss3": {
-                                "type": "decentralized",
-                                "name": "rss3",
-                                "platform": "RSS3",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/rss3.svg"
-                            },
-                            "rsshub": {
-                                "type": "rss",
-                                "name": "rsshub",
-                                "platform": "RSSHub",
-                                "icon_url": "https://storage.googleapis.com/rss3-icon/rsshub.png"
-                            },
-                            "stargate": {
-                                "type": "decentralized",
-                                "name": "stargate",
-                                "platform": "Stargate",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/stargate.svg"
-                            },
-                            "uniswap": {
-                                "type": "decentralized",
-                                "name": "uniswap",
-                                "platform": "Uniswap",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/uniswap.svg"
-                            },
-                            "vsl": {
-                                "type": "decentralized",
-                                "name": "vsl",
-                                "platform": "VSL",
-                                "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/rss3-vsl.svg"
-                            }
-                        }
-                    }
-                }
-            },
             "NodeInfo": {
                 "properties": {
                     "operator": {
@@ -1449,29 +1185,6 @@
                 },
                 "type": "object"
             },
-            "AssetDetail": {
-                "description": "The details of an asset (network or worker).",
-                "properties": {
-                    "type": {
-                        "description": "The type of the asset.",
-                        "type": "string"
-                    },
-                    "name": {
-                        "description": "The name of the asset.",
-                        "type": "string"
-                    },
-                    "platform": {
-                        "description": "The platform of the asset (for workers only).",
-                        "type": "string"
-                    },
-                    "icon_url": {
-                        "description": "The URL of the asset's icon.",
-                        "type": "string"
-                    }
-                },
-                "required": ["type", "name", "icon_url"],
-                "type": "object"
-            },
             "ConfigDetail": {
                 "type": "object",
                 "required": ["is_required", "type", "value", "description"],
@@ -1571,7 +1284,7 @@
                 "description": "The network on which activities occur.",
                 "type": "string",
                 "example": "ethereum",
-                "enum": ["arbitrum","arweave","avax","base","binance-smart-chain","crossbell","ethereum","farcaster","gnosis","linea","optimism","polygon","vsl","x-layer"]
+                "enum": ["arbitrum","arweave","avax","base","binance-smart-chain","crossbell","ethereum","farcaster","gnosis","linea","mastodon","optimism","polygon","vsl","x-layer"]
             },
             "Platform": {
                 "description": "The platform on which activities occur.",
@@ -1703,16 +1416,6 @@
                     "application/json": {
                         "schema": {
                             "$ref": "#/components/schemas/WorkerInfoResponse"
-                        }
-                    }
-                }
-            },
-            "AssetsResponse": {
-                "description": "The request was successful.",
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "$ref": "#/components/schemas/AssetsResponse"
                         }
                     }
                 }
