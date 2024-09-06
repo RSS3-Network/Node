@@ -49,3 +49,14 @@ type ReceiptOutcome struct {
 	ID        string                    `json:"id"`
 	Outcome   Outcome                   `json:"outcome"`
 }
+
+type TransactionDetails struct {
+	SignerID    string   `json:"signer_id"`
+	PublicKey   string   `json:"public_key"`
+	Nonce       uint64   `json:"nonce"`
+	ReceiverID  string   `json:"receiver_id"`
+	Actions     []Action `json:"actions"`
+	Signature   string   `json:"signature"`
+	Hash        string   `json:"hash"`
+	PriorityFee uint64   `json:"priority_fee"`
+}
