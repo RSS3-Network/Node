@@ -11,6 +11,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/aave"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/aavegotchi"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/cow"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/benddao"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/crossbell"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/curve"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/ens"
@@ -87,6 +88,8 @@ func New(config *config.Module, databaseClient database.Client, redisClient ruei
 		return curve.NewWorker(config, redisClient)
 	case decentralized.Cow:
 		return cow.NewWorker(config)
+	case decentralized.BendDAO:
+		return benddao.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}
