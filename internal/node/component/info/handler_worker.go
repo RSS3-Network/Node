@@ -38,17 +38,6 @@ type WorkerInfo struct {
 	monitor.WorkerProgress
 }
 
-type WorkerDetailResponse struct {
-	Data []WorkerDetail `json:"data"`
-}
-
-type WorkerDetail struct {
-	Type     string `json:"type"`
-	Name     string `json:"name"`
-	Platform string `json:"platform"`
-	IconURL  string `json:"icon_url"`
-}
-
 // GetWorkersStatus returns the status of all workers.
 func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, "status")
@@ -81,40 +70,6 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, response)
-}
-
-// GetWorkersInfo returns the worker info.
-func (c *Component) GetWorkersInfo(ctx echo.Context) error {
-	workers := make([]WorkerDetail, 0, len(decentralized.WorkerValues())+len(rss.WorkerValues()))
-
-	// Aggregate decentralized workers
-	for _, w := range decentralized.WorkerValues() {
-		if w.Name() == decentralized.SAVM.Name() {
-			continue
-		}
-
-		platform := decentralized.ToPlatformMap[w]
-		workers = append(workers, WorkerDetail{
-			Name:     w.Name(),
-			Platform: platform.String(),
-			Type:     w.Component(),
-			IconURL:  decentralized.ToIconURLMap[w],
-		})
-	}
-
-	// Aggregate RSS workers
-	for _, w := range rss.WorkerValues() {
-		workers = append(workers, WorkerDetail{
-			Name:     w.Name(),
-			Platform: "RSSHub",
-			Type:     w.Component(),
-			IconURL:  rss.ToIconURLMap[w],
-		})
-	}
-
-	return ctx.JSON(http.StatusOK, WorkerDetailResponse{
-		Data: workers,
-	})
 }
 
 // fetchAllWorkerInfo fetches the status of all workers concurrently.
