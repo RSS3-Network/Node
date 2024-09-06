@@ -11,6 +11,7 @@ const (
 	PlatformAAVE                       // AAVE
 	PlatformAavegotchi                 // Aavegotchi
 	PlatformArbitrum                   // Arbitrum
+	PlatformBendDAO                    // BendDAO
 	PlatformCrossbell                  // Crossbell
 	PlatformCurve                      // Curve
 	PlatformENS                        // ENS
@@ -51,6 +52,7 @@ var ToPlatformMap = map[Worker]Platform{
 	Aave:       PlatformAAVE,
 	Aavegotchi: PlatformAavegotchi,
 	Arbitrum:   PlatformArbitrum,
+	BendDAO:    PlatformBendDAO,
 	Crossbell:  PlatformCrossbell,
 	Curve:      PlatformCurve,
 	ENS:        PlatformENS,

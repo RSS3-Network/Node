@@ -14,6 +14,11 @@ const _WorkerName = "aaveaavegotchiarbitrumcorecrossbellcurveenshighlightiqwikik
 var _WorkerIndex = [...]uint8{0, 4, 14, 22, 26, 35, 40, 43, 52, 58, 67, 71, 75, 84, 91, 97, 103, 108, 115, 123, 132, 136, 140, 148, 155, 158}
 
 const _WorkerLowerName = "aaveaavegotchiarbitrumcorecrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomoka1inchopenseaoptimismparagraphrss3savmstargateuniswapvsl"
+const _WorkerName = "aaveaavegotchibenddaocorecrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomoka1inchopenseaoptimismparagraphrss3savmstargateuniswapvsl"
+
+var _WorkerIndex = [...]uint8{0, 4, 14, 21, 25, 34, 39, 42, 51, 57, 66, 70, 74, 83, 90, 96, 102, 107, 114, 122, 131, 135, 139, 147, 154, 157}
+
+const _WorkerLowerName = "aaveaavegotchibenddaocorecrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomoka1inchopenseaoptimismparagraphrss3savmstargateuniswapvsl"
 
 func (i Worker) String() string {
 	i -= 1
@@ -34,6 +39,7 @@ func _WorkerNoOp() {
 	_ = x[Aave-(1)]
 	_ = x[Aavegotchi-(2)]
 	_ = x[Arbitrum-(3)]
+	_ = x[BendDAO-(3)]
 	_ = x[Core-(4)]
 	_ = x[Crossbell-(5)]
 	_ = x[Curve-(6)]
@@ -59,6 +65,7 @@ func _WorkerNoOp() {
 }
 
 var _WorkerValues = []Worker{Aave, Aavegotchi, Arbitrum, Core, Crossbell, Curve, ENS, Highlight, IQWiki, KiwiStand, Lens, Lido, Looksrare, Matters, Mirror, Momoka, Oneinch, OpenSea, Optimism, Paragraph, RSS3, SAVM, Stargate, Uniswap, VSL}
+var _WorkerValues = []Worker{Aave, Aavegotchi, BendDAO, Core, Crossbell, Curve, ENS, Highlight, IQWiki, KiwiStand, Lens, Lido, Looksrare, Matters, Mirror, Momoka, Oneinch, OpenSea, Optimism, Paragraph, RSS3, SAVM, Stargate, Uniswap, VSL}
 
 var _WorkerNameToValueMap = map[string]Worker{
 	_WorkerName[0:4]:          Aave,
@@ -111,6 +118,52 @@ var _WorkerNameToValueMap = map[string]Worker{
 	_WorkerLowerName[148:155]: Uniswap,
 	_WorkerName[155:158]:      VSL,
 	_WorkerLowerName[155:158]: VSL,
+	_WorkerName[14:21]:        BendDAO,
+	_WorkerLowerName[14:21]:   BendDAO,
+	_WorkerName[21:25]:        Core,
+	_WorkerLowerName[21:25]:   Core,
+	_WorkerName[25:34]:        Crossbell,
+	_WorkerLowerName[25:34]:   Crossbell,
+	_WorkerName[34:39]:        Curve,
+	_WorkerLowerName[34:39]:   Curve,
+	_WorkerName[39:42]:        ENS,
+	_WorkerLowerName[39:42]:   ENS,
+	_WorkerName[42:51]:        Highlight,
+	_WorkerLowerName[42:51]:   Highlight,
+	_WorkerName[51:57]:        IQWiki,
+	_WorkerLowerName[51:57]:   IQWiki,
+	_WorkerName[57:66]:        KiwiStand,
+	_WorkerLowerName[57:66]:   KiwiStand,
+	_WorkerName[66:70]:        Lens,
+	_WorkerLowerName[66:70]:   Lens,
+	_WorkerName[70:74]:        Lido,
+	_WorkerLowerName[70:74]:   Lido,
+	_WorkerName[74:83]:        Looksrare,
+	_WorkerLowerName[74:83]:   Looksrare,
+	_WorkerName[83:90]:        Matters,
+	_WorkerLowerName[83:90]:   Matters,
+	_WorkerName[90:96]:        Mirror,
+	_WorkerLowerName[90:96]:   Mirror,
+	_WorkerName[96:102]:       Momoka,
+	_WorkerLowerName[96:102]:  Momoka,
+	_WorkerName[102:107]:      Oneinch,
+	_WorkerLowerName[102:107]: Oneinch,
+	_WorkerName[107:114]:      OpenSea,
+	_WorkerLowerName[107:114]: OpenSea,
+	_WorkerName[114:122]:      Optimism,
+	_WorkerLowerName[114:122]: Optimism,
+	_WorkerName[122:131]:      Paragraph,
+	_WorkerLowerName[122:131]: Paragraph,
+	_WorkerName[131:135]:      RSS3,
+	_WorkerLowerName[131:135]: RSS3,
+	_WorkerName[135:139]:      SAVM,
+	_WorkerLowerName[135:139]: SAVM,
+	_WorkerName[139:147]:      Stargate,
+	_WorkerLowerName[139:147]: Stargate,
+	_WorkerName[147:154]:      Uniswap,
+	_WorkerLowerName[147:154]: Uniswap,
+	_WorkerName[154:157]:      VSL,
+	_WorkerLowerName[154:157]: VSL,
 }
 
 var _WorkerNames = []string{
@@ -139,6 +192,29 @@ var _WorkerNames = []string{
 	_WorkerName[140:148],
 	_WorkerName[148:155],
 	_WorkerName[155:158],
+	_WorkerName[14:21],
+	_WorkerName[21:25],
+	_WorkerName[25:34],
+	_WorkerName[34:39],
+	_WorkerName[39:42],
+	_WorkerName[42:51],
+	_WorkerName[51:57],
+	_WorkerName[57:66],
+	_WorkerName[66:70],
+	_WorkerName[70:74],
+	_WorkerName[74:83],
+	_WorkerName[83:90],
+	_WorkerName[90:96],
+	_WorkerName[96:102],
+	_WorkerName[102:107],
+	_WorkerName[107:114],
+	_WorkerName[114:122],
+	_WorkerName[122:131],
+	_WorkerName[131:135],
+	_WorkerName[135:139],
+	_WorkerName[139:147],
+	_WorkerName[147:154],
+	_WorkerName[154:157],
 }
 
 // WorkerString retrieves an enum value from the enum constants string name.
