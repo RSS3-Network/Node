@@ -328,6 +328,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.Aave:       defaultWorkerConfig(decentralized.Aave, network.EthereumSource, nil),
 		decentralized.Aavegotchi: defaultWorkerConfig(decentralized.Aavegotchi, network.EthereumSource, nil),
 		decentralized.Arbitrum:   defaultWorkerConfig(decentralized.Arbitrum, network.EthereumSource, nil),
+		decentralized.BendDAO:    defaultWorkerConfig(decentralized.BendDAO, network.EthereumSource, nil),
 		decentralized.Core:       defaultWorkerConfig(decentralized.Core, network.EthereumSource, nil),
 		decentralized.Crossbell:  customWorkerConfigWithIPFS(decentralized.Crossbell, network.EthereumSource, ""),
 		decentralized.Curve:      defaultWorkerConfig(decentralized.Curve, network.EthereumSource, nil),
