@@ -14,6 +14,7 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"go.uber.org/zap"
 )
 
 type Monitor struct {
@@ -55,6 +56,8 @@ func (m *Monitor) Run(ctx context.Context) error {
 
 		if err := databaseMaintenance.AddFunc(ctx, "0 0 0 * * *", func() {
 			if err := m.MaintainCoveragePeriod(ctx); err != nil {
+				zap.L().Error("maintain coverage period", zap.Error(err))
+
 				return
 			}
 		}); err != nil {
