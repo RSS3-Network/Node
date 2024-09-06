@@ -8,6 +8,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/source/near"
+	"github.com/rss3-network/node/provider/near"
 	workerx "github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
@@ -72,9 +73,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	}
 
 	// If the task is a native transfer transaction, handle it.
-	if w.matchNearNativeTransferTransaction(nearTask) {
+	if w.matchTransferTransaction(nearTask) {
 		// Handle the native transfer transaction.
-		action, err := w.handleNearNativeTransferTransaction(ctx, nearTask)
+		action, err := w.handleNearTransferTransaction(ctx, nearTask)
 		if err != nil {
 			return nil, fmt.Errorf("handle native transfer transaction: %w", err)
 		}
@@ -86,17 +87,51 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	return activity, nil
 }
 
-// matchNearNativeTransferTransaction returns true if the transaction is a native transfer transaction.
-func (w *worker) matchNearNativeTransferTransaction(task *source.Task) bool {
-	return task.Transaction.Transaction.PriorityFee > 0
+// matchTransferTransaction returns true if the transaction is a transfer transaction.
+func (w *worker) matchTransferTransaction(task *source.Task) bool {
+	// Check if the transaction has actions
+	if len(task.Transaction.Transaction.Actions) == 0 {
+		return false
+	}
+
+	// Iterate through the actions to find a Transfer action
+	for _, action := range task.Transaction.Transaction.Actions {
+		// add logic to check deposit is larger than 0, use decimal
+		if action.Transfer != nil {
+			deposit, err := decimal.NewFromString(action.Transfer.Deposit)
+			if err == nil && decimal.NewFromInt(0).LessThan(deposit) {
+				return true
+			}
+		}
+	}
+
+	// If no Transfer action is found, it's not a native transfer transaction
+	return false
 }
 
 // handleNearNativeTransferTransaction returns the action of the native transfer transaction.
-func (w *worker) handleNearNativeTransferTransaction(ctx context.Context, task *source.Task) (*activityx.Action, error) {
-	value := decimal.NewFromInt(int64(task.Transaction.Transaction.PriorityFee))
+func (w *worker) handleNearTransferTransaction(ctx context.Context, task *source.Task) (*activityx.Action, error) {
+	// Find the Transfer action and get its deposit value
+	var transferAction *near.TransferAction
+
+	for _, action := range task.Transaction.Transaction.Actions {
+		if action.Transfer != nil {
+			transferAction = action.Transfer
+			break
+		}
+	}
+
+	if transferAction == nil {
+		return nil, fmt.Errorf("no transfer action found in transaction")
+	}
+
+	value, err := decimal.NewFromString(transferAction.Deposit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse deposit value: %w", err)
+	}
 
 	// Build the native transfer transaction action.
-	return w.buildNearTransactionTransferAction(ctx, task.Transaction.Transaction.PublicKey, task.Transaction.Transaction.ReceiverID, value.BigInt())
+	return w.buildNearTransactionTransferAction(ctx, task.Transaction.Transaction.SignerID, task.Transaction.Transaction.ReceiverID, value.BigInt())
 }
 
 // buildNearTransactionTransferAction returns the native transfer transaction action.
@@ -106,7 +141,10 @@ func (w *worker) buildNearTransactionTransferAction(_ context.Context, from, to 
 		From: from,
 		To:   to,
 		Metadata: metadata.TransactionTransfer{
-			Value: lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0)),
+			Name:     "NEAR",
+			Symbol:   "NEAR",
+			Decimals: 24,
+			Value:    lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0)),
 		},
 	}
 

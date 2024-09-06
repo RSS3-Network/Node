@@ -55,14 +55,3 @@ type ReceiptActionDetails struct {
 	Actions             []interface{} `json:"actions"` // Change to interface{} to accept any action type
 	IsPromiseYield      bool          `json:"is_promise_yield"`
 }
-
-type TransactionDetails struct {
-	SignerID    string        `json:"signer_id"`
-	PublicKey   string        `json:"public_key"`
-	Nonce       int64         `json:"nonce"`
-	ReceiverID  string        `json:"receiver_id"`
-	Actions     []interface{} `json:"actions"` // Change to interface{} to accept any action type
-	Signature   string        `json:"signature"`
-	Hash        string        `json:"hash"`
-	PriorityFee int           `json:"priority_fee"`
-}

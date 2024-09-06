@@ -13,7 +13,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-const defaultFeeDecimal = 18
+const defaultFeeDecimal = 24
 
 var _ engine.Task = (*Task)(nil)
 
