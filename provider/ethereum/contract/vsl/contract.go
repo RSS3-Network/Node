@@ -2,7 +2,6 @@ package vsl
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 )
 
@@ -15,6 +14,11 @@ import (
 // Settlement https://scan.rss3.io/address/0x0cE3159BF19F3C55B648D04E8f0Ae1Ae118D2A0B
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/Settlement.abi --pkg vsl --type Settlement --out contract_settlement.go
 
+const (
+	ChainIDMainnet = 12553
+	ChainIDTestnet = 2331
+)
+
 var (
 	AddressL1RSS3           = common.HexToAddress("0xc98D64DA73a6616c42117b582e832812e7B8D57F")
 	AddressL2RSS3           = common.HexToAddress("0x4200000000000000000000000000000000000042")
@@ -22,14 +26,14 @@ var (
 	AddressL2StandardBridge = common.HexToAddress("0x4200000000000000000000000000000000000010")
 	AddressL1OptimismPortal = common.HexToAddress("0x6A12432491bbbE8d3babf75F759766774C778Db4")
 
-	AddressNetworkParams = map[string]common.Address{
-		config.EnvironmentProduction:  common.HexToAddress("0x15176Aabdc4836c38947a67313d209204051C502"),
-		config.EnvironmentDevelopment: common.HexToAddress("0x5d768cAef86d3DA8eC6009eE4B3d9b7Fe26A43CB"),
+	AddressNetworkParams = map[int64]common.Address{
+		ChainIDMainnet: common.HexToAddress("0x15176Aabdc4836c38947a67313d209204051C502"),
+		ChainIDTestnet: common.HexToAddress("0x5d768cAef86d3DA8eC6009eE4B3d9b7Fe26A43CB"),
 	}
 
-	AddressSettlement = map[string]common.Address{
-		config.EnvironmentProduction:  common.HexToAddress("0x0cE3159BF19F3C55B648D04E8f0Ae1Ae118D2A0B"),
-		config.EnvironmentDevelopment: common.HexToAddress("0xA37a6Ef0c3635824be2b6c87A23F6Df5d0E2ba1b"),
+	AddressSettlement = map[int64]common.Address{
+		ChainIDMainnet: common.HexToAddress("0x0cE3159BF19F3C55B648D04E8f0Ae1Ae118D2A0B"),
+		ChainIDTestnet: common.HexToAddress("0xA37a6Ef0c3635824be2b6c87A23F6Df5d0E2ba1b"),
 	}
 
 	EventHashAddressL1StandardBridgeETHDepositInitiated      = contract.EventHash("ETHDepositInitiated(address,address,uint256,bytes)")

@@ -10,7 +10,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/redis/rueidis"
-	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
@@ -226,17 +225,9 @@ func buildNetworkBlockStartCacheKey(network string) string {
 }
 
 // InitVSLClient initializes the VSL client
-func InitVSLClient(env string) (ethereum.Client, error) {
-	endpoints, _ := endpoint.Get(network.VSL)
-
-	vslEndpoint := endpoints[0]
-
-	if env == config.EnvironmentDevelopment {
-		vslEndpoint = endpoints[1]
-	}
-
+func InitVSLClient() (ethereum.Client, error) {
 	// Initialize vsl ethereum client.
-	vslClient, err := ethereum.Dial(context.Background(), vslEndpoint)
+	vslClient, err := ethereum.Dial(context.Background(), endpoint.MustGet(network.VSL))
 	if err != nil {
 		return nil, err
 	}

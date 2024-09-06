@@ -45,7 +45,6 @@ var endpointsMap = map[networkx.Network][]string{
 	},
 	networkx.VSL: {
 		"https://rpc.rss3.io",
-		"https://rpc.testnet.rss3.io",
 	},
 	networkx.SatoshiVM: {
 		"https://alpha-rpc-node-http.svmscan.io",
