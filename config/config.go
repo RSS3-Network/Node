@@ -124,7 +124,7 @@ func (e Endpoint) BuildEthereumOptions() []ethereum.Option {
 }
 
 type Database struct {
-	CoveragePeriod int             `mapstructure:"coverage_period" validate:"required" default:"3"`
+	CoveragePeriod int             `mapstructure:"coverage_period" validate:"min=3,max=12" default:"3"`
 	Driver         database.Driver `mapstructure:"driver" validate:"required" default:"postgres"`
 	Partition      *bool           `mapstructure:"partition" validate:"required" default:"true"`
 	URI            string          `mapstructure:"uri" validate:"required" default:"postgres://postgres@localhost:5432/postgres"`
