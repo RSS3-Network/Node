@@ -59,14 +59,16 @@ var command = cobra.Command{
 			return fmt.Errorf("setup config file: %w", err)
 		}
 
-		if err := setOpenTelemetry(config); err != nil {
-			return fmt.Errorf("set open telemetry: %w", err)
+		if config.Observability != nil {
+			if err := setOpenTelemetry(config); err != nil {
+				return fmt.Errorf("set open telemetry: %w", err)
+			}
 		}
 
 		// Init stream client.
 		var streamClient stream.Client
 
-		if *config.Stream.Enable {
+		if config.Stream != nil && *config.Stream.Enable {
 			streamClient, err = provider.New(cmd.Context(), config.Stream)
 			if err != nil {
 				return fmt.Errorf("dial stream client: %w", err)

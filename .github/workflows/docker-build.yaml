@@ -31,16 +31,17 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           platforms: ${{ matrix.platform }}
-      - name: Login to DockerHub
+      - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: rss3/node
+          images: ghcr.io/rss3-network/node
       - name: Build and push by digest
         id: build
         uses: docker/build-push-action@v6
@@ -48,13 +49,15 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=rss3/node,push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=ghcr.io/rss3-network/node,push-by-digest=true,name-canonical=true,push=${{ github.actor != 'dependabot[bot]' }}
       - name: Export digest
+        if: github.actor != 'dependabot[bot]'
         run: |
           mkdir -p /tmp/digests
           digest="${{ steps.build.outputs.digest }}"
           touch "/tmp/digests/${digest#sha256:}"
       - name: Upload digest
+        if: github.actor != 'dependabot[bot]'
         uses: actions/upload-artifact@v4
         with:
           name: digests-${{ env.PLATFORM_PAIR }}
@@ -69,6 +72,7 @@ jobs:
       id-token: write
     needs:
       - build
+    if: github.actor != 'dependabot[bot]'
     steps:
       - name: Download digests
         uses: actions/download-artifact@v4
@@ -116,8 +120,8 @@ jobs:
             ARGS="--dry-run"
           fi
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf 'rss3/node@sha256:%s ' *) $ARGS
+            $(printf 'ghcr.io/rss3-network/node@sha256:%s ' *) $ARGS
       - name: Inspect image
         if: github.event_name != 'pull_request'
         run: |
-          docker buildx imagetools inspect rss3/node:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ghcr.io/rss3-network/node:${{ steps.meta.outputs.version }}

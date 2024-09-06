@@ -329,26 +329,6 @@
                 }
             }
         },
-        "/workers_info": {
-            "get": {
-                "summary": "Get Node Worker Info Detail",
-                "description": "Retrieve node worker info details.",
-                "tags": [
-                    "Info"
-                ],
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/WorkerDetailResponse"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/BadRequest"
-                    },
-                    "500": {
-                        "$ref": "#/components/responses/InternalError"
-                    }
-                }
-            }
-        },
         "/info": {
             "get": {
                 "summary": "Get Node Status",
@@ -359,6 +339,26 @@
                 "responses": {
                     "200": {
                         "$ref": "#/components/responses/NodeInfoResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+        "/networks/endpoint_config": {
+            "get": {
+                "summary": "Get Endpoint config options",
+                "description": "Retrieve endpoint config options and descriptions.",
+                "tags": [
+                    "Info"
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/EndpointConfigResponse"
                     },
                     "400": {
                         "$ref": "#/components/responses/BadRequest"
@@ -827,6 +827,36 @@
                 },
                 "type": "object"
             },
+            "EndpointConfigResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/EndpointConfig"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "data": {
+                        "url": {
+                            "is_required": true,
+                            "type": "url",
+                            "value": null,
+                            "description": "The URL of the endpoint."
+                        },
+                        "http_headers": {
+                            "is_required": false,
+                            "type": "map[string]string",
+                            "value": null,
+                            "description": "HTTP headers to be sent with requests to this endpoint."
+                        },
+                        "http2_disabled": {
+                            "is_required": false,
+                            "type": "bool",
+                            "value": null,
+                            "description": "Some endpoints may not support HTTP2, set this to true to disable HTTP2."
+                        }
+                    }
+                }
+            },
             "WorkerInfoResponse": {
                 "properties": {
                     "data": {
@@ -834,166 +864,6 @@
                     }
                 },
                 "type": "object"
-            },
-            "WorkerDetailResponse": {
-                "properties": {
-                    "data": {
-                        "description": "The worker info details.",
-                        "items": {
-                            "$ref": "#/components/schemas/WorkerInfoDetail"
-                        },
-                        "type": "array"
-                    }
-                },
-                "type": "object",
-                "example": {
-                    "data": [
-                        {
-                            "type": "decentralized",
-                            "name": "aave",
-                            "platform": "AAVE",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/aave.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "aavegotchi",
-                            "platform": "Aavegotchi",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/aavegotchi.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "core",
-                            "platform": "Unknown",
-                            "icon_url": ""
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "crossbell",
-                            "platform": "Crossbell",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/crossbell.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "curve",
-                            "platform": "Curve",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/curve.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "ens",
-                            "platform": "ENS",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/ens.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "highlight",
-                            "platform": "Highlight",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/highlight.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "iqwiki",
-                            "platform": "IQWiki",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/iqwiki.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "kiwistand",
-                            "platform": "KiwiStand",
-                            "icon_url": "https://storage.googleapis.com/rss3-icon/kiwistand.png"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "lens",
-                            "platform": "Lens",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/lens.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "lido",
-                            "platform": "Lido",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/lido.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "looksrare",
-                            "platform": "LooksRare",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/looks-rare.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "matters",
-                            "platform": "Matters",
-                            "icon_url": "https://storage.googleapis.com/rss3-icon/matters.jpg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "mirror",
-                            "platform": "Mirror",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/mirror.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "momoka",
-                            "platform": "Lens",
-                            "icon_url": "https://storage.googleapis.com/rss3-icon/momoka.png"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "1inch",
-                            "platform": "1inch",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/1inch.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "opensea",
-                            "platform": "OpenSea",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/opensea.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "optimism",
-                            "platform": "Optimism",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/optimism.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "paragraph",
-                            "platform": "Paragraph",
-                            "icon_url": "https://storage.googleapis.com/rss3-icon/paragraph.png"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "rss3",
-                            "platform": "RSS3",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/rss3.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "stargate",
-                            "platform": "Stargate",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/stargate.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "uniswap",
-                            "platform": "Uniswap",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/uniswap.svg"
-                        },
-                        {
-                            "type": "decentralized",
-                            "name": "vsl",
-                            "platform": "VSL",
-                            "icon_url": "https://unpkg.com/@rss3/web3-icons-svg@latest/icons/rss3-vsl.svg"
-                        },
-                        {
-                            "type": "rss",
-                            "name": "rsshub",
-                            "platform": "RSSHub",
-                            "icon_url": "https://storage.googleapis.com/rss3-icon/rsshub.png"
-                        }
-                    ]
-                }
             },
             "NodeInfo": {
                 "properties": {
@@ -1255,6 +1125,21 @@
                     "federated": null
                 }
             },
+            "EndpointConfig": {
+                "description": "The endpoint options and config details of the worker.",
+                "properties": {
+                    "url": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "http_headers": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "http2_disabled": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    }
+                },
+                "type": "object"
+            },
             "WorkerStatus": {
                 "description": "The status of the worker.",
                 "properties": {
@@ -1300,27 +1185,23 @@
                 },
                 "type": "object"
             },
-            "WorkerInfoDetail": {
-                "description": "The info details of the worker.",
+            "ConfigDetail": {
+                "type": "object",
+                "required": ["is_required", "type", "value", "description"],
                 "properties": {
+                    "is_required": {
+                        "type": "boolean"
+                    },
                     "type": {
-                        "description": "The type of worker.",
                         "type": "string"
                     },
-                    "name": {
-                        "description": "The worker name.",
+                    "value": {
                         "type": "string"
                     },
-                    "platform": {
-                        "description": "The platform of worker.",
-                        "type": "string"
-                    },
-                    "icon_url": {
-                        "description": "The icon url of worker.",
+                    "description": {
                         "type": "string"
                     }
-                },
-                "type": "object"
+                }
             },
             "Calldata": {
                 "description": "Represents the call data associated with an activity.",
@@ -1403,7 +1284,7 @@
                 "description": "The network on which activities occur.",
                 "type": "string",
                 "example": "ethereum",
-                "enum": ["arbitrum","arweave","avax","base","binance-smart-chain","crossbell","ethereum","farcaster","gnosis","linea","optimism","polygon","vsl","x-layer"]
+                "enum": ["arbitrum","arweave","avax","base","binance-smart-chain","crossbell","ethereum","farcaster","gnosis","linea","mastodon","optimism","polygon","vsl","x-layer"]
             },
             "Platform": {
                 "description": "The platform on which activities occur.",
@@ -1519,22 +1400,22 @@
                     }
                 }
             },
+            "EndpointConfigResponse": {
+                "description": "The request was successful.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/EndpointConfigResponse"
+                        }
+                    }
+                }
+            },
             "WorkerInfoResponse": {
                 "description": "The request was successful.",
                 "content": {
                     "application/json": {
                         "schema": {
                             "$ref": "#/components/schemas/WorkerInfoResponse"
-                        }
-                    }
-                }
-            },
-            "WorkerDetailResponse": {
-                "description": "The request was successful.",
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "$ref": "#/components/schemas/WorkerDetailResponse"
                         }
                     }
                 }

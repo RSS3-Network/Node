@@ -34,14 +34,13 @@ const (
 
 type File struct {
 	Environment   string              `mapstructure:"environment" validate:"required" default:"development"`
-	Type          string              `mapstructure:"type" validate:"required,oneof=alpha beta normal" default:"normal"`
 	Endpoints     map[string]Endpoint `mapstructure:"endpoints"`
 	Discovery     *Discovery          `mapstructure:"discovery" validate:"required"`
 	Component     *Component          `mapstructure:"component" validate:"required"`
 	Database      *Database           `mapstructure:"database" validate:"required"`
-	Stream        *Stream             `mapstructure:"stream" validate:"required"`
+	Stream        *Stream             `mapstructure:"stream"`
 	Redis         *Redis              `mapstructure:"redis" validate:"required"`
-	Observability *Telemetry          `mapstructure:"observability" validate:"required"`
+	Observability *Telemetry          `mapstructure:"observability"`
 }
 
 // LoadModulesEndpoint loads the endpoint url and headers for each module.
@@ -61,7 +60,10 @@ func (f *File) LoadModulesEndpoint() error {
 		}
 	}
 
-	assignEndpoint([]*Module{f.Component.RSS})
+	if f.Component.RSS != nil {
+		assignEndpoint([]*Module{f.Component.RSS})
+	}
+
 	assignEndpoint(f.Component.Decentralized)
 	assignEndpoint(f.Component.Federated)
 
@@ -278,9 +280,12 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 
 func EvmAddressHookFunc() mapstructure.DecodeHookFuncType {
 	return func(
-		f reflect.Type, // data type
-		t reflect.Type, // target data type
-		data interface{}, // raw data
+		// data type
+		f reflect.Type,
+		// target data type
+		t reflect.Type,
+		// raw data
+		data interface{},
 	) (interface{}, error) {
 		if f.Kind() != reflect.String {
 			return data, nil
