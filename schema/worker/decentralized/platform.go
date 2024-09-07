@@ -11,6 +11,7 @@ const (
 	PlatformAAVE                       // AAVE
 	PlatformAavegotchi                 // Aavegotchi
 	PlatformArbitrum                   // Arbitrum
+	PlatformBase                       // Base
 	PlatformBendDAO                    // BendDAO
 	PlatformCow                        // Cow
 	PlatformCrossbell                  // Crossbell
@@ -55,9 +56,9 @@ func (p *Platform) UnmarshalParam(param string) error {
 var ToPlatformMap = map[Worker]Platform{
 	Aave:       PlatformAAVE,
 	Aavegotchi: PlatformAavegotchi,
-	Cow:        PlatformCow,
 	Arbitrum:   PlatformArbitrum,
 	BendDAO:    PlatformBendDAO,
+	Cow:        PlatformCow,
 	Crossbell:  PlatformCrossbell,
 	Curve:      PlatformCurve,
 	ENS:        PlatformENS,

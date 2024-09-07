@@ -11,6 +11,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/aave"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/aavegotchi"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/arbitrum"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/base"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/benddao"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/cow"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/crossbell"
@@ -51,8 +52,6 @@ func New(config *config.Module, databaseClient database.Client, redisClient ruei
 //nolint:gocyclo
 func newNonCoreWorker(config *config.Module, databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {
 	switch config.Worker {
-	case decentralized.Core:
-		return core.NewWorker(config, redisClient)
 	case decentralized.Mirror:
 		return mirror.NewWorker(config, databaseClient)
 	case decentralized.RSS3:
