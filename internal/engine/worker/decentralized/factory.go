@@ -28,6 +28,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/opensea"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/optimism"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/paragraph"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/paraswap"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/rss3"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/savm"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/stargate"
@@ -89,6 +90,8 @@ func New(config *config.Module, databaseClient database.Client, redisClient ruei
 		return stargate.NewWorker(config)
 	case decentralized.Curve:
 		return curve.NewWorker(config, redisClient)
+	case decentralized.Paraswap:
+		return paraswap.NewWorker(config)
 	case decentralized.Cow:
 		return cow.NewWorker(config)
 	case decentralized.BendDAO:
