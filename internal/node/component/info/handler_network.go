@@ -46,8 +46,8 @@ func (c *Component) GetNetworksHandler(ctx echo.Context) error {
 
 	for _, item := range networkList {
 		networkStr := item.String()
-		// skip unknown and bitcoin network
-		if networkStr == network.Unknown.String() || networkStr == network.Bitcoin.String() || networkStr == network.SatoshiVM.String() {
+		// skip unknown and some networks
+		if networkStr == network.Unknown.String() || networkStr == network.Bitcoin.String() || networkStr == network.SatoshiVM.String() || networkStr == network.Mastodon.String() {
 			continue
 		}
 

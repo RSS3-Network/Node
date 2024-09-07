@@ -28,12 +28,13 @@ const (
 var _ engine.DataSource = (*dataSource)(nil)
 
 type dataSource struct {
-	config          *config.Module
-	option          *Option
-	farcasterClient farcaster.Client
-	databaseClient  database.Client
-	state           State
-	pendingState    State
+	config                  *config.Module
+	option                  *Option
+	farcasterClient         farcaster.Client
+	databaseClient          database.Client
+	state                   State
+	pendingState            State
+	startFarcasterTimestamp uint32
 }
 
 func (s *dataSource) Network() network.Network {
@@ -114,9 +115,7 @@ func (s *dataSource) pollCasts(ctx context.Context, tasksChan chan<- *engine.Tas
 
 	// Poll casts by fid until backfill is complete.
 	for !s.state.CastsBackfill {
-		err := s.pollCastsByFid(ctx, lo.ToPtr(int64(s.pendingState.CastsFid)), "", tasksChan)
-
-		if err != nil {
+		if err := s.pollCastsByFid(ctx, lo.ToPtr(int64(s.pendingState.CastsFid)), "", tasksChan); err != nil {
 			return err
 		}
 
@@ -144,13 +143,18 @@ func (s *dataSource) pollCastsByFid(ctx context.Context, fid *int64, pageToken s
 			return err
 		}
 
+		messages := lo.Filter(castsByFidResponse.Messages, func(message farcaster.Message, _ int) bool {
+			return message.Data.Timestamp >= s.startFarcasterTimestamp
+		})
+
 		// Build tasks from the fetched casts and send them to the tasks channel.
-		tasks := s.buildFarcasterMessageTasks(ctx, castsByFidResponse.Messages)
+		tasks := s.buildFarcasterMessageTasks(ctx, messages)
 
 		tasksChan <- tasks
 
-		// If the fetched casts do not have a next page token, return nil
-		if castsByFidResponse.NextPageToken == "" {
+		// If the fetched casts do not have a next page token
+		// or the number of messages is less than the number of fetched messages
+		if castsByFidResponse.NextPageToken == "" || len(messages) < len(castsByFidResponse.Messages) {
 			return nil
 		}
 		// Update the page token for the next iteration
@@ -178,9 +182,7 @@ func (s *dataSource) pollReactions(ctx context.Context, tasksChan chan<- *engine
 
 	// Poll reactions by fid until backfill is complete.
 	for !s.state.ReactionsBackfill {
-		err := s.pollReactionsByFid(ctx, lo.ToPtr(int64(s.pendingState.ReactionsFid)), "", tasksChan)
-
-		if err != nil {
+		if err := s.pollReactionsByFid(ctx, lo.ToPtr(int64(s.pendingState.ReactionsFid)), "", tasksChan); err != nil {
 			return err
 		}
 
@@ -198,7 +200,7 @@ func (s *dataSource) pollReactions(ctx context.Context, tasksChan chan<- *engine
 	return nil
 }
 
-// pollCastsByFid polls reactions by fid from the Farcaster Hub and send tasks to tasksChan.
+// pollReactionsByFid polls reactions by fid from the Farcaster Hub and send tasks to tasksChan.
 func (s *dataSource) pollReactionsByFid(ctx context.Context, fid *int64, pageToken string, tasksChan chan<- *engine.Tasks) error {
 	for {
 		// Fetch reactions by fid.
@@ -207,12 +209,18 @@ func (s *dataSource) pollReactionsByFid(ctx context.Context, fid *int64, pageTok
 		if err != nil {
 			return err
 		}
+
+		messages := lo.Filter(reactionsByFidResponse.Messages, func(message farcaster.Message, _ int) bool {
+			return message.Data.Timestamp >= s.startFarcasterTimestamp
+		})
+
 		// Build tasks from the fetched reactions and send them to the tasks channel.
-		tasks := s.buildFarcasterMessageTasks(ctx, reactionsByFidResponse.Messages)
+		tasks := s.buildFarcasterMessageTasks(ctx, messages)
 
 		tasksChan <- tasks
-		// If the fetched reactions do not have a next page token, return nil
-		if reactionsByFidResponse.NextPageToken == "" {
+		// If the fetched reactions do not have a next page token
+		// or the number of messages is less than the number of fetched messages
+		if reactionsByFidResponse.NextPageToken == "" || len(messages) < len(reactionsByFidResponse.Messages) {
 			return nil
 		}
 		// Update the page token for the next iteration
@@ -625,11 +633,15 @@ func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseCli
 		pendingState:   state, // Default pending state is equal to current state.
 	}
 
-	if instance.option, err = NewOption(config.Parameters); err != nil {
+	if instance.option, err = NewOption(config.Network, config.Parameters); err != nil {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
 	zap.L().Info("apply option", zap.Any("option", instance.option))
+
+	if instance.option.TimestampStart != nil {
+		instance.startFarcasterTimestamp = farcaster.CovertTimestampToFarcasterTime(instance.option.TimestampStart.Int64())
+	}
 
 	return &instance, nil
 }

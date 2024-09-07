@@ -348,6 +348,26 @@
                     }
                 }
             }
+        },
+        "/networks/endpoint_config": {
+            "get": {
+                "summary": "Get Endpoint config options",
+                "description": "Retrieve endpoint config options and descriptions.",
+                "tags": [
+                    "Info"
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/EndpointConfigResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -807,6 +827,36 @@
                 },
                 "type": "object"
             },
+            "EndpointConfigResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/EndpointConfig"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "data": {
+                        "url": {
+                            "is_required": true,
+                            "type": "url",
+                            "value": null,
+                            "description": "The URL of the endpoint."
+                        },
+                        "http_headers": {
+                            "is_required": false,
+                            "type": "map[string]string",
+                            "value": null,
+                            "description": "HTTP headers to be sent with requests to this endpoint."
+                        },
+                        "http2_disabled": {
+                            "is_required": false,
+                            "type": "bool",
+                            "value": null,
+                            "description": "Some endpoints may not support HTTP2, set this to true to disable HTTP2."
+                        }
+                    }
+                }
+            },
             "WorkerInfoResponse": {
                 "properties": {
                     "data": {
@@ -1075,6 +1125,21 @@
                     "federated": null
                 }
             },
+            "EndpointConfig": {
+                "description": "The endpoint options and config details of the worker.",
+                "properties": {
+                    "url": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "http_headers": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "http2_disabled": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    }
+                },
+                "type": "object"
+            },
             "WorkerStatus": {
                 "description": "The status of the worker.",
                 "properties": {
@@ -1119,6 +1184,24 @@
                     }
                 },
                 "type": "object"
+            },
+            "ConfigDetail": {
+                "type": "object",
+                "required": ["is_required", "type", "value", "description"],
+                "properties": {
+                    "is_required": {
+                        "type": "boolean"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    }
+                }
             },
             "Calldata": {
                 "description": "Represents the call data associated with an activity.",
@@ -1201,7 +1284,7 @@
                 "description": "The network on which activities occur.",
                 "type": "string",
                 "example": "ethereum",
-                "enum": ["arbitrum","arweave","avax","base","binance-smart-chain","crossbell","ethereum","farcaster","gnosis","linea","optimism","polygon","vsl"]
+                "enum": ["arbitrum","arweave","avax","base","binance-smart-chain","crossbell","ethereum","farcaster","gnosis","linea","mastodon","optimism","polygon","vsl","x-layer"]
             },
             "Platform": {
                 "description": "The platform on which activities occur.",
@@ -1313,6 +1396,16 @@
                     "application/json": {
                         "schema": {
                             "$ref": "#/components/schemas/NodeInfoResponse"
+                        }
+                    }
+                }
+            },
+            "EndpointConfigResponse": {
+                "description": "The request was successful.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/EndpointConfigResponse"
                         }
                     }
                 }

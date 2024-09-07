@@ -1,9 +1,6 @@
 # `environment` is the environment of the Node, possible values are `development` and `production`.
 # DO NOT change this value except for local debugging purposes.
 environment: production
-# `type` is the type of the Node, possible values are `alpha`, `beta`, and `normal`.
-# DO NOT change this value.
-type: normal
 
 # `discovery` is used for Node discovery and verification.
 discovery:
@@ -34,34 +31,6 @@ redis:
   endpoint: localhost:6379
   username:
   password:
-  disable_cache: true
-  tls:
-    enabled: false
-    ca_file: /path/to/ca.crt
-    cert_file: /path/to/client.crt
-    key_file: /path/to/client.key
-    insecure_skip_verify: false
-
-# `stream` enables message streaming for the Node.
-# This feature is currently under development and should be disabled.
-stream:
-  enable: false
-  driver: kafka
-  topic: rss3.node.activities
-  uri: localhost:9092
-
-# `observability` tools used to monitor and inspect the Node.
-# This feature is for advanced users only.
-# DO NOT modify the values unless you know what you are doing.
-observability:
-  opentelemetry:
-    metrics:
-      enable: false
-      endpoint: 0.0.0.0:9090
-    traces:
-      enable: false
-      endpoint: localhost:4318
-      insecure: true
 
 # `endpoints` are data access points for Workers.
 # Endpoints defined here can be referenced in the configuration below.
@@ -71,11 +40,6 @@ observability:
 # - Farcaster requires a Hubble.
 endpoints:
   vsl:
-    # `http2_disabled` is used to disable HTTP/2 when the endpoint does not support it.
-    http2_disabled: true
-    # You can define any HTTP headers that may be required by the endpoint.
-    # For example, you can use the `x-api-key`, or `any-header`.
-    x-api-key: apikey
     url: https://rpc.rss3.io
   arweave:
     url: https://arweave.net
