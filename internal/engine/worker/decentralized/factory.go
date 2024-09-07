@@ -25,6 +25,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/matters"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/mirror"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/momoka"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/nouns"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/opensea"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/optimism"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/paragraph"
@@ -66,6 +67,8 @@ func New(config *config.Module, databaseClient database.Client, redisClient ruei
 		return matters.NewWorker(config)
 	case decentralized.Momoka:
 		return momoka.NewWorker(config)
+	case decentralized.Nouns:
+		return nouns.NewWorker(config)
 	case decentralized.Highlight:
 		return highlight.NewWorker(config)
 	case decentralized.Aave:
