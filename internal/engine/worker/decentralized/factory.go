@@ -41,9 +41,15 @@ import (
 )
 
 func New(config *config.Module, databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {
-	switch config.Worker {
-	case decentralized.Core:
+	if config.Worker == decentralized.Core {
 		return core.NewWorker(config, redisClient)
+	}
+
+	return newNonCoreWorker(config, databaseClient, redisClient)
+}
+
+func newNonCoreWorker(config *config.Module, databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {
+	switch config.Worker {
 	case decentralized.Mirror:
 		return mirror.NewWorker(config, databaseClient)
 	case decentralized.RSS3:
