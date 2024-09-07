@@ -228,7 +228,9 @@ func setIPFSGateways(config *workerConfig) {
 var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.Ethereum: {
 		decentralized.Aave,
+		decentralized.Arbitrum,
 		decentralized.Core,
+		decentralized.Cow,
 		decentralized.Curve,
 		decentralized.ENS,
 		decentralized.Highlight,
@@ -327,8 +329,10 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	network.EthereumSource: {
 		decentralized.Aave:       defaultWorkerConfig(decentralized.Aave, network.EthereumSource, nil),
 		decentralized.Aavegotchi: defaultWorkerConfig(decentralized.Aavegotchi, network.EthereumSource, nil),
+		decentralized.Arbitrum:   defaultWorkerConfig(decentralized.Arbitrum, network.EthereumSource, nil),
 		decentralized.BendDAO:    defaultWorkerConfig(decentralized.BendDAO, network.EthereumSource, nil),
 		decentralized.Core:       defaultWorkerConfig(decentralized.Core, network.EthereumSource, nil),
+		decentralized.Cow:        defaultWorkerConfig(decentralized.Cow, network.EthereumSource, nil),
 		decentralized.Crossbell:  customWorkerConfigWithIPFS(decentralized.Crossbell, network.EthereumSource, ""),
 		decentralized.Curve:      defaultWorkerConfig(decentralized.Curve, network.EthereumSource, nil),
 		decentralized.ENS:        defaultWorkerConfig(decentralized.ENS, network.EthereumSource, nil),

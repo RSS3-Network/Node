@@ -11,8 +11,10 @@ type Worker int
 const (
 	Aave       Worker = iota + 1 // aave
 	Aavegotchi                   // aavegotchi
+	Arbitrum                     // arbitrum
 	BendDAO                      // benddao
 	Core                         // core
+	Cow                          // cow
 	Crossbell                    // crossbell
 	Curve                        // curve
 	ENS                          // ens
@@ -66,7 +68,9 @@ func GetValueByWorkerStr(workerStr string) Worker {
 var ToTagsMap = map[Worker][]tag.Tag{
 	Aave:       {tag.Exchange},
 	Aavegotchi: {tag.Metaverse},
+	Arbitrum:   {tag.Transaction},
 	Core:       {tag.Collectible, tag.Transaction},
+	Cow:        {tag.Exchange},
 	Crossbell:  {tag.Social},
 	Curve:      {tag.Exchange, tag.Transaction},
 	ENS:        {tag.Social, tag.Collectible},
