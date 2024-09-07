@@ -24,6 +24,7 @@ const (
 	KiwiStand                    // kiwistand
 	Lens                         // lens
 	Lido                         // lido
+	Linea                        // linea
 	Looksrare                    // looksrare
 	Matters                      // matters
 	Mirror                       // mirror

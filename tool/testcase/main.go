@@ -127,7 +127,7 @@ var command = &cobra.Command{
 func init() {
 	command.PersistentFlags().String("source", string(networkx.EthereumSource), "")
 	command.PersistentFlags().String("endpoint", endpoint.MustGet(networkx.Ethereum), "")
-	command.PersistentFlags().String("activity", "0xf74008a8fde35012c5bc9c897c1d413fe0befbc9e6fc9b6d8bfab38b7dd3c6bd", "")
+	command.PersistentFlags().String("activity", "0x1f0c0bd550c111d76d3dfca67616f6f7968d10c673de1ad391c5141fdb336b97", "")
 }
 
 func main() {
