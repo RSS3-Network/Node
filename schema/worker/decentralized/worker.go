@@ -31,6 +31,7 @@ const (
 	OpenSea                      // opensea
 	Optimism                     // optimism
 	Paragraph                    // paragraph
+	Paraswap                     // paraswap
 	RSS3                         // rss3
 	SAVM                         // savm
 	Stargate                     // stargate
@@ -86,6 +87,7 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	OpenSea:    {tag.Collectible},
 	Optimism:   {tag.Transaction},
 	Paragraph:  {tag.Social},
+	Paraswap:   {tag.Exchange},
 	RSS3:       {tag.Exchange, tag.Collectible},
 	SAVM:       {tag.Transaction},
 	Stargate:   {tag.Transaction},
