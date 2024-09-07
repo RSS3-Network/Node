@@ -14,6 +14,7 @@ const (
 	Arbitrum                     // arbitrum
 	BendDAO                      // benddao
 	Core                         // core
+	Cow                          // cow
 	Crossbell                    // crossbell
 	Curve                        // curve
 	ENS                          // ens
@@ -68,6 +69,7 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	Aavegotchi: {tag.Metaverse},
 	Arbitrum:   {tag.Transaction},
 	Core:       {tag.Collectible, tag.Transaction},
+	Cow:        {tag.Exchange},
 	Crossbell:  {tag.Social},
 	Curve:      {tag.Exchange, tag.Transaction},
 	ENS:        {tag.Social, tag.Collectible},
