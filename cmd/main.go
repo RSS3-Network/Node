@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/grafana/pyroscope-go"
 	"github.com/redis/rueidis"
@@ -18,6 +19,7 @@ import (
 	"github.com/rss3-network/node/internal/database/dialer"
 	"github.com/rss3-network/node/internal/node"
 	"github.com/rss3-network/node/internal/node/broadcaster"
+	"github.com/rss3-network/node/internal/node/component/info"
 	"github.com/rss3-network/node/internal/node/indexer"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
@@ -57,14 +59,16 @@ var command = cobra.Command{
 			return fmt.Errorf("setup config file: %w", err)
 		}
 
-		if err := setOpenTelemetry(config); err != nil {
-			return fmt.Errorf("set open telemetry: %w", err)
+		if config.Observability != nil {
+			if err := setOpenTelemetry(config); err != nil {
+				return fmt.Errorf("set open telemetry: %w", err)
+			}
 		}
 
 		// Init stream client.
 		var streamClient stream.Client
 
-		if *config.Stream.Enable {
+		if config.Stream != nil && *config.Stream.Enable {
 			streamClient, err = provider.New(cmd.Context(), config.Stream)
 			if err != nil {
 				return fmt.Errorf("dial stream client: %w", err)
@@ -126,8 +130,7 @@ var command = cobra.Command{
 			}
 
 			// when start or restart the core, worker or monitor module, it will pull network parameters from VSL and record current epoch
-			err = parameter.PullNetworkParamsFromVSL(networkParamsCaller, uint64(epoch))
-			if err != nil {
+			if _, err = parameter.PullNetworkParamsFromVSL(networkParamsCaller, uint64(epoch)); err != nil {
 				zap.L().Error("pull network parameters from VSL", zap.Error(err))
 			}
 
@@ -145,6 +148,21 @@ var command = cobra.Command{
 					return fmt.Errorf("update current block start: %w", err)
 				}
 			}
+
+			//	set first start time
+			firstStartTime, err := info.GetFirstStartTime(cmd.Context(), redisClient)
+			if err != nil {
+				return fmt.Errorf("get first start time: %w", err)
+			}
+
+			if firstStartTime == 0 {
+				//	update first start time to current timestamp in seconds
+				err = info.UpdateFirstStartTime(cmd.Context(), redisClient, time.Now().Unix())
+				if err != nil {
+					return fmt.Errorf("update first start time: %w", err)
+				}
+			}
+
 		}
 
 		switch module {

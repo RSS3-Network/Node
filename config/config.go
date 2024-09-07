@@ -34,14 +34,13 @@ const (
 
 type File struct {
 	Environment   string              `mapstructure:"environment" validate:"required" default:"development"`
-	Type          string              `mapstructure:"type" validate:"required,oneof=alpha beta" default:"beta"`
 	Endpoints     map[string]Endpoint `mapstructure:"endpoints"`
 	Discovery     *Discovery          `mapstructure:"discovery" validate:"required"`
 	Component     *Component          `mapstructure:"component" validate:"required"`
 	Database      *Database           `mapstructure:"database" validate:"required"`
-	Stream        *Stream             `mapstructure:"stream" validate:"required"`
+	Stream        *Stream             `mapstructure:"stream"`
 	Redis         *Redis              `mapstructure:"redis" validate:"required"`
-	Observability *Telemetry          `mapstructure:"observability" validate:"required"`
+	Observability *Telemetry          `mapstructure:"observability"`
 }
 
 // LoadModulesEndpoint loads the endpoint url and headers for each module.
@@ -61,7 +60,10 @@ func (f *File) LoadModulesEndpoint() error {
 		}
 	}
 
-	assignEndpoint(f.Component.RSS)
+	if f.Component.RSS != nil {
+		assignEndpoint([]*Module{f.Component.RSS})
+	}
+
 	assignEndpoint(f.Component.Decentralized)
 	assignEndpoint(f.Component.Federated)
 
@@ -81,10 +83,11 @@ type Operator struct {
 type Server struct {
 	Endpoint              string `mapstructure:"endpoint"`
 	GlobalIndexerEndpoint string `mapstructure:"global_indexer_endpoint"`
+	AccessToken           string `mapstructure:"access_token"`
 }
 
 type Component struct {
-	RSS           []*Module `mapstructure:"rss" validate:"dive"`
+	RSS           *Module   `mapstructure:"rss"`
 	Federated     []*Module `mapstructure:"federated" validate:"dive"`
 	Decentralized []*Module `mapstructure:"decentralized" validate:"dive"`
 }
@@ -122,9 +125,9 @@ func (e Endpoint) BuildEthereumOptions() []ethereum.Option {
 }
 
 type Database struct {
-	Driver    database.Driver `mapstructure:"driver" validate:"required" default:"cockroachdb"`
+	Driver    database.Driver `mapstructure:"driver" validate:"required" default:"postgres"`
 	Partition *bool           `mapstructure:"partition" validate:"required" default:"true"`
-	URI       string          `mapstructure:"uri" validate:"required" default:"postgres://root@localhost:26257/defaultdb"`
+	URI       string          `mapstructure:"uri" validate:"required" default:"postgres://postgres@localhost:5432/postgres"`
 }
 
 type Stream struct {
@@ -227,27 +230,18 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	}
 
 	v.SetEnvPrefix(EnvPrefix)
-	v.SetEnvKeyReplacer(strings.NewReplacer(`.`, `_`))
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	v.AutomaticEnv()
+
+	// Explicitly bind environment variables
+	err := v.BindEnv("discovery.server.access_token")
+	if err != nil {
+		return nil, err
+	}
 
 	// Read config file
 	if err := v.ReadInConfig(); err != nil {
 		return nil, err
-	}
-
-	for _, key := range getAllKeys(&File{}) {
-		envKey := strings.ReplaceAll(
-			strings.ToUpper(fmt.Sprintf("%s_%s", EnvPrefix, key)),
-			".",
-			"_",
-		)
-		if err := v.BindEnv(key, envKey); err != nil {
-			continue
-		}
-
-		if val, ok := os.LookupEnv(envKey); ok {
-			v.Set(key, val)
-		}
 	}
 
 	// Unmarshal config file.
@@ -271,6 +265,11 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 		return nil, fmt.Errorf("set default values: %w", err)
 	}
 
+	// Explicitly set the access token from the environment if it exists
+	if envAccessToken := v.GetString("discovery.server.access_token"); envAccessToken != "" {
+		configFile.Discovery.Server.AccessToken = envAccessToken
+	}
+
 	// validate config values.
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := validate.Struct(&configFile); err != nil {
@@ -280,49 +279,14 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	return &configFile, nil
 }
 
-func getAllKeys(iface interface{}, parts ...string) []string {
-	var keys []string
-
-	ifv := reflect.ValueOf(iface)
-	if ifv.Kind() == reflect.Ptr {
-		ifv = ifv.Elem()
-	}
-
-	for i := 0; i < ifv.NumField(); i++ {
-		v := ifv.Field(i)
-		t := ifv.Type().Field(i)
-		tv, ok := t.Tag.Lookup("mapstructure")
-
-		if !ok {
-			continue
-		}
-
-		switch v.Kind() {
-		case reflect.Struct:
-			keys = append(keys, getAllKeys(v.Interface(), append(parts, tv)...)...)
-		case reflect.Ptr:
-			if v.IsNil() && v.CanSet() {
-				v.Set(reflect.New(v.Type().Elem()))
-			}
-
-			if v.Elem().Kind() == reflect.Struct {
-				keys = append(keys, getAllKeys(v.Interface(), append(parts, tv)...)...)
-			}
-
-			keys = append(keys, strings.Join(append(parts, tv), "."))
-		default:
-			keys = append(keys, strings.Join(append(parts, tv), "."))
-		}
-	}
-
-	return keys
-}
-
 func EvmAddressHookFunc() mapstructure.DecodeHookFuncType {
 	return func(
-		f reflect.Type, // data type
-		t reflect.Type, // target data type
-		data interface{}, // raw data
+		// data type
+		f reflect.Type,
+		// target data type
+		t reflect.Type,
+		// raw data
+		data interface{},
 	) (interface{}, error) {
 		if f.Kind() != reflect.String {
 			return data, nil

@@ -70,11 +70,11 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 		middlewarex.DecodePathParamsMiddleware,
 	)
 
-	infoComponent := info.NewComponent(ctx, apiServer, config, databaseClient, redisClient)
+	infoComponent := info.NewComponent(ctx, apiServer, config, databaseClient, redisClient, networkParamsCaller)
 	node.components = append(node.components, &infoComponent)
 
-	if len(config.Component.RSS) > 0 {
-		rssComponent := rss.NewComponent(ctx, apiServer, config.Component.RSS)
+	if config.Component.RSS != nil {
+		rssComponent := rss.NewComponent(ctx, apiServer, config)
 		node.components = append(node.components, &rssComponent)
 	}
 

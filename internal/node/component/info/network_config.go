@@ -241,6 +241,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.RSS3,
 		decentralized.Stargate,
 		decentralized.Uniswap,
+		decentralized.VSL,
 	},
 	network.Arweave: {
 		decentralized.Mirror,
@@ -261,10 +262,12 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Stargate,
 	},
 	network.Crossbell: {
+		decentralized.Core,
 		decentralized.Crossbell,
 	},
 	network.Avalanche: {
 		decentralized.Aave,
+		decentralized.Core,
 		decentralized.Curve,
 		decentralized.Stargate,
 	},
@@ -280,6 +283,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Highlight,
 		decentralized.KiwiStand,
 		decentralized.Matters,
+		decentralized.Optimism,
 		decentralized.Stargate,
 	},
 	network.Arbitrum: {
@@ -291,8 +295,6 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	},
 	network.VSL: {
 		decentralized.Core,
-		decentralized.RSS3,
-		decentralized.VSL,
 	},
 	network.SatoshiVM: {
 		decentralized.Core,
@@ -315,6 +317,9 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.RSS: {
 		rss.RSSHub,
 	},
+	network.XLayer: {
+		decentralized.Core,
+	},
 }
 
 // WorkerToConfigMap is a map of worker to config.
@@ -333,6 +338,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.Lido:       defaultWorkerConfig(decentralized.Lido, network.EthereumSource, nil),
 		decentralized.Looksrare:  defaultWorkerConfig(decentralized.Looksrare, network.EthereumSource, nil),
 		decentralized.Matters:    customWorkerConfigWithIPFS(decentralized.Matters, network.EthereumSource, ""),
+		decentralized.Oneinch:    defaultWorkerConfig(decentralized.Oneinch, network.EthereumSource, nil),
 		decentralized.OpenSea:    defaultWorkerConfig(decentralized.OpenSea, network.EthereumSource, nil),
 		decentralized.Optimism:   defaultWorkerConfig(decentralized.Optimism, network.EthereumSource, nil),
 		decentralized.RSS3:       defaultWorkerConfig(decentralized.RSS3, network.EthereumSource, nil),

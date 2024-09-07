@@ -1,0 +1,56 @@
+# Default configuration file for the RSS3 Node.
+environment: production
+
+discovery:
+  operator:
+    evm_address: 0x...address
+    signature: 0x...signature
+  server:
+    endpoint: https://your.node.com
+    global_indexer_endpoint: https://gi.rss3.io
+    access_token: your_access_token
+
+database:
+  driver: postgres
+  partition: true
+  uri: postgres://postgres:password@localhost:5432/postgres
+
+redis:
+  endpoint: localhost:6379
+  username:
+  password:
+
+stream:
+  enable: false
+  driver: kafka
+  topic: rss3.node.activities
+  uri: localhost:9092
+
+observability:
+  opentelemetry:
+    metrics:
+      enable: false
+      endpoint: 0.0.0.0:9090
+    traces:
+      enable: false
+      endpoint: localhost:4318
+      insecure: true
+
+endpoints:
+  vsl:
+    url: https://rpc.rss3.io
+
+component:
+  rss:
+    id: rss-rsshub
+    network: rss
+    worker: rsshub
+    endpoint: https://your.rsshub.com/
+    parameters:
+      authentication:
+        access_key:
+  decentralized:
+    - id: vsl-core
+      network: vsl
+      endpoint: vsl
+      worker: core

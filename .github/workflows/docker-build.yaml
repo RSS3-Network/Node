@@ -3,10 +3,21 @@ name: build & push
 on:
   push:
     branches:
-      - develop
+      - main
+      - prod
+      - worker-dev
     tags:
       - "*"
   pull_request:
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+  packages: write
+
+env:
+  GAR_REGISTRY: us-central1-docker.pkg.dev/rss3-409706/docker
 
 jobs:
   build:
@@ -30,16 +41,27 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           platforms: ${{ matrix.platform }}
-      - name: Login to DockerHub
+
+      - name: Google auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: access_token
+          workload_identity_provider: projects/987979088361/locations/global/workloadIdentityPools/github/providers/github-action
+          service_account: gh-action@naturalselectionlabs.iam.gserviceaccount.com
+          create_credentials_file: true
+
+      - name: Login to GAR
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: us-central1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: rss3/node
+          images: ${{ env.GAR_REGISTRY }}/node
       - name: Build and push by digest
         id: build
         uses: docker/build-push-action@v6
@@ -47,13 +69,15 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=rss3/node,push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=${{ env.GAR_REGISTRY }}/node,push-by-digest=true,name-canonical=true,push=${{ github.actor != 'dependabot[bot]' }}
       - name: Export digest
+        if: github.actor != 'dependabot[bot]'
         run: |
           mkdir -p /tmp/digests
           digest="${{ steps.build.outputs.digest }}"
           touch "/tmp/digests/${digest#sha256:}"
       - name: Upload digest
+        if: github.actor != 'dependabot[bot]'
         uses: actions/upload-artifact@v4
         with:
           name: digests-${{ env.PLATFORM_PAIR }}
@@ -62,12 +86,9 @@ jobs:
           retention-days: 1
   merge:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
     needs:
       - build
+    if: github.actor != 'dependabot[bot]'
     steps:
       - name: Download digests
         uses: actions/download-artifact@v4
@@ -91,6 +112,22 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Google auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: access_token
+          workload_identity_provider: projects/987979088361/locations/global/workloadIdentityPools/github/providers/github-action
+          service_account: gh-action@naturalselectionlabs.iam.gserviceaccount.com
+          create_credentials_file: true
+
+      - name: Login to GAR
+        uses: docker/login-action@v3
+        with:
+          registry: us-central1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
@@ -98,6 +135,7 @@ jobs:
           images: |
             rss3/node
             ghcr.io/${{ github.repository }}
+            ${{ env.GAR_REGISTRY }}/node
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=${{ matrix.arch }},enable={{is_default_branch}}
@@ -115,10 +153,8 @@ jobs:
             ARGS="--dry-run"
           fi
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf 'rss3/node@sha256:%s ' *) $ARGS
+            $(printf '${{ env.GAR_REGISTRY }}/node@sha256:%s ' *) $ARGS
       - name: Inspect image
         if: github.event_name != 'pull_request'
         run: |
-          docker buildx imagetools inspect rss3/node:${{ steps.meta.outputs.version }}
-
-
+          docker buildx imagetools inspect ${{ env.GAR_REGISTRY }}/node:${{ steps.meta.outputs.version }}

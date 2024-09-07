@@ -939,13 +939,11 @@ func TestMonitor(t *testing.T) {
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
-						RSS: []*config.Module{
-							{
-								ID:         "rss-rsshub",
-								Network:    network.RSS,
-								Worker:     rss.RSSHub,
-								EndpointID: "https://rsshub3.henry.wang",
-							},
+						RSS: &config.Module{
+							ID:         "rss-rsshub",
+							Network:    network.RSS,
+							Worker:     rss.RSSHub,
+							EndpointID: "https://rsshub3.bruce.com",
 						},
 					},
 				},
@@ -962,13 +960,11 @@ func TestMonitor(t *testing.T) {
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
-						RSS: []*config.Module{
-							{
-								ID:         "rss-rsshub",
-								Network:    network.RSS,
-								Worker:     rss.RSSHub,
-								EndpointID: "https://rsshub.app",
-							},
+						RSS: &config.Module{
+							ID:         "rss-rsshub",
+							Network:    network.RSS,
+							Worker:     rss.RSSHub,
+							EndpointID: "https://rsshub.app",
 						},
 					},
 				},
@@ -1017,7 +1013,7 @@ func TestMonitor(t *testing.T) {
 				require.NoError(t, err)
 
 				// update worker progress
-				err = instance.UpdateWorkerProgress(ctx, testcase.arguments.config.Component.Decentralized[0].ID, monitor.ConstructWorkerProgress(testcase.arguments.lastState, testcase.arguments.targetState, testcase.arguments.latestState))
+				err = instance.UpdateWorkerProgress(ctx, testcase.arguments.config.Component.Decentralized[0].ID, monitor.ConstructWorkerProgress(testcase.arguments.lastState, testcase.arguments.targetState, testcase.arguments.latestState, 0))
 				require.NoError(t, err)
 
 				// run monitor
@@ -1036,7 +1032,7 @@ func TestMonitor(t *testing.T) {
 				require.NoError(t, err)
 
 				// update worker status to initial status
-				err = instance.UpdateWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS[0].ID, testcase.arguments.initialStatus.String())
+				err = instance.UpdateWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS.ID, testcase.arguments.initialStatus.String())
 				require.NoError(t, err)
 
 				// run monitor
@@ -1044,7 +1040,7 @@ func TestMonitor(t *testing.T) {
 				require.NoError(t, err)
 
 				// check final worker status
-				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS[0].ID)
+				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS.ID)
 				require.Equal(t, testcase.want, status)
 			})
 		}

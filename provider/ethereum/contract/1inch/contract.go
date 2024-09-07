@@ -24,6 +24,7 @@ var (
 	AddressAggregationRouterV3 = common.HexToAddress("0x11111112542D85B3EF69AE05771c2dCCff4fAa26")
 	AddressAggregationRouterV4 = common.HexToAddress("0x1111111254fb6c44bAC0beD2854e76F90643097d")
 	AddressAggregationRouterV5 = common.HexToAddress("0x1111111254EEB25477B68fb85Ed929f73A960582")
+	AddressAggregationRouterV6 = common.HexToAddress("0x111111125421cA6dc452d289314280a0f8842A65")
 	AddressEther               = common.HexToAddress("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")
 
 	MethodIDAggregationRouterV4ClipperSwap               = contract.MethodID("clipperSwap(address,address,uint256,uint256)")
@@ -62,6 +63,7 @@ var (
 	EventHashExchangeSwapped            = contract.EventHash("Swapped(address,address,address,uint256,uint256,uint256,uint256)")
 	EventHashAggregationRouterV2Swapped = contract.EventHash("Swapped(address,address,address,address,uint256,uint256,uint256,uint256,uint256,address)")
 	EventHashAggregationRouterV3Swapped = contract.EventHash("Swapped(address,address,address,address,uint256,uint256)")
+	EventHashOrderFilled                = contract.EventHash("OrderFilled(bytes32,uint256)")
 )
 
 type AggregationRouterV4ClipperSwapToInput struct {

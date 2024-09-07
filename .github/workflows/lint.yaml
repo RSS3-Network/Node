@@ -2,7 +2,8 @@ name: Lint
 on:
   push:
     branches:
-      - develop
+      - main
+      - prod
     paths-ignore:
       - "deploy/**"
   pull_request:

@@ -1,4 +1,4 @@
-FROM rss3/go-builder AS base
+FROM ghcr.io/rss3-network/go-image/go-builder:main-4782eed AS base
 
 WORKDIR /root/node
 
@@ -19,13 +19,13 @@ ENV CGO_ENABLED=0
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     make build
 
-FROM rss3/go-runtime AS runner
+FROM ghcr.io/rss3-network/go-image/go-runtime:main-4782eed AS runner
 
 WORKDIR /root/node
 
 COPY --from=builder /root/node/etherface /root/node/etherface
 
 COPY --from=builder /root/node/build/node .
-COPY deploy/config.example.yaml /etc/rss3/node/config.yaml
+COPY deploy/default/config.default.yaml /etc/rss3/node/config.yaml
 
 ENTRYPOINT ["./node"]

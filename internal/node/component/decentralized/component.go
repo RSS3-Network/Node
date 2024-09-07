@@ -3,14 +3,18 @@ package decentralized
 import (
 	"context"
 	"fmt"
+	"sync"
 
+	cb "github.com/emirpasic/gods/queues/circularbuffer"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
+	"github.com/rss3-network/node/internal/node/component/middleware"
 	"github.com/rss3-network/node/provider/ethereum/etherface"
+	"github.com/samber/lo"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -28,6 +32,13 @@ type Component struct {
 
 const Name = "decentralized"
 
+const MaxRecentRequests = 10
+
+var (
+	RecentRequests      *cb.Queue
+	recentRequestsMutex sync.RWMutex
+)
+
 func (c *Component) Name() string {
 	return Name
 }
@@ -35,6 +46,8 @@ func (c *Component) Name() string {
 var _ component.Component = (*Component)(nil)
 
 func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client) component.Component {
+	RecentRequests = cb.New(MaxRecentRequests)
+
 	c := &Component{
 		config:         config,
 		databaseClient: databaseClient,
@@ -42,6 +55,9 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 	}
 
 	group := apiServer.Group(fmt.Sprintf("/%s", Name))
+
+	// Add middleware for bearer token authentication
+	group.Use(middleware.BearerAuth(config.Discovery.Server.AccessToken))
 
 	group.GET("/tx/:id", c.GetActivity)
 	group.GET("/:account", c.GetAccountActivities)
@@ -96,4 +112,28 @@ func (c *Component) CollectTrace(ctx context.Context, path, value string) {
 
 	_, span := otel.Tracer("").Start(ctx, "Decentralized API Query", spanStartOptions...)
 	defer span.End()
+}
+
+func addRecentRequest(path string) {
+	recentRequestsMutex.Lock()
+	defer recentRequestsMutex.Unlock()
+
+	RecentRequests.Enqueue(path)
+}
+
+// GetRecentRequest returns the filtered recent requests.
+func GetRecentRequest() []string {
+	recentRequestsMutex.RLock()
+	defer recentRequestsMutex.RUnlock()
+
+	// Convert queue to slice
+	values := RecentRequests.Values()
+
+	// Filter out empty strings and convert to []string
+	filteredRequests := lo.FilterMap(values, func(item interface{}, _ int) (string, bool) {
+		str, ok := item.(string)
+		return str, ok && str != ""
+	})
+
+	return filteredRequests
 }
