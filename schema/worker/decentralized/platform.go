@@ -10,9 +10,9 @@ const (
 	Platform1Inch                      // 1inch
 	PlatformAAVE                       // AAVE
 	PlatformAavegotchi                 // Aavegotchi
-	PlatformCow                        // Cow
 	PlatformArbitrum                   // Arbitrum
 	PlatformBendDAO                    // BendDAO
+	PlatformCow                        // Cow
 	PlatformCrossbell                  // Crossbell
 	PlatformCurve                      // Curve
 	PlatformENS                        // ENS

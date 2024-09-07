@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _WorkerName = "aaveaavegotchiarbitrumbenddaocorecowcrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomokanouns1inchopenseaoptimismparagraphparaswaprss3savmstargateuniswapvsl"
+const _WorkerName = "aaveaavegotchiarbitrumbenddaocorecowcrossbellcurveenshighlightiqwikikiwistandlenslidolinealooksraremattersmirrormomokanouns1inchopenseaoptimismparagraphparaswaprss3savmstargateuniswapvsl"
 
-var _WorkerIndex = [...]uint8{0, 4, 14, 22, 29, 33, 36, 45, 50, 53, 62, 68, 77, 81, 85, 94, 101, 107, 113, 118, 123, 130, 138, 147, 155, 159, 163, 171, 178, 181}
+var _WorkerIndex = [...]uint8{0, 4, 14, 22, 29, 33, 36, 45, 50, 53, 62, 68, 77, 81, 85, 90, 99, 106, 112, 118, 123, 128, 135, 143, 152, 160, 164, 168, 176, 183, 186}
 
-const _WorkerLowerName = "aaveaavegotchiarbitrumbenddaocorecowcrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomokanouns1inchopenseaoptimismparagraphparaswaprss3savmstargateuniswapvsl"
+const _WorkerLowerName = "aaveaavegotchiarbitrumbenddaocorecowcrossbellcurveenshighlightiqwikikiwistandlenslidolinealooksraremattersmirrormomokanouns1inchopenseaoptimismparagraphparaswaprss3savmstargateuniswapvsl"
 
 func (i Worker) String() string {
 	i -= 1
@@ -45,24 +45,25 @@ func _WorkerNoOp() {
 	_ = x[KiwiStand-(12)]
 	_ = x[Lens-(13)]
 	_ = x[Lido-(14)]
-	_ = x[Looksrare-(15)]
-	_ = x[Matters-(16)]
-	_ = x[Mirror-(17)]
-	_ = x[Momoka-(18)]
-	_ = x[Nouns-(19)]
-	_ = x[Oneinch-(20)]
-	_ = x[OpenSea-(21)]
-	_ = x[Optimism-(22)]
-	_ = x[Paragraph-(23)]
-	_ = x[Paraswap-(24)]
-	_ = x[RSS3-(25)]
-	_ = x[SAVM-(26)]
-	_ = x[Stargate-(27)]
-	_ = x[Uniswap-(28)]
-	_ = x[VSL-(29)]
+	_ = x[Linea-(15)]
+	_ = x[Looksrare-(16)]
+	_ = x[Matters-(17)]
+	_ = x[Mirror-(18)]
+	_ = x[Momoka-(19)]
+	_ = x[Nouns-(20)]
+	_ = x[Oneinch-(21)]
+	_ = x[OpenSea-(22)]
+	_ = x[Optimism-(23)]
+	_ = x[Paragraph-(24)]
+	_ = x[Paraswap-(25)]
+	_ = x[RSS3-(26)]
+	_ = x[SAVM-(27)]
+	_ = x[Stargate-(28)]
+	_ = x[Uniswap-(29)]
+	_ = x[VSL-(30)]
 }
 
-var _WorkerValues = []Worker{Aave, Aavegotchi, Arbitrum, BendDAO, Core, Cow, Crossbell, Curve, ENS, Highlight, IQWiki, KiwiStand, Lens, Lido, Looksrare, Matters, Mirror, Momoka, Nouns, Oneinch, OpenSea, Optimism, Paragraph, Paraswap, RSS3, SAVM, Stargate, Uniswap, VSL}
+var _WorkerValues = []Worker{Aave, Aavegotchi, Arbitrum, BendDAO, Core, Cow, Crossbell, Curve, ENS, Highlight, IQWiki, KiwiStand, Lens, Lido, Linea, Looksrare, Matters, Mirror, Momoka, Nouns, Oneinch, OpenSea, Optimism, Paragraph, Paraswap, RSS3, SAVM, Stargate, Uniswap, VSL}
 
 var _WorkerNameToValueMap = map[string]Worker{
 	_WorkerName[0:4]:          Aave,
@@ -93,36 +94,38 @@ var _WorkerNameToValueMap = map[string]Worker{
 	_WorkerLowerName[77:81]:   Lens,
 	_WorkerName[81:85]:        Lido,
 	_WorkerLowerName[81:85]:   Lido,
-	_WorkerName[85:94]:        Looksrare,
-	_WorkerLowerName[85:94]:   Looksrare,
-	_WorkerName[94:101]:       Matters,
-	_WorkerLowerName[94:101]:  Matters,
-	_WorkerName[101:107]:      Mirror,
-	_WorkerLowerName[101:107]: Mirror,
-	_WorkerName[107:113]:      Momoka,
-	_WorkerLowerName[107:113]: Momoka,
-	_WorkerName[113:118]:      Nouns,
-	_WorkerLowerName[113:118]: Nouns,
-	_WorkerName[118:123]:      Oneinch,
-	_WorkerLowerName[118:123]: Oneinch,
-	_WorkerName[123:130]:      OpenSea,
-	_WorkerLowerName[123:130]: OpenSea,
-	_WorkerName[130:138]:      Optimism,
-	_WorkerLowerName[130:138]: Optimism,
-	_WorkerName[138:147]:      Paragraph,
-	_WorkerLowerName[138:147]: Paragraph,
-	_WorkerName[147:155]:      Paraswap,
-	_WorkerLowerName[147:155]: Paraswap,
-	_WorkerName[155:159]:      RSS3,
-	_WorkerLowerName[155:159]: RSS3,
-	_WorkerName[159:163]:      SAVM,
-	_WorkerLowerName[159:163]: SAVM,
-	_WorkerName[163:171]:      Stargate,
-	_WorkerLowerName[163:171]: Stargate,
-	_WorkerName[171:178]:      Uniswap,
-	_WorkerLowerName[171:178]: Uniswap,
-	_WorkerName[178:181]:      VSL,
-	_WorkerLowerName[178:181]: VSL,
+	_WorkerName[85:90]:        Linea,
+	_WorkerLowerName[85:90]:   Linea,
+	_WorkerName[90:99]:        Looksrare,
+	_WorkerLowerName[90:99]:   Looksrare,
+	_WorkerName[99:106]:       Matters,
+	_WorkerLowerName[99:106]:  Matters,
+	_WorkerName[106:112]:      Mirror,
+	_WorkerLowerName[106:112]: Mirror,
+	_WorkerName[112:118]:      Momoka,
+	_WorkerLowerName[112:118]: Momoka,
+	_WorkerName[118:123]:      Nouns,
+	_WorkerLowerName[118:123]: Nouns,
+	_WorkerName[123:128]:      Oneinch,
+	_WorkerLowerName[123:128]: Oneinch,
+	_WorkerName[128:135]:      OpenSea,
+	_WorkerLowerName[128:135]: OpenSea,
+	_WorkerName[135:143]:      Optimism,
+	_WorkerLowerName[135:143]: Optimism,
+	_WorkerName[143:152]:      Paragraph,
+	_WorkerLowerName[143:152]: Paragraph,
+	_WorkerName[152:160]:      Paraswap,
+	_WorkerLowerName[152:160]: Paraswap,
+	_WorkerName[160:164]:      RSS3,
+	_WorkerLowerName[160:164]: RSS3,
+	_WorkerName[164:168]:      SAVM,
+	_WorkerLowerName[164:168]: SAVM,
+	_WorkerName[168:176]:      Stargate,
+	_WorkerLowerName[168:176]: Stargate,
+	_WorkerName[176:183]:      Uniswap,
+	_WorkerLowerName[176:183]: Uniswap,
+	_WorkerName[183:186]:      VSL,
+	_WorkerLowerName[183:186]: VSL,
 }
 
 var _WorkerNames = []string{
@@ -140,21 +143,22 @@ var _WorkerNames = []string{
 	_WorkerName[68:77],
 	_WorkerName[77:81],
 	_WorkerName[81:85],
-	_WorkerName[85:94],
-	_WorkerName[94:101],
-	_WorkerName[101:107],
-	_WorkerName[107:113],
-	_WorkerName[113:118],
+	_WorkerName[85:90],
+	_WorkerName[90:99],
+	_WorkerName[99:106],
+	_WorkerName[106:112],
+	_WorkerName[112:118],
 	_WorkerName[118:123],
-	_WorkerName[123:130],
-	_WorkerName[130:138],
-	_WorkerName[138:147],
-	_WorkerName[147:155],
-	_WorkerName[155:159],
-	_WorkerName[159:163],
-	_WorkerName[163:171],
-	_WorkerName[171:178],
-	_WorkerName[178:181],
+	_WorkerName[123:128],
+	_WorkerName[128:135],
+	_WorkerName[135:143],
+	_WorkerName[143:152],
+	_WorkerName[152:160],
+	_WorkerName[160:164],
+	_WorkerName[164:168],
+	_WorkerName[168:176],
+	_WorkerName[176:183],
+	_WorkerName[183:186],
 }
 
 // WorkerString retrieves an enum value from the enum constants string name.
