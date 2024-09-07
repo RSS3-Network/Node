@@ -11,8 +11,8 @@ type Worker int
 const (
 	Aave       Worker = iota + 1 // aave
 	Aavegotchi                   // aavegotchi
-	Base                         // base
 	Arbitrum                     // arbitrum
+	Base                         // base
 	BendDAO                      // benddao
 	Core                         // core
 	Cow                          // cow

@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _WorkerName = "aaveaavegotchibasearbitrumbenddaocorecowcrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomokanouns1inchopenseaoptimismparagraphparaswaprss3savmstargateuniswapvsl"
+const _WorkerName = "aaveaavegotchiarbitrumbasebenddaocorecowcrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomokanouns1inchopenseaoptimismparagraphparaswaprss3savmstargateuniswapvsl"
 
-var _WorkerIndex = [...]uint8{0, 4, 14, 18, 26, 33, 37, 40, 49, 54, 57, 66, 72, 81, 85, 89, 98, 105, 111, 117, 122, 127, 134, 142, 151, 159, 163, 167, 175, 182, 185}
+var _WorkerIndex = [...]uint8{0, 4, 14, 22, 26, 33, 37, 40, 49, 54, 57, 66, 72, 81, 85, 89, 98, 105, 111, 117, 122, 127, 134, 142, 151, 159, 163, 167, 175, 182, 185}
 
-const _WorkerLowerName = "aaveaavegotchibasearbitrumbenddaocorecowcrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomokanouns1inchopenseaoptimismparagraphparaswaprss3savmstargateuniswapvsl"
+const _WorkerLowerName = "aaveaavegotchiarbitrumbasebenddaocorecowcrossbellcurveenshighlightiqwikikiwistandlenslidolooksraremattersmirrormomokanouns1inchopenseaoptimismparagraphparaswaprss3savmstargateuniswapvsl"
 
 func (i Worker) String() string {
 	i -= 1
@@ -33,8 +33,8 @@ func _WorkerNoOp() {
 	var x [1]struct{}
 	_ = x[Aave-(1)]
 	_ = x[Aavegotchi-(2)]
-	_ = x[Base-(3)]
-	_ = x[Arbitrum-(4)]
+	_ = x[Arbitrum-(3)]
+	_ = x[Base-(4)]
 	_ = x[BendDAO-(5)]
 	_ = x[Core-(6)]
 	_ = x[Cow-(7)]
@@ -63,17 +63,17 @@ func _WorkerNoOp() {
 	_ = x[VSL-(30)]
 }
 
-var _WorkerValues = []Worker{Aave, Aavegotchi, Base, Arbitrum, BendDAO, Core, Cow, Crossbell, Curve, ENS, Highlight, IQWiki, KiwiStand, Lens, Lido, Looksrare, Matters, Mirror, Momoka, Nouns, Oneinch, OpenSea, Optimism, Paragraph, Paraswap, RSS3, SAVM, Stargate, Uniswap, VSL}
+var _WorkerValues = []Worker{Aave, Aavegotchi, Arbitrum, Base, BendDAO, Core, Cow, Crossbell, Curve, ENS, Highlight, IQWiki, KiwiStand, Lens, Lido, Looksrare, Matters, Mirror, Momoka, Nouns, Oneinch, OpenSea, Optimism, Paragraph, Paraswap, RSS3, SAVM, Stargate, Uniswap, VSL}
 
 var _WorkerNameToValueMap = map[string]Worker{
 	_WorkerName[0:4]:          Aave,
 	_WorkerLowerName[0:4]:     Aave,
 	_WorkerName[4:14]:         Aavegotchi,
 	_WorkerLowerName[4:14]:    Aavegotchi,
-	_WorkerName[14:18]:        Base,
-	_WorkerLowerName[14:18]:   Base,
-	_WorkerName[18:26]:        Arbitrum,
-	_WorkerLowerName[18:26]:   Arbitrum,
+	_WorkerName[14:22]:        Arbitrum,
+	_WorkerLowerName[14:22]:   Arbitrum,
+	_WorkerName[22:26]:        Base,
+	_WorkerLowerName[22:26]:   Base,
 	_WorkerName[26:33]:        BendDAO,
 	_WorkerLowerName[26:33]:   BendDAO,
 	_WorkerName[33:37]:        Core,
@@ -131,8 +131,8 @@ var _WorkerNameToValueMap = map[string]Worker{
 var _WorkerNames = []string{
 	_WorkerName[0:4],
 	_WorkerName[4:14],
-	_WorkerName[14:18],
-	_WorkerName[18:26],
+	_WorkerName[14:22],
+	_WorkerName[22:26],
 	_WorkerName[26:33],
 	_WorkerName[33:37],
 	_WorkerName[37:40],

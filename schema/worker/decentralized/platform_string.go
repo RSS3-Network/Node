@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _PlatformName = "Unknown1inchAAVEAavegotchiBaseCowArbitrumBendDAOCrossbellCurveENSFarcasterHighlightIQWikiKiwiStandLensLidoLooksRareMattersMirrorNounsOpenSeaOptimismParagraphParaswapRSS3SAVMStargateUniswapVSL"
+const _PlatformName = "Unknown1inchAAVEAavegotchiArbitrumBaseBendDAOCowCrossbellCurveENSFarcasterHighlightIQWikiKiwiStandLensLidoLooksRareMattersMirrorNounsOpenSeaOptimismParagraphParaswapRSS3SAVMStargateUniswapVSL"
 
-var _PlatformIndex = [...]uint8{0, 7, 12, 16, 26, 30, 33, 41, 48, 57, 62, 65, 74, 83, 89, 98, 102, 106, 115, 122, 128, 133, 140, 148, 157, 165, 169, 173, 181, 188, 191}
+var _PlatformIndex = [...]uint8{0, 7, 12, 16, 26, 34, 38, 45, 48, 57, 62, 65, 74, 83, 89, 98, 102, 106, 115, 122, 128, 133, 140, 148, 157, 165, 169, 173, 181, 188, 191}
 
-const _PlatformLowerName = "unknown1inchaaveaavegotchibasecowarbitrumbenddaocrossbellcurveensfarcasterhighlightiqwikikiwistandlenslidolooksraremattersmirrornounsopenseaoptimismparagraphparaswaprss3savmstargateuniswapvsl"
+const _PlatformLowerName = "unknown1inchaaveaavegotchiarbitrumbasebenddaocowcrossbellcurveensfarcasterhighlightiqwikikiwistandlenslidolooksraremattersmirrornounsopenseaoptimismparagraphparaswaprss3savmstargateuniswapvsl"
 
 func (i Platform) String() string {
 	if i >= Platform(len(_PlatformIndex)-1) {
@@ -34,10 +34,10 @@ func _PlatformNoOp() {
 	_ = x[Platform1Inch-(1)]
 	_ = x[PlatformAAVE-(2)]
 	_ = x[PlatformAavegotchi-(3)]
-	_ = x[PlatformBase-(4)]
-	_ = x[PlatformCow-(5)]
-	_ = x[PlatformArbitrum-(6)]
-	_ = x[PlatformBendDAO-(7)]
+	_ = x[PlatformArbitrum-(4)]
+	_ = x[PlatformBase-(5)]
+	_ = x[PlatformBendDAO-(6)]
+	_ = x[PlatformCow-(7)]
 	_ = x[PlatformCrossbell-(8)]
 	_ = x[PlatformCurve-(9)]
 	_ = x[PlatformENS-(10)]
@@ -62,7 +62,7 @@ func _PlatformNoOp() {
 	_ = x[PlatformVSL-(29)]
 }
 
-var _PlatformValues = []Platform{PlatformUnknown, Platform1Inch, PlatformAAVE, PlatformAavegotchi, PlatformBase, PlatformCow, PlatformArbitrum, PlatformBendDAO, PlatformCrossbell, PlatformCurve, PlatformENS, PlatformFarcaster, PlatformHighlight, PlatformIQWiki, PlatformKiwiStand, PlatformLens, PlatformLido, PlatformLooksRare, PlatformMatters, PlatformMirror, PlatformNouns, PlatformOpenSea, PlatformOptimism, PlatformParagraph, PlatformParaswap, PlatformRSS3, PlatformSAVM, PlatformStargate, PlatformUniswap, PlatformVSL}
+var _PlatformValues = []Platform{PlatformUnknown, Platform1Inch, PlatformAAVE, PlatformAavegotchi, PlatformArbitrum, PlatformBase, PlatformBendDAO, PlatformCow, PlatformCrossbell, PlatformCurve, PlatformENS, PlatformFarcaster, PlatformHighlight, PlatformIQWiki, PlatformKiwiStand, PlatformLens, PlatformLido, PlatformLooksRare, PlatformMatters, PlatformMirror, PlatformNouns, PlatformOpenSea, PlatformOptimism, PlatformParagraph, PlatformParaswap, PlatformRSS3, PlatformSAVM, PlatformStargate, PlatformUniswap, PlatformVSL}
 
 var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformName[0:7]:          PlatformUnknown,
@@ -73,14 +73,14 @@ var _PlatformNameToValueMap = map[string]Platform{
 	_PlatformLowerName[12:16]:   PlatformAAVE,
 	_PlatformName[16:26]:        PlatformAavegotchi,
 	_PlatformLowerName[16:26]:   PlatformAavegotchi,
-	_PlatformName[26:30]:        PlatformBase,
-	_PlatformLowerName[26:30]:   PlatformBase,
-	_PlatformName[30:33]:        PlatformCow,
-	_PlatformLowerName[30:33]:   PlatformCow,
-	_PlatformName[33:41]:        PlatformArbitrum,
-	_PlatformLowerName[33:41]:   PlatformArbitrum,
-	_PlatformName[41:48]:        PlatformBendDAO,
-	_PlatformLowerName[41:48]:   PlatformBendDAO,
+	_PlatformName[26:34]:        PlatformArbitrum,
+	_PlatformLowerName[26:34]:   PlatformArbitrum,
+	_PlatformName[34:38]:        PlatformBase,
+	_PlatformLowerName[34:38]:   PlatformBase,
+	_PlatformName[38:45]:        PlatformBendDAO,
+	_PlatformLowerName[38:45]:   PlatformBendDAO,
+	_PlatformName[45:48]:        PlatformCow,
+	_PlatformLowerName[45:48]:   PlatformCow,
 	_PlatformName[48:57]:        PlatformCrossbell,
 	_PlatformLowerName[48:57]:   PlatformCrossbell,
 	_PlatformName[57:62]:        PlatformCurve,
@@ -132,10 +132,10 @@ var _PlatformNames = []string{
 	_PlatformName[7:12],
 	_PlatformName[12:16],
 	_PlatformName[16:26],
-	_PlatformName[26:30],
-	_PlatformName[30:33],
-	_PlatformName[33:41],
-	_PlatformName[41:48],
+	_PlatformName[26:34],
+	_PlatformName[34:38],
+	_PlatformName[38:45],
+	_PlatformName[45:48],
 	_PlatformName[48:57],
 	_PlatformName[57:62],
 	_PlatformName[62:65],
