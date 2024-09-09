@@ -137,6 +137,8 @@ var command = cobra.Command{
 			// when start or restart the core, worker or monitor module, it will pull network parameters from VSL and record current epoch
 			if _, err = parameter.PullNetworkParamsFromVSL(networkParamsCaller, uint64(epoch)); err != nil {
 				zap.L().Error("pull network parameters from VSL", zap.Error(err))
+
+				return fmt.Errorf("pull network parameters from VSL: %w", err)
 			}
 
 			for network, blockStart := range parameter.CurrentNetworkStartBlock {
