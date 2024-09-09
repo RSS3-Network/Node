@@ -22,6 +22,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/kiwistand"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/lens"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/lido"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/linea"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/looksrare"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/matters"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/mirror"
@@ -48,6 +49,7 @@ func New(config *config.Module, databaseClient database.Client, redisClient ruei
 	return newNonCoreWorker(config, databaseClient, redisClient)
 }
 
+//nolint:gocyclo
 func newNonCoreWorker(config *config.Module, databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {
 	switch config.Worker {
 	case decentralized.Mirror:
@@ -108,6 +110,8 @@ func newNonCoreWorker(config *config.Module, databaseClient database.Client, red
 		return benddao.NewWorker(config)
 	case decentralized.Base:
 		return base.NewWorker(config)
+	case decentralized.Linea:
+		return linea.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}
