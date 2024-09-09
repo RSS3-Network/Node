@@ -990,7 +990,7 @@ func TestMonitor(t *testing.T) {
 	})
 
 	// Connect to Redis
-	redisClient, err := redisx.NewRueidisClient(config.Redis{
+	redisClient, err := redisx.NewClient(config.Redis{
 		Endpoint: container.DefaultAddress(),
 	})
 	require.NoError(t, err)

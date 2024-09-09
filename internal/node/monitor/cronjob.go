@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/go-redsync/redsync/v4"
-	goredis "github.com/go-redsync/redsync/v4/redis/goredis/v9"
+	rueidisx "github.com/go-redsync/redsync/v4/redis/rueidis"
+	"github.com/redis/rueidis"
+	"github.com/redis/rueidis/rueidiscompat"
 	"github.com/robfig/cron/v3"
-	"github.com/rss3-network/node/config"
-	provider "github.com/rss3-network/node/provider/redis"
 	"go.uber.org/zap"
 )
 
@@ -81,13 +81,8 @@ func (c *CronJob) Stop() {
 	c.crontab.Stop()
 }
 
-func NewCronJob(configFile *config.File, name string, timeout time.Duration) (*CronJob, error) {
-	redisClient, err := provider.NewRedisClient(*configFile.Redis)
-	if err != nil {
-		return nil, fmt.Errorf("new redis client: %w", err)
-	}
-
-	pool := goredis.NewPool(redisClient)
+func NewCronJob(client rueidis.Client, name string, timeout time.Duration) (*CronJob, error) {
+	pool := rueidisx.NewPool(rueidiscompat.NewAdapter(client))
 	rs := redsync.New(pool)
 
 	return &CronJob{

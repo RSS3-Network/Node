@@ -29,7 +29,7 @@ type Monitor struct {
 func (m *Monitor) Run(ctx context.Context) error {
 	if m.databaseClient != nil && m.redisClient != nil {
 		// Start the monitor cron job.
-		monitorWorkerStatus, err := NewCronJob(m.config, "worker_status", 10*time.Minute)
+		monitorWorkerStatus, err := NewCronJob(m.redisClient, "worker_status", 10*time.Minute)
 		if err != nil {
 			return fmt.Errorf("new cron job: %w", err)
 		}
@@ -49,7 +49,7 @@ func (m *Monitor) Run(ctx context.Context) error {
 		monitorWorkerStatus.Start()
 
 		// Start the database maintenance cron job.
-		databaseMaintenance, err := NewCronJob(m.config, "database_maintenance", 5*24*time.Hour)
+		databaseMaintenance, err := NewCronJob(m.redisClient, "database_maintenance", 5*24*time.Hour)
 		if err != nil {
 			return fmt.Errorf("new cron job: %w", err)
 		}
