@@ -1,6 +1,8 @@
 module github.com/rss3-network/node
 
-go 1.21.4
+go 1.22
+
+toolchain go1.22.1
 
 require (
 	github.com/JohannesKaufmann/html-to-markdown v1.6.0
@@ -55,9 +57,11 @@ require (
 	github.com/adrianbrad/psqldocker v1.2.1
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
 	github.com/emirpasic/gods v1.18.1
+	github.com/go-redsync/redsync/v4 v4.13.0
 	github.com/grafana/pyroscope-go v1.1.2
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/redis/rueidis v1.0.45
+	github.com/redis/rueidis/rueidiscompat v1.0.45
 	github.com/rss3-network/protocol-go v0.5.3
 	github.com/spf13/afero v1.11.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
@@ -109,6 +113,8 @@ require (
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.8 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/holiman/uint256 v1.2.4 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

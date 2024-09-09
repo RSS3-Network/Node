@@ -22,8 +22,13 @@ discovery:
 
 # Database configuration
 database:
+  # `coverage_period` is the number of months that the database will store the data, which cannot be less than three months.
+  coverage_period: 3
+  # `driver` is the database driver used by the Node, currently only `postgres` is supported
   driver: postgres
+  # `partition` is used to enable the partition feature of the database.
   partition: true
+  # `uri` is the connection string of the database.
   uri: postgres://postgres:password@localhost:5432/postgres
 
 # Deploying a redis will significantly improve the indexing performance of some workers.

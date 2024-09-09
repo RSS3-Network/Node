@@ -105,6 +105,7 @@ component:
     }
   },
   "database": {
+	"coverage_period": 3,
     "driver": "postgres",
     "partition": true,
     "uri": "postgres://postgres@localhost:5432/postgres"
@@ -189,6 +190,7 @@ global_indexer_endpoint = "https://gi.rss3.dev/"
 access_token = "test"
 
 [database]
+coverage_period = 3
 driver = "postgres"
 partition = true
 uri = "postgres://postgres@localhost:5432/postgres"
@@ -316,9 +318,10 @@ var configFileExpected = &File{
 		},
 	},
 	Database: &Database{
-		Driver:    "postgres",
-		Partition: lo.ToPtr(true),
-		URI:       "postgres://postgres@localhost:5432/postgres",
+		CoveragePeriod: 3,
+		Driver:         "postgres",
+		Partition:      lo.ToPtr(true),
+		URI:            "postgres://postgres@localhost:5432/postgres",
 	},
 	Stream: &Stream{
 		Enable: lo.ToPtr(false),

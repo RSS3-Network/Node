@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/big"
 	"strconv"
 	"strings"
 
@@ -27,9 +26,9 @@ type NetworkParamsData struct {
 // UnmarshalJSON defines a custom UnmarshalJSON method for NetworkParamsData
 func (npd *NetworkParamsData) UnmarshalJSON(data []byte) error {
 	networkParam := struct {
-		NetworkTolerance                   map[string]uint64   `json:"network_tolerance"`
-		NetworkStartBlock                  map[string]*big.Int `json:"network_start_block"`
-		NetworkCoreWorkerDiskSpacePerMonth map[string]uint     `json:"network_core_worker_disk_space_per_month"`
+		NetworkTolerance                   map[string]uint64      `json:"network_tolerance"`
+		NetworkStartBlock                  map[string]*StartBlock `json:"network_start_block"`
+		NetworkCoreWorkerDiskSpacePerMonth map[string]uint        `json:"network_core_worker_disk_space_per_month"`
 	}{}
 
 	if err := json.Unmarshal(data, &networkParam); err != nil {
@@ -37,7 +36,7 @@ func (npd *NetworkParamsData) UnmarshalJSON(data []byte) error {
 	}
 
 	npd.NetworkTolerance = make(map[network.Network]uint64)
-	npd.NetworkStartBlock = make(map[network.Network]*big.Int)
+	npd.NetworkStartBlock = make(map[network.Network]*StartBlock)
 	npd.NetworkCoreWorkerDiskSpacePerMonth = make(map[network.Network]uint)
 
 	for key, value := range networkParam.NetworkTolerance {
@@ -227,10 +226,8 @@ func buildNetworkBlockStartCacheKey(network string) string {
 
 // InitVSLClient initializes the VSL client
 func InitVSLClient() (ethereum.Client, error) {
-	vslEndpoint := endpoint.MustGet(network.VSL)
-
 	// Initialize vsl ethereum client.
-	vslClient, err := ethereum.Dial(context.Background(), vslEndpoint)
+	vslClient, err := ethereum.Dial(context.Background(), endpoint.MustGet(network.VSL))
 	if err != nil {
 		return nil, err
 	}
@@ -254,11 +251,8 @@ func CheckParamsTask(ctx context.Context, redisClient rueidis.Client, networkPar
 			continue // Skip if the start block is not defined.
 		}
 
-		// Convert big.Int to int64; safe as long as the value fits in int64.
-		blockStartInt64 := blockStart.Int64()
-
 		// Update the current block start for the network in Redis.
-		err := UpdateBlockStart(ctx, redisClient, n.String(), blockStartInt64)
+		err := UpdateBlockStart(ctx, redisClient, n.String(), blockStart.Block.Int64())
 		if err != nil {
 			return fmt.Errorf("update current block start: %w", err)
 		}
