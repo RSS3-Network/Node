@@ -19,7 +19,7 @@ func NewOption(n network.Network, parameters *config.Parameters) (*Option, error
 
 	if parameters == nil {
 		return &Option{
-			TimestampStart: parameter.CurrentNetworkStartBlock[n],
+			TimestampStart: parameter.CurrentNetworkStartBlock[n].Block,
 		}, nil
 	}
 
@@ -28,7 +28,7 @@ func NewOption(n network.Network, parameters *config.Parameters) (*Option, error
 	}
 
 	if option.TimestampStart == nil {
-		option.TimestampStart = parameter.CurrentNetworkStartBlock[n]
+		option.TimestampStart = parameter.CurrentNetworkStartBlock[n].Block
 	}
 
 	return &option, nil
