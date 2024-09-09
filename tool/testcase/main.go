@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"strings"
 	"text/template"
 	"unicode"
 
@@ -45,9 +46,23 @@ var command = &cobra.Command{
 					return (*hexutil.Big)(value).String()
 				},
 				"UppercaseFirst": func(network networkx.Network) string {
-					a := []rune(network.String())
-					a[0] = unicode.ToUpper(a[0])
-					return string(a)
+					networkStr := network.String()
+					switch networkStr {
+					case "":
+						return "Ethereum"
+					case "vsl":
+						return "VSL"
+					default:
+						words := strings.Split(networkStr, "-")
+						for i, word := range words {
+							if word != "" {
+								r := []rune(word)
+								r[0] = unicode.ToUpper(r[0])
+								words[i] = string(r)
+							}
+						}
+						return strings.Join(words, "")
+					}
 				},
 			})
 

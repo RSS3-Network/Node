@@ -13,7 +13,7 @@ require (
 	github.com/ethereum/go-ethereum v1.13.15
 	github.com/gabriel-vasile/mimetype v1.4.5
 	github.com/go-playground/form/v4 v4.2.1
-	github.com/go-playground/validator/v10 v10.22.0
+	github.com/go-playground/validator/v10 v10.22.1
 	github.com/go-shiori/go-readability v0.0.0-20231029095239-6b97d5aba789
 	github.com/hamba/avro v1.8.0
 	github.com/ipfs/go-cid v0.4.1
@@ -23,7 +23,7 @@ require (
 	github.com/multiformats/go-varint v0.0.7
 	github.com/orlangure/gnomock v0.31.0
 	github.com/pressly/goose/v3 v3.21.1
-	github.com/prometheus/client_golang v1.20.2
+	github.com/prometheus/client_golang v1.20.3
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/samber/lo v1.47.0
 	github.com/shopspring/decimal v1.4.0
@@ -67,7 +67,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	github.com/tidwall/sjson v1.2.5
 	github.com/vincent-petithory/dataurl v1.0.0
-	golang.org/x/net v0.28.0
+	golang.org/x/net v0.29.0
 )
 
 require (
@@ -182,10 +182,10 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.50.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.26.0 // indirect
+	golang.org/x/crypto v0.27.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/sys v0.24.0 // indirect
-	golang.org/x/text v0.17.0 // indirect
+	golang.org/x/sys v0.25.0 // indirect
+	golang.org/x/text v0.18.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240822170219-fc7c04adadcd // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240822170219-fc7c04adadcd // indirect
