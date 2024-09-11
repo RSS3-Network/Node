@@ -12,6 +12,7 @@ import (
 	"github.com/rss3-network/node/internal/database/dialer/postgres/table"
 	"github.com/rss3-network/node/internal/database/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
 	"go.uber.org/zap"
@@ -36,6 +37,19 @@ func (c *client) createPartitionTable(ctx context.Context, name, template string
 	}
 
 	return nil
+}
+
+// findPartitionTableExists check if a partition table exists.
+func (c *client) findPartitionTableExists(ctx context.Context, name string) (bool, error) {
+	statement := fmt.Sprintf(`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = '%s')`, name)
+
+	var exists bool
+
+	if err := c.database.WithContext(ctx).Raw(statement).Scan(&exists).Error; err != nil {
+		return false, err
+	}
+
+	return exists, nil
 }
 
 // findIndexesPartitionTable finds partition table names of indexes in the past year.
@@ -499,6 +513,112 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.Activit
 	}
 }
 
+// deleteExpiredActivitiesPartitioned deletes expired activities.
+func (c *client) deleteExpiredActivitiesPartitioned(ctx context.Context, network network.Network, timestamp time.Time) error {
+	var (
+		batchSize            = 1000
+		dropActivitiesTables = make([]string, 0)
+		checkTablesTimestamp = []time.Time{timestamp}
+	)
+
+	for i := 1; i <= 4; i++ {
+		dropActivitiesTables = append(dropActivitiesTables, c.buildActivitiesTableNames(network, timestamp.AddDate(0, -3*i, 0)))
+		checkTablesTimestamp = append(checkTablesTimestamp, timestamp.AddDate(0, -3*i, 0))
+	}
+
+	// Drop expired activities tables.
+	for _, name := range dropActivitiesTables {
+		zap.L().Info("dropping table", zap.String("table", name))
+
+		if err := c.database.WithContext(ctx).Exec(fmt.Sprintf(`DROP TABLE IF EXISTS "%s"`, name)).Error; err != nil {
+			zap.L().Error("failed to drop table", zap.Error(err), zap.String("table", name))
+
+			return fmt.Errorf("drop table: %w", err)
+		}
+	}
+
+	for _, checkTimestamp := range checkTablesTimestamp {
+		activityTable := c.buildActivitiesTableNames(network, checkTimestamp)
+
+		indexTable := c.buildIndexesTableNames(checkTimestamp)
+
+		activityTableExists, err := c.findPartitionTableExists(ctx, activityTable)
+		if err != nil {
+			return fmt.Errorf("find partition table exists: %w", err)
+		}
+
+		indexTableExists, err := c.findPartitionTableExists(ctx, indexTable)
+		if err != nil {
+			return fmt.Errorf("find partition table exists: %w", err)
+		}
+
+		if !indexTableExists {
+			continue
+		}
+
+		zap.L().Info("deleting expired activities", zap.String("table", activityTable), zap.String("indexTable", indexTable))
+
+		for {
+			done, err := c.batchDeleteExpiredActivities(ctx, network, timestamp, batchSize, &indexTable, lo.Ternary(activityTableExists, &activityTable, nil))
+			if err != nil {
+				return fmt.Errorf("batch delete expired activities: %w", err)
+			}
+
+			if done {
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+func (c *client) batchDeleteExpiredActivities(ctx context.Context, network network.Network, timestamp time.Time, batchSize int, indexTable *string, activityTable *string) (bool, error) {
+	databaseTransaction := c.database.WithContext(ctx).Begin()
+	defer func() {
+		_ = databaseTransaction.Rollback().Error
+	}()
+
+	var transactionIDs []string
+
+	// Find expired activities.
+	if err := c.database.WithContext(ctx).Table(*indexTable).Select("id").Where("network = ?", network.String()).
+		Where("timestamp < ?", timestamp).Limit(batchSize).
+		Pluck("id", &transactionIDs).Error; err != nil {
+		zap.L().Error("failed to find expired activities", zap.Error(err), zap.String("table", *indexTable))
+
+		return false, fmt.Errorf("find expired activities: %w", err)
+	}
+
+	if len(transactionIDs) == 0 {
+		return true, nil
+	}
+
+	// Delete expired indexes.
+	if err := databaseTransaction.Table(*indexTable).Where("id IN ?", transactionIDs).Delete(&table.Index{}).Error; err != nil {
+		zap.L().Error("failed to delete expired indexes", zap.Error(err), zap.String("table", *indexTable))
+
+		return false, fmt.Errorf("delete expired indexes: %w", err)
+	}
+
+	if activityTable != nil {
+		// Delete expired activities.
+		if err := databaseTransaction.Table(*activityTable).Where("id IN ?", transactionIDs).Delete(&table.Activity{}).Error; err != nil {
+			zap.L().Error("failed to delete expired activities", zap.Error(err), zap.String("table", *activityTable))
+
+			return false, fmt.Errorf("delete expired activities: %w", err)
+		}
+	}
+
+	if err := databaseTransaction.Commit().Error; err != nil {
+		zap.L().Error("failed to commit transaction", zap.Error(err))
+
+		return false, fmt.Errorf("commit transaction: %w", err)
+	}
+
+	return false, nil
+}
+
 // buildFindIndexStatement builds the query index statement.
 func (c *client) buildFindIndexStatement(ctx context.Context, partitionedName string, query model.ActivityQuery) *gorm.DB {
 	databaseStatement := c.database.WithContext(ctx).Table(partitionedName)
@@ -575,4 +695,14 @@ func (c *client) buildFindIndexesStatement(ctx context.Context, partition string
 	}
 
 	return databaseStatement.Order("timestamp DESC, index DESC").Limit(query.Limit)
+}
+
+// buildActivitiesTableNames builds the activities table names.
+func (c *client) buildActivitiesTableNames(network network.Network, timestamp time.Time) string {
+	return fmt.Sprintf("%s_%s_%d_q%d", (*table.Activity).TableName(nil), network, timestamp.Year(), int(timestamp.Month()-1)/3+1)
+}
+
+// buildIndexesTableNames builds the indexes table names.
+func (c *client) buildIndexesTableNames(timestamp time.Time) string {
+	return fmt.Sprintf("%s_%d_q%d", (*table.Index).TableName(nil), timestamp.Year(), int(timestamp.Month()-1)/3+1)
 }
