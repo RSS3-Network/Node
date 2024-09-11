@@ -233,6 +233,10 @@ func (s *dataSource) processChunks(ctx context.Context, block *near.Block) ([]en
 				for _, transaction := range chunk.Transactions {
 					transaction := transaction
 
+					if s.filter.ReceiverIDs != nil && lo.Contains(s.filter.ReceiverIDs, transaction.ReceiverID) {
+						continue
+					}
+
 					transactionPool.Go(func(ctx context.Context) (*near.Transaction, error) {
 						return s.nearClient.TransactionByHash(ctx, transaction.Hash, transaction.SignerID)
 					})
