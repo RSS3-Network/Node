@@ -74,11 +74,20 @@ func (c *CronJob) Renewal(ctx context.Context) {
 }
 
 func (c *CronJob) Start() {
+	zap.L().Info("start cron job", zap.String("key", c.mutex.Name()))
+
 	c.crontab.Start()
 }
 
 func (c *CronJob) Stop() {
+	zap.L().Info("stop cron job", zap.String("key", c.mutex.Name()))
+
 	c.crontab.Stop()
+	c.ReleaseLock()
+}
+
+func (c *CronJob) ReleaseLock() {
+	_, _ = c.mutex.Unlock()
 }
 
 func NewCronJob(client rueidis.Client, name string, timeout time.Duration) (*CronJob, error) {

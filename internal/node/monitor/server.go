@@ -17,6 +17,11 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	MonitorWorkerStatusJob = "worker_status"
+	DatabaseMaintenanceJob = "database_maintenance"
+)
+
 type Monitor struct {
 	config              *config.File
 	databaseClient      database.Client
@@ -29,33 +34,31 @@ type Monitor struct {
 func (m *Monitor) Run(ctx context.Context) error {
 	if m.databaseClient != nil && m.redisClient != nil {
 		// Start the monitor cron job.
-		monitorWorkerStatus, err := NewCronJob(m.redisClient, "worker_status", 10*time.Minute)
+		monitorWorkerStatus, err := NewCronJob(m.redisClient, MonitorWorkerStatusJob, 10*time.Minute)
 		if err != nil {
 			return fmt.Errorf("new cron job: %w", err)
 		}
 
-		if err := monitorWorkerStatus.AddFunc(ctx, "@every 5m", func() {
-			if err := parameter.CheckParamsTask(ctx, m.redisClient, m.networkParamsCaller); err != nil {
+		if err = monitorWorkerStatus.AddFunc(ctx, "@every 5m", func() {
+			if err = parameter.CheckParamsTask(ctx, m.redisClient, m.networkParamsCaller); err != nil {
 				return
 			}
 
-			if err := m.MonitorWorkerStatus(ctx); err != nil {
+			if err = m.MonitorWorkerStatus(ctx); err != nil {
 				return
 			}
 		}); err != nil {
 			return fmt.Errorf("add heartbeat cron job: %w", err)
 		}
 
-		monitorWorkerStatus.Start()
-
 		// Start the database maintenance cron job.
-		databaseMaintenance, err := NewCronJob(m.redisClient, "database_maintenance", 5*24*time.Hour)
+		databaseMaintenance, err := NewCronJob(m.redisClient, DatabaseMaintenanceJob, 5*24*time.Hour)
 		if err != nil {
 			return fmt.Errorf("new cron job: %w", err)
 		}
 
-		if err := databaseMaintenance.AddFunc(ctx, "0 0 0 * * *", func() {
-			if err := m.MaintainCoveragePeriod(ctx); err != nil {
+		if err = databaseMaintenance.AddFunc(ctx, "0 0 0 * * *", func() {
+			if err = m.MaintainCoveragePeriod(ctx); err != nil {
 				zap.L().Error("maintain coverage period", zap.Error(err))
 
 				return
@@ -64,6 +67,12 @@ func (m *Monitor) Run(ctx context.Context) error {
 			return fmt.Errorf("add database maintenance cron job: %w", err)
 		}
 
+		defer func() {
+			monitorWorkerStatus.Stop()
+			databaseMaintenance.Stop()
+		}()
+
+		monitorWorkerStatus.Start()
 		databaseMaintenance.Start()
 	}
 
