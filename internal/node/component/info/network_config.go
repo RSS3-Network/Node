@@ -228,6 +228,7 @@ func setIPFSGateways(config *workerConfig) {
 var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.Ethereum: {
 		decentralized.Aave,
+		decentralized.Base,
 		decentralized.Arbitrum,
 		decentralized.Core,
 		decentralized.Cow,
@@ -235,6 +236,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.ENS,
 		decentralized.Highlight,
 		decentralized.Lido,
+		decentralized.Linea,
 		decentralized.Looksrare,
 		decentralized.Nouns,
 		decentralized.Oneinch,
@@ -332,6 +334,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.Aavegotchi: defaultWorkerConfig(decentralized.Aavegotchi, network.EthereumSource, nil),
 		decentralized.Arbitrum:   defaultWorkerConfig(decentralized.Arbitrum, network.EthereumSource, nil),
 		decentralized.BendDAO:    defaultWorkerConfig(decentralized.BendDAO, network.EthereumSource, nil),
+		decentralized.Base:       defaultWorkerConfig(decentralized.Base, network.EthereumSource, nil),
 		decentralized.Core:       defaultWorkerConfig(decentralized.Core, network.EthereumSource, nil),
 		decentralized.Cow:        defaultWorkerConfig(decentralized.Cow, network.EthereumSource, nil),
 		decentralized.Crossbell:  customWorkerConfigWithIPFS(decentralized.Crossbell, network.EthereumSource, ""),
@@ -342,6 +345,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.KiwiStand:  defaultWorkerConfig(decentralized.KiwiStand, network.EthereumSource, nil),
 		decentralized.Lens:       customWorkerConfigWithIPFS(decentralized.Lens, network.EthereumSource, ""),
 		decentralized.Lido:       defaultWorkerConfig(decentralized.Lido, network.EthereumSource, nil),
+		decentralized.Linea:      defaultWorkerConfig(decentralized.Linea, network.EthereumSource, nil),
 		decentralized.Looksrare:  defaultWorkerConfig(decentralized.Looksrare, network.EthereumSource, nil),
 		decentralized.Matters:    customWorkerConfigWithIPFS(decentralized.Matters, network.EthereumSource, ""),
 		decentralized.Nouns:      defaultWorkerConfig(decentralized.Nouns, network.EthereumSource, nil),

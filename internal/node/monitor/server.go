@@ -6,19 +6,24 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/redis/rueidis"
-	"github.com/robfig/cron/v3"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"go.uber.org/zap"
+)
+
+const (
+	MonitorWorkerStatusJob = "worker_status"
+	DatabaseMaintenanceJob = "database_maintenance"
 )
 
 type Monitor struct {
 	config              *config.File
-	cron                *cron.Cron
 	databaseClient      database.Client
 	redisClient         rueidis.Client
 	networkParamsCaller *vsl.NetworkParamsCaller
@@ -28,30 +33,47 @@ type Monitor struct {
 
 func (m *Monitor) Run(ctx context.Context) error {
 	if m.databaseClient != nil && m.redisClient != nil {
-		_, err := m.cron.AddFunc("@every 15m", func() {
-			if err := m.MonitorWorkerStatus(ctx); err != nil {
+		// Start the monitor cron job.
+		monitorWorkerStatus, err := NewCronJob(m.redisClient, MonitorWorkerStatusJob, 10*time.Minute)
+		if err != nil {
+			return fmt.Errorf("new cron job: %w", err)
+		}
+
+		if err = monitorWorkerStatus.AddFunc(ctx, "@every 5m", func() {
+			if err = parameter.CheckParamsTask(ctx, m.redisClient, m.networkParamsCaller); err != nil {
 				return
 			}
-		})
-		if err != nil {
+
+			if err = m.MonitorWorkerStatus(ctx); err != nil {
+				return
+			}
+		}); err != nil {
 			return fmt.Errorf("add heartbeat cron job: %w", err)
 		}
 
-		_, err = m.cron.AddFunc("@every 5m", func() {
-			if err := parameter.CheckParamsTask(ctx, m.redisClient, m.networkParamsCaller); err != nil {
-				return
-			}
-
-			if err := m.MonitorWorkerStatus(ctx); err != nil {
-				return
-			}
-		})
-
+		// Start the database maintenance cron job.
+		databaseMaintenance, err := NewCronJob(m.redisClient, DatabaseMaintenanceJob, 5*24*time.Hour)
 		if err != nil {
-			return fmt.Errorf("add heartbeat cron job: %w", err)
+			return fmt.Errorf("new cron job: %w", err)
 		}
 
-		m.cron.Start()
+		if err = databaseMaintenance.AddFunc(ctx, "0 0 0 * * *", func() {
+			if err = m.MaintainCoveragePeriod(ctx); err != nil {
+				zap.L().Error("maintain coverage period", zap.Error(err))
+
+				return
+			}
+		}); err != nil {
+			return fmt.Errorf("add database maintenance cron job: %w", err)
+		}
+
+		defer func() {
+			monitorWorkerStatus.Stop()
+			databaseMaintenance.Stop()
+		}()
+
+		monitorWorkerStatus.Start()
+		databaseMaintenance.Start()
 	}
 
 	stopChan := make(chan os.Signal, 1)
@@ -119,7 +141,6 @@ func NewMonitor(_ context.Context, configFile *config.File, databaseClient datab
 
 	instance := &Monitor{
 		config:              configFile,
-		cron:                cron.New(),
 		databaseClient:      databaseClient,
 		redisClient:         redisClient,
 		clients:             clients,
