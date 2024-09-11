@@ -230,7 +230,9 @@ func (s *dataSource) processChunks(ctx context.Context, block *near.Block) ([]en
 					WithCancelOnError().
 					WithMaxGoroutines(int(lo.FromPtr(s.option.ConcurrentBlockRequests)))
 
-				for _, transaction := range chunk.Transactions {
+				filteredTransactions := s.filterTransaction(chunk.Transactions, s.filter)
+
+				for _, transaction := range filteredTransactions {
 					transaction := transaction
 
 					if s.filter.ReceiverIDs != nil && lo.Contains(s.filter.ReceiverIDs, transaction.ReceiverID) {
@@ -320,6 +322,24 @@ func (s *dataSource) batchPullBlocks(ctx context.Context, blockHeights []*big.In
 	}
 
 	return resultPool.Wait()
+}
+
+// filterTransaction filters transactions.
+func (s *dataSource) filterTransaction(transactions []near.TransactionDetails, filter *Filter) []near.TransactionDetails {
+	return lo.Filter(transactions, func(transaction near.TransactionDetails, _ int) bool {
+		// If relayer IDs are set, keep all transactions with signer ID in relayer IDs
+		if len(filter.RelayerIDs) > 0 && lo.Contains(filter.RelayerIDs, transaction.SignerID) {
+			return true
+		}
+
+		// If receiver IDs are set, only keep the transactions that match these receiver IDs
+		if len(filter.ReceiverIDs) > 0 {
+			return lo.Contains(filter.ReceiverIDs, transaction.ReceiverID)
+		}
+
+		// If receiver IDs are not set, keep all transactions
+		return true
+	})
 }
 
 // NewSource creates a new near dataSource.
