@@ -556,6 +556,8 @@ func (c *client) deleteExpiredActivitiesPartitioned(ctx context.Context, network
 			continue
 		}
 
+		zap.L().Info("deleting expired activities", zap.String("table", activityTable), zap.String("indexTable", indexTable))
+
 		for {
 			done, err := c.batchDeleteExpiredActivities(ctx, network, timestamp, batchSize, &indexTable, lo.Ternary(activityTableExists, &activityTable, nil))
 			if err != nil {
@@ -572,7 +574,7 @@ func (c *client) deleteExpiredActivitiesPartitioned(ctx context.Context, network
 }
 
 func (c *client) batchDeleteExpiredActivities(ctx context.Context, network network.Network, timestamp time.Time, batchSize int, indexTable *string, activityTable *string) (bool, error) {
-	databaseTransaction := c.database.WithContext(ctx).Debug().Begin()
+	databaseTransaction := c.database.WithContext(ctx).Begin()
 	defer func() {
 		_ = databaseTransaction.Rollback().Error
 	}()
