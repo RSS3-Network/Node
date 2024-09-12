@@ -31,7 +31,6 @@ type worker struct {
 	ethereumClient ethereum.Client
 	tokenClient    token.Client
 	ctfExchange    *polymarket.CTFExchangeFilterer
-	// negRiskCTF     *polymarket.NegRiskCTFExchangeFilterer
 }
 
 func (w *worker) Name() string {
@@ -83,37 +82,37 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
-	activity.Type = typex.CollectibleTrade
-	activity.Actions = w.transformOrderTransaction(ctx, polygonTask)
-
-	return activity, nil
-}
-
-func (w *worker) transformOrderTransaction(ctx context.Context, polygonTask *source.Task) (actions []*activityx.Action) {
 	for _, log := range polygonTask.Receipt.Logs {
 		if len(log.Topics) == 0 {
 			continue
 		}
 
 		var (
-			buffer []*activityx.Action
-			err    error
+			actions []*activityx.Action
+			err     error
 		)
 
-		if !w.matchOrderFinalizedLog(polygonTask, log) {
+		switch {
+
+		case w.matchOrderFinalizedLog(polygonTask, log):
+			actions, err = w.transformOrderFinalizedLog(ctx, polygonTask, log)
+
+		default:
+			zap.L().Warn("unsupported log", zap.String("task", polygonTask.ID()), zap.Uint("topic.index", log.Index))
 			continue
 		}
 
-		buffer, err = w.transformOrderFinalizedLog(ctx, polygonTask, log)
 		if err != nil {
 			zap.L().Warn("handle polymarket order transaction", zap.Error(err), zap.String("worker", w.Name()), zap.String("task", polygonTask.ID()))
-			continue
-		}
 
-		actions = append(actions, buffer...)
+			return nil, err
+		}
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	return actions
+	activity.Type = typex.CollectibleTrade
+
+	return activity, nil
 }
 
 func (w *worker) matchOrderFinalizedLog(_ *source.Task, log *ethereum.Log) bool {
@@ -206,7 +205,7 @@ func (w *worker) buildMarketTradeAction(ctx context.Context, _ *source.Task, cha
 func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance := worker{
 		ctfExchange: lo.Must(polymarket.NewCTFExchangeFilterer(ethereum.AddressGenesis, nil)),
-		//negRiskCTF:  lo.Must(polymarket.NewNegRiskCTFExchangeFilterer(ethereum.AddressGenesis, nil)),
+		// negRiskCTF:  lo.Must(polymarket.NewNegRiskCTFExchangeFilterer(ethereum.AddressGenesis, nil)),
 	}
 
 	var err error
