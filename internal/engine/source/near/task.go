@@ -50,6 +50,40 @@ func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, e
 		return nil, fmt.Errorf("build fee: %w", err)
 	}
 
+	// Build Calldata
+	var calldata *activityx.Calldata
+
+	if len(t.Transaction.Transaction.Actions) > 0 {
+		action := t.Transaction.Transaction.Actions[0]
+
+		parsedFunction := "Unknown"
+
+		switch {
+		case action.FunctionCall != nil:
+			parsedFunction = action.FunctionCall.MethodName
+		default:
+			for field, value := range map[string]interface{}{
+				"CreateAccount":   action.CreateAccount,
+				"DeployContract":  action.DeployContract,
+				"Transfer":        action.Transfer,
+				"Stake":           action.Stake,
+				"AddKey":          action.AddKey,
+				"DeleteKey":       action.DeleteKey,
+				"DeleteAccount":   action.DeleteAccount,
+				"DelegateActions": action.DelegateActions,
+			} {
+				if value != nil {
+					parsedFunction = field
+					break
+				}
+			}
+		}
+
+		calldata = &activityx.Calldata{
+			ParsedFunction: parsedFunction,
+		}
+	}
+
 	activity := activityx.Activity{
 		ID:      t.Transaction.Transaction.Hash,
 		Network: t.Network,
@@ -62,6 +96,7 @@ func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, e
 			Decimal: defaultFeeDecimal,
 		},
 		Actions:   make([]*activityx.Action, 0),
+		Calldata:  calldata,
 		Timestamp: uint64(time.Duration(t.Block.Header.Timestamp).Seconds()),
 	}
 
