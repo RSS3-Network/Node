@@ -10,7 +10,7 @@ import (
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/CTFExchange.abi --pkg polymarket --type CTFExchange --out contract_ctf_exchange.go
 // Neg Risk CTF Exchange
 // https://polygonscan.com/address/0xc5d563a36ae78145c45a50134d48a1215220f80a
-//go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/NegRiskCTFExchange.abi --pkg polymarket --type NegRiskCTFExchange --out contract_neg_risk_ctf_exchange.go
+// go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/NegRiskCTFExchange.abi --pkg polymarket --type NegRiskCTFExchange --out contract_neg_risk_ctf_exchange.go
 // Condition Tokens
 // https://polygonscan.com/address/0x4D97DCd97eC945f40cF65F87097ACe5EA0476045
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/ConditionTokens.abi --pkg polymarket --type ConditionTokens --out contract_condition_tokens.go
