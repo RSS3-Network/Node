@@ -38,7 +38,7 @@ func TestWorker_Polymarket(t *testing.T) {
 		wantError require.ErrorAssertionFunc
 	}{
 		{
-			name: "Test Prediction Offer Finalization (buy, sell actions)",
+			name: "Test Prediction Offer Match Finalization (buy, sell actions)",
 			arguments: struct {
 				task   *source.Task
 				config *config.Module

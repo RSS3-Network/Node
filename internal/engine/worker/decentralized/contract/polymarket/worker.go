@@ -31,7 +31,7 @@ type worker struct {
 	ethereumClient ethereum.Client
 	tokenClient    token.Client
 	ctfExchange    *polymarket.CTFExchangeFilterer
-	negRiskCTF     *polymarket.NegRiskCTFExchangeFilterer
+	//negRiskCTF     *polymarket.NegRiskCTFExchangeFilterer
 }
 
 func (w *worker) Name() string {
@@ -206,7 +206,7 @@ func (w *worker) buildMarketTradeAction(ctx context.Context, _ *source.Task, cha
 func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance := worker{
 		ctfExchange: lo.Must(polymarket.NewCTFExchangeFilterer(ethereum.AddressGenesis, nil)),
-		negRiskCTF:  lo.Must(polymarket.NewNegRiskCTFExchangeFilterer(ethereum.AddressGenesis, nil)),
+		//negRiskCTF:  lo.Must(polymarket.NewNegRiskCTFExchangeFilterer(ethereum.AddressGenesis, nil)),
 	}
 
 	var err error
