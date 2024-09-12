@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/source/near"
-	"github.com/rss3-network/node/provider/near"
 	workerx "github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
@@ -71,7 +71,7 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform returns an activity with the actions of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	// Cast the task to an Near task.
+	// Cast the task to a Near task.
 	nearTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -108,138 +108,126 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 }
 
 // handleLiNEARActions processes all actions in the LiNEAR transaction and returns a slice of activityx.Action.
-func (w *worker) handleLiNEARActions(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
+func (w *worker) handleLiNEARActions(_ context.Context, task *source.Task) ([]*activityx.Action, error) {
 	var actions []*activityx.Action
 
-	for _, action := range task.Transaction.Transaction.Actions {
-		if action.FunctionCall != nil && (action.FunctionCall.MethodName == liNEARFTTransferMethod || action.FunctionCall.MethodName == liNEARFTTransferCallMethod) {
-			functionCallActions, err := w.handleLiNEARFunctionCallAction(ctx, task.Transaction.Transaction.SignerID, task.Transaction.Transaction.ReceiverID, action.FunctionCall)
-			if err != nil {
-				return nil, fmt.Errorf("handle function call action: %w", err)
+	var events []Event
+
+	for _, receipt := range task.Transaction.ReceiptsOutcome {
+		for _, log := range receipt.Outcome.Logs {
+			if strings.HasPrefix(log, "EVENT_JSON:") {
+				eventJSON := strings.TrimPrefix(log, "EVENT_JSON:")
+
+				var event Event
+
+				if err := json.Unmarshal([]byte(eventJSON), &event); err != nil {
+					return nil, fmt.Errorf("unmarshal event JSON: %w", err)
+				}
+
+				event.TokenAddress = receipt.Outcome.ExecutorID
+				events = append(events, event)
 			}
-
-			actions = append(actions, functionCallActions...)
 		}
 	}
 
-	return actions, nil
-}
-
-// handleLiNEARFunctionCallAction processes a single FunctionCall action and returns an array of activityx.Action.
-func (w *worker) handleLiNEARFunctionCallAction(_ context.Context, from, to string, functionCallAction *near.FunctionCallAction) ([]*activityx.Action, error) {
-	// Decode function call args
-	args, err := near.DecodeBase64(functionCallAction.Args)
-	if err != nil {
-		return nil, fmt.Errorf("decode function call args: %w", err)
-	}
-
-	var functionCallArgs FunctionCallArgs
-	if err := json.Unmarshal(args, &functionCallArgs); err != nil {
-		return nil, fmt.Errorf("unmarshal LiNEAR function call args: %w", err)
-	}
-
-	amount, ok := new(big.Int).SetString(functionCallArgs.Amount, 10)
-	if !ok {
-		return nil, fmt.Errorf("invalid amount: %s", functionCallArgs.Amount)
-	}
-
-	// Build transfer action
-	transferAction := w.buildNearTransactionTransferAction(from, functionCallArgs.ReceiverID, amount)
-
-	// unmarshal and parse msg
-	var lineaMsg Msg
-
-	if err := json.Unmarshal([]byte(functionCallArgs.Msg), &lineaMsg); err != nil {
-		return nil, fmt.Errorf("unmarshal LiNEAR msg: %w", err)
-	}
-
-	actions := []*activityx.Action{transferAction}
-
-	// If there are swap actions, build and add them
-	if len(lineaMsg.Actions) > 0 {
-		swapActions, err := w.buildLiNEARSwapActions(from, to, lineaMsg)
+	if len(events) == 1 {
+		// Transfer action
+		action, err := w.buildTransferAction(&events[0])
 		if err != nil {
-			return nil, fmt.Errorf("build swap actions: %w", err)
+			return nil, fmt.Errorf("build transfer action: %w", err)
 		}
 
-		actions = append(actions, swapActions...)
+		actions = append(actions, action)
+	} else if len(events) == 2 {
+		// Swap action
+		action, err := w.buildSwapAction(task.Transaction.Transaction.SignerID, &events[0], &events[1])
+		if err != nil {
+			return nil, fmt.Errorf("build swap action: %w", err)
+		}
+
+		actions = append(actions, action)
 	}
 
 	return actions, nil
 }
 
-// buildNearTransactionTransferAction returns the native transfer transaction action.
-func (w *worker) buildNearTransactionTransferAction(from, to string, tokenValue *big.Int) *activityx.Action {
+func (w *worker) buildTransferAction(event *Event) (*activityx.Action, error) {
+	if len(event.Data) == 0 {
+		return nil, fmt.Errorf("no data in transfer event")
+	}
+
+	data := event.Data[0]
+
+	amount, ok := new(big.Int).SetString(data.Amount, 10)
+	if !ok {
+		return nil, fmt.Errorf("invalid amount: %s", data.Amount)
+	}
+
 	return &activityx.Action{
 		Type: typex.TransactionTransfer,
-		From: from,
-		To:   to,
+		From: data.OldOwnerID,
+		To:   data.NewOwnerID,
 		Metadata: metadata.TransactionTransfer{
 			Name:     "LNR",
 			Symbol:   "LNR",
 			Decimals: 18,
-			Value:    lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0)),
+			Value:    lo.ToPtr(decimal.NewFromBigInt(amount, 0)),
+			Standard: getTokenStandard(event.Standard),
+			Address:  lo.ToPtr(event.TokenAddress),
 		},
-	}
+	}, nil
 }
 
-// buildLiNEARSwapActions builds exchange swap actions for LiNEAR.
-func (w *worker) buildLiNEARSwapActions(from, to string, linearMsg Msg) ([]*activityx.Action, error) {
-	if len(linearMsg.Actions) == 0 {
-		return nil, fmt.Errorf("no swap actions provided")
-	}
+func (w *worker) buildSwapAction(signerID string, event1, event2 *Event) (*activityx.Action, error) {
+	var fromToken, toToken metadata.Token
 
-	swapActions := make([]*activityx.Action, 0, len(linearMsg.Actions))
+	var toAddress string
 
-	for _, swapAction := range linearMsg.Actions {
-		var amountIn *big.Int
-
-		if swapAction.AmountIn != "" {
-			var ok bool
-
-			amountIn, ok = new(big.Int).SetString(swapAction.AmountIn, 10)
-			if !ok {
-				return nil, fmt.Errorf("invalid amount_in: %s", swapAction.AmountIn)
-			}
-		} else {
-			amountIn = big.NewInt(0)
+	for _, event := range []*Event{event1, event2} {
+		if len(event.Data) == 0 {
+			continue
 		}
 
-		minAmountOut, ok := new(big.Int).SetString(swapAction.MinAmountOut, 10)
+		data := event.Data[0]
+
+		amount, ok := new(big.Int).SetString(data.Amount, 10)
 		if !ok {
-			return nil, fmt.Errorf("invalid min_amount_out: %s", swapAction.MinAmountOut)
+			return nil, fmt.Errorf("invalid amount: %s", data.Amount)
 		}
 
-		tokenIn := swapAction.TokenIn
-		tokenOut := swapAction.TokenOut
-
-		fromToken := &metadata.Token{
-			Address:  &tokenIn,
-			Value:    lo.ToPtr(decimal.NewFromBigInt(amountIn, 0)),
-			Decimals: 0,
+		token := metadata.Token{
+			Value:    lo.ToPtr(decimal.NewFromBigInt(amount, 0)),
+			Standard: getTokenStandard(event.Standard),
+			Address:  lo.ToPtr(event.TokenAddress),
 		}
 
-		toToken := &metadata.Token{
-			Address:  &tokenOut,
-			Value:    lo.ToPtr(decimal.NewFromBigInt(minAmountOut, 0)),
-			Decimals: 0,
+		if data.OldOwnerID == signerID {
+			fromToken = token
+			toAddress = data.NewOwnerID
+		} else if data.NewOwnerID == signerID {
+			toToken = token
 		}
-
-		action := &activityx.Action{
-			Type:     typex.ExchangeSwap,
-			Platform: w.Platform(),
-			From:     from,
-			To:       to,
-			Metadata: metadata.ExchangeSwap{
-				From: *fromToken,
-				To:   *toToken,
-			},
-		}
-
-		swapActions = append(swapActions, action)
 	}
 
-	return swapActions, nil
+	return &activityx.Action{
+		Type:     typex.ExchangeSwap,
+		Platform: w.Platform(),
+		From:     signerID,
+		To:       toAddress,
+		Metadata: metadata.ExchangeSwap{
+			From: fromToken,
+			To:   toToken,
+		},
+	}, nil
+}
+
+func getTokenStandard(standard string) metadata.Standard {
+	switch standard {
+	case "nep141":
+		return metadata.StandardNEP141
+	default:
+		return metadata.StandardUnknown
+	}
 }
 
 // NewWorker returns a new LiNEAR worker.

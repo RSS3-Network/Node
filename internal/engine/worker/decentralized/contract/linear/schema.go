@@ -18,3 +18,17 @@ type Action struct {
 	AmountIn     string `json:"amount_in,omitempty"`
 	MinAmountOut string `json:"min_amount_out"`
 }
+
+type Event struct {
+	Standard     string `json:"standard"`
+	Version      string `json:"version"`
+	Event        string `json:"event"`
+	Data         []Data `json:"data"`
+	TokenAddress string `json:"token_address"`
+}
+
+type Data struct {
+	OldOwnerID string `json:"old_owner_id"`
+	NewOwnerID string `json:"new_owner_id"`
+	Amount     string `json:"amount"`
+}

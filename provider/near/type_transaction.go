@@ -20,7 +20,7 @@ type TransactionOutcome struct {
 }
 
 type Outcome struct {
-	Logs        []interface{}              `json:"logs"`
+	Logs        []string                   `json:"logs"`
 	ReceiptIDs  []string                   `json:"receipt_ids"`
 	GasBurnt    int64                      `json:"gas_burnt"`
 	TokensBurnt string                     `json:"tokens_burnt"`

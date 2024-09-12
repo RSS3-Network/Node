@@ -2,7 +2,6 @@ package near_test
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/rss3-network/node/config"
@@ -110,7 +109,7 @@ func TestWorker_Near(t *testing.T) {
 			feed, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
 
 			require.Equal(t, testcase.want, feed)
 		})
