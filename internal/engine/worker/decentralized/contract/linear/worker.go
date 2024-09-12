@@ -90,7 +90,17 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	}
 
 	if len(actions) > 0 {
-		activity.Type = actions[0].Type
+		// Check if there are any swap actions
+		hasSwapAction := lo.ContainsBy(actions, func(action *activityx.Action) bool {
+			return action.Type == typex.ExchangeSwap
+		})
+
+		if hasSwapAction {
+			activity.Type = typex.ExchangeSwap
+		} else {
+			activity.Type = actions[0].Type
+		}
+
 		activity.Actions = append(activity.Actions, actions...)
 	}
 
