@@ -31,7 +31,7 @@ type worker struct {
 	ethereumClient ethereum.Client
 	tokenClient    token.Client
 	ctfExchange    *polymarket.CTFExchangeFilterer
-	//negRiskCTF     *polymarket.NegRiskCTFExchangeFilterer
+	// negRiskCTF     *polymarket.NegRiskCTFExchangeFilterer
 }
 
 func (w *worker) Name() string {
