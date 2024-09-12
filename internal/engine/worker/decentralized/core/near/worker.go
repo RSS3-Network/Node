@@ -50,6 +50,7 @@ func (w *worker) Tags() []tag.Tag {
 func (w *worker) Types() []schema.Type {
 	return []schema.Type{
 		typex.Unknown,
+		typex.TransactionTransfer,
 	}
 }
 

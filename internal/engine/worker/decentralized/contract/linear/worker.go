@@ -44,6 +44,7 @@ func (w *worker) Network() []network.Network {
 func (w *worker) Tags() []tag.Tag {
 	return []tag.Tag{
 		tag.Exchange,
+		tag.Transaction,
 	}
 }
 
