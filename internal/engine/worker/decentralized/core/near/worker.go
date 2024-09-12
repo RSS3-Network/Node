@@ -58,9 +58,9 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	return nil
 }
 
-// Transform returns an activity  with the action of the task.
+// Transform returns an activity with the actions of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	// Cast the task to an Near task.
+	// Cast the task to a Near task.
 	nearTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -72,71 +72,57 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
-	// If the task is a native transfer transaction, handle it.
-	if w.matchTransferTransaction(nearTask) {
-		// Handle the native transfer transaction.
-		action, err := w.handleNearTransferTransaction(ctx, nearTask)
-		if err != nil {
-			return nil, fmt.Errorf("handle native transfer transaction: %w", err)
-		}
+	// Handle all actions in the transaction
+	actions, err := w.handleNearActions(ctx, nearTask)
+	if err != nil {
+		return nil, fmt.Errorf("handle near actions: %w", err)
+	}
 
-		activity.Type = action.Type
-		activity.Actions = append(activity.Actions, action)
+	if len(actions) > 0 {
+		activity.Type = actions[0].Type
+		activity.Actions = append(activity.Actions, actions...)
 	}
 
 	return activity, nil
 }
 
-// matchTransferTransaction returns true if the transaction is a transfer transaction.
-func (w *worker) matchTransferTransaction(task *source.Task) bool {
-	// Check if the transaction has actions
-	if len(task.Transaction.Transaction.Actions) == 0 {
-		return false
-	}
+// handleNearActions processes all actions in the Near transaction and returns a slice of activityx.Action.
+func (w *worker) handleNearActions(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
+	var actions []*activityx.Action
 
-	// Iterate through the actions to find a Transfer action
 	for _, action := range task.Transaction.Transaction.Actions {
-		// add logic to check deposit is larger than 0, use decimal
 		if action.Transfer != nil {
-			deposit, err := decimal.NewFromString(action.Transfer.Deposit)
-			if err == nil && decimal.NewFromInt(0).LessThan(deposit) {
-				return true
+			transferAction, err := w.handleNearTransferAction(ctx, task.Transaction.Transaction.SignerID, task.Transaction.Transaction.ReceiverID, action.Transfer)
+			if err != nil {
+				return nil, fmt.Errorf("handle transfer action: %w", err)
+			}
+
+			if transferAction != nil {
+				actions = append(actions, transferAction)
 			}
 		}
 	}
 
-	// If no Transfer action is found, it's not a native transfer transaction
-	return false
+	return actions, nil
 }
 
-// handleNearNativeTransferTransaction returns the action of the native transfer transaction.
-func (w *worker) handleNearTransferTransaction(ctx context.Context, task *source.Task) (*activityx.Action, error) {
-	// Find the Transfer action and get its deposit value
-	var transferAction *near.TransferAction
-
-	for _, action := range task.Transaction.Transaction.Actions {
-		if action.Transfer != nil {
-			transferAction = action.Transfer
-			break
-		}
-	}
-
-	if transferAction == nil {
-		return nil, fmt.Errorf("no transfer action found in transaction")
-	}
-
+// handleNearTransferAction processes a single Transfer action and returns an activityx.Action.
+func (w *worker) handleNearTransferAction(ctx context.Context, from, to string, transferAction *near.TransferAction) (*activityx.Action, error) {
 	value, err := decimal.NewFromString(transferAction.Deposit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse deposit value: %w", err)
 	}
 
-	// Build the native transfer transaction action.
-	return w.buildNearTransactionTransferAction(ctx, task.Transaction.Transaction.SignerID, task.Transaction.Transaction.ReceiverID, value.BigInt())
+	if value.IsZero() {
+		return nil, nil // Skip zero-value transfers
+	}
+
+	return w.buildNearTransactionTransferAction(ctx, from, to, value.BigInt())
 }
 
 // buildNearTransactionTransferAction returns the native transfer transaction action.
 func (w *worker) buildNearTransactionTransferAction(_ context.Context, from, to string, tokenValue *big.Int) (*activityx.Action, error) {
-	action := activityx.Action{
+	action := &activityx.Action{
 		Type: typex.TransactionTransfer,
 		From: from,
 		To:   to,
@@ -148,10 +134,10 @@ func (w *worker) buildNearTransactionTransferAction(_ context.Context, from, to 
 		},
 	}
 
-	return &action, nil
+	return action, nil
 }
 
-// NewWorker returns a new Arweave worker.
+// NewWorker returns a new Near worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
 	var instance = worker{
 		config: config,

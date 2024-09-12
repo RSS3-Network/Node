@@ -8,5 +8,4 @@ var _ engine.DataSourceFilter = (*Filter)(nil)
 
 type Filter struct {
 	ReceiverIDs []string `yaml:"receiver_ids"`
-	RelayerIDs  []string `yaml:"relayer_ids"`
 }

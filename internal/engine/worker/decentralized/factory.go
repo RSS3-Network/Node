@@ -18,6 +18,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/kiwistand"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/lens"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/lido"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/linear"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/looksrare"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/matters"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/mirror"
@@ -84,6 +85,8 @@ func New(config *config.Module, databaseClient database.Client, redisClient ruei
 		return stargate.NewWorker(config)
 	case decentralized.Curve:
 		return curve.NewWorker(config, redisClient)
+	case decentralized.LiNEAR:
+		return linear.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}

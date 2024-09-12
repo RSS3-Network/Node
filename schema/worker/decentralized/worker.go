@@ -20,6 +20,7 @@ const (
 	KiwiStand                    // kiwistand
 	Lens                         // lens
 	Lido                         // lido
+	LiNEAR                       // linear
 	Looksrare                    // looksrare
 	Matters                      // matters
 	Mirror                       // mirror
@@ -73,6 +74,7 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	KiwiStand:  {tag.Collectible, tag.Transaction, tag.Social},
 	Lens:       {tag.Social},
 	Lido:       {tag.Exchange, tag.Transaction, tag.Collectible},
+	LiNEAR:     {tag.Exchange, tag.Transaction},
 	Looksrare:  {tag.Collectible},
 	Matters:    {tag.Social},
 	Mirror:     {tag.Social},
