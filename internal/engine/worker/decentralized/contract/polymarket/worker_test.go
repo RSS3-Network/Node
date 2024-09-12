@@ -123,8 +123,8 @@ func TestWorker_Polymarket(t *testing.T) {
 					{
 						Type:     typex.CollectibleTrade,
 						Platform: workerx.PlatformPolymarket.String(),
-						From:     "0xABf500a9b3481Ee143FDE5078df1A202Eb88A4A6",
-						To:       "0x43eD7d1Bf7c703136971Ae5E64F6E7fEeA435535",
+						From:     "0x43eD7d1Bf7c703136971Ae5E64F6E7fEeA435535",
+						To:       "0xABf500a9b3481Ee143FDE5078df1A202Eb88A4A6",
 						Metadata: metadata.CollectibleTrade{
 							Action: metadata.ActionCollectibleTradeBuy,
 							Token: metadata.Token{
@@ -161,7 +161,8 @@ func TestWorker_Polymarket(t *testing.T) {
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("79506400"))),
 							},
 						},
-					}},
+					},
+				},
 				Status:    true,
 				Timestamp: 1726122849,
 			},
