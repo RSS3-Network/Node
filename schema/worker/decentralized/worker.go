@@ -35,6 +35,7 @@ const (
 	Optimism                     // optimism
 	Paragraph                    // paragraph
 	Paraswap                     // paraswap
+	Polymarket                   // polymarket
 	RSS3                         // rss3
 	SAVM                         // savm
 	Stargate                     // stargate
@@ -92,6 +93,7 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	Optimism:   {tag.Transaction},
 	Paragraph:  {tag.Social},
 	Paraswap:   {tag.Exchange},
+	Polymarket: {tag.Exchange},
 	RSS3:       {tag.Exchange, tag.Collectible},
 	SAVM:       {tag.Transaction},
 	Stargate:   {tag.Transaction},

@@ -733,7 +733,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						From:     "0x0a049e014999A489b3D7174B8f70D4200b0Ce79B",
 						To:       "0x6f3E6272A167e8AcCb32072d08E0957F9c79223d",
 						Metadata: metadata.GovernanceVote{
-							Action: metadata.ActionGovernanceFor,
+							Action: metadata.ActionGovernanceVoteFor,
 							Count:  2,
 							Reason: "For: 3 | Against: 1 | Abstain: 0\n\n+for — @87bones\n\n+for — @roxby\n\n+for Also hoping to see some cool ⌐◨-◨ inspired furniture/infra in the gallery — @wideeyekarl\n\n+against — @bixbite",
 							Proposal: metadata.GovernanceProposal{

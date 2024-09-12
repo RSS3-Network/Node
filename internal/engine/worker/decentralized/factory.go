@@ -32,6 +32,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/optimism"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/paragraph"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/paraswap"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/polymarket"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/rss3"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/savm"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/stargate"
@@ -112,6 +113,8 @@ func newNonCoreWorker(config *config.Module, databaseClient database.Client, red
 		return base.NewWorker(config)
 	case decentralized.Linea:
 		return linea.NewWorker(config)
+	case decentralized.Polymarket:
+		return polymarket.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}
