@@ -264,6 +264,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Highlight,
 		decentralized.IQWiki,
 		decentralized.Lens,
+		decentralized.Polymarket,
 		decentralized.Stargate,
 	},
 	network.Crossbell: {
@@ -353,6 +354,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.OpenSea:    defaultWorkerConfig(decentralized.OpenSea, network.EthereumSource, nil),
 		decentralized.Optimism:   defaultWorkerConfig(decentralized.Optimism, network.EthereumSource, nil),
 		decentralized.Paraswap:   defaultWorkerConfig(decentralized.Paraswap, network.EthereumSource, nil),
+		decentralized.Polymarket: defaultWorkerConfig(decentralized.Polymarket, network.EthereumSource, nil),
 		decentralized.RSS3:       defaultWorkerConfig(decentralized.RSS3, network.EthereumSource, nil),
 		decentralized.SAVM:       defaultWorkerConfig(decentralized.SAVM, network.EthereumSource, nil),
 		decentralized.Stargate:   defaultWorkerConfig(decentralized.Stargate, network.EthereumSource, nil),

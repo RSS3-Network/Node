@@ -93,7 +93,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		)
 
 		switch {
-
 		case w.matchOrderFinalizedLog(polygonTask, log):
 			actions, err = w.transformOrderFinalizedLog(ctx, polygonTask, log)
 
@@ -107,6 +106,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 			return nil, err
 		}
+
 		activity.Actions = append(activity.Actions, actions...)
 	}
 
