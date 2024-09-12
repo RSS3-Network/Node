@@ -178,12 +178,12 @@ func (w *worker) buildMarketTradeAction(ctx context.Context, _ *source.Task, cha
 	buyAction := &activityx.Action{
 		Type:     typex.CollectibleTrade,
 		Platform: w.Platform(),
-		From:     maker.String(),
-		To:       taker.String(),
+		From:     taker.String(),
+		To:       maker.String(),
 		Metadata: metadata.CollectibleTrade{
 			Action: metadata.ActionCollectibleTradeBuy,
-			Token:  *makerToken,
-			Cost:   takerToken,
+			Token:  *takerToken,
+			Cost:   makerToken,
 		},
 	}
 

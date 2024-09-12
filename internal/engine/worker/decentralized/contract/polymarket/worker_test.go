@@ -38,7 +38,7 @@ func TestWorker_Polymarket(t *testing.T) {
 		wantError require.ErrorAssertionFunc
 	}{
 		{
-			name: "Test Prediction Offer Match Finalization (buy, sell actions)",
+			name: "Test Offer Match Finalization",
 			arguments: struct {
 				task   *source.Task
 				config *config.Module
@@ -128,16 +128,16 @@ func TestWorker_Polymarket(t *testing.T) {
 						Metadata: metadata.CollectibleTrade{
 							Action: metadata.ActionCollectibleTradeBuy,
 							Token: metadata.Token{
-								Name:     "Polygon",
-								Symbol:   "MATIC",
-								Decimals: 18,
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("79506400"))),
-							},
-							Cost: &metadata.Token{
 								Address:  lo.ToPtr("0x4D97DCd97eC945f40cF65F87097ACe5EA0476045"),
 								ID:       lo.ToPtr(lo.Must(decimal.NewFromString("8457663681790058947550769538996974245890751367516560139630487435494614626997"))),
 								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("274160000"))),
 								Standard: metadata.StandardERC1155,
+							},
+							Cost: &metadata.Token{
+								Name:     "Polygon",
+								Symbol:   "MATIC",
+								Decimals: 18,
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("79506400"))),
 							},
 						},
 					},
