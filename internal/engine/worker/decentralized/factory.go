@@ -23,6 +23,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/lens"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/lido"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/linea"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/linear"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/looksrare"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/matters"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/mirror"
@@ -115,6 +116,8 @@ func newNonCoreWorker(config *config.Module, databaseClient database.Client, red
 		return linea.NewWorker(config)
 	case decentralized.Polymarket:
 		return polymarket.NewWorker(config)
+	case decentralized.LiNEAR:
+		return linear.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}

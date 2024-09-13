@@ -24,6 +24,7 @@ const (
 	PlatformLens                       // Lens
 	PlatformLido                       // Lido
 	PlatformLinea                      // Linear
+	PlatformLiNEAR                     // LiNEAR
 	PlatformLooksRare                  // LooksRare
 	PlatformMatters                    // Matters
 	PlatformMirror                     // Mirror
@@ -58,6 +59,7 @@ var ToPlatformMap = map[Worker]Platform{
 	Aave:       PlatformAAVE,
 	Aavegotchi: PlatformAavegotchi,
 	Arbitrum:   PlatformArbitrum,
+	Base:       PlatformBase,
 	BendDAO:    PlatformBendDAO,
 	Cow:        PlatformCow,
 	Crossbell:  PlatformCrossbell,
@@ -68,6 +70,8 @@ var ToPlatformMap = map[Worker]Platform{
 	KiwiStand:  PlatformKiwiStand,
 	Lens:       PlatformLens,
 	Lido:       PlatformLido,
+	Linea:      PlatformLinea,
+	LiNEAR:     PlatformLiNEAR,
 	Looksrare:  PlatformLooksRare,
 	Matters:    PlatformMatters,
 	Mirror:     PlatformMirror,

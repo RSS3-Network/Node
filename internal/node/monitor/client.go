@@ -14,6 +14,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/farcaster"
 	"github.com/rss3-network/node/provider/httpx"
+	"github.com/rss3-network/node/provider/near"
 )
 
 type Client interface {
@@ -59,6 +60,41 @@ func NewEthereumClient(endpoint config.Endpoint) (Client, error) {
 
 	return &ethereumClient{
 		ethereumClient: evmClient,
+	}, nil
+}
+
+type nearClient struct {
+	client near.Client
+}
+
+// make sure client implements Client
+var _ Client = (*nearClient)(nil)
+
+func (c *nearClient) CurrentState(state CheckpointState) (uint64, uint64) {
+	return state.BlockHeight, 0
+}
+
+func (c *nearClient) TargetState(param *config.Parameters) (uint64, uint64) {
+	return getTargetBlockFromParam(param), 0
+}
+
+func (c *nearClient) LatestState(ctx context.Context) (uint64, uint64, error) {
+	latestWorkerState, err := c.client.GetBlockHeight(ctx)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return uint64(latestWorkerState), 0, nil
+}
+
+func NewNearClient(endpoint config.Endpoint) (Client, error) {
+	client, err := near.Dial(context.Background(), endpoint.URL)
+	if err != nil {
+		return nil, err
+	}
+
+	return &nearClient{
+		client: client,
 	}, nil
 }
 
