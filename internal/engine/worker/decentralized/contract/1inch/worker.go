@@ -76,6 +76,7 @@ func (w *worker) Filter() engine.DataSourceFilter {
 			oneinch.AddressAggregationRouterV3,
 			oneinch.AddressAggregationRouterV4,
 			oneinch.AddressAggregationRouterV5,
+			oneinch.AddressAggregationRouterV6,
 			oneinch.AddressExchange2,
 			oneinch.AddressEther,
 		},
@@ -83,6 +84,7 @@ func (w *worker) Filter() engine.DataSourceFilter {
 			oneinch.EventHashExchangeSwapped,
 			oneinch.EventHashAggregationRouterV2Swapped,
 			oneinch.EventHashAggregationRouterV3Swapped,
+			oneinch.EventHashOrderFilled,
 		},
 	}
 }

@@ -21,6 +21,8 @@ import (
 func TestMonitor(t *testing.T) {
 	t.Parallel()
 
+	mockNetworkTolerance()
+
 	type arguments struct {
 		config        *config.File
 		currentState  monitor.CheckpointState
@@ -59,7 +61,7 @@ func TestMonitor(t *testing.T) {
 				currentState: monitor.CheckpointState{
 					BlockNumber: 19800000,
 				},
-				latestState:   19800000 + parameter.NetworkTolerance[network.Ethereum] + 1,
+				latestState:   19800000 + parameter.CurrentNetworkTolerance[network.Ethereum] + 1,
 				initialStatus: worker.StatusReady,
 			},
 			want:      worker.StatusIndexing,
@@ -87,7 +89,7 @@ func TestMonitor(t *testing.T) {
 				currentState: monitor.CheckpointState{
 					BlockNumber: 19800000,
 				},
-				latestState: 19800000 + parameter.NetworkTolerance[network.Ethereum] - 1,
+				latestState: 19800000 + parameter.CurrentNetworkTolerance[network.Ethereum] - 1,
 			},
 			want:      worker.StatusReady,
 			wantError: require.NoError,
@@ -115,7 +117,7 @@ func TestMonitor(t *testing.T) {
 					BlockNumber: 19800000,
 				},
 				targetState: 19800000,
-				latestState: 19800000 + parameter.NetworkTolerance[network.Ethereum] + 1,
+				latestState: 19800000 + parameter.CurrentNetworkTolerance[network.Ethereum] + 1,
 			},
 			want:      worker.StatusReady,
 			wantError: require.NoError,
@@ -143,7 +145,7 @@ func TestMonitor(t *testing.T) {
 					BlockNumber: 19800000,
 				},
 				targetState: 19800000,
-				latestState: 19800000 + parameter.NetworkTolerance[network.Ethereum] + 1,
+				latestState: 19800000 + parameter.CurrentNetworkTolerance[network.Ethereum] + 1,
 			},
 			want:      worker.StatusReady,
 			wantError: require.NoError,
@@ -171,7 +173,7 @@ func TestMonitor(t *testing.T) {
 					BlockNumber: 19800000,
 				},
 				targetState: 19800001,
-				latestState: 19800000 + parameter.NetworkTolerance[network.Ethereum] + 1,
+				latestState: 19800000 + parameter.CurrentNetworkTolerance[network.Ethereum] + 1,
 			},
 			want:      worker.StatusIndexing,
 			wantError: require.NoError,
@@ -199,7 +201,7 @@ func TestMonitor(t *testing.T) {
 					BlockNumber: 19800000,
 				},
 				lastState:   19800000,
-				latestState: 19800000 + parameter.NetworkTolerance[network.Ethereum] - 1,
+				latestState: 19800000 + parameter.CurrentNetworkTolerance[network.Ethereum] - 1,
 			},
 			want:      worker.StatusUnhealthy,
 			wantError: require.NoError,
@@ -227,7 +229,7 @@ func TestMonitor(t *testing.T) {
 					BlockNumber: 19800000,
 				},
 				lastState:   19800000 - 1,
-				latestState: 19800000 + parameter.NetworkTolerance[network.Ethereum] + 1,
+				latestState: 19800000 + parameter.CurrentNetworkTolerance[network.Ethereum] + 1,
 			},
 			want:      worker.StatusIndexing,
 			wantError: require.NoError,
@@ -255,7 +257,7 @@ func TestMonitor(t *testing.T) {
 					BlockNumber: 19800000,
 				},
 				lastState:   19800000 - 1,
-				latestState: 19800000 + parameter.NetworkTolerance[network.Ethereum] + 1,
+				latestState: 19800000 + parameter.CurrentNetworkTolerance[network.Ethereum] + 1,
 			},
 			want:      worker.StatusIndexing,
 			wantError: require.NoError,
@@ -283,7 +285,7 @@ func TestMonitor(t *testing.T) {
 					BlockNumber: 19800000,
 				},
 				lastState:   19800000 - 1,
-				latestState: 19800000 + parameter.NetworkTolerance[network.Ethereum] - 1,
+				latestState: 19800000 + parameter.CurrentNetworkTolerance[network.Ethereum] - 1,
 			},
 			want:      worker.StatusReady,
 			wantError: require.NoError,
@@ -311,7 +313,7 @@ func TestMonitor(t *testing.T) {
 					BlockNumber: 1,
 				},
 				lastState:   0,
-				latestState: 19800000 + parameter.NetworkTolerance[network.Ethereum] + 1,
+				latestState: 19800000 + parameter.CurrentNetworkTolerance[network.Ethereum] + 1,
 			},
 			want:      worker.StatusIndexing,
 			wantError: require.NoError,
@@ -336,7 +338,7 @@ func TestMonitor(t *testing.T) {
 				currentState: monitor.CheckpointState{
 					BlockHeight: 1420000,
 				},
-				latestState:   1420000 + parameter.NetworkTolerance[network.Arweave] + 1,
+				latestState:   1420000 + parameter.CurrentNetworkTolerance[network.Arweave] + 1,
 				initialStatus: worker.StatusReady,
 			},
 			want:      worker.StatusIndexing,
@@ -360,7 +362,7 @@ func TestMonitor(t *testing.T) {
 				currentState: monitor.CheckpointState{
 					BlockHeight: 1420000,
 				},
-				latestState:   1420000 + parameter.NetworkTolerance[network.Arweave] - 1,
+				latestState:   1420000 + parameter.CurrentNetworkTolerance[network.Arweave] - 1,
 				initialStatus: worker.StatusReady,
 			},
 			want:      worker.StatusReady,
@@ -385,7 +387,7 @@ func TestMonitor(t *testing.T) {
 					BlockHeight: 1420000,
 				},
 				targetState:   1420000,
-				latestState:   1420000 + parameter.NetworkTolerance[network.Arweave] + 1,
+				latestState:   1420000 + parameter.CurrentNetworkTolerance[network.Arweave] + 1,
 				initialStatus: worker.StatusReady,
 			},
 			want:      worker.StatusReady,
@@ -410,7 +412,7 @@ func TestMonitor(t *testing.T) {
 					BlockHeight: 1420000,
 				},
 				targetState:   1420000,
-				latestState:   1420000 + parameter.NetworkTolerance[network.Arweave] + 1,
+				latestState:   1420000 + parameter.CurrentNetworkTolerance[network.Arweave] + 1,
 				initialStatus: worker.StatusIndexing,
 			},
 			want:      worker.StatusReady,
@@ -435,7 +437,7 @@ func TestMonitor(t *testing.T) {
 					BlockHeight: 1420000,
 				},
 				targetState:   1420001,
-				latestState:   1420000 + parameter.NetworkTolerance[network.Arweave] + 1,
+				latestState:   1420000 + parameter.CurrentNetworkTolerance[network.Arweave] + 1,
 				initialStatus: worker.StatusIndexing,
 			},
 			want:      worker.StatusIndexing,
@@ -460,7 +462,7 @@ func TestMonitor(t *testing.T) {
 					BlockHeight: 1420000,
 				},
 				lastState:     1420000,
-				latestState:   1420000 + parameter.NetworkTolerance[network.Arweave] - 1,
+				latestState:   1420000 + parameter.CurrentNetworkTolerance[network.Arweave] - 1,
 				initialStatus: worker.StatusIndexing,
 			},
 			want:      worker.StatusUnhealthy,
@@ -485,7 +487,7 @@ func TestMonitor(t *testing.T) {
 					BlockHeight: 1420000,
 				},
 				lastState:     1420000 - 1,
-				latestState:   1420000 + parameter.NetworkTolerance[network.Arweave] + 1,
+				latestState:   1420000 + parameter.CurrentNetworkTolerance[network.Arweave] + 1,
 				initialStatus: worker.StatusIndexing,
 			},
 			want:      worker.StatusIndexing,
@@ -510,7 +512,7 @@ func TestMonitor(t *testing.T) {
 					BlockHeight: 1420000,
 				},
 				lastState:     1420000 - 1,
-				latestState:   1420000 + parameter.NetworkTolerance[network.Arweave] + 1,
+				latestState:   1420000 + parameter.CurrentNetworkTolerance[network.Arweave] + 1,
 				initialStatus: worker.StatusUnhealthy,
 			},
 			want:      worker.StatusIndexing,
@@ -535,7 +537,7 @@ func TestMonitor(t *testing.T) {
 					BlockHeight: 1420000,
 				},
 				lastState:     1420000 - 1,
-				latestState:   1420000 + parameter.NetworkTolerance[network.Arweave] - 1,
+				latestState:   1420000 + parameter.CurrentNetworkTolerance[network.Arweave] - 1,
 				initialStatus: worker.StatusIndexing,
 			},
 			want:      worker.StatusReady,
@@ -560,7 +562,7 @@ func TestMonitor(t *testing.T) {
 					BlockHeight: 1,
 				},
 				lastState:     0,
-				latestState:   1420000 + parameter.NetworkTolerance[network.Arweave] + 1,
+				latestState:   1420000 + parameter.CurrentNetworkTolerance[network.Arweave] + 1,
 				initialStatus: worker.StatusUnknown,
 			},
 			want:      worker.StatusIndexing,
@@ -585,7 +587,7 @@ func TestMonitor(t *testing.T) {
 				currentState: monitor.CheckpointState{
 					BlockTimestamp: 1637596118633,
 				},
-				latestState:   1637596118633 + parameter.NetworkTolerance[network.Arweave]*120000 + 1,
+				latestState:   1637596118633 + parameter.CurrentNetworkTolerance[network.Arweave]*120000 + 1,
 				initialStatus: worker.StatusReady,
 			},
 			want:      worker.StatusIndexing,
@@ -609,7 +611,7 @@ func TestMonitor(t *testing.T) {
 				currentState: monitor.CheckpointState{
 					BlockTimestamp: 1637596118633,
 				},
-				latestState:   1637596118633 + parameter.NetworkTolerance[network.Arweave]*120000 - 1,
+				latestState:   1637596118633 + parameter.CurrentNetworkTolerance[network.Arweave]*120000 - 1,
 				initialStatus: worker.StatusReady,
 			},
 			want:      worker.StatusReady,
@@ -634,7 +636,7 @@ func TestMonitor(t *testing.T) {
 					BlockTimestamp: 1637596118633,
 				},
 				lastState:     1637596118633,
-				latestState:   1637596118633 + parameter.NetworkTolerance[network.Arweave]*120000 - 1,
+				latestState:   1637596118633 + parameter.CurrentNetworkTolerance[network.Arweave]*120000 - 1,
 				initialStatus: worker.StatusIndexing,
 			},
 			want:      worker.StatusUnhealthy,
@@ -659,7 +661,7 @@ func TestMonitor(t *testing.T) {
 					BlockTimestamp: 1637596118633,
 				},
 				lastState:     1637596118633 - 1,
-				latestState:   1637596118633 + parameter.NetworkTolerance[network.Arweave]*120000 + 1,
+				latestState:   1637596118633 + parameter.CurrentNetworkTolerance[network.Arweave]*120000 + 1,
 				initialStatus: worker.StatusIndexing,
 			},
 			want:      worker.StatusIndexing,
@@ -684,7 +686,7 @@ func TestMonitor(t *testing.T) {
 					BlockTimestamp: 1637596118633,
 				},
 				lastState:     1637596118633 - 1,
-				latestState:   1637596118633 + parameter.NetworkTolerance[network.Arweave]*120000 + 1,
+				latestState:   1637596118633 + parameter.CurrentNetworkTolerance[network.Arweave]*120000 + 1,
 				initialStatus: worker.StatusUnhealthy,
 			},
 			want:      worker.StatusIndexing,
@@ -709,7 +711,7 @@ func TestMonitor(t *testing.T) {
 					BlockTimestamp: 1637596118633,
 				},
 				lastState:     1637596118633 - 1,
-				latestState:   1637596118633 + parameter.NetworkTolerance[network.Arweave]*120000 - 1,
+				latestState:   1637596118633 + parameter.CurrentNetworkTolerance[network.Arweave]*120000 - 1,
 				initialStatus: worker.StatusIndexing,
 			},
 			want:      worker.StatusReady,
@@ -734,7 +736,7 @@ func TestMonitor(t *testing.T) {
 					BlockTimestamp: 1,
 				},
 				lastState:     0,
-				latestState:   1637596118633 + parameter.NetworkTolerance[network.Arweave]*120000 + 1,
+				latestState:   1637596118633 + parameter.CurrentNetworkTolerance[network.Arweave]*120000 + 1,
 				initialStatus: worker.StatusUnknown,
 			},
 			want:      worker.StatusIndexing,
@@ -762,7 +764,7 @@ func TestMonitor(t *testing.T) {
 					CastsBackfill:    true,
 					ReactionBackfill: true,
 				},
-				latestState:   1714972833273 + parameter.NetworkTolerance[network.Farcaster] + 1,
+				latestState:   1714972833273 + parameter.CurrentNetworkTolerance[network.Farcaster] + 1,
 				initialStatus: worker.StatusReady,
 			},
 			want:      worker.StatusIndexing,
@@ -788,7 +790,7 @@ func TestMonitor(t *testing.T) {
 					CastsBackfill:    true,
 					ReactionBackfill: true,
 				},
-				latestState:   1714972833273 + parameter.NetworkTolerance[network.Farcaster] - 1,
+				latestState:   1714972833273 + parameter.CurrentNetworkTolerance[network.Farcaster] - 1,
 				initialStatus: worker.StatusReady,
 			},
 			want:      worker.StatusReady,
@@ -815,7 +817,7 @@ func TestMonitor(t *testing.T) {
 					ReactionBackfill: true,
 				},
 				lastState:     1714972833273,
-				latestState:   1714972833273 + parameter.NetworkTolerance[network.Farcaster] - 1,
+				latestState:   1714972833273 + parameter.CurrentNetworkTolerance[network.Farcaster] - 1,
 				initialStatus: worker.StatusIndexing,
 			},
 			want:      worker.StatusUnhealthy,
@@ -842,7 +844,7 @@ func TestMonitor(t *testing.T) {
 					ReactionBackfill: true,
 				},
 				lastState:     1714972833273 - 1,
-				latestState:   1714972833273 + parameter.NetworkTolerance[network.Farcaster] + 1,
+				latestState:   1714972833273 + parameter.CurrentNetworkTolerance[network.Farcaster] + 1,
 				initialStatus: worker.StatusIndexing,
 			},
 			want:      worker.StatusIndexing,
@@ -869,7 +871,7 @@ func TestMonitor(t *testing.T) {
 					ReactionBackfill: true,
 				},
 				lastState:     1714972833273 - 1,
-				latestState:   1714972833273 + parameter.NetworkTolerance[network.Farcaster] + 1,
+				latestState:   1714972833273 + parameter.CurrentNetworkTolerance[network.Farcaster] + 1,
 				initialStatus: worker.StatusUnhealthy,
 			},
 			want:      worker.StatusIndexing,
@@ -896,7 +898,7 @@ func TestMonitor(t *testing.T) {
 					ReactionBackfill: true,
 				},
 				lastState:     1714972833273 - 1,
-				latestState:   1714972833273 + parameter.NetworkTolerance[network.Farcaster] - 1,
+				latestState:   1714972833273 + parameter.CurrentNetworkTolerance[network.Farcaster] - 1,
 				initialStatus: worker.StatusIndexing,
 			},
 			want:      worker.StatusReady,
@@ -923,7 +925,7 @@ func TestMonitor(t *testing.T) {
 					ReactionBackfill: true,
 				},
 				lastState:     0,
-				latestState:   1714972833273 + parameter.NetworkTolerance[network.Farcaster] + 1,
+				latestState:   1714972833273 + parameter.CurrentNetworkTolerance[network.Farcaster] + 1,
 				initialStatus: worker.StatusUnknown,
 			},
 			want:      worker.StatusIndexing,
@@ -937,13 +939,11 @@ func TestMonitor(t *testing.T) {
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
-						RSS: []*config.Module{
-							{
-								ID:         "rss-rsshub",
-								Network:    network.RSS,
-								Worker:     rss.RSSHub,
-								EndpointID: "https://rsshub3.henry.wang",
-							},
+						RSS: &config.Module{
+							ID:         "rss-rsshub",
+							Network:    network.RSS,
+							Worker:     rss.RSSHub,
+							EndpointID: "https://rsshub3.bruce.com",
 						},
 					},
 				},
@@ -960,13 +960,11 @@ func TestMonitor(t *testing.T) {
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
-						RSS: []*config.Module{
-							{
-								ID:         "rss-rsshub",
-								Network:    network.RSS,
-								Worker:     rss.RSSHub,
-								EndpointID: "https://rsshub.app",
-							},
+						RSS: &config.Module{
+							ID:         "rss-rsshub",
+							Network:    network.RSS,
+							Worker:     rss.RSSHub,
+							EndpointID: "https://rsshub.app",
 						},
 					},
 				},
@@ -1007,7 +1005,7 @@ func TestMonitor(t *testing.T) {
 			t.Run(testcase.name, func(t *testing.T) {
 				ctx := context.Background()
 
-				instance, err := monitor.NewMonitor(ctx, testcase.arguments.config, nil, redisClient)
+				instance, err := monitor.NewMonitor(ctx, testcase.arguments.config, nil, redisClient, nil, nil)
 				require.NoError(t, err)
 
 				// update worker status to initial status
@@ -1015,7 +1013,7 @@ func TestMonitor(t *testing.T) {
 				require.NoError(t, err)
 
 				// update worker progress
-				err = instance.UpdateWorkerProgress(ctx, testcase.arguments.config.Component.Decentralized[0].ID, monitor.ConstructWorkerProgress(testcase.arguments.lastState, testcase.arguments.targetState, testcase.arguments.latestState))
+				err = instance.UpdateWorkerProgress(ctx, testcase.arguments.config.Component.Decentralized[0].ID, monitor.ConstructWorkerProgress(testcase.arguments.lastState, testcase.arguments.targetState, testcase.arguments.latestState, 0))
 				require.NoError(t, err)
 
 				// run monitor
@@ -1030,11 +1028,11 @@ func TestMonitor(t *testing.T) {
 			t.Run(testcase.name, func(t *testing.T) {
 				ctx := context.Background()
 
-				instance, err := monitor.NewMonitor(ctx, testcase.arguments.config, nil, redisClient)
+				instance, err := monitor.NewMonitor(ctx, testcase.arguments.config, nil, redisClient, nil, nil)
 				require.NoError(t, err)
 
 				// update worker status to initial status
-				err = instance.UpdateWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS[0].ID, testcase.arguments.initialStatus.String())
+				err = instance.UpdateWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS.ID, testcase.arguments.initialStatus.String())
 				require.NoError(t, err)
 
 				// run monitor
@@ -1042,9 +1040,28 @@ func TestMonitor(t *testing.T) {
 				require.NoError(t, err)
 
 				// check final worker status
-				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS[0].ID)
+				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS.ID)
 				require.Equal(t, testcase.want, status)
 			})
 		}
+	}
+}
+
+func mockNetworkTolerance() {
+	parameter.CurrentNetworkTolerance = parameter.NetworkTolerance{
+		network.Arbitrum:          1000,
+		network.Arweave:           100,
+		network.Avalanche:         100,
+		network.Base:              100,
+		network.BinanceSmartChain: 100,
+		network.Crossbell:         500,
+		network.Ethereum:          100,
+		network.Farcaster:         3600000,
+		network.Gnosis:            100,
+		network.Linea:             100,
+		network.Optimism:          100,
+		network.Polygon:           100,
+		network.SatoshiVM:         100,
+		network.VSL:               100,
 	}
 }

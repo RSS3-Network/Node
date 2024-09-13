@@ -150,11 +150,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		switch {
 		case w.matchLiquidityV1Pool(ethereumTask, log):
-			actions, err = w.handleV1LendingPool(ctx, ethereumTask)
+			actions, err = w.handleV1LendingPool(ctx, ethereumTask, log)
 		case w.matchLiquidityV2LendingPool(ethereumTask, log):
-			actions, err = w.handleV2LendingPool(ctx, ethereumTask)
+			actions, err = w.handleV2LendingPool(ctx, ethereumTask, log)
 		case w.matchLiquidityV3Pool(ethereumTask, log):
-			actions, err = w.handleV3Pool(ctx, ethereumTask)
+			actions, err = w.handleV3Pool(ctx, ethereumTask, log)
 		default:
 			continue
 		}
@@ -164,7 +164,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		}
 
 		activity.Type = typex.ExchangeLiquidity
-		activity.Actions = append(activity.Actions, actions...)
+
+		if actions != nil {
+			activity.Actions = append(activity.Actions, actions...)
+		}
 	}
 
 	return activity, nil
@@ -266,116 +269,80 @@ func (w *worker) matchLiquidityV3Pool(task *source.Task, log *ethereum.Log) bool
 	)
 }
 
-func (w *worker) handleV1LendingPool(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
-	actions := make([]*activityx.Action, 0)
+func (w *worker) handleV1LendingPool(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+	var (
+		action *activityx.Action
+		err    error
+	)
 
-	for _, log := range task.Receipt.Logs {
-		if len(log.Topics) == 0 {
-			continue
-		}
-
-		var (
-			action *activityx.Action
-			err    error
-		)
-
-		switch {
-		case w.matchEthereumV1LendingPoolDepositLog(log):
-			action, err = w.transformV1LendingPoolDepositLog(ctx, task, log)
-		case w.matchEthereumV1LendingPoolBorrowLog(log):
-			action, err = w.transformV1LendingPoolBorrowLog(ctx, task, log)
-		case w.matchEthereumV1LendingPoolRepayLog(log):
-			action, err = w.transformV1LendingPoolRepayLog(ctx, task, log)
-		default:
-			continue
-		}
-
-		if err != nil {
-			return nil, fmt.Errorf("handle ethereum v3 pool: %w", err)
-		}
-
-		if action != nil {
-			actions = append(actions, action)
-		}
+	switch {
+	case w.matchEthereumV1LendingPoolDepositLog(log):
+		action, err = w.transformV1LendingPoolDepositLog(ctx, task, log)
+	case w.matchEthereumV1LendingPoolBorrowLog(log):
+		action, err = w.transformV1LendingPoolBorrowLog(ctx, task, log)
+	case w.matchEthereumV1LendingPoolRepayLog(log):
+		action, err = w.transformV1LendingPoolRepayLog(ctx, task, log)
+	default:
+		return nil, nil
 	}
 
-	return actions, nil
+	if err != nil {
+		return nil, fmt.Errorf("handle v1 pool: %w", err)
+	}
+
+	return []*activityx.Action{action}, nil
 }
 
-func (w *worker) handleV2LendingPool(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
-	actions := make([]*activityx.Action, 0)
+func (w *worker) handleV2LendingPool(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+	var (
+		action *activityx.Action
+		err    error
+	)
 
-	for _, log := range task.Receipt.Logs {
-		if len(log.Topics) == 0 {
-			continue
-		}
-
-		var (
-			action *activityx.Action
-			err    error
-		)
-
-		switch {
-		case w.matchEthereumV2LendingPoolDepositLog(log):
-			action, err = w.transformV2LendingPoolDepositLog(ctx, task, log)
-		case w.matchEthereumV2LendingPoolWithdrawLog(log):
-			action, err = w.transformV2LendingPoolWithdrawLog(ctx, task, log)
-		case w.matchEthereumV2LendingPoolBorrowLog(log):
-			action, err = w.transformV2LendingPoolBorrowLog(ctx, task, log)
-		case w.matchEthereumV2LendingPoolRepayLog(log):
-			action, err = w.transformV2LendingPoolRepayLog(ctx, task, log)
-		default:
-			continue
-		}
-
-		if err != nil {
-			return nil, fmt.Errorf("handle ethereum v3 pool: %w", err)
-		}
-
-		if action != nil {
-			actions = append(actions, action)
-		}
+	switch {
+	case w.matchEthereumV2LendingPoolDepositLog(log):
+		action, err = w.transformV2LendingPoolDepositLog(ctx, task, log)
+	case w.matchEthereumV2LendingPoolWithdrawLog(log):
+		action, err = w.transformV2LendingPoolWithdrawLog(ctx, task, log)
+	case w.matchEthereumV2LendingPoolBorrowLog(log):
+		action, err = w.transformV2LendingPoolBorrowLog(ctx, task, log)
+	case w.matchEthereumV2LendingPoolRepayLog(log):
+		action, err = w.transformV2LendingPoolRepayLog(ctx, task, log)
+	default:
+		return nil, nil
 	}
 
-	return actions, nil
+	if err != nil {
+		return nil, fmt.Errorf("handle v2 pool: %w", err)
+	}
+
+	return []*activityx.Action{action}, nil
 }
 
-func (w *worker) handleV3Pool(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
-	actions := make([]*activityx.Action, 0)
+func (w *worker) handleV3Pool(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+	var (
+		action *activityx.Action
+		err    error
+	)
 
-	for _, log := range task.Receipt.Logs {
-		if len(log.Topics) == 0 {
-			continue
-		}
-
-		var (
-			action *activityx.Action
-			err    error
-		)
-
-		switch {
-		case w.matchEthereumV3PoolSupplyLog(log):
-			action, err = w.transformV3PoolSupplyLog(ctx, task, log)
-		case w.matchEthereumV3PoolWithdrawLog(log):
-			action, err = w.transformV3PoolWithdrawLog(ctx, task, log)
-		case w.matchEthereumV3PoolBorrowLog(log):
-			action, err = w.transformV3PoolBorrowLog(ctx, task, log)
-		case w.matchEthereumV3PoolRepayLog(log):
-			action, err = w.transformV3PoolRepayLog(ctx, task, log)
-		default:
-			continue
-		}
-
-		if err != nil {
-			return nil, fmt.Errorf("handle ethereum v3 pool: %w", err)
-		}
-
-		if action != nil {
-			actions = append(actions, action)
-		}
+	switch {
+	case w.matchEthereumV3PoolSupplyLog(log):
+		action, err = w.transformV3PoolSupplyLog(ctx, task, log)
+	case w.matchEthereumV3PoolWithdrawLog(log):
+		action, err = w.transformV3PoolWithdrawLog(ctx, task, log)
+	case w.matchEthereumV3PoolBorrowLog(log):
+		action, err = w.transformV3PoolBorrowLog(ctx, task, log)
+	case w.matchEthereumV3PoolRepayLog(log):
+		action, err = w.transformV3PoolRepayLog(ctx, task, log)
+	default:
+		return nil, nil
 	}
 
-	return actions, nil
+	if err != nil {
+		return nil, fmt.Errorf("handle v3 pool: %w", err)
+	}
+
+	return []*activityx.Action{action}, nil
 }
 
 func (w *worker) matchEthereumV1LendingPoolDepositLog(log *ethereum.Log) bool {

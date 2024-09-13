@@ -11,7 +11,9 @@ import (
 
 	"github.com/avast/retry-go/v4"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -35,6 +37,7 @@ type dataSource struct {
 	option         *Option
 	filter         *Filter
 	ethereumClient ethereum.Client
+	redisClient    rueidis.Client
 	state          State
 }
 
@@ -110,6 +113,16 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 			zap.L().Info("dataSource has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockTarget.Uint64()))
 
 			break
+		}
+
+		remoteBlockStart, err := parameter.GetNetworkBlockStart(ctx, s.redisClient, s.config.Network.String())
+		if err != nil {
+			return fmt.Errorf("get network block start from cache: %w", err)
+		}
+
+		if remoteBlockStart > s.state.BlockNumber {
+			s.state.BlockNumber = remoteBlockStart
+			zap.L().Info("Updated block number from remote", zap.Uint64("newBlockNumber", s.state.BlockNumber))
 		}
 
 		blockNumberStart := s.state.BlockNumber + 1
@@ -203,6 +216,16 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 			zap.L().Info("dataSource has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockTarget.Uint64()))
 
 			break
+		}
+
+		remoteBlockStart, err := parameter.GetNetworkBlockStart(ctx, s.redisClient, s.config.Network.String())
+		if err != nil {
+			return fmt.Errorf("get network block start from cache: %w", err)
+		}
+
+		if remoteBlockStart > s.state.BlockNumber {
+			s.state.BlockNumber = remoteBlockStart
+			zap.L().Info("Updated block number from remote", zap.Uint64("newBlockNumber", s.state.BlockNumber))
 		}
 
 		blockNumberStart := s.state.BlockNumber + 1
@@ -376,7 +399,8 @@ func (s *dataSource) getReceipts(ctx context.Context, blocks []*ethereum.Block) 
 		network.Crossbell,
 		network.Arbitrum,
 		network.SatoshiVM,
-		network.Linea:
+		network.Linea,
+		network.XLayer:
 		transactionHashes := lo.Map(blocks, func(block *ethereum.Block, _ int) []common.Hash {
 			return lo.Map(block.Transactions, func(transaction *ethereum.Transaction, _ int) common.Hash {
 				return transaction.Hash
@@ -489,7 +513,7 @@ func (s *dataSource) pushTasks(ctx context.Context, tasksChan chan<- *engine.Tas
 	tasksChan <- tasks
 }
 
-func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint) (engine.DataSource, error) {
+func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint, redisClient rueidis.Client) (engine.DataSource, error) {
 	var (
 		state State
 		err   error
@@ -503,9 +527,10 @@ func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, chec
 	}
 
 	instance := dataSource{
-		config: config,
-		filter: new(Filter), // Set a default filter for the dataSource.
-		state:  state,
+		config:      config,
+		filter:      new(Filter), // Set a default filter for the dataSource.
+		state:       state,
+		redisClient: redisClient,
 	}
 
 	// Initialize filter.

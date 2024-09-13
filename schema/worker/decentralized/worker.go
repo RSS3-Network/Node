@@ -64,6 +64,7 @@ func GetValueByWorkerStr(workerStr string) Worker {
 var ToTagsMap = map[Worker][]tag.Tag{
 	Aave:       {tag.Exchange},
 	Aavegotchi: {tag.Metaverse},
+	Core:       {tag.Collectible, tag.Transaction},
 	Crossbell:  {tag.Social},
 	Curve:      {tag.Exchange, tag.Transaction},
 	ENS:        {tag.Social, tag.Collectible},

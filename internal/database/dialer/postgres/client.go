@@ -1,4 +1,4 @@
-package cockroachdb
+package postgres
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pressly/goose/v3"
 	"github.com/rss3-network/node/internal/database"
-	"github.com/rss3-network/node/internal/database/dialer/cockroachdb/table"
+	"github.com/rss3-network/node/internal/database/dialer/postgres/table"
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
 	mirror_model "github.com/rss3-network/node/internal/engine/worker/decentralized/contract/mirror/model"
@@ -291,6 +291,15 @@ func (c *client) FindActivities(ctx context.Context, query model.ActivitiesQuery
 	}
 
 	return nil, fmt.Errorf("not implemented")
+}
+
+// DeleteExpiredActivities deletes expired activities.
+func (c *client) DeleteExpiredActivities(ctx context.Context, network networkx.Network, timestamp time.Time) error {
+	if c.partition {
+		return c.deleteExpiredActivitiesPartitioned(ctx, network, timestamp)
+	}
+
+	return fmt.Errorf("not implemented")
 }
 
 // LoadDatasetFarcasterProfile loads a profile.

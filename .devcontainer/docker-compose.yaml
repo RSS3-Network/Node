@@ -9,20 +9,20 @@ services:
     cap_add:
       - SYS_PTRACE
     command: sleep infinity
-  cockroachdb:
-    container_name: cockroachdb
-    image: cockroachdb/cockroach:v23.1.8
+  postgres:
+    container_name: postgres
+    image: postgres:16
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     networks:
       - default
     ports:
       - "8080:8080"
-      - "26257:26257"
+      - "5432:5432"
     volumes:
-      - "cockroachdb:/cockroach/cockroach-data"
-    command:
-      - start-single-node
-      - --cluster-name=node
-      - --insecure
+      - "postgres:/postgres/postgres-data"
   kafka:
     container_name: broker
     hostname: broker
@@ -79,7 +79,7 @@ services:
     command:
       - server
 volumes:
-  cockroachdb:
+  postgres:
   kafka:
   jaeger:
   redis:

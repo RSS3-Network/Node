@@ -12,3 +12,7 @@ repos:
     rev: v2.42.1
     hooks:
       - id: commitizen
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.16.1
+    hooks:
+      - id: gitleaks

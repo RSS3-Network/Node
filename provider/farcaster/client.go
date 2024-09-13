@@ -297,6 +297,11 @@ func CovertFarcasterTimeToTimestamp(timestamp int64) int64 {
 	return timestamp + FarcasterEpoch
 }
 
+// CovertTimestampToFarcasterTime Converts a Unix timestamp to a Farcaster seconds timestamp.
+func CovertTimestampToFarcasterTime(timestamp int64) uint32 {
+	return uint32(timestamp) - FarcasterEpoch
+}
+
 // ConvertEventIDToTimestampMilli Convert the timestampMilli from a farcaster event ID.
 func ConvertEventIDToTimestampMilli(eventID uint64) uint64 {
 	timestampMilliMask := ^uint64((1 << SequenceBits) - 1)

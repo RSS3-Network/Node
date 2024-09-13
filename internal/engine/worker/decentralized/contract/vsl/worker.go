@@ -31,7 +31,6 @@ type worker struct {
 	ethereumClient                   ethereum.Client
 	tokenClient                      token.Client
 	contractL1StandardBridgeFilterer *vsl.L1StandardBridgeFilterer
-	contractL2StandardBridgeFilterer *vsl.L2StandardBridgeFilterer
 }
 
 func (w *worker) Name() string {
@@ -64,15 +63,12 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{
 		LogAddresses: []common.Address{
 			vsl.AddressL1StandardBridge,
-			vsl.AddressL2StandardBridge,
 		},
 		LogTopics: []common.Hash{
 			vsl.EventHashAddressL1StandardBridgeETHDepositInitiated,
 			vsl.EventHashAddressL1StandardBridgeERC20DepositInitiated,
 			vsl.EventHashAddressL1StandardBridgeETHWithdrawalFinalized,
 			vsl.EventHashAddressL1StandardBridgeERC20WithdrawalFinalized,
-			vsl.EventHashAddressL2StandardBridgeWithdrawalInitiated,
-			vsl.EventHashAddressL2StandardBridgeDepositFinalized,
 		},
 	}
 }
@@ -108,10 +104,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			actions, err = w.transformL1StandardBridgeETHWithdrawalFinalizedLog(ctx, ethereumTask, log)
 		case w.matchL1StandardBridgeERC20WithdrawalFinalizedLog(ethereumTask, log):
 			actions, err = w.transformL1StandardBridgeERC20WithdrawalFinalizedLog(ctx, ethereumTask, log)
-		case w.matchL2StandardBridgeWithdrawalInitiatedLog(ethereumTask, log):
-			actions, err = w.transformL2StandardBridgeWithdrawalInitiatedLog(ctx, ethereumTask, log)
-		case w.matchL2StandardBridgeDepositFinalizedLog(ethereumTask, log):
-			actions, err = w.transformL2StandardBridgeDepositFinalizedLog(ctx, ethereumTask, log)
 		default:
 			zap.L().Warn("unsupported log", zap.String("task", task.ID()), zap.Uint("topic.index", log.Index))
 
@@ -145,14 +137,6 @@ func (w *worker) matchL1StandardBridgeETHWithdrawalFinalizedLog(_ *source.Task, 
 
 func (w *worker) matchL1StandardBridgeERC20WithdrawalFinalizedLog(_ *source.Task, log *ethereum.Log) bool {
 	return log.Address == vsl.AddressL1StandardBridge && log.Topics[0] == vsl.EventHashAddressL1StandardBridgeERC20WithdrawalFinalized
-}
-
-func (w *worker) matchL2StandardBridgeWithdrawalInitiatedLog(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == vsl.AddressL2StandardBridge && log.Topics[0] == vsl.EventHashAddressL2StandardBridgeWithdrawalInitiated
-}
-
-func (w *worker) matchL2StandardBridgeDepositFinalizedLog(_ *source.Task, log *ethereum.Log) bool {
-	return log.Address == vsl.AddressL2StandardBridge && log.Topics[0] == vsl.EventHashAddressL2StandardBridgeDepositFinalized
 }
 
 func (w *worker) transformL1StandardBridgeETHDepositInitiatedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
@@ -227,42 +211,6 @@ func (w *worker) transformL1StandardBridgeERC20WithdrawalFinalizedLog(ctx contex
 	return actions, nil
 }
 
-func (w *worker) transformL2StandardBridgeWithdrawalInitiatedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
-	event, err := w.contractL2StandardBridgeFilterer.ParseWithdrawalInitiated(log.Export())
-	if err != nil {
-		return nil, fmt.Errorf("parse WithdrawalInitiated event: %w", err)
-	}
-
-	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.From, event.To, network.VSL, network.Ethereum, metadata.ActionTransactionBridgeDeposit, &event.L2Token, event.Amount, log.BlockNumber)
-	if err != nil {
-		return nil, fmt.Errorf("build transaction bridge action: %w", err)
-	}
-
-	actions := []*activityx.Action{
-		action,
-	}
-
-	return actions, nil
-}
-
-func (w *worker) transformL2StandardBridgeDepositFinalizedLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
-	event, err := w.contractL2StandardBridgeFilterer.ParseDepositFinalized(log.Export())
-	if err != nil {
-		return nil, fmt.Errorf("parse DepositFinalized event: %w", err)
-	}
-
-	action, err := w.buildTransactionBridgeAction(ctx, task.ChainID, event.From, event.To, network.Ethereum, network.VSL, metadata.ActionTransactionBridgeWithdraw, &event.L2Token, event.Amount, log.BlockNumber)
-	if err != nil {
-		return nil, fmt.Errorf("build transaction bridge action: %w", err)
-	}
-
-	actions := []*activityx.Action{
-		action,
-	}
-
-	return actions, nil
-}
-
 func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address, source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int, blockNumber *big.Int) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
@@ -304,7 +252,6 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 
 	// Initialize VSL contract filterers.
 	instance.contractL1StandardBridgeFilterer = lo.Must(vsl.NewL1StandardBridgeFilterer(ethereum.AddressGenesis, nil))
-	instance.contractL2StandardBridgeFilterer = lo.Must(vsl.NewL2StandardBridgeFilterer(ethereum.AddressGenesis, nil))
 
 	return &instance, nil
 }

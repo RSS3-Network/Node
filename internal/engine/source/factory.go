@@ -3,6 +3,7 @@ package source
 import (
 	"fmt"
 
+	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/engine"
@@ -14,12 +15,12 @@ import (
 )
 
 // New creates a new source.
-func New(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.DataSource, error) {
+func New(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint, databaseClient database.Client, redisClient rueidis.Client) (engine.DataSource, error) {
 	switch config.Network.Source() {
 	case network.EthereumSource:
-		return ethereum.NewSource(config, sourceFilter, checkpoint)
+		return ethereum.NewSource(config, sourceFilter, checkpoint, redisClient)
 	case network.ArweaveSource:
-		return arweave.NewSource(config, sourceFilter, checkpoint)
+		return arweave.NewSource(config, sourceFilter, checkpoint, redisClient)
 	case network.FarcasterSource:
 		return farcaster.NewSource(config, checkpoint, databaseClient)
 	case network.ActivityPubSource:

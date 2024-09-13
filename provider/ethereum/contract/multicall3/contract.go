@@ -34,6 +34,7 @@ var deployedAtMap = map[uint64]uint64{
 	uint64(network.EthereumChainIDBinanceSmartChain): 15921452, // https://bscscan.com/tx/0xcc0ddf5f791617ba9befce57995dbcb3a202946a1eefa3469742b01a0decdaf2
 	uint64(network.EthereumChainIDGnosis):            21022491, // https://gnosis.blockscout.com/tx/0xf528b4398b2961bab9404a943d1da24d6c82b7367b0cc233629fccc94f1ababa
 	uint64(network.EthereumChainIDLinea):             42,       // https://lineascan.build/tx/0x369305bf856786a160151d3897de2540fc700cf3d6a289b954ca93460f1038b6
+	uint64(network.EthereumChainIDXLayer):            47416,    // https://www.okx.com/web3/explorer/xlayer/tx/0x07471adfe8f4ec553c1199f495be97fc8be8e0626ae307281c22534460184ed1
 }
 
 func IsDeployed(chainID uint64, blockNumber *big.Int) bool {

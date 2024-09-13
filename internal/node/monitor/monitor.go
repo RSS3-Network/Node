@@ -11,6 +11,7 @@ import (
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
@@ -26,6 +27,7 @@ type CheckpointState struct {
 type WorkerProgress struct {
 	RemoteState  uint64 `json:"remote_state"`
 	IndexedState uint64 `json:"indexed_state"`
+	IndexCount   int64  `json:"index_count"`
 }
 
 // MonitorWorkerStatus checks the worker status by comparing the current and latest block height/number.
@@ -33,7 +35,7 @@ type WorkerProgress struct {
 func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 	var wg sync.WaitGroup
 
-	errChan := make(chan error, len(m.config.Component.Decentralized)+len(m.config.Component.RSS)+len(m.config.Component.Federated))
+	errChan := make(chan error, len(m.config.Component.Decentralized)+lo.Ternary(m.config.Component.RSS != nil, 1, 0)+len(m.config.Component.Federated))
 
 	processWorker := func(w *config.Module, processFunc func(context.Context, *config.Module) error) {
 		wg.Add(1)
@@ -51,8 +53,8 @@ func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 		processWorker(w, m.processDecentralizedWorker)
 	}
 
-	for _, w := range m.config.Component.RSS {
-		processWorker(w, m.processRSSWorker)
+	if m.config.Component.RSS != nil {
+		processWorker(m.config.Component.RSS, m.processRSSWorker)
 	}
 
 	go func() {
@@ -71,10 +73,10 @@ func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 
 // processDecentralizedWorker processes the decentralized worker status.
 func (m *Monitor) processDecentralizedWorker(ctx context.Context, w *config.Module) error {
-	// get checkpoint state from database
-	state, err := m.getCheckpointState(ctx, w.ID, w.Network, w.Worker.Name())
+	// get checkpoint info from database
+	indexCount, state, err := m.getCheckpointState(ctx, w.ID, w.Network, w.Worker.Name())
 	if err != nil {
-		zap.L().Error("get checkpoint state", zap.Error(err))
+		zap.L().Error("get checkpoint info", zap.Error(err))
 		return err
 	}
 
@@ -85,10 +87,10 @@ func (m *Monitor) processDecentralizedWorker(ctx context.Context, w *config.Modu
 		return err
 	}
 
-	networkTolerance := parameter.NetworkTolerance[w.Network]
+	networkTolerance := parameter.CurrentNetworkTolerance[w.Network]
 
 	if w.Worker.Name() == decentralized.Momoka.String() {
-		networkTolerance = parameter.NetworkTolerance[w.Network] * 120000
+		networkTolerance = parameter.CurrentNetworkTolerance[w.Network] * 120000
 	}
 
 	// check worker's current status, and flag it as unhealthy if it's behind the latest block height/number by more than the tolerated amount
@@ -96,7 +98,7 @@ func (m *Monitor) processDecentralizedWorker(ctx context.Context, w *config.Modu
 		return fmt.Errorf("detect unhealthy: %w", err)
 	}
 
-	if err := m.UpdateWorkerProgress(ctx, w.ID, ConstructWorkerProgress(currentWorkerState, targetWorkerState, latestWorkerState)); err != nil {
+	if err := m.UpdateWorkerProgress(ctx, w.ID, ConstructWorkerProgress(currentWorkerState, targetWorkerState, latestWorkerState, indexCount)); err != nil {
 		return fmt.Errorf("update worker progress: %w", err)
 	}
 
@@ -201,19 +203,19 @@ func (m *Monitor) flagWorkerStatus(ctx context.Context, workerID string, current
 }
 
 // getCheckpointState gets the checkpoint state from the database.
-func (m *Monitor) getCheckpointState(ctx context.Context, id string, network network.Network, worker string) (CheckpointState, error) {
+func (m *Monitor) getCheckpointState(ctx context.Context, id string, network network.Network, worker string) (int64, CheckpointState, error) {
 	checkpoint, err := m.databaseClient.LoadCheckpoint(ctx, id, network, worker)
 	if err != nil {
-		return CheckpointState{}, fmt.Errorf("load checkpoint: %w", err)
+		return 0, CheckpointState{}, fmt.Errorf("load checkpoint: %w", err)
 	}
 
 	var state CheckpointState
 	if err := json.Unmarshal(checkpoint.State, &state); err != nil {
 		zap.L().Error("unmarshal checkpoint state", zap.Error(err))
-		return CheckpointState{}, err
+		return 0, CheckpointState{}, err
 	}
 
-	return state, nil
+	return checkpoint.IndexCount, state, nil
 }
 
 // GetWorkerStatusByID gets worker status from Redis cache by network and workerName.
@@ -318,10 +320,11 @@ func (m *Monitor) buildWorkerProgressCacheKey(workerID string) string {
 }
 
 // ConstructWorkerProgress constructs the worker progress from current, target and latest block height/number.
-func ConstructWorkerProgress(currentWorkerState, targetWorkerState, latestWorkerState uint64) WorkerProgress {
+func ConstructWorkerProgress(currentWorkerState, targetWorkerState, latestWorkerState uint64, indexCount int64) WorkerProgress {
 	workerProgress := WorkerProgress{
 		RemoteState:  latestWorkerState,
 		IndexedState: currentWorkerState,
+		IndexCount:   indexCount,
 	}
 
 	// set remote to target if it's set

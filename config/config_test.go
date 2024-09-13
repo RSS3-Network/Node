@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -29,6 +30,7 @@ discovery:
     server:
       endpoint: https://node.mydomain.com/
       global_indexer_endpoint: https://gi.rss3.dev/
+      access_token: test
 endpoints:
     ethereum:
       url: https://rpc.ankr.com/eth
@@ -39,9 +41,9 @@ endpoints:
       http_headers:
         user-agent: rss3-node
 database:
-  driver: cockroachdb
+  driver: postgres
   partition: true
-  uri: postgres://root@localhost:26257/defaultdb
+  uri: postgres://postgres@localhost:5432/postgres
 stream:
   enable: false
   driver: kafka
@@ -63,6 +65,15 @@ observability:
       endpoint: localhost:4318
 component:
   rss:
+    network: rss
+    worker: rsshub
+    endpoint: https://rsshub.app/
+    parameters:
+      authentication:
+       username: user
+       password: pass
+       access_key: abc
+       access_code: def
     - network: rss
       worker: rsshub
       endpoint: https://rsshub.app/
@@ -115,13 +126,15 @@ component:
     },
     "server": {
       "endpoint": "https://node.mydomain.com/",
-      "global_indexer_endpoint": "https://gi.rss3.dev/"
+      "global_indexer_endpoint": "https://gi.rss3.dev/",
+      "access_token": "test"
     }
   },
   "database": {
-    "driver": "cockroachdb",
+	"coverage_period": 3,
+    "driver": "postgres",
     "partition": true,
-    "uri": "postgres://root@localhost:26257/defaultdb"
+    "uri": "postgres://postgres@localhost:5432/postgres"
   },
   "stream": {
     "enable": false,
@@ -149,7 +162,7 @@ component:
     }
   },
   "component": {
-    "rss": [
+    "rss":
       {
         "network": "rss",
         "worker": "rsshub",
@@ -174,6 +187,7 @@ component:
         }
       }
     ],
+      },
     "decentralized": [
       {
         "network": "ethereum",
@@ -217,11 +231,13 @@ url = "https://0.0.0.0:9092/"
 [discovery.server]
 endpoint = "https://node.mydomain.com/"
 global_indexer_endpoint = "https://gi.rss3.dev/"
+access_token = "test"
 
 [database]
-driver = "cockroachdb"
+coverage_period = 3
+driver = "postgres"
 partition = true
-uri = "postgres://root@localhost:26257/defaultdb"
+uri = "postgres://postgres@localhost:5432/postgres"
 
 [stream]
 enable = false
@@ -244,7 +260,7 @@ enable = true
 insecure = true
 endpoint = "localhost:4318"
 
-[[component.rss]]
+[component.rss]
 network = "rss"
 worker = "rsshub"
 endpoint = "https://rsshub.app/"
@@ -286,7 +302,6 @@ endpoint = "https://rpc.ankr.com/eth"
 
 var configFileExpected = &File{
 	Environment: "development",
-	Type:        "beta",
 	Endpoints: map[string]Endpoint{
 		"ethereum": {
 			URL: "https://rpc.ankr.com/eth",
@@ -309,24 +324,23 @@ var configFileExpected = &File{
 		Server: &Server{
 			Endpoint:              "https://node.mydomain.com/",
 			GlobalIndexerEndpoint: "https://gi.rss3.dev/",
+			AccessToken:           "test",
 		},
 	},
 	Component: &Component{
-		RSS: []*Module{
-			{
-				Network:    network.RSS,
-				EndpointID: "https://rsshub.app/",
-				Endpoint: Endpoint{
-					URL: "https://rsshub.app/",
-				},
-				Worker: rss.RSSHub,
-				Parameters: &Parameters{
-					"authentication": map[string]any{
-						"access_code": "def",
-						"access_key":  "abc",
-						"password":    "pass",
-						"username":    "user",
-					},
+		RSS: &Module{
+			Network:    network.RSS,
+			EndpointID: "https://rsshub.app/",
+			Endpoint: Endpoint{
+				URL: "https://rsshub.app/",
+			},
+			Worker: rss.RSSHub,
+			Parameters: &Parameters{
+				"authentication": map[string]any{
+					"access_code": "def",
+					"access_key":  "abc",
+					"password":    "pass",
+					"username":    "user",
 				},
 			},
 		},
@@ -377,9 +391,10 @@ var configFileExpected = &File{
 		},
 	},
 	Database: &Database{
-		Driver:    "cockroachdb",
-		Partition: lo.ToPtr(true),
-		URI:       "postgres://root@localhost:26257/defaultdb",
+		CoveragePeriod: 3,
+		Driver:         "postgres",
+		Partition:      lo.ToPtr(true),
+		URI:            "postgres://postgres@localhost:5432/postgres",
 	},
 	Stream: &Stream{
 		Enable: lo.ToPtr(false),
@@ -430,6 +445,76 @@ func TestSetupConfig(t *testing.T) {
 	assert.NoError(t, err)
 
 	AssertConfig(t, f, configFileExpected)
+}
+
+//nolint:paralleltest
+func TestConfigEnvOverride(t *testing.T) {
+	expectEnvironment := "testing"
+	expectDatabaseURI := "postgres://mock@localhost:5432/postgres"
+	expectMetricsEndpoint := "127.0.0.1:9000"
+
+	t.Setenv("NODE_ENVIRONMENT", expectEnvironment)
+	t.Setenv("NODE_DATABASE_URI", expectDatabaseURI)
+	t.Setenv("NODE_OBSERVABILITY_OPENTELEMETRY_METRICS_ENDPOINT", expectMetricsEndpoint)
+
+	configDir := "/etc/rss3/node"
+	fs := afero.NewMemMapFs()
+
+	err := fs.Mkdir(configDir, 0o777)
+	assert.NoError(t, err)
+
+	file, err := fs.Create(path.Join(configDir, configName))
+	assert.NoError(t, err)
+
+	_, err = file.WriteString(configExampleYaml)
+	require.NoError(t, err)
+
+	v := viper.New()
+	v.SetFs(fs)
+
+	f, err := _Setup(configName, "yaml", v)
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectEnvironment, f.Environment)
+	assert.Equal(t, expectDatabaseURI, f.Database.URI)
+	assert.Equal(t, expectMetricsEndpoint, f.Observability.OpenTelemetry.Metrics.Endpoint)
+}
+
+//nolint:paralleltest
+func TestConfigEnvOverrideAccessToken(t *testing.T) {
+	configDir := "/etc/rss3/node"
+	fs := afero.NewMemMapFs()
+
+	err := fs.Mkdir(configDir, 0o777)
+	assert.NoError(t, err)
+
+	// Create a config file without access_token
+	configWithoutToken := strings.Replace(configExampleYaml,
+		"access_token: test",
+		"# access_token: test", 1)
+
+	file, err := fs.Create(path.Join(configDir, configName))
+	assert.NoError(t, err)
+
+	_, err = file.WriteString(configWithoutToken)
+	require.NoError(t, err)
+
+	v := viper.New()
+	v.SetFs(fs)
+
+	// Set the environment variable
+	envToken := "env_access_token"
+	t.Setenv("NODE_DISCOVERY_SERVER_ACCESS_TOKEN", envToken)
+
+	f, err := _Setup(configName, "yaml", v)
+	assert.NoError(t, err)
+
+	// Check if the access token is set from the environment variable
+	assert.Equal(t, envToken, f.Discovery.Server.AccessToken)
+
+	// Check other config values to ensure they're still correctly set
+	assert.Equal(t, "development", f.Environment)
+	assert.Equal(t, "postgres://postgres@localhost:5432/postgres", f.Database.URI)
 }
 
 func TestConfigFilePath(t *testing.T) {
@@ -549,20 +634,18 @@ func AssertConfig(t *testing.T, expect, got *File) {
 	})
 
 	t.Run("decentralized", func(t *testing.T) {
-		for i, rss := range expect.Component.RSS {
-			func(_except, got *Module) {
-				t.Run(fmt.Sprintf("rss-%d", i), func(t *testing.T) {
-					t.Parallel()
-					assert.Equal(t, _except, got)
-				})
-			}(rss, got.Component.RSS[i])
-		}
+		func(_expect, got *Module) {
+			t.Run("rss", func(t *testing.T) {
+				t.Parallel()
+				assert.Equal(t, _expect, got)
+			})
+		}(expect.Component.RSS, got.Component.RSS)
 
 		for i, indexer := range got.Component.Decentralized {
-			func(_except, got *Module) {
+			func(_expect, got *Module) {
 				t.Run(fmt.Sprintf("%s-%s", indexer.Network, indexer.Worker), func(t *testing.T) {
 					t.Parallel()
-					AssertIndexer(t, _except, got)
+					AssertIndexer(t, _expect, got)
 				})
 			}(configFileExpected.Component.Decentralized[i], indexer)
 		}

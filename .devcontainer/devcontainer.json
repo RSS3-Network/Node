@@ -3,11 +3,11 @@
   "dockerComposeFile": "docker-compose.yaml",
   "service": "devcontainer",
   "runServices": [
-    "cockroachdb"
+    "postgres"
   ],
   "workspaceFolder": "/workspace/${localWorkspaceFolderBasename}",
   "forwardPorts": [
-    "cockroachdb:8080",
-    "cockroachdb:26257"
+    "postgres:8080",
+    "postgres:5432"
   ]
 }
