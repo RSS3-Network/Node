@@ -15,6 +15,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/internal/engine/source"
 	decentralizedWorker "github.com/rss3-network/node/internal/engine/worker/decentralized"
+	worker "github.com/rss3-network/node/internal/engine/worker/decentralized"
 	federatedWorker "github.com/rss3-network/node/internal/engine/worker/federated"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
@@ -316,6 +317,11 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 		instance.monitorClient, err = monitor.NewEthereumClient(config.Endpoint)
 		if err != nil {
 			return nil, fmt.Errorf("new ethereum monitorClient: %w", err)
+		}
+	case network.NearSource:
+		instance.monitorClient, err = monitor.NewNearClient(config.Endpoint)
+		if err != nil {
+			return nil, fmt.Errorf("new near monitorClient: %w", err)
 		}
 	case network.RSSSource:
 		instance.monitorClient, err = monitor.NewRssClient(config.EndpointID, config.Parameters)

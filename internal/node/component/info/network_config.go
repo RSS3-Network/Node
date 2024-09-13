@@ -118,6 +118,25 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 			Description: "The number of concurrent RPC requests to the Arweave gateway. Default: 1",
 		},
 	},
+	network.NearSource: {
+		// unnecessary to expose
+		//BlockStart: &ConfigDetail{
+		//	IsRequired:  false,
+		//	Type:        BigIntType,
+		//	Description: "The block height where your worker will begin indexing. Each version of Node has a different starting block height",
+		// },
+		// BlockTarget: &ConfigDetail{
+		//	IsRequired:  false,
+		//	Type:        BigIntType,
+		//	Description: "The block height where your worker will stop indexing",
+		// },
+		ConcurrentBlockRequests: &ConfigDetail{
+			IsRequired:  false,
+			Type:        UintType,
+			Value:       uint(8),
+			Description: "The number of concurrent RPC requests to the Near RPC. Default: 8",
+		},
+	},
 }
 
 // getDefaultParametersByNetwork returns the default parameters based on the network.
@@ -229,15 +248,21 @@ func setIPFSGateways(config *workerConfig) {
 var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.Ethereum: {
 		decentralized.Aave,
+		decentralized.Base,
+		decentralized.Arbitrum,
 		decentralized.Core,
+		decentralized.Cow,
 		decentralized.Curve,
 		decentralized.ENS,
 		decentralized.Highlight,
 		decentralized.Lido,
+		decentralized.Linea,
 		decentralized.Looksrare,
+		decentralized.Nouns,
 		decentralized.Oneinch,
 		decentralized.OpenSea,
 		decentralized.Optimism,
+		decentralized.Paraswap,
 		decentralized.RSS3,
 		decentralized.Stargate,
 		decentralized.Uniswap,
@@ -259,6 +284,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Highlight,
 		decentralized.IQWiki,
 		decentralized.Lens,
+		decentralized.Polymarket,
 		decentralized.Stargate,
 	},
 	network.Crossbell: {
@@ -320,6 +346,10 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.XLayer: {
 		decentralized.Core,
 	},
+	network.Near: {
+		decentralized.Core,
+		decentralized.LiNEAR,
+	},
 }
 
 // WorkerToConfigMap is a map of worker to config.
@@ -327,7 +357,11 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	network.EthereumSource: {
 		decentralized.Aave:       defaultWorkerConfig(decentralized.Aave, network.EthereumSource, nil),
 		decentralized.Aavegotchi: defaultWorkerConfig(decentralized.Aavegotchi, network.EthereumSource, nil),
+		decentralized.Arbitrum:   defaultWorkerConfig(decentralized.Arbitrum, network.EthereumSource, nil),
+		decentralized.BendDAO:    defaultWorkerConfig(decentralized.BendDAO, network.EthereumSource, nil),
+		decentralized.Base:       defaultWorkerConfig(decentralized.Base, network.EthereumSource, nil),
 		decentralized.Core:       defaultWorkerConfig(decentralized.Core, network.EthereumSource, nil),
+		decentralized.Cow:        defaultWorkerConfig(decentralized.Cow, network.EthereumSource, nil),
 		decentralized.Crossbell:  customWorkerConfigWithIPFS(decentralized.Crossbell, network.EthereumSource, ""),
 		decentralized.Curve:      defaultWorkerConfig(decentralized.Curve, network.EthereumSource, nil),
 		decentralized.ENS:        defaultWorkerConfig(decentralized.ENS, network.EthereumSource, nil),
@@ -336,11 +370,15 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.KiwiStand:  defaultWorkerConfig(decentralized.KiwiStand, network.EthereumSource, nil),
 		decentralized.Lens:       customWorkerConfigWithIPFS(decentralized.Lens, network.EthereumSource, ""),
 		decentralized.Lido:       defaultWorkerConfig(decentralized.Lido, network.EthereumSource, nil),
+		decentralized.Linea:      defaultWorkerConfig(decentralized.Linea, network.EthereumSource, nil),
 		decentralized.Looksrare:  defaultWorkerConfig(decentralized.Looksrare, network.EthereumSource, nil),
 		decentralized.Matters:    customWorkerConfigWithIPFS(decentralized.Matters, network.EthereumSource, ""),
+		decentralized.Nouns:      defaultWorkerConfig(decentralized.Nouns, network.EthereumSource, nil),
 		decentralized.Oneinch:    defaultWorkerConfig(decentralized.Oneinch, network.EthereumSource, nil),
 		decentralized.OpenSea:    defaultWorkerConfig(decentralized.OpenSea, network.EthereumSource, nil),
 		decentralized.Optimism:   defaultWorkerConfig(decentralized.Optimism, network.EthereumSource, nil),
+		decentralized.Paraswap:   defaultWorkerConfig(decentralized.Paraswap, network.EthereumSource, nil),
+		decentralized.Polymarket: defaultWorkerConfig(decentralized.Polymarket, network.EthereumSource, nil),
 		decentralized.RSS3:       defaultWorkerConfig(decentralized.RSS3, network.EthereumSource, nil),
 		decentralized.SAVM:       defaultWorkerConfig(decentralized.SAVM, network.EthereumSource, nil),
 		decentralized.Stargate:   defaultWorkerConfig(decentralized.Stargate, network.EthereumSource, nil),
@@ -351,6 +389,10 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.Mirror:    customWorkerConfigWithoutEndpoint(decentralized.Mirror, network.ArweaveSource, nil, true),
 		decentralized.Momoka:    customWorkerConfigWithIPFS(decentralized.Momoka, network.ArweaveSource, "A Polygon RPC is required for Momoka"),
 		decentralized.Paragraph: customWorkerConfigWithoutEndpoint(decentralized.Paragraph, network.ArweaveSource, nil, false),
+	},
+	network.NearSource: {
+		decentralized.Core:   defaultWorkerConfig(decentralized.Core, network.NearSource, nil),
+		decentralized.LiNEAR: defaultWorkerConfig(decentralized.LiNEAR, network.NearSource, nil),
 	},
 	network.FarcasterSource: {
 		decentralized.Core: customWorkerConfig(decentralized.Core, network.FarcasterSource, &Parameters{

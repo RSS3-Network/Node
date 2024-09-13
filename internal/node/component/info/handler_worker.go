@@ -112,7 +112,7 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 		switch workerInfo.Network.Source() {
 		case network.RSSSource:
 			response.Data.RSS = workerInfo
-		case network.EthereumSource, network.FarcasterSource, network.ArweaveSource:
+		case network.EthereumSource, network.FarcasterSource, network.ArweaveSource, network.NearSource:
 			response.Data.Decentralized = append(response.Data.Decentralized, workerInfo)
 		default:
 			response.Data.Federated = append(response.Data.Federated, workerInfo)
@@ -140,7 +140,7 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 	}
 
 	switch module.Network.Source() {
-	case network.EthereumSource, network.ArweaveSource, network.FarcasterSource:
+	case network.EthereumSource, network.ArweaveSource, network.FarcasterSource, network.NearSource:
 		workerInfo.Platform = decentralized.ToPlatformMap[module.Worker.(decentralized.Worker)]
 		workerInfo.Tags = decentralized.ToTagsMap[module.Worker.(decentralized.Worker)]
 
