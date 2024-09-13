@@ -71,7 +71,7 @@ type nearClient struct {
 var _ Client = (*nearClient)(nil)
 
 func (c *nearClient) CurrentState(state CheckpointState) (uint64, uint64) {
-	return state.BlockHeight, state.BlockTimestamp
+	return state.BlockHeight, 0
 }
 
 func (c *nearClient) TargetState(param *config.Parameters) (uint64, uint64) {
@@ -84,7 +84,7 @@ func (c *nearClient) LatestState(ctx context.Context) (uint64, uint64, error) {
 		return 0, 0, err
 	}
 
-	return uint64(latestWorkerState), uint64(time.Now().UnixMilli()), nil
+	return uint64(latestWorkerState), 0, nil
 }
 
 func NewNearClient(endpoint config.Endpoint) (Client, error) {
