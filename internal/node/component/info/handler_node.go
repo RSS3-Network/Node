@@ -86,10 +86,10 @@ func (c *Component) GetNodeOperator(ctx echo.Context) error {
 	zap.L().Debug("get node info", zap.String("request.ip", ctx.Request().RemoteAddr))
 
 	// Get Operator address info
-	evmAddress := "0x0000000000000000000000000000000000000000"
+	evmAddress := common.Address{}
 
 	if operator := c.config.Discovery.Operator; operator != nil {
-		evmAddress = operator.EvmAddress.String()
+		evmAddress = operator.EvmAddress
 	}
 
 	response := fmt.Sprintf("This is an RSS3 Node operated by %s.", evmAddress)
@@ -109,8 +109,8 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 	// Get Operator address info
 	evmAddress := common.Address{}
 
-	if !lo.IsEmpty(c.config.Discovery.Operator.EvmAddress) {
-		evmAddress = c.config.Discovery.Operator.EvmAddress
+	if operator := c.config.Discovery.Operator; operator != nil {
+		evmAddress = operator.EvmAddress
 	}
 
 	// Get network params info
