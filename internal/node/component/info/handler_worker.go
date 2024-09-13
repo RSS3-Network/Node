@@ -16,6 +16,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 type WorkerResponse struct {
@@ -47,13 +48,14 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 
 	var response *WorkerResponse
 
-	if c.redisClient != nil {
+	switch {
+	case c.redisClient != nil:
 		// Fetch all worker info concurrently.
 		c.fetchAllWorkerInfo(ctx, workerInfoChan)
 
 		// Build the worker response.
 		response = c.buildWorkerResponse(workerInfoChan)
-	} else if c.config.Component.RSS != nil {
+	case c.config.Component.RSS != nil:
 		m := c.config.Component.RSS
 
 		response = &WorkerResponse{
@@ -67,6 +69,26 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 					Status:   worker.StatusReady},
 			},
 		}
+	case c.config.Component.Federated != nil:
+		federatedComponent := c.config.Component.Federated[0]
+		switch federatedComponent.Worker {
+		case decentralized.Mastodon:
+			response = &WorkerResponse{
+				Data: ComponentInfo{
+					RSS: &WorkerInfo{
+						WorkerID: federatedComponent.ID,
+						Network:  federatedComponent.Network,
+						Worker:   federatedComponent.Worker,
+						Tags:     decentralized.ToTagsMap[decentralized.Mastodon],
+						Platform: decentralized.PlatformMastodon,
+						Status:   worker.StatusReady},
+				},
+			}
+		default:
+			return nil
+		}
+	default:
+		return nil
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -114,8 +136,9 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 			response.Data.RSS = workerInfo
 		case network.EthereumSource, network.FarcasterSource, network.ArweaveSource, network.NearSource:
 			response.Data.Decentralized = append(response.Data.Decentralized, workerInfo)
-		default:
+		case network.ActivityPubSource:
 			response.Data.Federated = append(response.Data.Federated, workerInfo)
+		default:
 		}
 	}
 
@@ -124,6 +147,15 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 
 // fetchWorkerInfo fetches the worker info with the different network source.
 func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
+	if module == nil {
+		zap.L().Info("params module is nil in fetchWorkerInfo")
+
+		return &WorkerInfo{
+			WorkerID: "",
+			Status:   worker.StatusUnknown,
+		}
+	}
+
 	// Fetch status and progress from a specific worker by id.
 	status, workerProgress := c.getWorkerStatusAndProgressByID(ctx, module.ID)
 
@@ -140,7 +172,7 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 	}
 
 	switch module.Network.Source() {
-	case network.EthereumSource, network.ArweaveSource, network.FarcasterSource, network.NearSource:
+	case network.ActivityPubSource, network.EthereumSource, network.ArweaveSource, network.FarcasterSource, network.NearSource:
 		workerInfo.Platform = decentralized.ToPlatformMap[module.Worker.(decentralized.Worker)]
 		workerInfo.Tags = decentralized.ToTagsMap[module.Worker.(decentralized.Worker)]
 
@@ -156,6 +188,7 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 			default:
 			}
 		}
+
 	case network.RSSSource:
 		workerInfo.Tags = rss.ToTagsMap[module.Worker.(rss.Worker)]
 	}

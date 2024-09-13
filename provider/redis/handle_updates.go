@@ -41,15 +41,6 @@ func GetAllHandles(ctx context.Context, client rueidis.Client) ([]string, error)
 
 // AddHandleUpdate adds a handle to the sorted set with the current timestamp as score
 func AddHandleUpdate(ctx context.Context, client rueidis.Client, handle string) error {
-	fmt.Println("Reached AddHandleUpdate!")
-
-	err := client.Do(ctx, client.B().Set().Key("test_key").Value("test_value").Build()).Error()
-	if err != nil {
-		fmt.Println("Failed to connect to Redis")
-	} else {
-		fmt.Println("Connected to Redis successfully")
-	}
-
 	cmd := client.B().Zadd().Key(handleUpdatesKey).ScoreMember().ScoreMember(float64(time.Now().Unix()), handle).Build()
 
 	return client.Do(ctx, cmd).Error()

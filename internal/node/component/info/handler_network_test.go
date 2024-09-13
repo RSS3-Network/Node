@@ -112,6 +112,12 @@ func TestCalculateMinimumResources(t *testing.T) {
 			worker:   rss.RSSHub,
 			expected: baseResource,
 		},
+		{
+			name:     "ActivityPub - Mastodon",
+			network:  network.Mastodon,
+			worker:   decentralized.Mastodon,
+			expected: baseResource.Mul(2),
+		},
 	}
 
 	for _, tc := range tests {

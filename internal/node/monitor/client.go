@@ -16,6 +16,8 @@ import (
 	"github.com/rss3-network/node/provider/farcaster"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/near"
+	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/node/schema/worker/decentralized"
 )
 
 type Client interface {
@@ -278,8 +280,19 @@ func (c *activitypubClient) TargetState(_ *config.Parameters) (uint64, uint64) {
 
 // LatestState returns the latest state of the Kafka consuming process
 func (c *activitypubClient) LatestState(ctx context.Context) (uint64, uint64, error) {
-	// Poll the Kafka consumer to verify its working state
-	fetches := c.activitypubClient.GetKafkaConsumer().PollFetches(ctx)
+	consumer := c.activitypubClient.GetKafkaConsumer()
+	// Create a very short timeout for the poll operation
+	pollCtx, cancel := context.WithTimeout(ctx, 1000*time.Millisecond)
+	defer cancel()
+
+	// Use PollFetches with the short timeout
+	fetches := consumer.PollFetches(pollCtx)
+
+	// Check if the poll operation timed out
+	if pollCtx.Err() == context.DeadlineExceeded {
+		return 0, 0, fmt.Errorf("poll operation timed out, possible consumer issue")
+	}
+
 	if errs := fetches.Errors(); len(errs) > 0 {
 		for _, e := range errs {
 			fmt.Printf("consumer poll fetch error: %v\n", e.Err)
@@ -287,29 +300,39 @@ func (c *activitypubClient) LatestState(ctx context.Context) (uint64, uint64, er
 
 		return 0, 0, fmt.Errorf("consumer poll fetch error: %v", fetches.Errors())
 	}
-	// If no errors, assume the service is healthy
+	// The service is healthy
 	return 0, 0, nil
 }
 
 // NewActivityPubClient returns a new ActivityPub client.
-func NewActivityPubClient(endpoint string, param *config.Parameters) (Client, error) {
-	base, err := url.Parse(endpoint)
-	if err != nil {
-		return nil, fmt.Errorf("parse ActivityPub endpoint: %w", err)
+func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, worker worker.Worker) (Client, error) {
+	var kafkaTopic string
+
+	if param != nil {
+		if topic, ok := (*param)[mastodon.KafkaTopic]; ok {
+			kafkaTopic = topic.(string)
+		} else {
+			return nil, fmt.Errorf("kafka_topic not found in parameters")
+		}
+	} else {
+		return nil, fmt.Errorf("parameters are nil")
 	}
 
-	// Retrieve kafkaTopic from the parameters
-	kafkaTopic := (*param)["mastodon_kafka_topic"].(string)
+	// Retrieve worker type from the parameters
+	workerType := worker.Name()
 
-	base.Path = path.Join(base.Path, kafkaTopic)
+	switch workerType {
+	case decentralized.Mastodon.String():
+		mastodonClient, err := mastodon.NewClient(endpoint.URL, kafkaTopic)
 
-	// Create a new activitypub(mastodon) client
-	mastodonClient, err := mastodon.NewClient(endpoint, kafkaTopic)
-	if err != nil {
-		return nil, fmt.Errorf("create ActivityPub client: %w", err)
+		if err != nil {
+			return nil, fmt.Errorf("create Mastodon client: %w", err)
+		}
+
+		return &activitypubClient{
+			activitypubClient: mastodonClient,
+		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported worker type: %s", workerType)
 	}
-
-	return &activitypubClient{
-		activitypubClient: mastodonClient,
-	}, nil
 }

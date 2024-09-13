@@ -3,6 +3,7 @@ package mastodon
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-playground/form/v4"
@@ -41,8 +42,12 @@ func NewClient(endpoint string, kafkaTopic string) (Client, error) {
 			attempts: DefaultAttempts,
 		}
 	)
+
+	// extract the host:port part for setting kafka consumer service
+	trimmedHostPort := strings.TrimPrefix(endpoint, "http://")
+
 	// form the kafka broker endpoint
-	var kafkaBrokers = []string{endpoint}
+	var kafkaBrokers = []string{trimmedHostPort}
 
 	// Create a new Kafka client
 	options := []kgo.Opt{

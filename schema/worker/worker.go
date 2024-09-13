@@ -5,7 +5,6 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/rss3-network/node/schema/worker/decentralized"
-	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/node/schema/worker/rss"
 )
 

@@ -128,6 +128,18 @@ services:
       - rss3_node_redis
     entrypoint: [ "./node", "--worker.id=arweave-momoka" ]
 
+  mastodon-core:
+    restart: always
+    image: ghcr.io/rss3-network/node:v1.0.0
+    networks:
+      - default
+    volumes:
+      - ./config.min.yaml:/etc/rss3/node/config.yaml
+    depends_on:
+      - rss3_node_database
+      - rss3_node_redis
+    entrypoint: [ "./node", "--worker.id=mastodon-core" ]
+
 volumes:
   postgres:
   redis:
