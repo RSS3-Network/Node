@@ -56,7 +56,7 @@ func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, e
 	if len(t.Transaction.Transaction.Actions) > 0 {
 		action := t.Transaction.Transaction.Actions[0]
 
-		parsedFunction := "Unknown"
+		var parsedFunction string
 
 		switch {
 		case action.FunctionCall != nil:
