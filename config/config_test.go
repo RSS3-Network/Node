@@ -65,16 +65,7 @@ observability:
       endpoint: localhost:4318
 component:
   rss:
-    network: rss
-    worker: rsshub
-    endpoint: https://rsshub.app/
-    parameters:
-      authentication:
-       username: user
-       password: pass
-       access_key: abc
-       access_code: def
-    - network: rss
+      network: rss
       worker: rsshub
       endpoint: https://rsshub.app/
       parameters:
@@ -162,53 +153,50 @@ component:
     }
   },
   "component": {
-    "rss":
-      {
-        "network": "rss",
-        "worker": "rsshub",
-        "endpoint": "https://rsshub.app/",
-        "parameters": {
-          "authentication": {
-            "username": "user",
-            "password": "pass",
-            "access_key": "abc",
-            "access_code": "def"
-          }
-        }
+  "rss": {
+    "network": "rss",
+    "worker": "rsshub",
+    "endpoint": "https://rsshub.app/",
+    "parameters": {
+      "authentication": {
+        "username": "user",
+        "password": "pass",
+        "access_key": "abc",
+        "access_code": "def"
       }
-    ],
-    "federated": [
-      {
-        "network": "mastodon",
-        "worker": "mastodon",
-        "endpoint": "mastodon",
-        "parameters": {
-          "mastodon_kafka_topic": "activitypub_events"
-        }
+    }
+  },
+  "federated": [
+    {
+      "network": "mastodon",
+      "worker": "mastodon",
+      "endpoint": "mastodon",
+      "parameters": {
+        "mastodon_kafka_topic": "activitypub_events"
       }
-    ],
-      },
-    "decentralized": [
-      {
-        "network": "ethereum",
-        "worker": "core",
-        "endpoint": "ethereum",
-        "parameters": {
-          "block_start": 47370106,
-          "block_target": 456
-        }
-      },
-      {
-        "network": "ethereum",
-        "worker": "rss3",
-        "endpoint": "https://rpc.ankr.com/eth",
-        "parameters": {
-          "block_start": 123,
-          "concurrent_block_requests": 2
-        }
+    }
+  ],
+  "decentralized": [
+    {
+      "network": "ethereum",
+      "worker": "core",
+      "endpoint": "ethereum",
+      "parameters": {
+        "block_start": 47370106,
+        "block_target": 456
       }
-    ]
-  }
+    },
+    {
+      "network": "ethereum",
+      "worker": "rss3",
+      "endpoint": "https://rpc.ankr.com/eth",
+      "parameters": {
+        "block_start": 123,
+        "concurrent_block_requests": 2
+      }
+    }
+  ]
+}
 }`
 	configExampleToml = `environment = "development"
 
