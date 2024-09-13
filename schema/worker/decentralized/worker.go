@@ -11,7 +11,11 @@ type Worker int
 const (
 	Aave       Worker = iota + 1 // aave
 	Aavegotchi                   // aavegotchi
+	Arbitrum                     // arbitrum
+	Base                         // base
+	BendDAO                      // benddao
 	Core                         // core
+	Cow                          // cow
 	Crossbell                    // crossbell
 	Curve                        // curve
 	ENS                          // ens
@@ -20,15 +24,18 @@ const (
 	KiwiStand                    // kiwistand
 	Lens                         // lens
 	Lido                         // lido
+	Linea                        // linea
 	LiNEAR                       // linear
 	Looksrare                    // looksrare
 	Matters                      // matters
 	Mirror                       // mirror
 	Momoka                       // momoka
+	Nouns                        // nouns
 	Oneinch                      // 1inch
 	OpenSea                      // opensea
 	Optimism                     // optimism
 	Paragraph                    // paragraph
+	Paraswap                     // paraswap
 	RSS3                         // rss3
 	SAVM                         // savm
 	Stargate                     // stargate
@@ -65,7 +72,9 @@ func GetValueByWorkerStr(workerStr string) Worker {
 var ToTagsMap = map[Worker][]tag.Tag{
 	Aave:       {tag.Exchange},
 	Aavegotchi: {tag.Metaverse},
+	Arbitrum:   {tag.Transaction},
 	Core:       {tag.Collectible, tag.Transaction},
+	Cow:        {tag.Exchange},
 	Crossbell:  {tag.Social},
 	Curve:      {tag.Exchange, tag.Transaction},
 	ENS:        {tag.Social, tag.Collectible},
@@ -79,10 +88,12 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	Matters:    {tag.Social},
 	Mirror:     {tag.Social},
 	Momoka:     {tag.Social},
+	Nouns:      {tag.Collectible, tag.Governance},
 	Oneinch:    {tag.Exchange},
 	OpenSea:    {tag.Collectible},
 	Optimism:   {tag.Transaction},
 	Paragraph:  {tag.Social},
+	Paraswap:   {tag.Exchange},
 	RSS3:       {tag.Exchange, tag.Collectible},
 	SAVM:       {tag.Transaction},
 	Stargate:   {tag.Transaction},

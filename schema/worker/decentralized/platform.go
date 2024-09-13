@@ -10,6 +10,10 @@ const (
 	Platform1Inch                      // 1inch
 	PlatformAAVE                       // AAVE
 	PlatformAavegotchi                 // Aavegotchi
+	PlatformArbitrum                   // Arbitrum
+	PlatformBase                       // Base
+	PlatformBendDAO                    // BendDAO
+	PlatformCow                        // Cow
 	PlatformCrossbell                  // Crossbell
 	PlatformCurve                      // Curve
 	PlatformENS                        // ENS
@@ -19,13 +23,16 @@ const (
 	PlatformKiwiStand                  // KiwiStand
 	PlatformLens                       // Lens
 	PlatformLido                       // Lido
+	PlatformLinea                      // Linear
 	PlatformLiNEAR                     // LiNEAR
 	PlatformLooksRare                  // LooksRare
 	PlatformMatters                    // Matters
 	PlatformMirror                     // Mirror
+	PlatformNouns                      // Nouns
 	PlatformOpenSea                    // OpenSea
 	PlatformOptimism                   // Optimism
 	PlatformParagraph                  // Paragraph
+	PlatformParaswap                   // Paraswap
 	PlatformRSS3                       // RSS3
 	PlatformSAVM                       // SAVM
 	PlatformStargate                   // Stargate
@@ -50,6 +57,9 @@ func (p *Platform) UnmarshalParam(param string) error {
 var ToPlatformMap = map[Worker]Platform{
 	Aave:       PlatformAAVE,
 	Aavegotchi: PlatformAavegotchi,
+	Arbitrum:   PlatformArbitrum,
+	BendDAO:    PlatformBendDAO,
+	Cow:        PlatformCow,
 	Crossbell:  PlatformCrossbell,
 	Curve:      PlatformCurve,
 	ENS:        PlatformENS,
@@ -62,10 +72,12 @@ var ToPlatformMap = map[Worker]Platform{
 	Matters:    PlatformMatters,
 	Mirror:     PlatformMirror,
 	Momoka:     PlatformLens,
+	Nouns:      PlatformNouns,
 	Oneinch:    Platform1Inch,
 	OpenSea:    PlatformOpenSea,
 	Optimism:   PlatformOptimism,
 	Paragraph:  PlatformParagraph,
+	Paraswap:   PlatformParaswap,
 	RSS3:       PlatformRSS3,
 	SAVM:       PlatformSAVM,
 	Stargate:   PlatformStargate,
