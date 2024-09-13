@@ -45,7 +45,7 @@ func (s *dataSource) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
+func (s *dataSource) Start(ctx context.Context, tasksBuffer *engine.TaskBuffer, errorChan chan<- error) {
 	if err := s.initialize(); err != nil {
 		errorChan <- fmt.Errorf("initialize dataSource: %w", err)
 
@@ -55,7 +55,7 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 	// poll historical casts
 	go func() {
 		if err := retryOperation(ctx, func(ctx context.Context) error {
-			return s.pollCasts(ctx, tasksChan)
+			return s.pollCasts(ctx, tasksBuffer)
 		}); err != nil {
 			errorChan <- err
 		} else {
@@ -66,7 +66,7 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 	// poll historical reactions
 	go func() {
 		if err := retryOperation(ctx, func(ctx context.Context) error {
-			return s.pollReactions(ctx, tasksChan)
+			return s.pollReactions(ctx, tasksBuffer)
 		}); err != nil {
 			errorChan <- err
 		} else {
@@ -77,7 +77,7 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 	// poll latest events
 	go func() {
 		if err := retryOperation(ctx, func(ctx context.Context) error {
-			return s.pollEvents(ctx, tasksChan)
+			return s.pollEvents(ctx, tasksBuffer)
 		}); err != nil {
 			errorChan <- err
 		}
@@ -97,7 +97,7 @@ func (s *dataSource) initialize() (err error) {
 
 // pollCasts polls casts from the Farcaster Hub.
 // It will poll casts by fid from the maximum fid to the minimal fid (1).
-func (s *dataSource) pollCasts(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+func (s *dataSource) pollCasts(ctx context.Context, tasksBuffer *engine.TaskBuffer) error {
 	// Check if backfill of casts is complete.
 	if s.state.CastsBackfill {
 		return nil
@@ -115,7 +115,7 @@ func (s *dataSource) pollCasts(ctx context.Context, tasksChan chan<- *engine.Tas
 
 	// Poll casts by fid until backfill is complete.
 	for !s.state.CastsBackfill {
-		if err := s.pollCastsByFid(ctx, lo.ToPtr(int64(s.pendingState.CastsFid)), "", tasksChan); err != nil {
+		if err := s.pollCastsByFid(ctx, lo.ToPtr(int64(s.pendingState.CastsFid)), "", tasksBuffer); err != nil {
 			return err
 		}
 
@@ -133,8 +133,8 @@ func (s *dataSource) pollCasts(ctx context.Context, tasksChan chan<- *engine.Tas
 	return nil
 }
 
-// pollCastsByFid polls casts by fid from the Farcaster Hub and send tasks to tasksChan.
-func (s *dataSource) pollCastsByFid(ctx context.Context, fid *int64, pageToken string, tasksChan chan<- *engine.Tasks) error {
+// pollCastsByFid polls casts by fid from the Farcaster Hub and send tasks to tasksBuffer.
+func (s *dataSource) pollCastsByFid(ctx context.Context, fid *int64, pageToken string, tasksBuffer *engine.TaskBuffer) error {
 	for {
 		// Fetch casts by fid.
 		castsByFidResponse, err := s.farcasterClient.GetCastsByFid(ctx, fid, true, nil, pageToken)
@@ -147,10 +147,11 @@ func (s *dataSource) pollCastsByFid(ctx context.Context, fid *int64, pageToken s
 			return message.Data.Timestamp >= s.startFarcasterTimestamp
 		})
 
-		// Build tasks from the fetched casts and send them to the tasks channel.
+		// Build tasks from the fetched casts and send them to the task bufer.
 		tasks := s.buildFarcasterMessageTasks(ctx, messages)
 
-		tasksChan <- tasks
+		// Add the current task to the task buffer, if the buffer is full then the goroutine will wait
+		tasksBuffer.Add(tasks)
 
 		// If the fetched casts do not have a next page token
 		// or the number of messages is less than the number of fetched messages
@@ -164,7 +165,7 @@ func (s *dataSource) pollCastsByFid(ctx context.Context, fid *int64, pageToken s
 
 // pollReactions polls reactions from the Farcaster Hub.
 // It will poll reactions by fid from the maximum fid to the minimal fid (1).
-func (s *dataSource) pollReactions(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+func (s *dataSource) pollReactions(ctx context.Context, tasksBuffer *engine.TaskBuffer) error {
 	// Check if backfill of reactions is complete.
 	if s.state.ReactionsBackfill {
 		return nil
@@ -182,7 +183,7 @@ func (s *dataSource) pollReactions(ctx context.Context, tasksChan chan<- *engine
 
 	// Poll reactions by fid until backfill is complete.
 	for !s.state.ReactionsBackfill {
-		if err := s.pollReactionsByFid(ctx, lo.ToPtr(int64(s.pendingState.ReactionsFid)), "", tasksChan); err != nil {
+		if err := s.pollReactionsByFid(ctx, lo.ToPtr(int64(s.pendingState.ReactionsFid)), "", tasksBuffer); err != nil {
 			return err
 		}
 
@@ -200,8 +201,8 @@ func (s *dataSource) pollReactions(ctx context.Context, tasksChan chan<- *engine
 	return nil
 }
 
-// pollReactionsByFid polls reactions by fid from the Farcaster Hub and send tasks to tasksChan.
-func (s *dataSource) pollReactionsByFid(ctx context.Context, fid *int64, pageToken string, tasksChan chan<- *engine.Tasks) error {
+// pollReactionsByFid polls reactions by fid from the Farcaster Hub and send tasks to tasksBuffer.
+func (s *dataSource) pollReactionsByFid(ctx context.Context, fid *int64, pageToken string, tasksBuffer *engine.TaskBuffer) error {
 	for {
 		// Fetch reactions by fid.
 		reactionsByFidResponse, err := s.farcasterClient.GetReactionsByFid(ctx, fid, true, nil, pageToken, farcaster.ReactionTypeRecast.String())
@@ -214,10 +215,12 @@ func (s *dataSource) pollReactionsByFid(ctx context.Context, fid *int64, pageTok
 			return message.Data.Timestamp >= s.startFarcasterTimestamp
 		})
 
-		// Build tasks from the fetched reactions and send them to the tasks channel.
+		// Build tasks from the fetched reactions and send them to the tasks buffer.
 		tasks := s.buildFarcasterMessageTasks(ctx, messages)
 
-		tasksChan <- tasks
+		// Add the current task to the task buffer, if the buffer is full then the goroutine will wait
+		tasksBuffer.Add(tasks)
+
 		// If the fetched reactions do not have a next page token
 		// or the number of messages is less than the number of fetched messages
 		if reactionsByFidResponse.NextPageToken == "" || len(messages) < len(reactionsByFidResponse.Messages) {
@@ -275,7 +278,7 @@ func (s *dataSource) buildFarcasterMessageTasks(ctx context.Context, messages []
 
 // pollEvents polls events from the Farcaster Hub.
 // It will poll events from the last event id to the latest event id.
-func (s *dataSource) pollEvents(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+func (s *dataSource) pollEvents(ctx context.Context, tasksBuffer *engine.TaskBuffer) error {
 	// Set the cursor to the current event ID in the state.
 	cursor := s.state.EventID
 
@@ -305,9 +308,10 @@ func (s *dataSource) pollEvents(ctx context.Context, tasksChan chan<- *engine.Ta
 			continue
 		}
 
-		tasks := s.buildFarcasterEventTasks(ctx, eventsResponse.Events, tasksChan)
+		tasks := s.buildFarcasterEventTasks(ctx, eventsResponse.Events, tasksBuffer)
 
-		tasksChan <- tasks
+		// Add the current task to the task buffer, if the buffer is full then the goroutine will wait
+		tasksBuffer.Add(tasks)
 
 		s.state = s.pendingState
 		s.pendingState.EventID = eventsResponse.NextPageEventID
@@ -317,7 +321,7 @@ func (s *dataSource) pollEvents(ctx context.Context, tasksChan chan<- *engine.Ta
 }
 
 // buildFarcasterEventTasks filter different types of events and build tasks from them.
-func (s *dataSource) buildFarcasterEventTasks(ctx context.Context, events []farcaster.HubEvent, tasksChan chan<- *engine.Tasks) *engine.Tasks {
+func (s *dataSource) buildFarcasterEventTasks(ctx context.Context, events []farcaster.HubEvent, tasksBuffer *engine.TaskBuffer) *engine.Tasks {
 	var tasks engine.Tasks
 
 	if len(events) == 0 {
@@ -361,8 +365,8 @@ func (s *dataSource) buildFarcasterEventTasks(ctx context.Context, events []farc
 				_, _ = s.updateProfileByFid(ctx, &fid)
 
 				if message.Data.Type == farcaster.MessageTypeVerificationAddEthAddress.String() {
-					_ = s.pollCastsByFid(ctx, &fid, "", tasksChan)
-					_ = s.pollReactionsByFid(ctx, &fid, "", tasksChan)
+					_ = s.pollCastsByFid(ctx, &fid, "", tasksBuffer)
+					_ = s.pollReactionsByFid(ctx, &fid, "", tasksBuffer)
 				}
 
 				return nil
