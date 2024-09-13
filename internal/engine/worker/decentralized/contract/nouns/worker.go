@@ -319,11 +319,11 @@ func (w *worker) handleNounsVote(_ context.Context, _ *source.Task, log *ethereu
 
 	switch event.Support {
 	case 0:
-		voteAction = metadata.ActionGovernanceAgainst
+		voteAction = metadata.ActionGovernanceVoteAgainst
 	case 1:
-		voteAction = metadata.ActionGovernanceFor
+		voteAction = metadata.ActionGovernanceVoteFor
 	case 2:
-		voteAction = metadata.ActionGovernanceAbstain
+		voteAction = metadata.ActionGovernanceVoteAbstain
 	default:
 		return nil, fmt.Errorf("invalid support value: %d", event.Support)
 	}

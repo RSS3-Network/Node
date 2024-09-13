@@ -99,6 +99,8 @@ func initNetworkClient(m *config.Module) (Client, error) {
 		client, err = NewRssClient(m.EndpointID, m.Parameters)
 	case network.EthereumSource:
 		client, err = NewEthereumClient(m.Endpoint)
+	case network.NearSource:
+		client, err = NewNearClient(m.Endpoint)
 	default:
 		return nil, fmt.Errorf("unsupported network source: %s", m.Network)
 	}
