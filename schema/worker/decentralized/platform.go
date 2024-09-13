@@ -33,6 +33,7 @@ const (
 	PlatformOptimism                   // Optimism
 	PlatformParagraph                  // Paragraph
 	PlatformParaswap                   // Paraswap
+	PlatformPolymarket                 // Polymarket
 	PlatformRSS3                       // RSS3
 	PlatformSAVM                       // SAVM
 	PlatformStargate                   // Stargate
@@ -81,6 +82,7 @@ var ToPlatformMap = map[Worker]Platform{
 	Optimism:   PlatformOptimism,
 	Paragraph:  PlatformParagraph,
 	Paraswap:   PlatformParaswap,
+	Polymarket: PlatformPolymarket,
 	RSS3:       PlatformRSS3,
 	SAVM:       PlatformSAVM,
 	Stargate:   PlatformStargate,
