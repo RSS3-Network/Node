@@ -111,7 +111,7 @@ func (c *Component) GetWorkerConfig(ctx echo.Context) error {
 	switch nid.Source() {
 	case network.RSSSource:
 		wid, err = rss.WorkerString(request.Worker)
-	case network.EthereumSource, network.ArweaveSource, network.FarcasterSource:
+	case network.EthereumSource, network.ArweaveSource, network.FarcasterSource, network.NearSource:
 		wid, err = decentralized.WorkerString(request.Worker)
 	}
 

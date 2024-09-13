@@ -117,6 +117,25 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 			Description: "The number of concurrent RPC requests to the Arweave gateway. Default: 1",
 		},
 	},
+	network.NearSource: {
+		// unnecessary to expose
+		//BlockStart: &ConfigDetail{
+		//	IsRequired:  false,
+		//	Type:        BigIntType,
+		//	Description: "The block height where your worker will begin indexing. Each version of Node has a different starting block height",
+		// },
+		// BlockTarget: &ConfigDetail{
+		//	IsRequired:  false,
+		//	Type:        BigIntType,
+		//	Description: "The block height where your worker will stop indexing",
+		// },
+		ConcurrentBlockRequests: &ConfigDetail{
+			IsRequired:  false,
+			Type:        UintType,
+			Value:       uint(8),
+			Description: "The number of concurrent RPC requests to the Near RPC. Default: 8",
+		},
+	},
 }
 
 // getDefaultParametersByNetwork returns the default parameters based on the network.
@@ -325,6 +344,10 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.XLayer: {
 		decentralized.Core,
 	},
+	network.Near: {
+		decentralized.Core,
+		decentralized.LiNEAR,
+	},
 }
 
 // WorkerToConfigMap is a map of worker to config.
@@ -363,6 +386,10 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.Mirror:    customWorkerConfigWithoutEndpoint(decentralized.Mirror, network.ArweaveSource, nil, true),
 		decentralized.Momoka:    customWorkerConfigWithIPFS(decentralized.Momoka, network.ArweaveSource, "A Polygon RPC is required for Momoka"),
 		decentralized.Paragraph: customWorkerConfigWithoutEndpoint(decentralized.Paragraph, network.ArweaveSource, nil, false),
+	},
+	network.NearSource: {
+		decentralized.Core:   defaultWorkerConfig(decentralized.Core, network.NearSource, nil),
+		decentralized.LiNEAR: defaultWorkerConfig(decentralized.LiNEAR, network.NearSource, nil),
 	},
 	network.FarcasterSource: {
 		decentralized.Core: customWorkerConfig(decentralized.Core, network.FarcasterSource, &Parameters{
