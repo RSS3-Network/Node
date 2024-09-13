@@ -61,22 +61,24 @@ func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, e
 		switch {
 		case action.FunctionCall != nil:
 			parsedFunction = action.FunctionCall.MethodName
+		case action.Transfer != nil:
+			parsedFunction = "Transfer"
+		case action.CreateAccount != nil:
+			parsedFunction = "CreateAccount"
+		case action.DeployContract != nil:
+			parsedFunction = "DeployContract"
+		case action.Stake != nil:
+			parsedFunction = "Stake"
+		case action.AddKey != nil:
+			parsedFunction = "AddKey"
+		case action.DeleteKey != nil:
+			parsedFunction = "DeleteKey"
+		case action.DeleteAccount != nil:
+			parsedFunction = "DeleteAccount"
+		case action.DelegateActions != nil:
+			parsedFunction = "DelegateActions"
 		default:
-			for field, value := range map[string]interface{}{
-				"CreateAccount":   action.CreateAccount,
-				"DeployContract":  action.DeployContract,
-				"Transfer":        action.Transfer,
-				"Stake":           action.Stake,
-				"AddKey":          action.AddKey,
-				"DeleteKey":       action.DeleteKey,
-				"DeleteAccount":   action.DeleteAccount,
-				"DelegateActions": action.DelegateActions,
-			} {
-				if value != nil {
-					parsedFunction = field
-					break
-				}
-			}
+			parsedFunction = "Unknown"
 		}
 
 		calldata = &activityx.Calldata{

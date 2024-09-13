@@ -99,6 +99,9 @@ func TestWorker_Near(t *testing.T) {
 					Amount:  lo.Must(decimal.NewFromString("35288219210000000000")),
 					Decimal: 24,
 				},
+				Calldata: &activityx.Calldata{
+					ParsedFunction: "ft_transfer_call",
+				},
 				Status: true,
 				Actions: []*activityx.Action{
 					{
