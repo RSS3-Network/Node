@@ -31,6 +31,7 @@ type Attachment struct {
 type Tag struct {
 	Type string `json:"type"`
 	Name string `json:"name"`
+	Href string `json:"href"`
 }
 
 // Note represents a note object in ActivityPub.
@@ -41,4 +42,5 @@ type Note struct {
 	Published string   `json:"published,omitempty"`
 	To        []string `json:"to,omitempty"`
 	CC        []string `json:"cc,omitempty"`
+	Tag       []Tag    `json:"tag,omitempty"`
 }

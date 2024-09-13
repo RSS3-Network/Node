@@ -2,7 +2,7 @@ package activitypub
 
 import (
 	"fmt"
-	"strconv"
+	"time"
 
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/provider/activitypub"
@@ -12,6 +12,9 @@ import (
 )
 
 var _ engine.Task = (*Task)(nil)
+
+// TODO: should be pulled from VSL (NetworkParams contract)
+var defaultStartTime = "2024-07-22T00:00:00Z"
 
 type Task struct {
 	Network network.Network
@@ -27,10 +30,19 @@ func (t Task) GetNetwork() network.Network {
 }
 
 func (t Task) GetTimestamp() uint64 {
-	publishedTimeStamp := t.Message.Published
-	timestamp, _ := strconv.ParseUint(publishedTimeStamp, 10, 64)
+	// Use default time if Published is empty
+	timeStr := t.Message.Published
+	if timeStr == "" {
+		timeStr = defaultStartTime
+	}
 
-	return timestamp
+	parsedTime, err := time.Parse(time.RFC3339, timeStr)
+	if err != nil {
+		fmt.Println("Error parsing time:", err)
+		return 0
+	}
+	// Convert the time.Time object to a Unix timestamp and cast to uint64
+	return uint64(parsedTime.Unix())
 }
 
 func (t Task) Validate() error {

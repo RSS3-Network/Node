@@ -244,9 +244,9 @@ func findModuleByID(configFile *config.File, workerID string) (*config.Module, e
 		return module, nil
 	}
 
-	if module, found := findInComponent(configFile.Component.RSS); found {
-		return module, nil
-	}
+	// if module, found := findInComponent(configFile.Component.RSS); found {
+	//	return module, nil
+	// }
 
 	return nil, fmt.Errorf("undefined module %s", workerID)
 }
