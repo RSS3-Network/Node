@@ -106,7 +106,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 // handleActivityPubCreate handles mastodon post message.
 func (w *worker) handleActivityPubCreate(ctx context.Context, message activitypub.Object, activity *activityx.Activity) error {
 	noteObject, ok := message.Object.(map[string]interface{})
-	if !ok || noteObject["type"] != "Note" {
+	if !ok || noteObject[mastodon.Type] != mastodon.ObjectTypeNote {
 		zap.L().Info("unsupported object type for Create", zap.String("type", fmt.Sprintf("%T", message.Object)))
 		return fmt.Errorf("invalid object type for Create activity")
 	}
@@ -125,7 +125,7 @@ func (w *worker) handleActivityPubCreate(ctx context.Context, message activitypu
 
 	// Check if the Note is a reply to another post
 	// If true, then make it an activity SocialComment object
-	if parentID, ok := noteObject["inReplyTo"].(string); ok {
+	if parentID, ok := noteObject[mastodon.InReplyTo].(string); ok {
 		activity.Type = typex.SocialComment
 		post.Target = &metadata.SocialPost{
 			PublicationID: parentID,
@@ -234,7 +234,7 @@ func (w *worker) createMentionActions(actionType schema.Type, from string, note 
 
 	// Make mention actions for every tag in the activity
 	for _, mention := range note.Tag {
-		if mention.Type == "Mention" {
+		if mention.Type == mastodon.TagTypeMention {
 			mentionAction := w.createAction(actionType, from, mention.Href, post)
 			actions = append(actions, mentionAction)
 		}
@@ -296,7 +296,7 @@ func (w *worker) buildPostMedia(_ context.Context, post *metadata.SocialPost, at
 // buildPostTags builds the Tags field in the metatdata
 func (w *worker) buildPostTags(post *metadata.SocialPost, tags []activitypub.Tag) {
 	for _, tag := range tags {
-		if tag.Type == "Hashtag" {
+		if tag.Type == mastodon.TagTypeHashtag {
 			post.Tags = append(post.Tags, tag.Name)
 		}
 	}
