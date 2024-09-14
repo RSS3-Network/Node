@@ -19,6 +19,10 @@ func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker
 	switch config.Network.Source() {
 	case network.ActivityPubSource:
 		return mastodon.NewWorker()
+	case network.EthereumSource:
+		return ethereum.NewWorker(config, redisClient)
+	case network.ActivityPubSource:
+		return mastodon.NewWorker()
 	case network.ArweaveSource:
 		return arweave.NewWorker(config)
 	case network.EthereumSource:
