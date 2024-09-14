@@ -28,8 +28,6 @@ func New(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint
 		return activitypub.NewSource(config, checkpoint, databaseClient)
 	case network.NearSource:
 		return near.NewSource(config, sourceFilter, checkpoint, redisClient)
-	case network.ActivityPubSource:
-		return activitypub.NewSource(config, checkpoint, databaseClient)
 	default:
 		return nil, fmt.Errorf("unsupported network source %s", config.Network)
 	}

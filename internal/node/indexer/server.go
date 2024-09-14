@@ -15,7 +15,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/internal/engine/source"
 	decentralizedWorker "github.com/rss3-network/node/internal/engine/worker/decentralized"
-	worker "github.com/rss3-network/node/internal/engine/worker/decentralized"
+	// worker "github.com/rss3-network/node/internal/engine/worker/decentralized"
 	federatedWorker "github.com/rss3-network/node/internal/engine/worker/federated"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
