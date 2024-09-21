@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -117,33 +118,42 @@ func (w *worker) handleActivityPubCreate(ctx context.Context, message activitypu
 		return fmt.Errorf("failed to convert note object: %w", err)
 	}
 
+	timestamp := activity.Timestamp
 	// Build the Activity SocialPost object from the Note
-	post := w.buildPost(ctx, message, note)
+	post := w.buildPost(ctx, message, note, timestamp)
 	activity.Type = typex.SocialPost
-	activity.From = message.Actor
+
+	currentUserHandle := convertURLToHandle(message.Actor)
+
+	// If the actor is from a relay server then we directly set it as the handle
+	if currentUserHandle == "" {
+		currentUserHandle = message.Actor
+	}
+
+	activity.From = currentUserHandle
+
 	activity.Platform = w.Platform()
 
-	// Check if the Note is a reply to another post
-	// If true, then make it an activity SocialComment object
+	toUserHandle := currentUserHandle
+
+	// Check if the Note is a reply to another post -  activity SocialComment object
 	if parentID, ok := noteObject[mastodon.InReplyTo].(string); ok {
 		activity.Type = typex.SocialComment
 		post.Target = &metadata.SocialPost{
 			PublicationID: parentID,
 		}
+
+		toUserHandle = convertURLToHandle(parentID)
 	}
 
-	// Determine the main recipient of this Post
-	// recipient := ""
-	// if len(note.To) > 0 {
-	//	recipient = note.To[0]
-	// }
+	activity.To = toUserHandle
 
 	// Generate main action
-	mainAction := w.createAction(activity.Type, message.Actor, "", post)
+	mainAction := w.createAction(activity.Type, currentUserHandle, toUserHandle, post)
 	activity.Actions = append(activity.Actions, mainAction)
 
 	// Generate additional actions for mentions
-	mentionActions := w.createMentionActions(activity.Type, message.Actor, note, post)
+	mentionActions := w.createMentionActions(currentUserHandle, note, post)
 	activity.Actions = append(activity.Actions, mentionActions...)
 
 	return nil
@@ -168,7 +178,16 @@ func mapToStruct(m map[string]interface{}, v interface{}) error {
 // handleActivityPubAnnounce handles Announce activities (shares/boosts) in ActivityPub.
 func (w *worker) handleActivityPubAnnounce(_ context.Context, message activitypub.Object, activity *activityx.Activity) error {
 	activity.Type = typex.SocialShare
-	activity.From = message.Actor
+
+	currentUserHandle := convertURLToHandle(message.Actor)
+
+	// If the actor is from a relay server then we directly set it as the handle
+	if currentUserHandle == "" {
+		currentUserHandle = message.Actor
+	}
+
+	activity.From = currentUserHandle
+	activity.To = currentUserHandle
 
 	// Extract object IDs from the message
 	objectIDs, err := extractObjectIDs(message.Object)
@@ -177,10 +196,15 @@ func (w *worker) handleActivityPubAnnounce(_ context.Context, message activitypu
 		return err
 	}
 
+	toUserHandle := currentUserHandle
 	// Iteratively create action for every announcement of the activity
 	for _, announcedID := range objectIDs {
+
+		toUserHandle = convertURLToHandle(announcedID)
+
 		// Create a SocialPost object with the Announced ID
 		post := &metadata.SocialPost{
+			Handle:        toUserHandle,
 			ProfileID:     message.Actor,
 			PublicationID: message.ID,
 			Timestamp:     w.parseTimestamp(message.Published),
@@ -190,7 +214,7 @@ func (w *worker) handleActivityPubAnnounce(_ context.Context, message activitypu
 		}
 
 		// Create and add action to activity
-		action := w.createAction(activity.Type, message.Actor, "", post)
+		action := w.createAction(activity.Type, currentUserHandle, toUserHandle, post)
 		activity.Actions = append(activity.Actions, action)
 	}
 
@@ -200,7 +224,15 @@ func (w *worker) handleActivityPubAnnounce(_ context.Context, message activitypu
 // handleActivityPubLike handles Like activities in ActivityPub.
 func (w *worker) handleActivityPubLike(_ context.Context, message activitypub.Object, activity *activityx.Activity) error {
 	activity.Type = typex.SocialComment
-	activity.From = message.Actor
+
+	currentUserHandle := convertURLToHandle(message.Actor)
+
+	// If the actor is from a relay server then we directly set it as the handle
+	if currentUserHandle == "" {
+		currentUserHandle = message.Actor
+	}
+
+	activity.From = currentUserHandle
 
 	// Extract object IDs from the message
 	objectIDs, err := extractObjectIDs(message.Object)
@@ -229,13 +261,16 @@ func (w *worker) handleActivityPubLike(_ context.Context, message activitypub.Ob
 }
 
 // createMentionActions generates actions for mentions within a note.
-func (w *worker) createMentionActions(actionType schema.Type, from string, note activitypub.Note, post *metadata.SocialPost) []*activityx.Action {
+func (w *worker) createMentionActions(from string, note activitypub.Note, post *metadata.SocialPost) []*activityx.Action {
 	var actions []*activityx.Action
 
+	actionType := typex.SocialShare
 	// Make mention actions for every tag in the activity
 	for _, mention := range note.Tag {
 		if mention.Type == mastodon.TagTypeMention {
-			mentionAction := w.createAction(actionType, from, mention.Href, post)
+
+			mentionUserHandle := convertURLToHandle(mention.Href)
+			mentionAction := w.createAction(actionType, from, mentionUserHandle, post)
 			actions = append(actions, mentionAction)
 		}
 	}
@@ -255,31 +290,20 @@ func (w *worker) createAction(actionType schema.Type, from, to string, metadata 
 }
 
 // buildPost constructs a SocialPost object from ActivityPub object and note
-func (w *worker) buildPost(ctx context.Context, obj activitypub.Object, note activitypub.Note) *metadata.SocialPost {
+func (w *worker) buildPost(ctx context.Context, obj activitypub.Object, note activitypub.Note, timestamp uint64) *metadata.SocialPost {
 	// Create a new SocialPost with the content, profile ID, publication ID, and timestamp
 	post := &metadata.SocialPost{
 		Body:          note.Content,
 		ProfileID:     obj.Actor,
 		PublicationID: note.ID,
-		Timestamp:     w.parseTimestamp(note.Published),
-		Handle:        w.extractHandle(obj.Actor),
+		Timestamp:     timestamp,
+		Handle:        convertURLToHandle(obj.Actor),
 	}
 	// Attach media to the post
 	w.buildPostMedia(ctx, post, obj.Attachment)
 	w.buildPostTags(post, note.Tag)
 
 	return post
-}
-
-// extractHandle parses the username out of the actor string
-func (w *worker) extractHandle(actor string) string {
-	// Extract the last part of the URL after the final slash
-	parts := strings.Split(actor, "/")
-	if len(parts) > 1 {
-		return parts[len(parts)-1]
-	}
-
-	return actor
 }
 
 // buildPostMedia attaches media information to the post
@@ -347,6 +371,41 @@ func extractObjectIDs(object interface{}) ([]string, error) {
 	}
 
 	return ids, nil
+}
+
+// convertURLToHandle converts a Mastodon URL into a user handle in the format '@username@domain'.
+func convertURLToHandle(statusID string) string {
+	parsedURL, err := url.Parse(statusID)
+	if err != nil {
+		return ""
+	}
+
+	// Handle ActivityPub actor URLs, in particular the URLs related to Relay servers
+	if strings.HasSuffix(parsedURL.Path, "/actor") {
+		username := "relay"
+		domain := parsedURL.Host
+		return fmt.Sprintf("@%s@%s", username, domain)
+	}
+
+	// Check if the path contains "@username" (e.g., "/@username/status")
+	if strings.HasPrefix(parsedURL.Path, "/@") {
+		parts := strings.Split(parsedURL.Path, "/")
+		if len(parts) < 2 {
+			return ""
+		}
+		username := strings.TrimPrefix(parts[1], "@")
+		domain := parsedURL.Host
+		return fmt.Sprintf("@%s@%s", username, domain)
+	}
+
+	// Fallback for other URL formats (like status URLs)
+	parts := strings.Split(parsedURL.Path, "/")
+	if len(parts) < 3 {
+		return ""
+	}
+	username := parts[2]
+	domain := parsedURL.Host
+	return fmt.Sprintf("@%s@%s", username, domain)
 }
 
 // NewWorker creates a new Mastodon worker instance
