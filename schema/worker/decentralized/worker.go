@@ -27,6 +27,7 @@ const (
 	Linea                        // linea
 	LiNEAR                       // linear
 	Looksrare                    // looksrare
+	Mastodon                     // mastodon
 	Matters                      // matters
 	Mirror                       // mirror
 	Momoka                       // momoka
@@ -87,6 +88,7 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	Linea:      {tag.Exchange, tag.Transaction},
 	LiNEAR:     {tag.Exchange, tag.Transaction},
 	Looksrare:  {tag.Collectible},
+	Mastodon:   {tag.Social},
 	Matters:    {tag.Social},
 	Mirror:     {tag.Social},
 	Momoka:     {tag.Social},
