@@ -9,6 +9,7 @@ import (
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
+	"go.uber.org/zap"
 )
 
 var _ engine.Task = (*Task)(nil)
@@ -38,7 +39,7 @@ func (t Task) GetTimestamp() uint64 {
 
 	parsedTime, err := time.Parse(time.RFC3339, timeStr)
 	if err != nil {
-		fmt.Println("Error parsing time:", err)
+		zap.L().Info("Error parsinig time")
 		return 0
 	}
 	// Convert the time.Time object to a Unix timestamp and cast to uint64

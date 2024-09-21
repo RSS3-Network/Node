@@ -3,11 +3,11 @@ package mastodon
 import (
 	"context"
 	"encoding/json"
-	"github.com/rss3-network/node/schema/worker/decentralized"
 	"testing"
 
 	"github.com/rss3-network/node/internal/engine/source/activitypub"
 	message "github.com/rss3-network/node/provider/activitypub"
+	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
