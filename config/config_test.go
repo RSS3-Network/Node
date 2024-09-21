@@ -10,7 +10,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/schema/worker/decentralized"
-	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
@@ -335,7 +334,7 @@ var configFileExpected = &File{
 		Federated: []*Module{
 			{
 				Network:    network.Mastodon,
-				Worker:     federated.Mastodon,
+				Worker:     decentralized.Mastodon,
 				EndpointID: "mastodon",
 				Endpoint: Endpoint{
 					URL: "https://0.0.0.0:9092/",
