@@ -196,11 +196,9 @@ func (w *worker) handleActivityPubAnnounce(_ context.Context, message activitypu
 		return err
 	}
 
-	toUserHandle := currentUserHandle
 	// Iteratively create action for every announcement of the activity
 	for _, announcedID := range objectIDs {
-
-		toUserHandle = convertURLToHandle(announcedID)
+		toUserHandle := convertURLToHandle(announcedID)
 
 		// Create a SocialPost object with the Announced ID
 		post := &metadata.SocialPost{
@@ -268,7 +266,6 @@ func (w *worker) createMentionActions(from string, note activitypub.Note, post *
 	// Make mention actions for every tag in the activity
 	for _, mention := range note.Tag {
 		if mention.Type == mastodon.TagTypeMention {
-
 			mentionUserHandle := convertURLToHandle(mention.Href)
 			mentionAction := w.createAction(actionType, from, mentionUserHandle, post)
 			actions = append(actions, mentionAction)
@@ -384,6 +381,7 @@ func convertURLToHandle(statusID string) string {
 	if strings.HasSuffix(parsedURL.Path, "/actor") {
 		username := "relay"
 		domain := parsedURL.Host
+
 		return fmt.Sprintf("@%s@%s", username, domain)
 	}
 
@@ -393,8 +391,10 @@ func convertURLToHandle(statusID string) string {
 		if len(parts) < 2 {
 			return ""
 		}
+
 		username := strings.TrimPrefix(parts[1], "@")
 		domain := parsedURL.Host
+
 		return fmt.Sprintf("@%s@%s", username, domain)
 	}
 
@@ -403,8 +403,11 @@ func convertURLToHandle(statusID string) string {
 	if len(parts) < 3 {
 		return ""
 	}
+
 	username := parts[2]
+
 	domain := parsedURL.Host
+
 	return fmt.Sprintf("@%s@%s", username, domain)
 }
 
