@@ -2,8 +2,10 @@ package mastodon
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"sync"
 	"testing"
 	"time"
@@ -97,13 +99,22 @@ func setupDatabaseClient(t *testing.T) database.Client {
 
 	return client
 }
+
 func createContainer(_ context.Context, driver database.Driver, _ bool) (container *psqldocker.Container, dataSourceName string, err error) {
 	switch driver {
 	case database.DriverPostgreSQL:
+		nBig, err := rand.Int(rand.Reader, big.NewInt(100000))
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to generate secure random number: %w", err)
+		}
+
+		containerName := fmt.Sprintf("psql-test-container-%d", nBig.Int64())
+
 		c, err := psqldocker.NewContainer(
 			"user",
 			"password",
 			"test",
+			psqldocker.WithContainerName(containerName),
 		)
 		if err != nil {
 			return nil, "", fmt.Errorf("create psql container: %w", err)
@@ -114,6 +125,7 @@ func createContainer(_ context.Context, driver database.Driver, _ bool) (contain
 		return nil, "", fmt.Errorf("unsupported driver: %s", driver)
 	}
 }
+
 func formatContainerURI(container *psqldocker.Container) string {
 	return fmt.Sprintf(
 		"postgres://user:password@%s:%s/%s?sslmode=disable",
