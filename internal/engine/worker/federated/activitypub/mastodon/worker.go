@@ -8,6 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/redis/rueidis"
+	"github.com/rss3-network/node/internal/database"
+	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/source/activitypub"
 	"github.com/rss3-network/node/provider/activitypub"
@@ -26,7 +29,9 @@ import (
 var _ engine.Worker = (*worker)(nil)
 
 type worker struct {
-	httpClient httpx.Client
+	httpClient     httpx.Client
+	databaseClient database.Client
+	redisClient    rueidis.Client
 }
 
 func (w *worker) Name() string {
@@ -97,9 +102,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		}
 	default:
 		zap.L().Info("unsupported type", zap.String("type", activityPubTask.Message.Type))
+		return nil, nil
 	}
-
-	zap.L().Info("unsupported type", zap.String("type", activityPubTask.Message.Type))
 
 	return activity, nil
 }
@@ -148,6 +152,13 @@ func (w *worker) handleActivityPubCreate(ctx context.Context, message activitypu
 
 	activity.To = toUserHandle
 
+	// Store the current user's unique handle
+	err := w.saveMastodonHandle(ctx, currentUserHandle)
+	if err != nil {
+		zap.L().Info("failed to save mastodon handle", zap.Error(err))
+		return err
+	}
+
 	// Generate main action
 	mainAction := w.createAction(activity.Type, currentUserHandle, toUserHandle, post)
 	activity.Actions = append(activity.Actions, mainAction)
@@ -155,6 +166,20 @@ func (w *worker) handleActivityPubCreate(ctx context.Context, message activitypu
 	// Generate additional actions for mentions
 	mentionActions := w.createMentionActions(currentUserHandle, note, post)
 	activity.Actions = append(activity.Actions, mentionActions...)
+
+	return nil
+}
+
+// saveMastodonHandle store the unique handles into the relevant DB table
+func (w *worker) saveMastodonHandle(ctx context.Context, handleString string) error {
+	handle := &model.MastodonHandle{
+		Handle:      handleString,
+		LastUpdated: time.Now(),
+	}
+
+	if err := w.databaseClient.SaveDatasetMastodonHandle(ctx, handle); err != nil {
+		return fmt.Errorf("failed to save Mastodon handle: %w", err)
+	}
 
 	return nil
 }
@@ -176,7 +201,7 @@ func mapToStruct(m map[string]interface{}, v interface{}) error {
 }
 
 // handleActivityPubAnnounce handles Announce activities (shares/boosts) in ActivityPub.
-func (w *worker) handleActivityPubAnnounce(_ context.Context, message activitypub.Object, activity *activityx.Activity) error {
+func (w *worker) handleActivityPubAnnounce(ctx context.Context, message activitypub.Object, activity *activityx.Activity) error {
 	activity.Type = typex.SocialShare
 
 	currentUserHandle := convertURLToHandle(message.Actor)
@@ -193,6 +218,13 @@ func (w *worker) handleActivityPubAnnounce(_ context.Context, message activitypu
 	objectIDs, err := extractObjectIDs(message.Object)
 	if err != nil {
 		zap.L().Info("unsupported object type for Announce", zap.String("type", fmt.Sprintf("%T", message.Object)))
+		return err
+	}
+
+	// Store the current user's unique handle
+	err = w.saveMastodonHandle(ctx, currentUserHandle)
+	if err != nil {
+		zap.L().Info("failed to save mastodon handle", zap.Error(err))
 		return err
 	}
 
@@ -220,7 +252,7 @@ func (w *worker) handleActivityPubAnnounce(_ context.Context, message activitypu
 }
 
 // handleActivityPubLike handles Like activities in ActivityPub.
-func (w *worker) handleActivityPubLike(_ context.Context, message activitypub.Object, activity *activityx.Activity) error {
+func (w *worker) handleActivityPubLike(ctx context.Context, message activitypub.Object, activity *activityx.Activity) error {
 	activity.Type = typex.SocialComment
 
 	currentUserHandle := convertURLToHandle(message.Actor)
@@ -236,6 +268,13 @@ func (w *worker) handleActivityPubLike(_ context.Context, message activitypub.Ob
 	objectIDs, err := extractObjectIDs(message.Object)
 	if err != nil {
 		zap.L().Info("unsupported object type for Like", zap.String("type", fmt.Sprintf("%T", message.Object)))
+		return err
+	}
+
+	// Store the current user's unique handle
+	err = w.saveMastodonHandle(ctx, currentUserHandle)
+	if err != nil {
+		zap.L().Info("failed to save mastodon handle", zap.Error(err))
 		return err
 	}
 
@@ -412,7 +451,7 @@ func convertURLToHandle(statusID string) string {
 }
 
 // NewWorker creates a new Mastodon worker instance
-func NewWorker() (engine.Worker, error) {
+func NewWorker(databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {
 	httpClient, err := httpx.NewHTTPClient()
 
 	if err != nil {
@@ -420,6 +459,8 @@ func NewWorker() (engine.Worker, error) {
 	}
 
 	return &worker{
-		httpClient: httpClient,
+		httpClient:     httpClient,
+		databaseClient: databaseClient,
+		redisClient:    redisClient,
 	}, nil
 }

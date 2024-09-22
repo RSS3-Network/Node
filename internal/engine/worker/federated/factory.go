@@ -11,10 +11,10 @@ import (
 	"github.com/rss3-network/node/schema/worker/decentralized"
 )
 
-func New(config *config.Module, _ database.Client, _ rueidis.Client) (engine.Worker, error) {
+func New(config *config.Module, databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {
 	switch config.Worker {
 	case decentralized.Mastodon:
-		return mastodon.NewWorker()
+		return mastodon.NewWorker(databaseClient, redisClient)
 	default:
 		return nil, fmt.Errorf("[federated/factory.go] unsupported worker %s", config.Worker)
 	}
