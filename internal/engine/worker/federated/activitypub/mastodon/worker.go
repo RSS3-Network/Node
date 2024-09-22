@@ -16,6 +16,7 @@ import (
 	"github.com/rss3-network/node/provider/activitypub"
 	"github.com/rss3-network/node/provider/activitypub/mastodon"
 	"github.com/rss3-network/node/provider/httpx"
+	"github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
@@ -179,6 +180,11 @@ func (w *worker) saveMastodonHandle(ctx context.Context, handleString string) er
 
 	if err := w.databaseClient.SaveDatasetMastodonHandle(ctx, handle); err != nil {
 		return fmt.Errorf("failed to save Mastodon handle: %w", err)
+	}
+
+	// Add handle update to Redis set
+	if err := redis.AddHandleUpdate(ctx, w.redisClient, handleString); err != nil {
+		return fmt.Errorf("failed to add handle update to Redis: %w", err)
 	}
 
 	return nil
