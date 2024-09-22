@@ -275,7 +275,7 @@ func (c *client) SaveDatasetMirrorPost(ctx context.Context, post *mirror_model.D
 	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
-// FindActivity finds a Activity by id.
+// FindActivity finds an Activity by id.
 func (c *client) FindActivity(ctx context.Context, query model.ActivityQuery) (*activityx.Activity, *int, error) {
 	if c.partition {
 		return c.findActivityPartitioned(ctx, query)

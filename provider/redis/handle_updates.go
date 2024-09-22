@@ -6,17 +6,34 @@ import (
 	"time"
 
 	"github.com/redis/rueidis"
+	"go.uber.org/zap"
 )
 
 const handleUpdatesKey = "handle_updates"
 
 // GetAllHandles retrieves all handles from the sorted set without filtering by score
 func GetAllHandles(ctx context.Context, client rueidis.Client) ([]string, error) {
-	cmd := client.B().Zrange().Key(handleUpdatesKey).Min("-inf").Max("+inf").Build()
+	// Check if the key exists
+	existsCmd := client.B().Exists().Key(handleUpdatesKey).Build()
+	exists, err := client.Do(ctx, existsCmd).AsInt64()
+
+	if err != nil {
+		zap.L().Error("failed to check if key exists", zap.Error(err))
+		return nil, fmt.Errorf("failed to check if key exists: %w", err)
+	}
+
+	if exists == 0 {
+		zap.L().Warn("handle updates key does not exist")
+		return []string{}, nil
+	}
+
+	// Get all members without scores
+	cmd := client.B().Zrange().Key(handleUpdatesKey).Min("0").Max("-1").Build()
 	result, err := client.Do(ctx, cmd).AsStrSlice()
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get all handles: %w", err)
+		zap.L().Error("failed to get handles", zap.Error(err))
+		return nil, fmt.Errorf("failed to get handles: %w", err)
 	}
 
 	return result, nil
@@ -38,13 +55,14 @@ func AddHandleUpdate(ctx context.Context, client rueidis.Client, handle string) 
 	return client.Do(ctx, cmd).Error()
 }
 
-// GetRecentHandleUpdates retrieves handles updated since the given time
-func GetRecentHandleUpdates(ctx context.Context, client rueidis.Client, since time.Time) ([]string, error) {
-	cmd := client.B().Zrangebyscore().Key(handleUpdatesKey).Min(fmt.Sprintf("%d", since.Unix())).Max("+inf").Build()
+// GetRecentHandleUpdates retrieves handles updated since the given timestamp
+func GetRecentHandleUpdates(ctx context.Context, client rueidis.Client, since uint64) ([]string, error) {
+	cmd := client.B().Zrangebyscore().Key(handleUpdatesKey).Min(fmt.Sprintf("%d", since)).Max("+inf").Build()
 	result, err := client.Do(ctx, cmd).AsStrSlice()
 
 	if err != nil {
-		return nil, err
+		zap.L().Error("failed to get recent handle updates", zap.Uint64("since", since), zap.Error(err))
+		return nil, fmt.Errorf("failed to get recent handle updates: %w", err)
 	}
 
 	return result, nil

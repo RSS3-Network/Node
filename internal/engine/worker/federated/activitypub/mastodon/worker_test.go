@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/adrianbrad/psqldocker"
 	"github.com/orlangure/gnomock"
@@ -44,8 +45,16 @@ func setup(t *testing.T) {
 			redis.WithVersion("6.0.9"),
 		)
 
-		container, err := gnomock.Start(preset)
-		require.NoError(t, err)
+		var container *gnomock.Container
+		for attempts := 0; attempts < 3; attempts++ {
+			container, err = gnomock.Start(preset)
+			if err == nil {
+				break
+			}
+			// If starting fails, wait a bit and try again
+			time.Sleep(time.Second * 2)
+		}
+		require.NoError(t, err, "Failed to start Redis container after multiple attempts")
 
 		t.Cleanup(func() {
 			require.NoError(t, gnomock.Stop(container))
