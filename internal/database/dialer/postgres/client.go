@@ -372,6 +372,47 @@ func (c *client) SaveDatasetENSNamehash(ctx context.Context, namehash *model.ENS
 	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
+// LoadDatasetMastodonHandle loads a Mastodon handle.
+func (c *client) LoadDatasetMastodonHandle(ctx context.Context, handle string) (*model.MastodonHandle, error) {
+	var value table.DatasetMastodonHandle
+
+	if err := c.database.WithContext(ctx).
+		Where("handle = ?", handle).
+		First(&value).
+		Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+
+		// Initialize a default handle.
+		value = table.DatasetMastodonHandle{
+			Handle:      handle,
+			LastUpdated: time.Now(),
+		}
+	}
+
+	return value.Export()
+}
+
+// SaveDatasetMastodonHandle saves a Mastodon handle.
+func (c *client) SaveDatasetMastodonHandle(ctx context.Context, handle *model.MastodonHandle) error {
+	clauses := []clause.Expression{
+		clause.OnConflict{
+			Columns: []clause.Column{{Name: "handle"}},
+			DoUpdates: clause.Assignments(map[string]interface{}{
+				"last_updated": time.Now(),
+			}),
+		},
+	}
+
+	var value table.DatasetMastodonHandle
+	if err := value.Import(handle); err != nil {
+		return err
+	}
+
+	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
+}
+
 // Dial dials a database.
 func Dial(ctx context.Context, dataSourceName string, partition bool) (database.Client, error) {
 	var err error
