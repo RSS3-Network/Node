@@ -22,7 +22,6 @@ import (
 
 var _ engine.DataSource = (*dataSource)(nil)
 
-// set a global variable to represnet default start time
 var DefaultStartTime int64
 
 // dataSource struct defines the fields for the data source
