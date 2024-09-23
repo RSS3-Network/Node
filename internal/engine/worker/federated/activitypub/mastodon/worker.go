@@ -460,13 +460,15 @@ func convertURLToHandle(statusID string) string {
 func NewWorker(databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {
 	httpClient, err := httpx.NewHTTPClient()
 
+	worker := worker{
+		httpClient: httpClient,
+    databaseClient: databaseClient,
+		redisClient:    redisClient,
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("new http client: %w", err)
 	}
 
-	return &worker{
-		httpClient:     httpClient,
-		databaseClient: databaseClient,
-		redisClient:    redisClient,
-	}, nil
+	return &worker, nil
 }

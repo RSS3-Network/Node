@@ -294,7 +294,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 			return nil, fmt.Errorf("new federated worker: %w", err)
 		}
 	default:
-		return nil, fmt.Errorf("unknown worker type: %s", config.Type)
+		return nil, fmt.Errorf("unknown worker source: %s", config.Network.Source())
 	}
 
 	switch config.Network.Source() {

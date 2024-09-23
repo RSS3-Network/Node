@@ -22,6 +22,8 @@ import (
 
 var _ engine.DataSource = (*dataSource)(nil)
 
+var DefaultStartTime int64
+
 // dataSource struct defines the fields for the data source
 type dataSource struct {
 	config         *config.Module
@@ -223,11 +225,17 @@ func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseCli
 		state:          state,
 	}
 
-	if instance.option, err = NewOption(config.Parameters); err != nil {
+	if instance.option, err = NewOption(config.Network, config.Parameters); err != nil {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
+
+	DefaultStartTime = instance.option.TimestampStart
 
 	zap.L().Info("apply option", zap.Any("option", instance.option))
 
 	return &instance, nil
+}
+
+func GetTimestampStart() int64 {
+	return DefaultStartTime
 }
