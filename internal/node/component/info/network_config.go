@@ -350,6 +350,9 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Core,
 		decentralized.LiNEAR,
 	},
+	network.Mastodon: {
+		decentralized.Mastodon,
+	},
 }
 
 // WorkerToConfigMap is a map of worker to config.
@@ -393,6 +396,9 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	network.NearSource: {
 		decentralized.Core:   defaultWorkerConfig(decentralized.Core, network.NearSource, nil),
 		decentralized.LiNEAR: defaultWorkerConfig(decentralized.LiNEAR, network.NearSource, nil),
+	},
+	network.ActivityPubSource: {
+		decentralized.Mastodon: defaultWorkerConfig(decentralized.Mastodon, network.ActivityPubSource, nil),
 	},
 	network.FarcasterSource: {
 		decentralized.Core: customWorkerConfig(decentralized.Core, network.FarcasterSource, &Parameters{
