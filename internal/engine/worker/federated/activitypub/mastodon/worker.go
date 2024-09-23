@@ -415,11 +415,13 @@ func convertURLToHandle(statusID string) string {
 func NewWorker() (engine.Worker, error) {
 	httpClient, err := httpx.NewHTTPClient()
 
+	worker := worker{
+		httpClient: httpClient,
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("new http client: %w", err)
 	}
 
-	return &worker{
-		httpClient: httpClient,
-	}, nil
+	return &worker, nil
 }

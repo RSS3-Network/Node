@@ -14,9 +14,6 @@ import (
 
 var _ engine.Task = (*Task)(nil)
 
-// TODO: should be pulled from VSL (NetworkParams contract)
-var defaultStartTime = "2024-07-22T00:00:00Z"
-
 type Task struct {
 	Network network.Network
 	Message activitypub.Object
@@ -31,10 +28,14 @@ func (t Task) GetNetwork() network.Network {
 }
 
 func (t Task) GetTimestamp() uint64 {
+	// Get the defaultStartTime that was pulled from VSL NetworkParams
+	defaultStartTime := GetTimestampStart()
+
 	// Use default time if Published is empty
 	timeStr := t.Message.Published
+
 	if timeStr == "" {
-		timeStr = defaultStartTime
+		return uint64(defaultStartTime)
 	}
 
 	parsedTime, err := time.Parse(time.RFC3339, timeStr)
@@ -42,6 +43,7 @@ func (t Task) GetTimestamp() uint64 {
 		zap.L().Info("Error parsinig time")
 		return 0
 	}
+
 	// Convert the time.Time object to a Unix timestamp and cast to uint64
 	return uint64(parsedTime.Unix())
 }
