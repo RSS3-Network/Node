@@ -461,8 +461,8 @@ func NewWorker(databaseClient database.Client, redisClient rueidis.Client) (engi
 	httpClient, err := httpx.NewHTTPClient()
 
 	worker := worker{
-		httpClient: httpClient,
-    databaseClient: databaseClient,
+		httpClient:     httpClient,
+		databaseClient: databaseClient,
 		redisClient:    redisClient,
 	}
 
