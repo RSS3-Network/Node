@@ -300,8 +300,17 @@ func NewActivityPubClient(endpoint string, param *config.Parameters, worker work
 		return nil, fmt.Errorf("parse ActivityPub endpoint: %w", err)
 	}
 
-	// Retrieve kafkaTopic from the parameters
-	kafkaTopic := (*param)[mastodon.KafkaTopic].(string)
+	var kafkaTopic string
+
+	if param != nil {
+		if topic, ok := (*param)[mastodon.KafkaTopic]; ok {
+			kafkaTopic = topic.(string)
+		} else {
+			return nil, fmt.Errorf("kafka_topic not found in parameters")
+		}
+	} else {
+		return nil, fmt.Errorf("parameters are nil")
+	}
 
 	base.Path = path.Join(base.Path, kafkaTopic)
 
