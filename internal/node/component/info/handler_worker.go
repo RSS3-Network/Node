@@ -78,7 +78,6 @@ func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *
 
 	fetchWorkerInfo := func(w *config.Module, fetchFunc func(context.Context, *config.Module) *WorkerInfo) {
 		wg.Add(1)
-
 		go func(module *config.Module) {
 			defer wg.Done()
 
@@ -124,6 +123,13 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 
 // fetchWorkerInfo fetches the worker info with the different network source.
 func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
+	if module == nil {
+		fmt.Println("params module is nil in fetchWorkerInfo")
+		return &WorkerInfo{
+			WorkerID: "",
+			Status:   worker.StatusUnknown,
+		}
+	}
 	// Fetch status and progress from a specific worker by id.
 	status, workerProgress := c.getWorkerStatusAndProgressByID(ctx, module.ID)
 
