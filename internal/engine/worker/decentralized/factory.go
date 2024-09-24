@@ -45,7 +45,7 @@ import (
 
 func New(config *config.Module, databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {
 	if config.Worker == decentralized.Core {
-		return core.NewWorker(config, redisClient)
+		return core.NewWorker(config, databaseClient, redisClient)
 	}
 
 	return newNonCoreWorker(config, databaseClient, redisClient)
