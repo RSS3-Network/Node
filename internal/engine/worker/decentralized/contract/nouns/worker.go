@@ -104,9 +104,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
-		// fmt.Println("log.Topics is: ", log.Topics[0].String())
-		// fmt.Println("log.Address is: ", log.Address.String())
-
 		switch {
 		case w.matchNounsAuctionBid(log):
 			actions, err = w.handleNounsAuctionBid(ctx, ethereumTask, log)

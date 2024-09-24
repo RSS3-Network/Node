@@ -1290,7 +1290,7 @@
                 "description": "The platform on which activities occur.",
                 "type": "string",
                 "example": "Uniswap",
-                "enum": ["1inch","AAVE","Aavegotchi","Arbitrum","Base","BendDAO","Cow","Crossbell","Curve","ENS","Farcaster","Highlight","IQWiki","KiwiStand","Lens","LiNEAR","Lido","Linear","LooksRare","Matters","Mirror","Nouns","OpenSea","Optimism","Paragraph","Paraswap","RSS3","SAVM","Stargate","Uniswap","Unknown","VSL"]
+                "enum": ["1inch","AAVE","Aavegotchi","Arbitrum","Base","BendDAO","Cow","Crossbell","Curve","ENS","Farcaster","Highlight","IQWiki","KiwiStand","Lens","LiNEAR","Lido","Linear","LooksRare","Mastodon","Matters","Mirror","Nouns","OpenSea","Optimism","Paragraph","Paraswap","Polymarket","RSS3","SAVM","Stargate","Uniswap","Unknown","VSL"]
             },
             "Timestamp": {
                 "description": "The timestamp of when the activity occurred.",

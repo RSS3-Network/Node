@@ -48,6 +48,7 @@ type Parameters struct {
 	BlockReceiptBatchSize   *ConfigDetail   `json:"block_receipts_batch_size,omitempty"`
 	APIKey                  *ConfigDetail   `json:"api_key,omitempty"`
 	Authentication          *Authentication `json:"authentication,omitempty"`
+	MastodonKafkaTopic      *ConfigDetail   `json:"mastodon_kafka_topic,omitempty"`
 }
 
 type workerConfig struct {
@@ -349,6 +350,9 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Core,
 		decentralized.LiNEAR,
 	},
+	network.Mastodon: {
+		decentralized.Mastodon,
+	},
 }
 
 // WorkerToConfigMap is a map of worker to config.
@@ -392,6 +396,9 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	network.NearSource: {
 		decentralized.Core:   defaultWorkerConfig(decentralized.Core, network.NearSource, nil),
 		decentralized.LiNEAR: defaultWorkerConfig(decentralized.LiNEAR, network.NearSource, nil),
+	},
+	network.ActivityPubSource: {
+		decentralized.Mastodon: defaultWorkerConfig(decentralized.Mastodon, network.ActivityPubSource, nil),
 	},
 	network.FarcasterSource: {
 		decentralized.Core: customWorkerConfig(decentralized.Core, network.FarcasterSource, &Parameters{

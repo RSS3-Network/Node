@@ -21,6 +21,7 @@ type Client interface {
 	DatasetMirrorPost
 	DatasetFarcasterProfile
 	DatasetENSNamehash
+	DatasetMastodonHandle
 
 	LoadCheckpoint(ctx context.Context, id string, network network.Network, worker string) (*engine.Checkpoint, error)
 	LoadCheckpoints(ctx context.Context, id string, network network.Network, worker string) ([]*engine.Checkpoint, error)
@@ -56,6 +57,11 @@ type DatasetFarcasterProfile interface {
 type DatasetENSNamehash interface {
 	LoadDatasetENSNamehash(ctx context.Context, hash common.Hash) (*model.ENSNamehash, error)
 	SaveDatasetENSNamehash(ctx context.Context, namehash *model.ENSNamehash) error
+}
+
+type DatasetMastodonHandle interface {
+	LoadDatasetMastodonHandle(ctx context.Context, handle string) (*model.MastodonHandle, error)
+	SaveDatasetMastodonHandle(ctx context.Context, handle *model.MastodonHandle) error
 }
 
 var _ goose.Logger = (*SugaredLogger)(nil)

@@ -7,6 +7,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/engine"
+	"github.com/rss3-network/node/internal/engine/source/activitypub"
 	"github.com/rss3-network/node/internal/engine/source/arweave"
 	"github.com/rss3-network/node/internal/engine/source/ethereum"
 	"github.com/rss3-network/node/internal/engine/source/farcaster"
@@ -23,6 +24,8 @@ func New(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint
 		return arweave.NewSource(config, sourceFilter, checkpoint, redisClient)
 	case network.FarcasterSource:
 		return farcaster.NewSource(config, checkpoint, databaseClient)
+	case network.ActivityPubSource:
+		return activitypub.NewSource(config, checkpoint, databaseClient)
 	case network.NearSource:
 		return near.NewSource(config, sourceFilter, checkpoint, redisClient)
 	default:
