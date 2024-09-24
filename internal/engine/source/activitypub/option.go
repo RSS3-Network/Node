@@ -10,7 +10,7 @@ import (
 
 // Option represents the configuration options for the ActivityPub client.
 type Option struct {
-	KafkaTopic     string `json:"mastodon_kafka_topic"`
+	KafkaTopic     string `json:"kafka_topic"`
 	TimestampStart int64  `json:"timestamp_start" mapstructure:"timestamp_start"`
 }
 

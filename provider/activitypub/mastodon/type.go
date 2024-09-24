@@ -21,4 +21,6 @@ const (
 	// ActivityPub tag types
 	TagTypeMention = "Mention"
 	TagTypeHashtag = "Hashtag"
+
+	KafkaTopic = "kafka_topic"
 )

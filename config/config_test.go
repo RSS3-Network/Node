@@ -78,7 +78,7 @@ component:
       worker: mastodon
       endpoint: mastodon
       parameters:
-        mastodon_kafka_topic: activitypub_events
+        kafka_topic: activitypub_events
   decentralized:
     - network: ethereum
       worker: core
@@ -171,7 +171,7 @@ component:
       "worker": "mastodon",
       "endpoint": "mastodon",
       "parameters": {
-        "mastodon_kafka_topic": "activitypub_events"
+        "kafka_topic": "activitypub_events"
       }
     }
   ],
@@ -264,7 +264,7 @@ worker = "mastodon"
 endpoint = "mastodon"
 
 [component.federated.parameters]
-mastodon_kafka_topic = "activitypub_events"
+kafka_topic = "activitypub_events"
 
 [[component.decentralized]]
 network = "ethereum"
@@ -343,7 +343,7 @@ var configFileExpected = &File{
 					},
 				},
 				Parameters: &Parameters{
-					"mastodon_kafka_topic": "activitypub_events",
+					"kafka_topic": "activitypub_events",
 				},
 			},
 		},

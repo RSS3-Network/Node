@@ -16,6 +16,8 @@ import (
 	"github.com/rss3-network/node/provider/farcaster"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/near"
+	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/node/schema/worker/decentralized"
 )
 
 type Client interface {
@@ -292,24 +294,31 @@ func (c *activitypubClient) LatestState(ctx context.Context) (uint64, uint64, er
 }
 
 // NewActivityPubClient returns a new ActivityPub client.
-func NewActivityPubClient(endpoint string, param *config.Parameters) (Client, error) {
+func NewActivityPubClient(endpoint string, param *config.Parameters, worker worker.Worker) (Client, error) {
 	base, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("parse ActivityPub endpoint: %w", err)
 	}
 
 	// Retrieve kafkaTopic from the parameters
-	kafkaTopic := (*param)["mastodon_kafka_topic"].(string)
+	kafkaTopic := (*param)[mastodon.KafkaTopic].(string)
 
 	base.Path = path.Join(base.Path, kafkaTopic)
 
-	// Create a new activitypub(mastodon) client
-	mastodonClient, err := mastodon.NewClient(endpoint, kafkaTopic)
-	if err != nil {
-		return nil, fmt.Errorf("create ActivityPub client: %w", err)
-	}
+	// Retrieve worker type from the parameters
+	workerType := worker.Name()
 
-	return &activitypubClient{
-		activitypubClient: mastodonClient,
-	}, nil
+	switch workerType {
+	case decentralized.Mastodon.String():
+		mastodonClient, err := mastodon.NewClient(endpoint, kafkaTopic)
+		if err != nil {
+			return nil, fmt.Errorf("create Mastodon client: %w", err)
+		}
+
+		return &activitypubClient{
+			activitypubClient: mastodonClient,
+		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported worker type: %s", workerType)
+	}
 }
