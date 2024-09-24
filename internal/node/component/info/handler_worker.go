@@ -16,6 +16,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 type WorkerResponse struct {
@@ -124,6 +125,14 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 
 // fetchWorkerInfo fetches the worker info with the different network source.
 func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
+	if module == nil {
+		zap.L().Info("params module is nil in fetchWorkerInfo")
+
+		return &WorkerInfo{
+			WorkerID: "",
+			Status:   worker.StatusUnknown,
+		}
+	}
 	// Fetch status and progress from a specific worker by id.
 	status, workerProgress := c.getWorkerStatusAndProgressByID(ctx, module.ID)
 
