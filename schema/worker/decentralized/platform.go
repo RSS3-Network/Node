@@ -26,6 +26,7 @@ const (
 	PlatformLinea                      // Linear
 	PlatformLiNEAR                     // LiNEAR
 	PlatformLooksRare                  // LooksRare
+	PlatformMastodon                   // Mastodon
 	PlatformMatters                    // Matters
 	PlatformMirror                     // Mirror
 	PlatformNouns                      // Nouns
@@ -73,6 +74,7 @@ var ToPlatformMap = map[Worker]Platform{
 	Linea:      PlatformLinea,
 	LiNEAR:     PlatformLiNEAR,
 	Looksrare:  PlatformLooksRare,
+	Mastodon:   PlatformMastodon,
 	Matters:    PlatformMatters,
 	Mirror:     PlatformMirror,
 	Momoka:     PlatformLens,

@@ -109,6 +109,8 @@ func (c *Component) GetWorkerConfig(ctx echo.Context) error {
 	var wid worker.Worker
 
 	switch nid.Source() {
+	case network.ActivityPubSource:
+		wid, err = decentralized.WorkerString(request.Worker) // make this case be seperated from the last one for reminder
 	case network.RSSSource:
 		wid, err = rss.WorkerString(request.Worker)
 	case network.EthereumSource, network.ArweaveSource, network.FarcasterSource, network.NearSource:

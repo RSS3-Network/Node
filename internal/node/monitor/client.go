@@ -10,6 +10,7 @@ import (
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/node/component/rss"
+	"github.com/rss3-network/node/provider/activitypub/mastodon"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/farcaster"
@@ -25,6 +26,14 @@ type Client interface {
 	// LatestState returns the latest block number (ethereum), height (arweave) or event id (farcaster) or err (rss) of the client from network rpc/api.
 	LatestState(ctx context.Context) (uint64, uint64, error)
 }
+
+// activitypubClient is a client implementation for ActivityPub.
+type activitypubClient struct {
+	activitypubClient mastodon.Client // ToDo: (Note) Currently use Matodon Client for all ActivityPub Source.
+}
+
+// set a default client
+var _ Client = (*activitypubClient)(nil)
 
 // ethereumClient is a client implementation for ethereum.
 type ethereumClient struct {
@@ -256,5 +265,51 @@ func NewRssClient(endpoint string, param *config.Parameters) (Client, error) {
 	return &rssClient{
 		httpClient: httpClient,
 		url:        base.String(),
+	}, nil
+}
+
+func (c *activitypubClient) CurrentState(_ CheckpointState) (uint64, uint64) {
+	return 0, 0
+}
+
+func (c *activitypubClient) TargetState(_ *config.Parameters) (uint64, uint64) {
+	return 0, 0
+}
+
+// LatestState returns the latest state of the Kafka consuming process
+func (c *activitypubClient) LatestState(ctx context.Context) (uint64, uint64, error) {
+	// Poll the Kafka consumer to verify its working state
+	fetches := c.activitypubClient.GetKafkaConsumer().PollFetches(ctx)
+	if errs := fetches.Errors(); len(errs) > 0 {
+		for _, e := range errs {
+			fmt.Printf("consumer poll fetch error: %v\n", e.Err)
+		}
+
+		return 0, 0, fmt.Errorf("consumer poll fetch error: %v", fetches.Errors())
+	}
+	// If no errors, assume the service is healthy
+	return 0, 0, nil
+}
+
+// NewActivityPubClient returns a new ActivityPub client.
+func NewActivityPubClient(endpoint string, param *config.Parameters) (Client, error) {
+	base, err := url.Parse(endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("parse ActivityPub endpoint: %w", err)
+	}
+
+	// Retrieve kafkaTopic from the parameters
+	kafkaTopic := (*param)["mastodon_kafka_topic"].(string)
+
+	base.Path = path.Join(base.Path, kafkaTopic)
+
+	// Create a new activitypub(mastodon) client
+	mastodonClient, err := mastodon.NewClient(endpoint, kafkaTopic)
+	if err != nil {
+		return nil, fmt.Errorf("create ActivityPub client: %w", err)
+	}
+
+	return &activitypubClient{
+		activitypubClient: mastodonClient,
 	}, nil
 }

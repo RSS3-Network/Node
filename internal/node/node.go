@@ -17,6 +17,7 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
 	"github.com/rss3-network/node/internal/node/component/decentralized"
+	"github.com/rss3-network/node/internal/node/component/federated"
 	"github.com/rss3-network/node/internal/node/component/info"
 	"github.com/rss3-network/node/internal/node/component/rss"
 	"github.com/rss3-network/node/internal/node/middlewarex"
@@ -81,6 +82,11 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 	if len(config.Component.Decentralized) > 0 {
 		decentralizedComponent := decentralized.NewComponent(ctx, apiServer, config, databaseClient, redisClient)
 		node.components = append(node.components, &decentralizedComponent)
+	}
+
+	if len(config.Component.Federated) > 0 {
+		federatedComponent := federated.NewComponent(ctx, apiServer, config, databaseClient, redisClient)
+		node.components = append(node.components, &federatedComponent)
 	}
 
 	// Generate openapi.json
