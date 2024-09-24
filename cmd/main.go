@@ -221,21 +221,79 @@ func runCoreService(ctx context.Context, config *config.File, databaseClient dat
 	return nil
 }
 
+// findModuleByID find and returns the specified worker ID in all components.
+func findModuleByID(configFile *config.File, workerID string) (*config.Module, error) {
+	// find the module in a specific component list
+	findInComponent := func(components []*config.Module) (*config.Module, bool) {
+		for _, module := range components {
+			if strings.EqualFold(module.ID, workerID) {
+				return module, true
+			}
+		}
+
+		return nil, false
+	}
+
+	// Search in decentralized components
+	if module, found := findInComponent(configFile.Component.Decentralized); found {
+		return module, nil
+	}
+
+	// Search in federated components
+	if module, found := findInComponent(configFile.Component.Federated); found {
+		return module, nil
+	}
+
+	if module, found := findInComponent([]*config.Module{configFile.Component.RSS}); found {
+		return module, nil
+	}
+
+	return nil, fmt.Errorf("undefined module %s", workerID)
+}
+
+// findModuleByID find and returns the specified worker ID in all components.
+func findModuleByID(configFile *config.File, workerID string) (*config.Module, error) {
+	// find the module in a specific component list
+	findInComponent := func(components []*config.Module) (*config.Module, bool) {
+		for _, module := range components {
+			if strings.EqualFold(module.ID, workerID) {
+				return module, true
+			}
+		}
+
+		return nil, false
+	}
+
+	// Search in decentralized components
+	if module, found := findInComponent(configFile.Component.Decentralized); found {
+		return module, nil
+	}
+
+	// Search in federated components
+	if module, found := findInComponent(configFile.Component.Federated); found {
+		return module, nil
+	}
+
+	if module, found := findInComponent(configFile.Component.RSS); found {
+		return module, nil
+	}
+
+	return nil, fmt.Errorf("undefined module %s", workerID)
+}
+
 func runWorker(ctx context.Context, configFile *config.File, databaseClient database.Client, streamClient stream.Client, redisClient rueidis.Client) error {
 	workerID, err := flags.GetString(flag.KeyWorkerID)
 	if err != nil {
 		return fmt.Errorf("invalid worker id: %w", err)
 	}
 
-	module, found := lo.Find(configFile.Component.Decentralized, func(module *config.Module) bool {
-		return strings.EqualFold(module.ID, workerID)
-	})
-
-	if !found {
-		return fmt.Errorf("undefined module %s", workerID)
+	module, err := findModuleByID(configFile, workerID)
+	if err != nil {
+		return fmt.Errorf("find module by id: %w", err)
 	}
 
 	server, err := indexer.NewServer(ctx, module, databaseClient, streamClient, redisClient)
+
 	if err != nil {
 		return fmt.Errorf("new indexer server: %w", err)
 	}

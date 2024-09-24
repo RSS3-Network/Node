@@ -35,6 +35,10 @@ endpoints:
       url: https://rpc.ankr.com/eth
       http_headers:
         user-agent: rss3-node
+    mastodon:
+      url: https://0.0.0.0:9092/
+      http_headers:
+        user-agent: rss3-node
 database:
   driver: postgres
   partition: true
@@ -60,15 +64,21 @@ observability:
       endpoint: localhost:4318
 component:
   rss:
-    network: rss
-    worker: rsshub
-    endpoint: https://rsshub.app/
-    parameters:
-      authentication:
-       username: user
-       password: pass
-       access_key: abc
-       access_code: def
+      network: rss
+      worker: rsshub
+      endpoint: https://rsshub.app/
+      parameters:
+        authentication:
+          username: user
+          password: pass
+          access_key: abc
+          access_code: def
+  federated:
+      network: mastodon
+      worker: mastodon
+      endpoint: mastodon
+      parameters:
+        mastodon_kafka_topic: activitypub_events
   decentralized:
     - network: ethereum
       worker: core
@@ -88,6 +98,12 @@ component:
   "endpoints": {
      "ethereum": {
       "url": "https://rpc.ankr.com/eth",
+      "http_headers": {
+        "user-agent": "rss3-node"
+      }
+    },
+     "mastodon": {
+      "url": "https://0.0.0.0:9092/",
       "http_headers": {
         "user-agent": "rss3-node"
       }
@@ -136,41 +152,50 @@ component:
     }
   },
   "component": {
-    "rss":
-      {
-        "network": "rss",
-        "worker": "rsshub",
-        "endpoint": "https://rsshub.app/",
-        "parameters": {
-          "authentication": {
-            "username": "user",
-            "password": "pass",
-            "access_key": "abc",
-            "access_code": "def"
-          }
-        }
-      },
-    "decentralized": [
-      {
-        "network": "ethereum",
-        "worker": "core",
-        "endpoint": "ethereum",
-        "parameters": {
-          "block_start": 47370106,
-          "block_target": 456
-        }
-      },
-      {
-        "network": "ethereum",
-        "worker": "rss3",
-        "endpoint": "https://rpc.ankr.com/eth",
-        "parameters": {
-          "block_start": 123,
-          "concurrent_block_requests": 2
-        }
+  "rss": {
+    "network": "rss",
+    "worker": "rsshub",
+    "endpoint": "https://rsshub.app/",
+    "parameters": {
+      "authentication": {
+        "username": "user",
+        "password": "pass",
+        "access_key": "abc",
+        "access_code": "def"
       }
-    ]
-  }
+    }
+  },
+  "federated": [
+    {
+      "network": "mastodon",
+      "worker": "mastodon",
+      "endpoint": "mastodon",
+      "parameters": {
+        "mastodon_kafka_topic": "activitypub_events"
+      }
+    }
+  ],
+  "decentralized": [
+    {
+      "network": "ethereum",
+      "worker": "core",
+      "endpoint": "ethereum",
+      "parameters": {
+        "block_start": 47370106,
+        "block_target": 456
+      }
+    },
+    {
+      "network": "ethereum",
+      "worker": "rss3",
+      "endpoint": "https://rpc.ankr.com/eth",
+      "parameters": {
+        "block_start": 123,
+        "concurrent_block_requests": 2
+      }
+    }
+  ]
+}
 }`
 	configExampleToml = `environment = "development"
 
@@ -182,6 +207,12 @@ signature = "0x00000000011111111122222222233333333344444444455555555566666666677
 url = "https://rpc.ankr.com/eth"
 
 	[endpoints.ethereum.http_headers]
+	user-agent = "rss3-node"
+
+[endpoints.mastodon]
+url = "https://0.0.0.0:9092/"
+
+	[endpoints.mastodon.http_headers]
 	user-agent = "rss3-node"
 
 [discovery.server]
@@ -227,6 +258,14 @@ password = "pass"
 access_key = "abc"
 access_code = "def"
 
+[[component.federated]]
+network = "mastodon"
+worker = "mastodon"
+endpoint = "mastodon"
+
+[component.federated.parameters]
+mastodon_kafka_topic = "activitypub_events"
+
 [[component.decentralized]]
 network = "ethereum"
 worker = "core"
@@ -253,6 +292,12 @@ var configFileExpected = &File{
 	Endpoints: map[string]Endpoint{
 		"ethereum": {
 			URL: "https://rpc.ankr.com/eth",
+			HTTPHeaders: map[string]string{
+				"user-agent": "rss3-node",
+			},
+		},
+		"mastodon": {
+			URL: "https://0.0.0.0:9092/",
 			HTTPHeaders: map[string]string{
 				"user-agent": "rss3-node",
 			},
@@ -286,7 +331,22 @@ var configFileExpected = &File{
 				},
 			},
 		},
-		Federated: nil,
+		Federated: []*Module{
+			{
+				Network:    network.Mastodon,
+				Worker:     decentralized.Mastodon,
+				EndpointID: "mastodon",
+				Endpoint: Endpoint{
+					URL: "https://0.0.0.0:9092/",
+					HTTPHeaders: map[string]string{
+						"user-agent": "rss3-node",
+					},
+				},
+				Parameters: &Parameters{
+					"mastodon_kafka_topic": "activitypub_events",
+				},
+			},
+		},
 		Decentralized: []*Module{
 			{
 				Network:    network.Ethereum,
@@ -538,6 +598,26 @@ func AssertConfig(t *testing.T, expect, got *File) {
 	})
 	t.Run("discovery", func(t *testing.T) {
 		assert.Equal(t, expect.Discovery, got.Discovery)
+	})
+
+	t.Run("federated", func(t *testing.T) {
+		for i, federated := range expect.Component.Federated {
+			func(_expect, got *Module) {
+				t.Run(fmt.Sprintf("federated-%d", i), func(t *testing.T) {
+					t.Parallel()
+					assert.Equal(t, _expect, got)
+				})
+			}(federated, got.Component.Federated[i])
+		}
+
+		for i, indexer := range got.Component.Federated {
+			func(_except, got *Module) {
+				t.Run(fmt.Sprintf("%s-%s", indexer.Network, indexer.Worker), func(t *testing.T) {
+					t.Parallel()
+					AssertIndexer(t, _except, got)
+				})
+			}(configFileExpected.Component.Federated[i], indexer)
+		}
 	})
 
 	t.Run("decentralized", func(t *testing.T) {

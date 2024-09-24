@@ -5,6 +5,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/node/schema/worker/rss"
 )
 
@@ -19,15 +20,18 @@ func HookFunc() mapstructure.DecodeHookFuncType {
 		t reflect.Type,
 		data interface{},
 	) (interface{}, error) {
-		if f.Kind() != reflect.String || t.Kind() != reflect.TypeOf((*Worker)(nil)).Elem().Kind() {
-			return data, nil
-		}
+		// Only process if the target type is Worker and the source type is string
+		if f.Kind() == reflect.String && t.Kind() == reflect.TypeOf((*Worker)(nil)).Elem().Kind() {
+			workerStr := data.(string)
 
-		// TODO: Implement the logic to determine the worker type
-		if value := rss.GetValueByWorkerStr(data.(string)); value != 0 {
-			return value, nil
+			// TODO: Implement the logic to determine the worker type
+			if value := rss.GetValueByWorkerStr(workerStr); value != 0 {
+				return value, nil
+			} else if value := decentralized.GetValueByWorkerStr(workerStr); value != 0 {
+				return value, nil
+			}
 		}
-
-		return decentralized.GetValueByWorkerStr(data.(string)), nil
+		// For all other types, return data
+		return data, nil
 	}
 }

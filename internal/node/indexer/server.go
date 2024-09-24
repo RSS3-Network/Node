@@ -14,7 +14,9 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/internal/engine/source"
-	worker "github.com/rss3-network/node/internal/engine/worker/decentralized"
+	decentralizedWorker "github.com/rss3-network/node/internal/engine/worker/decentralized"
+	// worker "github.com/rss3-network/node/internal/engine/worker/decentralized"
+	federatedWorker "github.com/rss3-network/node/internal/engine/worker/federated"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
 	decentralizedx "github.com/rss3-network/node/schema/worker/decentralized"
@@ -283,7 +285,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 
 	// Initialize worker.
 	switch config.Network.Source() {
-	case network.ArweaveSource, network.EthereumSource, network.FarcasterSource, network.RSSSource, network.NearSource:
+	case network.ArweaveSource, network.EthereumSource, network.FarcasterSource, network.RSSSource:
 		if instance.worker, err = decentralizedWorker.New(instance.config, databaseClient, instance.redisClient); err != nil {
 			return nil, fmt.Errorf("new decentralized worker: %w", err)
 		}
@@ -296,6 +298,11 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 	}
 
 	switch config.Network.Source() {
+	case network.ActivityPubSource:
+		instance.monitorClient, err = monitor.NewActivityPubClient(config.EndpointID, config.Parameters)
+		if err != nil {
+			return nil, fmt.Errorf("error occurred in creating new activitypub monitorClient: %w", err)
+		}
 	case network.ArweaveSource:
 		instance.monitorClient, err = monitor.NewArweaveClient()
 		if err != nil {
