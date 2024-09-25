@@ -285,7 +285,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 
 	// Initialize worker.
 	switch config.Network.Source() {
-	case network.ArweaveSource, network.EthereumSource, network.FarcasterSource, network.RSSSource:
+	case network.ArweaveSource, network.EthereumSource, network.FarcasterSource, network.RSSSource, network.NearSource:
 		if instance.worker, err = decentralizedWorker.New(instance.config, databaseClient, instance.redisClient); err != nil {
 			return nil, fmt.Errorf("new decentralized worker: %w", err)
 		}
