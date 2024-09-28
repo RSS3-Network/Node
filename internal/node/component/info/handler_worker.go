@@ -115,8 +115,9 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 			response.Data.RSS = workerInfo
 		case network.EthereumSource, network.FarcasterSource, network.ArweaveSource, network.NearSource:
 			response.Data.Decentralized = append(response.Data.Decentralized, workerInfo)
-		default:
+		case network.ActivityPubSource:
 			response.Data.Federated = append(response.Data.Federated, workerInfo)
+		default:
 		}
 	}
 
@@ -149,7 +150,7 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 	}
 
 	switch module.Network.Source() {
-	case network.EthereumSource, network.ArweaveSource, network.FarcasterSource, network.NearSource:
+	case network.ActivityPubSource, network.EthereumSource, network.ArweaveSource, network.FarcasterSource, network.NearSource:
 		workerInfo.Platform = decentralized.ToPlatformMap[module.Worker.(decentralized.Worker)]
 		workerInfo.Tags = decentralized.ToTagsMap[module.Worker.(decentralized.Worker)]
 
@@ -165,6 +166,11 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 			default:
 			}
 		}
+
+		if module.Worker == decentralized.Mastodon {
+			workerInfo.Tags = []tag.Tag{tag.Social}
+		}
+
 	case network.RSSSource:
 		workerInfo.Tags = rss.ToTagsMap[module.Worker.(rss.Worker)]
 	}

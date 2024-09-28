@@ -48,7 +48,7 @@ func NewClient(endpoint string, kafkaTopic string) (Client, error) {
 
 	// form the kafka broker endpoint
 	var kafkaBrokers = []string{trimmedHostPort}
-	fmt.Println("kafkaBrokers: ", kafkaBrokers)
+
 	// Create a new Kafka client
 	options := []kgo.Opt{
 		kgo.SeedBrokers(kafkaBrokers...),
