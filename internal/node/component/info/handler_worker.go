@@ -71,21 +71,32 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 		}
 	case c.config.Component.Federated != nil:
 		federatedComponent := c.config.Component.Federated[0]
-		switch federatedComponent.Worker {
-		case decentralized.Mastodon:
-			response = &WorkerResponse{
-				Data: ComponentInfo{
-					RSS: &WorkerInfo{
-						WorkerID: federatedComponent.ID,
-						Network:  federatedComponent.Network,
-						Worker:   federatedComponent.Worker,
-						Tags:     decentralized.ToTagsMap[decentralized.Mastodon],
-						Platform: decentralized.PlatformMastodon,
-						Status:   worker.StatusReady},
-				},
-			}
-		default:
-			return nil
+		// switch federatedComponent.Worker {
+		// case decentralized.Mastodon:
+		//	response = &WorkerResponse{
+		//		Data: ComponentInfo{
+		//			RSS: &WorkerInfo{
+		//				WorkerID: federatedComponent.ID,
+		//				Network:  federatedComponent.Network,
+		//				Worker:   federatedComponent.Worker,
+		//				Tags:     decentralized.ToTagsMap[decentralized.Mastodon],
+		//				Platform: decentralized.PlatformMastodon,
+		//				Status:   worker.StatusReady},
+		//		},
+		//	}
+		// default:
+		//	return nil
+		// }
+		response = &WorkerResponse{
+			Data: ComponentInfo{
+				RSS: &WorkerInfo{
+					WorkerID: federatedComponent.ID,
+					Network:  federatedComponent.Network,
+					Worker:   federatedComponent.Worker,
+					Tags:     decentralized.ToTagsMap[decentralized.Mastodon],
+					Platform: decentralized.PlatformMastodon,
+					Status:   worker.StatusReady},
+			},
 		}
 	default:
 		return nil
