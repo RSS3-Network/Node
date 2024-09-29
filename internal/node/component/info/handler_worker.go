@@ -156,18 +156,6 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 		}
 	}
 
-	// Federated worker cases
-	if module.Worker == decentralized.Mastodon {
-		return &WorkerInfo{
-			WorkerID: module.ID,
-			Network:  module.Network,
-			Worker:   module.Worker,
-			Tags:     decentralized.ToTagsMap[decentralized.Mastodon],
-			Platform: decentralized.PlatformMastodon,
-			Status:   worker.StatusReady,
-		}
-	}
-
 	// Fetch status and progress from a specific worker by id.
 	status, workerProgress := c.getWorkerStatusAndProgressByID(ctx, module.ID)
 
