@@ -71,32 +71,21 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 		}
 	case c.config.Component.Federated != nil:
 		federatedComponent := c.config.Component.Federated[0]
-		// switch federatedComponent.Worker {
-		// case decentralized.Mastodon:
-		//	response = &WorkerResponse{
-		//		Data: ComponentInfo{
-		//			RSS: &WorkerInfo{
-		//				WorkerID: federatedComponent.ID,
-		//				Network:  federatedComponent.Network,
-		//				Worker:   federatedComponent.Worker,
-		//				Tags:     decentralized.ToTagsMap[decentralized.Mastodon],
-		//				Platform: decentralized.PlatformMastodon,
-		//				Status:   worker.StatusReady},
-		//		},
-		//	}
-		// default:
-		//	return nil
-		// }
-		response = &WorkerResponse{
-			Data: ComponentInfo{
-				RSS: &WorkerInfo{
-					WorkerID: federatedComponent.ID,
-					Network:  federatedComponent.Network,
-					Worker:   federatedComponent.Worker,
-					Tags:     decentralized.ToTagsMap[decentralized.Mastodon],
-					Platform: decentralized.PlatformMastodon,
-					Status:   worker.StatusReady},
-			},
+		switch federatedComponent.Worker {
+		case decentralized.Mastodon:
+			response = &WorkerResponse{
+				Data: ComponentInfo{
+					RSS: &WorkerInfo{
+						WorkerID: federatedComponent.ID,
+						Network:  federatedComponent.Network,
+						Worker:   federatedComponent.Worker,
+						Tags:     decentralized.ToTagsMap[decentralized.Mastodon],
+						Platform: decentralized.PlatformMastodon,
+						Status:   worker.StatusReady},
+				},
+			}
+		default:
+			return nil
 		}
 	default:
 		return nil
@@ -166,6 +155,19 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 			Status:   worker.StatusUnknown,
 		}
 	}
+
+	// Federated worker cases
+	if module.Worker == decentralized.Mastodon {
+		return &WorkerInfo{
+			WorkerID: module.ID,
+			Network:  module.Network,
+			Worker:   module.Worker,
+			Tags:     decentralized.ToTagsMap[decentralized.Mastodon],
+			Platform: decentralized.PlatformMastodon,
+			Status:   worker.StatusReady,
+		}
+	}
+
 	// Fetch status and progress from a specific worker by id.
 	status, workerProgress := c.getWorkerStatusAndProgressByID(ctx, module.ID)
 
@@ -197,10 +199,6 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 				workerInfo.Tags = append(workerInfo.Tags, tag.Exchange)
 			default:
 			}
-		}
-
-		if module.Worker == decentralized.Mastodon {
-			workerInfo.Tags = []tag.Tag{tag.Social}
 		}
 
 	case network.RSSSource:
