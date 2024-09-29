@@ -57,6 +57,12 @@ func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 		processWorker(m.config.Component.RSS, m.processRSSWorker)
 	}
 
+	if m.config.Component.Federated != nil {
+		for _, federatedComponent := range m.config.Component.Federated {
+			processWorker(federatedComponent, m.processFederatedWorker)
+		}
+	}
+
 	go func() {
 		wg.Wait()
 		close(errChan)
@@ -103,6 +109,21 @@ func (m *Monitor) processDecentralizedWorker(ctx context.Context, w *config.Modu
 	}
 
 	return nil
+}
+
+// processFederatedWorker processes the federated worker status.
+func (m *Monitor) processFederatedWorker(ctx context.Context, w *config.Module) error {
+	client, ok := m.clients[w.Network]
+	if !ok {
+		return fmt.Errorf("client not exist")
+	}
+
+	targetStatus := workerx.StatusReady
+	if _, _, err := client.LatestState(ctx); err != nil {
+		targetStatus = workerx.StatusUnhealthy
+	}
+
+	return m.UpdateWorkerStatusByID(ctx, w.ID, targetStatus.String())
 }
 
 // processRSSWorker processes the rss worker status.
