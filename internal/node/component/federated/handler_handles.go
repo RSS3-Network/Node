@@ -1,6 +1,7 @@
 package federated
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -8,26 +9,25 @@ import (
 	"github.com/rss3-network/node/common/http/response"
 )
 
-// GetAllActiveHandles retrieves all active handles
-func (c *Component) GetAllActiveHandles(ctx echo.Context) error {
-	handles, err := c.getAllHandles(ctx.Request().Context())
-	if err != nil {
-		return response.InternalError(ctx)
+// GetHandles retrieves all active handles or updated handles based on the 'since' parameter
+func (c *Component) GetHandles(ctx echo.Context) error {
+	sinceStr := ctx.QueryParam("since")
+	if sinceStr == "" {
+		return response.BadRequestError(ctx, errors.New("'since' parameter is required"))
 	}
 
-	return ctx.JSON(http.StatusOK, map[string]interface{}{"handles": handles})
-}
-
-// GetUpdatedHandles retrieves handles updated since a given timestamp
-func (c *Component) GetUpdatedHandles(ctx echo.Context) error {
-	sinceStr := ctx.QueryParam("since")
 	since, err := strconv.ParseUint(sinceStr, 10, 64)
-
 	if err != nil {
 		return response.BadRequestError(ctx, err)
 	}
 
-	handles, err := c.getUpdatedHandles(ctx.Request().Context(), since)
+	var handles []string
+	if since == 0 {
+		handles, err = c.getAllHandles(ctx.Request().Context())
+	} else {
+		handles, err = c.getUpdatedHandles(ctx.Request().Context(), since)
+	}
+
 	if err != nil {
 		return response.InternalError(ctx)
 	}

@@ -63,8 +63,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 	group.GET("/network/:network", c.GetNetworkActivities)
 	group.GET("/platform/:platform", c.GetPlatformActivities)
 	group.POST("/accounts", c.BatchGetAccountsActivities)
-	group.GET("/handles", c.GetAllActiveHandles)
-	group.GET("/handles/updated", c.GetUpdatedHandles)
+	group.GET("/handles", c.GetHandles)
 
 	if err := c.InitMeter(); err != nil {
 		panic(err)
