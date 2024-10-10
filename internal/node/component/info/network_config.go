@@ -5,6 +5,7 @@ package info
 // Each worker has a default configuration, which can be customized based on various factors.
 
 import (
+	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/node/schema/worker/federated"
@@ -28,6 +29,8 @@ type ConfigDetail struct {
 	Type        ConfigDetailValueType `json:"type"`
 	Value       interface{}           `json:"value"`
 	Description string                `json:"description"`
+	Title       string                `json:"title"`
+	Key         string                `json:"key"`
 }
 
 type Endpoint struct {
@@ -49,6 +52,7 @@ type Parameters struct {
 	BlockReceiptBatchSize   *ConfigDetail   `json:"block_receipts_batch_size,omitempty"`
 	APIKey                  *ConfigDetail   `json:"api_key,omitempty"`
 	Authentication          *Authentication `json:"authentication,omitempty"`
+	TimestampStart          *ConfigDetail   `json:"timestamp_start,omitempty"`
 	KafkaTopic              *ConfigDetail   `json:"kafka_topic,omitempty"`
 }
 
@@ -62,42 +66,21 @@ type workerConfig struct {
 	MinimumResource MinimumResource `json:"minimum_resource"`
 }
 
+const (
+	activityPubKafkaTopicDescription = "The Kafka topic to which the ActivityPub data will be published. By default, the data will be sent to this topic on the Kafka broker running on the Mastodon instance."
+
+	mastodonInstanceDescription = "A Mastodon instance is required. Please follow <a href=\"https://github.com/RSS3-Network/Mastodon-Instance-Kit\" target=\"_blank\">the guide</a> to either deploy a new Mastodon instance or modify an existing Mastodon instance. After completing either option, enter your Mastodon endpoint (format: your_instance_ip:9092) here."
+)
+
 var defaultNetworkParameters = map[network.Source]*Parameters{
-	network.EthereumSource: {
-		// unnecessary to expose
-		//BlockStart: &ConfigDetail{
-		//	IsRequired:  false,
-		//	Type:        BigIntType,
-		//	Description: "The block number where your worker will begin indexing. Each version of Node has a different starting block number.",
-		// },
-		// BlockTarget: &ConfigDetail{
-		//	IsRequired:  false,
-		//	Type:        BigIntType,
-		//	Description: "The block number where your worker will stop indexing",
-		// },
-		ConcurrentBlockRequests: &ConfigDetail{
-			IsRequired:  false,
-			Type:        UintType,
-			Value:       uint(8),
-			Description: "The number of concurrent RPC requests to the blockchain rpc. Default: 8",
-		},
-		BlockBatchSize: &ConfigDetail{
-			IsRequired:  false,
-			Type:        UintType,
-			Value:       uint(8),
-			Description: "The number of blocks to fetch in a single RPC request. Default: 8",
-		},
-		ReceiptsBatchSize: &ConfigDetail{
-			IsRequired:  false,
-			Type:        UintType,
-			Value:       uint(200),
-			Description: "The number of receipts to fetch in a single RPC request. Default: 200",
-		},
-		BlockReceiptBatchSize: &ConfigDetail{
-			IsRequired:  false,
-			Type:        UintType,
-			Value:       uint(8),
-			Description: "The number of blocks to fetch receipts in a single RPC request. Default: 8",
+	network.ActivityPubSource: {
+		KafkaTopic: &ConfigDetail{
+			IsRequired:  true,
+			Type:        StringType,
+			Value:       "activitypub_events",
+			Description: activityPubKafkaTopicDescription,
+			Title:       "Kafka Topic",
+			Key:         "parameters.kafka_topic",
 		},
 	},
 	network.ArweaveSource: {
@@ -117,6 +100,53 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 			Type:        UintType,
 			Value:       uint(1),
 			Description: "The number of concurrent RPC requests to the Arweave gateway. Default: 1",
+			Title:       "Concurrent Block Requests",
+			Key:         "parameters.concurrent_block_requests",
+		},
+	},
+	network.EthereumSource: {
+		// unnecessary to expose
+		//BlockStart: &ConfigDetail{
+		//	IsRequired:  false,
+		//	Type:        BigIntType,
+		//	Description: "The block number where your worker will begin indexing. Each version of Node has a different starting block number.",
+		// },
+		// BlockTarget: &ConfigDetail{
+		//	IsRequired:  false,
+		//	Type:        BigIntType,
+		//	Description: "The block number where your worker will stop indexing",
+		// },
+		ConcurrentBlockRequests: &ConfigDetail{
+			IsRequired:  false,
+			Type:        UintType,
+			Value:       uint(8),
+			Description: "The number of concurrent RPC requests to the blockchain rpc. Default: 8",
+			Title:       "Concurrent Block Requests",
+			Key:         "parameters.concurrent_block_requests",
+		},
+		BlockBatchSize: &ConfigDetail{
+			IsRequired:  false,
+			Type:        UintType,
+			Value:       uint(8),
+			Description: "The number of blocks to fetch in a single RPC request. Default: 8",
+			Title:       "Block Batch Size",
+			Key:         "parameters.block_batch_size",
+		},
+		ReceiptsBatchSize: &ConfigDetail{
+			IsRequired:  false,
+			Type:        UintType,
+			Value:       uint(200),
+			Description: "The number of receipts to fetch in a single RPC request. Default: 200",
+			Title:       "Receipts Batch Size",
+			Key:         "parameters.receipts_batch_size",
+		},
+		BlockReceiptBatchSize: &ConfigDetail{
+			IsRequired:  false,
+			Type:        UintType,
+			Value:       uint(8),
+			Description: "The number of blocks to fetch receipts in a single RPC request. Default: 8",
+			Title:       "Block Receipt Batch Size",
+			Key:         "parameters.block_receipts_batch_size",
 		},
 	},
 	network.NearSource: {
@@ -136,6 +166,8 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 			Type:        UintType,
 			Value:       uint(8),
 			Description: "The number of concurrent RPC requests to the Near RPC. Default: 8",
+			Title:       "Concurrent Block Requests",
+			Key:         "parameters.concurrent_block_requests",
 		},
 	},
 }
@@ -158,22 +190,30 @@ func defaultWorkerConfig(worker worker.Worker, network network.Source, parameter
 			IsRequired:  true,
 			Type:        StringType,
 			Description: "Worker's id, must be unique, for example '[network]-[worker]'",
+			Title:       "ID",
+			Key:         "id",
 		},
 		Network: ConfigDetail{
 			IsRequired:  true,
 			Type:        StringType,
 			Description: "The network where the worker operates on",
+			Title:       "Network",
+			Key:         "network",
 		},
 		Worker: ConfigDetail{
 			IsRequired:  true,
 			Type:        StringType,
 			Value:       worker.Name(),
 			Description: "Name of the worker",
+			Title:       "Worker",
+			Key:         "worker",
 		},
 		EndpointID: &ConfigDetail{
 			IsRequired:  true,
 			Type:        URLType,
 			Description: "An external endpoint to fetch data from, for example, a blockchain RPC endpoint or a Farcaster api",
+			Title:       "Endpoint",
+			Key:         "endpoint",
 		},
 		Parameters: parameters,
 	}
@@ -217,24 +257,50 @@ func customWorkerConfig(worker worker.Worker, network network.Source, parameters
 	return config
 }
 
-func getEndpointConfig() Endpoint {
-	return Endpoint{
+// getEndpointConfig returns the endpoint config for a given network.
+func getEndpointConfig(n network.Network) Endpoint {
+	endpointConfig := Endpoint{
 		URL: &ConfigDetail{
 			IsRequired:  true,
 			Type:        URLType,
 			Description: "The URL of the endpoint.",
+			Title:       "URL",
+			Key:         "url",
 		},
 		HTTPHeaders: &ConfigDetail{
 			IsRequired:  false,
 			Type:        StringMapType,
 			Description: "HTTP headers to be sent with requests to this endpoint.",
+			Title:       "HTTP Headers",
+			Key:         "http_headers",
 		},
 		HTTP2Disabled: &ConfigDetail{
 			IsRequired:  false,
 			Type:        BooleanType,
 			Description: "Some endpoints may not support HTTP2, set this to true to disable HTTP2.",
+			Title:       "HTTP2 Disabled",
+			Key:         "http2_disabled",
 		},
 	}
+
+	switch n.Source() {
+	case network.EthereumSource:
+		endpointConfig.URL.Value = endpoint.MustGet(n)
+	case network.NearSource:
+		endpointConfig.URL.Value = "https://archival-rpc.mainnet.near.org"
+	case network.FarcasterSource:
+		endpointConfig.URL.Value = "https://your-farcaster-api-endpoint"
+	case network.ArweaveSource:
+		endpointConfig.URL.Value = "https://arweave.net"
+	case network.ActivityPubSource:
+		endpointConfig.URL.Type = StringType
+		endpointConfig.URL.Description = mastodonInstanceDescription
+		endpointConfig.URL.Value = "127.0.0.1:9092"
+	default:
+		endpointConfig.URL.Value = "https://your-network-endpoint"
+	}
+
+	return endpointConfig
 }
 
 func setIPFSGateways(config *workerConfig) {
@@ -242,15 +308,48 @@ func setIPFSGateways(config *workerConfig) {
 		IsRequired:  true,
 		Type:        URLArrayType,
 		Description: "A list of IPFS gateways to fetch data from, multiple gateways may improve the availability of IPFS data",
+		Title:       "IPFS Gateways",
+		Key:         "ipfs_gateways",
 	}
 }
 
 // NetworkToWorkersMap is a map of Network-has-Workers.
 var NetworkToWorkersMap = map[network.Network][]worker.Worker{
+	network.Arbitrum: {
+		decentralized.Aave,
+		decentralized.Core,
+		decentralized.Curve,
+		decentralized.Highlight,
+		decentralized.Stargate,
+	},
+	network.Arweave: {
+		decentralized.Mirror,
+		decentralized.Momoka,
+		decentralized.Paragraph,
+	},
+	network.Avalanche: {
+		decentralized.Aave,
+		decentralized.Core,
+		decentralized.Curve,
+		decentralized.Stargate,
+	},
+	network.Base: {
+		decentralized.Aave,
+		decentralized.Core,
+		decentralized.Stargate,
+	},
+	network.BinanceSmartChain: {
+		decentralized.Core,
+		decentralized.Stargate,
+	},
+	network.Crossbell: {
+		decentralized.Core,
+		decentralized.Crossbell,
+	},
 	network.Ethereum: {
 		decentralized.Aave,
-		decentralized.Base,
 		decentralized.Arbitrum,
+		decentralized.Base,
 		decentralized.Core,
 		decentralized.Cow,
 		decentralized.Curve,
@@ -269,13 +368,34 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Uniswap,
 		decentralized.VSL,
 	},
-	network.Arweave: {
-		decentralized.Mirror,
-		decentralized.Momoka,
-		decentralized.Paragraph,
-	},
 	network.Farcaster: {
 		decentralized.Core,
+	},
+	network.Gnosis: {
+		decentralized.Core,
+		decentralized.Curve,
+	},
+	network.Linea: {
+		decentralized.Core,
+		decentralized.Stargate,
+		decentralized.Uniswap,
+	},
+	network.Mastodon: {
+		federated.Mastodon,
+	},
+	network.Near: {
+		decentralized.Core,
+		decentralized.LiNEAR,
+	},
+	network.Optimism: {
+		decentralized.Aave,
+		decentralized.Core,
+		decentralized.Curve,
+		decentralized.Highlight,
+		decentralized.KiwiStand,
+		decentralized.Matters,
+		decentralized.Optimism,
+		decentralized.Stargate,
 	},
 	network.Polygon: {
 		decentralized.Aave,
@@ -288,76 +408,41 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Polymarket,
 		decentralized.Stargate,
 	},
-	network.Crossbell: {
-		decentralized.Core,
-		decentralized.Crossbell,
-	},
-	network.Avalanche: {
-		decentralized.Aave,
-		decentralized.Core,
-		decentralized.Curve,
-		decentralized.Stargate,
-	},
-	network.Base: {
-		decentralized.Aave,
-		decentralized.Core,
-		decentralized.Stargate,
-	},
-	network.Optimism: {
-		decentralized.Aave,
-		decentralized.Core,
-		decentralized.Curve,
-		decentralized.Highlight,
-		decentralized.KiwiStand,
-		decentralized.Matters,
-		decentralized.Optimism,
-		decentralized.Stargate,
-	},
-	network.Arbitrum: {
-		decentralized.Aave,
-		decentralized.Core,
-		decentralized.Curve,
-		decentralized.Highlight,
-		decentralized.Stargate,
-	},
-	network.VSL: {
-		decentralized.Core,
+	network.RSS: {
+		rss.RSSHub,
 	},
 	network.SatoshiVM: {
 		decentralized.Core,
 		decentralized.SAVM,
 		decentralized.Uniswap,
 	},
-	network.BinanceSmartChain: {
+	network.VSL: {
 		decentralized.Core,
-		decentralized.Stargate,
-	},
-	network.Gnosis: {
-		decentralized.Core,
-		decentralized.Curve,
-	},
-	network.Linea: {
-		decentralized.Core,
-		decentralized.Stargate,
-		decentralized.Uniswap,
-	},
-	network.RSS: {
-		rss.RSSHub,
 	},
 	network.XLayer: {
 		decentralized.Core,
-	},
-	network.Near: {
-		decentralized.Core,
-		decentralized.LiNEAR,
-	},
-	network.Mastodon: {
-		federated.Mastodon,
 	},
 }
 
 // WorkerToConfigMap is a map of worker to config.
 var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
+	network.ActivityPubSource: {
+		federated.Mastodon: customWorkerConfig(federated.Mastodon, network.ActivityPubSource, &Parameters{
+			KafkaTopic: &ConfigDetail{
+				IsRequired:  true,
+				Type:        StringType,
+				Value:       "activitypub_events",
+				Description: activityPubKafkaTopicDescription,
+				Title:       "Kafka Topic",
+				Key:         "parameters.kafka_topic",
+			},
+		}, mastodonInstanceDescription),
+	},
+	network.ArweaveSource: {
+		decentralized.Mirror:    customWorkerConfigWithoutEndpoint(decentralized.Mirror, network.ArweaveSource, nil, true),
+		decentralized.Momoka:    customWorkerConfigWithIPFS(decentralized.Momoka, network.ArweaveSource, "A Polygon RPC is required for Momoka"),
+		decentralized.Paragraph: customWorkerConfigWithoutEndpoint(decentralized.Paragraph, network.ArweaveSource, nil, false),
+	},
 	network.EthereumSource: {
 		decentralized.Aave:       defaultWorkerConfig(decentralized.Aave, network.EthereumSource, nil),
 		decentralized.Aavegotchi: defaultWorkerConfig(decentralized.Aavegotchi, network.EthereumSource, nil),
@@ -389,26 +474,20 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.Uniswap:    defaultWorkerConfig(decentralized.Uniswap, network.EthereumSource, nil),
 		decentralized.VSL:        defaultWorkerConfig(decentralized.VSL, network.EthereumSource, nil),
 	},
-	network.ArweaveSource: {
-		decentralized.Mirror:    customWorkerConfigWithoutEndpoint(decentralized.Mirror, network.ArweaveSource, nil, true),
-		decentralized.Momoka:    customWorkerConfigWithIPFS(decentralized.Momoka, network.ArweaveSource, "A Polygon RPC is required for Momoka"),
-		decentralized.Paragraph: customWorkerConfigWithoutEndpoint(decentralized.Paragraph, network.ArweaveSource, nil, false),
-	},
-	network.NearSource: {
-		decentralized.Core:   defaultWorkerConfig(decentralized.Core, network.NearSource, nil),
-		decentralized.LiNEAR: defaultWorkerConfig(decentralized.LiNEAR, network.NearSource, nil),
-	},
-	network.ActivityPubSource: {
-		federated.Mastodon: defaultWorkerConfig(federated.Mastodon, network.ActivityPubSource, nil),
-	},
 	network.FarcasterSource: {
 		decentralized.Core: customWorkerConfig(decentralized.Core, network.FarcasterSource, &Parameters{
 			APIKey: &ConfigDetail{
 				IsRequired:  false,
 				Type:        StringType,
 				Description: "API key to access your Farcaster Hubble on Neynar",
+				Title:       "API Key",
+				Key:         "parameters.api_key",
 			},
 		}, "A Farcaster Hubble is required"),
+	},
+	network.NearSource: {
+		decentralized.Core:   defaultWorkerConfig(decentralized.Core, network.NearSource, nil),
+		decentralized.LiNEAR: defaultWorkerConfig(decentralized.LiNEAR, network.NearSource, nil),
 	},
 	network.RSSSource: {
 		rss.RSSHub: customWorkerConfig(rss.RSSHub, network.RSSSource, &Parameters{
@@ -417,8 +496,10 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 					IsRequired:  false,
 					Type:        StringType,
 					Description: "A key to access the RSS Feed",
+					Title:       "Access Key",
+					Key:         "parameters.authentication.access_key",
 				},
 			},
-		}, ""),
+		}, "Your RSSHub instance URL"),
 	},
 }

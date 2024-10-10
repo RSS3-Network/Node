@@ -349,16 +349,16 @@
                 }
             }
         },
-        "/networks/endpoint_config": {
+        "/networks/config": {
             "get": {
-                "summary": "Get Endpoint config options",
-                "description": "Retrieve endpoint config options and descriptions.",
+                "summary": "Get worker config options",
+                "description": "Retrieve worker config options and descriptions.",
                 "tags": [
                     "Info"
                 ],
                 "responses": {
                     "200": {
-                        "$ref": "#/components/responses/EndpointConfigResponse"
+                        "$ref": "#/components/responses/NetworkConfigResponse"
                     },
                     "400": {
                         "$ref": "#/components/responses/BadRequest"
@@ -827,10 +827,10 @@
                 },
                 "type": "object"
             },
-            "EndpointConfigResponse": {
+            "NetworkConfigResponse": {
                 "properties": {
                     "data": {
-                        "$ref": "#/components/schemas/EndpointConfig"
+                        "$ref": "#/components/schemas/NetworkConfig"
                     }
                 },
                 "type": "object",
@@ -1125,6 +1125,55 @@
                     "federated": null
                 }
             },
+            "NetworkConfig": {
+                "description": "The worker config details by source.",
+                "type": "object",
+                "properties": {
+                    "rss": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "endpoint_configs": {
+                                "$ref": "#/components/schemas/Endpoint"
+                            },
+                            "worker_configs": {
+                                "$ref": "#/components/schemas/WorkerConfig"
+                            }
+                        }
+                    },
+                    "decentralized": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/NetworkConfigDetail"
+                        }
+                    },
+                    "federated": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/NetworkConfigDetail"
+                        }
+                    }
+                }
+            },
+            "NetworkConfigDetail": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "endpoint_configs": {
+                        "$ref": "#/components/schemas/EndpointConfig"
+                    },
+                    "worker_configs": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/WorkerConfig"
+                        }
+                    }
+                }
+            },
             "EndpointConfig": {
                 "description": "The endpoint options and config details of the worker.",
                 "properties": {
@@ -1139,6 +1188,118 @@
                     }
                 },
                 "type": "object"
+            },
+            "WorkerConfig": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "network": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "worker": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "endpoint": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "ipfs_gateways": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/Parameters"
+                    },
+                    "minimum_resource": {
+                        "$ref": "#/components/schemas/MinimumResource"
+                    }
+                }
+            },
+            "Parameters": {
+                "type": "object",
+                "properties": {
+                    "block_start": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "block_target": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "concurrent_block_requests": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "block_batch_size": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "receipts_batch_size": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "block_receipts_batch_size": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "api_key": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "authentication": {
+                        "$ref": "#/components/schemas/Authentication"
+                    },
+                    "kafka_topic": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    }
+                }
+            },
+            "Authentication": {
+                "type": "object",
+                "properties": {
+                    "access_key": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    }
+                }
+            },
+            "MinimumResource": {
+                "type": "object",
+                "properties": {
+                    "cpu_core": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "memory_in_gb": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "disk_space_in_gb": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "key": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ConfigDetail": {
+                "type": "object",
+                "required": ["is_required", "type", "value", "description"],
+                "properties": {
+                    "is_required": {
+                        "type": "boolean"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "key": {
+                        "type": "string"
+                    }
+                }
             },
             "WorkerStatus": {
                 "description": "The status of the worker.",
@@ -1184,24 +1345,6 @@
                     }
                 },
                 "type": "object"
-            },
-            "ConfigDetail": {
-                "type": "object",
-                "required": ["is_required", "type", "value", "description"],
-                "properties": {
-                    "is_required": {
-                        "type": "boolean"
-                    },
-                    "type": {
-                        "type": "string"
-                    },
-                    "value": {
-                        "type": "string"
-                    },
-                    "description": {
-                        "type": "string"
-                    }
-                }
             },
             "Calldata": {
                 "description": "Represents the call data associated with an activity.",
@@ -1400,12 +1543,12 @@
                     }
                 }
             },
-            "EndpointConfigResponse": {
+            "NetworkConfigResponse": {
                 "description": "The request was successful.",
                 "content": {
                     "application/json": {
                         "schema": {
-                            "$ref": "#/components/schemas/EndpointConfigResponse"
+                            "$ref": "#/components/schemas/NetworkConfigResponse"
                         }
                     }
                 }
