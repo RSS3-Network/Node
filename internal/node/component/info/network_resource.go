@@ -12,6 +12,8 @@ type MinimumResource struct {
 	CPUCore       float32 `json:"cpu_core"`
 	MemoryInGb    float32 `json:"memory_in_gb"`
 	DiskSpaceInGb uint    `json:"disk_space_in_gb"`
+	Title         string  `json:"title"`
+	Key           string  `json:"key"`
 }
 
 // Mul multiplies the resource by a given multiplier
@@ -20,6 +22,8 @@ func (r MinimumResource) Mul(multiplier float32) MinimumResource {
 		CPUCore:       r.CPUCore * multiplier,
 		MemoryInGb:    r.MemoryInGb * multiplier,
 		DiskSpaceInGb: r.DiskSpaceInGb,
+		Title:         r.Title,
+		Key:           r.Key,
 	}
 }
 
@@ -30,6 +34,8 @@ var baseResource = MinimumResource{
 	// 1GB is the default disk space for a non-core worker for a month
 	// this is a ballpark figure as it's impossible to calculate the exact disk space required for all non-core workers
 	DiskSpaceInGb: 1 * parameter.NumberOfMonthsToCover,
+	Title:         "Minimum Resource",
+	Key:           "minimum_resource",
 }
 
 // set a list of multipliers for network and worker
