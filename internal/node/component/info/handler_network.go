@@ -54,7 +54,7 @@ func getNetworkConfigDetail(sources ...network.Source) []NetworkConfigDetail {
 			}
 
 			if s != network.RSSSource {
-				endpointConfig := getEndpointConfig()
+				endpointConfig := getEndpointConfig(s)
 				networkDetail.EndpointConfig = &endpointConfig
 			}
 
