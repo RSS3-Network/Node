@@ -1130,9 +1130,17 @@
                 "type": "object",
                 "properties": {
                     "rss": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/NetworkConfigDetail"
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "endpoint_configs": {
+                                "$ref": "#/components/schemas/Endpoint"
+                            },
+                            "worker_configs": {
+                                "$ref": "#/components/schemas/WorkerConfig"
+                            }
                         }
                     },
                     "decentralized": {
