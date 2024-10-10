@@ -7,6 +7,7 @@ package info
 import (
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 )
@@ -351,7 +352,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.LiNEAR,
 	},
 	network.Mastodon: {
-		decentralized.Mastodon,
+		federated.Mastodon,
 	},
 }
 
@@ -398,7 +399,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.LiNEAR: defaultWorkerConfig(decentralized.LiNEAR, network.NearSource, nil),
 	},
 	network.ActivityPubSource: {
-		decentralized.Mastodon: defaultWorkerConfig(decentralized.Mastodon, network.ActivityPubSource, nil),
+		federated.Mastodon: defaultWorkerConfig(federated.Mastodon, network.ActivityPubSource, nil),
 	},
 	network.FarcasterSource: {
 		decentralized.Core: customWorkerConfig(decentralized.Core, network.FarcasterSource, &Parameters{

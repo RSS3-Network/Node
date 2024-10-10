@@ -27,7 +27,6 @@ const (
 	Linea                        // linea
 	LiNEAR                       // linear
 	Looksrare                    // looksrare
-	Mastodon                     // mastodon
 	Matters                      // matters
 	Mirror                       // mirror
 	Momoka                       // momoka
@@ -75,6 +74,7 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	Aave:       {tag.Exchange},
 	Aavegotchi: {tag.Metaverse},
 	Arbitrum:   {tag.Transaction},
+	BendDAO:    {tag.Collectible, tag.Exchange},
 	Core:       {tag.Collectible, tag.Transaction},
 	Cow:        {tag.Exchange},
 	Crossbell:  {tag.Social},
@@ -88,7 +88,6 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	Linea:      {tag.Exchange, tag.Transaction},
 	LiNEAR:     {tag.Exchange, tag.Transaction},
 	Looksrare:  {tag.Collectible},
-	Mastodon:   {tag.Social},
 	Matters:    {tag.Social},
 	Mirror:     {tag.Social},
 	Momoka:     {tag.Social},

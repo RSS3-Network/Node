@@ -17,7 +17,7 @@ import (
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/near"
 	"github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/federated"
 )
 
 type Client interface {
@@ -322,7 +322,7 @@ func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, wo
 	workerType := worker.Name()
 
 	switch workerType {
-	case decentralized.Mastodon.String():
+	case federated.Mastodon.String():
 		mastodonClient, err := mastodon.NewClient(endpoint.URL, kafkaTopic)
 
 		if err != nil {

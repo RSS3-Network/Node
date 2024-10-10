@@ -5,6 +5,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/node/schema/worker/rss"
 )
 
@@ -27,6 +28,8 @@ func HookFunc() mapstructure.DecodeHookFuncType {
 			if value := rss.GetValueByWorkerStr(workerStr); value != 0 {
 				return value, nil
 			} else if value := decentralized.GetValueByWorkerStr(workerStr); value != 0 {
+				return value, nil
+			} else if value := federated.GetValueByWorkerStr(workerStr); value != 0 {
 				return value, nil
 			}
 		}
