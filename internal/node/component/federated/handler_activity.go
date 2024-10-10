@@ -15,7 +15,6 @@ import (
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
-	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	lop "github.com/samber/lo/parallel"
 	"go.uber.org/zap"
@@ -52,11 +51,6 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 	if err != nil {
 		zap.L().Error("GetActivity InternalError", zap.Error(err))
 		return response.InternalError(ctx)
-	}
-
-	// query etherface for the transaction
-	if c.etherfaceClient != nil && activity != nil && activity.Type == typex.Unknown && activity.Calldata != nil {
-		activity.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx.Request().Context(), activity.Calldata.FunctionHash)
 	}
 
 	// transform the activity such as adding related urls
@@ -210,11 +204,6 @@ func (c *Component) TransformActivities(ctx context.Context, activities []*activ
 			zap.L().Error("failed to load activity", zap.Error(err))
 
 			return
-		}
-
-		// query etherface to get the parsed function name
-		if c.etherfaceClient != nil && result.Type == typex.Unknown && result.Calldata != nil {
-			result.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx, result.Calldata.FunctionHash)
 		}
 
 		results[index] = result

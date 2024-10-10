@@ -20,7 +20,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/source/activitypub"
 	message "github.com/rss3-network/node/provider/activitypub"
 	redisx "github.com/rss3-network/node/provider/redis"
-	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -177,7 +177,7 @@ func TestWorker(t *testing.T) {
 			want: &activity.Activity{
 				ID:       "https://airwaves.social/users/VicRB/statuses/112836523057177095",
 				Network:  network.Mastodon,
-				Platform: decentralized.PlatformMastodon.String(),
+				Platform: federated.PlatformMastodon.String(),
 				From:     "@VicRB@airwaves.social",
 				To:       "@VicRB@airwaves.social",
 				Type:     typex.SocialPost,
@@ -185,7 +185,7 @@ func TestWorker(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialPost,
-						Platform: decentralized.PlatformMastodon.String(),
+						Platform: federated.PlatformMastodon.String(),
 						From:     "@VicRB@airwaves.social",
 						To:       "@VicRB@airwaves.social",
 						Metadata: &metadata.SocialPost{
@@ -231,7 +231,7 @@ func TestWorker(t *testing.T) {
 			want: &activity.Activity{
 				ID:       "https://beekeeping.ninja/users/Pagan_Animist/statuses/112840117527501203",
 				Network:  network.Mastodon,
-				Platform: decentralized.PlatformMastodon.String(),
+				Platform: federated.PlatformMastodon.String(),
 				From:     "@Pagan_Animist@beekeeping.ninja",
 				To:       "@evedazzle@mas.to",
 				Type:     typex.SocialComment,
@@ -239,7 +239,7 @@ func TestWorker(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialComment,
-						Platform: decentralized.PlatformMastodon.String(),
+						Platform: federated.PlatformMastodon.String(),
 						From:     "@Pagan_Animist@beekeeping.ninja",
 						To:       "@evedazzle@mas.to",
 						Metadata: &metadata.SocialPost{
@@ -298,7 +298,7 @@ func TestWorker(t *testing.T) {
 			want: &activity.Activity{
 				ID:       "https://epicure.social/users/Island_Martha/statuses/112840097961400438",
 				Network:  network.Mastodon,
-				Platform: decentralized.PlatformMastodon.String(),
+				Platform: federated.PlatformMastodon.String(),
 				From:     "@Island_Martha@epicure.social",
 				To:       "@SpookieRobieTheCat@mastodon.social",
 				Type:     typex.SocialComment,
@@ -306,7 +306,7 @@ func TestWorker(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialComment,
-						Platform: decentralized.PlatformMastodon.String(),
+						Platform: federated.PlatformMastodon.String(),
 						From:     "@Island_Martha@epicure.social",
 						To:       "@SpookieRobieTheCat@mastodon.social",
 						Metadata: &metadata.SocialPost{
@@ -322,7 +322,7 @@ func TestWorker(t *testing.T) {
 					},
 					{
 						Type:     typex.SocialShare,
-						Platform: decentralized.PlatformMastodon.String(),
+						Platform: federated.PlatformMastodon.String(),
 						From:     "@Island_Martha@epicure.social",
 						To:       "@SpookieRobieTheCat@mastodon.social",
 						Metadata: &metadata.SocialPost{
@@ -338,7 +338,7 @@ func TestWorker(t *testing.T) {
 					},
 					{
 						Type:     typex.SocialShare,
-						Platform: decentralized.PlatformMastodon.String(),
+						Platform: federated.PlatformMastodon.String(),
 						From:     "@Island_Martha@epicure.social",
 						To:       "@eunews@mastodon.social",
 						Metadata: &metadata.SocialPost{
@@ -380,7 +380,7 @@ func TestWorker(t *testing.T) {
 			want: &activity.Activity{
 				ID:       "https://relay.an.exchange/activities/d93bf6f6-832d-49d0-b841-3654d8da0b79",
 				Network:  network.Mastodon,
-				Platform: decentralized.PlatformMastodon.String(),
+				Platform: federated.PlatformMastodon.String(),
 				From:     "@relay@relay.an.exchange",
 				To:       "@relay@relay.an.exchange",
 				Type:     typex.SocialShare,
@@ -388,7 +388,7 @@ func TestWorker(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialShare,
-						Platform: decentralized.PlatformMastodon.String(),
+						Platform: federated.PlatformMastodon.String(),
 						From:     "@relay@relay.an.exchange",
 						To:       "@SarraceniaWilds@cr8r.gg",
 						Metadata: &metadata.SocialPost{
@@ -429,7 +429,7 @@ func TestWorker(t *testing.T) {
 			want: &activity.Activity{
 				ID:       "https://mock.social/activities/like123",
 				Network:  network.Mastodon,
-				Platform: decentralized.PlatformMastodon.String(),
+				Platform: federated.PlatformMastodon.String(),
 				From:     "@Pagan_Animist@beekeeping.ninja",
 				To:       "",
 				Type:     typex.SocialComment,
@@ -437,7 +437,7 @@ func TestWorker(t *testing.T) {
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialComment,
-						Platform: decentralized.PlatformMastodon.String(),
+						Platform: federated.PlatformMastodon.String(),
 						From:     "https://beekeeping.ninja/users/Pagan_Animist",
 						To:       "",
 						Metadata: &metadata.SocialPost{

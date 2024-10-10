@@ -13,21 +13,18 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
 	"github.com/rss3-network/node/internal/node/component/middleware"
-	"github.com/rss3-network/node/provider/ethereum/etherface"
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 )
 
 type Component struct {
-	config          *config.File
-	counter         metric.Int64Counter
-	databaseClient  database.Client
-	etherfaceClient etherface.Client
-	redisClient     rueidis.Client
+	config         *config.File
+	counter        metric.Int64Counter
+	databaseClient database.Client
+	redisClient    rueidis.Client
 }
 
 const Name = "federated"
@@ -67,14 +64,6 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 
 	if err := c.InitMeter(); err != nil {
 		panic(err)
-	}
-
-	// Initialize etherface client, an optional dependency
-	etherfaceClient, err := etherface.NewEtherfaceClient()
-	if err != nil {
-		zap.L().Warn("failed to initialize etherface client", zap.Any("error", err))
-	} else {
-		c.etherfaceClient = etherfaceClient
 	}
 
 	return c

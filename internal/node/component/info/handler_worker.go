@@ -12,6 +12,7 @@ import (
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
@@ -30,12 +31,12 @@ type ComponentInfo struct {
 }
 
 type WorkerInfo struct {
-	WorkerID string                 `json:"worker_id"`
-	Worker   worker.Worker          `json:"worker"`
-	Network  network.Network        `json:"network"`
-	Tags     []tag.Tag              `json:"tags"`
-	Platform decentralized.Platform `json:"platform"`
-	Status   worker.Status          `json:"status"`
+	WorkerID string          `json:"worker_id"`
+	Worker   worker.Worker   `json:"worker"`
+	Network  network.Network `json:"network"`
+	Tags     []tag.Tag       `json:"tags"`
+	Platform string          `json:"platform"`
+	Status   worker.Status   `json:"status"`
 	monitor.WorkerProgress
 }
 
@@ -64,23 +65,23 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 					WorkerID: m.ID,
 					Network:  m.Network,
 					Worker:   m.Worker,
-					Tags:     []tag.Tag{tag.RSS},
-					Platform: decentralized.PlatformUnknown,
+					Tags:     rss.ToTagsMap[m.Worker.(rss.Worker)],
+					Platform: rss.ToPlatformMap[m.Worker.(rss.Worker)].String(),
 					Status:   worker.StatusReady},
 			},
 		}
 	case c.config.Component.Federated != nil:
-		federatedComponent := c.config.Component.Federated[0]
-		switch federatedComponent.Worker {
-		case decentralized.Mastodon:
+		f := c.config.Component.Federated[0]
+		switch f.Worker {
+		case federated.Mastodon:
 			response = &WorkerResponse{
 				Data: ComponentInfo{
 					RSS: &WorkerInfo{
-						WorkerID: federatedComponent.ID,
-						Network:  federatedComponent.Network,
-						Worker:   federatedComponent.Worker,
-						Tags:     decentralized.ToTagsMap[decentralized.Mastodon],
-						Platform: decentralized.PlatformMastodon,
+						WorkerID: f.ID,
+						Network:  f.Network,
+						Worker:   f.Worker,
+						Tags:     federated.ToTagsMap[federated.Mastodon],
+						Platform: rss.ToPlatformMap[f.Worker.(rss.Worker)].String(),
 						Status:   worker.StatusReady},
 				},
 			}
@@ -172,8 +173,11 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 	}
 
 	switch module.Network.Source() {
-	case network.ActivityPubSource, network.EthereumSource, network.ArweaveSource, network.FarcasterSource, network.NearSource:
-		workerInfo.Platform = decentralized.ToPlatformMap[module.Worker.(decentralized.Worker)]
+	case network.ActivityPubSource:
+		workerInfo.Platform = federated.ToPlatformMap[module.Worker.(federated.Worker)].String()
+		workerInfo.Tags = federated.ToTagsMap[module.Worker.(federated.Worker)]
+	case network.EthereumSource, network.ArweaveSource, network.FarcasterSource, network.NearSource:
+		workerInfo.Platform = decentralized.ToPlatformMap[module.Worker.(decentralized.Worker)].String()
 		workerInfo.Tags = decentralized.ToTagsMap[module.Worker.(decentralized.Worker)]
 
 		// Handle special tags for decentralized core workers.
@@ -188,8 +192,8 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 			default:
 			}
 		}
-
 	case network.RSSSource:
+		workerInfo.Platform = rss.ToPlatformMap[module.Worker.(rss.Worker)].String()
 		workerInfo.Tags = rss.ToTagsMap[module.Worker.(rss.Worker)]
 	}
 
