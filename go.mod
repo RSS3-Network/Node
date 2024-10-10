@@ -37,7 +37,7 @@ require (
 	github.com/twmb/franz-go v1.17.1
 	github.com/twmb/franz-go/pkg/kadm v1.13.0
 	go.opentelemetry.io/otel v1.30.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.29.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.30.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.29.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.52.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.29.0
