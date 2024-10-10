@@ -5,6 +5,7 @@ package info
 // Each worker has a default configuration, which can be customized based on various factors.
 
 import (
+	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/node/schema/worker/federated"
@@ -232,8 +233,9 @@ func customWorkerConfig(worker worker.Worker, network network.Source, parameters
 	return config
 }
 
-func getEndpointConfig(source network.Source) Endpoint {
-	endpoint := Endpoint{
+// getEndpointConfig returns the endpoint config for a given network.
+func getEndpointConfig(n network.Network) Endpoint {
+	endpointConfig := Endpoint{
 		URL: &ConfigDetail{
 			IsRequired:  true,
 			Type:        URLType,
@@ -251,11 +253,23 @@ func getEndpointConfig(source network.Source) Endpoint {
 		},
 	}
 
-	if source == network.ActivityPubSource {
-		endpoint.URL.Description = mastodonInstanceDescription
+	switch n.Source() {
+	case network.EthereumSource:
+		endpointConfig.URL.Value = endpoint.MustGet(n)
+	case network.NearSource:
+		endpointConfig.URL.Value = "https://archival-rpc.mainnet.near.org"
+	case network.FarcasterSource:
+		endpointConfig.URL.Value = "your-farcaster-api-endpoint"
+	case network.ArweaveSource:
+		endpointConfig.URL.Value = "https://arweave.net"
+	case network.ActivityPubSource:
+		endpointConfig.URL.Description = mastodonInstanceDescription
+		endpointConfig.URL.Value = "your-mastodon-instance-endpoint"
+	default:
+		endpointConfig.URL.Value = "your network endpoint"
 	}
 
-	return endpoint
+	return endpointConfig
 }
 
 func setIPFSGateways(config *workerConfig) {
@@ -447,6 +461,6 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 					Description: "A key to access the RSS Feed",
 				},
 			},
-		}, ""),
+		}, "Your RSSHub instance URL"),
 	},
 }

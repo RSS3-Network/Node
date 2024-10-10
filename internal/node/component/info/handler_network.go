@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 )
@@ -13,9 +14,9 @@ type NetworkConfigResponse struct {
 }
 
 type NetworkConfig struct {
-	RSS           []NetworkConfigDetail `json:"rss,omitempty"`
-	Decentralized []NetworkConfigDetail `json:"decentralized,omitempty"`
-	Federated     []NetworkConfigDetail `json:"federated,omitempty"`
+	RSS           NetworkConfigDetailForRSS `json:"rss,omitempty"`
+	Decentralized []NetworkConfigDetail     `json:"decentralized,omitempty"`
+	Federated     []NetworkConfigDetail     `json:"federated,omitempty"`
 }
 
 type NetworkConfigDetail struct {
@@ -24,12 +25,18 @@ type NetworkConfigDetail struct {
 	WorkerConfig   []workerConfig `json:"worker_configs,omitempty"`
 }
 
+type NetworkConfigDetailForRSS struct {
+	ID             string       `json:"id,omitempty"`
+	EndpointConfig *Endpoint    `json:"endpoint_configs,omitempty"`
+	WorkerConfig   workerConfig `json:"worker_configs,omitempty"`
+}
+
 // GetNetworkConfig GetNetworksConfig returns the configuration for all supported networks.
 func (c *Component) GetNetworkConfig(ctx echo.Context) error {
 	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, "config")
 
 	config := NetworkConfig{
-		RSS:           getNetworkConfigDetail(network.RSSSource),
+		RSS:           getNetworkConfigDetailForRSS(network.RSSSource),
 		Decentralized: getNetworkConfigDetail(network.ArweaveSource, network.EthereumSource, network.FarcasterSource, network.NearSource),
 		Federated:     getNetworkConfigDetail(network.ActivityPubSource),
 	}
@@ -39,12 +46,31 @@ func (c *Component) GetNetworkConfig(ctx echo.Context) error {
 	})
 }
 
+func getNetworkConfigDetailForRSS(source network.Source) NetworkConfigDetailForRSS {
+	n := source.Networks()[0]
+
+	networkDetail := NetworkConfigDetailForRSS{
+		ID: n.String(),
+	}
+
+	worker := rss.RSSHub
+	config := WorkerToConfigMap[source][worker]
+
+	workerConfig := config
+	workerConfig.ID.Value = n.String() + "-" + worker.Name()
+	workerConfig.Network.Value = n.String()
+	workerConfig.MinimumResource = calculateMinimumResources(n, worker)
+	networkDetail.WorkerConfig = workerConfig
+
+	return networkDetail
+}
+
 func getNetworkConfigDetail(sources ...network.Source) []NetworkConfigDetail {
 	var details []NetworkConfigDetail
 
 	for _, s := range sources {
 		for _, n := range s.Networks() {
-			if n == network.SatoshiVM {
+			if n == network.Unknown || n == network.SatoshiVM || n == network.Bitcoin {
 				continue
 			}
 
@@ -54,7 +80,7 @@ func getNetworkConfigDetail(sources ...network.Source) []NetworkConfigDetail {
 			}
 
 			if s != network.RSSSource {
-				endpointConfig := getEndpointConfig(s)
+				endpointConfig := getEndpointConfig(n)
 				networkDetail.EndpointConfig = &endpointConfig
 			}
 
