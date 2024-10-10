@@ -226,6 +226,8 @@ func customWorkerConfig(worker worker.Worker, network network.Source, parameters
 	return config
 }
 
+const mastodonInstanceDescription = "A Mastodon instance is required. Please follow <a href=\"https://github.com/RSS3-Network/Mastodon-Instance-Kit\" target=\"_blank\">the guide</a> to deploy your own instance. Once deployed, set the endpoint of your Mastodon instance here."
+
 func getEndpointConfig(source network.Source) Endpoint {
 	endpoint := Endpoint{
 		URL: &ConfigDetail{
@@ -246,7 +248,7 @@ func getEndpointConfig(source network.Source) Endpoint {
 	}
 
 	if source == network.ActivityPubSource {
-		endpoint.URL.Description = "A Mastodon instance is required. Please follow <a href=\"https://github.com/RSS3-Network/Mastodon-Instance-Kit\" target=\"_blank\">the guide</a> to deploy your own instance. Once deployed, set the endpoint of your Mastodon instance here."
+		endpoint.URL.Description = mastodonInstanceDescription
 	}
 
 	return endpoint
@@ -381,7 +383,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Value:       "activitypub_events",
 				Description: "The Kafka topic to publish the ActivityPub data to. If not provided, the data will be published to the default topic",
 			},
-		}, "A Mastodon instance is required. Please follow <a href=\"https://github.com/RSS3-Network/Mastodon-Instance-Kit\" target=\"_blank\">the guide</a> to deploy your own instance. Once deployed, set the endpoint of your Mastodon instance here."),
+		}, mastodonInstanceDescription),
 	},
 	network.ArweaveSource: {
 		decentralized.Mirror:    customWorkerConfigWithoutEndpoint(decentralized.Mirror, network.ArweaveSource, nil, true),
