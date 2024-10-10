@@ -63,13 +63,19 @@ type workerConfig struct {
 	MinimumResource MinimumResource `json:"minimum_resource"`
 }
 
+const (
+	activityPubKafkaTopicDescription = "The Kafka topic to which the ActivityPub data will be published. By default, the data will be sent to this topic on the Kafka broker running on the Mastodon instance."
+
+	mastodonInstanceDescription = "A Mastodon instance is required. Please follow <a href=\"https://github.com/RSS3-Network/Mastodon-Instance-Kit\" target=\"_blank\">the guide</a> to either deploy a new Mastodon instance or modify an existing Mastodon instance. After completing either option, enter your Mastodon endpoint (format: your_instance_ip:9092) here."
+)
+
 var defaultNetworkParameters = map[network.Source]*Parameters{
 	network.ActivityPubSource: {
 		KafkaTopic: &ConfigDetail{
 			IsRequired:  true,
 			Type:        StringType,
 			Value:       "activitypub_events",
-			Description: "The Kafka topic to publish the ActivityPub data to. If not provided, the data will be published to the default topic",
+			Description: activityPubKafkaTopicDescription,
 		},
 	},
 	network.ArweaveSource: {
@@ -226,8 +232,6 @@ func customWorkerConfig(worker worker.Worker, network network.Source, parameters
 	return config
 }
 
-const mastodonInstanceDescription = "A Mastodon instance is required. Please follow <a href=\"https://github.com/RSS3-Network/Mastodon-Instance-Kit\" target=\"_blank\">the guide</a> to deploy your own instance. Once deployed, set the endpoint of your Mastodon instance here."
-
 func getEndpointConfig(source network.Source) Endpoint {
 	endpoint := Endpoint{
 		URL: &ConfigDetail{
@@ -381,7 +385,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				IsRequired:  true,
 				Type:        StringType,
 				Value:       "activitypub_events",
-				Description: "The Kafka topic to publish the ActivityPub data to. If not provided, the data will be published to the default topic",
+				Description: activityPubKafkaTopicDescription,
 			},
 		}, mastodonInstanceDescription),
 	},
