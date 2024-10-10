@@ -17,7 +17,7 @@ import (
 	"github.com/rss3-network/node/provider/activitypub/mastodon"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/redis"
-	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
@@ -36,11 +36,11 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return decentralized.Mastodon.String()
+	return federated.Mastodon.String()
 }
 
 func (w *worker) Platform() string {
-	return decentralized.PlatformMastodon.String()
+	return federated.PlatformMastodon.String()
 }
 
 func (w *worker) Network() []network.Network {

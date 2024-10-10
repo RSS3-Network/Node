@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"path"
@@ -17,7 +18,7 @@ import (
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/near"
 	"github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/federated"
 )
 
 type Client interface {
@@ -289,7 +290,7 @@ func (c *activitypubClient) LatestState(ctx context.Context) (uint64, uint64, er
 	fetches := consumer.PollFetches(pollCtx)
 
 	// Check if the poll operation timed out
-	if pollCtx.Err() == context.DeadlineExceeded {
+	if errors.Is(pollCtx.Err(), context.DeadlineExceeded) {
 		return 0, 0, fmt.Errorf("poll operation timed out, possible consumer issue")
 	}
 
@@ -322,7 +323,7 @@ func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, wo
 	workerType := worker.Name()
 
 	switch workerType {
-	case decentralized.Mastodon.String():
+	case federated.Mastodon.String():
 		mastodonClient, err := mastodon.NewClient(endpoint.URL, kafkaTopic)
 
 		if err != nil {
