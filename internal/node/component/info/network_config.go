@@ -29,6 +29,8 @@ type ConfigDetail struct {
 	Type        ConfigDetailValueType `json:"type"`
 	Value       interface{}           `json:"value"`
 	Description string                `json:"description"`
+	Title       string                `json:"title"`
+	Key         string                `json:"key"`
 }
 
 type Endpoint struct {
@@ -77,6 +79,8 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 			Type:        StringType,
 			Value:       "activitypub_events",
 			Description: activityPubKafkaTopicDescription,
+			Title:       "Kafka Topic",
+			Key:         "parameters.kafka_topic",
 		},
 	},
 	network.ArweaveSource: {
@@ -96,6 +100,8 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 			Type:        UintType,
 			Value:       uint(1),
 			Description: "The number of concurrent RPC requests to the Arweave gateway. Default: 1",
+			Title:       "Concurrent Block Requests",
+			Key:         "parameters.concurrent_block_requests",
 		},
 	},
 	network.EthereumSource: {
@@ -115,24 +121,32 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 			Type:        UintType,
 			Value:       uint(8),
 			Description: "The number of concurrent RPC requests to the blockchain rpc. Default: 8",
+			Title:       "Concurrent Block Requests",
+			Key:         "parameters.concurrent_block_requests",
 		},
 		BlockBatchSize: &ConfigDetail{
 			IsRequired:  false,
 			Type:        UintType,
 			Value:       uint(8),
 			Description: "The number of blocks to fetch in a single RPC request. Default: 8",
+			Title:       "Block Batch Size",
+			Key:         "parameters.block_batch_size",
 		},
 		ReceiptsBatchSize: &ConfigDetail{
 			IsRequired:  false,
 			Type:        UintType,
 			Value:       uint(200),
 			Description: "The number of receipts to fetch in a single RPC request. Default: 200",
+			Title:       "Receipts Batch Size",
+			Key:         "parameters.receipts_batch_size",
 		},
 		BlockReceiptBatchSize: &ConfigDetail{
 			IsRequired:  false,
 			Type:        UintType,
 			Value:       uint(8),
 			Description: "The number of blocks to fetch receipts in a single RPC request. Default: 8",
+			Title:       "Block Receipt Batch Size",
+			Key:         "parameters.block_receipts_batch_size",
 		},
 	},
 	network.NearSource: {
@@ -152,6 +166,8 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 			Type:        UintType,
 			Value:       uint(8),
 			Description: "The number of concurrent RPC requests to the Near RPC. Default: 8",
+			Title:       "Concurrent Block Requests",
+			Key:         "parameters.concurrent_block_requests",
 		},
 	},
 }
@@ -174,22 +190,30 @@ func defaultWorkerConfig(worker worker.Worker, network network.Source, parameter
 			IsRequired:  true,
 			Type:        StringType,
 			Description: "Worker's id, must be unique, for example '[network]-[worker]'",
+			Title:       "ID",
+			Key:         "id",
 		},
 		Network: ConfigDetail{
 			IsRequired:  true,
 			Type:        StringType,
 			Description: "The network where the worker operates on",
+			Title:       "Network",
+			Key:         "network",
 		},
 		Worker: ConfigDetail{
 			IsRequired:  true,
 			Type:        StringType,
 			Value:       worker.Name(),
 			Description: "Name of the worker",
+			Title:       "Worker",
+			Key:         "worker",
 		},
 		EndpointID: &ConfigDetail{
 			IsRequired:  true,
 			Type:        URLType,
 			Description: "An external endpoint to fetch data from, for example, a blockchain RPC endpoint or a Farcaster api",
+			Title:       "Endpoint",
+			Key:         "endpoint",
 		},
 		Parameters: parameters,
 	}
@@ -240,16 +264,22 @@ func getEndpointConfig(n network.Network) Endpoint {
 			IsRequired:  true,
 			Type:        URLType,
 			Description: "The URL of the endpoint.",
+			Title:       "URL",
+			Key:         "url",
 		},
 		HTTPHeaders: &ConfigDetail{
 			IsRequired:  false,
 			Type:        StringMapType,
 			Description: "HTTP headers to be sent with requests to this endpoint.",
+			Title:       "HTTP Headers",
+			Key:         "http_headers",
 		},
 		HTTP2Disabled: &ConfigDetail{
 			IsRequired:  false,
 			Type:        BooleanType,
 			Description: "Some endpoints may not support HTTP2, set this to true to disable HTTP2.",
+			Title:       "HTTP2 Disabled",
+			Key:         "http2_disabled",
 		},
 	}
 
@@ -277,6 +307,8 @@ func setIPFSGateways(config *workerConfig) {
 		IsRequired:  true,
 		Type:        URLArrayType,
 		Description: "A list of IPFS gateways to fetch data from, multiple gateways may improve the availability of IPFS data",
+		Title:       "IPFS Gateways",
+		Key:         "ipfs_gateways",
 	}
 }
 
@@ -400,6 +432,8 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				Type:        StringType,
 				Value:       "activitypub_events",
 				Description: activityPubKafkaTopicDescription,
+				Title:       "Kafka Topic",
+				Key:         "parameters.kafka_topic",
 			},
 		}, mastodonInstanceDescription),
 	},
@@ -445,6 +479,8 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 				IsRequired:  false,
 				Type:        StringType,
 				Description: "API key to access your Farcaster Hubble on Neynar",
+				Title:       "API Key",
+				Key:         "parameters.api_key",
 			},
 		}, "A Farcaster Hubble is required"),
 	},
@@ -459,6 +495,8 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 					IsRequired:  false,
 					Type:        StringType,
 					Description: "A key to access the RSS Feed",
+					Title:       "Access Key",
+					Key:         "parameters.authentication.access_key",
 				},
 			},
 		}, "Your RSSHub instance URL"),

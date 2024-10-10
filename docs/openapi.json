@@ -1268,6 +1268,12 @@
                     },
                     "disk_space_in_gb": {
                         "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "key": {
+                        "type": "string"
                     }
                 }
             },
@@ -1285,6 +1291,12 @@
                         "type": "string"
                     },
                     "description": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "key": {
                         "type": "string"
                     }
                 }
