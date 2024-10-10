@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"path"
@@ -289,7 +290,7 @@ func (c *activitypubClient) LatestState(ctx context.Context) (uint64, uint64, er
 	fetches := consumer.PollFetches(pollCtx)
 
 	// Check if the poll operation timed out
-	if pollCtx.Err() == context.DeadlineExceeded {
+	if errors.Is(pollCtx.Err(), context.DeadlineExceeded) {
 		return 0, 0, fmt.Errorf("poll operation timed out, possible consumer issue")
 	}
 
