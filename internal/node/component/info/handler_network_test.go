@@ -36,6 +36,8 @@ func TestCalculateMinimumResources(t *testing.T) {
 				CPUCore:       2.0,
 				MemoryInGb:    2.0,
 				DiskSpaceInGb: parameter.CurrentNetworkCoreWorkerDiskSpacePerMonth[network.Polygon] * parameter.NumberOfMonthsToCover,
+				Title:         "Minimum Resource",
+				Key:           "minimum_resource",
 			},
 		},
 
@@ -48,6 +50,8 @@ func TestCalculateMinimumResources(t *testing.T) {
 				CPUCore:       1.0,
 				MemoryInGb:    1.0,
 				DiskSpaceInGb: parameter.CurrentNetworkCoreWorkerDiskSpacePerMonth[network.Linea] * parameter.NumberOfMonthsToCover,
+				Title:         "Minimum Resource",
+				Key:           "minimum_resource",
 			},
 		},
 		// FIXME: the disk space required for Facaster core worker is unknown
