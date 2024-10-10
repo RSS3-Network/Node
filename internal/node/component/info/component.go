@@ -51,11 +51,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 	apiServer.GET("/workers_status", c.GetWorkersStatus)
 
 	networks := apiServer.Group("/networks")
-
-	networks.GET("", c.GetNetworksHandler)
-	networks.GET("/endpoint_config", c.GetEndpointConfig)
-	networks.GET("/:network/list_workers", c.GetWorkersByNetwork)
-	networks.GET("/:network/workers/:worker", c.GetWorkerConfig)
+	networks.GET("/config", c.GetNetworkConfig)
 
 	if err := c.InitMeter(); err != nil {
 		panic(err)
