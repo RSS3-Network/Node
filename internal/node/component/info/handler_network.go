@@ -93,6 +93,12 @@ func getNetworkConfigDetail(sources ...network.Source) []NetworkConfigDetail {
 					workerConfig.ID.Value = n.String() + "-" + worker.Name()
 					workerConfig.Network.Value = n.String()
 					workerConfig.MinimumResource = calculateMinimumResources(n, worker)
+
+					// Change endpoint type to string for Mastodon (ActivityPub)
+					if s == network.ActivityPubSource {
+						workerConfig.EndpointID.Type = StringType
+					}
+
 					workerConfigs = append(workerConfigs, workerConfig)
 				}
 			}

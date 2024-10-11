@@ -289,14 +289,15 @@ func getEndpointConfig(n network.Network) Endpoint {
 	case network.NearSource:
 		endpointConfig.URL.Value = "https://archival-rpc.mainnet.near.org"
 	case network.FarcasterSource:
-		endpointConfig.URL.Value = "your-farcaster-api-endpoint"
+		endpointConfig.URL.Value = "https://your-farcaster-api-endpoint"
 	case network.ArweaveSource:
 		endpointConfig.URL.Value = "https://arweave.net"
 	case network.ActivityPubSource:
+		endpointConfig.URL.Type = StringType
 		endpointConfig.URL.Description = mastodonInstanceDescription
-		endpointConfig.URL.Value = "your-mastodon-instance-endpoint"
+		endpointConfig.URL.Value = "127.0.0.1:9092"
 	default:
-		endpointConfig.URL.Value = "your network endpoint"
+		endpointConfig.URL.Value = "https://your-network-endpoint"
 	}
 
 	return endpointConfig
