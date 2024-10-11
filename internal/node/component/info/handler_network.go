@@ -2,6 +2,7 @@ package info
 
 import (
 	"net/http"
+	"sort"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/schema/worker/rss"
@@ -84,15 +85,30 @@ func getNetworkConfigDetail(sources ...network.Source) []NetworkConfigDetail {
 				networkDetail.EndpointConfig = &endpointConfig
 			}
 
+			var workerConfigs []workerConfig
+
 			for worker, config := range WorkerToConfigMap[s] {
 				if lo.Contains(NetworkToWorkersMap[n], worker) {
 					workerConfig := config
 					workerConfig.ID.Value = n.String() + "-" + worker.Name()
 					workerConfig.Network.Value = n.String()
 					workerConfig.MinimumResource = calculateMinimumResources(n, worker)
-					networkDetail.WorkerConfig = append(networkDetail.WorkerConfig, workerConfig)
+					workerConfigs = append(workerConfigs, workerConfig)
 				}
 			}
+
+			// Sort the worker configs
+			sort.Slice(workerConfigs, func(i, j int) bool {
+				if workerConfigs[i].Worker.Value == "core" {
+					return true
+				}
+				if workerConfigs[j].Worker.Value == "core" {
+					return false
+				}
+				return workerConfigs[i].Worker.Value.(string) < workerConfigs[j].Worker.Value.(string)
+			})
+
+			networkDetail.WorkerConfig = workerConfigs
 
 			if len(networkDetail.WorkerConfig) > 0 {
 				details = append(details, networkDetail)
