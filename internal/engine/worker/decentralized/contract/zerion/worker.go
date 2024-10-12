@@ -28,6 +28,7 @@ import (
 
 var _ engine.Worker = (*worker)(nil)
 
+// worker represents the Zerion worker, which processes Zerion-related transactions.
 type worker struct {
 	config         *config.Module
 	ethereumClient ethereum.Client
@@ -36,14 +37,17 @@ type worker struct {
 	routerFilterer *zerion.RouterFilterer
 }
 
+// Name returns the name of the worker.
 func (w *worker) Name() string {
 	return decentralized.Zerion.String()
 }
 
+// Platform returns the platform name for the Zerion worker.
 func (w *worker) Platform() string {
 	return decentralized.PlatformZerion.String()
 }
 
+// Network returns the list of networks supported by the Zerion worker.
 func (w *worker) Network() []network.Network {
 	return []network.Network{
 		network.BinanceSmartChain,
@@ -58,6 +62,7 @@ func (w *worker) Network() []network.Network {
 	}
 }
 
+// Tags returns the list of tags associated with the Zerion worker.
 func (w *worker) Tags() []tag.Tag {
 	return []tag.Tag{
 		tag.Exchange,
@@ -65,6 +70,7 @@ func (w *worker) Tags() []tag.Tag {
 	}
 }
 
+// Types returns the list of activity types that the Zerion worker can process.
 func (w *worker) Types() []schema.Type {
 	return []schema.Type{
 		typex.ExchangeSwap,
@@ -72,6 +78,7 @@ func (w *worker) Types() []schema.Type {
 	}
 }
 
+// Filter returns the data source filter for the Zerion worker.
 func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{
 		LogAddresses: []common.Address{
@@ -83,6 +90,7 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	}
 }
 
+// Transform processes the input task and transforms it into an activity.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
@@ -95,6 +103,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
+	// Iterate through all logs in the transaction receipt
 	for _, log := range ethereumTask.Receipt.Logs {
 		if len(log.Topics) == 0 {
 			continue
@@ -127,11 +136,13 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	return activity, nil
 }
 
+// matchSwapLog checks if the given log matches a Zerion swap event.
 func (w *worker) matchSwapLog(_ *source.Task, log *ethereum.Log) bool {
 	return contract.MatchEventHashes(log.Topics[0], zerion.EventHashExecuted) &&
 		contract.MatchAddresses(log.Address, zerion.AddressRouter)
 }
 
+// transformSwapLog transforms a Zerion swap log into a list of actions.
 func (w *worker) transformSwapLog(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
 	event, err := w.routerFilterer.ParseExecuted(log.Export())
 	if err != nil {
@@ -140,6 +151,7 @@ func (w *worker) transformSwapLog(ctx context.Context, task *source.Task, log *e
 
 	var actions []*activityx.Action
 
+	// Handle protocol fee if present
 	if event.ProtocolFeeAmount.Sign() == 1 {
 		feeAction, err := w.buildTransactionTransferAction(ctx, task, event.Sender, zerion.AddressRouter, lo.Ternary(event.OutputToken == zerion.AddressNativeToken, nil, &event.OutputToken), event.ProtocolFeeAmount)
 		if err != nil {
@@ -149,6 +161,7 @@ func (w *worker) transformSwapLog(ctx context.Context, task *source.Task, log *e
 		actions = append(actions, feeAction)
 	}
 
+	// Build the main swap action
 	swapAction, err := w.buildExchangeSwapAction(ctx, task, event.Sender, event.Sender, event.InputToken, event.OutputToken, event.AbsoluteInputAmount, event.ReturnedAmount)
 	if err != nil {
 		return nil, fmt.Errorf("build exchange swap action: %w", err)
@@ -159,6 +172,7 @@ func (w *worker) transformSwapLog(ctx context.Context, task *source.Task, log *e
 	return actions, nil
 }
 
+// buildTransactionTransferAction creates a TransactionTransfer action for a given transfer.
 func (w *worker) buildTransactionTransferAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress *common.Address, amount *big.Int) (*activityx.Action, error) {
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenAddress, nil, task.Header.Number)
 	if err != nil {
@@ -176,6 +190,7 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 	}, nil
 }
 
+// buildExchangeSwapAction creates an ExchangeSwap action for a given swap.
 func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*activityx.Action, error) {
 	tokenInAddress := lo.Ternary(tokenIn != zerion.AddressNativeToken, &tokenIn, nil)
 	tokenOutAddress := lo.Ternary(tokenOut != zerion.AddressNativeToken, &tokenOut, nil)
@@ -206,6 +221,7 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 	}, nil
 }
 
+// NewWorker creates and initializes a new Zerion worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
 	var err error
 
