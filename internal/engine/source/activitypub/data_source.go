@@ -106,7 +106,7 @@ func (s *dataSource) processMessage(ctx context.Context, record *kgo.Record) *en
 	// Update the state with the last processed message count number (offset)
 	s.state.LastOffset = record.Offset
 
-	zap.L().Info("[activitypub/data_source.go] Consumed message",
+	zap.L().Info("Consumed message",
 		zap.Int64("offset", record.Offset),
 		zap.String("value", string(record.Value)))
 
@@ -120,18 +120,10 @@ func (s *dataSource) processMessage(ctx context.Context, record *kgo.Record) *en
 		return nil
 	}
 
-	// zap.L().Info("[activitypub/data_source.go] Unmarshal object",
-	//	zap.Any("object", object))
-
 	// Build the corresponding message task for transformation
 	tasks := s.buildMastodonMessageTasks(ctx, object)
 
-	// Print the tasks for debugging
-	zap.L().Info("[activitypub/data_source.go] Generated tasks")
-
-	for _, task := range tasks.Tasks {
-		zap.L().Info("Task", zap.Any("task", task))
-	}
+	zap.L().Info("Generated tasks from message", zap.Int("tasks", len(tasks.Tasks)))
 
 	return tasks
 }
@@ -142,7 +134,7 @@ func (s *dataSource) initialize() (err error) {
 	kafkaTopic := s.option.KafkaTopic
 
 	// Create a new Client instance with required kafka parameters
-	client, err := mastodon.NewClient(s.config.Endpoint.URL, kafkaTopic)
+	client, err := mastodon.NewClient(s.config.Endpoint.URL, kafkaTopic, lo.ToPtr(s.state.LastOffset))
 	if err != nil {
 		return fmt.Errorf("create activitypub client: %w", err)
 	}
@@ -162,7 +154,7 @@ func retryOperation(ctx context.Context, operation func(ctx context.Context) err
 		retry.Delay(1*time.Second),
 		retry.DelayType(retry.BackOffDelay),
 		retry.OnRetry(func(n uint, err error) {
-			zap.L().Warn("retry farcaster dataSource", zap.Uint("retry", n), zap.Error(err))
+			zap.L().Warn("retry activityPub dataSource", zap.Uint("retry", n), zap.Error(err))
 		}),
 	)
 }
@@ -175,25 +167,6 @@ func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activit
 	if object.Type == "" {
 		return &tasks
 	}
-
-	// Filter the message based on type
-	// switch object.Type {
-	// case "Create":
-	//	if note, ok := object.Object.(map[string]interface{}); ok {
-	//		if noteType, exists := note["type"].(string); exists && noteType == "Note" {
-	//			// Example: Create task for a Note object
-	//			zap.L().Info("[buildMastodonMessageTasks] Object in Create type (for a Note Object)")
-	//		}
-	//	}
-	// case "Follow":
-	//	// Process Follow type messages
-	//	zap.L().Info("[buildMastodonMessageTasks] Object in Follow type")
-	// case "Like":
-	//	// Process Like type messages
-	//	zap.L().Info("[buildMastodonMessageTasks] Object in Like type")
-	// default:
-	//	zap.L().Debug("unsupported message type", zap.String("type", object.Type))
-	// }
 
 	tasks.Tasks = append(tasks.Tasks, &Task{
 		Network: s.Network(),

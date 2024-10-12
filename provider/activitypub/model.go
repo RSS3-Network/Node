@@ -1,5 +1,7 @@
 package activitypub
 
+import "time"
+
 // Object represents a general ActivityPub object or activity.
 type Object struct {
 	Context    interface{}            `json:"@context,omitempty"`
@@ -43,4 +45,18 @@ type Note struct {
 	To        []string `json:"to,omitempty"`
 	CC        []string `json:"cc,omitempty"`
 	Tag       []Tag    `json:"tag,omitempty"`
+}
+
+// StatusResult represents the result of a status request.
+type StatusResult struct {
+	Content   string
+	Timestamp string
+}
+
+// StatusResponse represents a status response from an ActivityPub server.
+type StatusResponse struct {
+	Object struct {
+		Published time.Time `json:"published"`
+		Content   string    `json:"content"`
+	} `json:"object"`
 }

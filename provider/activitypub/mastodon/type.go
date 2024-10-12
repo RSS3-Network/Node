@@ -11,15 +11,10 @@ const (
 )
 
 const (
-	// ActivityPub object types
-	ObjectTypeNote = "Note"
-
 	InReplyTo = "inReplyTo"
 	To        = "to"
 	Type      = "type"
 
-	// ActivityPub tag types
-	TagTypeMention = "Mention"
 	TagTypeHashtag = "Hashtag"
 
 	KafkaTopic = "kafka_topic"

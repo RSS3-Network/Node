@@ -3,7 +3,6 @@ package mastodon
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/go-playground/form/v4"
@@ -32,29 +31,30 @@ func (c *client) GetKafkaConsumer() *kgo.Client {
 	return c.kafkaConsumer
 }
 
-func NewClient(endpoint string, kafkaTopic string) (Client, error) {
-	var (
-		instance = client{
-			httpClient: &http.Client{
-				Timeout: DefaultTimeout,
-			},
-			encoder:  form.NewEncoder(),
-			attempts: DefaultAttempts,
-		}
-	)
+func NewClient(endpoint string, kafkaTopic string, offset *int64) (Client, error) {
+	instance := client{
+		httpClient: &http.Client{
+			Timeout: DefaultTimeout,
+		},
+		encoder:  form.NewEncoder(),
+		attempts: DefaultAttempts,
+	}
 
-	// extract the host:port part for setting kafka consumer service
-	trimmedHostPort := strings.TrimPrefix(endpoint, "http://")
+	// Since we cannot determine how the user connects to Kafka, we directly use the endpoint as the broker here
+	kafkaBrokers := []string{endpoint}
 
-	// form the kafka broker endpoint
-	var kafkaBrokers = []string{trimmedHostPort}
+	resetOffset := kgo.NewOffset().AtEnd()
+	if offset != nil {
+		resetOffset = kgo.NewOffset().At(*offset)
+	}
 
 	// Create a new Kafka client
 	options := []kgo.Opt{
 		kgo.SeedBrokers(kafkaBrokers...),
 		kgo.ConsumeTopics(kafkaTopic),
-		kgo.ConsumeResetOffset(kgo.NewOffset().AtEnd()),
+		kgo.ConsumeResetOffset(resetOffset),
 	}
+
 	consumer, err := kgo.NewClient(options...)
 
 	if err != nil {

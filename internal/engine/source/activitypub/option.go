@@ -1,11 +1,10 @@
 package activitypub
 
 import (
-	"fmt"
-
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"go.uber.org/zap"
 )
 
 // Option represents the configuration options for the ActivityPub client.
@@ -18,7 +17,7 @@ type Option struct {
 func NewOption(n network.Network, parameters *config.Parameters) (*Option, error) {
 	var option Option
 
-	fmt.Println("parameters is:", parameters)
+	zap.L().Info("parameters:", zap.Any("parameters", parameters))
 
 	if parameters == nil {
 		return &Option{
