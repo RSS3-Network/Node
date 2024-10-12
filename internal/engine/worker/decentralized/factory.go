@@ -39,6 +39,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/stargate"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/uniswap"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/vsl"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/zerion"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/core"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 )
@@ -118,6 +119,8 @@ func newNonCoreWorker(config *config.Module, databaseClient database.Client, red
 		return polymarket.NewWorker(config)
 	case decentralized.LiNEAR:
 		return linear.NewWorker(config)
+	case decentralized.Zerion:
+		return zerion.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}
