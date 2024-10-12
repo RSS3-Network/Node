@@ -251,36 +251,6 @@ func findModuleByID(configFile *config.File, workerID string) (*config.Module, e
 	return nil, fmt.Errorf("undefined module %s", workerID)
 }
 
-// findModuleByID find and returns the specified worker ID in all components.
-func findModuleByID(configFile *config.File, workerID string) (*config.Module, error) {
-	// find the module in a specific component list
-	findInComponent := func(components []*config.Module) (*config.Module, bool) {
-		for _, module := range components {
-			if strings.EqualFold(module.ID, workerID) {
-				return module, true
-			}
-		}
-
-		return nil, false
-	}
-
-	// Search in decentralized components
-	if module, found := findInComponent(configFile.Component.Decentralized); found {
-		return module, nil
-	}
-
-	// Search in federated components
-	if module, found := findInComponent(configFile.Component.Federated); found {
-		return module, nil
-	}
-
-	if module, found := findInComponent(configFile.Component.RSS); found {
-		return module, nil
-	}
-
-	return nil, fmt.Errorf("undefined module %s", workerID)
-}
-
 func runWorker(ctx context.Context, configFile *config.File, databaseClient database.Client, streamClient stream.Client, redisClient rueidis.Client) error {
 	workerID, err := flags.GetString(flag.KeyWorkerID)
 	if err != nil {
