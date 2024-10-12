@@ -320,6 +320,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Core,
 		decentralized.Curve,
 		decentralized.Highlight,
+		decentralized.Rainbow,
 		decentralized.Stargate,
 	},
 	network.Arweave: {
@@ -331,15 +332,18 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Aave,
 		decentralized.Core,
 		decentralized.Curve,
+		decentralized.Rainbow,
 		decentralized.Stargate,
 	},
 	network.Base: {
 		decentralized.Aave,
 		decentralized.Core,
+		decentralized.Rainbow,
 		decentralized.Stargate,
 	},
 	network.BinanceSmartChain: {
 		decentralized.Core,
+		decentralized.Rainbow,
 		decentralized.Stargate,
 	},
 	network.Crossbell: {
@@ -363,6 +367,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.OpenSea,
 		decentralized.Optimism,
 		decentralized.Paraswap,
+		decentralized.Rainbow,
 		decentralized.RSS3,
 		decentralized.Stargate,
 		decentralized.Uniswap,
@@ -377,6 +382,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	},
 	network.Linea: {
 		decentralized.Core,
+		decentralized.Rainbow,
 		decentralized.Stargate,
 		decentralized.Uniswap,
 	},
@@ -395,6 +401,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.KiwiStand,
 		decentralized.Matters,
 		decentralized.Optimism,
+		decentralized.Rainbow,
 		decentralized.Stargate,
 	},
 	network.Polygon: {
@@ -406,6 +413,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.IQWiki,
 		decentralized.Lens,
 		decentralized.Polymarket,
+		decentralized.Rainbow,
 		decentralized.Stargate,
 	},
 	network.RSS: {
@@ -468,6 +476,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.Optimism:   defaultWorkerConfig(decentralized.Optimism, network.EthereumSource, nil),
 		decentralized.Paraswap:   defaultWorkerConfig(decentralized.Paraswap, network.EthereumSource, nil),
 		decentralized.Polymarket: defaultWorkerConfig(decentralized.Polymarket, network.EthereumSource, nil),
+		decentralized.Rainbow:    defaultWorkerConfig(decentralized.Rainbow, network.EthereumSource, nil),
 		decentralized.RSS3:       defaultWorkerConfig(decentralized.RSS3, network.EthereumSource, nil),
 		decentralized.SAVM:       defaultWorkerConfig(decentralized.SAVM, network.EthereumSource, nil),
 		decentralized.Stargate:   defaultWorkerConfig(decentralized.Stargate, network.EthereumSource, nil),
