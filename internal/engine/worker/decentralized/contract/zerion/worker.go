@@ -54,6 +54,7 @@ func (w *worker) Network() []network.Network {
 		network.Linea,
 		network.Gnosis,
 		network.XLayer,
+		network.Base,
 	}
 }
 

@@ -60,7 +60,6 @@ func (w *worker) Network() []network.Network {
 		network.Base,
 		network.Optimism,
 		network.Arbitrum,
-		network.Base,
 	}
 }
 
