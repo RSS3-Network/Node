@@ -358,7 +358,7 @@ func (w *worker) buildTarget(parentID string, content string, timeStamp uint64) 
 }
 
 // buildPost constructs a SocialPost object from ActivityPub object and note
-func (w *worker) buildPost(ctx context.Context, obj activitypub.Object, note activitypub.Note, timestamp uint64) *metadata.SocialPost {
+func (w *worker) buildPost(_ context.Context, obj activitypub.Object, note activitypub.Note, timestamp uint64) *metadata.SocialPost {
 	// Create a new SocialPost with the content, profile ID, publication ID, and timestamp
 	handle := convertURLToHandle(obj.ID)
 
@@ -385,63 +385,70 @@ func (w *worker) buildPost(ctx context.Context, obj activitypub.Object, note act
 
 	// Attach media to the post
 	if objMap, ok := obj.Object.(map[string]interface{}); ok {
-		if attachments, ok := objMap["attachment"]; ok {
-			w.buildPostMedia(ctx, post, attachments)
-		}
-
-		if tags, ok := objMap["tag"]; ok {
-			w.buildPostTags(post, tags)
-		}
+		w.buildPostMedia(post, objMap[mastodon.Attachment])
+		w.buildPostTags(post, objMap[mastodon.Tag])
 	}
-
-	w.buildPostTags(post, note.Tag)
 
 	return post
 }
 
 // buildPostMedia attaches media information to the post
-func (w *worker) buildPostMedia(_ context.Context, post *metadata.SocialPost, attachments interface{}) {
-	if attachmentSlice, ok := attachments.([]map[string]interface{}); ok {
-		for _, attachmentMap := range attachmentSlice {
-			media := metadata.Media{}
-
-			if url, ok := attachmentMap["url"].(string); ok {
-				media.Address = url
-			}
-
-			if mediaType, ok := attachmentMap["mediaType"].(string); ok {
+func (w *worker) buildPostMedia(post *metadata.SocialPost, attachments interface{}) {
+	processAttachment := func(attachment map[string]interface{}) {
+		if currentURL, ok := attachment[mastodon.AttachmentURL].(string); ok {
+			media := metadata.Media{Address: currentURL}
+			if mediaType, ok := attachment[mastodon.AttachmentMediaType].(string); ok {
 				media.MimeType = mediaType
 			}
 
-			// Only append if we have at least an address
-			if media.Address != "" {
-				post.Media = append(post.Media, media)
+			post.Media = append(post.Media, media)
+		}
+	}
+
+	switch v := attachments.(type) {
+	case []map[string]interface{}:
+		for _, attachment := range v {
+			processAttachment(attachment)
+		}
+	case []interface{}:
+		for _, a := range v {
+			if attachment, ok := a.(map[string]interface{}); ok {
+				processAttachment(attachment)
 			}
 		}
-	} else {
-		fmt.Printf("Unexpected attachments type: %T\n", attachments)
+	default:
+		zap.L().Debug("Unexpected attachments type", zap.String("type", fmt.Sprintf("%T", attachments)))
 	}
 }
 
 // buildPostTags builds the Tags field in the metadata
 func (w *worker) buildPostTags(post *metadata.SocialPost, tags interface{}) {
-	if tagSlice, ok := tags.([]map[string]interface{}); ok {
-		for _, tagMap := range tagSlice {
-			if tagType, ok := tagMap["type"].(string); ok {
+	processTag := func(tag map[string]interface{}) {
+		if tagType, ok := tag[mastodon.TagType].(string); ok {
+			if name, ok := tag[mastodon.TagName].(string); ok {
 				switch tagType {
-				case "Hashtag":
-					if name, ok := tagMap["name"].(string); ok {
-						post.Tags = append(post.Tags, strings.TrimPrefix(name, "#"))
-					}
-				case "Mention":
-					if name, ok := tagMap["name"].(string); ok {
-						post.Tags = append(post.Tags, "@"+strings.TrimPrefix(name, "@"))
-					}
+				case mastodon.TagTypeHashtag:
+					post.Tags = append(post.Tags, strings.TrimPrefix(name, "#"))
+				case mastodon.TagTypeMention:
+					post.Tags = append(post.Tags, "@"+strings.TrimPrefix(name, "@"))
 				}
 			}
 		}
-	} else {
-		fmt.Printf("Unexpected tags type: %T\n", tags)
+	}
+
+	switch v := tags.(type) {
+	case []map[string]interface{}:
+		for _, currentTag := range v {
+			processTag(currentTag)
+		}
+	case []interface{}:
+		for _, t := range v {
+			if currentTag, ok := t.(map[string]interface{}); ok {
+				processTag(currentTag)
+			}
+		}
+	default:
+		zap.L().Debug("Unexpected tags type", zap.String("type", fmt.Sprintf("%T", tags)))
 	}
 }
 

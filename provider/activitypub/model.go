@@ -18,8 +18,8 @@ type Object struct {
 	CC         []string               `json:"cc,omitempty"`
 	Bto        []string               `json:"bto,omitempty"`
 	Bcc        []string               `json:"bcc,omitempty"`
-	Attachment []Attachment           `json:"attachment,omitempty"`
-	Tag        []Tag                  `json:"tag,omitempty"`
+	Attachment interface{}            `json:"attachment,omitempty"`
+	Tag        interface{}            `json:"tag,omitempty"`
 	Attributes map[string]interface{} `json:"attributes,omitempty"`
 }
 

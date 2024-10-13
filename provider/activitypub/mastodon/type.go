@@ -11,11 +11,15 @@ const (
 )
 
 const (
-	InReplyTo = "inReplyTo"
-	To        = "to"
-	Type      = "type"
-
-	TagTypeHashtag = "Hashtag"
-
-	KafkaTopic = "kafka_topic"
+	InReplyTo           = "inReplyTo"
+	To                  = "to"
+	TagType             = "type"
+	TagName             = "name"
+	Attachment          = "attachment"
+	AttachmentURL       = "url"
+	AttachmentMediaType = "mediaType"
+	Tag                 = "tag"
+	TagTypeHashtag      = "Hashtag"
+	TagTypeMention      = "Mention"
+	KafkaTopic          = "kafka_topic"
 )
