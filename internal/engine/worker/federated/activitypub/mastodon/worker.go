@@ -388,6 +388,10 @@ func (w *worker) buildPost(ctx context.Context, obj activitypub.Object, note act
 		if attachments, ok := objMap["attachment"]; ok {
 			w.buildPostMedia(ctx, post, attachments)
 		}
+
+		if tags, ok := objMap["tag"]; ok {
+			w.buildPostTags(post, tags)
+		}
 	}
 
 	w.buildPostTags(post, note.Tag)
@@ -419,12 +423,25 @@ func (w *worker) buildPostMedia(_ context.Context, post *metadata.SocialPost, at
 	}
 }
 
-// buildPostTags builds the Tags field in the metatdata
-func (w *worker) buildPostTags(post *metadata.SocialPost, tags []activitypub.Tag) {
-	for _, tag := range tags {
-		if tag.Type == mastodon.TagTypeHashtag {
-			post.Tags = append(post.Tags, tag.Name)
+// buildPostTags builds the Tags field in the metadata
+func (w *worker) buildPostTags(post *metadata.SocialPost, tags interface{}) {
+	if tagSlice, ok := tags.([]map[string]interface{}); ok {
+		for _, tagMap := range tagSlice {
+			if tagType, ok := tagMap["type"].(string); ok {
+				switch tagType {
+				case "Hashtag":
+					if name, ok := tagMap["name"].(string); ok {
+						post.Tags = append(post.Tags, strings.TrimPrefix(name, "#"))
+					}
+				case "Mention":
+					if name, ok := tagMap["name"].(string); ok {
+						post.Tags = append(post.Tags, "@"+strings.TrimPrefix(name, "@"))
+					}
+				}
+			}
 		}
+	} else {
+		fmt.Printf("Unexpected tags type: %T\n", tags)
 	}
 }
 

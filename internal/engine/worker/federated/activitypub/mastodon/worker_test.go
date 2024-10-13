@@ -282,6 +282,92 @@ func TestWorker(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
+			name: "Create A Note with Tags",
+			arguments: arguments{
+				task: &activitypub.Task{
+					Network: network.Mastodon,
+					Message: message.Object{
+						Context: []interface{}{
+							"https://www.w3.org/ns/activitystreams",
+							map[string]string{
+								"ostatus":          "http://ostatus.org#",
+								"atomUri":          "ostatus:atomUri",
+								"inReplyToAtomUri": "ostatus:inReplyToAtomUri",
+								"conversation":     "ostatus:conversation",
+								"sensitive":        "as:sensitive",
+								"toot":             "http://joinmastodon.org/ns#",
+								"votersCount":      "toot:votersCount",
+							},
+						},
+						ID:        "https://mastodon.social/users/DJGummikuh/statuses/113287749405285684/activity",
+						Type:      "Create",
+						Actor:     "https://mastodon.social/users/DJGummikuh",
+						Published: "2024-10-11T08:04:31Z",
+						To: []string{
+							"https://www.w3.org/ns/activitystreams#Public",
+						},
+						Object: map[string]interface{}{
+							"type":      "Note",
+							"id":        "https://mastodon.social/users/DJGummikuh/statuses/113287749405285684",
+							"content":   "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.energy/@Sustainable2050\" class=\"u-url mention\">@<span>Sustainable2050</span></a></span> who ever could have expected that?</p>",
+							"published": "2024-10-11T08:04:31Z",
+							"to": []string{
+								"https://www.w3.org/ns/activitystreams#Public",
+							},
+							"cc": []string{
+								"https://mastodon.social/users/DJGummikuh/followers",
+								"https://mastodon.energy/users/Sustainable2050",
+							},
+							"sensitive":    false,
+							"conversation": "tag:mastodon.energy,2024-10-11:objectId=32875409:objectType=Conversation",
+							"tag": []map[string]interface{}{
+								{
+									"type": "Mention",
+									"href": "https://mastodon.energy/users/Sustainable2050",
+									"name": "@Sustainable2050@mastodon.energy",
+								},
+								{
+									"type": "Mention",
+									"href": "https://mastodon.social/users/DJGummikuh",
+									"name": "@DJGummikuh@mastodon.social",
+								},
+							},
+						},
+					},
+				},
+			},
+			want: &activity.Activity{
+				ID:           "https://mastodon.social/users/DJGummikuh/statuses/113287749405285684/activity",
+				Network:      network.Mastodon,
+				Platform:     federated.PlatformMastodon.String(),
+				From:         "@DJGummikuh@mastodon.social",
+				To:           "@DJGummikuh@mastodon.social",
+				Type:         typex.SocialPost,
+				Tag:          tag.Social,
+				Status:       true,
+				TotalActions: 1,
+				Actions: []*activity.Action{
+					{
+						Type:     typex.SocialPost,
+						Tag:      tag.Social,
+						Platform: federated.PlatformMastodon.String(),
+						From:     "@DJGummikuh@mastodon.social",
+						To:       "@DJGummikuh@mastodon.social",
+						Metadata: &metadata.SocialPost{
+							PublicationID: "113287749405285684",
+							Body:          "@ Sustainable2050 ( https://mastodon.energy/@Sustainable2050 ) who ever could have expected that?",
+							Handle:        "@DJGummikuh@mastodon.social",
+							Timestamp:     1728633871,
+							Tags:          []string{"@Sustainable2050@mastodon.energy", "@DJGummikuh@mastodon.social"},
+						},
+						RelatedURLs: []string{"https://mastodon.social/users/DJGummikuh/statuses/113287749405285684"},
+					},
+				},
+				Timestamp: 1728633871,
+			},
+			wantError: require.NoError,
+		},
+		{
 			name: "Create A Comment",
 			arguments: arguments{
 				task: &activitypub.Task{
