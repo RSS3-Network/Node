@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
@@ -32,7 +33,7 @@ type NetworkConfigDetailForRSS struct {
 	WorkerConfig   workerConfig `json:"worker_configs,omitempty"`
 }
 
-// GetNetworkConfig returns the configuration for all supported networks.
+// GetNetworkConfig GetNetworksConfig returns the configuration for all supported networks.
 func (c *Component) GetNetworkConfig(ctx echo.Context) error {
 	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, "config")
 
@@ -42,11 +43,18 @@ func (c *Component) GetNetworkConfig(ctx echo.Context) error {
 		Federated:     getNetworkConfigDetail(network.ActivityPubSource),
 	}
 
-	return ctx.JSON(http.StatusOK, NetworkConfigResponse{Data: config})
+	return ctx.JSON(http.StatusOK, NetworkConfigResponse{
+		Data: config,
+	})
 }
 
 func getNetworkConfigDetailForRSS(source network.Source) NetworkConfigDetailForRSS {
 	n := source.Networks()[0]
+
+	networkDetail := NetworkConfigDetailForRSS{
+		ID: n.String(),
+	}
+
 	worker := rss.RSSHub
 	config := WorkerToConfigMap[source][worker]
 
@@ -54,11 +62,9 @@ func getNetworkConfigDetailForRSS(source network.Source) NetworkConfigDetailForR
 	workerConfig.ID.Value = n.String() + "-" + worker.Name()
 	workerConfig.Network.Value = n.String()
 	workerConfig.MinimumResource = calculateMinimumResources(n, worker)
+	networkDetail.WorkerConfig = workerConfig
 
-	return NetworkConfigDetailForRSS{
-		ID:           n.String(),
-		WorkerConfig: workerConfig,
-	}
+	return networkDetail
 }
 
 func getNetworkConfigDetail(sources ...network.Source) []NetworkConfigDetail {
@@ -66,32 +72,13 @@ func getNetworkConfigDetail(sources ...network.Source) []NetworkConfigDetail {
 
 	for _, s := range sources {
 		for _, n := range s.Networks() {
-			if n == network.Unknown || n == network.SatoshiVM || n == network.Bitcoin {
+			if shouldSkipNetwork(n) {
 				continue
 			}
 
-			networkDetail := NetworkConfigDetail{
-				ID:           n.String(),
-				WorkerConfig: []workerConfig{},
-			}
-
-			if s != network.RSSSource {
-				endpointConfig := getEndpointConfig(n)
-				networkDetail.EndpointConfig = &endpointConfig
-			}
-
+			networkDetail := createNetworkDetail(s, n)
 			workerConfigs := getWorkerConfigs(s, n)
-			sort.Slice(workerConfigs, func(i, j int) bool {
-				if workerConfigs[i].Worker.Value == "core" {
-					return true
-				}
-
-				if workerConfigs[j].Worker.Value == "core" {
-					return false
-				}
-
-				return workerConfigs[i].Worker.Value.(string) < workerConfigs[j].Worker.Value.(string)
-			})
+			sortWorkerConfigs(workerConfigs)
 
 			networkDetail.WorkerConfig = workerConfigs
 
@@ -104,24 +91,60 @@ func getNetworkConfigDetail(sources ...network.Source) []NetworkConfigDetail {
 	return details
 }
 
+func shouldSkipNetwork(n network.Network) bool {
+	return n == network.Unknown || n == network.SatoshiVM || n == network.Bitcoin
+}
+
+func createNetworkDetail(s network.Source, n network.Network) NetworkConfigDetail {
+	networkDetail := NetworkConfigDetail{
+		ID:           n.String(),
+		WorkerConfig: []workerConfig{},
+	}
+
+	if s != network.RSSSource {
+		endpointConfig := getEndpointConfig(n)
+		networkDetail.EndpointConfig = &endpointConfig
+	}
+
+	return networkDetail
+}
+
 func getWorkerConfigs(s network.Source, n network.Network) []workerConfig {
 	var workerConfigs []workerConfig
 
 	for worker, config := range WorkerToConfigMap[s] {
 		if lo.Contains(NetworkToWorkersMap[n], worker) {
-			workerConfig := config
-			workerConfig.ID.Value = n.String() + "-" + worker.Name()
-			workerConfig.Network.Value = n.String()
-			workerConfig.MinimumResource = calculateMinimumResources(n, worker)
-
-			if workerConfig.EndpointID != nil {
-				workerConfig.EndpointID.Type = StringType
-				workerConfig.EndpointID.Value = n.String()
-			}
-
+			workerConfig := createWorkerConfig(s, n, worker, config)
 			workerConfigs = append(workerConfigs, workerConfig)
 		}
 	}
 
 	return workerConfigs
+}
+
+func createWorkerConfig(s network.Source, n network.Network, worker worker.Worker, config workerConfig) workerConfig {
+	workerConfig := config
+	workerConfig.ID.Value = n.String() + "-" + worker.Name()
+	workerConfig.Network.Value = n.String()
+	workerConfig.MinimumResource = calculateMinimumResources(n, worker)
+
+	if s == network.ActivityPubSource {
+		workerConfig.EndpointID.Type = StringType
+	}
+
+	return workerConfig
+}
+
+func sortWorkerConfigs(workerConfigs []workerConfig) {
+	sort.Slice(workerConfigs, func(i, j int) bool {
+		if workerConfigs[i].Worker.Value == "core" {
+			return true
+		}
+
+		if workerConfigs[j].Worker.Value == "core" {
+			return false
+		}
+
+		return workerConfigs[i].Worker.Value.(string) < workerConfigs[j].Worker.Value.(string)
+	})
 }
