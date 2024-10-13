@@ -14,6 +14,10 @@
         {
             "description": "Retrieve the details of decentralized activities.",
             "name": "Decentralized"
+        },
+        {
+            "description": "Retrieve the details of federated activities.",
+            "name": "Federated"
         }
     ],
     "paths": {
@@ -276,6 +280,270 @@
                 }
             }
         },
+
+
+        "/federated/tx/{id}": {
+            "get": {
+                "summary": "Get Activity by ID",
+                "description": "Retrieve details for the specified activity ID.",
+                "tags": [
+                    "Federated"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/activity_id_path"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_page_query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivityResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+        "/federated/{account}": {
+            "get": {
+                "summary": "Get Account Activities",
+                "description": "This endpoint retrieves the activities associated with a specified account in the federated system. You can use various query parameters to filter and paginate the results, including limits on the number of activities and actions, timestamps, success status, direction, and more.",
+                "tags": [
+                    "Federated"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/account_path"
+                    },
+                    {
+                        "$ref": "#/components/parameters/limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/cursor_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/since_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/until_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/success_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/direction_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/network_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/tag_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/type_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/platform_query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivitiesResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+        "/federated/accounts": {
+            "post": {
+                "summary": "Batch Get Accounts Activities",
+                "description": "Retrieve a batch of activities associated with multiple specified accounts in the federated system. You can use various query parameters to filter and paginate the results, including limits on the number of activities and actions, timestamps, success status, direction, and more.",
+                "tags": [
+                    "Federated"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/BatchGetAccountsActivities"
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivitiesResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+        "/federated/network/{network}": {
+            "get": {
+                "summary": "Get Network Activities",
+                "description": "Retrieve a list of activities from the specified federated network. This endpoint allows you to filter activities by various parameters such as limit, timestamp, success status, and more.",
+                "tags": [
+                    "Federated"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/network_path"
+                    },
+                    {
+                        "$ref": "#/components/parameters/limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/cursor_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/since_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/until_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/success_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/direction_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/tag_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/type_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/platform_query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivitiesResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+        "/federated/platform/{platform}": {
+            "get": {
+                "summary": "Get Platform Activities",
+                "description": "Retrieve a list of activities from the specified federated platform. This endpoint allows you to filter activities by various parameters such as limit, timestamp, success status, and more.",
+                "tags": [
+                    "Federated"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/platform_path"
+                    },
+                    {
+                        "$ref": "#/components/parameters/limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/cursor_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/since_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/until_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/success_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/direction_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/tag_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/type_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/network_query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivitiesResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+
+
+
         "/rss/{path}": {
             "get": {
                 "summary": "Get RSS Activity by Path",
@@ -1122,7 +1390,20 @@
                             "indexed_state": 0
                         }
                     ],
-                    "federated": null
+                    "federated": [
+                        {
+                            "worker_id": "mastodon-core",
+                            "network": "mastodon",
+                            "worker": "mastodon",
+                            "tags": [
+                                "social"
+                            ],
+                            "platform": "mastodon",
+                            "status": "Ready",
+                            "remote_state": 0,
+                            "indexed_state": 0
+                        }
+                    ]
                 }
             },
             "NetworkConfig": {
