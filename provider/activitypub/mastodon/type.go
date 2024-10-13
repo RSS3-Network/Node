@@ -12,7 +12,6 @@ const (
 
 const (
 	InReplyTo           = "inReplyTo"
-	To                  = "to"
 	TagType             = "type"
 	TagName             = "name"
 	Attachment          = "attachment"

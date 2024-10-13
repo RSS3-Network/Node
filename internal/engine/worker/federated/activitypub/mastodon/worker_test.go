@@ -498,15 +498,15 @@ func TestWorker(t *testing.T) {
 			instance, err := NewWorker(databaseClient, redisClient)
 			require.NoError(t, err)
 
-			activity, err := instance.Transform(ctx, testcase.arguments.task)
+			transformedActivity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			data, err := json.MarshalIndent(activity, "", "\x20\x20")
+			data, err := json.MarshalIndent(transformedActivity, "", "\x20\x20")
 			require.NoError(t, err)
 
 			t.Log(string(data))
 
-			require.Equal(t, testcase.want, activity)
+			require.Equal(t, testcase.want, transformedActivity)
 		})
 	}
 }
