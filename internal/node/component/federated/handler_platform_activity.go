@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -48,7 +48,7 @@ func (c *Component) GetPlatformActivities(ctx echo.Context) (err error) {
 		return response.InternalError(ctx)
 	}
 
-	databaseRequest := model.ActivitiesQuery{
+	databaseRequest := model.FederatedActivitiesQuery{
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
@@ -59,7 +59,7 @@ func (c *Component) GetPlatformActivities(ctx echo.Context) (err error) {
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(request.Type),
-		Platforms:      []decentralized.Platform{request.Platform},
+		Platforms:      []federated.Platform{request.Platform},
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
@@ -78,7 +78,7 @@ func (c *Component) GetPlatformActivities(ctx echo.Context) (err error) {
 }
 
 type PlatformActivitiesRequest struct {
-	Platform decentralized.Platform `param:"platform" validate:"required"`
+	Platform federated.Platform `param:"platform" validate:"required"`
 
 	Limit          int                  `query:"limit" validate:"min=1,max=100" default:"100"`
 	ActionLimit    int                  `query:"action_limit" validate:"min=1,max=20" default:"10"`

@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -99,7 +99,7 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 		return response.InternalError(ctx)
 	}
 
-	databaseRequest := model.ActivitiesQuery{
+	databaseRequest := model.FederatedActivitiesQuery{
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
@@ -161,7 +161,7 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		return response.InternalError(ctx)
 	}
 
-	databaseRequest := model.ActivitiesQuery{
+	databaseRequest := model.FederatedActivitiesQuery{
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
@@ -249,33 +249,33 @@ type ActivityRequest struct {
 }
 
 type AccountActivitiesRequest struct {
-	Account        string                   `param:"account" validate:"required"`
-	Limit          int                      `query:"limit" validate:"min=1,max=100" default:"100"`
-	ActionLimit    int                      `query:"action_limit" validate:"min=1,max=20" default:"10"`
-	Cursor         *string                  `query:"cursor"`
-	SinceTimestamp *uint64                  `query:"since_timestamp"`
-	UntilTimestamp *uint64                  `query:"until_timestamp"`
-	Status         *bool                    `query:"success"`
-	Direction      *activityx.Direction     `query:"direction"`
-	Network        []network.Network        `query:"network"`
-	Tag            []tag.Tag                `query:"tag"`
-	Type           []schema.Type            `query:"-"`
-	Platform       []decentralized.Platform `query:"platform"`
+	Account        string               `param:"account" validate:"required"`
+	Limit          int                  `query:"limit" validate:"min=1,max=100" default:"100"`
+	ActionLimit    int                  `query:"action_limit" validate:"min=1,max=20" default:"10"`
+	Cursor         *string              `query:"cursor"`
+	SinceTimestamp *uint64              `query:"since_timestamp"`
+	UntilTimestamp *uint64              `query:"until_timestamp"`
+	Status         *bool                `query:"success"`
+	Direction      *activityx.Direction `query:"direction"`
+	Network        []network.Network    `query:"network"`
+	Tag            []tag.Tag            `query:"tag"`
+	Type           []schema.Type        `query:"-"`
+	Platform       []federated.Platform `query:"platform"`
 }
 
 type AccountsActivitiesRequest struct {
-	Accounts       []string                 `json:"accounts" validate:"required"`
-	Limit          int                      `json:"limit" validate:"min=1,max=100" default:"100"`
-	ActionLimit    int                      `json:"action_limit" validate:"min=1,max=20" default:"10"`
-	Cursor         *string                  `json:"cursor"`
-	SinceTimestamp *uint64                  `json:"since_timestamp"`
-	UntilTimestamp *uint64                  `json:"until_timestamp"`
-	Status         *bool                    `json:"success"`
-	Direction      *activityx.Direction     `json:"direction"`
-	Network        []network.Network        `json:"network"`
-	Tag            []tag.Tag                `json:"tag"`
-	Type           []string                 `json:"type"`
-	Platform       []decentralized.Platform `json:"platform"`
+	Accounts       []string             `json:"accounts" validate:"required"`
+	Limit          int                  `json:"limit" validate:"min=1,max=100" default:"100"`
+	ActionLimit    int                  `json:"action_limit" validate:"min=1,max=20" default:"10"`
+	Cursor         *string              `json:"cursor"`
+	SinceTimestamp *uint64              `json:"since_timestamp"`
+	UntilTimestamp *uint64              `json:"until_timestamp"`
+	Status         *bool                `json:"success"`
+	Direction      *activityx.Direction `json:"direction"`
+	Network        []network.Network    `json:"network"`
+	Tag            []tag.Tag            `json:"tag"`
+	Type           []string             `json:"type"`
+	Platform       []federated.Platform `json:"platform"`
 }
 
 type ActivityResponse struct {

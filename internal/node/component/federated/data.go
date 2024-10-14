@@ -16,8 +16,8 @@ func (c *Component) getActivity(ctx context.Context, request model.ActivityQuery
 	return c.databaseClient.FindActivity(ctx, request)
 }
 
-func (c *Component) getActivities(ctx context.Context, request model.ActivitiesQuery) ([]*activityx.Activity, string, error) {
-	activities, err := c.databaseClient.FindActivities(ctx, request)
+func (c *Component) getActivities(ctx context.Context, request model.FederatedActivitiesQuery) ([]*activityx.Activity, string, error) {
+	activities, err := c.databaseClient.FindFederatedActivities(ctx, request)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to find activities: %w", err)
 	}
