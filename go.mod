@@ -60,7 +60,7 @@ require (
 	github.com/go-redsync/redsync/v4 v4.13.0
 	github.com/grafana/pyroscope-go v1.1.2
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/redis/rueidis v1.0.45
+	github.com/redis/rueidis v1.0.47
 	github.com/redis/rueidis/rueidiscompat v1.0.45
 	github.com/rss3-network/protocol-go v0.5.3
 	github.com/spf13/afero v1.11.0
