@@ -170,7 +170,7 @@ func (w *worker) handleSingleActivityPubCreate(ctx context.Context, message acti
 		}
 
 		post.Target = w.buildTarget(replyToURLID, targetContent, targetTime)
-
+		post.TargetURL = replyToURLID
 		toUserHandle = convertURLToHandle(replyToURLID)
 	}
 
@@ -264,6 +264,7 @@ func (w *worker) handleSingleActivityPubAnnounce(ctx context.Context, message ac
 		PublicationID: publicationID,
 		Timestamp:     w.parseTimestamp(message.Published),
 		Target:        w.buildTarget(sharedID, targetContent, targetTime),
+		TargetURL:     sharedID,
 	}
 
 	// Remove the "/activity" suffix from the message ID
