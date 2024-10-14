@@ -18,31 +18,43 @@ The RSS3 Node, an RSS3 Data Sublayer (DSL) component, is responsible for indexin
 See <https://docs.rss3.io/guide/for-node-operator/deployment-guide> for a detailed deployment guide.
 ## Supported Networks and Workers
 <!-- network-worker table starts -->
-| Network/Worker | arbitrum | arweave | avax | base | binance-smart-chain | crossbell | ethereum | farcaster | gnosis | linea | optimism | polygon | vsl |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **core** [^1] | ✓ |   |   | ✓ | ✓ |   | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| 1inch |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |
-| aave | ✓ |   | ✓ | ✓ |   |   | ✓ |   |   |   | ✓ | ✓ |   |
-| aavegotchi |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |
-| crossbell |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |
-| curve | ✓ |   | ✓ |   |   |   | ✓ |   | ✓ |   | ✓ | ✓ |   |
-| ens |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |
-| highlight | ✓ |   |   |   |   |   | ✓ |   |   |   | ✓ | ✓ |   |
-| iqwiki |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |
-| kiwistand |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |
-| lens |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |
-| lido |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |
-| looksrare |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |
-| matters |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |
-| mirror |   | ✓ |   |   |   |   |   |   |   |   |   |   |   |
-| momoka |   | ✓ |   |   |   |   |   |   |   |   |   |   |   |
-| opensea |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |
-| optimism |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |
-| paragraph |   | ✓ |   |   |   |   |   |   |   |   |   |   |   |
-| rss3 |   |   |   |   |   |   | ✓ |   |   |   |   |   | ✓ |
-| stargate | ✓ |   | ✓ | ✓ | ✓ |   | ✓ |   |   | ✓ | ✓ | ✓ |   |
-| uniswap |   |   |   |   |   |   | ✓ |   |   | ✓ |   |   |   |
-| vsl |   |   |   |   |   |   |   |   |   |   |   |   | ✓ |
+| Network/Worker | arbitrum | arweave | avax | base | binance-smart-chain | crossbell | ethereum | farcaster | gnosis | linea | mastodon | near | optimism | polygon | rss | vsl | x-layer |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **core** [^1] | ✓ |   | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |   | ✓ | ✓ | ✓ |   | ✓ | ✓ |
+| 1inch |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| aave | ✓ |   | ✓ | ✓ |   |   | ✓ |   |   |   |   |   | ✓ | ✓ |   |   |   |
+| aavegotchi |   |   |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |
+| arbitrum |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| base |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| cow |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| crossbell |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |   |
+| curve | ✓ |   | ✓ |   |   |   | ✓ |   | ✓ |   |   |   | ✓ | ✓ |   |   |   |
+| ens |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| highlight | ✓ |   |   |   |   |   | ✓ |   |   |   |   |   | ✓ | ✓ |   |   |   |
+| iqwiki |   |   |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |
+| kiwistand |   |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |   |
+| lens |   |   |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |
+| lido |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| linea |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| linear |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |   |   |
+| looksrare |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| mastodon |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |
+| matters |   |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |   |
+| mirror |   | ✓ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| momoka |   | ✓ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| nouns |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| opensea |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| optimism |   |   |   |   |   |   | ✓ |   |   |   |   |   | ✓ |   |   |   |   |
+| paragraph |   | ✓ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| paraswap |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| polymarket |   |   |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |
+| rainbow | ✓ |   | ✓ | ✓ | ✓ |   | ✓ |   |   | ✓ |   |   | ✓ | ✓ |   |   |   |
+| rss3 |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| rsshub |   |   |   |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |
+| stargate | ✓ |   | ✓ | ✓ | ✓ |   | ✓ |   |   | ✓ |   |   | ✓ | ✓ |   |   |   |
+| uniswap |   |   |   |   |   |   | ✓ |   |   | ✓ |   |   |   |   |   |   |   |
+| vsl |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| zerion | ✓ |   | ✓ | ✓ | ✓ |   |   |   | ✓ | ✓ |   |   | ✓ | ✓ |   |   | ✓ |
 <!-- network-worker table ends -->
 [^1]: The core worker covers all the data on the network where it operates, except for the data already covered by other workers.
 For more information: <https://docs.rss3.io/guide/data-sublayer/worker>
