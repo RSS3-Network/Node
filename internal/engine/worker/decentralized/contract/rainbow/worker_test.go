@@ -2,7 +2,6 @@ package rainbow_test
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 	"testing"
 
@@ -410,6 +409,260 @@ func TestWorker_Rainbow(t *testing.T) {
 			},
 			wantError: require.NoError,
 		},
+		{
+			name: "Swap PEIPEI to USDC on Ethereum",
+			arguments: struct {
+				task   *source.Task
+				config *config.Module
+			}{
+				task: &source.Task{
+					Network: network.Ethereum,
+					ChainID: 1,
+					Header: &ethereum.Header{
+						Hash:         common.HexToHash("0x1a943b26a8490bca600c79909bf590cf9cb93177ff228ef6b9b3aeeabc180471"),
+						ParentHash:   common.HexToHash("0x2454e595d850603d285aab7403edef2dd35eecd29e412bd87b84faa68b4c2701"),
+						UncleHash:    common.HexToHash("0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"),
+						Coinbase:     common.HexToAddress("0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5"),
+						Number:       lo.Must(new(big.Int).SetString("20960347", 0)),
+						GasLimit:     30000000,
+						GasUsed:      13080242,
+						Timestamp:    1728867131,
+						BaseFee:      lo.Must(new(big.Int).SetString("7446526121", 0)),
+						Transactions: nil,
+					},
+					Transaction: &ethereum.Transaction{
+						BlockHash: common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+						From:      common.HexToAddress("0xbBb87B2E1aF93c326BA6fA10333c79A02c888ad8"),
+						Gas:       344747,
+						GasPrice:  lo.Must(new(big.Int).SetString("8453057815", 10)),
+						Hash:      common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+						Input:     hexutil.MustDecode("0x55e4b7be0000000000000000000000003ffeea07a27fab7ad1df5297fa75e77a43cb5790000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000111111125421ca6dc452d289314280a0f8842a6500000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000561ae8868f4c970d16d9ad38000000000000000000000000000000000000000000bb5d5e53e7f26f996904ac00000000000000000000000000000000000000000000000000000000000000a88770ba910000000000000000000000003ffeea07a27fab7ad1df5297fa75e77a43cb57900000000000000000000000000000000000000000555f8b283b64a49d7d70a88c00000000000000000000000000000000000000000000000000000000dc22049e08800000000000003b6d0340bf16540c857b4e32ce6c37d2f7725c8eec869b8b00000000000000003b6d0340b4e16d0168e52d35cacd2c6185b44281ec28c9dcd6f29312000000000000000000000000000000000000000000000000d7e44d53"),
+						To:        lo.ToPtr(common.HexToAddress("0x00000000009726632680FB29d3F7A9734E3010E2")),
+						Value:     lo.Must(new(big.Int).SetString("0", 0)),
+						Type:      2,
+						ChainID:   lo.Must(new(big.Int).SetString("1", 0)),
+					},
+					Receipt: &ethereum.Receipt{
+						BlockHash:         common.HexToHash("0x1a943b26a8490bca600c79909bf590cf9cb93177ff228ef6b9b3aeeabc180471"),
+						BlockNumber:       lo.Must(new(big.Int).SetString("20960347", 0)),
+						ContractAddress:   nil,
+						CumulativeGasUsed: 6717867,
+						EffectiveGasPrice: hexutil.MustDecodeBig("0x1f7d76d17"),
+						GasUsed:           248433,
+
+						Logs: []*ethereum.Log{{
+							Address: common.HexToAddress("0x3fFEea07a27Fab7ad1df5297fa75e77a43CB5790"),
+							Topics: []common.Hash{
+								common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+								common.HexToHash("0x000000000000000000000000bbb87b2e1af93c326ba6fa10333c79a02c888ad8"),
+								common.HexToHash("0x00000000000000000000000000000000009726632680fb29d3f7a9734e3010e2"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000000561ae8868f4c970d16d9ad38"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("20960347", 0)),
+							TransactionHash: common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+							Index:           202,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0x3fFEea07a27Fab7ad1df5297fa75e77a43CB5790"),
+							Topics: []common.Hash{
+								common.HexToHash("0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"),
+								common.HexToHash("0x000000000000000000000000bbb87b2e1af93c326ba6fa10333c79a02c888ad8"),
+								common.HexToHash("0x00000000000000000000000000000000009726632680fb29d3f7a9734e3010e2"),
+							},
+							Data:            hexutil.MustDecode("0xfffffffffffffffffffffffffffffffffffffffa6245c58bc3e3d5e07de38a18"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("20960347", 0)),
+							TransactionHash: common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+							Index:           203,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0x3fFEea07a27Fab7ad1df5297fa75e77a43CB5790"),
+							Topics: []common.Hash{
+								common.HexToHash("0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"),
+								common.HexToHash("0x00000000000000000000000000000000009726632680fb29d3f7a9734e3010e2"),
+								common.HexToHash("0x000000000000000000000000111111125421ca6dc452d289314280a0f8842a65"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000000555f8b283b64a49d7d70a88c"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("20960347", 0)),
+							TransactionHash: common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+							Index:           204,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0x3fFEea07a27Fab7ad1df5297fa75e77a43CB5790"),
+							Topics: []common.Hash{
+								common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+								common.HexToHash("0x00000000000000000000000000000000009726632680fb29d3f7a9734e3010e2"),
+								common.HexToHash("0x000000000000000000000000bf16540c857b4e32ce6c37d2f7725c8eec869b8b"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000000555f8b283b64a49d7d70a88c"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("20960347", 0)),
+							TransactionHash: common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+							Index:           205,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0x3fFEea07a27Fab7ad1df5297fa75e77a43CB5790"),
+							Topics: []common.Hash{
+								common.HexToHash("0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"),
+								common.HexToHash("0x00000000000000000000000000000000009726632680fb29d3f7a9734e3010e2"),
+								common.HexToHash("0x000000000000000000000000111111125421ca6dc452d289314280a0f8842a65"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000000000000000000000000000000"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("20960347", 0)),
+							TransactionHash: common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+							Index:           206,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"),
+							Topics: []common.Hash{
+								common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+								common.HexToHash("0x000000000000000000000000bf16540c857b4e32ce6c37d2f7725c8eec869b8b"),
+								common.HexToHash("0x000000000000000000000000b4e16d0168e52d35cacd2c6185b44281ec28c9dc"),
+							},
+							Data:            hexutil.MustDecode("0x000000000000000000000000000000000000000000000000155a6c93a446fff9"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("20960347", 0)),
+							TransactionHash: common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+							Index:           207,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xbF16540c857B4e32cE6C37d2F7725C8eEC869B8b"),
+							Topics: []common.Hash{
+								common.HexToHash("0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000067f12992e52537d238137fb5ae000000000000000000000000000000000000000000000019fdfd59c84dc6e642"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("20960347", 0)),
+							TransactionHash: common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+							Index:           208,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xbF16540c857B4e32cE6C37d2F7725C8eEC869B8b"),
+							Topics: []common.Hash{
+								common.HexToHash("0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822"),
+								common.HexToHash("0x000000000000000000000000111111125421ca6dc452d289314280a0f8842a65"),
+								common.HexToHash("0x000000000000000000000000b4e16d0168e52d35cacd2c6185b44281ec28c9dc"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000000555f8b283b64a49d7d70a88c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000155a6c93a446fff9"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("20960347", 0)),
+							TransactionHash: common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+							Index:           209,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+							Topics: []common.Hash{
+								common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+								common.HexToHash("0x000000000000000000000000b4e16d0168e52d35cacd2c6185b44281ec28c9dc"),
+								common.HexToHash("0x00000000000000000000000000000000009726632680fb29d3f7a9734e3010e2"),
+							},
+							Data:            hexutil.MustDecode("0x00000000000000000000000000000000000000000000000000000000e0a0199d"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("20960347", 0)),
+							TransactionHash: common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+							Index:           210,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc"),
+							Topics: []common.Hash{
+								common.HexToHash("0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1"),
+							},
+							Data:            hexutil.MustDecode("0x00000000000000000000000000000000000000000000000000002785d6b5cb8c0000000000000000000000000000000000000000000003bf03b9e23d1cc952e9"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("20960347", 0)),
+							TransactionHash: common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+							Index:           211,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc"),
+							Topics: []common.Hash{
+								common.HexToHash("0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822"),
+								common.HexToHash("0x000000000000000000000000111111125421ca6dc452d289314280a0f8842a65"),
+								common.HexToHash("0x00000000000000000000000000000000009726632680fb29d3f7a9734e3010e2"),
+							},
+							Data:            hexutil.MustDecode("0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000155a6c93a446fff900000000000000000000000000000000000000000000000000000000e0a0199d0000000000000000000000000000000000000000000000000000000000000000"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("20960347", 0)),
+							TransactionHash: common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+							Index:           212,
+							Removed:         false,
+						}, {
+							Address: common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+							Topics: []common.Hash{
+								common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+								common.HexToHash("0x00000000000000000000000000000000009726632680fb29d3f7a9734e3010e2"),
+								common.HexToHash("0x000000000000000000000000bbb87b2e1af93c326ba6fa10333c79a02c888ad8"),
+							},
+							Data:            hexutil.MustDecode("0x00000000000000000000000000000000000000000000000000000000e0a0199d"),
+							BlockNumber:     lo.Must(new(big.Int).SetString("20960347", 0)),
+							TransactionHash: common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+							Index:           213,
+							Removed:         false,
+						}},
+						Status:           1,
+						TransactionHash:  common.HexToHash("0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24"),
+						TransactionIndex: 70,
+					},
+				},
+				config: &config.Module{
+					Network: network.Ethereum,
+					Endpoint: config.Endpoint{
+						URL: endpoint.MustGet(network.Ethereum),
+					},
+				},
+			},
+			want: &activityx.Activity{
+				ID:       "0xcd4e9395bb9ee875337c1e126dec94635f234c8107f5378a1f2e6eb5deb90f24",
+				Network:  network.Ethereum,
+				Index:    70,
+				From:     "0xbBb87B2E1aF93c326BA6fA10333c79A02c888ad8",
+				To:       rainbow.AddressRouter.String(),
+				Type:     typex.ExchangeSwap,
+				Platform: workerx.PlatformRainbow.String(),
+				Fee: &activityx.Fee{
+					Amount:  lo.Must(decimal.NewFromString("2100018512153895")),
+					Decimal: 18,
+				},
+				Calldata: &activityx.Calldata{
+					FunctionHash: "0x55e4b7be",
+				},
+				Actions: []*activityx.Action{
+					{
+						Type:     typex.TransactionTransfer,
+						Platform: workerx.PlatformRainbow.String(),
+						From:     "0xbBb87B2E1aF93c326BA6fA10333c79A02c888ad8",
+						To:       rainbow.AddressRouter.String(),
+						Metadata: metadata.TransactionTransfer{
+							Address:  lo.ToPtr("0x3fFEea07a27Fab7ad1df5297fa75e77a43CB5790"),
+							Value:    lo.ToPtr(lo.Must(decimal.NewFromString("226510048390853047270048940"))),
+							Name:     "PeiPei",
+							Symbol:   "PEIPEI",
+							Decimals: 18,
+							Standard: metadata.StandardERC20,
+						},
+					},
+					{
+						Type:     typex.ExchangeSwap,
+						Platform: workerx.PlatformRainbow.String(),
+						From:     "0xbBb87B2E1aF93c326BA6fA10333c79A02c888ad8",
+						To:       "0xbBb87B2E1aF93c326BA6fA10333c79A02c888ad8",
+						Metadata: metadata.ExchangeSwap{
+							From: metadata.Token{
+								Address:  lo.ToPtr("0x3fFEea07a27Fab7ad1df5297fa75e77a43CB5790"),
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("26648240987159182031770463544"))),
+								Name:     "PeiPei",
+								Symbol:   "PEIPEI",
+								Decimals: 18,
+								Standard: metadata.StandardERC20,
+							},
+							To: metadata.Token{
+								Address:  lo.ToPtr("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("3768588701"))),
+								Name:     "USD Coin",
+								Symbol:   "USDC",
+								Decimals: 6,
+								Standard: metadata.StandardERC20,
+							},
+						},
+					},
+				},
+				Status:    true,
+				Timestamp: 1728867131,
+			},
+			wantError: require.NoError,
+		},
 	}
 
 	for _, testcase := range testcases {
@@ -426,7 +679,7 @@ func TestWorker_Rainbow(t *testing.T) {
 			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
 			require.Equal(t, testcase.want, activity)
 		})

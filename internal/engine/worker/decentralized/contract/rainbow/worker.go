@@ -129,6 +129,7 @@ func (w *worker) matchSwapTransaction(task *source.Task) bool {
 			task.Transaction.Input,
 			rainbow.MethodIDRouterFillQuoteEthToToken,
 			rainbow.MethodIDRouterFillQuoteTokenToEth,
+			rainbow.MethodIDRouterFillQuoteTokenToToken,
 		)
 }
 
@@ -151,6 +152,13 @@ func (w *worker) transformSwapTransaction(ctx context.Context, task *source.Task
 		}
 
 		actions = append(actions, tokenToEthActions...)
+	case bytes.HasPrefix(task.Transaction.Input, rainbow.MethodIDRouterFillQuoteTokenToToken[:4]):
+		tokenToTokenActions, err := w.transformTokenToTokenSwap(ctx, task)
+		if err != nil {
+			return nil, fmt.Errorf("transform token to token swap: %w", err)
+		}
+
+		actions = append(actions, tokenToTokenActions...)
 	default:
 		return nil, fmt.Errorf("unknown swap type")
 	}
@@ -227,6 +235,43 @@ func (w *worker) transformTokenToEthSwap(ctx context.Context, task *source.Task)
 	feePercentageBasisPoints := decimal.NewFromBigInt(input.FeePercentageBasisPoints, 0)
 
 	return w.processSwapLogs(ctx, task, valueMap, actions, feePercentageBasisPoints)
+}
+
+// transformTokenToTokenSwap transforms a token to token swap transaction.
+func (w *worker) transformTokenToTokenSwap(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
+	var (
+		actions  []*activityx.Action
+		valueMap = make(map[*common.Address]*big.Int)
+	)
+
+	abi, err := rainbow.RouterMetaData.GetAbi()
+	if err != nil {
+		return nil, fmt.Errorf("get abi: %w", err)
+	}
+
+	method, err := abi.MethodById(rainbow.MethodIDRouterFillQuoteTokenToToken[:4])
+	if err != nil {
+		return nil, fmt.Errorf("get method by id: %w", err)
+	}
+
+	values, err := method.Inputs.UnpackValues(task.Transaction.Input[4:])
+	if err != nil {
+		return nil, fmt.Errorf("unpack values: %w", err)
+	}
+
+	var input rainbow.RouterFillQuoteTokenToTokenInput
+	if err := method.Inputs.Copy(&input, values); err != nil {
+		return nil, fmt.Errorf("copy input: %w", err)
+	}
+
+	feeAction, err := w.buildTransactionTransferAction(ctx, task, task.Transaction.From, rainbow.AddressRouter, &input.SellTokenAddress, input.FeeAmount)
+	if err != nil {
+		return nil, fmt.Errorf("build transaction transfer action: %w", err)
+	}
+
+	actions = append(actions, feeAction)
+
+	return w.processSwapLogs(ctx, task, valueMap, actions)
 }
 
 // processSwapLogs processes the logs of a swap transaction.

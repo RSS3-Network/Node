@@ -13,8 +13,9 @@ import (
 var (
 	AddressRouter = common.HexToAddress("0x00000000009726632680FB29d3F7A9734E3010E2")
 
-	MethodIDRouterFillQuoteEthToToken = contract.MethodID("fillQuoteEthToToken(address,address,bytes,uint256)")
-	MethodIDRouterFillQuoteTokenToEth = contract.MethodID("fillQuoteTokenToEth(address,address,bytes,uint256,uint256)")
+	MethodIDRouterFillQuoteEthToToken   = contract.MethodID("fillQuoteEthToToken(address,address,bytes,uint256)")
+	MethodIDRouterFillQuoteTokenToEth   = contract.MethodID("fillQuoteTokenToEth(address,address,bytes,uint256,uint256)")
+	MethodIDRouterFillQuoteTokenToToken = contract.MethodID("fillQuoteTokenToToken(address,address,address,bytes,uint256,uint256)")
 )
 
 type RouterFillQuoteEthToTokenInput struct {
@@ -30,4 +31,13 @@ type RouterFillQuoteTokenToEthInput struct {
 	SwapCallData             []byte
 	SellAmount               *big.Int
 	FeePercentageBasisPoints *big.Int
+}
+
+type RouterFillQuoteTokenToTokenInput struct {
+	SellTokenAddress common.Address
+	BuyTokenAddress  common.Address
+	Target           common.Address
+	SwapCallData     []byte
+	SellAmount       *big.Int
+	FeeAmount        *big.Int
 }
