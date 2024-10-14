@@ -322,6 +322,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Highlight,
 		decentralized.Rainbow,
 		decentralized.Stargate,
+		decentralized.Zerion,
 	},
 	network.Arweave: {
 		decentralized.Mirror,
@@ -334,17 +335,20 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Curve,
 		decentralized.Rainbow,
 		decentralized.Stargate,
+		decentralized.Zerion,
 	},
 	network.Base: {
 		decentralized.Aave,
 		decentralized.Core,
 		decentralized.Rainbow,
 		decentralized.Stargate,
+		decentralized.Zerion,
 	},
 	network.BinanceSmartChain: {
 		decentralized.Core,
 		decentralized.Rainbow,
 		decentralized.Stargate,
+		decentralized.Zerion,
 	},
 	network.Crossbell: {
 		decentralized.Core,
@@ -379,12 +383,14 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.Gnosis: {
 		decentralized.Core,
 		decentralized.Curve,
+		decentralized.Zerion,
 	},
 	network.Linea: {
 		decentralized.Core,
 		decentralized.Rainbow,
 		decentralized.Stargate,
 		decentralized.Uniswap,
+		decentralized.Zerion,
 	},
 	network.Mastodon: {
 		federated.Mastodon,
@@ -403,6 +409,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Optimism,
 		decentralized.Rainbow,
 		decentralized.Stargate,
+		decentralized.Zerion,
 	},
 	network.Polygon: {
 		decentralized.Aave,
@@ -415,6 +422,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Polymarket,
 		decentralized.Rainbow,
 		decentralized.Stargate,
+		decentralized.Zerion,
 	},
 	network.RSS: {
 		rss.RSSHub,
@@ -429,6 +437,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	},
 	network.XLayer: {
 		decentralized.Core,
+		decentralized.Zerion,
 	},
 }
 
@@ -482,6 +491,7 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.Stargate:   defaultWorkerConfig(decentralized.Stargate, network.EthereumSource, nil),
 		decentralized.Uniswap:    defaultWorkerConfig(decentralized.Uniswap, network.EthereumSource, nil),
 		decentralized.VSL:        defaultWorkerConfig(decentralized.VSL, network.EthereumSource, nil),
+		decentralized.Zerion:     defaultWorkerConfig(decentralized.Zerion, network.EthereumSource, nil),
 	},
 	network.FarcasterSource: {
 		decentralized.Core: customWorkerConfig(decentralized.Core, network.FarcasterSource, &Parameters{

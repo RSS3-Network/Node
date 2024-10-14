@@ -24,6 +24,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
@@ -158,15 +159,15 @@ func TestWorker(t *testing.T) {
 						Context: []interface{}{
 							"https://www.w3.org/ns/activitystreams",
 						},
-						ID:        "https://airwaves.social/users/VicRB/statuses/112836523057177095",
+						ID:        "https://digitalcourage.social/users/Volksverpetzer/statuses/113287832117292671/activity",
 						Type:      "Create",
-						Actor:     "https://airwaves.social/users/VicRB",
-						Published: "2024-07-23T15:31:43Z",
+						Actor:     "https://digitalcourage.social/users/Volksverpetzer",
+						Published: "2024-10-11T08:25:33Z",
 						Object: map[string]interface{}{
 							"type":      "Note",
-							"id":        "https://airwaves.social/users/VicRB/statuses/112836523057177095",
-							"content":   "<p>#VesselAlert #Vaixell ... </p>",
-							"published": "2024-07-23T15:31:43Z",
+							"id":        "https://digitalcourage.social/users/Volksverpetzer/statuses/113287832117292671",
+							"content":   "<p>Die Lügen der Rechten kosten uns Millionen: Arbeitende Schutzsuchende schieben wir ab und die steigenden Kosten müssen junge Menschen zahlen. Der Rassismus von AfD &amp; Co. wird junge Menschen teuer zu stehen kommen. <a href=\"https://www.volksverpetzer.de/analyse/wollen-nicht-fuer-rassismus-zahlen/?utm_source=mstdn\" target=\"_blank\" rel=\"nofollow noopener noreferrer\" translate=\"no\"><span class=\"invisible\">https://www.</span><span class=\"ellipsis\">volksverpetzer.de/analyse/woll</span><span class=\"invisible\">en-nicht-fuer-rassismus-zahlen/?utm_source=mstdn</span></a></p></p>",
+							"published": "2024-10-11T08:25:33Z",
 							"to": []string{
 								"https://www.w3.org/ns/activitystreams#Public",
 							},
@@ -175,30 +176,199 @@ func TestWorker(t *testing.T) {
 				},
 			},
 			want: &activity.Activity{
-				ID:       "https://airwaves.social/users/VicRB/statuses/112836523057177095",
-				Network:  network.Mastodon,
-				Platform: federated.PlatformMastodon.String(),
-				From:     "@VicRB@airwaves.social",
-				To:       "@VicRB@airwaves.social",
-				Type:     typex.SocialPost,
-				Status:   true,
+				ID:           "https://digitalcourage.social/users/Volksverpetzer/statuses/113287832117292671/activity",
+				Network:      network.Mastodon,
+				Platform:     federated.PlatformMastodon.String(),
+				From:         "@Volksverpetzer@digitalcourage.social",
+				To:           "@Volksverpetzer@digitalcourage.social",
+				Type:         typex.SocialPost,
+				Tag:          tag.Social,
+				Status:       true,
+				TotalActions: 1,
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialPost,
+						Tag:      tag.Social,
 						Platform: federated.PlatformMastodon.String(),
-						From:     "@VicRB@airwaves.social",
-						To:       "@VicRB@airwaves.social",
+						From:     "@Volksverpetzer@digitalcourage.social",
+						To:       "@Volksverpetzer@digitalcourage.social",
 						Metadata: &metadata.SocialPost{
-							PublicationID: "https://airwaves.social/users/VicRB/statuses/112836523057177095",
-							Body:          "<p>#VesselAlert #Vaixell ... </p>",
-							Handle:        "@VicRB@airwaves.social",
-							ProfileID:     "https://airwaves.social/users/VicRB",
-							Tags:          nil,
-							Timestamp:     1721748703,
+							PublicationID: "113287832117292671",
+							Body:          "Die Lügen der Rechten kosten uns Millionen: Arbeitende Schutzsuchende schieben wir ab und die steigenden Kosten müssen junge Menschen zahlen. Der Rassismus von AfD & Co. wird junge Menschen teuer zu stehen kommen. https://www. volksverpetzer.de/analyse/woll en-nicht-fuer-rassismus-zahlen/?utm_source=mstdn ( https://www.volksverpetzer.de/analyse/wollen-nicht-fuer-rassismus-zahlen/?utm_source=mstdn )",
+							Handle:        "@Volksverpetzer@digitalcourage.social",
+							Timestamp:     1728635133,
+						},
+						RelatedURLs: []string{"https://digitalcourage.social/users/Volksverpetzer/statuses/113287832117292671"},
+					},
+				},
+				Timestamp: 1728635133,
+			},
+			wantError: require.NoError,
+		},
+		{
+			name: "Create A Note with Media",
+			arguments: arguments{
+				task: &activitypub.Task{
+					Network: network.Mastodon,
+					Message: message.Object{
+						Context: []interface{}{
+							"https://www.w3.org/ns/activitystreams",
+						},
+						ID:        "https://mastodon.world/users/ctxt/statuses/113287758853959995/activity",
+						Type:      "Create",
+						Actor:     "https://mastodon.world/users/ctxt",
+						Published: "2024-10-11T08:06:55Z",
+						Object: map[string]interface{}{
+							"type":      "Note",
+							"id":        "https://mastodon.world/users/ctxt/statuses/113287758853959995",
+							"content":   "<p>Y por si se les pasó, les dejamos también la pieza que nos mandó Lola Matamala contándonos en primera persona el desahucio que sufrió su madre el mes pasado después de llevar setenta años viviendo en la misma calle. </p><p>La empresa Dapamali Works compró el edifio y fue echando uno por uno a todos los vecinos: </p><p><a href=\"https://ctxt.es/es/20241001/Firmas/47602/lola-matamala-desahucio-Dapamali-Works-primera-persona-aurora-getafe.htm\" target=\"_blank\" rel=\"nofollow noopener noreferrer\" translate=\"no\"><span class=\"invisible\">https://</span><span class=\"ellipsis\">ctxt.es/es/20241001/Firmas/476</span><span class=\"invisible\">02/lola-matamala-desahucio-Dapamali-Works-primera-persona-aurora-getafe.htm</span></a></p>",
+							"published": "2024-10-11T08:06:55Z",
+							"to": []string{
+								"https://www.w3.org/ns/activitystreams#Public",
+							},
+							"cc": []string{
+								"https://mastodon.world/users/ctxt/followers",
+							},
+							"sensitive":    false,
+							"conversation": "tag:mastodon.world,2024-10-11:objectId=314975275:objectType=Conversation",
+							"attachment": []map[string]interface{}{
+								{
+									"type":      "Document",
+									"mediaType": "image/jpeg",
+									"url":       "https://s3.eu-central-2.wasabisys.com/mastodonworld/media_attachments/files/113/287/758/697/714/115/original/2c6c341deae150c0.jpg",
+									"blurhash":  "UOFiJm4nxv-=_M9Yxu-ptRM{odaes:jEayay",
+									"width":     800,
+									"height":    493,
+								},
+							},
 						},
 					},
 				},
-				Timestamp: 1721748703,
+			},
+			want: &activity.Activity{
+				ID:           "https://mastodon.world/users/ctxt/statuses/113287758853959995/activity",
+				Network:      network.Mastodon,
+				Platform:     federated.PlatformMastodon.String(),
+				From:         "@ctxt@mastodon.world",
+				To:           "@ctxt@mastodon.world",
+				Type:         typex.SocialPost,
+				Tag:          tag.Social,
+				Status:       true,
+				TotalActions: 1,
+				Actions: []*activity.Action{
+					{
+						Type:     typex.SocialPost,
+						Tag:      tag.Social,
+						Platform: federated.PlatformMastodon.String(),
+						From:     "@ctxt@mastodon.world",
+						To:       "@ctxt@mastodon.world",
+						Metadata: &metadata.SocialPost{
+							PublicationID: "113287758853959995",
+							Body:          "Y por si se les pasó, les dejamos también la pieza que nos mandó Lola Matamala contándonos en primera persona el desahucio que sufrió su madre el mes pasado después de llevar setenta años viviendo en la misma calle.\n\nLa empresa Dapamali Works compró el edifio y fue echando uno por uno a todos los vecinos:\n\nhttps:// ctxt.es/es/20241001/Firmas/476 02/lola-matamala-desahucio-Dapamali-Works-primera-persona-aurora-getafe.htm ( https://ctxt.es/es/20241001/Firmas/47602/lola-matamala-desahucio-Dapamali-Works-primera-persona-aurora-getafe.htm )",
+							Handle:        "@ctxt@mastodon.world",
+							Timestamp:     1728634015,
+							Media: []metadata.Media{
+								{
+									Address:  "https://s3.eu-central-2.wasabisys.com/mastodonworld/media_attachments/files/113/287/758/697/714/115/original/2c6c341deae150c0.jpg",
+									MimeType: "image/jpeg",
+								},
+							},
+						},
+						RelatedURLs: []string{"https://mastodon.world/users/ctxt/statuses/113287758853959995"},
+					},
+				},
+				Timestamp: 1728634015,
+			},
+			wantError: require.NoError,
+		},
+		{
+			name: "Create A Note with Tags",
+			arguments: arguments{
+				task: &activitypub.Task{
+					Network: network.Mastodon,
+					Message: message.Object{
+						Context: []interface{}{
+							"https://www.w3.org/ns/activitystreams",
+							map[string]string{
+								"ostatus":          "http://ostatus.org#",
+								"atomUri":          "ostatus:atomUri",
+								"inReplyToAtomUri": "ostatus:inReplyToAtomUri",
+								"conversation":     "ostatus:conversation",
+								"sensitive":        "as:sensitive",
+								"toot":             "http://joinmastodon.org/ns#",
+								"votersCount":      "toot:votersCount",
+							},
+						},
+						ID:        "https://mastodon.social/users/DJGummikuh/statuses/113287749405285684/activity",
+						Type:      "Create",
+						Actor:     "https://mastodon.social/users/DJGummikuh",
+						Published: "2024-10-11T08:04:31Z",
+						To: []string{
+							"https://www.w3.org/ns/activitystreams#Public",
+						},
+						Object: map[string]interface{}{
+							"type":      "Note",
+							"id":        "https://mastodon.social/users/DJGummikuh/statuses/113287749405285684",
+							"content":   "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.energy/@Sustainable2050\" class=\"u-url mention\">@<span>Sustainable2050</span></a></span> who ever could have expected that?</p>",
+							"published": "2024-10-11T08:04:31Z",
+							"to": []string{
+								"https://www.w3.org/ns/activitystreams#Public",
+							},
+							"cc": []string{
+								"https://mastodon.social/users/DJGummikuh/followers",
+								"https://mastodon.energy/users/Sustainable2050",
+							},
+							"sensitive":    false,
+							"conversation": "tag:mastodon.energy,2024-10-11:objectId=32875409:objectType=Conversation",
+							"tag": []map[string]interface{}{
+								{
+									"type": "Mention",
+									"href": "https://mastodon.energy/users/Sustainable2050",
+									"name": "@Sustainable2050@mastodon.energy",
+								},
+								{
+									"type": "Mention",
+									"href": "https://mastodon.social/users/DJGummikuh",
+									"name": "@DJGummikuh@mastodon.social",
+								},
+								{
+									"type": "Hashtag",
+									"href": "https://ard.social/tags/ubernachtungen",
+									"name": "#ubernachtungen",
+								},
+							},
+						},
+					},
+				},
+			},
+			want: &activity.Activity{
+				ID:           "https://mastodon.social/users/DJGummikuh/statuses/113287749405285684/activity",
+				Network:      network.Mastodon,
+				Platform:     federated.PlatformMastodon.String(),
+				From:         "@DJGummikuh@mastodon.social",
+				To:           "@DJGummikuh@mastodon.social",
+				Type:         typex.SocialPost,
+				Tag:          tag.Social,
+				Status:       true,
+				TotalActions: 1,
+				Actions: []*activity.Action{
+					{
+						Type:     typex.SocialPost,
+						Tag:      tag.Social,
+						Platform: federated.PlatformMastodon.String(),
+						From:     "@DJGummikuh@mastodon.social",
+						To:       "@DJGummikuh@mastodon.social",
+						Metadata: &metadata.SocialPost{
+							PublicationID: "113287749405285684",
+							Body:          "@ Sustainable2050 ( https://mastodon.energy/@Sustainable2050 ) who ever could have expected that?",
+							Handle:        "@DJGummikuh@mastodon.social",
+							Timestamp:     1728633871,
+							Tags:          []string{"@Sustainable2050@mastodon.energy", "@DJGummikuh@mastodon.social", "ubernachtungen"},
+						},
+						RelatedURLs: []string{"https://mastodon.social/users/DJGummikuh/statuses/113287749405285684"},
+					},
+				},
+				Timestamp: 1728633871,
 			},
 			wantError: require.NoError,
 		},
@@ -211,16 +381,16 @@ func TestWorker(t *testing.T) {
 						Context: []interface{}{
 							"https://www.w3.org/ns/activitystreams",
 						},
-						ID:        "https://beekeeping.ninja/users/Pagan_Animist/statuses/112840117527501203",
+						ID:        "https://social.timespiral.co.jp/users/find575/statuses/113287741759175713/activity",
 						Type:      "Create",
-						Published: "2024-07-24T06:45:51Z",
-						Actor:     "https://beekeeping.ninja/users/Pagan_Animist",
+						Published: "2024-10-11T08:02:34Z",
+						Actor:     "https://social.timespiral.co.jp/users/find575",
 						Object: map[string]interface{}{
 							"type":      "Note",
-							"id":        "https://beekeeping.ninja/users/Pagan_Animist/statuses/112840117527501203",
-							"content":   "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://mas.to/@evedazzle\" class=\"u-url mention\">@<span>evedazzle</span></a></span> </p><p>Can communities band together ...</p><p>Would they help?</p><p>I’m just thinking of your power grid and next time.</p>",
-							"inReplyTo": "https://mas.to/users/evedazzle/statuses/112802025232873362",
-							"published": "2024-07-24T06:45:51Z",
+							"id":        "https://social.timespiral.co.jp/users/find575/statuses/113287741759175713",
+							"content":   "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://pawoo.net/@cs133\" class=\"u-url mention\">@<span>cs133</span></a></span> 俳句を発見しました！<br />『各駅に エスペラントで 愛称が』</p>",
+							"inReplyTo": "https://pawoo.net/users/cs133/statuses/113287741711853329",
+							"published": "2024-10-11T08:02:34Z",
 							"to": []string{
 								"https://www.w3.org/ns/activitystreams#Public",
 							},
@@ -229,37 +399,43 @@ func TestWorker(t *testing.T) {
 				},
 			},
 			want: &activity.Activity{
-				ID:       "https://beekeeping.ninja/users/Pagan_Animist/statuses/112840117527501203",
-				Network:  network.Mastodon,
-				Platform: federated.PlatformMastodon.String(),
-				From:     "@Pagan_Animist@beekeeping.ninja",
-				To:       "@evedazzle@mas.to",
-				Type:     typex.SocialComment,
-				Status:   true,
+				ID:           "https://social.timespiral.co.jp/users/find575/statuses/113287741759175713/activity",
+				Network:      network.Mastodon,
+				Platform:     federated.PlatformMastodon.String(),
+				From:         "@find575@social.timespiral.co.jp",
+				To:           "@cs133@pawoo.net",
+				Type:         typex.SocialComment,
+				Tag:          tag.Social,
+				Status:       true,
+				TotalActions: 1,
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialComment,
+						Tag:      tag.Social,
 						Platform: federated.PlatformMastodon.String(),
-						From:     "@Pagan_Animist@beekeeping.ninja",
-						To:       "@evedazzle@mas.to",
+						From:     "@find575@social.timespiral.co.jp",
+						To:       "@cs133@pawoo.net",
 						Metadata: &metadata.SocialPost{
-							PublicationID: "https://beekeeping.ninja/users/Pagan_Animist/statuses/112840117527501203",
-							Body:          "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://mas.to/@evedazzle\" class=\"u-url mention\">@<span>evedazzle</span></a></span> </p><p>Can communities band together ...</p><p>Would they help?</p><p>I’m just thinking of your power grid and next time.</p>",
-							Handle:        "@Pagan_Animist@beekeeping.ninja",
-							ProfileID:     "https://beekeeping.ninja/users/Pagan_Animist",
+							PublicationID: "113287741759175713",
+							Body:          "@ cs133 ( https://pawoo.net/@cs133 ) 俳句を発見しました！\n『各駅に エスペラントで 愛称が』",
+							Handle:        "@find575@social.timespiral.co.jp",
 							Target: &metadata.SocialPost{
-								PublicationID: "https://mas.to/users/evedazzle/statuses/112802025232873362",
+								Handle:        "@cs133@pawoo.net",
+								PublicationID: "113287741711853329",
+								Timestamp:     1728633754,
+								Body:          "賢治に毒されて各駅にエスペラントで愛称が付けられている釜石線",
 							},
-							Timestamp: 1721803551,
+							Timestamp: 1728633754,
 						},
+						RelatedURLs: []string{"https://social.timespiral.co.jp/users/find575/statuses/113287741759175713"},
 					},
 				},
-				Timestamp: 1721803551,
+				Timestamp: 1728633754,
 			},
 			wantError: require.NoError,
 		},
 		{
-			name: "Create A Comment (Includes 2 Mentions)",
+			name: "Share A Post",
 			arguments: arguments{
 				task: &activitypub.Task{
 					Network: network.Mastodon,
@@ -267,190 +443,46 @@ func TestWorker(t *testing.T) {
 						Context: []interface{}{
 							"https://www.w3.org/ns/activitystreams",
 						},
-						ID:        "https://epicure.social/users/Island_Martha/statuses/112840097961400438",
-						Type:      "Create",
-						Actor:     "https://epicure.social/users/Island_Martha",
-						Published: "2024-07-24T06:40:52Z",
-						Object: map[string]interface{}{
-							"type":      "Note",
-							"id":        "https://epicure.social/users/Island_Martha/statuses/112840097961400438",
-							"content":   "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.social/@SpookieRobieTheCat\" class=\"u-url mention\">@<span>SpookieRobieTheCat</span></a></span> <span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.social/@eunews\" class=\"u-url mention\">@<span>eunews</span></a></span> <br />Or at very least restrict or remove their voting rights. Orban is not MAGA Mike</p>",
-							"inReplyTo": "https://mastodon.social/users/SpookieRobieTheCat/statuses/112840076342641439",
-							"to": []string{
-								"https://www.w3.org/ns/activitystreams#Public",
-							},
-							"tag": []map[string]string{
-								{
-									"type": "Mention",
-									"href": "https://mastodon.social/@SpookieRobieTheCat",
-									"name": "@SpookieRobieTheCat",
-								},
-								{
-									"type": "Mention",
-									"href": "https://mastodon.social/@eunews",
-									"name": "@eunews",
-								},
-							},
-						},
-					},
-				},
-			},
-			want: &activity.Activity{
-				ID:       "https://epicure.social/users/Island_Martha/statuses/112840097961400438",
-				Network:  network.Mastodon,
-				Platform: federated.PlatformMastodon.String(),
-				From:     "@Island_Martha@epicure.social",
-				To:       "@SpookieRobieTheCat@mastodon.social",
-				Type:     typex.SocialComment,
-				Status:   true,
-				Actions: []*activity.Action{
-					{
-						Type:     typex.SocialComment,
-						Platform: federated.PlatformMastodon.String(),
-						From:     "@Island_Martha@epicure.social",
-						To:       "@SpookieRobieTheCat@mastodon.social",
-						Metadata: &metadata.SocialPost{
-							PublicationID: "https://epicure.social/users/Island_Martha/statuses/112840097961400438",
-							Body:          "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.social/@SpookieRobieTheCat\" class=\"u-url mention\">@<span>SpookieRobieTheCat</span></a></span> <span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.social/@eunews\" class=\"u-url mention\">@<span>eunews</span></a></span> <br />Or at very least restrict or remove their voting rights. Orban is not MAGA Mike</p>",
-							Handle:        "@Island_Martha@epicure.social",
-							ProfileID:     "https://epicure.social/users/Island_Martha",
-							Target: &metadata.SocialPost{
-								PublicationID: "https://mastodon.social/users/SpookieRobieTheCat/statuses/112840076342641439",
-							},
-							Timestamp: 1721803252,
-						},
-					},
-					{
-						Type:     typex.SocialShare,
-						Platform: federated.PlatformMastodon.String(),
-						From:     "@Island_Martha@epicure.social",
-						To:       "@SpookieRobieTheCat@mastodon.social",
-						Metadata: &metadata.SocialPost{
-							PublicationID: "https://epicure.social/users/Island_Martha/statuses/112840097961400438",
-							Body:          "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.social/@SpookieRobieTheCat\" class=\"u-url mention\">@<span>SpookieRobieTheCat</span></a></span> <span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.social/@eunews\" class=\"u-url mention\">@<span>eunews</span></a></span> <br />Or at very least restrict or remove their voting rights. Orban is not MAGA Mike</p>",
-							Handle:        "@Island_Martha@epicure.social",
-							ProfileID:     "https://epicure.social/users/Island_Martha",
-							Target: &metadata.SocialPost{
-								PublicationID: "https://mastodon.social/users/SpookieRobieTheCat/statuses/112840076342641439",
-							},
-							Timestamp: 1721803252,
-						},
-					},
-					{
-						Type:     typex.SocialShare,
-						Platform: federated.PlatformMastodon.String(),
-						From:     "@Island_Martha@epicure.social",
-						To:       "@eunews@mastodon.social",
-						Metadata: &metadata.SocialPost{
-							PublicationID: "https://epicure.social/users/Island_Martha/statuses/112840097961400438",
-							Body:          "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.social/@SpookieRobieTheCat\" class=\"u-url mention\">@<span>SpookieRobieTheCat</span></a></span> <span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.social/@eunews\" class=\"u-url mention\">@<span>eunews</span></a></span> <br />Or at very least restrict or remove their voting rights. Orban is not MAGA Mike</p>",
-							Handle:        "@Island_Martha@epicure.social",
-							ProfileID:     "https://epicure.social/users/Island_Martha",
-							Target: &metadata.SocialPost{
-								PublicationID: "https://mastodon.social/users/SpookieRobieTheCat/statuses/112840076342641439",
-							},
-							Timestamp: 1721803252,
-						},
-					},
-				},
-				Timestamp: 1721803252,
-			},
-			wantError: require.NoError,
-		},
-		{
-			name: "Announce(Share)",
-			arguments: arguments{
-				task: &activitypub.Task{
-					Network: network.Mastodon,
-					Message: message.Object{
-						Context: []interface{}{
-							"https://www.w3.org/ns/activitystreams",
-						},
-						ID:        "https://relay.an.exchange/activities/d93bf6f6-832d-49d0-b841-3654d8da0b79",
+						ID:        "https://fosstodon.org/users/bert_hubert/statuses/113287843427757878/activity",
 						Type:      "Announce",
-						Actor:     "https://relay.an.exchange/actor",
-						Published: "2024-07-22T00:00:00Z",
-						Object: map[string]interface{}{
-							"type": "Note",
-							"id":   "https://cr8r.gg/users/SarraceniaWilds#announces/112250337669855051/undo",
-						},
+						Actor:     "https://fosstodon.org/users/bert_hubert",
+						Published: "2024-10-11T08:28:26Z",
+						Object:    "https://infosec.exchange/users/ravirockks/statuses/113286145052908177",
 					},
 				},
 			},
 			want: &activity.Activity{
-				ID:       "https://relay.an.exchange/activities/d93bf6f6-832d-49d0-b841-3654d8da0b79",
-				Network:  network.Mastodon,
-				Platform: federated.PlatformMastodon.String(),
-				From:     "@relay@relay.an.exchange",
-				To:       "@relay@relay.an.exchange",
-				Type:     typex.SocialShare,
-				Status:   true,
+				ID:           "https://fosstodon.org/users/bert_hubert/statuses/113287843427757878/activity",
+				Network:      network.Mastodon,
+				Platform:     federated.PlatformMastodon.String(),
+				From:         "@bert_hubert@fosstodon.org",
+				To:           "@ravirockks@infosec.exchange",
+				Type:         typex.SocialShare,
+				Tag:          tag.Social,
+				TotalActions: 1,
+				Status:       true,
 				Actions: []*activity.Action{
 					{
 						Type:     typex.SocialShare,
+						Tag:      tag.Social,
 						Platform: federated.PlatformMastodon.String(),
-						From:     "@relay@relay.an.exchange",
-						To:       "@SarraceniaWilds@cr8r.gg",
+						From:     "@bert_hubert@fosstodon.org",
+						To:       "@ravirockks@infosec.exchange",
 						Metadata: &metadata.SocialPost{
-							PublicationID: "https://relay.an.exchange/activities/d93bf6f6-832d-49d0-b841-3654d8da0b79",
-							ProfileID:     "https://relay.an.exchange/actor",
-							Handle:        "@SarraceniaWilds@cr8r.gg",
+							PublicationID: "113287843427757878",
+							Handle:        "@bert_hubert@fosstodon.org",
 							Target: &metadata.SocialPost{
-								PublicationID: "https://cr8r.gg/users/SarraceniaWilds#announces/112250337669855051/undo",
+								PublicationID: "113286145052908177",
+								Handle:        "@ravirockks@infosec.exchange",
+								Timestamp:     1728609391,
+								Body:          "THE CYBER RESILIENCE ACT HAS BEEN ADOPTED BY THE COUNCIL OF THE EUROPEAN UNION!\n\nThe EU is weeks away from becoming the first jurisdiction with a bespoke regulatory framework for the product security _and_ labelling of all software sold commercially in the EU (save stuff covered by other EU rules like cars and healthtech).\n\nYes, the Yanks (via EO14028–>NIST) defined critical software (the CRA has ‘important products with digital elements’ and ‘critical products with digital elements’), but the Yanks, for now at least, have only gone down the procurement route for regulating vendor SDLCs. The EU, on the other hand, is covering everything sold commercially (bar the stated exceptions) to anyone in the EU.\n\nBig day for all us SDLC regulation people!\n\nWhat happens next: Council and EuroParl President sign it —> Publication in the EU OJ —> Entry into force 20 days later —> Application of most provisions 36 months later.\n\nPress release (includes link to final text): https://www. consilium.europa.eu/en/press/p ress-releases/2024/10/10/cyber-resilience-act-council-adopts-new-law-on-security-requirements-for-digital-products/ ( https://www.consilium.europa.eu/en/press/press-releases/2024/10/10/cyber-resilience-act-council-adopts-new-law-on-security-requirements-for-digital-products/ )",
 							},
-							Timestamp: 1721606400,
+							Timestamp: 1728635306,
 						},
+						RelatedURLs: []string{"https://fosstodon.org/users/bert_hubert/statuses/113287843427757878"},
 					},
 				},
-				Timestamp: 1721606400,
-			},
-			wantError: require.NoError,
-		},
-		{
-			name: "Like",
-			arguments: arguments{
-				task: &activitypub.Task{
-					Network: network.Mastodon,
-					Message: message.Object{
-						Context: []interface{}{
-							"https://www.w3.org/ns/activitystreams",
-						},
-						ID:        "https://mock.social/activities/like123",
-						Type:      "Like",
-						Actor:     "https://beekeeping.ninja/users/Pagan_Animist",
-						Published: "2024-07-22T00:00:00Z",
-						Object: map[string]interface{}{
-							"type": "Note",
-							"id":   "https://mock.social/notes/note123",
-						},
-					},
-				},
-			},
-			want: &activity.Activity{
-				ID:       "https://mock.social/activities/like123",
-				Network:  network.Mastodon,
-				Platform: federated.PlatformMastodon.String(),
-				From:     "@Pagan_Animist@beekeeping.ninja",
-				To:       "",
-				Type:     typex.SocialComment,
-				Status:   true,
-				Actions: []*activity.Action{
-					{
-						Type:     typex.SocialComment,
-						Platform: federated.PlatformMastodon.String(),
-						From:     "https://beekeeping.ninja/users/Pagan_Animist",
-						To:       "",
-						Metadata: &metadata.SocialPost{
-							PublicationID: "https://mock.social/activities/like123",
-							ProfileID:     "https://beekeeping.ninja/users/Pagan_Animist",
-							Target: &metadata.SocialPost{
-								PublicationID: "https://mock.social/notes/note123",
-							},
-							Timestamp: 1721606400,
-						},
-					},
-				},
-				Timestamp: 1721606400,
+				Timestamp: 1728635306,
 			},
 			wantError: require.NoError,
 		},
@@ -466,15 +498,15 @@ func TestWorker(t *testing.T) {
 			instance, err := NewWorker(databaseClient, redisClient)
 			require.NoError(t, err)
 
-			activity, err := instance.Transform(ctx, testcase.arguments.task)
+			transformedActivity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			data, err := json.MarshalIndent(activity, "", "\x20\x20")
+			data, err := json.MarshalIndent(transformedActivity, "", "\x20\x20")
 			require.NoError(t, err)
 
 			t.Log(string(data))
 
-			require.Equal(t, testcase.want, activity)
+			require.Equal(t, testcase.want, transformedActivity)
 		})
 	}
 }

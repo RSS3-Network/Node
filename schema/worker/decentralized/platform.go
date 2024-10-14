@@ -40,6 +40,7 @@ const (
 	PlatformStargate                   // Stargate
 	PlatformUniswap                    // Uniswap
 	PlatformVSL                        // VSL
+	PlatformZerion                     // Zerion
 )
 
 var _ echo.BindUnmarshaler = (*Platform)(nil)
@@ -90,4 +91,5 @@ var ToPlatformMap = map[Worker]Platform{
 	Stargate:   PlatformStargate,
 	Uniswap:    PlatformUniswap,
 	VSL:        PlatformVSL,
+	Zerion:     PlatformZerion,
 }

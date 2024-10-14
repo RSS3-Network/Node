@@ -40,7 +40,8 @@ func (t Task) GetTimestamp() uint64 {
 
 	parsedTime, err := time.Parse(time.RFC3339, timeStr)
 	if err != nil {
-		zap.L().Info("Error parsinig time")
+		zap.L().Error("Error parsing time")
+
 		return 0
 	}
 
