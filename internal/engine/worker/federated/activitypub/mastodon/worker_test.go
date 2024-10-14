@@ -436,6 +436,75 @@ func TestWorker(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
+			name: "Create A Comment whose target Post contains Media",
+			arguments: arguments{
+				task: &activitypub.Task{
+					Network: network.Mastodon,
+					Message: message.Object{
+						Context: []interface{}{
+							"https://www.w3.org/ns/activitystreams",
+						},
+						ID:        "https://social.timespiral.co.jp/users/find575/statuses/113287741759175713/activity",
+						Type:      "Create",
+						Published: "2024-10-11T08:02:34Z",
+						Actor:     "https://social.timespiral.co.jp/users/find575",
+						Object: map[string]interface{}{
+							"type":      "Note",
+							"id":        "https://social.timespiral.co.jp/users/find575/statuses/113287741759175713",
+							"content":   "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://pawoo.net/@cs133\" class=\"u-url mention\">@<span>cs133</span></a></span> 俳句を発見しました！<br />『各駅に エスペラントで 愛称が』</p>",
+							"inReplyTo": "https://mastodon.world/users/ctxt/statuses/113287758853959995",
+							"published": "2024-10-11T08:02:34Z",
+							"to": []string{
+								"https://www.w3.org/ns/activitystreams#Public",
+							},
+						},
+					},
+				},
+			},
+			want: &activity.Activity{
+				ID:           "https://social.timespiral.co.jp/users/find575/statuses/113287741759175713/activity",
+				Network:      network.Mastodon,
+				Platform:     federated.PlatformMastodon.String(),
+				From:         "@find575@social.timespiral.co.jp",
+				To:           "@ctxt@mastodon.world",
+				Type:         typex.SocialComment,
+				Tag:          tag.Social,
+				TotalActions: 1,
+				Status:       true,
+				Actions: []*activity.Action{
+					{
+						Type:     typex.SocialComment,
+						Tag:      tag.Social,
+						Platform: federated.PlatformMastodon.String(),
+						From:     "@find575@social.timespiral.co.jp",
+						To:       "@ctxt@mastodon.world",
+						Metadata: &metadata.SocialPost{
+							PublicationID: "113287741759175713",
+							Handle:        "@find575@social.timespiral.co.jp",
+							Body:          "@ cs133 ( https://pawoo.net/@cs133 ) 俳句を発見しました！\n『各駅に エスペラントで 愛称が』",
+							Timestamp:     1728633754,
+							Target: &metadata.SocialPost{
+								Handle:        "@ctxt@mastodon.world",
+								Body:          "Y por si se les pasó, les dejamos también la pieza que nos mandó Lola Matamala contándonos en primera persona el desahucio que sufrió su madre el mes pasado después de llevar setenta años viviendo en la misma calle.\n\nLa empresa Dapamali Works compró el edifio y fue echando uno por uno a todos los vecinos:\n\nhttps:// ctxt.es/es/20241001/Firmas/476 02/lola-matamala-desahucio-Dapamali-Works-primera-persona-aurora-getafe.htm ( https://ctxt.es/es/20241001/Firmas/47602/lola-matamala-desahucio-Dapamali-Works-primera-persona-aurora-getafe.htm )",
+								PublicationID: "113287758853959995",
+								Timestamp:     1728634015,
+								Media: []metadata.Media{
+									{
+										Address:  "https://s3.eu-central-2.wasabisys.com/mastodonworld/media_attachments/files/113/287/758/697/714/115/original/2c6c341deae150c0.jpg",
+										MimeType: "Document",
+									},
+								},
+							},
+							TargetURL: "https://mastodon.world/users/ctxt/statuses/113287758853959995",
+						},
+						RelatedURLs: []string{"https://social.timespiral.co.jp/users/find575/statuses/113287741759175713"},
+					},
+				},
+				Timestamp: 1728633754,
+			},
+			wantError: require.NoError,
+		},
+		{
 			name: "Share A Post",
 			arguments: arguments{
 				task: &activitypub.Task{

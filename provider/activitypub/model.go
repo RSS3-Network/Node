@@ -49,14 +49,18 @@ type Note struct {
 
 // StatusResult represents the result of a status request.
 type StatusResult struct {
-	Content   string
-	Timestamp string
+	Content     string
+	Timestamp   string
+	Attachments []Attachment
+	Tags        []Tag
 }
 
 // StatusResponse represents a status response from an ActivityPub server.
 type StatusResponse struct {
 	Object struct {
-		Published time.Time `json:"published"`
-		Content   string    `json:"content"`
+		Published  time.Time    `json:"published"`
+		Content    string       `json:"content"`
+		Attachment []Attachment `json:"attachment"`
+		Tag        []Tag        `json:"tag"`
 	} `json:"object"`
 }
