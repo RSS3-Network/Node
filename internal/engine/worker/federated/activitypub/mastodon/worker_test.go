@@ -363,7 +363,7 @@ func TestWorker(t *testing.T) {
 							Body:          "@ Sustainable2050 ( https://mastodon.energy/@Sustainable2050 ) who ever could have expected that?",
 							Handle:        "@DJGummikuh@mastodon.social",
 							Timestamp:     1728633871,
-							Tags:          []string{"@Sustainable2050@mastodon.energy", "@DJGummikuh@mastodon.social", "ubernachtungen"},
+							Tags:          []string{"@Sustainable2050@mastodon.energy", "@DJGummikuh@mastodon.social", "#ubernachtungen"},
 						},
 						RelatedURLs: []string{"https://mastodon.social/users/DJGummikuh/statuses/113287749405285684"},
 					},
@@ -491,7 +491,7 @@ func TestWorker(t *testing.T) {
 								Media: []metadata.Media{
 									{
 										Address:  "https://s3.eu-central-2.wasabisys.com/mastodonworld/media_attachments/files/113/287/758/697/714/115/original/2c6c341deae150c0.jpg",
-										MimeType: "Document",
+										MimeType: "image/jpeg",
 									},
 								},
 							},

@@ -25,8 +25,9 @@ type Object struct {
 
 // Attachment represents an attachment to an ActivityPub object.
 type Attachment struct {
-	Type string `json:"type"`
-	URL  string `json:"url"`
+	Type      string `json:"type"`
+	URL       string `json:"url"`
+	MediaType string `json:"mediaType"`
 }
 
 // Tag represents a tag in an ActivityPub object.

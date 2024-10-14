@@ -437,7 +437,7 @@ func (w *worker) buildPostMedia(post *metadata.SocialPost, attachments interface
 		for _, attachment := range v {
 			media := metadata.Media{
 				Address:  attachment.URL,
-				MimeType: attachment.Type,
+				MimeType: attachment.MediaType,
 			}
 			post.Media = append(post.Media, media)
 		}
@@ -448,38 +448,37 @@ func (w *worker) buildPostMedia(post *metadata.SocialPost, attachments interface
 
 // buildPostTags builds the Tags field in the metadata
 func (w *worker) buildPostTags(post *metadata.SocialPost, tags interface{}) {
-	processTag := func(tag map[string]interface{}) {
-		if tagType, ok := tag[mastodon.TagType].(string); ok {
-			if name, ok := tag[mastodon.TagName].(string); ok {
-				switch tagType {
-				case mastodon.TagTypeHashtag:
-					post.Tags = append(post.Tags, strings.TrimPrefix(name, "#"))
-				case mastodon.TagTypeMention:
-					post.Tags = append(post.Tags, "@"+strings.TrimPrefix(name, "@"))
-				}
-			}
+	processTag := func(tagType, name string) {
+		switch tagType {
+		case mastodon.TagTypeHashtag:
+			post.Tags = append(post.Tags, name)
+		case mastodon.TagTypeMention:
+			post.Tags = append(post.Tags, "@"+strings.TrimPrefix(name, "@"))
 		}
 	}
 
 	switch v := tags.(type) {
 	case []map[string]interface{}:
-		for _, currentTag := range v {
-			processTag(currentTag)
+		for _, tag := range v {
+			if tagType, ok := tag[mastodon.TagType].(string); ok {
+				if name, ok := tag[mastodon.TagName].(string); ok {
+					processTag(tagType, name)
+				}
+			}
 		}
 	case []interface{}:
 		for _, t := range v {
-			if currentTag, ok := t.(map[string]interface{}); ok {
-				processTag(currentTag)
+			if tag, ok := t.(map[string]interface{}); ok {
+				if tagType, ok := tag[mastodon.TagType].(string); ok {
+					if name, ok := tag[mastodon.TagName].(string); ok {
+						processTag(tagType, name)
+					}
+				}
 			}
 		}
 	case []activitypub.Tag:
 		for _, t := range v {
-			switch t.Type {
-			case mastodon.TagTypeHashtag:
-				post.Tags = append(post.Tags, strings.TrimPrefix(t.Name, "#"))
-			case mastodon.TagTypeMention:
-				post.Tags = append(post.Tags, "@"+strings.TrimPrefix(t.Name, "@"))
-			}
+			processTag(t.Type, t.Name)
 		}
 	default:
 		zap.L().Debug("Unexpected tags type", zap.String("type", fmt.Sprintf("%T", tags)))
