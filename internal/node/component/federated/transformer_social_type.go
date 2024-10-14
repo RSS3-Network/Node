@@ -39,12 +39,12 @@ func (c *Component) TransformSocialPost(ctx context.Context, network network.Net
 
 	if post.Target != nil && platform != "" {
 		post.Target.AuthorURL = c.buildSocialAuthorURL(ctx, platform, post.Target.Handle)
-		post.TargetURL = c.buildSocialNoteURL(ctx, network, platform, lo.ToPtr(post.Target.Handle), lo.ToPtr(post.Target.PublicationID))
+		post.TargetURL = c.buildSocialNoteURL(ctx, network, platform, post.Target.Handle, post.Target.PublicationID)
 	}
 
 	action.Metadata = post
 
-	if noteURL := c.buildSocialNoteURL(ctx, network, platform, lo.ToPtr(post.Handle), lo.ToPtr(post.PublicationID)); noteURL != "" {
+	if noteURL := c.buildSocialNoteURL(ctx, network, platform, post.Handle, post.PublicationID); noteURL != "" {
 		action.RelatedURLs = append(action.RelatedURLs, noteURL)
 	}
 
@@ -52,7 +52,7 @@ func (c *Component) TransformSocialPost(ctx context.Context, network network.Net
 }
 
 // buildSocialAuthorURL returns author url based on domain and handle
-func (c *Component) buildSocialAuthorURL(_ context.Context, platform string, handle string) string {
+func (c *Component) buildSocialAuthorURL(_ context.Context, platform, handle string) string {
 	if lo.IsEmpty(handle) || lo.IsEmpty(platform) {
 		return ""
 	}
@@ -68,17 +68,17 @@ func (c *Component) buildSocialAuthorURL(_ context.Context, platform string, han
 }
 
 // buildSocialNoteURL returns note url based on domain, handle, profileID and pubID
-func (c *Component) buildSocialNoteURL(_ context.Context, _ network.Network, platform string, handle, pubID *string) string {
-	if platform == "" || lo.IsEmpty(handle) || lo.IsEmpty(pubID) {
+func (c *Component) buildSocialNoteURL(_ context.Context, _ network.Network, platform, handle, pubID string) string {
+	if lo.IsEmpty(platform) || lo.IsEmpty(handle) || lo.IsEmpty(pubID) {
 		return ""
 	}
 
-	parts := strings.SplitN(lo.FromPtr(handle), "@", 3)
+	parts := strings.SplitN(handle, "@", 3)
 	if len(parts) != 3 {
 		return ""
 	}
 
 	username, domain := parts[1], parts[2]
 
-	return fmt.Sprintf("https://%s/users/%s/statuses/%s", domain, username, lo.FromPtr(pubID))
+	return fmt.Sprintf("https://%s/users/%s/statuses/%s", domain, username, pubID)
 }
