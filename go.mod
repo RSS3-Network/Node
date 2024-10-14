@@ -49,7 +49,7 @@ require (
 	golang.org/x/sync v0.8.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/postgres v1.5.9
-	gorm.io/gorm v1.25.11
+	gorm.io/gorm v1.25.12
 	moul.io/zapgorm2 v1.3.0
 )
 
