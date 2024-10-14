@@ -3,6 +3,7 @@ package federated
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
@@ -15,23 +16,18 @@ import (
 // TransformSocialType adds author url and note url to social actions based on type, network and platform
 func (c *Component) TransformSocialType(ctx context.Context, network network.Network, platform string, action activity.Action) (activity.Action, error) {
 	switch action.Type {
-	case typex.SocialPost, typex.SocialComment, typex.SocialShare, typex.SocialRevise, typex.SocialMint, typex.SocialDelete:
+	case typex.SocialPost, typex.SocialComment, typex.SocialShare:
 		return c.TransformSocialPost(ctx, network, platform, action)
-	case typex.SocialProfile:
-		return c.TransformSocialProfile(ctx, platform, action)
-	case typex.SocialProxy:
-		return c.TransformSocialProxy(ctx, platform, action)
 	}
 
 	return action, nil
 }
 
 // TransformSocialPost adds author url and note url to social post action
-func (c *Component) TransformSocialPost(_ context.Context, _ network.Network, _ string, action activity.Action) (activity.Action, error) {
+func (c *Component) TransformSocialPost(ctx context.Context, network network.Network, platform string, action activity.Action) (activity.Action, error) {
 	post, ok := action.Metadata.(*metadata.SocialPost)
 	if !ok {
 		zap.L().Error("invalid post metadata type", zap.Any("metadata", action.Metadata))
-
 		return activity.Action{}, fmt.Errorf("invalid post metadata type: %T", action.Metadata)
 	}
 
@@ -39,31 +35,50 @@ func (c *Component) TransformSocialPost(_ context.Context, _ network.Network, _ 
 		post.Handle = action.From
 	}
 
+	post.AuthorURL = c.buildSocialAuthorURL(ctx, platform, post.Handle)
+
+	if post.Target != nil && platform != "" {
+		post.Target.AuthorURL = c.buildSocialAuthorURL(ctx, platform, post.Target.Handle)
+		post.TargetURL = c.buildSocialNoteURL(ctx, network, platform, post.Target.Handle, post.Target.PublicationID)
+	}
+
 	action.Metadata = post
 
-	return action, nil
-}
-
-// TransformSocialProfile adds author url to social profile action
-func (c *Component) TransformSocialProfile(_ context.Context, _ string, action activity.Action) (activity.Action, error) {
-	_, ok := action.Metadata.(*metadata.SocialProfile)
-	if !ok {
-		zap.L().Error("invalid profile metadata type", zap.Any("metadata", action.Metadata))
-
-		return activity.Action{}, fmt.Errorf("invalid profile metadata type: %T", action.Metadata)
+	if noteURL := c.buildSocialNoteURL(ctx, network, platform, post.Handle, post.PublicationID); noteURL != "" {
+		action.RelatedURLs = append(action.RelatedURLs, noteURL)
 	}
 
 	return action, nil
 }
 
-// TransformSocialProxy adds author url to social proxy action
-func (c *Component) TransformSocialProxy(_ context.Context, _ string, action activity.Action) (activity.Action, error) {
-	_, ok := action.Metadata.(*metadata.SocialProxy)
-	if !ok {
-		zap.L().Error("invalid proxy metadata type", zap.Any("metadata", action.Metadata))
-
-		return activity.Action{}, fmt.Errorf("invalid proxy metadata type: %T", action.Metadata)
+// buildSocialAuthorURL returns author url based on domain and handle
+func (c *Component) buildSocialAuthorURL(_ context.Context, platform, handle string) string {
+	if lo.IsEmpty(handle) || lo.IsEmpty(platform) {
+		return ""
 	}
 
-	return action, nil
+	parts := strings.SplitN(handle, "@", 3)
+	if len(parts) != 3 {
+		return ""
+	}
+
+	username, domain := parts[1], parts[2]
+
+	return fmt.Sprintf("https://%s/users/%s", domain, username)
+}
+
+// buildSocialNoteURL returns note url based on domain, handle, profileID and pubID
+func (c *Component) buildSocialNoteURL(_ context.Context, _ network.Network, platform, handle, pubID string) string {
+	if lo.IsEmpty(platform) || lo.IsEmpty(handle) || lo.IsEmpty(pubID) {
+		return ""
+	}
+
+	parts := strings.SplitN(handle, "@", 3)
+	if len(parts) != 3 {
+		return ""
+	}
+
+	username, domain := parts[1], parts[2]
+
+	return fmt.Sprintf("https://%s/users/%s/statuses/%s", domain, username, pubID)
 }

@@ -111,7 +111,6 @@ func (w *worker) handleActivityPubCreate(ctx context.Context, message activitypu
 
 	currentUserHandle := convertURLToHandle(message.ID)
 
-	// ToDo: Discuss handling messages with multiple objects in the object field: should we create an activity for each, or separate them into distinct actions?  (Transform() processes only one activity at a time)
 	for _, currentNoteObject := range noteObjects {
 		if err := w.handleSingleActivityPubCreate(ctx, message, currentNoteObject, activity, currentUserHandle); err != nil {
 			return err
@@ -170,8 +169,16 @@ func (w *worker) handleSingleActivityPubCreate(ctx context.Context, message acti
 		}
 
 		post.Target = w.buildTarget(replyToURLID, targetContent, targetTime)
-
+		post.TargetURL = replyToURLID
 		toUserHandle = convertURLToHandle(replyToURLID)
+
+		if result != nil && result.Attachments != nil {
+			w.buildPostMedia(post.Target, result.Attachments)
+		}
+
+		if result != nil && result.Tags != nil {
+			w.buildPostTags(post.Target, result.Tags)
+		}
 	}
 
 	activity.To = toUserHandle
@@ -264,6 +271,16 @@ func (w *worker) handleSingleActivityPubAnnounce(ctx context.Context, message ac
 		PublicationID: publicationID,
 		Timestamp:     w.parseTimestamp(message.Published),
 		Target:        w.buildTarget(sharedID, targetContent, targetTime),
+		TargetURL:     sharedID,
+	}
+
+	// set Attachment and Tags to target metadata
+	if result != nil && result.Attachments != nil {
+		w.buildPostMedia(post.Target, result.Attachments)
+	}
+
+	if result != nil && result.Tags != nil {
+		w.buildPostTags(post.Target, result.Tags)
 	}
 
 	// Remove the "/activity" suffix from the message ID
@@ -416,6 +433,14 @@ func (w *worker) buildPostMedia(post *metadata.SocialPost, attachments interface
 				processAttachment(attachment)
 			}
 		}
+	case []activitypub.Attachment:
+		for _, attachment := range v {
+			media := metadata.Media{
+				Address:  attachment.URL,
+				MimeType: attachment.MediaType,
+			}
+			post.Media = append(post.Media, media)
+		}
 	default:
 		zap.L().Debug("Unexpected attachments type", zap.String("type", fmt.Sprintf("%T", attachments)))
 	}
@@ -423,29 +448,37 @@ func (w *worker) buildPostMedia(post *metadata.SocialPost, attachments interface
 
 // buildPostTags builds the Tags field in the metadata
 func (w *worker) buildPostTags(post *metadata.SocialPost, tags interface{}) {
-	processTag := func(tag map[string]interface{}) {
-		if tagType, ok := tag[mastodon.TagType].(string); ok {
-			if name, ok := tag[mastodon.TagName].(string); ok {
-				switch tagType {
-				case mastodon.TagTypeHashtag:
-					post.Tags = append(post.Tags, strings.TrimPrefix(name, "#"))
-				case mastodon.TagTypeMention:
-					post.Tags = append(post.Tags, "@"+strings.TrimPrefix(name, "@"))
-				}
-			}
+	processTag := func(tagType, name string) {
+		switch tagType {
+		case mastodon.TagTypeHashtag:
+			post.Tags = append(post.Tags, name)
+		case mastodon.TagTypeMention:
+			post.Tags = append(post.Tags, "@"+strings.TrimPrefix(name, "@"))
 		}
 	}
 
 	switch v := tags.(type) {
 	case []map[string]interface{}:
-		for _, currentTag := range v {
-			processTag(currentTag)
+		for _, tag := range v {
+			if tagType, ok := tag[mastodon.TagType].(string); ok {
+				if name, ok := tag[mastodon.TagName].(string); ok {
+					processTag(tagType, name)
+				}
+			}
 		}
 	case []interface{}:
 		for _, t := range v {
-			if currentTag, ok := t.(map[string]interface{}); ok {
-				processTag(currentTag)
+			if tag, ok := t.(map[string]interface{}); ok {
+				if tagType, ok := tag[mastodon.TagType].(string); ok {
+					if name, ok := tag[mastodon.TagName].(string); ok {
+						processTag(tagType, name)
+					}
+				}
 			}
+		}
+	case []activitypub.Tag:
+		for _, t := range v {
+			processTag(t.Type, t.Name)
 		}
 	default:
 		zap.L().Debug("Unexpected tags type", zap.String("type", fmt.Sprintf("%T", tags)))
@@ -604,8 +637,10 @@ func (w *worker) getParentStatusByParentID(ctx context.Context, parentID string)
 
 	// Return the status content and timestamp as a StatusResult
 	return &activitypub.StatusResult{
-		Content:   status.Object.Content,
-		Timestamp: status.Object.Published.Format(time.RFC3339),
+		Content:     status.Object.Content,
+		Timestamp:   status.Object.Published.Format(time.RFC3339),
+		Attachments: status.Object.Attachment,
+		Tags:        status.Object.Tag,
 	}, nil
 }
 
