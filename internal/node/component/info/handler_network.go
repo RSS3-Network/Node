@@ -62,6 +62,12 @@ func getNetworkConfigDetailForRSS(source network.Source) NetworkConfigDetailForR
 	workerConfig.ID.Value = n.String() + "-" + worker.Name()
 	workerConfig.Network.Value = n.String()
 	workerConfig.MinimumResource = calculateMinimumResources(n, worker)
+
+	if workerConfig.EndpointID != nil {
+		workerConfig.EndpointID.Type = URLType
+		workerConfig.EndpointID.Value = "https://your-rsshub-endpoint"
+	}
+
 	networkDetail.WorkerConfig = workerConfig
 
 	return networkDetail
@@ -112,9 +118,9 @@ func createNetworkDetail(s network.Source, n network.Network) NetworkConfigDetai
 func getWorkerConfigs(s network.Source, n network.Network) []workerConfig {
 	var workerConfigs []workerConfig
 
-	for worker, config := range WorkerToConfigMap[s] {
-		if lo.Contains(NetworkToWorkersMap[n], worker) {
-			workerConfig := createWorkerConfig(s, n, worker, config)
+	for w, config := range WorkerToConfigMap[s] {
+		if lo.Contains(NetworkToWorkersMap[n], w) {
+			workerConfig := createWorkerConfig(n, w, config)
 			workerConfigs = append(workerConfigs, workerConfig)
 		}
 	}
@@ -122,14 +128,15 @@ func getWorkerConfigs(s network.Source, n network.Network) []workerConfig {
 	return workerConfigs
 }
 
-func createWorkerConfig(s network.Source, n network.Network, worker worker.Worker, config workerConfig) workerConfig {
+func createWorkerConfig(n network.Network, worker worker.Worker, config workerConfig) workerConfig {
 	workerConfig := config
 	workerConfig.ID.Value = n.String() + "-" + worker.Name()
 	workerConfig.Network.Value = n.String()
 	workerConfig.MinimumResource = calculateMinimumResources(n, worker)
 
-	if s == network.ActivityPubSource {
+	if workerConfig.EndpointID != nil {
 		workerConfig.EndpointID.Type = StringType
+		workerConfig.EndpointID.Value = n.String()
 	}
 
 	return workerConfig
