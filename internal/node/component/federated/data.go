@@ -34,7 +34,10 @@ func (c *Component) getCursor(ctx context.Context, cursor *string) (*activityx.A
 		return nil, nil
 	}
 
-	str := strings.Split(*cursor, ":")
+	cleanedCursor := strings.TrimPrefix(*cursor, "https://")
+	cleanedCursor = strings.TrimPrefix(cleanedCursor, "http://")
+
+	str := strings.Split(cleanedCursor, ":")
 	if len(str) != 2 {
 		return nil, fmt.Errorf("invalid cursor")
 	}
