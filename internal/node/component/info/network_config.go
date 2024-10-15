@@ -317,6 +317,7 @@ func setIPFSGateways(config *workerConfig) {
 var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	network.Arbitrum: {
 		decentralized.Aave,
+		decentralized.Arbitrum,
 		decentralized.Core,
 		decentralized.Curve,
 		decentralized.Highlight,
@@ -339,6 +340,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	},
 	network.Base: {
 		decentralized.Aave,
+		decentralized.Base,
 		decentralized.Core,
 		decentralized.Rainbow,
 		decentralized.Stargate,
@@ -387,6 +389,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 	},
 	network.Linea: {
 		decentralized.Core,
+		decentralized.Linea,
 		decentralized.Rainbow,
 		decentralized.Stargate,
 		decentralized.Uniswap,
