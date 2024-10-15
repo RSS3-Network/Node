@@ -481,10 +481,8 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		decentralized.Lens:       customWorkerConfigWithIPFS(decentralized.Lens, network.EthereumSource, ""),
 		decentralized.Lido:       defaultWorkerConfig(decentralized.Lido, network.EthereumSource, nil),
 		decentralized.Linea:      defaultWorkerConfig(decentralized.Linea, network.EthereumSource, nil),
-		decentralized.LiNEAR:     defaultWorkerConfig(decentralized.LiNEAR, network.EthereumSource, nil),
 		decentralized.Looksrare:  defaultWorkerConfig(decentralized.Looksrare, network.EthereumSource, nil),
 		decentralized.Matters:    customWorkerConfigWithIPFS(decentralized.Matters, network.EthereumSource, ""),
-		decentralized.NearSocial: defaultWorkerConfig(decentralized.NearSocial, network.EthereumSource, nil),
 		decentralized.Nouns:      defaultWorkerConfig(decentralized.Nouns, network.EthereumSource, nil),
 		decentralized.Oneinch:    defaultWorkerConfig(decentralized.Oneinch, network.EthereumSource, nil),
 		decentralized.OpenSea:    defaultWorkerConfig(decentralized.OpenSea, network.EthereumSource, nil),
@@ -511,8 +509,9 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 		}, "A Farcaster Hubble is required"),
 	},
 	network.NearSource: {
-		decentralized.Core:   defaultWorkerConfig(decentralized.Core, network.NearSource, nil),
-		decentralized.LiNEAR: defaultWorkerConfig(decentralized.LiNEAR, network.NearSource, nil),
+		decentralized.Core:       defaultWorkerConfig(decentralized.Core, network.NearSource, nil),
+		decentralized.LiNEAR:     defaultWorkerConfig(decentralized.LiNEAR, network.NearSource, nil),
+		decentralized.NearSocial: defaultWorkerConfig(decentralized.NearSocial, network.NearSource, nil),
 	},
 	network.RSSSource: {
 		rss.RSSHub: customWorkerConfig(rss.RSSHub, network.RSSSource, &Parameters{
