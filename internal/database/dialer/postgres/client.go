@@ -385,52 +385,67 @@ func (c *client) UpdateRecentMastodonHandles(ctx context.Context, handles []*mod
 	logger := zap.L()
 	logger.Info("Starting UpdateRecentMastodonHandles", zap.Int("handleCount", len(handles)))
 
-	// Construct the SQL query manually
-	sql := `
-    INSERT INTO dataset_mastodon_update_handles (handle, last_updated)
-    VALUES %s
-    ON CONFLICT (handle) DO UPDATE SET last_updated = EXCLUDED.last_updated;
-    `
+	// ToDo: remove hardcoded db table name and fix the function logic
+	tableName := "dataset_mastodon_update_handles"
+	// Construct the SQL query
+	sql, valueArgs := buildInsertQuery(handles, tableName)
 
-	valueStrings := make([]string, 0, len(handles))
-	valueArgs := make([]interface{}, 0, len(handles)*2)
+	logger.Debug("Generated SQL", zap.String("sql", sql), zap.Any("args", valueArgs))
 
-	for i, h := range handles {
-		valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d)", i*2+1, i*2+2))
-		valueArgs = append(valueArgs, h.Handle, h.LastUpdated)
-	}
-
-	stmt := fmt.Sprintf(sql, strings.Join(valueStrings, ","))
-
-	// Log the generated SQL statement for debugging
-	logger.Debug("Generated SQL", zap.String("sql", stmt), zap.Any("args", valueArgs))
-
-	result := c.database.WithContext(ctx).Exec(stmt, valueArgs...)
-
+	// Execute the update query
+	result := c.database.WithContext(ctx).Exec(sql, valueArgs...)
 	if result.Error != nil {
 		logger.Error("Error updating recent handles", zap.Error(result.Error))
 		return fmt.Errorf("failed to update recent handles: %w", result.Error)
 	}
 
-	logger.Info("Trimming old handles")
-
-	trimResult := c.database.WithContext(ctx).Exec(`
-        DELETE FROM dataset_mastodon_update_handles
-        WHERE handle NOT IN (
-            SELECT handle FROM dataset_mastodon_update_handles
-            ORDER BY last_updated DESC
-            LIMIT $1
-        )
-    `, maxRecentHandles)
-
-	if trimResult.Error != nil {
-		logger.Error("Error trimming old handles", zap.Error(trimResult.Error))
-		return fmt.Errorf("failed to trim old handles: %w", trimResult.Error)
+	// Trim old handles
+	if err := trimOldHandles(ctx, c, tableName); err != nil {
+		logger.Error("Error trimming old handles", zap.Error(err))
+		return err
 	}
 
 	logger.Info("Completed UpdateRecentMastodonHandles",
-		zap.Int64("updatedHandles", result.RowsAffected),
-		zap.Int64("trimmedHandles", trimResult.RowsAffected))
+		zap.Int64("updatedHandles", result.RowsAffected))
+
+	return nil
+}
+
+// buildInsertQuery generates the SQL insert query and corresponding values for Mastodon handles
+func buildInsertQuery(handles []*model.MastodonHandle, tableName string) (string, []interface{}) {
+	valueStrings := make([]string, len(handles))
+	valueArgs := make([]interface{}, 0, len(handles)*2)
+
+	for i, h := range handles {
+		valueStrings[i] = fmt.Sprintf("($%d, $%d)", i*2+1, i*2+2)
+
+		valueArgs = append(valueArgs, h.Handle, h.LastUpdated)
+	}
+
+	// Insert SQL with ON CONFLICT clause
+	sql := fmt.Sprintf(`
+        INSERT INTO %s (handle, last_updated)
+        VALUES %s
+        ON CONFLICT (handle) DO UPDATE SET last_updated = EXCLUDED.last_updated;`,
+		tableName, strings.Join(valueStrings, ","),
+	)
+
+	return sql, valueArgs
+}
+
+// trimOldHandles removes outdated handles from the dataset
+func trimOldHandles(ctx context.Context, c *client, tableName string) error {
+	trimResult := c.database.WithContext(ctx).Exec(fmt.Sprintf(`
+        DELETE FROM %s
+        WHERE handle NOT IN (
+            SELECT handle FROM %s
+            ORDER BY last_updated DESC
+            LIMIT $1
+        )`, tableName, tableName), maxRecentHandles)
+
+	if trimResult.Error != nil {
+		return fmt.Errorf("failed to trim old handles: %w", trimResult.Error)
+	}
 
 	return nil
 }
@@ -440,6 +455,7 @@ func (c *client) GetUpdatedMastodonHandles(ctx context.Context, since uint64, li
 
 	var totalCount int64
 
+	// ToDo: remove hardcoded db table name
 	// Query for the handles table
 	query := c.database.WithContext(ctx).
 		Table("dataset_mastodon_update_handles")
