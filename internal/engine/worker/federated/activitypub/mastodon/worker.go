@@ -199,7 +199,7 @@ func (w *worker) handleSingleActivityPubCreate(ctx context.Context, message acti
 	}
 
 	// Store unique handles of this activity
-	err := w.saveMastodonHandles(ctx, handles, activity.Network)
+	err := w.saveMastodonHandles(ctx, handles)
 	if err != nil {
 		zap.L().Error("failed to save mastodon handle", zap.Error(err), zap.String("currentUserHandle", currentUserHandle))
 		return err
@@ -302,7 +302,7 @@ func (w *worker) handleSingleActivityPubAnnounce(ctx context.Context, message ac
 	}
 
 	// Store the current user's unique handle
-	err = w.saveMastodonHandles(ctx, handles, activity.Network)
+	err = w.saveMastodonHandles(ctx, handles)
 	if err != nil {
 		zap.L().Error("failed to save mastodon handle", zap.Error(err), zap.String("currentUserHandle", currentUserHandle))
 		return err
@@ -312,7 +312,7 @@ func (w *worker) handleSingleActivityPubAnnounce(ctx context.Context, message ac
 }
 
 // saveMastodonHandles store the unique handles into the relevant DB table
-func (w *worker) saveMastodonHandles(ctx context.Context, handles []string, network network.Network) error {
+func (w *worker) saveMastodonHandles(ctx context.Context, handles []string) error {
 	now := uint64(time.Now().Unix())
 
 	for _, handleString := range handles {
@@ -324,7 +324,7 @@ func (w *worker) saveMastodonHandles(ctx context.Context, handles []string, netw
 	}
 
 	if len(w.pendingHandles) >= batchSize {
-		err := w.processBatch(ctx, network)
+		err := w.processBatch(ctx)
 
 		if err != nil {
 			zap.L().Error("error in w.processBatch call")
@@ -335,11 +335,11 @@ func (w *worker) saveMastodonHandles(ctx context.Context, handles []string, netw
 	return nil
 }
 
-func (w *worker) processBatch(ctx context.Context, network network.Network) error {
+func (w *worker) processBatch(ctx context.Context) error {
 	batch := w.pendingHandles[:batchSize]
 	w.pendingHandles = w.pendingHandles[batchSize:]
 
-	if err := w.databaseClient.UpdateRecentMastodonHandles(ctx, batch, network); err != nil {
+	if err := w.databaseClient.SaveRecentMastodonHandles(ctx, batch); err != nil {
 		return fmt.Errorf("failed to update recent handles: %w", err)
 	}
 

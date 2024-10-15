@@ -381,6 +381,128 @@ func (c *client) SaveDatasetENSNamehash(ctx context.Context, namehash *model.ENS
 	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
+func (c *client) SaveRecentMastodonHandles(ctx context.Context, handles []*model.MastodonHandle) error {
+	logger := zap.L()
+	logger.Info("Starting UpdateRecentMastodonHandles", zap.Int("handleCount", len(handles)))
+
+	onConflictClause := clause.OnConflict{
+		Columns:   []clause.Column{{Name: "handle"}},
+		UpdateAll: true,
+	}
+
+	// build the mastodon update handle table
+	values := make([]table.DatasetMastodonUpdateHandle, 0, len(handles))
+
+	// Iterate through the handles and import them into the values slice
+	for _, handle := range handles {
+		var value table.DatasetMastodonUpdateHandle
+		if err := value.Import(handle); err != nil {
+			return err
+		}
+
+		values = append(values, value)
+	}
+
+	// Insert all handles in one batch operation
+	if err := c.database.WithContext(ctx).
+		Clauses(onConflictClause).
+		Create(&values).Error; err != nil {
+		return fmt.Errorf("failed to save Mastodon handles: %w", err)
+	}
+
+	// trim old handles if needed
+	if err := c.trimOldHandles(ctx); err != nil {
+		return fmt.Errorf("failed to trim old handles: %w", err)
+	}
+
+	return nil
+}
+
+// trimOldHandles removes outdated handles from the dataset
+func (c *client) trimOldHandles(ctx context.Context) error {
+	var handleModel table.DatasetMastodonUpdateHandle
+	tableName := handleModel.TableName()
+
+	statement := fmt.Sprintf(`
+		DELETE FROM %s
+		WHERE handle NOT IN (
+			SELECT handle
+			FROM %s
+			ORDER BY last_updated DESC
+			LIMIT $1
+		);`, tableName, tableName)
+
+	trimResult := c.database.WithContext(ctx).Exec(statement, maxRecentHandles)
+
+	if trimResult.Error != nil {
+		return fmt.Errorf("failed to trim old handles: %w", trimResult.Error)
+	}
+
+	return nil
+}
+
+// GetUpdatedMastodonHandles retrieves a paginated list of Mastodon handles that have been updated since the specified timestamp.
+func (c *client) GetUpdatedMastodonHandles(ctx context.Context, since uint64, limit int, cursor string) (*model.PaginatedMastodonHandles, error) {
+	var result []model.MastodonHandle
+
+	var totalCount int64
+
+	var handleModel table.DatasetMastodonUpdateHandle
+	tableName := handleModel.TableName()
+
+	// Build the query
+	query := c.database.WithContext(ctx).Table(tableName).Where("last_updated > ?", since)
+
+	// Count total handles
+	if err := query.Count(&totalCount).Error; err != nil {
+		return nil, fmt.Errorf("failed to count handles: %w", err)
+	}
+
+	// Apply cursor if provided
+	if cursor != "" {
+		var cursorLastUpdated uint64
+
+		var cursorHandle string
+
+		_, err := fmt.Sscanf(cursor, "%d:%s", &cursorLastUpdated, &cursorHandle)
+		if err != nil {
+			return nil, fmt.Errorf("invalid cursor format: %w", err)
+		}
+
+		query = query.Where("last_updated < ? OR (last_updated = ? AND handle > ?)", cursorLastUpdated, cursorLastUpdated, cursorHandle)
+	}
+
+	// Fetch handles with their last_updated timestamps
+	if err := query.Select("handle, last_updated").Order("last_updated DESC, handle ASC").Limit(limit + 1).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("failed to get handles: %w", err)
+	}
+
+	// Determine the next cursor if there are more than 'limit' handles
+	var nextCursor string
+
+	if len(result) > limit {
+		lastHandle := result[limit-1]
+
+		// Create the next cursor from the 'last_updated' and 'handle'
+		nextCursor = fmt.Sprintf("%d:%s", lastHandle.LastUpdated, lastHandle.Handle)
+
+		// Remove the extra handle for pagination
+		result = result[:limit]
+	}
+
+	// Extract just the handles for the response
+	handles := make([]string, len(result))
+	for i, r := range result {
+		handles[i] = r.Handle
+	}
+
+	return &model.PaginatedMastodonHandles{
+		Handles:    handles,
+		TotalCount: totalCount,
+		NextCursor: nextCursor,
+	}, nil
+}
+
 // Dial dials a database.
 func Dial(ctx context.Context, dataSourceName string, partition bool) (database.Client, error) {
 	var err error

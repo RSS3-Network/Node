@@ -26,3 +26,7 @@ func (d *DatasetMastodonUpdateHandle) Export() (*model.MastodonHandle, error) {
 
 	return &handle, nil
 }
+
+func (DatasetMastodonUpdateHandle) TableName() string {
+	return "dataset_mastodon_update_handles"
+}

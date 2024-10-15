@@ -61,7 +61,7 @@ type DatasetENSNamehash interface {
 }
 
 type DatasetMastodonHandle interface {
-	UpdateRecentMastodonHandles(ctx context.Context, handles []*model.MastodonHandle, network network.Network) error
+	SaveRecentMastodonHandles(ctx context.Context, handles []*model.MastodonHandle) error
 	GetUpdatedMastodonHandles(ctx context.Context, since uint64, limit int, cursor string) (*model.PaginatedMastodonHandles, error)
 }
 
