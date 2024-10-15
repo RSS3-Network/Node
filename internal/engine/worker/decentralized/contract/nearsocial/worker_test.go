@@ -2,7 +2,6 @@ package nearsocial_test
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/rss3-network/node/config"
@@ -91,7 +90,7 @@ func TestWorker_Near(t *testing.T) {
 						Type:     typex.SocialPost,
 						Platform: workerx.PlatformNearSocial.String(),
 						From:     "progr.near",
-						To:       "social.near",
+						To:       "progr.near",
 						Metadata: metadata.SocialPost{
 							Handle:    "progr.near",
 							Body:      "The user experience is really still awful, lagging, must sign to vote, pay to post,... But it's a very good Proof of Concept! \nThe concept of custom widget is pretty cool but really not intuitive. As for a dev it's not natural to figure out how it works. But it's a good idea 🤔\n#Bitcoin #Future\n\nThis post cost me 0.02 Near 👉 Feel free to donate at my username which is my address (Yes, this feature is pretty cool ;)",
@@ -161,7 +160,7 @@ func TestWorker_Near(t *testing.T) {
 						Type:     typex.SocialComment,
 						Platform: workerx.PlatformNearSocial.String(),
 						From:     "yarotska.near",
-						To:       "social.near",
+						To:       "events-committee.near",
 						Metadata: metadata.SocialPost{
 							Handle:        "yarotska.near",
 							Body:          "Hi @pivortex.near – congratulations! This message confirms your funding request approval by the Events Committee. We're excited to sponsor your work! This approval follows our review process involving various Work Groups and Events Committee members. Please note that the funding distribution is contingent on successfully passing our KYC/B and paperwork process.\n\n**IMPORTANT NOTE**\nTo ensure timely distribution of funds, please complete the funding request next steps and respond to any requests within 30 days of receiving this message. Failure to do so may result in canceling your approval and withholding the payment.\n\n\nHere’s what to expect:\n\n**Funding Steps**\n\n1. **KYC/KYB Verification:** An Events Committee member will move your proposal to the Payment Processing Stage and verify that you have completed verification to ensure compliance. If you are not verified, your Events Committee member will contact you on Telegram with instructions on how to proceed. To receive funding, you must get verified through Fractal, a trusted third-party identification verification solution. Your verification badge is valid for 365 days and needs renewal upon expiration OR if your personal information changes, such as your name, address, or ID expiration.\n2. **Information Collection:** Once verified, an Events Committee member will contact you via Telegram and request that you complete the Funding Request Form using Airtable.\n3. **Processing:** Our legal team will verify your application details to ensure compliance. They will then send you an email requesting your signature for the underlying agreement via Ironclad.\n4. **Invoicing & Payment:** Once we receive your signed agreement, our finance team will email you instructions to submit the final invoice using Request Finance. Once we receive your invoice, our finance team will send a test transaction confirmation email. Once you confirm the test transaction, we will distribute the funds and post a payment link on your proposal.\n\n**Funding Conversion Notice**\n\nOnce you receive your funding, we urge you to exercise caution if attempting to convert your funds. Some third-party tools may impose significant swapping fees.\n\n**Visibility**\n\nWe track the funding process on each proposal using the timeline and comments. However, you are welcome to reach out to the Events Committee member with any questions. \n\n**Timeline**\n\nTypically, funds are disbursed within 10 business days, but the timeline can vary depending on the project's complexity and paperwork. Your Events Committee member will keep you updated.\n",
@@ -235,7 +234,7 @@ func TestWorker_Near(t *testing.T) {
 						Type:     typex.SocialShare,
 						Platform: workerx.PlatformNearSocial.String(),
 						From:     "mbbevilacqua_caffepoesia.near",
-						To:       "social.near",
+						To:       "caffepoesia.near",
 						Metadata: metadata.SocialPost{
 							Handle:    "mbbevilacqua_caffepoesia.near",
 							Timestamp: 1728726130,
@@ -265,7 +264,7 @@ func TestWorker_Near(t *testing.T) {
 			feed, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
+			// t.Log(string(lo.Must(json.MarshalIndent(feed, "", "\x20\x20"))))
 
 			require.Equal(t, testcase.want, feed)
 		})

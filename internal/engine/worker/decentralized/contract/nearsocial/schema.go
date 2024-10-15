@@ -14,6 +14,18 @@ type IndexData struct {
 	Value IndexValue `json:"value"`
 }
 
+type RepostIndexData []struct {
+	Key   interface{} `json:"key"`
+	Value struct {
+		Type string `json:"type"`
+		Item *struct {
+			Type        string `json:"type"`
+			Path        string `json:"path"`
+			BlockHeight int64  `json:"blockHeight"`
+		} `json:"item,omitempty"`
+	} `json:"value"`
+}
+
 type IndexKey struct {
 	Type        string `json:"type"`
 	Path        string `json:"path,omitempty"`

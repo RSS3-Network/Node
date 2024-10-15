@@ -151,7 +151,7 @@ func (w *worker) buildSocialAction(signerID, path string, postData PostData, arg
 		Type:     typex.SocialPost,
 		Platform: w.Platform(),
 		From:     signerID,
-		To:       socialNearReceiverID,
+		To:       signerID,
 		Metadata: metadata.SocialPost{
 			Handle:    signerID,
 			Body:      postData.Text,
@@ -183,6 +183,8 @@ func (w *worker) handleComment(action *activityx.Action, postData PostData) *act
 			socialPost.Target = target
 			action.Metadata = socialPost
 		}
+
+		action.To = target.Handle
 	}
 
 	return action
@@ -233,8 +235,8 @@ func (w *worker) processCommentIndex(action *activityx.Action, userContent UserC
 
 func (w *worker) processReposts(action *activityx.Action, userContent UserContent, signerID string, timestamp uint64) *activityx.Action {
 	if repostJSON, ok := userContent.Index["repost"]; ok {
-		var repostData []IndexData
-		if err := json.Unmarshal([]byte(repostJSON), &repostData); err != nil {
+		var repostData RepostIndexData
+		if err := json.Unmarshal([]byte(repostJSON), &repostData); err == nil {
 			if len(repostData) > 0 {
 				action.Type = typex.SocialShare
 
@@ -251,6 +253,7 @@ func (w *worker) processReposts(action *activityx.Action, userContent UserConten
 							Timestamp: timestamp,
 							Target:    target,
 						}
+						action.To = target.Handle
 					}
 				}
 			}
