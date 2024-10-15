@@ -310,14 +310,19 @@ func (w *worker) handleSingleActivityPubAnnounce(ctx context.Context, message ac
 func (w *worker) saveMastodonHandles(ctx context.Context, handles []string) error {
 	now := uint64(time.Now().Unix())
 
-	handleSlice := make([]*model.MastodonHandle, 0, len(handles))
+	// Find all unique handles
+	uniqueHandles := make(map[string]struct{})
+	for _, handle := range handles {
+		uniqueHandles[handle] = struct{}{}
+	}
 
-	for _, handleString := range handles {
-		mastodonHandle := &model.MastodonHandle{
-			Handle:      handleString,
+	// Convert map back to a slice to ensure all handles are unique
+	handleSlice := make([]*model.MastodonHandle, 0, len(uniqueHandles))
+	for handle := range uniqueHandles {
+		handleSlice = append(handleSlice, &model.MastodonHandle{
+			Handle:      handle,
 			LastUpdated: now,
-		}
-		handleSlice = append(handleSlice, mastodonHandle)
+		})
 	}
 
 	if err := w.databaseClient.SaveRecentMastodonHandles(ctx, handleSlice); err != nil {
