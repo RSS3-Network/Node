@@ -58,7 +58,6 @@ const (
 	socialNearReceiverID = "social.near"
 )
 
-// Filter returns a source filter.
 func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{
 		ReceiverIDs: []string{
@@ -67,7 +66,8 @@ func (w *worker) Filter() engine.DataSourceFilter {
 	}
 }
 
-// Transform returns an activity with the actions of the task.
+// Transform processes a Near task and returns an activity.
+// It is the main entry point for processing Near Social transactions.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	// Cast the task to a Near task.
 	nearTask, ok := task.(*source.Task)
@@ -75,57 +75,50 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	// Build the activity.
+	// Build the activity with the platform information.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
-	// Handle all actions in the transaction
-	actions, err := w.handleNearSocialActions(ctx, nearTask, activity.Timestamp)
+	// Process the Near Social action in the transaction.
+	action, err := w.handleNearSocialAction(ctx, nearTask, activity.Timestamp)
 	if err != nil {
-		return nil, fmt.Errorf("handle near social actions: %w", err)
+		return nil, fmt.Errorf("handle near social action: %w", err)
 	}
 
-	if len(actions) > 0 {
-		activity.Type = actions[0].Type
-		activity.Actions = append(activity.Actions, actions...)
+	if action != nil {
+		activity.Type = action.Type
+		activity.Actions = append(activity.Actions, action)
 	} else {
-		return nil, fmt.Errorf("no actions found in transaction")
+		return nil, fmt.Errorf("no action found in transaction")
 	}
 
 	return activity, nil
 }
 
-// handleNearSocialActions processes all actions in the near social transaction and returns a slice of activityx.Action.
-func (w *worker) handleNearSocialActions(_ context.Context, task *source.Task, timestamp uint64) ([]*activityx.Action, error) {
-	var actions []*activityx.Action
-
+// handleNearSocialAction processes the action in the Near Social transaction and returns an activityx.Action.
+// This function is responsible for identifying and processing the 'set' function call in the transaction.
+func (w *worker) handleNearSocialAction(_ context.Context, task *source.Task, timestamp uint64) (*activityx.Action, error) {
 	for _, action := range task.Transaction.Transaction.Actions {
 		if action.FunctionCall != nil && action.FunctionCall.MethodName == "set" {
-			newActions, err := w.processSetFunction(task.Transaction.Transaction.SignerID, action.FunctionCall, timestamp)
-			if err != nil {
-				return nil, err
-			}
-
-			actions = append(actions, newActions...)
+			return w.processSetFunction(task.Transaction.Transaction.SignerID, action.FunctionCall, timestamp)
 		}
 	}
 
-	return actions, nil
+	return nil, nil
 }
 
-// processSetFunction handles the "set" function call and returns a slice of activityx.Action.
-func (w *worker) processSetFunction(signerID string, functionCall *near.FunctionCallAction, timestamp uint64) ([]*activityx.Action, error) {
-	var actions []*activityx.Action
-
+// processSetFunction handles the "set" function call and returns an activityx.Action.
+// This function decodes and processes the arguments of the 'set' function call to build a social action.
+func (w *worker) processSetFunction(signerID string, functionCall *near.FunctionCallAction, timestamp uint64) (*activityx.Action, error) {
 	// Decode base64 args
 	decodedArgs, err := base64.StdEncoding.DecodeString(functionCall.Args)
 	if err != nil {
 		return nil, fmt.Errorf("decode base64 args: %w", err)
 	}
 
-	// Unmarshal decoded args
+	// Unmarshal decoded args into FunctionCallArgs struct
 	var args FunctionCallArgs
 	if err := json.Unmarshal(decodedArgs, &args); err != nil {
 		return nil, fmt.Errorf("unmarshal function call args: %w", err)
@@ -139,16 +132,21 @@ func (w *worker) processSetFunction(signerID string, functionCall *near.Function
 					return nil, fmt.Errorf("unmarshal post data: %w", err)
 				}
 
-				action := w.buildSocialPostAction(signerID, path, postData, args, timestamp)
-				actions = append(actions, action)
+				return w.buildSocialAction(signerID, path, postData, args, timestamp)
 			}
+		}
+
+		if userContent.Index != nil {
+			return w.buildSocialAction(signerID, "", PostData{}, args, timestamp)
 		}
 	}
 
-	return actions, nil
+	return nil, nil
 }
 
-func (w *worker) buildSocialPostAction(signerID, path string, postData PostData, args FunctionCallArgs, timestamp uint64) *activityx.Action {
+// buildSocialAction constructs an activityx.Action based on the provided social action data.
+// This function is crucial for creating the appropriate action type (post, comment, or share) and populating its metadata.
+func (w *worker) buildSocialAction(signerID, path string, postData PostData, args FunctionCallArgs, timestamp uint64) (*activityx.Action, error) {
 	action := &activityx.Action{
 		Type:     typex.SocialPost,
 		Platform: w.Platform(),
@@ -161,49 +159,92 @@ func (w *worker) buildSocialPostAction(signerID, path string, postData PostData,
 		},
 	}
 
-	// Handle comment
 	if path == "comment" {
-		action.Type = typex.SocialComment
+		action = w.handleComment(action, postData)
+	}
 
-		if postData.Item != nil {
-			target := &metadata.SocialPost{
-				Handle:        strings.Split(postData.Item.Path, "/")[0],
-				PublicationID: fmt.Sprintf("%s-%d", postData.Item.Path, postData.Item.BlockHeight),
+	if userContent, ok := args.Data[signerID]; ok {
+		action = w.processUserContent(action, userContent, signerID, timestamp)
+	}
+
+	return action, nil
+}
+
+func (w *worker) handleComment(action *activityx.Action, postData PostData) *activityx.Action {
+	action.Type = typex.SocialComment
+
+	if postData.Item != nil {
+		target := &metadata.SocialPost{
+			Handle:        strings.Split(postData.Item.Path, "/")[0],
+			PublicationID: fmt.Sprintf("%s-%d", postData.Item.Path, postData.Item.BlockHeight),
+		}
+
+		if socialPost, ok := action.Metadata.(metadata.SocialPost); ok {
+			socialPost.Target = target
+			action.Metadata = socialPost
+		}
+	}
+
+	return action
+}
+
+func (w *worker) processUserContent(action *activityx.Action, userContent UserContent, signerID string, timestamp uint64) *activityx.Action {
+	action = w.processHashtags(action, userContent)
+	action = w.processCommentIndex(action, userContent)
+	action = w.processLikes(action, userContent, signerID, timestamp)
+
+	return action
+}
+
+func (w *worker) processHashtags(action *activityx.Action, userContent UserContent) *activityx.Action {
+	if hashtagJSON, ok := userContent.Index["hashtag"]; ok {
+		var hashtags []HashtagData
+
+		if err := json.Unmarshal([]byte(hashtagJSON), &hashtags); err == nil {
+			tags := make([]string, 0, len(hashtags))
+
+			for _, hashtag := range hashtags {
+				tags = append(tags, hashtag.Key)
 			}
 
 			if socialPost, ok := action.Metadata.(metadata.SocialPost); ok {
-				socialPost.Target = target
+				socialPost.Tags = tags
 				action.Metadata = socialPost
 			}
 		}
 	}
 
-	// Extract hashtags and mentions from args
-	if userContent, ok := args.Data[signerID]; ok {
-		if hashtagJSON, ok := userContent.Index["hashtag"]; ok {
-			var hashtags []HashtagData
+	return action
+}
 
-			if err := json.Unmarshal([]byte(hashtagJSON), &hashtags); err == nil {
-				tags := make([]string, 0, len(hashtags))
-
-				for _, hashtag := range hashtags {
-					tags = append(tags, hashtag.Key)
-				}
-
-				if socialPost, ok := action.Metadata.(metadata.SocialPost); ok {
-					socialPost.Tags = tags
-					action.Metadata = socialPost
-				}
+func (w *worker) processCommentIndex(action *activityx.Action, userContent UserContent) *activityx.Action {
+	if indexJSON, ok := userContent.Index["comment"]; ok {
+		var indexData IndexData
+		if err := json.Unmarshal([]byte(indexJSON), &indexData); err == nil {
+			if socialPost, ok := action.Metadata.(metadata.SocialPost); ok {
+				socialPost.PublicationID = fmt.Sprintf("%s-%d", indexData.Key.Path, indexData.Key.BlockHeight)
+				action.Metadata = socialPost
 			}
 		}
+	}
 
-		if indexJSON, ok := userContent.Index["comment"]; ok {
-			var indexData IndexData
-			if err := json.Unmarshal([]byte(indexJSON), &indexData); err == nil {
-				if socialPost, ok := action.Metadata.(metadata.SocialPost); ok {
-					socialPost.PublicationID = fmt.Sprintf("%s-%d", indexData.Key.Path, indexData.Key.BlockHeight)
-					action.Metadata = socialPost
-				}
+	return action
+}
+
+func (w *worker) processLikes(action *activityx.Action, userContent UserContent, signerID string, timestamp uint64) *activityx.Action {
+	if likeJSON, ok := userContent.Index["like"]; ok {
+		var likeData IndexData
+		if err := json.Unmarshal([]byte(likeJSON), &likeData); err == nil {
+			action.Type = typex.SocialShare
+			target := &metadata.SocialPost{
+				Handle:        strings.Split(likeData.Key.Path, "/")[0],
+				PublicationID: fmt.Sprintf("%s-%d", likeData.Key.Path, likeData.Key.BlockHeight),
+			}
+
+			action.Metadata = metadata.SocialPost{
+				Handle:    signerID,
+				Timestamp: timestamp,
+				Target:    target,
 			}
 		}
 	}

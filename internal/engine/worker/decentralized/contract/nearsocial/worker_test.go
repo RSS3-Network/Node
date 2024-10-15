@@ -177,6 +177,78 @@ func TestWorker_Near(t *testing.T) {
 			},
 			wantError: require.NoError,
 		},
+		{
+			name: "Social Share",
+			arguments: arguments{
+				task: &source.Task{
+					Network: network.Near,
+					Block: near.Block{
+						Header: near.BlockHeader{
+							Height:    130355030,
+							GasPrice:  "100000000",
+							Timestamp: 1728946029116815616,
+						},
+					},
+					Transaction: near.Transaction{
+						Transaction: near.TransactionDetails{
+							SignerID:   "progr.near",
+							ReceiverID: "social.near",
+							Actions: []near.Action{
+								{
+									FunctionCall: &near.FunctionCallAction{
+										Deposit:    "0",
+										MethodName: "set",
+										Gas:        100000000000000,
+										Args:       "eyJkYXRhIjp7InByb2dyLm5lYXIiOnsiaW5kZXgiOnsibGlrZSI6IntcImtleVwiOntcInR5cGVcIjpcInNvY2lhbFwiLFwicGF0aFwiOlwiZnJvbC5uZWFyL3Bvc3QvbWFpblwiLFwiYmxvY2tIZWlnaHRcIjoxMjgwMjIyMzN9LFwidmFsdWVcIjp7XCJ0eXBlXCI6XCJsaWtlXCJ9fSIsIm5vdGlmeSI6IntcImtleVwiOlwiZnJvbC5uZWFyXCIsXCJ2YWx1ZVwiOntcInR5cGVcIjpcImxpa2VcIixcIml0ZW1cIjp7XCJ0eXBlXCI6XCJzb2NpYWxcIixcInBhdGhcIjpcImZyb2wubmVhci9wb3N0L21haW5cIixcImJsb2NrSGVpZ2h0XCI6MTI4MDIyMjMzfX19In19fX0=",
+									},
+								},
+							},
+							Hash: "4ZW194PsKZhC3EjmvVaYcWWuFsph64jDQXqzigk8p6G5",
+						},
+						TransactionOutcome: near.TransactionOutcome{
+							Outcome: near.Outcome{
+								GasBurnt: 323461339945,
+							},
+						},
+					},
+				},
+			},
+			want: &activityx.Activity{
+				ID:        "4ZW194PsKZhC3EjmvVaYcWWuFsph64jDQXqzigk8p6G5",
+				Network:   network.Near,
+				Index:     0,
+				From:      "progr.near",
+				To:        "social.near",
+				Type:      typex.SocialShare,
+				Platform:  workerx.PlatformNearSocial.String(),
+				Timestamp: 1728946029,
+				Fee: &activityx.Fee{
+					Amount:  lo.Must(decimal.NewFromString("32346133994500000000")),
+					Decimal: 24,
+				},
+				Calldata: &activityx.Calldata{
+					ParsedFunction: "set",
+				},
+				Status: true,
+				Actions: []*activityx.Action{
+					{
+						Type:     typex.SocialShare,
+						Platform: workerx.PlatformNearSocial.String(),
+						From:     "progr.near",
+						To:       "social.near",
+						Metadata: metadata.SocialPost{
+							Handle:    "progr.near",
+							Timestamp: 1728946029,
+							Target: &metadata.SocialPost{
+								Handle:        "frol.near",
+								PublicationID: "frol.near/post/main-128022233",
+							},
+						},
+					},
+				},
+			},
+			wantError: require.NoError,
+		},
 	}
 
 	for _, testcase := range testcases {
