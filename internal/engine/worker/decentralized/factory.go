@@ -28,6 +28,7 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/matters"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/mirror"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/momoka"
+	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/nearsocial"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/nouns"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/opensea"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/optimism"
@@ -124,6 +125,8 @@ func newNonCoreWorker(config *config.Module, databaseClient database.Client, red
 		return zerion.NewWorker(config)
 	case decentralized.Rainbow:
 		return rainbow.NewWorker(config)
+	case decentralized.NearSocial:
+		return nearsocial.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Worker)
 	}

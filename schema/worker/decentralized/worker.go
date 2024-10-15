@@ -30,6 +30,7 @@ const (
 	Matters                      // matters
 	Mirror                       // mirror
 	Momoka                       // momoka
+	NearSocial                   // nearsocial
 	Nouns                        // nouns
 	Oneinch                      // 1inch
 	OpenSea                      // opensea
@@ -93,6 +94,7 @@ var ToTagsMap = map[Worker][]tag.Tag{
 	Matters:    {tag.Social},
 	Mirror:     {tag.Social},
 	Momoka:     {tag.Social},
+	NearSocial: {tag.Social},
 	Nouns:      {tag.Collectible, tag.Governance},
 	Oneinch:    {tag.Exchange},
 	OpenSea:    {tag.Collectible},
