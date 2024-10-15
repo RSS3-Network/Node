@@ -119,6 +119,8 @@ func (c *Component) buildSocialAuthorURL(_ context.Context, platform string, han
 		return fmt.Sprintf("https://warpcast.com/%s", handle)
 	case decentralized.PlatformParagraph.String():
 		return fmt.Sprintf("https://paragraph.xyz/@%s", handle)
+	case decentralized.PlatformNearSocial.String():
+		return fmt.Sprintf("https://near.social/mob.near/widget/ProfilePage?accountId=%s", handle)
 	default:
 		return ""
 	}

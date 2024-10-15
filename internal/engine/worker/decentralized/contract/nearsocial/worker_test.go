@@ -178,7 +178,7 @@ func TestWorker_Near(t *testing.T) {
 			wantError: require.NoError,
 		},
 		{
-			name: "Social Share",
+			name: "Social Like",
 			arguments: arguments{
 				task: &source.Task{
 					Network: network.Near,
@@ -242,6 +242,78 @@ func TestWorker_Near(t *testing.T) {
 							Target: &metadata.SocialPost{
 								Handle:        "frol.near",
 								PublicationID: "frol.near/post/main-128022233",
+							},
+						},
+					},
+				},
+			},
+			wantError: require.NoError,
+		},
+		{
+			name: "Social Repost",
+			arguments: arguments{
+				task: &source.Task{
+					Network: network.Near,
+					Block: near.Block{
+						Header: near.BlockHeader{
+							Height:    130155103,
+							GasPrice:  "100000000",
+							Timestamp: 1728726130272950660,
+						},
+					},
+					Transaction: near.Transaction{
+						Transaction: near.TransactionDetails{
+							SignerID:   "mbbevilacqua_caffepoesia.near",
+							ReceiverID: "social.near",
+							Actions: []near.Action{
+								{
+									FunctionCall: &near.FunctionCallAction{
+										Deposit:    "0",
+										MethodName: "set",
+										Gas:        100000000000000,
+										Args:       "eyJkYXRhIjp7Im1iYmV2aWxhY3F1YV9jYWZmZXBvZXNpYS5uZWFyIjp7ImluZGV4Ijp7InJlcG9zdCI6Ilt7XCJrZXlcIjpcIm1haW5cIixcInZhbHVlXCI6e1widHlwZVwiOlwicmVwb3N0XCIsXCJpdGVtXCI6e1widHlwZVwiOlwic29jaWFsXCIsXCJwYXRoXCI6XCJjYWZmZXBvZXNpYS5uZWFyL3Bvc3QvbWFpblwiLFwiYmxvY2tIZWlnaHRcIjoxMzAxNTQ5MjN9fX0se1wia2V5XCI6e1widHlwZVwiOlwic29jaWFsXCIsXCJwYXRoXCI6XCJjYWZmZXBvZXNpYS5uZWFyL3Bvc3QvbWFpblwiLFwiYmxvY2tIZWlnaHRcIjoxMzAxNTQ5MjN9LFwidmFsdWVcIjp7XCJ0eXBlXCI6XCJyZXBvc3RcIn19XSIsIm5vdGlmeSI6IntcImtleVwiOlwiY2FmZmVwb2VzaWEubmVhclwiLFwidmFsdWVcIjp7XCJ0eXBlXCI6XCJyZXBvc3RcIixcIml0ZW1cIjp7XCJ0eXBlXCI6XCJzb2NpYWxcIixcInBhdGhcIjpcImNhZmZlcG9lc2lhLm5lYXIvcG9zdC9tYWluXCIsXCJibG9ja0hlaWdodFwiOjEzMDE1NDkyM319fSJ9fX19",
+									},
+								},
+							},
+							Hash: "GKbNWy68JxQpHz6e5aM9HjMhEonD8UAYvcXuPM6HMtzg",
+						},
+						TransactionOutcome: near.TransactionOutcome{
+							Outcome: near.Outcome{
+								GasBurnt: 332807348085,
+							},
+						},
+					},
+				},
+			},
+			want: &activityx.Activity{
+				ID:        "GKbNWy68JxQpHz6e5aM9HjMhEonD8UAYvcXuPM6HMtzg",
+				Network:   network.Near,
+				Index:     0,
+				From:      "mbbevilacqua_caffepoesia.near",
+				To:        "social.near",
+				Type:      typex.SocialShare,
+				Platform:  workerx.PlatformNearSocial.String(),
+				Timestamp: 1728726130,
+				Fee: &activityx.Fee{
+					Amount:  lo.Must(decimal.NewFromString("33280734808500000000")),
+					Decimal: 24,
+				},
+				Calldata: &activityx.Calldata{
+					ParsedFunction: "set",
+				},
+				Status: true,
+				Actions: []*activityx.Action{
+					{
+						Type:     typex.SocialShare,
+						Platform: workerx.PlatformNearSocial.String(),
+						From:     "mbbevilacqua_caffepoesia.near",
+						To:       "social.near",
+						Metadata: metadata.SocialPost{
+							Handle:    "mbbevilacqua_caffepoesia.near",
+							Timestamp: 1728726130,
+							Target: &metadata.SocialPost{
+								Handle:        "caffepoesia.near",
+								PublicationID: "caffepoesia.near/post/main-130154923",
 							},
 						},
 					},
