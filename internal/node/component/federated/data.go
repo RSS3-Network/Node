@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/node/provider/redis"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
@@ -61,11 +60,7 @@ func (c *Component) transformCursor(_ context.Context, activity *activityx.Activ
 	return fmt.Sprintf("%s:%s", activity.ID, activity.Network)
 }
 
-// redis data retrieval:
-func (c *Component) getAllHandles(ctx context.Context) ([]string, error) {
-	return redis.GetAllHandles(ctx, c.redisClient)
-}
-
-func (c *Component) getUpdatedHandles(ctx context.Context, since uint64) ([]string, error) {
-	return redis.GetRecentHandleUpdates(ctx, c.redisClient, since)
+// Database data retrieval:
+func (c *Component) getUpdatedHandles(ctx context.Context, since uint64, limit int, cursor string) (*model.PaginatedMastodonHandles, error) {
+	return c.databaseClient.GetUpdatedMastodonHandles(ctx, since, limit, cursor)
 }

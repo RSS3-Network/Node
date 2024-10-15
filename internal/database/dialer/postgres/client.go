@@ -435,6 +435,78 @@ func (c *client) UpdateRecentMastodonHandles(ctx context.Context, handles []*mod
 	return nil
 }
 
+func (c *client) GetUpdatedMastodonHandles(ctx context.Context, since uint64, limit int, cursor string) (*model.PaginatedMastodonHandles, error) {
+	var result []model.MastodonHandle
+
+	var totalCount int64
+
+	// Query for the handles table
+	query := c.database.WithContext(ctx).
+		Table("dataset_mastodon_update_handles")
+
+	// If 'since' is greater than 0, we're fetching updated handles; otherwise, fetch all handles
+	if since > 0 {
+		query = query.Where("last_updated > ?", since)
+	}
+
+	// Count total handles (or updated handles)
+	if err := query.Count(&totalCount).Error; err != nil {
+		return nil, fmt.Errorf("failed to count handles: %w", err)
+	}
+
+	// Apply cursor if provided
+	if cursor != "" {
+		var cursorLastUpdated uint64
+
+		var cursorHandle string
+
+		// Decode the cursor format: "<last_updated>:<handle>"
+		_, err := fmt.Sscanf(cursor, "%d:%s", &cursorLastUpdated, &cursorHandle)
+		if err != nil {
+			return nil, fmt.Errorf("invalid cursor format: %w", err)
+		}
+
+		query = query.Where("last_updated < ? OR (last_updated = ? AND handle > ?)", cursorLastUpdated, cursorLastUpdated, cursorHandle)
+	}
+
+	// Fetch handles with their last_updated timestamps
+	err := query.
+		Select("handle, last_updated").
+		Order("last_updated DESC, handle ASC").
+		Limit(limit + 1).
+		Find(&result).
+		Error
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get handles: %w", err)
+	}
+
+	// Determine the next cursor if there are more than 'limit' handles
+	var nextCursor string
+
+	if len(result) > limit {
+		lastHandle := result[limit-1]
+
+		// Create the next cursor from the 'last_updated' and 'handle'
+		nextCursor = fmt.Sprintf("%d:%s", lastHandle.LastUpdated, lastHandle.Handle)
+
+		// Remove the extra handle for pagination
+		result = result[:limit]
+	}
+
+	// Extract just the handles for the response
+	handles := make([]string, len(result))
+	for i, r := range result {
+		handles[i] = r.Handle
+	}
+
+	return &model.PaginatedMastodonHandles{
+		Handles:    handles,
+		TotalCount: totalCount,
+		NextCursor: nextCursor,
+	}, nil
+}
+
 // Dial dials a database.
 func Dial(ctx context.Context, dataSourceName string, partition bool) (database.Client, error) {
 	var err error
