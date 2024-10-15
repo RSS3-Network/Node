@@ -61,8 +61,7 @@ type DatasetENSNamehash interface {
 }
 
 type DatasetMastodonHandle interface {
-	LoadDatasetMastodonHandle(ctx context.Context, handle string) (*model.MastodonHandle, error)
-	SaveDatasetMastodonHandle(ctx context.Context, handle *model.MastodonHandle) error
+	UpdateRecentMastodonHandles(ctx context.Context, handles []*model.MastodonHandle) error
 }
 
 var _ goose.Logger = (*SugaredLogger)(nil)

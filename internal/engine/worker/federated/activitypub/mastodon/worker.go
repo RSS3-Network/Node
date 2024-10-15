@@ -19,7 +19,6 @@ import (
 	"github.com/rss3-network/node/provider/activitypub"
 	"github.com/rss3-network/node/provider/activitypub/mastodon"
 	"github.com/rss3-network/node/provider/httpx"
-	"github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
@@ -32,10 +31,15 @@ import (
 
 var _ engine.Worker = (*worker)(nil)
 
+const (
+	batchSize = 10
+)
+
 type worker struct {
 	httpClient     httpx.Client
 	databaseClient database.Client
 	redisClient    rueidis.Client
+	pendingHandles []*model.MastodonHandle
 }
 
 func (w *worker) Name() string {
@@ -195,7 +199,7 @@ func (w *worker) handleSingleActivityPubCreate(ctx context.Context, message acti
 	}
 
 	// Store unique handles of this activity
-	err := w.saveMastodonHandle(ctx, handles)
+	err := w.saveMastodonHandles(ctx, handles)
 	if err != nil {
 		zap.L().Error("failed to save mastodon handle", zap.Error(err), zap.String("currentUserHandle", currentUserHandle))
 		return err
@@ -298,7 +302,7 @@ func (w *worker) handleSingleActivityPubAnnounce(ctx context.Context, message ac
 	}
 
 	// Store the current user's unique handle
-	err = w.saveMastodonHandle(ctx, handles)
+	err = w.saveMastodonHandles(ctx, handles)
 	if err != nil {
 		zap.L().Error("failed to save mastodon handle", zap.Error(err), zap.String("currentUserHandle", currentUserHandle))
 		return err
@@ -307,22 +311,36 @@ func (w *worker) handleSingleActivityPubAnnounce(ctx context.Context, message ac
 	return nil
 }
 
-// saveMastodonHandle store the unique handles into the relevant DB table
-func (w *worker) saveMastodonHandle(ctx context.Context, handles []string) error {
+// saveMastodonHandles store the unique handles into the relevant DB table
+func (w *worker) saveMastodonHandles(ctx context.Context, handles []string) error {
+	now := uint64(time.Now().Unix())
+
 	for _, handleString := range handles {
-		handle := &model.MastodonHandle{
+		mastodonHandle := &model.MastodonHandle{
 			Handle:      handleString,
-			LastUpdated: time.Now(),
+			LastUpdated: now,
 		}
+		w.pendingHandles = append(w.pendingHandles, mastodonHandle)
+	}
 
-		if err := w.databaseClient.SaveDatasetMastodonHandle(ctx, handle); err != nil {
-			return fmt.Errorf("failed to save Mastodon handle: %w", err)
-		}
+	if len(w.pendingHandles) >= batchSize {
+		err := w.processBatch(ctx)
 
-		// Add handle update to Redis set
-		if err := redis.AddHandleUpdate(ctx, w.redisClient, handleString); err != nil {
-			return fmt.Errorf("failed to add handle update to Redis: %w", err)
+		if err != nil {
+			zap.L().Error("error in w.processBatch call")
+			return err
 		}
+	}
+
+	return nil
+}
+
+func (w *worker) processBatch(ctx context.Context) error {
+	batch := w.pendingHandles[:batchSize]
+	w.pendingHandles = w.pendingHandles[batchSize:]
+
+	if err := w.databaseClient.UpdateRecentMastodonHandles(ctx, batch); err != nil {
+		return fmt.Errorf("failed to update recent handles: %w", err)
 	}
 
 	return nil
@@ -656,6 +674,7 @@ func NewWorker(databaseClient database.Client, redisClient rueidis.Client) (engi
 		httpClient:     httpClient,
 		databaseClient: databaseClient,
 		redisClient:    redisClient,
+		pendingHandles: []*model.MastodonHandle{},
 	}, nil
 }
 

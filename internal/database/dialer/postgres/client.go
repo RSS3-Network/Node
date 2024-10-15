@@ -38,6 +38,7 @@ const (
 
 //go:embed migration/*.sql
 var migrationFS embed.FS
+var maxRecentHandles = 100000
 
 type client struct {
 	partition bool
@@ -380,45 +381,58 @@ func (c *client) SaveDatasetENSNamehash(ctx context.Context, namehash *model.ENS
 	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
-// LoadDatasetMastodonHandle loads a Mastodon handle.
-func (c *client) LoadDatasetMastodonHandle(ctx context.Context, handle string) (*model.MastodonHandle, error) {
-	var value table.DatasetMastodonHandle
+func (c *client) UpdateRecentMastodonHandles(ctx context.Context, handles []*model.MastodonHandle) error {
+	logger := zap.L()
+	logger.Info("Starting UpdateRecentMastodonHandles", zap.Int("handleCount", len(handles)))
 
-	if err := c.database.WithContext(ctx).
-		Where("handle = ?", handle).
-		First(&value).
-		Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, err
-		}
+	// Construct the SQL query manually
+	sql := `
+    INSERT INTO dataset_mastodon_update_handles (handle, last_updated)
+    VALUES %s
+    ON CONFLICT (handle) DO UPDATE SET last_updated = EXCLUDED.last_updated;
+    `
 
-		// Initialize a default handle.
-		value = table.DatasetMastodonHandle{
-			Handle:      handle,
-			LastUpdated: time.Now(),
-		}
+	valueStrings := make([]string, 0, len(handles))
+	valueArgs := make([]interface{}, 0, len(handles)*2)
+
+	for i, h := range handles {
+		valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d)", i*2+1, i*2+2))
+		valueArgs = append(valueArgs, h.Handle, h.LastUpdated)
 	}
 
-	return value.Export()
-}
+	stmt := fmt.Sprintf(sql, strings.Join(valueStrings, ","))
 
-// SaveDatasetMastodonHandle saves a Mastodon handle.
-func (c *client) SaveDatasetMastodonHandle(ctx context.Context, handle *model.MastodonHandle) error {
-	clauses := []clause.Expression{
-		clause.OnConflict{
-			Columns: []clause.Column{{Name: "handle"}},
-			DoUpdates: clause.Assignments(map[string]interface{}{
-				"last_updated": time.Now(),
-			}),
-		},
+	// Log the generated SQL statement for debugging
+	logger.Debug("Generated SQL", zap.String("sql", stmt), zap.Any("args", valueArgs))
+
+	result := c.database.WithContext(ctx).Exec(stmt, valueArgs...)
+
+	if result.Error != nil {
+		logger.Error("Error updating recent handles", zap.Error(result.Error))
+		return fmt.Errorf("failed to update recent handles: %w", result.Error)
 	}
 
-	var value table.DatasetMastodonHandle
-	if err := value.Import(handle); err != nil {
-		return err
+	logger.Info("Trimming old handles")
+
+	trimResult := c.database.WithContext(ctx).Exec(`
+        DELETE FROM dataset_mastodon_update_handles
+        WHERE handle NOT IN (
+            SELECT handle FROM dataset_mastodon_update_handles
+            ORDER BY last_updated DESC
+            LIMIT $1
+        )
+    `, maxRecentHandles)
+
+	if trimResult.Error != nil {
+		logger.Error("Error trimming old handles", zap.Error(trimResult.Error))
+		return fmt.Errorf("failed to trim old handles: %w", trimResult.Error)
 	}
 
-	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
+	logger.Info("Completed UpdateRecentMastodonHandles",
+		zap.Int64("updatedHandles", result.RowsAffected),
+		zap.Int64("trimmedHandles", trimResult.RowsAffected))
+
+	return nil
 }
 
 // Dial dials a database.
