@@ -191,7 +191,6 @@ func (w *worker) handleComment(action *activityx.Action, postData PostData) *act
 func (w *worker) processUserContent(action *activityx.Action, userContent UserContent, signerID string, timestamp uint64) *activityx.Action {
 	action = w.processHashtags(action, userContent)
 	action = w.processCommentIndex(action, userContent)
-	action = w.processLikes(action, userContent, signerID, timestamp)
 	action = w.processReposts(action, userContent, signerID, timestamp)
 
 	return action
@@ -225,27 +224,6 @@ func (w *worker) processCommentIndex(action *activityx.Action, userContent UserC
 			if socialPost, ok := action.Metadata.(metadata.SocialPost); ok {
 				socialPost.PublicationID = fmt.Sprintf("%s-%d", indexData.Key.Path, indexData.Key.BlockHeight)
 				action.Metadata = socialPost
-			}
-		}
-	}
-
-	return action
-}
-
-func (w *worker) processLikes(action *activityx.Action, userContent UserContent, signerID string, timestamp uint64) *activityx.Action {
-	if likeJSON, ok := userContent.Index["like"]; ok {
-		var likeData IndexData
-		if err := json.Unmarshal([]byte(likeJSON), &likeData); err == nil {
-			action.Type = typex.SocialShare
-			target := &metadata.SocialPost{
-				Handle:        strings.Split(likeData.Key.Path, "/")[0],
-				PublicationID: fmt.Sprintf("%s-%d", likeData.Key.Path, likeData.Key.BlockHeight),
-			}
-
-			action.Metadata = metadata.SocialPost{
-				Handle:    signerID,
-				Timestamp: timestamp,
-				Target:    target,
 			}
 		}
 	}
