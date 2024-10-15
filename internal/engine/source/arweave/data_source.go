@@ -54,7 +54,7 @@ func (s *dataSource) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
+func (s *dataSource) Start(ctx context.Context, tasksBuffer *engine.TaskBuffer, errorChan chan<- error) {
 	// Initialize dataSource.
 	if err := s.initialize(); err != nil {
 		errorChan <- fmt.Errorf("initialize dataSource: %w", err)
@@ -67,11 +67,11 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 		retryableFunc := func() error {
 			switch {
 			case s.filter.BundlrOnly:
-				if err := s.pollTransactionsFromIrys(ctx, tasksChan, s.filter); err != nil {
+				if err := s.pollTransactionsFromIrys(ctx, tasksBuffer, s.filter); err != nil {
 					return fmt.Errorf("poll transaction froms irys: %w", err)
 				}
 			default:
-				if err := s.pollBlocks(ctx, tasksChan, s.filter); err != nil {
+				if err := s.pollBlocks(ctx, tasksBuffer, s.filter); err != nil {
 					return fmt.Errorf("poll blocks: %w", err)
 				}
 			}
@@ -127,7 +127,7 @@ func (s *dataSource) updateBlockHeight(ctx context.Context) {
 }
 
 // pollBlocks polls blocks from arweave network.
-func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks, filter *Filter) error {
+func (s *dataSource) pollBlocks(ctx context.Context, tasksBuffer *engine.TaskBuffer, filter *Filter) error {
 	var (
 		blockHeightLatestRemote int64
 		err                     error
@@ -242,7 +242,8 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 		tasks := s.buildTasks(ctx, blocks, transactions)
 
 		// TODO It might be possible to use generics to avoid manual type assertions.
-		tasksChan <- tasks
+		// Add the current task to the task buffer
+		tasksBuffer.Add(tasks)
 
 		// Update block height to state.
 		s.state.BlockHeight = blockHeightEnd
@@ -252,7 +253,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 }
 
 // pollTransactionsFromIrys polls transactions from Irys GraphQL endpoint.
-func (s *dataSource) pollTransactionsFromIrys(ctx context.Context, tasksChan chan<- *engine.Tasks, filter *Filter) error {
+func (s *dataSource) pollTransactionsFromIrys(ctx context.Context, tasksBuffer *engine.TaskBuffer, filter *Filter) error {
 	// Initialize Irys GraphQL client.
 	graphqlClient := graphql.NewClient(irys.EndpointMainnet, http.DefaultClient)
 
@@ -326,7 +327,8 @@ func (s *dataSource) pollTransactionsFromIrys(ctx context.Context, tasksChan cha
 		tasks := s.buildTasks(ctx, blocks, transactions)
 
 		// TODO It might be possible to use generics to avoid manual type assertions.
-		tasksChan <- tasks
+		// Add the current task to the task buffer
+		tasksBuffer.Add(tasks)
 
 		// Update cursor to state.
 		s.state.Cursor = transactionsResponse.Transactions.PageInfo.EndCursor

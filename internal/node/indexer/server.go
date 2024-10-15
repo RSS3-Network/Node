@@ -38,6 +38,7 @@ type Server struct {
 	streamClient   stream.Client
 	monitorClient  monitor.Client
 	redisClient    rueidis.Client
+	TaskBuffer     *engine.TaskBuffer
 	// meterTasksCounter is a counter of the number of tasks processed.
 	// Deprecated: use meterTasksHistogram instead.
 	meterTasksCounter   metric.Int64Counter
@@ -48,24 +49,26 @@ type Server struct {
 
 func (s *Server) Run(ctx context.Context) error {
 	var (
-		// TODO Develop a more effective solution to implement back pressure.
-		tasksChan = make(chan *engine.Tasks)
 		errorChan = make(chan error)
 	)
 
 	zap.L().Info("start node", zap.String("version", constant.BuildVersion()))
 
-	s.source.Start(ctx, tasksChan, errorChan)
+	s.source.Start(ctx, s.TaskBuffer, errorChan)
 
 	for {
 		select {
-		case tasks := <-tasksChan:
-			retryableFunc := func() error {
-				if err := s.handleTasks(ctx, tasks); err != nil {
-					return fmt.Errorf("handle tasks: %w", err)
-				}
+		case err := <-errorChan:
+			if err != nil {
+				return fmt.Errorf("an error occurred in the source: %w", err)
+			}
 
-				return nil
+		default:
+			// Get task from the task buffer
+			task := s.TaskBuffer.Get()
+
+			retryableFunc := func() error {
+				return s.handleTasks(ctx, task)
 			}
 
 			err := retry.Do(retryableFunc,
@@ -80,12 +83,6 @@ func (s *Server) Run(ctx context.Context) error {
 			if err != nil {
 				return fmt.Errorf("retry handle tasks: %w", err)
 			}
-		case err := <-errorChan:
-			if err != nil {
-				return fmt.Errorf("an error occurred in the source: %w", err)
-			}
-
-			return nil
 		}
 	}
 }
@@ -279,9 +276,10 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 		databaseClient: databaseClient,
 		streamClient:   streamClient,
 		redisClient:    redisClient,
+		TaskBuffer:     engine.NewTaskBuffer(1500), // set the default buffer size to be 1000 tasks
 	}
 
-	// Initialize worker.
+	// Initialize worker
 	if instance.worker, err = worker.New(instance.config, databaseClient, instance.redisClient); err != nil {
 		return nil, fmt.Errorf("new worker: %w", err)
 	}
