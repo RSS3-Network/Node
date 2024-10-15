@@ -27,8 +27,8 @@ var (
 	AddressL1OptimismPortal = common.HexToAddress("0x6A12432491bbbE8d3babf75F759766774C778Db4")
 
 	AddressNetworkParams = map[int64]common.Address{
-		ChainIDMainnet: common.HexToAddress("0x855a497619E7002430771e5886660F42A2A5Dc5e"),
-		ChainIDTestnet: common.HexToAddress("0x4d0de2CF4d8996f75466BE28Cc85306439Fb46F8"),
+		ChainIDMainnet: common.HexToAddress("0xbf8a881c687e2c5f028cc22ef9a3dc31c6b57107"),
+		ChainIDTestnet: common.HexToAddress("0xc244ef2f548d6e482acb455c5d519b9432aa49e3"),
 	}
 
 	AddressSettlement = map[int64]common.Address{
