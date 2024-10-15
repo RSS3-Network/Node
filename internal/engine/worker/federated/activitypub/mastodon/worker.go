@@ -31,15 +31,10 @@ import (
 
 var _ engine.Worker = (*worker)(nil)
 
-const (
-	batchSize = 10
-)
-
 type worker struct {
 	httpClient     httpx.Client
 	databaseClient database.Client
 	redisClient    rueidis.Client
-	pendingHandles []*model.MastodonHandle
 }
 
 func (w *worker) Name() string {
@@ -315,31 +310,17 @@ func (w *worker) handleSingleActivityPubAnnounce(ctx context.Context, message ac
 func (w *worker) saveMastodonHandles(ctx context.Context, handles []string) error {
 	now := uint64(time.Now().Unix())
 
+	handleSlice := make([]*model.MastodonHandle, 0, len(handles))
+
 	for _, handleString := range handles {
 		mastodonHandle := &model.MastodonHandle{
 			Handle:      handleString,
 			LastUpdated: now,
 		}
-		w.pendingHandles = append(w.pendingHandles, mastodonHandle)
+		handleSlice = append(handleSlice, mastodonHandle)
 	}
 
-	if len(w.pendingHandles) >= batchSize {
-		err := w.processBatch(ctx)
-
-		if err != nil {
-			zap.L().Error("error in w.processBatch call")
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (w *worker) processBatch(ctx context.Context) error {
-	batch := w.pendingHandles[:batchSize]
-	w.pendingHandles = w.pendingHandles[batchSize:]
-
-	if err := w.databaseClient.SaveRecentMastodonHandles(ctx, batch); err != nil {
+	if err := w.databaseClient.SaveRecentMastodonHandles(ctx, handleSlice); err != nil {
 		return fmt.Errorf("failed to update recent handles: %w", err)
 	}
 
@@ -674,7 +655,6 @@ func NewWorker(databaseClient database.Client, redisClient rueidis.Client) (engi
 		httpClient:     httpClient,
 		databaseClient: databaseClient,
 		redisClient:    redisClient,
-		pendingHandles: []*model.MastodonHandle{},
 	}, nil
 }
 
