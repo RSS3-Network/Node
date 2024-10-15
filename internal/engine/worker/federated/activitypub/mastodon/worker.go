@@ -26,6 +26,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
+	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
@@ -308,20 +309,14 @@ func (w *worker) handleSingleActivityPubAnnounce(ctx context.Context, message ac
 
 // saveMastodonHandles store the unique handles into the relevant DB table
 func (w *worker) saveMastodonHandles(ctx context.Context, handles []string) error {
-	now := uint64(time.Now().Unix())
-
 	// Find all unique handles
-	uniqueHandles := make(map[string]struct{})
-	for _, handle := range handles {
-		uniqueHandles[handle] = struct{}{}
-	}
+	uniqueHandles := lo.Uniq(handles)
 
 	// Convert map back to a slice to ensure all handles are unique
 	handleSlice := make([]*model.MastodonHandle, 0, len(uniqueHandles))
-	for handle := range uniqueHandles {
+	for _, handle := range uniqueHandles {
 		handleSlice = append(handleSlice, &model.MastodonHandle{
-			Handle:      handle,
-			LastUpdated: now,
+			Handle: handle,
 		})
 	}
 

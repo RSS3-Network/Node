@@ -403,66 +403,51 @@ func (c *client) SaveRecentMastodonHandles(ctx context.Context, handles []*model
 	return c.database.WithContext(ctx).Clauses(onConflictClause).CreateInBatches(&values, math.MaxUint8).Error
 }
 
-// GetUpdatedMastodonHandles retrieves a paginated list of Mastodon handles that have been updated since the specified timestamp.
-func (c *client) GetUpdatedMastodonHandles(ctx context.Context, since uint64, limit int, cursor string) (*model.PaginatedMastodonHandles, error) {
-	var result []model.MastodonHandle
+func (c *client) GetUpdatedMastodonHandles(ctx context.Context, query model.QueryMastodonHandles) ([]*model.MastodonHandle, error) {
+	databaseStatement := c.database.WithContext(ctx).Table(table.DatasetMastodonUpdateHandle{}.TableName())
 
-	var totalCount int64
+	if query.Cursor != nil {
+		var handleCursor *table.DatasetMastodonUpdateHandle
 
-	var handleModel table.DatasetMastodonUpdateHandle
-	tableName := handleModel.TableName()
-
-	// Build the query
-	query := c.database.WithContext(ctx).Table(tableName).Where("last_updated > ?", since)
-
-	// Count total handles
-	if err := query.Count(&totalCount).Error; err != nil {
-		return nil, fmt.Errorf("failed to count handles: %w", err)
-	}
-
-	// Apply cursor if provided
-	if cursor != "" {
-		var cursorLastUpdated uint64
-
-		var cursorHandle string
-
-		_, err := fmt.Sscanf(cursor, "%d:%s", &cursorLastUpdated, &cursorHandle)
-		if err != nil {
-			return nil, fmt.Errorf("invalid cursor format: %w", err)
+		if err := c.database.WithContext(ctx).First(&handleCursor, "handle = ?", query.Cursor).Error; err != nil {
+			return nil, fmt.Errorf("get handle cursor: %w", err)
 		}
 
-		query = query.Where("last_updated < ? OR (last_updated = ? AND handle > ?)", cursorLastUpdated, cursorLastUpdated, cursorHandle)
+		databaseStatement = databaseStatement.Where("updated_at < ? OR (updated_at = ? AND created_at < ?)", handleCursor.UpdatedAt, handleCursor.UpdatedAt, handleCursor.CreatedAt)
 	}
 
-	// Fetch handles with their last_updated timestamps
-	if err := query.Select("handle, last_updated").Order("last_updated DESC, handle ASC").Limit(limit + 1).Find(&result).Error; err != nil {
-		return nil, fmt.Errorf("failed to get handles: %w", err)
+	if query.Since != nil {
+		databaseStatement = databaseStatement.Where("updated_at > ?", time.UnixMilli(int64(*query.Since)))
 	}
 
-	// Determine the next cursor if there are more than 'limit' handles
-	var nextCursor string
-
-	if len(result) > limit {
-		lastHandle := result[limit-1]
-
-		// Create the next cursor from the 'last_updated' and 'handle'
-		nextCursor = fmt.Sprintf("%d:%s", lastHandle.LastUpdated, lastHandle.Handle)
-
-		// Remove the extra handle for pagination
-		result = result[:limit]
+	if query.Limit != nil {
+		databaseStatement = databaseStatement.Limit(*query.Limit)
 	}
 
-	// Extract just the handles for the response
-	handles := make([]string, len(result))
-	for i, r := range result {
-		handles[i] = r.Handle
+	databaseStatement = databaseStatement.Order("updated_at DESC, created_at DESC")
+
+	var handles []*table.DatasetMastodonUpdateHandle
+
+	if err := databaseStatement.Find(&handles).Error; err != nil {
+		return nil, err
 	}
 
-	return &model.PaginatedMastodonHandles{
-		Handles:    handles,
-		TotalCount: totalCount,
-		NextCursor: nextCursor,
-	}, nil
+	result := make([]*model.MastodonHandle, 0, len(handles))
+
+	for _, handle := range handles {
+		var (
+			value *model.MastodonHandle
+			err   error
+		)
+
+		if value, err = handle.Export(); err != nil {
+			return nil, err
+		}
+
+		result = append(result, value)
+	}
+
+	return result, nil
 }
 
 // Dial dials a database.

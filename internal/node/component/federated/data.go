@@ -63,7 +63,7 @@ func (c *Component) transformCursor(_ context.Context, activity *activityx.Activ
 	return fmt.Sprintf("%s:%s", activity.ID, activity.Network)
 }
 
-// Database data retrieval:
-func (c *Component) getUpdatedHandles(ctx context.Context, since uint64, limit int, cursor string) (*model.PaginatedMastodonHandles, error) {
-	return c.databaseClient.GetUpdatedMastodonHandles(ctx, since, limit, cursor)
+// getUpdatedHandles retrieves the updated Mastodon handles from the database.
+func (c *Component) getUpdatedHandles(ctx context.Context, query model.QueryMastodonHandles) ([]*model.MastodonHandle, error) {
+	return c.databaseClient.GetUpdatedMastodonHandles(ctx, query)
 }

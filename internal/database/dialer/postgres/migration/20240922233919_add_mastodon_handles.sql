@@ -1,14 +1,15 @@
 -- +goose Up
-
+-- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS dataset_mastodon_update_handles (
-                                           handle VARCHAR(255) PRIMARY KEY,
-                                            last_updated BIGINT NOT NULL
+    "handle" text PRIMARY KEY,
+    "created_at" timestamptz NOT NULL DEFAULT now(),
+    "updated_at" timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_mastodon_recent_update_handles_last_updated ON dataset_mastodon_update_handles(last_updated DESC);
+CREATE INDEX idx_mastodon_update_handles_time_at ON dataset_mastodon_update_handles(updated_at DESC,created_at DESC);
+-- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS dataset_mastodon_recent_update_handles;
-
+DROP TABLE IF EXISTS dataset_mastodon_update_handles;
 -- +goose StatementEnd
