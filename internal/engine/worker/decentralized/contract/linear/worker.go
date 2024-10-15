@@ -103,6 +103,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		}
 
 		activity.Actions = append(activity.Actions, actions...)
+	} else {
+		return nil, fmt.Errorf("no actions found in transaction")
 	}
 
 	return activity, nil

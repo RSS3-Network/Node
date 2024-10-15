@@ -28,6 +28,7 @@ const (
 	PlatformLooksRare                  // LooksRare
 	PlatformMatters                    // Matters
 	PlatformMirror                     // Mirror
+	PlatformNearSocial                 // NearSocial
 	PlatformNouns                      // Nouns
 	PlatformOpenSea                    // OpenSea
 	PlatformOptimism                   // Optimism
@@ -78,6 +79,7 @@ var ToPlatformMap = map[Worker]Platform{
 	Matters:    PlatformMatters,
 	Mirror:     PlatformMirror,
 	Momoka:     PlatformLens,
+	NearSocial: PlatformNearSocial,
 	Nouns:      PlatformNouns,
 	Oneinch:    Platform1Inch,
 	OpenSea:    PlatformOpenSea,

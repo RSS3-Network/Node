@@ -82,6 +82,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	if len(actions) > 0 {
 		activity.Type = actions[0].Type
 		activity.Actions = append(activity.Actions, actions...)
+	} else {
+		return nil, fmt.Errorf("no actions found in transaction")
 	}
 
 	return activity, nil
