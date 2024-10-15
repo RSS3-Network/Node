@@ -24,8 +24,8 @@ See <https://docs.rss3.io/guide/for-node-operator/deployment-guide> for a detail
 | 1inch |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
 | aave | ✓ |   | ✓ | ✓ |   |   | ✓ |   |   |   |   |   | ✓ | ✓ |   |   |   |
 | aavegotchi |   |   |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |
-| arbitrum |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
-| base |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| arbitrum | ✓ |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| base |   |   |   | ✓ |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
 | cow |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
 | crossbell |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |   |
 | curve | ✓ |   | ✓ |   |   |   | ✓ |   | ✓ |   |   |   | ✓ | ✓ |   |   |   |
@@ -35,13 +35,14 @@ See <https://docs.rss3.io/guide/for-node-operator/deployment-guide> for a detail
 | kiwistand |   |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |   |
 | lens |   |   |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |
 | lido |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
-| linea |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
+| linea |   |   |   |   |   |   | ✓ |   |   | ✓ |   |   |   |   |   |   |   |
 | linear |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |   |   |
 | looksrare |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
 | mastodon |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |
 | matters |   |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |   |
 | mirror |   | ✓ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
 | momoka |   | ✓ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| nearsocial |   |   |   |   |   |   |   |   |   |   |   | ✓ |   |   |   |   |   |
 | nouns |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
 | opensea |   |   |   |   |   |   | ✓ |   |   |   |   |   |   |   |   |   |   |
 | optimism |   |   |   |   |   |   | ✓ |   |   |   |   |   | ✓ |   |   |   |   |
