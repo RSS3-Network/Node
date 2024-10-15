@@ -68,7 +68,7 @@ func (c *client) trimOldHandles(ctx context.Context, tableName string) error {
 	statement := fmt.Sprintf(`
 		DELETE FROM %s
 		WHERE handle NOT IN (
-			SELECT handle 
+			SELECT handle
 			FROM %s
 			ORDER BY last_updated DESC
 			LIMIT $1
