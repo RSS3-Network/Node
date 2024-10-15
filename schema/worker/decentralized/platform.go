@@ -23,7 +23,7 @@ const (
 	PlatformKiwiStand                  // KiwiStand
 	PlatformLens                       // Lens
 	PlatformLido                       // Lido
-	PlatformLinea                      // Linear
+	PlatformLinea                      // Linea
 	PlatformLiNEAR                     // LiNEAR
 	PlatformLooksRare                  // LooksRare
 	PlatformMatters                    // Matters
