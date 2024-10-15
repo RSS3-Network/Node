@@ -34,20 +34,27 @@ func (c *Component) getCursor(ctx context.Context, cursor *string) (*activityx.A
 		return nil, nil
 	}
 
-	cleanedCursor := strings.TrimPrefix(*cursor, "https://")
-	cleanedCursor = strings.TrimPrefix(cleanedCursor, "http://")
+	cleanedCursor := *cursor
+	prefix := "https://"
 
-	str := strings.Split(cleanedCursor, ":")
-	if len(str) != 2 {
-		return nil, fmt.Errorf("invalid cursor")
+	if strings.HasPrefix(cleanedCursor, "https://") {
+		cleanedCursor = cleanedCursor[8:]
+	} else if strings.HasPrefix(cleanedCursor, "http://") {
+		cleanedCursor = cleanedCursor[7:]
+		prefix = "http://"
 	}
 
-	network, err := networkx.NetworkString(str[1])
+	id, networkStr, found := strings.Cut(cleanedCursor, ":")
+	if !found {
+		return nil, fmt.Errorf("invalid cursor: missing network")
+	}
+
+	network, err := networkx.NetworkString(networkStr)
 	if err != nil {
 		return nil, fmt.Errorf("invalid cursor: %w", err)
 	}
 
-	data, _, err := c.getActivity(ctx, model.ActivityQuery{ID: lo.ToPtr(str[0]), Network: lo.ToPtr(network)})
+	data, _, err := c.getActivity(ctx, model.ActivityQuery{ID: lo.ToPtr(prefix + id), Network: lo.ToPtr(network)})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cursor: %w", err)
 	}
