@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -38,7 +39,6 @@ const (
 
 //go:embed migration/*.sql
 var migrationFS embed.FS
-var maxRecentHandles = 100000
 
 type client struct {
 	partition bool
@@ -382,14 +382,6 @@ func (c *client) SaveDatasetENSNamehash(ctx context.Context, namehash *model.ENS
 }
 
 func (c *client) SaveRecentMastodonHandles(ctx context.Context, handles []*model.MastodonHandle) error {
-	logger := zap.L()
-	logger.Info("Starting UpdateRecentMastodonHandles", zap.Int("handleCount", len(handles)))
-
-	onConflictClause := clause.OnConflict{
-		Columns:   []clause.Column{{Name: "handle"}},
-		UpdateAll: true,
-	}
-
 	// build the mastodon update handle table
 	values := make([]table.DatasetMastodonUpdateHandle, 0, len(handles))
 
@@ -403,42 +395,12 @@ func (c *client) SaveRecentMastodonHandles(ctx context.Context, handles []*model
 		values = append(values, value)
 	}
 
-	// Insert all handles in one batch operation
-	if err := c.database.WithContext(ctx).
-		Clauses(onConflictClause).
-		Create(&values).Error; err != nil {
-		return fmt.Errorf("failed to save Mastodon handles: %w", err)
+	onConflictClause := clause.OnConflict{
+		Columns:   []clause.Column{{Name: "handle"}},
+		UpdateAll: true,
 	}
 
-	// trim old handles if needed
-	if err := c.trimOldHandles(ctx); err != nil {
-		return fmt.Errorf("failed to trim old handles: %w", err)
-	}
-
-	return nil
-}
-
-// trimOldHandles removes outdated handles from the dataset
-func (c *client) trimOldHandles(ctx context.Context) error {
-	var handleModel table.DatasetMastodonUpdateHandle
-	tableName := handleModel.TableName()
-
-	statement := fmt.Sprintf(`
-		DELETE FROM %s
-		WHERE handle NOT IN (
-			SELECT handle
-			FROM %s
-			ORDER BY last_updated DESC
-			LIMIT $1
-		);`, tableName, tableName)
-
-	trimResult := c.database.WithContext(ctx).Exec(statement, maxRecentHandles)
-
-	if trimResult.Error != nil {
-		return fmt.Errorf("failed to trim old handles: %w", trimResult.Error)
-	}
-
-	return nil
+	return c.database.WithContext(ctx).Clauses(onConflictClause).CreateInBatches(&values, math.MaxUint8).Error
 }
 
 // GetUpdatedMastodonHandles retrieves a paginated list of Mastodon handles that have been updated since the specified timestamp.
