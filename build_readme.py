@@ -4,7 +4,7 @@ import re
 import os
 
 # API endpoint
-GLOBAL_INDEXER_ENDPOINT = os.getenv("GLOBAL_INDEXER_ENDPOINT", "https://node.rss3.dev")
+NETWORK_CONFIG_ENDPOINT = os.getenv("NETWORK_CONFIG_ENDPOINT", "https://gi.rss3.io/nta")
 
 # Read README.md file
 root = pathlib.Path(__file__).parent.resolve()
@@ -13,7 +13,7 @@ with readme_path.open() as f:
     readme_content = f.read()
 
 # Get network and worker data
-response = requests.get(f"{GLOBAL_INDEXER_ENDPOINT}/networks/config")
+response = requests.get(f"{NETWORK_CONFIG_ENDPOINT}/networks/config")
 data = response.json()['data']
 
 # Extract networks and workers
