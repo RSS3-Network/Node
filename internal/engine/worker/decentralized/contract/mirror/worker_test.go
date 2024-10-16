@@ -9,7 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/database/dialer"
-	source "github.com/rss3-network/node/internal/engine/source/arweave"
+	source "github.com/rss3-network/node/internal/engine/protocol/arweave"
 	worker "github.com/rss3-network/node/internal/engine/worker/decentralized/contract/mirror"
 	"github.com/rss3-network/node/provider/arweave"
 	workerx "github.com/rss3-network/node/schema/worker/decentralized"

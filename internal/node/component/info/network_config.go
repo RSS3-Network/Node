@@ -72,8 +72,8 @@ const (
 	mastodonInstanceDescription = "A Mastodon instance is required. Please follow <a href=\"https://github.com/RSS3-Network/Mastodon-Instance-Kit\" target=\"_blank\">the guide</a> to either deploy a new Mastodon instance or modify an existing Mastodon instance. After completing either option, enter your Mastodon endpoint (format: your_instance_ip:9092) here."
 )
 
-var defaultNetworkParameters = map[network.Source]*Parameters{
-	network.ActivityPubSource: {
+var defaultNetworkParameters = map[network.Protocol]*Parameters{
+	network.ActivityPubProtocol: {
 		KafkaTopic: &ConfigDetail{
 			IsRequired:  true,
 			Type:        StringType,
@@ -83,7 +83,7 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 			Key:         "parameters.kafka_topic",
 		},
 	},
-	network.ArweaveSource: {
+	network.ArweaveProtocol: {
 		// unnecessary to expose
 		//BlockStart: &ConfigDetail{
 		//	IsRequired:  false,
@@ -104,7 +104,7 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 			Key:         "parameters.concurrent_block_requests",
 		},
 	},
-	network.EthereumSource: {
+	network.EthereumProtocol: {
 		// unnecessary to expose
 		//BlockStart: &ConfigDetail{
 		//	IsRequired:  false,
@@ -149,7 +149,7 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 			Key:         "parameters.block_receipts_batch_size",
 		},
 	},
-	network.NearSource: {
+	network.NearProtocol: {
 		// unnecessary to expose
 		//BlockStart: &ConfigDetail{
 		//	IsRequired:  false,
@@ -173,16 +173,16 @@ var defaultNetworkParameters = map[network.Source]*Parameters{
 }
 
 // getDefaultParametersByNetwork returns the default parameters based on the network.
-func getDefaultParametersByNetwork(network network.Source) *Parameters {
-	return defaultNetworkParameters[network]
+func getDefaultParametersByNetwork(protocol network.Protocol) *Parameters {
+	return defaultNetworkParameters[protocol]
 }
 
 // defaultWorkerConfig returns the default worker config based on the worker and network.
 // If parameters are supplied, use them instead of the default parameters.
-func defaultWorkerConfig(worker worker.Worker, network network.Source, parameters *Parameters) workerConfig {
+func defaultWorkerConfig(worker worker.Worker, protocol network.Protocol, parameters *Parameters) workerConfig {
 	// generate default parameters only if parameters are not provided
 	if parameters == nil {
-		parameters = getDefaultParametersByNetwork(network)
+		parameters = getDefaultParametersByNetwork(protocol)
 	}
 
 	config := workerConfig{
@@ -222,8 +222,8 @@ func defaultWorkerConfig(worker worker.Worker, network network.Source, parameter
 }
 
 // customWorkerConfigWithoutEndpoint generates a config with custom fields and no endpoint.
-func customWorkerConfigWithoutEndpoint(worker worker.Worker, network network.Source, parameters *Parameters, requireIPFS bool) workerConfig {
-	config := defaultWorkerConfig(worker, network, parameters)
+func customWorkerConfigWithoutEndpoint(worker worker.Worker, protocol network.Protocol, parameters *Parameters, requireIPFS bool) workerConfig {
+	config := defaultWorkerConfig(worker, protocol, parameters)
 
 	config.EndpointID = nil
 
@@ -235,8 +235,8 @@ func customWorkerConfigWithoutEndpoint(worker worker.Worker, network network.Sou
 }
 
 // customWorkerConfigWithIPFS generates a config with IPFS and custom fields.
-func customWorkerConfigWithIPFS(worker worker.Worker, network network.Source, endpointDescription string) workerConfig {
-	config := defaultWorkerConfig(worker, network, nil)
+func customWorkerConfigWithIPFS(worker worker.Worker, protocol network.Protocol, endpointDescription string) workerConfig {
+	config := defaultWorkerConfig(worker, protocol, nil)
 
 	setIPFSGateways(&config)
 
@@ -248,8 +248,8 @@ func customWorkerConfigWithIPFS(worker worker.Worker, network network.Source, en
 }
 
 // customWorkerConfig generates a config with custom fields.
-func customWorkerConfig(worker worker.Worker, network network.Source, parameters *Parameters, endpointDescription string) workerConfig {
-	config := defaultWorkerConfig(worker, network, parameters)
+func customWorkerConfig(worker worker.Worker, protocol network.Protocol, parameters *Parameters, endpointDescription string) workerConfig {
+	config := defaultWorkerConfig(worker, protocol, parameters)
 
 	// Update the EndpointID description based on the provided custom description
 	config.EndpointID.Description = endpointDescription
@@ -283,16 +283,16 @@ func getEndpointConfig(n network.Network) Endpoint {
 		},
 	}
 
-	switch n.Source() {
-	case network.EthereumSource:
+	switch n.Protocol() {
+	case network.EthereumProtocol:
 		endpointConfig.URL.Value = endpoint.MustGet(n)
-	case network.NearSource:
+	case network.NearProtocol:
 		endpointConfig.URL.Value = "https://archival-rpc.mainnet.near.org"
-	case network.FarcasterSource:
+	case network.FarcasterProtocol:
 		endpointConfig.URL.Value = "https://your-farcaster-api-endpoint"
-	case network.ArweaveSource:
+	case network.ArweaveProtocol:
 		endpointConfig.URL.Value = "https://arweave.net"
-	case network.ActivityPubSource:
+	case network.ActivityPubProtocol:
 		endpointConfig.URL.Type = StringType
 		endpointConfig.URL.Description = mastodonInstanceDescription
 		endpointConfig.URL.Value = "127.0.0.1:9092"
@@ -428,8 +428,8 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Stargate,
 		decentralized.Zerion,
 	},
-	network.RSS: {
-		rss.RSSHub,
+	network.RSSHub: {
+		rss.Core,
 	},
 	network.SatoshiVM: {
 		decentralized.Core,
@@ -446,9 +446,9 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 }
 
 // WorkerToConfigMap is a map of worker to config.
-var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
-	network.ActivityPubSource: {
-		federated.Core: customWorkerConfig(federated.Core, network.ActivityPubSource, &Parameters{
+var WorkerToConfigMap = map[network.Protocol]map[worker.Worker]workerConfig{
+	network.ActivityPubProtocol: {
+		federated.Core: customWorkerConfig(federated.Core, network.ActivityPubProtocol, &Parameters{
 			KafkaTopic: &ConfigDetail{
 				IsRequired:  true,
 				Type:        StringType,
@@ -459,46 +459,46 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		}, mastodonInstanceDescription),
 	},
-	network.ArweaveSource: {
-		decentralized.Mirror:    customWorkerConfigWithoutEndpoint(decentralized.Mirror, network.ArweaveSource, nil, true),
-		decentralized.Momoka:    customWorkerConfigWithIPFS(decentralized.Momoka, network.ArweaveSource, "A Polygon RPC is required for Momoka"),
-		decentralized.Paragraph: customWorkerConfigWithoutEndpoint(decentralized.Paragraph, network.ArweaveSource, nil, false),
+	network.ArweaveProtocol: {
+		decentralized.Mirror:    customWorkerConfigWithoutEndpoint(decentralized.Mirror, network.ArweaveProtocol, nil, true),
+		decentralized.Momoka:    customWorkerConfigWithIPFS(decentralized.Momoka, network.ArweaveProtocol, "A Polygon RPC is required for Momoka"),
+		decentralized.Paragraph: customWorkerConfigWithoutEndpoint(decentralized.Paragraph, network.ArweaveProtocol, nil, false),
 	},
-	network.EthereumSource: {
-		decentralized.Aave:       defaultWorkerConfig(decentralized.Aave, network.EthereumSource, nil),
-		decentralized.Aavegotchi: defaultWorkerConfig(decentralized.Aavegotchi, network.EthereumSource, nil),
-		decentralized.Arbitrum:   defaultWorkerConfig(decentralized.Arbitrum, network.EthereumSource, nil),
-		decentralized.BendDAO:    defaultWorkerConfig(decentralized.BendDAO, network.EthereumSource, nil),
-		decentralized.Base:       defaultWorkerConfig(decentralized.Base, network.EthereumSource, nil),
-		decentralized.Core:       defaultWorkerConfig(decentralized.Core, network.EthereumSource, nil),
-		decentralized.Cow:        defaultWorkerConfig(decentralized.Cow, network.EthereumSource, nil),
-		decentralized.Crossbell:  customWorkerConfigWithIPFS(decentralized.Crossbell, network.EthereumSource, ""),
-		decentralized.Curve:      defaultWorkerConfig(decentralized.Curve, network.EthereumSource, nil),
-		decentralized.ENS:        defaultWorkerConfig(decentralized.ENS, network.EthereumSource, nil),
-		decentralized.Highlight:  defaultWorkerConfig(decentralized.Highlight, network.EthereumSource, nil),
-		decentralized.IQWiki:     customWorkerConfigWithIPFS(decentralized.IQWiki, network.EthereumSource, ""),
-		decentralized.KiwiStand:  defaultWorkerConfig(decentralized.KiwiStand, network.EthereumSource, nil),
-		decentralized.Lens:       customWorkerConfigWithIPFS(decentralized.Lens, network.EthereumSource, ""),
-		decentralized.Lido:       defaultWorkerConfig(decentralized.Lido, network.EthereumSource, nil),
-		decentralized.Linea:      defaultWorkerConfig(decentralized.Linea, network.EthereumSource, nil),
-		decentralized.Looksrare:  defaultWorkerConfig(decentralized.Looksrare, network.EthereumSource, nil),
-		decentralized.Matters:    customWorkerConfigWithIPFS(decentralized.Matters, network.EthereumSource, ""),
-		decentralized.Nouns:      defaultWorkerConfig(decentralized.Nouns, network.EthereumSource, nil),
-		decentralized.Oneinch:    defaultWorkerConfig(decentralized.Oneinch, network.EthereumSource, nil),
-		decentralized.OpenSea:    defaultWorkerConfig(decentralized.OpenSea, network.EthereumSource, nil),
-		decentralized.Optimism:   defaultWorkerConfig(decentralized.Optimism, network.EthereumSource, nil),
-		decentralized.Paraswap:   defaultWorkerConfig(decentralized.Paraswap, network.EthereumSource, nil),
-		decentralized.Polymarket: defaultWorkerConfig(decentralized.Polymarket, network.EthereumSource, nil),
-		decentralized.Rainbow:    defaultWorkerConfig(decentralized.Rainbow, network.EthereumSource, nil),
-		decentralized.RSS3:       defaultWorkerConfig(decentralized.RSS3, network.EthereumSource, nil),
-		decentralized.SAVM:       defaultWorkerConfig(decentralized.SAVM, network.EthereumSource, nil),
-		decentralized.Stargate:   defaultWorkerConfig(decentralized.Stargate, network.EthereumSource, nil),
-		decentralized.Uniswap:    defaultWorkerConfig(decentralized.Uniswap, network.EthereumSource, nil),
-		decentralized.VSL:        defaultWorkerConfig(decentralized.VSL, network.EthereumSource, nil),
-		decentralized.Zerion:     defaultWorkerConfig(decentralized.Zerion, network.EthereumSource, nil),
+	network.EthereumProtocol: {
+		decentralized.Aave:       defaultWorkerConfig(decentralized.Aave, network.EthereumProtocol, nil),
+		decentralized.Aavegotchi: defaultWorkerConfig(decentralized.Aavegotchi, network.EthereumProtocol, nil),
+		decentralized.Arbitrum:   defaultWorkerConfig(decentralized.Arbitrum, network.EthereumProtocol, nil),
+		decentralized.BendDAO:    defaultWorkerConfig(decentralized.BendDAO, network.EthereumProtocol, nil),
+		decentralized.Base:       defaultWorkerConfig(decentralized.Base, network.EthereumProtocol, nil),
+		decentralized.Core:       defaultWorkerConfig(decentralized.Core, network.EthereumProtocol, nil),
+		decentralized.Cow:        defaultWorkerConfig(decentralized.Cow, network.EthereumProtocol, nil),
+		decentralized.Crossbell:  customWorkerConfigWithIPFS(decentralized.Crossbell, network.EthereumProtocol, ""),
+		decentralized.Curve:      defaultWorkerConfig(decentralized.Curve, network.EthereumProtocol, nil),
+		decentralized.ENS:        defaultWorkerConfig(decentralized.ENS, network.EthereumProtocol, nil),
+		decentralized.Highlight:  defaultWorkerConfig(decentralized.Highlight, network.EthereumProtocol, nil),
+		decentralized.IQWiki:     customWorkerConfigWithIPFS(decentralized.IQWiki, network.EthereumProtocol, ""),
+		decentralized.KiwiStand:  defaultWorkerConfig(decentralized.KiwiStand, network.EthereumProtocol, nil),
+		decentralized.Lens:       customWorkerConfigWithIPFS(decentralized.Lens, network.EthereumProtocol, ""),
+		decentralized.Lido:       defaultWorkerConfig(decentralized.Lido, network.EthereumProtocol, nil),
+		decentralized.Linea:      defaultWorkerConfig(decentralized.Linea, network.EthereumProtocol, nil),
+		decentralized.Looksrare:  defaultWorkerConfig(decentralized.Looksrare, network.EthereumProtocol, nil),
+		decentralized.Matters:    customWorkerConfigWithIPFS(decentralized.Matters, network.EthereumProtocol, ""),
+		decentralized.Nouns:      defaultWorkerConfig(decentralized.Nouns, network.EthereumProtocol, nil),
+		decentralized.Oneinch:    defaultWorkerConfig(decentralized.Oneinch, network.EthereumProtocol, nil),
+		decentralized.OpenSea:    defaultWorkerConfig(decentralized.OpenSea, network.EthereumProtocol, nil),
+		decentralized.Optimism:   defaultWorkerConfig(decentralized.Optimism, network.EthereumProtocol, nil),
+		decentralized.Paraswap:   defaultWorkerConfig(decentralized.Paraswap, network.EthereumProtocol, nil),
+		decentralized.Polymarket: defaultWorkerConfig(decentralized.Polymarket, network.EthereumProtocol, nil),
+		decentralized.Rainbow:    defaultWorkerConfig(decentralized.Rainbow, network.EthereumProtocol, nil),
+		decentralized.RSS3:       defaultWorkerConfig(decentralized.RSS3, network.EthereumProtocol, nil),
+		decentralized.SAVM:       defaultWorkerConfig(decentralized.SAVM, network.EthereumProtocol, nil),
+		decentralized.Stargate:   defaultWorkerConfig(decentralized.Stargate, network.EthereumProtocol, nil),
+		decentralized.Uniswap:    defaultWorkerConfig(decentralized.Uniswap, network.EthereumProtocol, nil),
+		decentralized.VSL:        defaultWorkerConfig(decentralized.VSL, network.EthereumProtocol, nil),
+		decentralized.Zerion:     defaultWorkerConfig(decentralized.Zerion, network.EthereumProtocol, nil),
 	},
-	network.FarcasterSource: {
-		decentralized.Core: customWorkerConfig(decentralized.Core, network.FarcasterSource, &Parameters{
+	network.FarcasterProtocol: {
+		decentralized.Core: customWorkerConfig(decentralized.Core, network.FarcasterProtocol, &Parameters{
 			APIKey: &ConfigDetail{
 				IsRequired:  false,
 				Type:        StringType,
@@ -508,13 +508,13 @@ var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 			},
 		}, "A Farcaster Hubble is required"),
 	},
-	network.NearSource: {
-		decentralized.Core:       defaultWorkerConfig(decentralized.Core, network.NearSource, nil),
-		decentralized.LiNEAR:     defaultWorkerConfig(decentralized.LiNEAR, network.NearSource, nil),
-		decentralized.NearSocial: defaultWorkerConfig(decentralized.NearSocial, network.NearSource, nil),
+	network.NearProtocol: {
+		decentralized.Core:       defaultWorkerConfig(decentralized.Core, network.NearProtocol, nil),
+		decentralized.LiNEAR:     defaultWorkerConfig(decentralized.LiNEAR, network.NearProtocol, nil),
+		decentralized.NearSocial: defaultWorkerConfig(decentralized.NearSocial, network.NearProtocol, nil),
 	},
-	network.RSSSource: {
-		rss.RSSHub: customWorkerConfig(rss.RSSHub, network.RSSSource, &Parameters{
+	network.RSSProtocol: {
+		rss.Core: customWorkerConfig(rss.Core, network.RSSProtocol, &Parameters{
 			Authentication: &Authentication{
 				AccessKey: &ConfigDetail{
 					IsRequired:  false,

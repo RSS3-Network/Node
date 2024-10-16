@@ -25,5 +25,5 @@ func (p *Platform) UnmarshalParam(param string) error {
 
 // ToPlatformMap is a map of worker to platform
 var ToPlatformMap = map[Worker]Platform{
-	RSSHub: PlatformRSSHub,
+	Core: PlatformRSSHub,
 }

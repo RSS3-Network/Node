@@ -13,7 +13,7 @@ import (
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/engine"
-	"github.com/rss3-network/node/internal/engine/source"
+	"github.com/rss3-network/node/internal/engine/protocol"
 	decentralizedWorker "github.com/rss3-network/node/internal/engine/worker/decentralized"
 	// worker "github.com/rss3-network/node/internal/engine/worker/decentralized"
 	federatedWorker "github.com/rss3-network/node/internal/engine/worker/federated"
@@ -84,7 +84,7 @@ func (s *Server) Run(ctx context.Context) error {
 			}
 		case err := <-errorChan:
 			if err != nil {
-				return fmt.Errorf("an error occurred in the source: %w", err)
+				return fmt.Errorf("an error occurred in the protocol: %w", err)
 			}
 
 			return nil
@@ -284,46 +284,46 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 	}
 
 	// Initialize worker.
-	switch config.Network.Source() {
-	case network.ArweaveSource, network.EthereumSource, network.FarcasterSource, network.RSSSource, network.NearSource:
+	switch config.Network.Protocol() {
+	case network.ArweaveProtocol, network.EthereumProtocol, network.FarcasterProtocol, network.RSSProtocol, network.NearProtocol:
 		if instance.worker, err = decentralizedWorker.New(instance.config, databaseClient, instance.redisClient); err != nil {
 			return nil, fmt.Errorf("new decentralized worker: %w", err)
 		}
-	case network.ActivityPubSource:
+	case network.ActivityPubProtocol:
 		if instance.worker, err = federatedWorker.New(instance.config, databaseClient, instance.redisClient); err != nil {
 			return nil, fmt.Errorf("new federated worker: %w", err)
 		}
 	default:
-		return nil, fmt.Errorf("unknown worker source: %s", config.Network.Source())
+		return nil, fmt.Errorf("unknown worker protocol: %s", config.Network.Protocol())
 	}
 
-	switch config.Network.Source() {
-	case network.ActivityPubSource:
+	switch config.Network.Protocol() {
+	case network.ActivityPubProtocol:
 		instance.monitorClient, err = monitor.NewActivityPubClient(config.Endpoint, config.Parameters, config.Worker)
 		if err != nil {
 			return nil, fmt.Errorf("error occurred in creating new activitypub monitorClient: %w", err)
 		}
-	case network.ArweaveSource:
+	case network.ArweaveProtocol:
 		instance.monitorClient, err = monitor.NewArweaveClient()
 		if err != nil {
 			return nil, fmt.Errorf("new arweave monitorClient: %w", err)
 		}
-	case network.FarcasterSource:
-		instance.monitorClient, err = monitor.NewArweaveClient()
+	case network.FarcasterProtocol:
+		instance.monitorClient, err = monitor.NewFarcasterClient()
 		if err != nil {
 			return nil, fmt.Errorf("new arweave monitorClient: %w", err)
 		}
-	case network.EthereumSource:
+	case network.EthereumProtocol:
 		instance.monitorClient, err = monitor.NewEthereumClient(config.Endpoint)
 		if err != nil {
 			return nil, fmt.Errorf("new ethereum monitorClient: %w", err)
 		}
-	case network.NearSource:
+	case network.NearProtocol:
 		instance.monitorClient, err = monitor.NewNearClient(config.Endpoint)
 		if err != nil {
 			return nil, fmt.Errorf("new near monitorClient: %w", err)
 		}
-	case network.RSSSource:
+	case network.RSSProtocol:
 		instance.monitorClient, err = monitor.NewRssClient(config.EndpointID, config.Parameters)
 		if err != nil {
 			return nil, fmt.Errorf("new rss monitorClient: %w", err)
@@ -334,7 +334,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 		return nil, fmt.Errorf("initialize meter: %w", err)
 	}
 
-	// Load checkpoint for initialize the source.
+	// Load checkpoint for initialize the protocol.
 	checkpoint, err := instance.databaseClient.LoadCheckpoint(ctx, instance.id, config.Network, instance.worker.Name())
 	if err != nil {
 		return nil, fmt.Errorf("loca checkpoint: %w", err)
@@ -348,9 +348,9 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 
 	zap.L().Info("load checkpoint", zap.String("checkpoint.id", checkpoint.ID), zap.String("checkpoint.network", checkpoint.Network.String()), zap.String("checkpoint.worker", checkpoint.Worker), zap.Any("checkpoint.state", state))
 
-	// Initialize source.
-	if instance.source, err = source.New(instance.config, instance.worker.Filter(), checkpoint, databaseClient, redisClient); err != nil {
-		return nil, fmt.Errorf("new source: %w", err)
+	// Initialize protocol.
+	if instance.source, err = protocol.New(instance.config, instance.worker.Filter(), checkpoint, databaseClient, redisClient); err != nil {
+		return nil, fmt.Errorf("new protocol: %w", err)
 	}
 
 	return &instance, nil

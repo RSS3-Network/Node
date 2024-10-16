@@ -15,14 +15,14 @@ import (
 
 // NewWorker creates a new core worker.
 func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker, error) {
-	switch config.Network.Source() {
-	case network.EthereumSource:
+	switch config.Network.Protocol() {
+	case network.EthereumProtocol:
 		return ethereum.NewWorker(config, redisClient)
-	case network.ArweaveSource:
+	case network.ArweaveProtocol:
 		return arweave.NewWorker(config)
-	case network.FarcasterSource:
+	case network.FarcasterProtocol:
 		return farcaster.NewWorker()
-	case network.NearSource:
+	case network.NearProtocol:
 		return near.NewWorker(config)
 	default:
 		return nil, fmt.Errorf("unsupported worker %s", config.Network)

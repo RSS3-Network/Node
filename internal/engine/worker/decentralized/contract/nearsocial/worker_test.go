@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/rss3-network/node/config"
-	source "github.com/rss3-network/node/internal/engine/source/near"
+	source "github.com/rss3-network/node/internal/engine/protocol/near"
 	worker "github.com/rss3-network/node/internal/engine/worker/decentralized/contract/nearsocial"
 	"github.com/rss3-network/node/provider/near"
 	workerx "github.com/rss3-network/node/schema/worker/decentralized"

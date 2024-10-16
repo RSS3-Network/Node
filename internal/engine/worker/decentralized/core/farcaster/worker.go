@@ -9,7 +9,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/internal/engine"
-	source "github.com/rss3-network/node/internal/engine/source/farcaster"
+	source "github.com/rss3-network/node/internal/engine/protocol/farcaster"
 	"github.com/rss3-network/node/provider/farcaster"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/schema/worker/decentralized"
@@ -58,7 +58,7 @@ func (w *worker) Types() []schema.Type {
 	}
 }
 
-// Filter returns a source filter.
+// Filter returns a protocol filter.
 func (w *worker) Filter() engine.DataSourceFilter {
 	return nil
 }

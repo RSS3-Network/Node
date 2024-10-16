@@ -7,7 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/internal/database/model"
-	source "github.com/rss3-network/node/internal/engine/source/farcaster"
+	source "github.com/rss3-network/node/internal/engine/protocol/farcaster"
 	worker "github.com/rss3-network/node/internal/engine/worker/decentralized/core/farcaster"
 	message "github.com/rss3-network/node/provider/farcaster"
 	workerx "github.com/rss3-network/node/schema/worker/decentralized"

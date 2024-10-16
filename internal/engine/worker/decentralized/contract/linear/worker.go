@@ -9,7 +9,7 @@ import (
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
-	source "github.com/rss3-network/node/internal/engine/source/near"
+	source "github.com/rss3-network/node/internal/engine/protocol/near"
 	workerx "github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
@@ -61,7 +61,7 @@ const (
 	liNEARFTTransferCallMethod = "ft_transfer_call"
 )
 
-// Filter returns a source filter.
+// Filter returns a protocol filter.
 func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{
 		ReceiverIDs: []string{

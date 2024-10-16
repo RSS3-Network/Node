@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/rss3-network/node/config"
-	source "github.com/rss3-network/node/internal/engine/source/near"
+	source "github.com/rss3-network/node/internal/engine/protocol/near"
 	worker "github.com/rss3-network/node/internal/engine/worker/decentralized/core/near"
 	"github.com/rss3-network/node/provider/near"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"

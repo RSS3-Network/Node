@@ -24,7 +24,7 @@ var _ engine.DataSource = (*dataSource)(nil)
 
 var DefaultStartTime int64
 
-// dataSource struct defines the fields for the data source
+// dataSource struct defines the fields for the data protocol
 type dataSource struct {
 	config         *config.Module
 	databaseClient database.Client
@@ -42,7 +42,7 @@ func (s *dataSource) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-// Start initializes the data source and starts consuming Kafka messages
+// Start initializes the data protocol and starts consuming Kafka messages
 func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
 	if err := s.initialize(); err != nil {
 		errorChan <- fmt.Errorf("initialize dataSource: %w", err)
@@ -176,7 +176,7 @@ func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activit
 	return &tasks
 }
 
-// NewSource creates a new data source instance
+// NewSource creates a new data protocol instance
 func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.DataSource, error) {
 	var (
 		state State

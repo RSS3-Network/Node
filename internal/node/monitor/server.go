@@ -90,21 +90,21 @@ func initNetworkClient(m *config.Module) (Client, error) {
 
 	var err error
 
-	switch m.Network.Source() {
-	case network.ActivityPubSource:
+	switch m.Network.Protocol() {
+	case network.ActivityPubProtocol:
 		client, err = NewActivityPubClient(m.Endpoint, m.Parameters, m.Worker)
-	case network.ArweaveSource:
+	case network.ArweaveProtocol:
 		client, err = NewArweaveClient()
-	case network.FarcasterSource:
+	case network.FarcasterProtocol:
 		client, err = NewFarcasterClient()
-	case network.RSSSource:
+	case network.RSSProtocol:
 		client, err = NewRssClient(m.EndpointID, m.Parameters)
-	case network.EthereumSource:
+	case network.EthereumProtocol:
 		client, err = NewEthereumClient(m.Endpoint)
-	case network.NearSource:
+	case network.NearProtocol:
 		client, err = NewNearClient(m.Endpoint)
 	default:
-		return nil, fmt.Errorf("unsupported network source: %s", m.Network)
+		return nil, fmt.Errorf("unsupported network protocol: %s", m.Network)
 	}
 
 	if err != nil {

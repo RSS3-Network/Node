@@ -1,4 +1,4 @@
-package source
+package protocol
 
 import (
 	"fmt"
@@ -7,28 +7,28 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/engine"
-	"github.com/rss3-network/node/internal/engine/source/activitypub"
-	"github.com/rss3-network/node/internal/engine/source/arweave"
-	"github.com/rss3-network/node/internal/engine/source/ethereum"
-	"github.com/rss3-network/node/internal/engine/source/farcaster"
-	"github.com/rss3-network/node/internal/engine/source/near"
+	"github.com/rss3-network/node/internal/engine/protocol/activitypub"
+	"github.com/rss3-network/node/internal/engine/protocol/arweave"
+	"github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/engine/protocol/farcaster"
+	"github.com/rss3-network/node/internal/engine/protocol/near"
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 
-// New creates a new source.
+// New creates a new protocol.
 func New(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint, databaseClient database.Client, redisClient rueidis.Client) (engine.DataSource, error) {
-	switch config.Network.Source() {
-	case network.EthereumSource:
+	switch config.Network.Protocol() {
+	case network.EthereumProtocol:
 		return ethereum.NewSource(config, sourceFilter, checkpoint, redisClient)
-	case network.ArweaveSource:
+	case network.ArweaveProtocol:
 		return arweave.NewSource(config, sourceFilter, checkpoint, redisClient)
-	case network.FarcasterSource:
+	case network.FarcasterProtocol:
 		return farcaster.NewSource(config, checkpoint, databaseClient)
-	case network.ActivityPubSource:
+	case network.ActivityPubProtocol:
 		return activitypub.NewSource(config, checkpoint, databaseClient)
-	case network.NearSource:
+	case network.NearProtocol:
 		return near.NewSource(config, sourceFilter, checkpoint, redisClient)
 	default:
-		return nil, fmt.Errorf("unsupported network source %s", config.Network)
+		return nil, fmt.Errorf("unsupported network protocol %s", config.Network)
 	}
 }

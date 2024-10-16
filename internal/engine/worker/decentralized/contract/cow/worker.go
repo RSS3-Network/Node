@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
-	source "github.com/rss3-network/node/internal/engine/source/ethereum"
+	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/cow"
@@ -148,7 +148,7 @@ func (w *worker) transformSettlementTradeLog(ctx context.Context, task *source.T
 	return actions, nil
 }
 
-// func (w *worker) buildTransactionTransferAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress *common.Address, amount *big.Int) (*activityx.Action, error) {
+// func (w *worker) buildTransactionTransferAction(ctx context.Context, task *protocol.Task, from, to common.Address, tokenAddress *common.Address, amount *big.Int) (*activityx.Action, error) {
 //	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenAddress, nil, task.Header.Number)
 //	if err != nil {
 //		return nil, fmt.Errorf("lookup token metadata: %w", err)

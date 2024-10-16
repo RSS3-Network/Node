@@ -17,7 +17,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/database/dialer"
-	"github.com/rss3-network/node/internal/engine/source/activitypub"
+	"github.com/rss3-network/node/internal/engine/protocol/activitypub"
 	message "github.com/rss3-network/node/provider/activitypub"
 	redisx "github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/schema/worker/federated"

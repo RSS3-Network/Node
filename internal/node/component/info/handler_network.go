@@ -38,9 +38,9 @@ func (c *Component) GetNetworkConfig(ctx echo.Context) error {
 	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, "config")
 
 	config := NetworkConfig{
-		RSS:           getNetworkConfigDetailForRSS(network.RSSSource),
-		Decentralized: getNetworkConfigDetail(network.ArweaveSource, network.EthereumSource, network.FarcasterSource, network.NearSource),
-		Federated:     getNetworkConfigDetail(network.ActivityPubSource),
+		RSS:           getNetworkConfigDetailForRSS(network.RSSProtocol),
+		Decentralized: getNetworkConfigDetail(network.ArweaveProtocol, network.EthereumProtocol, network.FarcasterProtocol, network.NearProtocol),
+		Federated:     getNetworkConfigDetail(network.ActivityPubProtocol),
 	}
 
 	return ctx.JSON(http.StatusOK, NetworkConfigResponse{
@@ -48,15 +48,15 @@ func (c *Component) GetNetworkConfig(ctx echo.Context) error {
 	})
 }
 
-func getNetworkConfigDetailForRSS(source network.Source) NetworkConfigDetailForRSS {
-	n := source.Networks()[0]
+func getNetworkConfigDetailForRSS(protocol network.Protocol) NetworkConfigDetailForRSS {
+	n := protocol.Networks()[0]
 
 	networkDetail := NetworkConfigDetailForRSS{
 		ID: n.String(),
 	}
 
-	worker := rss.RSSHub
-	config := WorkerToConfigMap[source][worker]
+	worker := rss.Core
+	config := WorkerToConfigMap[protocol][worker]
 
 	workerConfig := config
 	workerConfig.ID.Value = n.String() + "-" + worker.Name()
@@ -73,17 +73,17 @@ func getNetworkConfigDetailForRSS(source network.Source) NetworkConfigDetailForR
 	return networkDetail
 }
 
-func getNetworkConfigDetail(sources ...network.Source) []NetworkConfigDetail {
+func getNetworkConfigDetail(protocols ...network.Protocol) []NetworkConfigDetail {
 	var details []NetworkConfigDetail
 
-	for _, s := range sources {
-		for _, n := range s.Networks() {
+	for _, protocol := range protocols {
+		for _, n := range protocol.Networks() {
 			if shouldSkipNetwork(n) {
 				continue
 			}
 
-			networkDetail := createNetworkDetail(s, n)
-			workerConfigs := getWorkerConfigs(s, n)
+			networkDetail := createNetworkDetail(protocol, n)
+			workerConfigs := getWorkerConfigs(protocol, n)
 			sortWorkerConfigs(workerConfigs)
 
 			networkDetail.WorkerConfig = workerConfigs
@@ -101,13 +101,13 @@ func shouldSkipNetwork(n network.Network) bool {
 	return n == network.Unknown || n == network.SatoshiVM || n == network.Bitcoin
 }
 
-func createNetworkDetail(s network.Source, n network.Network) NetworkConfigDetail {
+func createNetworkDetail(protocol network.Protocol, n network.Network) NetworkConfigDetail {
 	networkDetail := NetworkConfigDetail{
 		ID:           n.String(),
 		WorkerConfig: []workerConfig{},
 	}
 
-	if s != network.RSSSource {
+	if protocol != network.RSSProtocol {
 		endpointConfig := getEndpointConfig(n)
 		networkDetail.EndpointConfig = &endpointConfig
 	}
@@ -115,10 +115,10 @@ func createNetworkDetail(s network.Source, n network.Network) NetworkConfigDetai
 	return networkDetail
 }
 
-func getWorkerConfigs(s network.Source, n network.Network) []workerConfig {
+func getWorkerConfigs(protocol network.Protocol, n network.Network) []workerConfig {
 	var workerConfigs []workerConfig
 
-	for w, config := range WorkerToConfigMap[s] {
+	for w, config := range WorkerToConfigMap[protocol] {
 		if lo.Contains(NetworkToWorkersMap[n], w) {
 			workerConfig := createWorkerConfig(n, w, config)
 			workerConfigs = append(workerConfigs, workerConfig)

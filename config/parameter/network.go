@@ -221,7 +221,7 @@ func buildCurrentEpochCacheKey() string {
 
 // buildNetworkBlockStartCacheKey builds the cache key for the network block start
 func buildNetworkBlockStartCacheKey(network string) string {
-	return fmt.Sprintf("source:network:start:%s", strings.ToLower(network))
+	return fmt.Sprintf("protocol:network:start:%s", strings.ToLower(network))
 }
 
 // InitVSLClient initializes the VSL client

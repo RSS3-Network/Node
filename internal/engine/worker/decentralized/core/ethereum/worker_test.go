@@ -12,7 +12,7 @@ import (
 	"github.com/orlangure/gnomock/preset/redis"
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
-	source "github.com/rss3-network/node/internal/engine/source/ethereum"
+	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/decentralized/core/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/rss3"
@@ -463,7 +463,7 @@ func TestWorker_Ethereum(t *testing.T) {
 		// {
 		// 	name: "Transfer ERC-1155 tokens on Ethereum",
 		// 	arguments: arguments{
-		// 		task: &source.Task{
+		// 		task: &protocol.Task{
 		// 			Network: network.Ethereum,
 		// 			ChainID: 1,
 		// 			Header: &ethereum.Header{
@@ -921,7 +921,7 @@ func TestWorker_Ethereum(t *testing.T) {
 		//{
 		//	name: "Mint Open Chips tokens on VSL",
 		//	arguments: arguments{
-		//		task: &source.Task{
+		//		task: &protocol.Task{
 		//			Network: network.VSL,
 		//			ChainID: 12553,
 		//			Header: &ethereum.Header{

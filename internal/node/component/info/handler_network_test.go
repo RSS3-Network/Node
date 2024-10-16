@@ -111,9 +111,9 @@ func TestCalculateMinimumResources(t *testing.T) {
 			expected: baseResource,
 		},
 		{
-			name:     "Rsshub",
-			network:  network.RSS,
-			worker:   rss.RSSHub,
+			name:     "RSSHub",
+			network:  network.RSSHub,
+			worker:   rss.Core,
 			expected: baseResource,
 		},
 	}

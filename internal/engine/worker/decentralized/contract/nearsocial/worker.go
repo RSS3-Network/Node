@@ -9,7 +9,7 @@ import (
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
-	source "github.com/rss3-network/node/internal/engine/source/near"
+	source "github.com/rss3-network/node/internal/engine/protocol/near"
 	"github.com/rss3-network/node/provider/near"
 	workerx "github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
