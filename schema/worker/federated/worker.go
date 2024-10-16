@@ -9,7 +9,7 @@ import (
 type Worker int
 
 const (
-	Mastodon Worker = iota + 1 // mastodon
+	Core Worker = iota + 1 // core
 )
 
 func (w Worker) Component() string {
@@ -39,5 +39,5 @@ func GetValueByWorkerStr(workerStr string) Worker {
 
 // ToTagsMap is a map of worker to tags
 var ToTagsMap = map[Worker][]tag.Tag{
-	Mastodon: {tag.Social},
+	Core: {tag.Social},
 }

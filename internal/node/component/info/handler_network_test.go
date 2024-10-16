@@ -120,7 +120,7 @@ func TestCalculateMinimumResources(t *testing.T) {
 		{
 			name:     "ActivityPub - Mastodon",
 			network:  network.Mastodon,
-			worker:   federated.Mastodon,
+			worker:   federated.Core,
 			expected: baseResource.Mul(2),
 		},
 	}

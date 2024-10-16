@@ -323,7 +323,7 @@ func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, wo
 	workerType := worker.Name()
 
 	switch workerType {
-	case federated.Mastodon.String():
+	case federated.Core.String():
 		mastodonClient, err := mastodon.NewClient(endpoint.URL, kafkaTopic, nil)
 
 		if err != nil {

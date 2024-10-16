@@ -16,6 +16,7 @@ import (
 	"github.com/rss3-network/node/internal/stream"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
@@ -252,6 +253,13 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 		EvmAddressHookFunc(),
 	))); err != nil {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)
+	}
+
+	// Add extra logic to convert federated worker string to correct worker type.
+	for _, module := range configFile.Component.Federated {
+		if federatedWorker := federated.GetValueByWorkerStr(module.Worker.Name()); federatedWorker != 0 {
+			module.Worker = federatedWorker
+		}
 	}
 
 	// Use a function to load the endpoint for each module, because mapstructure doesn't support the use of custom unmarshaler.
