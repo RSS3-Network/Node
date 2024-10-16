@@ -6,7 +6,6 @@ import (
 	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
-	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/assert"
 )
@@ -108,12 +107,6 @@ func TestCalculateMinimumResources(t *testing.T) {
 			name:     "Crossbell",
 			network:  network.Crossbell,
 			worker:   decentralized.Crossbell,
-			expected: baseResource,
-		},
-		{
-			name:     "RSSHub",
-			network:  network.RSSHub,
-			worker:   rss.Core,
 			expected: baseResource,
 		},
 	}
