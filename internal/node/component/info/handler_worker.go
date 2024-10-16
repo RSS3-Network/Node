@@ -73,14 +73,14 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 	case c.config.Component.Federated != nil:
 		f := c.config.Component.Federated[0]
 		switch f.Worker {
-		case federated.Mastodon:
+		case federated.Core:
 			response = &WorkerResponse{
 				Data: ComponentInfo{
 					RSS: &WorkerInfo{
 						WorkerID: f.ID,
 						Network:  f.Network,
 						Worker:   f.Worker,
-						Tags:     federated.ToTagsMap[federated.Mastodon],
+						Tags:     federated.ToTagsMap[federated.Core],
 						Platform: rss.ToPlatformMap[f.Worker.(rss.Worker)].String(),
 						Status:   worker.StatusReady},
 				},

@@ -396,7 +396,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Zerion,
 	},
 	network.Mastodon: {
-		federated.Mastodon,
+		federated.Core,
 	},
 	network.Near: {
 		decentralized.Core,
@@ -448,7 +448,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 // WorkerToConfigMap is a map of worker to config.
 var WorkerToConfigMap = map[network.Source]map[worker.Worker]workerConfig{
 	network.ActivityPubSource: {
-		federated.Mastodon: customWorkerConfig(federated.Mastodon, network.ActivityPubSource, &Parameters{
+		federated.Core: customWorkerConfig(federated.Core, network.ActivityPubSource, &Parameters{
 			KafkaTopic: &ConfigDetail{
 				IsRequired:  true,
 				Type:        StringType,

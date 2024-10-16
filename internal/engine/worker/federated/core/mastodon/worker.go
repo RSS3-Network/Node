@@ -39,7 +39,7 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return federated.Mastodon.String()
+	return federated.Core.String()
 }
 
 func (w *worker) Platform() string {

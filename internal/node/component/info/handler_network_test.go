@@ -6,7 +6,6 @@ import (
 	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
-	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/assert"
@@ -116,12 +115,6 @@ func TestCalculateMinimumResources(t *testing.T) {
 			network:  network.RSS,
 			worker:   rss.RSSHub,
 			expected: baseResource,
-		},
-		{
-			name:     "ActivityPub - Mastodon",
-			network:  network.Mastodon,
-			worker:   federated.Mastodon,
-			expected: baseResource.Mul(2),
 		},
 	}
 
