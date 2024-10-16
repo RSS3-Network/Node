@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -380,45 +381,73 @@ func (c *client) SaveDatasetENSNamehash(ctx context.Context, namehash *model.ENS
 	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
-// LoadDatasetMastodonHandle loads a Mastodon handle.
-func (c *client) LoadDatasetMastodonHandle(ctx context.Context, handle string) (*model.MastodonHandle, error) {
-	var value table.DatasetMastodonHandle
+func (c *client) SaveRecentMastodonHandles(ctx context.Context, handles []*model.MastodonHandle) error {
+	// build the mastodon update handle table
+	values := make([]table.DatasetMastodonUpdateHandle, 0, len(handles))
 
-	if err := c.database.WithContext(ctx).
-		Where("handle = ?", handle).
-		First(&value).
-		Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
+	// Iterate through the handles and import them into the values slice
+	for _, handle := range handles {
+		var value table.DatasetMastodonUpdateHandle
+		if err := value.Import(handle); err != nil {
+			return err
+		}
+
+		values = append(values, value)
+	}
+
+	onConflictClause := clause.OnConflict{
+		Columns:   []clause.Column{{Name: "handle"}},
+		UpdateAll: true,
+	}
+
+	return c.database.WithContext(ctx).Clauses(onConflictClause).CreateInBatches(&values, math.MaxUint8).Error
+}
+
+func (c *client) GetUpdatedMastodonHandles(ctx context.Context, query model.QueryMastodonHandles) ([]*model.MastodonHandle, error) {
+	databaseStatement := c.database.WithContext(ctx).Table(table.DatasetMastodonUpdateHandle{}.TableName())
+
+	if query.Cursor != nil {
+		var handleCursor *table.DatasetMastodonUpdateHandle
+
+		if err := c.database.WithContext(ctx).First(&handleCursor, "handle = ?", query.Cursor).Error; err != nil {
+			return nil, fmt.Errorf("get handle cursor: %w", err)
+		}
+
+		databaseStatement = databaseStatement.Where("updated_at < ? OR (updated_at = ? AND created_at < ?)", handleCursor.UpdatedAt, handleCursor.UpdatedAt, handleCursor.CreatedAt)
+	}
+
+	if query.Since != nil {
+		databaseStatement = databaseStatement.Where("updated_at > ?", time.UnixMilli(int64(*query.Since)))
+	}
+
+	if query.Limit != nil {
+		databaseStatement = databaseStatement.Limit(*query.Limit)
+	}
+
+	databaseStatement = databaseStatement.Order("updated_at DESC, created_at DESC")
+
+	var handles []*table.DatasetMastodonUpdateHandle
+
+	if err := databaseStatement.Find(&handles).Error; err != nil {
+		return nil, err
+	}
+
+	result := make([]*model.MastodonHandle, 0, len(handles))
+
+	for _, handle := range handles {
+		var (
+			value *model.MastodonHandle
+			err   error
+		)
+
+		if value, err = handle.Export(); err != nil {
 			return nil, err
 		}
 
-		// Initialize a default handle.
-		value = table.DatasetMastodonHandle{
-			Handle:      handle,
-			LastUpdated: time.Now(),
-		}
+		result = append(result, value)
 	}
 
-	return value.Export()
-}
-
-// SaveDatasetMastodonHandle saves a Mastodon handle.
-func (c *client) SaveDatasetMastodonHandle(ctx context.Context, handle *model.MastodonHandle) error {
-	clauses := []clause.Expression{
-		clause.OnConflict{
-			Columns: []clause.Column{{Name: "handle"}},
-			DoUpdates: clause.Assignments(map[string]interface{}{
-				"last_updated": time.Now(),
-			}),
-		},
-	}
-
-	var value table.DatasetMastodonHandle
-	if err := value.Import(handle); err != nil {
-		return err
-	}
-
-	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
+	return result, nil
 }
 
 // Dial dials a database.

@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/node/provider/redis"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
@@ -35,17 +34,27 @@ func (c *Component) getCursor(ctx context.Context, cursor *string) (*activityx.A
 		return nil, nil
 	}
 
-	str := strings.Split(*cursor, ":")
-	if len(str) != 2 {
-		return nil, fmt.Errorf("invalid cursor")
+	cleanedCursor := *cursor
+	prefix := "https://"
+
+	if strings.HasPrefix(cleanedCursor, "https://") {
+		cleanedCursor = cleanedCursor[8:]
+	} else if strings.HasPrefix(cleanedCursor, "http://") {
+		cleanedCursor = cleanedCursor[7:]
+		prefix = "http://"
 	}
 
-	network, err := networkx.NetworkString(str[1])
+	id, networkStr, found := strings.Cut(cleanedCursor, ":")
+	if !found {
+		return nil, fmt.Errorf("invalid cursor: missing network")
+	}
+
+	network, err := networkx.NetworkString(networkStr)
 	if err != nil {
 		return nil, fmt.Errorf("invalid cursor: %w", err)
 	}
 
-	data, _, err := c.getActivity(ctx, model.ActivityQuery{ID: lo.ToPtr(str[0]), Network: lo.ToPtr(network)})
+	data, _, err := c.getActivity(ctx, model.ActivityQuery{ID: lo.ToPtr(prefix + id), Network: lo.ToPtr(network)})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cursor: %w", err)
 	}
@@ -61,11 +70,7 @@ func (c *Component) transformCursor(_ context.Context, activity *activityx.Activ
 	return fmt.Sprintf("%s:%s", activity.ID, activity.Network)
 }
 
-// redis data retrieval:
-func (c *Component) getAllHandles(ctx context.Context) ([]string, error) {
-	return redis.GetAllHandles(ctx, c.redisClient)
-}
-
-func (c *Component) getUpdatedHandles(ctx context.Context, since uint64) ([]string, error) {
-	return redis.GetRecentHandleUpdates(ctx, c.redisClient, since)
+// getUpdatedHandles retrieves the updated Mastodon handles from the database.
+func (c *Component) getUpdatedHandles(ctx context.Context, query model.QueryMastodonHandles) ([]*model.MastodonHandle, error) {
+	return c.databaseClient.GetUpdatedMastodonHandles(ctx, query)
 }

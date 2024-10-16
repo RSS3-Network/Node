@@ -1,36 +1,69 @@
 package federated
 
 import (
-	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
+	"github.com/rss3-network/node/internal/database/model"
+	"github.com/samber/lo"
 )
+
+var defaultLimit = 100
 
 // GetHandles retrieves all active handles or updated handles based on the 'since' parameter
 func (c *Component) GetHandles(ctx echo.Context) error {
-	sinceStr := ctx.QueryParam("since")
-	if sinceStr == "" {
-		return response.BadRequestError(ctx, errors.New("'since' parameter is required"))
-	}
-
-	since, err := strconv.ParseUint(sinceStr, 10, 64)
-	if err != nil {
+	var request HandleRequest
+	if err := ctx.Bind(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
 
-	var handles []string
-	if since == 0 {
-		handles, err = c.getAllHandles(ctx.Request().Context())
-	} else {
-		handles, err = c.getUpdatedHandles(ctx.Request().Context(), since)
+	if request.Limit == 0 {
+		request.Limit = defaultLimit
+	}
+	// Validate request
+	if err := ctx.Validate(&request); err != nil {
+		return response.ValidationFailedError(ctx, err)
 	}
 
+	query := model.QueryMastodonHandles{
+		Limit:  lo.ToPtr(request.Limit),
+		Since:  lo.Ternary(request.Since > 0, lo.ToPtr(request.Since), nil),
+		Cursor: lo.Ternary(request.Cursor != "", lo.ToPtr(request.Cursor), nil),
+	}
+
+	res, err := c.getUpdatedHandles(ctx.Request().Context(), query)
 	if err != nil {
 		return response.InternalError(ctx)
 	}
 
-	return ctx.JSON(http.StatusOK, map[string]interface{}{"handles": handles})
+	handles := make([]string, 0, len(res))
+
+	var cursor string
+
+	for i, handle := range res {
+		handles = append(handles, handle.Handle)
+
+		if i == len(res)-1 && len(res) == request.Limit {
+			cursor = handle.Handle
+		}
+	}
+
+	return ctx.JSON(http.StatusOK, PaginatedHandlesResponse{
+		Handles:    handles,
+		Cursor:     cursor,
+		TotalCount: int64(len(handles)),
+	})
+}
+
+type HandleRequest struct {
+	Since  uint64 `query:"since"`
+	Limit  int    `query:"limit" validate:"omitempty,min=1,max=500"`
+	Cursor string `query:"cursor"`
+}
+
+type PaginatedHandlesResponse struct {
+	Handles    []string `json:"handles"`
+	Cursor     string   `json:"cursor,omitempty"`
+	TotalCount int64    `json:"total_count"`
 }
