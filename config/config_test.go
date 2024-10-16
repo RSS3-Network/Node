@@ -76,7 +76,7 @@ component:
           access_code: def
   federated:
       network: mastodon
-      worker: mastodon
+      worker: core
       endpoint: mastodon
       parameters:
         kafka_topic: activitypub_events
@@ -169,7 +169,7 @@ component:
   "federated": [
     {
       "network": "mastodon",
-      "worker": "mastodon",
+      "worker": "core",
       "endpoint": "mastodon",
       "parameters": {
         "kafka_topic": "activitypub_events"
@@ -261,7 +261,7 @@ access_code = "def"
 
 [[component.federated]]
 network = "mastodon"
-worker = "mastodon"
+worker = "core"
 endpoint = "mastodon"
 
 [component.federated.parameters]
@@ -335,7 +335,7 @@ var configFileExpected = &File{
 		Federated: []*Module{
 			{
 				Network:    network.Mastodon,
-				Worker:     federated.Mastodon,
+				Worker:     federated.Core,
 				EndpointID: "mastodon",
 				Endpoint: Endpoint{
 					URL: "https://0.0.0.0:9092/",

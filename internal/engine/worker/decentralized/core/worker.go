@@ -15,7 +15,7 @@ import (
 )
 
 // NewWorker creates a new core worker.
-func NewWorker(config *config.Module, databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {
+func NewWorker(config *config.Module, _ database.Client, redisClient rueidis.Client) (engine.Worker, error) {
 	switch config.Network.Source() {
 	case network.EthereumSource:
 		return ethereum.NewWorker(config, redisClient)
