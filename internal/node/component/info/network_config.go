@@ -519,7 +519,7 @@ var WorkerToConfigMap = map[network.Protocol]map[worker.Worker]workerConfig{
 				AccessKey: &ConfigDetail{
 					IsRequired:  false,
 					Type:        StringType,
-					Description: "A key to access the RSS Feed",
+					Description: "Access key to access your RSSHub",
 					Title:       "Access Key",
 					Key:         "parameters.authentication.access_key",
 				},
