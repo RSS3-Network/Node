@@ -89,6 +89,7 @@ func initNetworkClient(m *config.Module) (Client, error) {
 	var client Client
 
 	var err error
+
 	switch m.Network.Protocol() {
 	case network.ActivityPubProtocol:
 		client, err = NewActivityPubClient(m.Endpoint, m.Parameters, m.Worker)
