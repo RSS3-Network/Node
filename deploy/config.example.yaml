@@ -31,7 +31,7 @@ database:
   # `uri` is the connection string of the database.
   uri: postgres://postgres:password@localhost:5432/postgres
 
-# Deploying a redis will significantly improve the indexing performance of some workers.
+# A redis is required for monitor service and will significantly improve the indexing performance of some workers.
 redis:
   endpoint: localhost:6379
   username:
