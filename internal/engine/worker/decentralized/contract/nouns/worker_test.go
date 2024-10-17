@@ -381,8 +381,11 @@ func TestWorker_Ethereum(t *testing.T) {
 							Body:       "# Increase Voting Delay and Voting Period\n\nAs the number of nouners and nouns sub-communities increase, we will see more proposals appear on-chain without prior off-chain coordination. This is a proposal to increase the ‘Voting Delay’ to 4 days, and the ‘Voting Period’ to 5 days, so that nouners have more time to diligence proposals and to decide how they will vote.",
 							StartBlock: "14597722",
 							EndBlock:   "14617432",
-							Options:    []string{},
-							Link:       "",
+							Options: []string{
+								metadata.ActionGovernanceVoteFor.String(),
+								metadata.ActionGovernanceVoteAgainst.String(),
+								metadata.ActionGovernanceVoteAbstain.String(),
+							},
 						},
 					},
 				},
