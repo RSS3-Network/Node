@@ -12,10 +12,12 @@ import (
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 type WorkerResponse struct {
@@ -29,12 +31,12 @@ type ComponentInfo struct {
 }
 
 type WorkerInfo struct {
-	WorkerID string                 `json:"worker_id"`
-	Worker   worker.Worker          `json:"worker"`
-	Network  network.Network        `json:"network"`
-	Tags     []tag.Tag              `json:"tags"`
-	Platform decentralized.Platform `json:"platform"`
-	Status   worker.Status          `json:"status"`
+	WorkerID string          `json:"worker_id"`
+	Worker   worker.Worker   `json:"worker"`
+	Network  network.Network `json:"network"`
+	Tags     []tag.Tag       `json:"tags"`
+	Platform string          `json:"platform"`
+	Status   worker.Status   `json:"status"`
 	monitor.WorkerProgress
 }
 
@@ -47,13 +49,14 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 
 	var response *WorkerResponse
 
-	if c.redisClient != nil {
+	switch {
+	case c.redisClient != nil:
 		// Fetch all worker info concurrently.
 		c.fetchAllWorkerInfo(ctx, workerInfoChan)
 
 		// Build the worker response.
 		response = c.buildWorkerResponse(workerInfoChan)
-	} else if c.config.Component.RSS != nil {
+	case c.config.Component.RSS != nil:
 		m := c.config.Component.RSS
 
 		response = &WorkerResponse{
@@ -62,11 +65,31 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 					WorkerID: m.ID,
 					Network:  m.Network,
 					Worker:   m.Worker,
-					Tags:     []tag.Tag{tag.RSS},
-					Platform: decentralized.PlatformUnknown,
+					Tags:     rss.ToTagsMap[m.Worker.(rss.Worker)],
+					Platform: rss.ToPlatformMap[m.Worker.(rss.Worker)].String(),
 					Status:   worker.StatusReady},
 			},
 		}
+	case c.config.Component.Federated != nil:
+		f := c.config.Component.Federated[0]
+		switch f.Worker {
+		case federated.Core:
+			response = &WorkerResponse{
+				Data: ComponentInfo{
+					RSS: &WorkerInfo{
+						WorkerID: f.ID,
+						Network:  f.Network,
+						Worker:   f.Worker,
+						Tags:     federated.ToTagsMap[federated.Core],
+						Platform: rss.ToPlatformMap[f.Worker.(rss.Worker)].String(),
+						Status:   worker.StatusReady},
+				},
+			}
+		default:
+			return nil
+		}
+	default:
+		return nil
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -89,6 +112,12 @@ func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *
 	modules := append(append(c.config.Component.Decentralized, c.config.Component.RSS), c.config.Component.Federated...)
 
 	for _, m := range modules {
+		if m.Network.Protocol() == network.RSSProtocol {
+			if rssWorker := rss.GetValueByWorkerStr(m.Worker.Name()); rssWorker != 0 {
+				m.Worker = rssWorker
+			}
+		}
+
 		fetchWorkerInfo(m, c.fetchWorkerInfo)
 	}
 
@@ -109,21 +138,31 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 	}
 
 	for workerInfo := range workerInfoChan {
-		switch workerInfo.Network.Source() {
-		case network.RSSSource:
+		switch workerInfo.Network.Protocol() {
+		case network.RSSProtocol:
 			response.Data.RSS = workerInfo
-		case network.EthereumSource, network.FarcasterSource, network.ArweaveSource:
+		case network.EthereumProtocol, network.FarcasterProtocol, network.ArweaveProtocol, network.NearProtocol:
 			response.Data.Decentralized = append(response.Data.Decentralized, workerInfo)
-		default:
+		case network.ActivityPubProtocol:
 			response.Data.Federated = append(response.Data.Federated, workerInfo)
+		default:
 		}
 	}
 
 	return response
 }
 
-// fetchWorkerInfo fetches the worker info with the different network source.
+// fetchWorkerInfo fetches the worker info with the different network protocol.
 func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
+	if module == nil {
+		zap.L().Info("params module is nil in fetchWorkerInfo")
+
+		return &WorkerInfo{
+			WorkerID: "",
+			Status:   worker.StatusUnknown,
+		}
+	}
+
 	// Fetch status and progress from a specific worker by id.
 	status, workerProgress := c.getWorkerStatusAndProgressByID(ctx, module.ID)
 
@@ -139,25 +178,35 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 		},
 	}
 
-	switch module.Network.Source() {
-	case network.EthereumSource, network.ArweaveSource, network.FarcasterSource:
-		workerInfo.Platform = decentralized.ToPlatformMap[module.Worker.(decentralized.Worker)]
-		workerInfo.Tags = decentralized.ToTagsMap[module.Worker.(decentralized.Worker)]
+	switch module.Network.Protocol() {
+	case network.ActivityPubProtocol:
+		if federatedWorker, ok := module.Worker.(federated.Worker); ok {
+			workerInfo.Platform = federated.ToPlatformMap[federatedWorker].String()
+			workerInfo.Tags = federated.ToTagsMap[federatedWorker]
+		}
+	case network.EthereumProtocol, network.ArweaveProtocol, network.FarcasterProtocol, network.NearProtocol:
+		if decentralizedWorker, ok := module.Worker.(decentralized.Worker); ok {
+			workerInfo.Platform = decentralized.ToPlatformMap[decentralizedWorker].String()
+			workerInfo.Tags = decentralized.ToTagsMap[decentralizedWorker]
 
-		// Handle special tags for decentralized core workers.
-		if module.Worker == decentralized.Core {
-			switch module.Network {
-			case network.Farcaster:
-				workerInfo.Tags = []tag.Tag{tag.Social}
-			case network.Arweave:
-				workerInfo.Tags = []tag.Tag{tag.Transaction}
-			case network.VSL:
-				workerInfo.Tags = append(workerInfo.Tags, tag.Exchange)
-			default:
+			// Handle special tags for decentralized core workers.
+			if decentralizedWorker == decentralized.Core {
+				switch module.Network {
+				case network.Farcaster:
+					workerInfo.Tags = []tag.Tag{tag.Social}
+				case network.Arweave:
+					workerInfo.Tags = []tag.Tag{tag.Transaction}
+				case network.VSL:
+					workerInfo.Tags = append(workerInfo.Tags, tag.Exchange)
+				default:
+				}
 			}
 		}
-	case network.RSSSource:
-		workerInfo.Tags = rss.ToTagsMap[module.Worker.(rss.Worker)]
+	case network.RSSProtocol:
+		if rssWorker, ok := module.Worker.(rss.Worker); ok {
+			workerInfo.Platform = rss.ToPlatformMap[rssWorker].String()
+			workerInfo.Tags = rss.ToTagsMap[rssWorker]
+		}
 	}
 
 	return workerInfo

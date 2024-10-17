@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/parameter"
@@ -57,6 +58,12 @@ func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 		processWorker(m.config.Component.RSS, m.processRSSWorker)
 	}
 
+	if m.config.Component.Federated != nil {
+		for _, federatedComponent := range m.config.Component.Federated {
+			processWorker(federatedComponent, m.processFederatedWorker)
+		}
+	}
+
 	go func() {
 		wg.Wait()
 		close(errChan)
@@ -103,6 +110,53 @@ func (m *Monitor) processDecentralizedWorker(ctx context.Context, w *config.Modu
 	}
 
 	return nil
+}
+
+// processFederatedWorker processes the federated worker status.
+func (m *Monitor) processFederatedWorker(ctx context.Context, w *config.Module) error {
+	indexCount, _, err := m.getCheckpointState(ctx, w.ID, w.Network, w.Worker.Name())
+	if err != nil {
+		zap.L().Error("get checkpoint info", zap.Error(err))
+		return err
+	}
+
+	client, ok := m.clients[w.Network]
+
+	if !ok {
+		return fmt.Errorf("client not exist")
+	}
+
+	targetStatus := workerx.StatusReady
+
+	// Context with a timeout
+	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	// Channel for Communicating result of LatestState
+	resultChan := make(chan error, 1)
+
+	go func() {
+		_, _, err := client.LatestState(timeoutCtx)
+		resultChan <- err
+	}()
+
+	// Wait for either the operation to complete or timeout occurs
+	select {
+	case err := <-resultChan:
+		if err != nil {
+			targetStatus = workerx.StatusUnhealthy
+		}
+	case <-timeoutCtx.Done():
+		targetStatus = workerx.StatusUnhealthy
+
+		zap.L().Warn("LatestState operation timed out")
+	}
+
+	if err := m.UpdateWorkerProgress(ctx, w.ID, ConstructWorkerProgress(0, 0, 0, indexCount)); err != nil {
+		return fmt.Errorf("update worker progress: %w", err)
+	}
+
+	return m.UpdateWorkerStatusByID(ctx, w.ID, targetStatus.String())
 }
 
 // processRSSWorker processes the rss worker status.

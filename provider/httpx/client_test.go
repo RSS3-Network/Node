@@ -2,6 +2,7 @@ package httpx_test
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -116,6 +117,44 @@ func TestHttpClient_GetContentType(t *testing.T) {
 			result, err := httpClient.GetContentType(testcase.arguments.ctx, testcase.arguments.uri)
 			testcase.wantError(t, err)
 			require.Equal(t, testcase.want, result)
+		})
+	}
+}
+
+func TestHTTPClient_Post(t *testing.T) {
+	t.Parallel()
+
+	setup(t)
+
+	type arguments struct {
+		url  string
+		body string
+	}
+
+	testcases := []struct {
+		name      string
+		arguments arguments
+	}{
+		{
+			name: "Post to Example",
+			arguments: arguments{
+				url:  "https://httpbin.org/post",
+				body: `{"key":"value"}`,
+			},
+		},
+	}
+
+	for _, testcase := range testcases {
+		testcase := testcase
+
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
+			response, err := httpClient.Post(context.TODO(), testcase.arguments.url, strings.NewReader(testcase.arguments.body))
+			require.NoError(t, err)
+			require.NotNil(t, response)
+
+			defer response.Close()
 		})
 	}
 }

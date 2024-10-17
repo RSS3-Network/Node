@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/rss3-network/node/config"
-	source "github.com/rss3-network/node/internal/engine/source/ethereum"
+	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/decentralized/contract/kiwistand"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"

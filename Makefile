@@ -115,7 +115,7 @@ image: generate
 # Use `make service_up` to start all required services using docker-compose
 # Use `make service_down` to remove all required services
 #
-# Run a worker service locally to index and structure data from a decentralized source
+# Run a worker service locally to index and structure data from a decentralized protocol
 # into the RSS3 Protocol format. Use `make worker WORKER_ID=<worker-id>`
 worker: generate
 	@if [ -z "$(WORKER_ID)" ]; then \

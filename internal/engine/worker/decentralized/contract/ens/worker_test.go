@@ -14,7 +14,7 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/database/dialer"
 	"github.com/rss3-network/node/internal/database/model"
-	source "github.com/rss3-network/node/internal/engine/source/ethereum"
+	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/decentralized/contract/ens"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/ens"

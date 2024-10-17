@@ -12,7 +12,7 @@ import (
 	"github.com/orlangure/gnomock/preset/redis"
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
-	source "github.com/rss3-network/node/internal/engine/source/ethereum"
+	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/decentralized/core/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/rss3"
@@ -463,7 +463,7 @@ func TestWorker_Ethereum(t *testing.T) {
 		// {
 		// 	name: "Transfer ERC-1155 tokens on Ethereum",
 		// 	arguments: arguments{
-		// 		task: &source.Task{
+		// 		task: &protocol.Task{
 		// 			Network: network.Ethereum,
 		// 			ChainID: 1,
 		// 			Header: &ethereum.Header{
@@ -921,7 +921,7 @@ func TestWorker_Ethereum(t *testing.T) {
 		//{
 		//	name: "Mint Open Chips tokens on VSL",
 		//	arguments: arguments{
-		//		task: &source.Task{
+		//		task: &protocol.Task{
 		//			Network: network.VSL,
 		//			ChainID: 12553,
 		//			Header: &ethereum.Header{
@@ -1270,107 +1270,6 @@ func TestWorker_Ethereum(t *testing.T) {
 				},
 				Status:    true,
 				Timestamp: 1710228453,
-			},
-			wantError: require.NoError,
-		},
-		// SAVM
-		{
-			name: "Approve SAVM tokens on SAVM Alpha Mainnet",
-			arguments: arguments{
-				task: &source.Task{
-					Network: network.SatoshiVM,
-					ChainID: 3109,
-					Header: &ethereum.Header{
-						Hash:         common.HexToHash("0x98e90ef0ac2c35830a73294d35787697ee321993fa21d8a715770a68a7ce7011"),
-						ParentHash:   common.HexToHash("0x69a9c5025ad2b65fd8cee9155edee317369b61ffff9ec013215aa158908c15a1"),
-						UncleHash:    common.HexToHash("0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"),
-						Coinbase:     common.HexToAddress("0x5210cAa3ff0033B7e3566cC83e8F49D7D4297656"),
-						Number:       lo.Must(new(big.Int).SetString("172442", 0)),
-						GasLimit:     50000000,
-						GasUsed:      46550,
-						Timestamp:    1710749793,
-						BaseFee:      lo.Must(new(big.Int).SetString("75000000", 0)),
-						Transactions: nil,
-					},
-					Transaction: &ethereum.Transaction{
-						BlockHash: common.HexToHash("0xf28475ceeb1fc4857012fa9b26d415a137c7d6ccc1e842ebae4aca6d1cf83de9"),
-						From:      common.HexToAddress("0x5481300cF3632225E833868f120826680E3688d8"),
-						Gas:       51649,
-						GasPrice:  lo.Must(new(big.Int).SetString("75000000", 10)),
-						Hash:      common.HexToHash("0xf28475ceeb1fc4857012fa9b26d415a137c7d6ccc1e842ebae4aca6d1cf83de9"),
-						Input:     hexutil.MustDecode("0x095ea7b300000000000000000000000014743ab346b36a3d48be6842f178deadb8a71623ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
-						To:        lo.ToPtr(common.HexToAddress("0x0E02765992f946397E6d2e65642eABb9cc674928")),
-						Value:     lo.Must(new(big.Int).SetString("0", 0)),
-						Type:      2,
-						ChainID:   lo.Must(new(big.Int).SetString("3109", 0)),
-					},
-					Receipt: &ethereum.Receipt{
-						BlockHash:         common.HexToHash("0x98e90ef0ac2c35830a73294d35787697ee321993fa21d8a715770a68a7ce7011"),
-						BlockNumber:       lo.Must(new(big.Int).SetString("172442", 0)),
-						ContractAddress:   nil,
-						CumulativeGasUsed: 46550,
-						EffectiveGasPrice: hexutil.MustDecodeBig("0x47868c0"),
-						GasUsed:           46550,
-
-						Logs: []*ethereum.Log{{
-							Address: common.HexToAddress("0x0E02765992f946397E6d2e65642eABb9cc674928"),
-							Topics: []common.Hash{
-								common.HexToHash("0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"),
-								common.HexToHash("0x0000000000000000000000005481300cf3632225e833868f120826680e3688d8"),
-								common.HexToHash("0x00000000000000000000000014743ab346b36a3d48be6842f178deadb8a71623"),
-							},
-							Data:            hexutil.MustDecode("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
-							BlockNumber:     lo.Must(new(big.Int).SetString("172442", 0)),
-							TransactionHash: common.HexToHash("0xf28475ceeb1fc4857012fa9b26d415a137c7d6ccc1e842ebae4aca6d1cf83de9"),
-							Index:           0,
-							Removed:         false,
-						}},
-						Status:           1,
-						TransactionHash:  common.HexToHash("0xf28475ceeb1fc4857012fa9b26d415a137c7d6ccc1e842ebae4aca6d1cf83de9"),
-						TransactionIndex: 0,
-					},
-				},
-				config: &config.Module{
-					Network: network.SatoshiVM,
-					Endpoint: config.Endpoint{
-						URL: endpoint.MustGet(network.SatoshiVM),
-					},
-				},
-			},
-			want: &activityx.Activity{
-				ID:      "0xf28475ceeb1fc4857012fa9b26d415a137c7d6ccc1e842ebae4aca6d1cf83de9",
-				Network: network.SatoshiVM,
-				Index:   0,
-				From:    "0x5481300cF3632225E833868f120826680E3688d8",
-				To:      "0x0E02765992f946397E6d2e65642eABb9cc674928",
-				Type:    typex.TransactionApproval,
-				Calldata: &activityx.Calldata{
-					FunctionHash: "0x095ea7b3",
-				},
-				Fee: &activityx.Fee{
-					Amount:  lo.Must(decimal.NewFromString("3491250000000")),
-					Decimal: 18,
-				},
-				Actions: []*activityx.Action{
-					{
-						Type: typex.TransactionApproval,
-						From: "0x5481300cF3632225E833868f120826680E3688d8",
-						To:   "0x14743ab346b36a3d48bE6842f178dEAdB8A71623",
-						Metadata: metadata.TransactionApproval{
-							Action: metadata.ActionTransactionApprove,
-							Token: metadata.Token{
-								Address:  lo.ToPtr("0x0E02765992f946397E6d2e65642eABb9cc674928"),
-								Name:     "SatoshiVM",
-								Symbol:   "SAVM",
-								Decimals: 18,
-								Standard: metadata.StandardERC20,
-								Value:    lo.ToPtr(lo.Must(decimal.NewFromString("115792089237316195423570985008687907853269984665640564039457584007913129639935"))),
-							},
-						},
-					},
-				},
-				Status:    true,
-				Timestamp: 1710749793,
 			},
 			wantError: require.NoError,
 		},

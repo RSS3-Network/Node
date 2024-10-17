@@ -2,13 +2,14 @@ package crossbell_test
 
 import (
 	"context"
+	"encoding/json"
 	"math/big"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/rss3-network/node/config"
-	source "github.com/rss3-network/node/internal/engine/source/ethereum"
+	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
 	worker "github.com/rss3-network/node/internal/engine/worker/decentralized/contract/crossbell"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
@@ -39,7 +40,7 @@ func TestWorker_Ethereum(t *testing.T) {
 		// {
 		// 	name: "Crossbell Create Profile",
 		// 	arguments: arguments{
-		// 		task: &source.Task{
+		// 		task: &protocol.Task{
 		// 			Network: network.Crossbell,
 		// 			ChainID: 3737,
 		// 			Header: &ethereum.Header{
@@ -1480,7 +1481,7 @@ func TestWorker_Ethereum(t *testing.T) {
 			activity, err := instance.Transform(ctx, testcase.arguments.task)
 			testcase.wantError(t, err)
 
-			// t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
+			t.Log(string(lo.Must(json.MarshalIndent(activity, "", "\x20\x20"))))
 
 			require.Equal(t, testcase.want, activity)
 		})

@@ -6,7 +6,6 @@ import (
 	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
-	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/assert"
 )
@@ -35,6 +34,8 @@ func TestCalculateMinimumResources(t *testing.T) {
 				CPUCore:       2.0,
 				MemoryInGb:    2.0,
 				DiskSpaceInGb: parameter.CurrentNetworkCoreWorkerDiskSpacePerMonth[network.Polygon] * parameter.NumberOfMonthsToCover,
+				Title:         "Minimum Resource",
+				Key:           "minimum_resource",
 			},
 		},
 
@@ -47,6 +48,8 @@ func TestCalculateMinimumResources(t *testing.T) {
 				CPUCore:       1.0,
 				MemoryInGb:    1.0,
 				DiskSpaceInGb: parameter.CurrentNetworkCoreWorkerDiskSpacePerMonth[network.Linea] * parameter.NumberOfMonthsToCover,
+				Title:         "Minimum Resource",
+				Key:           "minimum_resource",
 			},
 		},
 		// FIXME: the disk space required for Facaster core worker is unknown
@@ -104,12 +107,6 @@ func TestCalculateMinimumResources(t *testing.T) {
 			name:     "Crossbell",
 			network:  network.Crossbell,
 			worker:   decentralized.Crossbell,
-			expected: baseResource,
-		},
-		{
-			name:     "Rsshub",
-			network:  network.RSS,
-			worker:   rss.RSSHub,
 			expected: baseResource,
 		},
 	}

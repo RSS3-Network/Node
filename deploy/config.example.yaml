@@ -31,7 +31,7 @@ database:
   # `uri` is the connection string of the database.
   uri: postgres://postgres:password@localhost:5432/postgres
 
-# Deploying a redis will significantly improve the indexing performance of some workers.
+# A redis is required for monitor service and will significantly improve the indexing performance of some workers.
 redis:
   endpoint: localhost:6379
   username:
@@ -43,11 +43,14 @@ redis:
 # - Blockchain networks require RPC endpoints,
 # - Arweave requires a gateway endpoint,
 # - Farcaster requires a Hubble.
+# - Mastodon requires a mastodon instance.
 endpoints:
   vsl:
     url: https://rpc.rss3.io
   arweave:
     url: https://arweave.net
+  mastodon:
+    url: your-kafka-ip:9092
 
 # `component` is used to split different types of networks.
 component:
@@ -86,3 +89,12 @@ component:
       parameters:
         # `concurrent_block_requests` is used to specify the number of concurrent block requests.
         concurrent_block_requests: 2
+  # `federated` network type includes workers indexing data from federated networks such as ActivityPub.
+  federated:
+    # mastodon
+    - id: mastodon-core
+      network: mastodon
+      worker: core
+      endpoint: mastodon
+      parameters:
+        kafka_topic: activitypub_events

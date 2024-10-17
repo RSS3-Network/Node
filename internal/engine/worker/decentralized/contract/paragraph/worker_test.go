@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/rss3-network/node/config"
-	source "github.com/rss3-network/node/internal/engine/source/arweave"
+	source "github.com/rss3-network/node/internal/engine/protocol/arweave"
 	worker "github.com/rss3-network/node/internal/engine/worker/decentralized/contract/paragraph"
 	"github.com/rss3-network/node/provider/arweave"
 	workerx "github.com/rss3-network/node/schema/worker/decentralized"

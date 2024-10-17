@@ -11,6 +11,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/internal/constant"
 	"go.uber.org/zap"
 )
 
@@ -23,6 +24,7 @@ func (b *Broadcaster) Register(ctx context.Context) error {
 		Stream:      b.config.Stream,
 		Config:      b.config.Component,
 		Type:        "production",
+		Version:     constant.Version,
 	}
 
 	var response any
@@ -112,6 +114,7 @@ type RegisterNodeRequest struct {
 	Stream      *config.Stream    `json:"stream,omitempty"`
 	Config      *config.Component `json:"config,omitempty"`
 	Type        string            `json:"type" validate:"required"`
+	Version     string            `json:"version" validate:"required"`
 }
 
 type NodeHeartbeatRequest struct {

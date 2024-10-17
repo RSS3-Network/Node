@@ -7,7 +7,7 @@ import (
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
-	source "github.com/rss3-network/node/internal/engine/source/arweave"
+	source "github.com/rss3-network/node/internal/engine/protocol/arweave"
 	"github.com/rss3-network/node/provider/arweave"
 	workerx "github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
@@ -54,7 +54,7 @@ func (w *worker) Types() []schema.Type {
 	}
 }
 
-// Filter returns a source filter.
+// Filter returns a protocol filter.
 func (w *worker) Filter() engine.DataSourceFilter {
 	return nil
 }

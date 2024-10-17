@@ -13,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/rss3-network/node/internal/engine"
-	sourceethereum "github.com/rss3-network/node/internal/engine/source/ethereum"
+	sourceethereum "github.com/rss3-network/node/internal/engine/protocol/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/endpoint"
 	networkx "github.com/rss3-network/protocol-go/schema/network"
@@ -33,13 +33,13 @@ var command = &cobra.Command{
 			task engine.Task
 			tmpl = template.New("")
 
-			source   = networkx.Source(lo.Must(cmd.PersistentFlags().GetString("source")))
+			source   = networkx.Protocol(lo.Must(cmd.PersistentFlags().GetString("protocol")))
 			endpoint = lo.Must(cmd.PersistentFlags().GetString("endpoint"))
 			activity = lo.Must(cmd.PersistentFlags().GetString("activity"))
 		)
 
 		switch source {
-		case networkx.EthereumSource:
+		case networkx.EthereumProtocol:
 			tmpl.Funcs(template.FuncMap{
 				"BytesToHex": hexutil.Encode,
 				"BigIntToHex": func(value *big.Int) string {
@@ -109,7 +109,7 @@ var command = &cobra.Command{
 				Receipt:     receipt,
 			}
 		default:
-			return fmt.Errorf("unsupport source %s", source)
+			return fmt.Errorf("unsupport protocol %s", source)
 		}
 
 		if tmpl, err = tmpl.ParseFS(embedFS, "template/*.tmpl"); err != nil {
@@ -125,9 +125,9 @@ var command = &cobra.Command{
 }
 
 func init() {
-	command.PersistentFlags().String("source", string(networkx.EthereumSource), "")
+	command.PersistentFlags().String("protocol", string(networkx.EthereumProtocol), "")
 	command.PersistentFlags().String("endpoint", endpoint.MustGet(networkx.Ethereum), "")
-	command.PersistentFlags().String("activity", "0xf74008a8fde35012c5bc9c897c1d413fe0befbc9e6fc9b6d8bfab38b7dd3c6bd", "")
+	command.PersistentFlags().String("activity", "0x1f0c0bd550c111d76d3dfca67616f6f7968d10c673de1ad391c5141fdb336b97", "")
 }
 
 func main() {

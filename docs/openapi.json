@@ -14,6 +14,10 @@
         {
             "description": "Retrieve the details of decentralized activities.",
             "name": "Decentralized"
+        },
+        {
+            "description": "Retrieve the details of federated activities.",
+            "name": "Federated"
         }
     ],
     "paths": {
@@ -276,6 +280,270 @@
                 }
             }
         },
+
+
+        "/federated/tx/{id}": {
+            "get": {
+                "summary": "Get Activity by ID",
+                "description": "Retrieve details for the specified activity ID.",
+                "tags": [
+                    "Federated"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/activity_id_path"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_page_query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivityResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+        "/federated/{account}": {
+            "get": {
+                "summary": "Get Account Activities",
+                "description": "This endpoint retrieves the activities associated with a specified account in the federated system. You can use various query parameters to filter and paginate the results, including limits on the number of activities and actions, timestamps, success status, direction, and more.",
+                "tags": [
+                    "Federated"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/account_path"
+                    },
+                    {
+                        "$ref": "#/components/parameters/limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/cursor_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/since_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/until_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/success_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/direction_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/network_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/tag_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/type_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/platform_query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivitiesResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+        "/federated/accounts": {
+            "post": {
+                "summary": "Batch Get Accounts Activities",
+                "description": "Retrieve a batch of activities associated with multiple specified accounts in the federated system. You can use various query parameters to filter and paginate the results, including limits on the number of activities and actions, timestamps, success status, direction, and more.",
+                "tags": [
+                    "Federated"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/BatchGetAccountsActivities"
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivitiesResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+        "/federated/network/{network}": {
+            "get": {
+                "summary": "Get Network Activities",
+                "description": "Retrieve a list of activities from the specified federated network. This endpoint allows you to filter activities by various parameters such as limit, timestamp, success status, and more.",
+                "tags": [
+                    "Federated"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/network_path"
+                    },
+                    {
+                        "$ref": "#/components/parameters/limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/cursor_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/since_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/until_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/success_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/direction_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/tag_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/type_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/platform_query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivitiesResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+        "/federated/platform/{platform}": {
+            "get": {
+                "summary": "Get Platform Activities",
+                "description": "Retrieve a list of activities from the specified federated platform. This endpoint allows you to filter activities by various parameters such as limit, timestamp, success status, and more.",
+                "tags": [
+                    "Federated"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/platform_path"
+                    },
+                    {
+                        "$ref": "#/components/parameters/limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/action_limit_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/cursor_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/since_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/until_timestamp_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/success_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/direction_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/tag_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/type_query"
+                    },
+                    {
+                        "$ref": "#/components/parameters/network_query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/ActivitiesResponse"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalError"
+                    }
+                }
+            }
+        },
+
+
+
         "/rss/{path}": {
             "get": {
                 "summary": "Get RSS Activity by Path",
@@ -349,16 +617,16 @@
                 }
             }
         },
-        "/networks/endpoint_config": {
+        "/networks/config": {
             "get": {
-                "summary": "Get Endpoint config options",
-                "description": "Retrieve endpoint config options and descriptions.",
+                "summary": "Get worker config options",
+                "description": "Retrieve worker config options and descriptions.",
                 "tags": [
                     "Info"
                 ],
                 "responses": {
                     "200": {
-                        "$ref": "#/components/responses/EndpointConfigResponse"
+                        "$ref": "#/components/responses/NetworkConfigResponse"
                     },
                     "400": {
                         "$ref": "#/components/responses/BadRequest"
@@ -827,10 +1095,10 @@
                 },
                 "type": "object"
             },
-            "EndpointConfigResponse": {
+            "NetworkConfigResponse": {
                 "properties": {
                     "data": {
-                        "$ref": "#/components/schemas/EndpointConfig"
+                        "$ref": "#/components/schemas/NetworkConfig"
                     }
                 },
                 "type": "object",
@@ -1122,7 +1390,69 @@
                             "indexed_state": 0
                         }
                     ],
-                    "federated": null
+                    "federated": [
+                        {
+                            "worker_id": "mastodon-core",
+                            "network": "mastodon",
+                            "worker": "mastodon",
+                            "tags": [
+                                "social"
+                            ],
+                            "platform": "mastodon",
+                            "status": "Ready",
+                            "remote_state": 0,
+                            "indexed_state": 0
+                        }
+                    ]
+                }
+            },
+            "NetworkConfig": {
+                "description": "The worker config details by source.",
+                "type": "object",
+                "properties": {
+                    "rss": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "endpoint_configs": {
+                                "$ref": "#/components/schemas/Endpoint"
+                            },
+                            "worker_configs": {
+                                "$ref": "#/components/schemas/WorkerConfig"
+                            }
+                        }
+                    },
+                    "decentralized": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/NetworkConfigDetail"
+                        }
+                    },
+                    "federated": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/NetworkConfigDetail"
+                        }
+                    }
+                }
+            },
+            "NetworkConfigDetail": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "endpoint_configs": {
+                        "$ref": "#/components/schemas/EndpointConfig"
+                    },
+                    "worker_configs": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/WorkerConfig"
+                        }
+                    }
                 }
             },
             "EndpointConfig": {
@@ -1139,6 +1469,118 @@
                     }
                 },
                 "type": "object"
+            },
+            "WorkerConfig": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "network": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "worker": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "endpoint": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "ipfs_gateways": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/Parameters"
+                    },
+                    "minimum_resource": {
+                        "$ref": "#/components/schemas/MinimumResource"
+                    }
+                }
+            },
+            "Parameters": {
+                "type": "object",
+                "properties": {
+                    "block_start": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "block_target": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "concurrent_block_requests": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "block_batch_size": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "receipts_batch_size": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "block_receipts_batch_size": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "api_key": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "authentication": {
+                        "$ref": "#/components/schemas/Authentication"
+                    },
+                    "kafka_topic": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    }
+                }
+            },
+            "Authentication": {
+                "type": "object",
+                "properties": {
+                    "access_key": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    }
+                }
+            },
+            "MinimumResource": {
+                "type": "object",
+                "properties": {
+                    "cpu_core": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "memory_in_gb": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "disk_space_in_gb": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "key": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ConfigDetail": {
+                "type": "object",
+                "required": ["is_required", "type", "value", "description"],
+                "properties": {
+                    "is_required": {
+                        "type": "boolean"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "key": {
+                        "type": "string"
+                    }
+                }
             },
             "WorkerStatus": {
                 "description": "The status of the worker.",
@@ -1184,24 +1626,6 @@
                     }
                 },
                 "type": "object"
-            },
-            "ConfigDetail": {
-                "type": "object",
-                "required": ["is_required", "type", "value", "description"],
-                "properties": {
-                    "is_required": {
-                        "type": "boolean"
-                    },
-                    "type": {
-                        "type": "string"
-                    },
-                    "value": {
-                        "type": "string"
-                    },
-                    "description": {
-                        "type": "string"
-                    }
-                }
             },
             "Calldata": {
                 "description": "Represents the call data associated with an activity.",
@@ -1268,13 +1692,13 @@
                 "description": "A tag used to categorize activities.",
                 "type": "string",
                 "example": "transaction",
-                "enum": ["collectible","exchange","metaverse","rss","social","transaction","unknown"]
+                "enum": ["collectible","exchange","governance","metaverse","rss","social","transaction","unknown"]
             },
             "Type": {
                 "description": "A type used to categorize activities, it must be present with a tag.",
                 "type": "string",
                 "example": "transfer",
-                "enum": ["approval","bridge","burn","comment","delete","feed","liquidity","mint","post","profile","proxy","revise","reward","share","staking","swap","trade","transfer","unknown"]
+                "enum": ["approval","auction","bridge","burn","comment","delete","feed","liquidity","loan","mint","post","profile","proposal","proxy","revise","reward","share","staking","swap","trade","transfer","unknown","vote"]
             },
             "To": {
                 "description": "The address to which the action is directed.",
@@ -1284,13 +1708,13 @@
                 "description": "The network on which activities occur.",
                 "type": "string",
                 "example": "ethereum",
-                "enum": ["arbitrum","arweave","avax","base","binance-smart-chain","crossbell","ethereum","farcaster","gnosis","linea","mastodon","optimism","polygon","vsl","x-layer"]
+                "enum": ["arbitrum","arweave","avax","base","binance-smart-chain","crossbell","ethereum","farcaster","gnosis","linea","mastodon","near","optimism","polygon","vsl","x-layer"]
             },
             "Platform": {
                 "description": "The platform on which activities occur.",
                 "type": "string",
                 "example": "Uniswap",
-                "enum": ["1inch","AAVE","Aavegotchi","Crossbell","Curve","ENS","Farcaster","Highlight","IQWiki","KiwiStand","Lens","Lido","LooksRare","Matters","Mirror","OpenSea","Optimism","Paragraph","RSS3","SAVM","Stargate","Uniswap","Unknown","VSL"]
+                "enum": ["1inch","AAVE","Aavegotchi","Arbitrum","Base","BendDAO","Cow","Crossbell","Curve","ENS","Farcaster","Highlight","IQWiki","KiwiStand","Lens","LiNEAR","Lido","Linea","LooksRare","Matters","Mirror","NearSocial","Nouns","OpenSea","Optimism","Paragraph","Paraswap","Polymarket","RSS3","Rainbow","SAVM","Stargate","Uniswap","Unknown","VSL","Zerion"]
             },
             "Timestamp": {
                 "description": "The timestamp of when the activity occurred.",
@@ -1400,12 +1824,12 @@
                     }
                 }
             },
-            "EndpointConfigResponse": {
+            "NetworkConfigResponse": {
                 "description": "The request was successful.",
                 "content": {
                     "application/json": {
                         "schema": {
-                            "$ref": "#/components/schemas/EndpointConfigResponse"
+                            "$ref": "#/components/schemas/NetworkConfigResponse"
                         }
                     }
                 }

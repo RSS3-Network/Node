@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"path"
@@ -10,10 +11,14 @@ import (
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/node/component/rss"
+	"github.com/rss3-network/node/provider/activitypub/mastodon"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/farcaster"
 	"github.com/rss3-network/node/provider/httpx"
+	"github.com/rss3-network/node/provider/near"
+	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/node/schema/worker/federated"
 )
 
 type Client interface {
@@ -24,6 +29,14 @@ type Client interface {
 	// LatestState returns the latest block number (ethereum), height (arweave) or event id (farcaster) or err (rss) of the client from network rpc/api.
 	LatestState(ctx context.Context) (uint64, uint64, error)
 }
+
+// activitypubClient is a client implementation for ActivityPub.
+type activitypubClient struct {
+	activitypubClient mastodon.Client // ToDo: (Note) Currently use Matodon Client for all ActivityPub Source.
+}
+
+// set a default client
+var _ Client = (*activitypubClient)(nil)
 
 // ethereumClient is a client implementation for ethereum.
 type ethereumClient struct {
@@ -59,6 +72,41 @@ func NewEthereumClient(endpoint config.Endpoint) (Client, error) {
 
 	return &ethereumClient{
 		ethereumClient: evmClient,
+	}, nil
+}
+
+type nearClient struct {
+	client near.Client
+}
+
+// make sure client implements Client
+var _ Client = (*nearClient)(nil)
+
+func (c *nearClient) CurrentState(state CheckpointState) (uint64, uint64) {
+	return state.BlockHeight, 0
+}
+
+func (c *nearClient) TargetState(param *config.Parameters) (uint64, uint64) {
+	return getTargetBlockFromParam(param), 0
+}
+
+func (c *nearClient) LatestState(ctx context.Context) (uint64, uint64, error) {
+	latestWorkerState, err := c.client.GetBlockHeight(ctx)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return uint64(latestWorkerState), 0, nil
+}
+
+func NewNearClient(endpoint config.Endpoint) (Client, error) {
+	client, err := near.Dial(context.Background(), endpoint.URL)
+	if err != nil {
+		return nil, err
+	}
+
+	return &nearClient{
+		client: client,
 	}, nil
 }
 
@@ -221,4 +269,71 @@ func NewRssClient(endpoint string, param *config.Parameters) (Client, error) {
 		httpClient: httpClient,
 		url:        base.String(),
 	}, nil
+}
+
+func (c *activitypubClient) CurrentState(_ CheckpointState) (uint64, uint64) {
+	return 0, 0
+}
+
+func (c *activitypubClient) TargetState(_ *config.Parameters) (uint64, uint64) {
+	return 0, 0
+}
+
+// LatestState returns the latest state of the Kafka consuming process
+func (c *activitypubClient) LatestState(ctx context.Context) (uint64, uint64, error) {
+	consumer := c.activitypubClient.GetKafkaConsumer()
+	// Create a very short timeout for the poll operation
+	pollCtx, cancel := context.WithTimeout(ctx, 1000*time.Millisecond)
+	defer cancel()
+
+	// Use PollFetches with the short timeout
+	fetches := consumer.PollFetches(pollCtx)
+
+	// Check if the poll operation timed out
+	if errors.Is(pollCtx.Err(), context.DeadlineExceeded) {
+		return 0, 0, fmt.Errorf("poll operation timed out, possible consumer issue")
+	}
+
+	if errs := fetches.Errors(); len(errs) > 0 {
+		for _, e := range errs {
+			fmt.Printf("consumer poll fetch error: %v\n", e.Err)
+		}
+
+		return 0, 0, fmt.Errorf("consumer poll fetch error: %v", fetches.Errors())
+	}
+	// The service is healthy
+	return 0, 0, nil
+}
+
+// NewActivityPubClient returns a new ActivityPub client.
+func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, worker worker.Worker) (Client, error) {
+	var kafkaTopic string
+
+	if param != nil {
+		if topic, ok := (*param)[mastodon.KafkaTopic]; ok {
+			kafkaTopic = topic.(string)
+		} else {
+			return nil, fmt.Errorf("kafka_topic not found in parameters")
+		}
+	} else {
+		return nil, fmt.Errorf("parameters are nil")
+	}
+
+	// Retrieve worker type from the parameters
+	workerType := worker.Name()
+
+	switch workerType {
+	case federated.Core.String():
+		mastodonClient, err := mastodon.NewClient(endpoint.URL, kafkaTopic, nil)
+
+		if err != nil {
+			return nil, fmt.Errorf("create Mastodon client: %w", err)
+		}
+
+		return &activitypubClient{
+			activitypubClient: mastodonClient,
+		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported worker type: %s", workerType)
+	}
 }

@@ -21,6 +21,8 @@ redis:
   password:
 
 endpoints:
+  mastodon:
+    url: your-kafka-ip:9092
   farcaster:
     url: https://nemes.farcaster.xyz:2281
   ethereum:
@@ -91,3 +93,11 @@ component:
       worker: momoka
       endpoint: polygon
       parameters:
+  federated:
+    # mastodon
+    - id: mastodon-core
+      network: mastodon
+      worker: core
+      endpoint: mastodon
+      parameters:
+        kafka_topic: activitypub_events

@@ -21,6 +21,7 @@ type Client interface {
 	DatasetMirrorPost
 	DatasetFarcasterProfile
 	DatasetENSNamehash
+	DatasetMastodonHandle
 
 	LoadCheckpoint(ctx context.Context, id string, network network.Network, worker string) (*engine.Checkpoint, error)
 	LoadCheckpoints(ctx context.Context, id string, network network.Network, worker string) ([]*engine.Checkpoint, error)
@@ -29,6 +30,7 @@ type Client interface {
 	SaveActivities(ctx context.Context, activities []*activityx.Activity) error
 	FindActivity(ctx context.Context, query model.ActivityQuery) (*activityx.Activity, *int, error)
 	FindActivities(ctx context.Context, query model.ActivitiesQuery) ([]*activityx.Activity, error)
+	FindFederatedActivities(ctx context.Context, query model.FederatedActivitiesQuery) ([]*activityx.Activity, error)
 	DeleteExpiredActivities(ctx context.Context, network network.Network, timestamp time.Time) error
 }
 
@@ -56,6 +58,11 @@ type DatasetFarcasterProfile interface {
 type DatasetENSNamehash interface {
 	LoadDatasetENSNamehash(ctx context.Context, hash common.Hash) (*model.ENSNamehash, error)
 	SaveDatasetENSNamehash(ctx context.Context, namehash *model.ENSNamehash) error
+}
+
+type DatasetMastodonHandle interface {
+	SaveRecentMastodonHandles(ctx context.Context, handles []*model.MastodonHandle) error
+	GetUpdatedMastodonHandles(ctx context.Context, query model.QueryMastodonHandles) ([]*model.MastodonHandle, error)
 }
 
 var _ goose.Logger = (*SugaredLogger)(nil)
