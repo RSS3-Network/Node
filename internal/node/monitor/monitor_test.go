@@ -1001,7 +1001,7 @@ func TestMonitor(t *testing.T) {
 		testcase := testcase
 
 		switch testcase.source {
-		case network.FarcasterProtocol, network.ArweaveProtocol, network.EthereumProtocol:
+		case network.FarcasterProtocol, network.ArweaveProtocol, network.EthereumProtocol, network.NearProtocol:
 			t.Run(testcase.name, func(t *testing.T) {
 				ctx := context.Background()
 
@@ -1043,6 +1043,7 @@ func TestMonitor(t *testing.T) {
 				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS.ID)
 				require.Equal(t, testcase.want, status)
 			})
+		default:
 		}
 	}
 }
@@ -1063,5 +1064,7 @@ func mockNetworkTolerance() {
 		network.Polygon:           100,
 		network.SatoshiVM:         100,
 		network.VSL:               100,
+		network.Near:              1000,
+		network.Mastodon:          7200000,
 	}
 }
