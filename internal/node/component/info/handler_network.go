@@ -65,7 +65,6 @@ func getNetworkConfigDetailForRSS(source network.Source) NetworkConfigDetailForR
 
 	if workerConfig.EndpointID != nil {
 		workerConfig.EndpointID.Type = URLType
-		workerConfig.EndpointID.Value = "https://your-rsshub-endpoint"
 	}
 
 	networkDetail.WorkerConfig = workerConfig
