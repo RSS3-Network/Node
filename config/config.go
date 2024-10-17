@@ -17,6 +17,7 @@ import (
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/federated"
+	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
@@ -259,6 +260,13 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	for _, module := range configFile.Component.Federated {
 		if federatedWorker := federated.GetValueByWorkerStr(module.Worker.Name()); federatedWorker != 0 {
 			module.Worker = federatedWorker
+		}
+	}
+
+	// Add extra logic to convert RSS worker string to correct worker type.
+	if configFile.Component.RSS != nil {
+		if rssWorker := rss.GetValueByWorkerStr(configFile.Component.RSS.Worker.Name()); rssWorker != 0 {
+			configFile.Component.RSS.Worker = rssWorker
 		}
 	}
 

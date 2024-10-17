@@ -8,7 +8,7 @@ import (
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
-	source "github.com/rss3-network/node/internal/engine/source/arweave"
+	source "github.com/rss3-network/node/internal/engine/protocol/arweave"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/arweave/contract/paragraph"
 	"github.com/rss3-network/node/provider/httpx"
@@ -59,7 +59,7 @@ func (w *worker) Types() []schema.Type {
 	}
 }
 
-// Filter returns a filter for source.
+// Filter returns a filter for protocol.
 func (w *worker) Filter() engine.DataSourceFilter {
 	return &source.Filter{OwnerAddresses: []string{paragraph.AddressParagraph}}
 }

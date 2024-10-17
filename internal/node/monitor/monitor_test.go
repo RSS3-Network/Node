@@ -34,7 +34,7 @@ func TestMonitor(t *testing.T) {
 
 	testcases := []struct {
 		name      string
-		source    network.Source
+		source    network.Protocol
 		arguments arguments
 		want      worker.Status
 		wantError require.ErrorAssertionFunc
@@ -42,7 +42,7 @@ func TestMonitor(t *testing.T) {
 		// Ethereum Worker
 		{
 			name:   "Ethereum Worker Ready Status -> Indexing Status",
-			source: network.EthereumSource,
+			source: network.EthereumProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -69,7 +69,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Ethereum Worker Ready Status -> Ready Status",
-			source: network.EthereumSource,
+			source: network.EthereumProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -96,7 +96,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Ethereum Worker Ready Status -> Ready Status (With Target Param)",
-			source: network.EthereumSource,
+			source: network.EthereumProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -124,7 +124,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Ethereum Worker Indexing Status -> Ready Status (With Target Param)",
-			source: network.EthereumSource,
+			source: network.EthereumProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -152,7 +152,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Ethereum Worker Indexing Status -> Indexing Status (With Target Param)",
-			source: network.EthereumSource,
+			source: network.EthereumProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -180,7 +180,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Ethereum Worker Indexing Status -> Unhealthy Status",
-			source: network.EthereumSource,
+			source: network.EthereumProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -208,7 +208,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Ethereum Worker Indexing Status -> Indexing Status",
-			source: network.EthereumSource,
+			source: network.EthereumProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -236,7 +236,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Ethereum Worker Unhealthy Status -> Indexing Status",
-			source: network.EthereumSource,
+			source: network.EthereumProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -264,7 +264,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Ethereum Worker Indexing Status -> Ready Status",
-			source: network.EthereumSource,
+			source: network.EthereumProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -292,7 +292,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Ethereum Worker Unknown Status -> Indexing Status",
-			source: network.EthereumSource,
+			source: network.EthereumProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -322,7 +322,7 @@ func TestMonitor(t *testing.T) {
 		// Arweave Worker
 		{
 			name:   "Arweave Worker Ready Status -> Indexing Status",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -346,7 +346,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Worker Ready Status -> Ready Status",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -370,7 +370,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Worker Ready Status -> Ready Status (With Target Param)",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -395,7 +395,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Worker Indexing Status -> Ready Status (With Target Param)",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -420,7 +420,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Worker Indexing Status -> Indexing Status (With Target Param)",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -445,7 +445,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Worker Indexing Status -> Unhealthy Status",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -470,7 +470,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Worker Indexing Status -> Indexing Status",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -495,7 +495,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Worker Unhealthy Status -> Indexing Status",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -520,7 +520,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Worker Indexing Status -> Ready Status",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -545,7 +545,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Worker Unknown Status -> Indexing Status",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -571,7 +571,7 @@ func TestMonitor(t *testing.T) {
 
 		{
 			name:   "Arweave Momoka Worker Ready Status -> Indexing Status",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -595,7 +595,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Momoka Worker Ready Status -> Ready Status",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -619,7 +619,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Momoka Worker Indexing Status -> Unhealthy Status",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -644,7 +644,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Momoka Worker Indexing Status -> Indexing Status",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -669,7 +669,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Momoka Worker Unhealthy Status -> Indexing Status",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -694,7 +694,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Momoka Worker Indexing Status -> Ready Status",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -719,7 +719,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Arweave Momoka Worker Unknown Status -> Indexing Status",
-			source: network.ArweaveSource,
+			source: network.ArweaveProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -746,7 +746,7 @@ func TestMonitor(t *testing.T) {
 		// Farcaster Worker
 		{
 			name:   "Farcaster Worker Ready Status -> Indexing Status",
-			source: network.FarcasterSource,
+			source: network.FarcasterProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -772,7 +772,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Farcaster Worker Ready Status -> Ready Status",
-			source: network.FarcasterSource,
+			source: network.FarcasterProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -798,7 +798,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Farcaster Worker Indexing Status -> Unhealthy Status",
-			source: network.FarcasterSource,
+			source: network.FarcasterProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -825,7 +825,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Farcaster Worker Indexing Status -> Indexing Status",
-			source: network.FarcasterSource,
+			source: network.FarcasterProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -852,7 +852,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Farcaster Worker Unhealthy Status -> Indexing Status",
-			source: network.FarcasterSource,
+			source: network.FarcasterProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -879,7 +879,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Farcaster Worker Indexing Status -> Ready Status",
-			source: network.FarcasterSource,
+			source: network.FarcasterProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -906,7 +906,7 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Farcaster Worker Unhealthy Status -> Indexing Status",
-			source: network.FarcasterSource,
+			source: network.FarcasterProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
@@ -934,15 +934,15 @@ func TestMonitor(t *testing.T) {
 
 		// RSS rsshub
 		{
-			name:   "Rsshub Worker Ready Status -> Unhealthy Status",
-			source: network.RSSSource,
+			name:   "RSSHub Worker Ready Status -> Unhealthy Status",
+			source: network.RSSProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
 						RSS: &config.Module{
 							ID:         "rss-rsshub",
-							Network:    network.RSS,
-							Worker:     rss.RSSHub,
+							Network:    network.RSSHub,
+							Worker:     rss.Core,
 							EndpointID: "https://rsshub3.bruce.com",
 						},
 					},
@@ -956,14 +956,14 @@ func TestMonitor(t *testing.T) {
 		},
 		{
 			name:   "Rsshub Worker Ready Status -> Ready Status",
-			source: network.RSSSource,
+			source: network.RSSProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
 						RSS: &config.Module{
 							ID:         "rss-rsshub",
-							Network:    network.RSS,
-							Worker:     rss.RSSHub,
+							Network:    network.RSSHub,
+							Worker:     rss.Core,
 							EndpointID: "https://rsshub.app",
 						},
 					},
@@ -1001,7 +1001,7 @@ func TestMonitor(t *testing.T) {
 		testcase := testcase
 
 		switch testcase.source {
-		case network.FarcasterSource, network.ArweaveSource, network.EthereumSource:
+		case network.FarcasterProtocol, network.ArweaveProtocol, network.EthereumProtocol, network.NearProtocol:
 			t.Run(testcase.name, func(t *testing.T) {
 				ctx := context.Background()
 
@@ -1024,7 +1024,7 @@ func TestMonitor(t *testing.T) {
 				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.Decentralized[0].ID)
 				require.Equal(t, testcase.want, status)
 			})
-		case network.RSSSource:
+		case network.RSSProtocol:
 			t.Run(testcase.name, func(t *testing.T) {
 				ctx := context.Background()
 
@@ -1043,6 +1043,7 @@ func TestMonitor(t *testing.T) {
 				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS.ID)
 				require.Equal(t, testcase.want, status)
 			})
+		default:
 		}
 	}
 }
@@ -1063,5 +1064,7 @@ func mockNetworkTolerance() {
 		network.Polygon:           100,
 		network.SatoshiVM:         100,
 		network.VSL:               100,
+		network.Near:              1000,
+		network.Mastodon:          7200000,
 	}
 }

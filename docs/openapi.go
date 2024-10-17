@@ -69,7 +69,7 @@ func generateEnum(file []byte) ([]byte, error) {
 			network.Unknown.String(),
 			network.Bitcoin.String(),
 			network.SatoshiVM.String(),
-			network.RSS.String(),
+			network.RSSHub.String(),
 		}, s)
 	})
 

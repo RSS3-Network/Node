@@ -11,7 +11,7 @@ import (
 	"github.com/redis/rueidis"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
-	source "github.com/rss3-network/node/internal/engine/source/ethereum"
+	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc1155"
@@ -97,7 +97,7 @@ func (w *worker) Types() []schema.Type {
 	}
 }
 
-// Filter returns a source filter.
+// Filter returns a protocol filter.
 func (w *worker) Filter() engine.DataSourceFilter {
 	return nil
 }

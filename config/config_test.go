@@ -65,8 +65,8 @@ observability:
       endpoint: localhost:4318
 component:
   rss:
-      network: rss
-      worker: rsshub
+      network: rsshub
+      worker: core
       endpoint: https://rsshub.app/
       parameters:
         authentication:
@@ -154,8 +154,8 @@ component:
   },
   "component": {
   "rss": {
-    "network": "rss",
-    "worker": "rsshub",
+    "network": "rsshub",
+    "worker": "core",
     "endpoint": "https://rsshub.app/",
     "parameters": {
       "authentication": {
@@ -249,8 +249,8 @@ insecure = true
 endpoint = "localhost:4318"
 
 [component.rss]
-network = "rss"
-worker = "rsshub"
+network = "rsshub"
+worker = "core"
 endpoint = "https://rsshub.app/"
 
 [component.rss.parameters.authentication]
@@ -317,12 +317,12 @@ var configFileExpected = &File{
 	},
 	Component: &Component{
 		RSS: &Module{
-			Network:    network.RSS,
+			Network:    network.RSSHub,
 			EndpointID: "https://rsshub.app/",
 			Endpoint: Endpoint{
 				URL: "https://rsshub.app/",
 			},
-			Worker: rss.RSSHub,
+			Worker: rss.Core,
 			Parameters: &Parameters{
 				"authentication": map[string]any{
 					"access_code": "def",

@@ -112,6 +112,12 @@ func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *
 	modules := append(append(c.config.Component.Decentralized, c.config.Component.RSS), c.config.Component.Federated...)
 
 	for _, m := range modules {
+		if m.Network.Protocol() == network.RSSProtocol {
+			if rssWorker := rss.GetValueByWorkerStr(m.Worker.Name()); rssWorker != 0 {
+				m.Worker = rssWorker
+			}
+		}
+
 		fetchWorkerInfo(m, c.fetchWorkerInfo)
 	}
 
@@ -132,12 +138,12 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 	}
 
 	for workerInfo := range workerInfoChan {
-		switch workerInfo.Network.Source() {
-		case network.RSSSource:
+		switch workerInfo.Network.Protocol() {
+		case network.RSSProtocol:
 			response.Data.RSS = workerInfo
-		case network.EthereumSource, network.FarcasterSource, network.ArweaveSource, network.NearSource:
+		case network.EthereumProtocol, network.FarcasterProtocol, network.ArweaveProtocol, network.NearProtocol:
 			response.Data.Decentralized = append(response.Data.Decentralized, workerInfo)
-		case network.ActivityPubSource:
+		case network.ActivityPubProtocol:
 			response.Data.Federated = append(response.Data.Federated, workerInfo)
 		default:
 		}
@@ -146,7 +152,7 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 	return response
 }
 
-// fetchWorkerInfo fetches the worker info with the different network source.
+// fetchWorkerInfo fetches the worker info with the different network protocol.
 func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
 	if module == nil {
 		zap.L().Info("params module is nil in fetchWorkerInfo")
@@ -172,29 +178,35 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 		},
 	}
 
-	switch module.Network.Source() {
-	case network.ActivityPubSource:
-		workerInfo.Platform = federated.ToPlatformMap[module.Worker.(federated.Worker)].String()
-		workerInfo.Tags = federated.ToTagsMap[module.Worker.(federated.Worker)]
-	case network.EthereumSource, network.ArweaveSource, network.FarcasterSource, network.NearSource:
-		workerInfo.Platform = decentralized.ToPlatformMap[module.Worker.(decentralized.Worker)].String()
-		workerInfo.Tags = decentralized.ToTagsMap[module.Worker.(decentralized.Worker)]
+	switch module.Network.Protocol() {
+	case network.ActivityPubProtocol:
+		if federatedWorker, ok := module.Worker.(federated.Worker); ok {
+			workerInfo.Platform = federated.ToPlatformMap[federatedWorker].String()
+			workerInfo.Tags = federated.ToTagsMap[federatedWorker]
+		}
+	case network.EthereumProtocol, network.ArweaveProtocol, network.FarcasterProtocol, network.NearProtocol:
+		if decentralizedWorker, ok := module.Worker.(decentralized.Worker); ok {
+			workerInfo.Platform = decentralized.ToPlatformMap[decentralizedWorker].String()
+			workerInfo.Tags = decentralized.ToTagsMap[decentralizedWorker]
 
-		// Handle special tags for decentralized core workers.
-		if module.Worker == decentralized.Core {
-			switch module.Network {
-			case network.Farcaster:
-				workerInfo.Tags = []tag.Tag{tag.Social}
-			case network.Arweave:
-				workerInfo.Tags = []tag.Tag{tag.Transaction}
-			case network.VSL:
-				workerInfo.Tags = append(workerInfo.Tags, tag.Exchange)
-			default:
+			// Handle special tags for decentralized core workers.
+			if decentralizedWorker == decentralized.Core {
+				switch module.Network {
+				case network.Farcaster:
+					workerInfo.Tags = []tag.Tag{tag.Social}
+				case network.Arweave:
+					workerInfo.Tags = []tag.Tag{tag.Transaction}
+				case network.VSL:
+					workerInfo.Tags = append(workerInfo.Tags, tag.Exchange)
+				default:
+				}
 			}
 		}
-	case network.RSSSource:
-		workerInfo.Platform = rss.ToPlatformMap[module.Worker.(rss.Worker)].String()
-		workerInfo.Tags = rss.ToTagsMap[module.Worker.(rss.Worker)]
+	case network.RSSProtocol:
+		if rssWorker, ok := module.Worker.(rss.Worker); ok {
+			workerInfo.Platform = rss.ToPlatformMap[rssWorker].String()
+			workerInfo.Tags = rss.ToTagsMap[rssWorker]
+		}
 	}
 
 	return workerInfo

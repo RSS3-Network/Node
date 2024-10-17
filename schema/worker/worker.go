@@ -20,16 +20,16 @@ func HookFunc() mapstructure.DecodeHookFuncType {
 		t reflect.Type,
 		data interface{},
 	) (interface{}, error) {
-		// Only process if the target type is Worker and the source type is string
+		// Only process if the target type is Worker and the protocol type is string
 		if f.Kind() == reflect.String && t.Kind() == reflect.TypeOf((*Worker)(nil)).Elem().Kind() {
 			workerStr := data.(string)
 
 			// TODO: Implement the logic to determine the worker type
-			if value := rss.GetValueByWorkerStr(workerStr); value != 0 {
-				return value, nil
-			} else if value := decentralized.GetValueByWorkerStr(workerStr); value != 0 {
+			if value := decentralized.GetValueByWorkerStr(workerStr); value != 0 {
 				return value, nil
 			} else if value := federated.GetValueByWorkerStr(workerStr); value != 0 {
+				return value, nil
+			} else if value := rss.GetValueByWorkerStr(workerStr); value != 0 {
 				return value, nil
 			}
 		}

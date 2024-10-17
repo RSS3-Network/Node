@@ -4,7 +4,7 @@ package savm_test
 //	t.Parallel()
 //
 //	type arguments struct {
-//		task   *source.Task
+//		task   *protocol.Task
 //		config *config.Module
 //	}
 //
@@ -17,7 +17,7 @@ package savm_test
 //		{
 //			name: "Withdraw WBTC",
 //			arguments: arguments{
-//				task: &source.Task{
+//				task: &protocol.Task{
 //					Network: network.SatoshiVM,
 //					ChainID: 3109,
 //					Header: &ethereum.Header{
@@ -148,7 +148,7 @@ package savm_test
 //		{
 //			name: "Withdraw SAVM",
 //			arguments: arguments{
-//				task: &source.Task{
+//				task: &protocol.Task{
 //					Network: network.SatoshiVM,
 //					ChainID: 3109,
 //					Header: &ethereum.Header{

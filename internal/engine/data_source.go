@@ -7,7 +7,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 
-// DataSource is the interface that wraps the basic methods of a data source.
+// DataSource is the interface that wraps the basic methods of a data protocol.
 type DataSource interface {
 	Network() network.Network
 	State() json.RawMessage

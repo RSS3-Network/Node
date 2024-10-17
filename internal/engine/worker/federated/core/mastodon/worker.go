@@ -15,7 +15,7 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
-	source "github.com/rss3-network/node/internal/engine/source/activitypub"
+	source "github.com/rss3-network/node/internal/engine/protocol/activitypub"
 	"github.com/rss3-network/node/provider/activitypub"
 	"github.com/rss3-network/node/provider/activitypub/mastodon"
 	"github.com/rss3-network/node/provider/httpx"
@@ -66,7 +66,7 @@ func (w *worker) Types() []schema.Type {
 	}
 }
 
-// Filter returns a source filter.
+// Filter returns a protocol filter.
 func (w *worker) Filter() engine.DataSourceFilter {
 	return nil
 }

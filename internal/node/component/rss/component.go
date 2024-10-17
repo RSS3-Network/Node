@@ -58,7 +58,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File) 
 		panic(err)
 	}
 
-	if config.Component.RSS != nil && config.Component.RSS.Network == network.RSS {
+	if config.Component.RSS != nil && config.Component.RSS.Network == network.RSSHub {
 		c.rsshub = &configx{
 			id:       config.Component.RSS.ID,
 			network:  config.Component.RSS.Network,

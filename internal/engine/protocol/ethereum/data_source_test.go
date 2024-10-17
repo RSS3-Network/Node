@@ -7,7 +7,7 @@ import (
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
-	"github.com/rss3-network/node/internal/engine/source/ethereum"
+	"github.com/rss3-network/node/internal/engine/protocol/ethereum"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -36,7 +36,7 @@ func TestSource(t *testing.T) {
 		want      require.ValueAssertionFunc
 		wantError require.ErrorAssertionFunc
 	}{
-		// TODO Implement a solution to configure custom block number ranges for source.
+		// TODO Implement a solution to configure custom block number ranges for protocol.
 		// {
 		// 	name: "From block number 15537393 to 15537398",
 		// 	want: func(t require.TestingT, actual interface{}, msgAndArgs ...interface{}) {
