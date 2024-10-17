@@ -134,8 +134,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	// zap.L().Info("Processing task", zap.Any("task", ethereumTask))
-
 	return activity, nil
 }
 
@@ -287,9 +285,13 @@ func (w *worker) buildGovernanceProposalAction(from, to common.Address, id *big.
 		From:     from.String(),
 		To:       to.String(),
 		Metadata: metadata.GovernanceProposal{
-			ID:         id.String(),
-			Body:       description,
-			Options:    []string{},
+			ID:   id.String(),
+			Body: description,
+			Options: []string{
+				metadata.ActionGovernanceVoteFor.String(),
+				metadata.ActionGovernanceVoteAgainst.String(),
+				metadata.ActionGovernanceVoteAbstain.String(),
+			},
 			StartBlock: decimal.NewFromBigInt(start, 0).String(),
 			EndBlock:   decimal.NewFromBigInt(end, 0).String(),
 		},
