@@ -97,7 +97,7 @@ component:
     # mastodon
     - id: mastodon-core
       network: mastodon
-      worker: mastodon
+      worker: core
       endpoint: mastodon
       parameters:
         kafka_topic: activitypub_events
