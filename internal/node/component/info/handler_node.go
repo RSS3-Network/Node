@@ -116,13 +116,17 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 	// Get network params info
 	params, err := c.getNetworkParams(ctx.Request().Context())
 	if err != nil {
-		return fmt.Errorf("failed to get network params: %w", err)
+		zap.L().Error("failed to get network params", zap.Error(err))
+
+		return err
 	}
 
 	// Get uptime info
 	uptime, err := c.getNodeUptime(ctx.Request().Context())
 	if err != nil {
-		return fmt.Errorf("failed to get node uptime: %w", err)
+		zap.L().Error("failed to get node uptime", zap.Error(err))
+
+		return err
 	}
 
 	// Get worker coverage info
@@ -131,13 +135,17 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 	// get reward info
 	rewards, err := c.getNodeRewards(ctx.Request().Context(), evmAddress)
 	if err != nil {
-		return fmt.Errorf("failed to get node rewards: %w", err)
+		zap.L().Error("failed to get node rewards", zap.Error(err))
+
+		return err
 	}
 
 	// get last heartbeat and slashed tokens
 	lastHeartbeat, slashedTokens, err := c.getNodeBasicInfo(ctx.Request().Context(), evmAddress)
 	if err != nil {
-		return fmt.Errorf("failed to get node slashed tokens: %w", err)
+		zap.L().Error("failed to get node basic info", zap.Error(err))
+
+		return err
 	}
 
 	return ctx.JSON(http.StatusOK, NodeInfoResponse{
@@ -202,7 +210,9 @@ func (c *Component) getNodeUptime(ctx context.Context) (int64, error) {
 	// get first start time from redis cache and calculate uptime
 	firstStartTime, err := GetFirstStartTime(ctx, c.redisClient)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get first start time from cache: %w", err)
+		zap.L().Error("failed to get first start time from cache", zap.Error(err))
+
+		return 0, err
 	}
 
 	if firstStartTime == 0 {
@@ -210,7 +220,9 @@ func (c *Component) getNodeUptime(ctx context.Context) (int64, error) {
 
 		err := UpdateFirstStartTime(ctx, c.redisClient, time.Now().Unix())
 		if err != nil {
-			return 0, fmt.Errorf("failed to update first start time: %w", err)
+			zap.L().Error("failed to update first start time", zap.Error(err))
+
+			return 0, err
 		}
 	} else {
 		uptime = time.Now().Unix() - firstStartTime
@@ -223,13 +235,17 @@ func (c *Component) getNodeUptime(ctx context.Context) (int64, error) {
 func (c *Component) getNetworkParams(ctx context.Context) (string, error) {
 	currentEpoch, err := parameter.GetCurrentEpoch(ctx, c.redisClient)
 	if err != nil {
-		return "", fmt.Errorf("failed to get current epoch from cache: %w", err)
+		zap.L().Error("failed to get current epoch", zap.Error(err))
+
+		return "", err
 	}
 
 	// Get parameters from the network
 	params, err := parameter.PullNetworkParamsFromVSL(c.networkParamsCaller, uint64(currentEpoch))
 	if err != nil {
-		return "", fmt.Errorf("failed to get network parameters: %w", err)
+		zap.L().Error("failed to pull network params from VSL", zap.Error(err))
+
+		return "", err
 	}
 
 	return params, nil
@@ -241,7 +257,9 @@ func (c *Component) getNodeRewards(ctx context.Context, address common.Address) 
 
 	err := c.sendRequest(ctx, fmt.Sprintf("/nta/epochs/%s/rewards", address), &resp)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get node rewards: %w", err)
+		zap.L().Error("failed to get node rewards", zap.Error(err))
+
+		return nil, err
 	}
 
 	rewards := make([]Reward, 0, len(resp.Data))
@@ -274,7 +292,9 @@ func (c *Component) getNodeBasicInfo(ctx context.Context, address common.Address
 
 	err := c.sendRequest(ctx, fmt.Sprintf("/nta/nodes/%s", address), &resp)
 	if err != nil {
-		return 0, decimal.Decimal{}, fmt.Errorf("failed to get node slashed tokens: %w", err)
+		zap.L().Error("failed to get node basic info", zap.Error(err))
+
+		return 0, decimal.Decimal{}, err
 	}
 
 	return resp.Data.LastHeartbeat, resp.Data.SlashedTokens, nil
