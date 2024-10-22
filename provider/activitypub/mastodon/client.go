@@ -195,11 +195,6 @@ func (c *client) FollowRelayServices(ctx context.Context) error {
 }
 
 func (c *client) followRelay(ctx context.Context, instance string) error {
-	httpClient, err := httpx.NewHTTPClient()
-	if err != nil {
-		return fmt.Errorf("create http client: %w", err)
-	}
-
 	uuidStr := uuid.New().String()
 	contentStr := fmt.Sprintf(
 		`{"@context":"https://www.w3.org/ns/activitystreams","id":"%s/%s","type":"Follow","actor":"%s/actor","object":"https://www.w3.org/ns/activitystreams#Public"}`,
@@ -237,26 +232,16 @@ func (c *client) followRelay(ctx context.Context, instance string) error {
 		return fmt.Errorf("sign request: %w", err)
 	}
 
-	// Use Fetch() to handle the request and retry logic
-	resp, err := httpClient.Fetch(ctx, reqURL)
+	resp, err := c.httpClient.Do(req) // ToDo: Use Fetch() to handle the request (now using it will cause hanging issue)
 	if err != nil {
-		return fmt.Errorf("send request: %w", err)
+		return err
 	}
-	defer resp.Close()
+	defer resp.Body.Close()
 
-	// Read the response body
-	body, err := io.ReadAll(resp)
-	if err != nil {
-		return fmt.Errorf("failed to read response body: %w", err)
+	if resp.StatusCode != http.StatusAccepted {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("unexpected status: %s, body: %s", resp.Status, string(body))
 	}
-
-	// Check if the body contains an error or unexpected content
-	if len(body) == 0 {
-		return fmt.Errorf("empty response body from relay server: %s", instance)
-	}
-
-	// You can now process the body content, log it, or handle errors based on the content
-	zap.L().Info("Successfully followed relay", zap.String("instance", instance), zap.String("body", string(body)))
 
 	return nil
 }
