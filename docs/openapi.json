@@ -1146,10 +1146,6 @@
                         "description": "The total uptime of the node.",
                         "type": "integer"
                     },
-                    "parameters": {
-                        "description": "The current network parameters of the node.",
-                        "type": "string"
-                    },
                     "coverage": {
                         "description": "The supported worker list of the node.",
                         "items":{
@@ -1170,7 +1166,6 @@
                         "commit": "000000"
                     },
                     "uptime": 249979,
-                    "parameters": "{\"network_tolerance\":{\"arbitrum\":1000,\"arweave\":100,\"avax\":100,\"base\":100,\"binance-smart-chain\":100,\"crossbell\":500,\"ethereum\":100,\"farcaster\":3600000,\"gnosis\":100,\"linea\":100,\"optimism\":100,\"polygon\":100,\"savm\":100,\"vsl\":100},\"network_start_block\":{\"arbitrum\":185724972,\"arweave\":1374360,\"avax\":42301570,\"base\":11216527,\"binance-smart-chain\":36563564,\"crossbell\":58846671,\"ethereum\":19334220,\"gnosis\":32695982,\"linea\":2591120,\"optimism\":116811812,\"polygon\":54103805,\"savm\":60741,\"vsl\":14192},\"network_core_worker_disk_space_per_month\":{\"arbitrum\":26,\"arweave\":0,\"avax\":0,\"base\":10,\"binance-smart-chain\":117,\"crossbell\":0,\"ethereum\":51,\"gnosis\":9,\"linea\":31,\"optimism\":25,\"polygon\":153,\"savm\":1,\"vsl\":1,\"farcaster\":50}}",
                     "coverage": 1,
                     "records": {
                         "last_heartbeat": 1722222806,
