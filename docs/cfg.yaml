@@ -7,4 +7,3 @@ generate:
   embedded-spec: true
 output-options:
   exclude-operation-ids: [GetRSS]
-  response-type-suffix: Abc

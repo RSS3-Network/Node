@@ -1,4 +1,5 @@
 get:
+  operationId: GetFederatedTxID
   summary: Get Activity by ID
   description: Retrieve details for the specified activity ID.
   tags:
