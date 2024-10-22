@@ -88,13 +88,15 @@ var command = cobra.Command{
 
 		// Apply database migrations for all modules except the broadcaster.
 		if module != BroadcasterArg {
-			databaseClient, err = dialer.Dial(cmd.Context(), config.Database)
-			if err != nil {
-				return fmt.Errorf("dial database: %w", err)
-			}
+			if len(config.Component.Decentralized) > 0 || len(config.Component.Federated) > 0 {
+				databaseClient, err = dialer.Dial(cmd.Context(), config.Database)
+				if err != nil {
+					return fmt.Errorf("dial database: %w", err)
+				}
 
-			if err := databaseClient.Migrate(cmd.Context()); err != nil {
-				return fmt.Errorf("migrate database: %w", err)
+				if err := databaseClient.Migrate(cmd.Context()); err != nil {
+					return fmt.Errorf("migrate database: %w", err)
+				}
 			}
 
 			// Init redis client
