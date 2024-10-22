@@ -16,7 +16,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (c *Component) GetActivity(ctx echo.Context, id string, request docs.GetFederatedTxIdParams) error {
+func (c *Component) GetActivity(ctx echo.Context, id string, request docs.GetFederatedTxIDParams) error {
 	if err := defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}

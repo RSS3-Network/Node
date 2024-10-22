@@ -35,7 +35,7 @@ func (c Component) GetDecentralizedPlatformPlatform(ctx echo.Context, platform d
 	return c.Decentralized.GetPlatformActivities(ctx, platform, params)
 }
 
-func (c Component) GetDecentralizedTxId(ctx echo.Context, id string, params docs.GetDecentralizedTxIdParams) error {
+func (c Component) GetDecentralizedTxID(ctx echo.Context, id string, params docs.GetDecentralizedTxIDParams) error {
 	return c.Decentralized.GetActivity(ctx, id, params)
 }
 
@@ -57,7 +57,7 @@ func (c Component) GetFederatedPlatformPlatform(ctx echo.Context, platform feder
 	return c.Federated.GetPlatformActivities(ctx, platform, params)
 }
 
-func (c Component) GetFederatedTxId(ctx echo.Context, id string, params docs.GetFederatedTxIdParams) error {
+func (c Component) GetFederatedTxID(ctx echo.Context, id string, params docs.GetFederatedTxIDParams) error {
 	return c.Federated.GetActivity(ctx, id, params)
 }
 
