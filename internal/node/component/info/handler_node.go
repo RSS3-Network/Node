@@ -16,6 +16,8 @@ import (
 	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/node/component/decentralized"
+	"github.com/rss3-network/node/internal/node/component/federated"
+	"github.com/rss3-network/node/internal/node/component/rss"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -148,6 +150,20 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 		return err
 	}
 
+	var recentRequests []string
+
+	if len(c.config.Component.Decentralized) > 0 {
+		recentRequests = append(recentRequests, decentralized.GetRecentRequest()...)
+	}
+
+	if len(c.config.Component.Federated) > 0 {
+		recentRequests = append(recentRequests, federated.GetRecentRequest()...)
+	}
+
+	if c.config.Component.RSS != nil {
+		recentRequests = append(recentRequests, rss.GetRecentRequest()...)
+	}
+
 	return ctx.JSON(http.StatusOK, NodeInfoResponse{
 		Data: NodeInfo{
 			Version:    version,
@@ -157,7 +173,7 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 			Coverage:   workerCoverage,
 			Records: Record{
 				LastHeartbeat:  lastHeartbeat,
-				RecentRequests: decentralized.GetRecentRequest(),
+				RecentRequests: recentRequests,
 				RecentRewards:  rewards,
 				SlashedTokens:  slashedTokens,
 			},

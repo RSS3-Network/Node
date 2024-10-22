@@ -87,7 +87,7 @@ var command = cobra.Command{
 		var settlementCaller *vsl.SettlementCaller
 
 		// Apply database migrations for all modules except the broadcaster.
-		if module != BroadcasterArg && len(config.Component.Decentralized) > 0 {
+		if module != BroadcasterArg {
 			databaseClient, err = dialer.Dial(cmd.Context(), config.Database)
 			if err != nil {
 				return fmt.Errorf("dial database: %w", err)

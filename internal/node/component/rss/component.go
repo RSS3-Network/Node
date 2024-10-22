@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync"
 
+	cb "github.com/emirpasic/gods/queues/circularbuffer"
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
@@ -12,6 +14,7 @@ import (
 	"github.com/rss3-network/node/internal/node/component/middleware"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/samber/lo"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -35,6 +38,13 @@ type configx struct {
 
 const Name = "rss"
 
+const MaxRecentRequests = 10
+
+var (
+	RecentRequests      *cb.Queue
+	recentRequestsMutex sync.RWMutex
+)
+
 func (h *Component) Name() string {
 	return Name
 }
@@ -42,6 +52,8 @@ func (h *Component) Name() string {
 var _ component.Component = (*Component)(nil)
 
 func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File) component.Component {
+	RecentRequests = cb.New(MaxRecentRequests)
+
 	c := &Component{
 		config:     config,
 		httpClient: http.DefaultClient,
@@ -127,4 +139,28 @@ func (h *Component) setAccessKey(config *config.Module) error {
 	}
 
 	return nil
+}
+
+func addRecentRequest(path string) {
+	recentRequestsMutex.Lock()
+	defer recentRequestsMutex.Unlock()
+
+	RecentRequests.Enqueue(path)
+}
+
+// GetRecentRequest returns the filtered recent requests.
+func GetRecentRequest() []string {
+	recentRequestsMutex.RLock()
+	defer recentRequestsMutex.RUnlock()
+
+	// Convert queue to slice
+	values := RecentRequests.Values()
+
+	// Filter out empty strings and convert to []string
+	filteredRequests := lo.FilterMap(values, func(item interface{}, _ int) (string, bool) {
+		str, ok := item.(string)
+		return str, ok && str != ""
+	})
+
+	return filteredRequests
 }
