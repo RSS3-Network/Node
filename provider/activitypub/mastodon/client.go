@@ -1,12 +1,24 @@
 package mastodon
 
 import (
+	"bytes"
+	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/json"
+	"encoding/pem"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
+	"github.com/go-fed/httpsig"
 	"github.com/go-playground/form/v4"
-	"github.com/twmb/franz-go/pkg/kgo"
+	"github.com/google/uuid"
+	"github.com/rss3-network/node/provider/activitypub"
+	"github.com/rss3-network/node/provider/httpx"
+	"go.uber.org/zap"
 )
 
 const (
@@ -17,51 +29,240 @@ const (
 var _ Client = (*client)(nil)
 
 type Client interface {
-	GetKafkaConsumer() *kgo.Client
+	FollowRelayServices(ctx context.Context) error
+	ProcessIncomingMessages(ctx context.Context) (<-chan *map[string]interface{}, error)
+	GetActor() (*activitypub.Actor, error)
+	SendMessage(*map[string]interface{})
+	FetchAnnouncedObject(ctx context.Context, objectURL string) (*activitypub.Object, error)
+	// GetKafkaConsumer() *kgo.Client
 }
 
 type client struct {
-	httpClient    *http.Client
-	encoder       *form.Encoder
-	attempts      uint
-	kafkaConsumer *kgo.Client
+	httpClient *http.Client
+	encoder    *form.Encoder
+	attempts   uint
+	domain     string
+	privateKey *rsa.PrivateKey
+	signer     httpsig.Signer
+	msgChan    chan *map[string]interface{}
+	actor      *activitypub.Actor
 }
 
-func (c *client) GetKafkaConsumer() *kgo.Client {
-	return c.kafkaConsumer
-}
+func NewClient(endpoint string) (Client, error) {
+	privateKey, publicKeyPem, err := generateKeyPair()
+	if err != nil {
+		return nil, err
+	}
 
-func NewClient(endpoint string, kafkaTopic string, offset *int64) (Client, error) {
-	instance := client{
+	// Create actor template
+	actor := &activitypub.Actor{
+		Context: []string{
+			"https://www.w3.org/ns/activitystreams",
+			"https://w3id.org/security/v1",
+		},
+		Type:   "Application",
+		ID:     fmt.Sprintf("%s/actor", endpoint),
+		Inbox:  fmt.Sprintf("%s/actor/inbox", endpoint),
+		Outbox: fmt.Sprintf("%s/actor/outbox", endpoint),
+		PublicKey: struct {
+			ID           string `json:"id"`
+			Owner        string `json:"owner"`
+			PublicKeyPem string `json:"publicKeyPem"`
+		}{
+			ID:           fmt.Sprintf("%s/actor#main-key", endpoint),
+			Owner:        fmt.Sprintf("%s/actor", endpoint),
+			PublicKeyPem: publicKeyPem,
+		},
+		Endpoints: struct {
+			SharedInbox string `json:"sharedInbox"`
+		}{
+			SharedInbox: fmt.Sprintf("%s/inbox", endpoint),
+		},
+	}
+
+	// Create signer
+	signer, _, err := httpsig.NewSigner(
+		[]httpsig.Algorithm{httpsig.RSA_SHA256},
+		httpsig.DigestSha256,
+		[]string{httpsig.RequestTarget, "Host", "Date", "Digest", "Content-Type"},
+		httpsig.Signature,
+		60*60,
+	)
+	if err != nil {
+		zap.L().Error("Error creating NewSigner: %v", zap.Error(err))
+	}
+
+	return &client{
+		domain:     endpoint,
+		privateKey: privateKey,
+		signer:     signer,
+		msgChan:    make(chan *map[string]interface{}, 1000), //ToDo: should we hardcode the length as 1000 there?
+		actor:      actor,
 		httpClient: &http.Client{
 			Timeout: DefaultTimeout,
 		},
 		encoder:  form.NewEncoder(),
 		attempts: DefaultAttempts,
-	}
-
-	// Since we cannot determine how the user connects to Kafka, we directly use the endpoint as the broker here
-	kafkaBrokers := []string{endpoint}
-
-	resetOffset := kgo.NewOffset().AtEnd()
-	if offset != nil {
-		resetOffset = kgo.NewOffset().At(*offset)
-	}
-
-	// Create a new Kafka client
-	options := []kgo.Opt{
-		kgo.SeedBrokers(kafkaBrokers...),
-		kgo.ConsumeTopics(kafkaTopic),
-		kgo.ConsumeResetOffset(resetOffset),
-	}
-
-	consumer, err := kgo.NewClient(options...)
-
+	}, nil
+}
+func (c *client) FetchAnnouncedObject(ctx context.Context, objectURL string) (*activitypub.Object, error) {
+	httpClient, err := httpx.NewHTTPClient()
 	if err != nil {
-		return nil, fmt.Errorf("create kafka consumer: %w", err)
+		zap.L().Error("failed to create HTTP client", zap.Error(err))
+		return nil, fmt.Errorf("create HTTP client: %w", err)
 	}
 
-	instance.kafkaConsumer = consumer
+	// Append /activity to the object URL
+	objectURLWithActivity := fmt.Sprintf("%s/activity", objectURL)
+	zap.L().Info("fetching announced object", zap.String("object_url_with_activity", objectURLWithActivity))
 
-	return &instance, nil
+	// Use the embedded request function to fetch the object data
+	req, err := httpClient.Fetch(ctx, objectURLWithActivity)
+	if err != nil {
+		zap.L().Error("failed to fetch announced object", zap.String("url", objectURLWithActivity), zap.Error(err))
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+
+	zap.L().Info("request successful", zap.String("url", objectURLWithActivity))
+
+	// Read the response body
+	body, err := io.ReadAll(req)
+	if err != nil {
+		zap.L().Error("failed to read response body", zap.String("url", objectURLWithActivity), zap.Error(err))
+		return nil, fmt.Errorf("read response body: %w", err)
+	}
+
+	zap.L().Debug("response body received", zap.ByteString("body", body))
+
+	// Unmarshal the JSON response into an activitypub.Object
+	var fetchedObject activitypub.Object
+	if err := json.Unmarshal(body, &fetchedObject); err != nil {
+		zap.L().Error("failed to decode response", zap.String("url", objectURLWithActivity), zap.Error(err))
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+
+	// Modify the 'id' to remove '/activity' at the end if it exists
+	if fetchedObject.ID != "" && fetchedObject.ID[len(fetchedObject.ID)-9:] == "/activity" {
+		zap.L().Info("Trimming /activity from ID", zap.String("original_id", fetchedObject.ID))
+		trimmedID := fetchedObject.ID[:len(fetchedObject.ID)-9]
+		fetchedObject.ID = trimmedID
+	}
+
+	zap.L().Info("fetched object successfully", zap.Any("fetchedObject", fetchedObject))
+
+	return &fetchedObject, nil
+}
+
+// Function to generate RSA private and public key pair
+func generateKeyPair() (*rsa.PrivateKey, string, error) {
+	// Generate private key (2048-bit RSA key)
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// Marshal the public key to PEM format
+	publicKeyBytes := x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)
+	publicKeyPem := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: publicKeyBytes,
+	})
+
+	return privateKey, string(publicKeyPem), nil
+}
+
+func (c *client) FollowRelayServices(ctx context.Context) error {
+	instances := []string{
+		"https://relay.fedi.buzz/instance/mastodon.social",
+	} // ToDo: configure with relay URLs rather than domain names
+	for _, instance := range instances {
+		if err := c.followRelay(ctx, instance); err != nil {
+			zap.L().Error("failed to follow relay",
+				zap.String("instance", instance),
+				zap.Error(err))
+		}
+	}
+
+	return nil
+}
+
+func (c *client) followRelay(ctx context.Context, instance string) error {
+	uuidStr := uuid.New().String()
+	contentStr := fmt.Sprintf(
+		`{"@context":"https://www.w3.org/ns/activitystreams","id":"%s/%s","type":"Follow","actor":"%s/actor","object":"https://www.w3.org/ns/activitystreams#Public"}`,
+		c.domain, uuidStr, c.domain,
+	)
+	content := []byte(contentStr)
+
+	req, err := http.NewRequestWithContext(ctx,
+		http.MethodPost,
+		instance,
+		bytes.NewReader(content),
+	)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Host", "relay.fedi.buzz")
+	req.Header.Set("Content-Type", "application/activity+json")
+	req.Header.Set("Date", time.Now().Format(time.RFC1123))
+
+	if err := c.signer.SignRequest(
+		c.privateKey,
+		fmt.Sprintf("%s/actor#main-key", c.domain),
+		req,
+		content,
+	); err != nil {
+		return err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusAccepted {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("unexpected status: %s, body: %s", resp.Status, string(body))
+	}
+
+	return nil
+}
+
+func (c *client) GetActor() (*activitypub.Actor, error) {
+	return c.actor, nil
+}
+
+func (c *client) ProcessIncomingMessages(_ context.Context) (<-chan *map[string]interface{}, error) {
+	return c.msgChan, nil
+}
+
+// Add the implementation to the client struct
+func (c *client) SendMessage(msg *map[string]interface{}) {
+	msgType, typeOk := (*msg)["type"].(string)
+	msgID, idOk := (*msg)["id"].(string)
+
+	select {
+	case c.msgChan <- msg:
+		// Log the message details if they exist
+		if typeOk && idOk {
+			zap.L().Debug("message sent to channel",
+				zap.String("type", msgType),
+				zap.String("id", msgID))
+		} else {
+			zap.L().Warn("message sent but type or id missing",
+				zap.Any("message", msg))
+		}
+	default:
+		// Log if the channel is full
+		if typeOk && idOk {
+			zap.L().Warn("message channel full, dropping message",
+				zap.String("type", msgType),
+				zap.String("id", msgID))
+		} else {
+			zap.L().Warn("message channel full, dropping message with missing type or id",
+				zap.Any("message", msg))
+		}
+	}
 }

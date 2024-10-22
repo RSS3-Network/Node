@@ -65,3 +65,19 @@ type StatusResponse struct {
 		Tag        []Tag        `json:"tag"`
 	} `json:"object"`
 }
+
+type Actor struct {
+	Context   []string `json:"@context"`
+	ID        string   `json:"id"`
+	Type      string   `json:"type"`
+	Inbox     string   `json:"inbox"`
+	Outbox    string   `json:"outbox"`
+	PublicKey struct {
+		ID           string `json:"id"`
+		Owner        string `json:"owner"`
+		PublicKeyPem string `json:"publicKeyPem"`
+	} `json:"publicKey"`
+	Endpoints struct {
+		SharedInbox string `json:"sharedInbox"`
+	} `json:"endpoints"`
+}
