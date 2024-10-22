@@ -115,20 +115,28 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 		evmAddress = operator.EvmAddress
 	}
 
-	// Get network params info
-	params, err := c.getNetworkParams(ctx.Request().Context())
-	if err != nil {
-		zap.L().Error("failed to get network params", zap.Error(err))
+	var (
+		params string
+		uptime int64
+		err    error
+	)
 
-		return err
-	}
+	if len(c.config.Component.Decentralized) > 0 || len(c.config.Component.Federated) > 0 {
+		// Get network params info
+		params, err = c.getNetworkParams(ctx.Request().Context())
+		if err != nil {
+			zap.L().Error("failed to get network params", zap.Error(err))
 
-	// Get uptime info
-	uptime, err := c.getNodeUptime(ctx.Request().Context())
-	if err != nil {
-		zap.L().Error("failed to get node uptime", zap.Error(err))
+			return err
+		}
 
-		return err
+		// Get uptime info
+		uptime, err = c.getNodeUptime(ctx.Request().Context())
+		if err != nil {
+			zap.L().Error("failed to get node uptime", zap.Error(err))
+
+			return err
+		}
 	}
 
 	// Get worker coverage info

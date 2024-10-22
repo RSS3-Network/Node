@@ -49,12 +49,47 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 
 	var response *WorkerResponse
 
-	if c.redisClient != nil {
+	switch {
+	case c.redisClient != nil:
 		// Fetch all worker info concurrently.
 		c.fetchAllWorkerInfo(ctx, workerInfoChan)
 
 		// Build the worker response.
 		response = c.buildWorkerResponse(workerInfoChan)
+	case c.config.Component.RSS != nil:
+		m := c.config.Component.RSS
+
+		response = &WorkerResponse{
+			Data: ComponentInfo{
+				RSS: &WorkerInfo{
+					WorkerID: m.ID,
+					Network:  m.Network,
+					Worker:   m.Worker,
+					Tags:     rss.ToTagsMap[m.Worker.(rss.Worker)],
+					Platform: rss.ToPlatformMap[m.Worker.(rss.Worker)].String(),
+					Status:   worker.StatusReady},
+			},
+		}
+	case c.config.Component.Federated != nil:
+		f := c.config.Component.Federated[0]
+		switch f.Worker {
+		case federated.Core:
+			response = &WorkerResponse{
+				Data: ComponentInfo{
+					RSS: &WorkerInfo{
+						WorkerID: f.ID,
+						Network:  f.Network,
+						Worker:   f.Worker,
+						Tags:     federated.ToTagsMap[federated.Core],
+						Platform: rss.ToPlatformMap[f.Worker.(rss.Worker)].String(),
+						Status:   worker.StatusReady},
+				},
+			}
+		default:
+			return nil
+		}
+	default:
+		return nil
 	}
 
 	return ctx.JSON(http.StatusOK, response)
