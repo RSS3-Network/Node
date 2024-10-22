@@ -157,14 +157,14 @@ var command = cobra.Command{
 			}
 
 			//	set first start time
-			firstStartTime, err := info.GetFirstStartTime(cmd.Context(), redisClient)
+			firstStartTime, err := info.GetFirstStartTime()
 			if err != nil {
 				return fmt.Errorf("get first start time: %w", err)
 			}
 
 			if firstStartTime == 0 {
 				//	update first start time to current timestamp in seconds
-				err = info.UpdateFirstStartTime(cmd.Context(), redisClient, time.Now().Unix())
+				err = info.UpdateFirstStartTime(time.Now().Unix())
 				if err != nil {
 					return fmt.Errorf("update first start time: %w", err)
 				}

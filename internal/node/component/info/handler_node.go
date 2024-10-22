@@ -3,17 +3,16 @@ package info
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/labstack/echo/v4"
-	"github.com/redis/rueidis"
-	"github.com/rss3-network/node/config/parameter"
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/node/component/decentralized"
 	"github.com/rss3-network/node/internal/node/component/federated"
@@ -59,12 +58,11 @@ type GINodeInfoResponse struct {
 }
 
 type NodeInfo struct {
-	Operator   common.Address `json:"operator"`
-	Version    Version        `json:"version"`
-	Uptime     int64          `json:"uptime"`
-	Parameters string         `json:"parameters"`
-	Coverage   []string       `json:"coverage"`
-	Records    Record         `json:"records"`
+	Operator common.Address `json:"operator"`
+	Version  Version        `json:"version"`
+	Uptime   int64          `json:"uptime"`
+	Coverage []string       `json:"coverage"`
+	Records  Record         `json:"records"`
 }
 
 type Record struct {
@@ -115,28 +113,12 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 		evmAddress = operator.EvmAddress
 	}
 
-	var (
-		params string
-		uptime int64
-		err    error
-	)
+	// Get uptime info
+	uptime, err := c.getNodeUptime()
+	if err != nil {
+		zap.L().Error("failed to get node uptime", zap.Error(err))
 
-	if len(c.config.Component.Decentralized) > 0 || len(c.config.Component.Federated) > 0 {
-		// Get network params info
-		params, err = c.getNetworkParams(ctx.Request().Context())
-		if err != nil {
-			zap.L().Error("failed to get network params", zap.Error(err))
-
-			return err
-		}
-
-		// Get uptime info
-		uptime, err = c.getNodeUptime(ctx.Request().Context())
-		if err != nil {
-			zap.L().Error("failed to get node uptime", zap.Error(err))
-
-			return err
-		}
+		return err
 	}
 
 	// Get worker coverage info
@@ -174,11 +156,10 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, NodeInfoResponse{
 		Data: NodeInfo{
-			Version:    version,
-			Operator:   evmAddress,
-			Parameters: params,
-			Uptime:     uptime,
-			Coverage:   workerCoverage,
+			Version:  version,
+			Operator: evmAddress,
+			Uptime:   uptime,
+			Coverage: workerCoverage,
 			Records: Record{
 				LastHeartbeat:  lastHeartbeat,
 				RecentRequests: recentRequests,
@@ -228,11 +209,11 @@ func (c *Component) getNodeWorkerCoverage() []string {
 }
 
 // getNodeUptime returns the node uptime.
-func (c *Component) getNodeUptime(ctx context.Context) (int64, error) {
+func (c *Component) getNodeUptime() (int64, error) {
 	var uptime int64
 
 	// get first start time from redis cache and calculate uptime
-	firstStartTime, err := GetFirstStartTime(ctx, c.redisClient)
+	firstStartTime, err := GetFirstStartTime()
 	if err != nil {
 		zap.L().Error("failed to get first start time from cache", zap.Error(err))
 
@@ -242,7 +223,7 @@ func (c *Component) getNodeUptime(ctx context.Context) (int64, error) {
 	if firstStartTime == 0 {
 		uptime = 0
 
-		err := UpdateFirstStartTime(ctx, c.redisClient, time.Now().Unix())
+		err := UpdateFirstStartTime(time.Now().Unix())
 		if err != nil {
 			zap.L().Error("failed to update first start time", zap.Error(err))
 
@@ -253,26 +234,6 @@ func (c *Component) getNodeUptime(ctx context.Context) (int64, error) {
 	}
 
 	return uptime, nil
-}
-
-// getNetworkParams returns the network parameters.
-func (c *Component) getNetworkParams(ctx context.Context) (string, error) {
-	currentEpoch, err := parameter.GetCurrentEpoch(ctx, c.redisClient)
-	if err != nil {
-		zap.L().Error("failed to get current epoch", zap.Error(err))
-
-		return "", err
-	}
-
-	// Get parameters from the network
-	params, err := parameter.PullNetworkParamsFromVSL(c.networkParamsCaller, uint64(currentEpoch))
-	if err != nil {
-		zap.L().Error("failed to pull network params from VSL", zap.Error(err))
-
-		return "", err
-	}
-
-	return params, nil
 }
 
 // getNodeRewards returns the node rewards.
@@ -362,49 +323,42 @@ func (c *Component) sendRequest(ctx context.Context, path string, result any) er
 	return nil
 }
 
-// GetFirstStartTime Get the first start time from redis cache
-func GetFirstStartTime(ctx context.Context, redisClient rueidis.Client) (int64, error) {
-	if redisClient == nil {
-		return 0, fmt.Errorf("redis client is nil")
+// GetFirstStartTime Get the first start time from local file
+func GetFirstStartTime() (int64, error) {
+	filePath := "first_start_time.txt"
+
+	// Check if file exists
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return 0, nil
 	}
 
-	command := redisClient.B().Get().Key(buildFirstStartTimeCacheKey()).Build()
-
-	result := redisClient.Do(ctx, command)
-	if err := result.Error(); err != nil {
-		if errors.Is(err, rueidis.Nil) {
-			// Key doesn't exist, return 0 or a default value
-			return 0, nil
-		}
-
-		return 0, fmt.Errorf("redis result: %w", err)
-	}
-
-	firstStartTime, err := result.AsInt64()
+	// Read the file
+	content, err := os.ReadFile(filePath)
 	if err != nil {
-		return 0, fmt.Errorf("redis result to int64: %w", err)
+		return 0, fmt.Errorf("read file: %w", err)
+	}
+
+	// Convert content to int64
+	firstStartTime, err := strconv.ParseInt(strings.TrimSpace(string(content)), 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse int64: %w", err)
 	}
 
 	return firstStartTime, nil
 }
 
-// UpdateFirstStartTime updates the first start time in redis cache
-func UpdateFirstStartTime(ctx context.Context, redisClient rueidis.Client, timestamp int64) error {
-	if redisClient == nil {
-		return fmt.Errorf("redis client is nil")
-	}
+// UpdateFirstStartTime updates the first start time in local file
+func UpdateFirstStartTime(timestamp int64) error {
+	filePath := "first_start_time.txt"
 
-	command := redisClient.B().Set().Key(buildFirstStartTimeCacheKey()).Value(strconv.FormatInt(timestamp, 10)).Build()
+	// Convert timestamp to string
+	content := strconv.FormatInt(timestamp, 10)
 
-	result := redisClient.Do(ctx, command)
-	if err := result.Error(); err != nil {
-		return fmt.Errorf("redis result: %w", err)
+	// Write to file
+	err := os.WriteFile(filePath, []byte(content), 0600)
+	if err != nil {
+		return fmt.Errorf("write file: %w", err)
 	}
 
 	return nil
-}
-
-// buildFirstStartTimeCacheKey builds the cache key for the first start time
-func buildFirstStartTimeCacheKey() string {
-	return "node:info:first_start_time"
 }
