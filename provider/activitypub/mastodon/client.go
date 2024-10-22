@@ -32,7 +32,7 @@ var _ Client = (*client)(nil)
 
 type Client interface {
 	FollowRelayServices(ctx context.Context) error
-	ProcessIncomingMessages(ctx context.Context) (<-chan *map[string]interface{}, error)
+	GetMessageChan() (<-chan *map[string]interface{}, error)
 	GetActor() (*activitypub.Actor, error)
 	SendMessage(*map[string]interface{})
 	FetchAnnouncedObject(ctx context.Context, objectURL string) (*activitypub.Object, error)
@@ -215,7 +215,7 @@ func (c *client) followRelay(ctx context.Context, instance string) error {
 
 	reqURL := instanceURL.String()
 	zap.L().Info("following relay", zap.String("url", reqURL))
-	zap.L().Info("instanceURL.HOST", zap.String("host", instanceURL.Host))
+	zap.L().Info("instanceURL.Host", zap.String("host", instanceURL.Host))
 
 	// Make a POST request
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(content))
@@ -265,7 +265,7 @@ func (c *client) GetActor() (*activitypub.Actor, error) {
 	return c.actor, nil
 }
 
-func (c *client) ProcessIncomingMessages(_ context.Context) (<-chan *map[string]interface{}, error) {
+func (c *client) GetMessageChan() (<-chan *map[string]interface{}, error) {
 	return c.msgChan, nil
 }
 

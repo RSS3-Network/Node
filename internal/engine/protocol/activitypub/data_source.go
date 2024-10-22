@@ -25,8 +25,10 @@ import (
 )
 
 var _ engine.DataSource = (*dataSource)(nil)
-
 var DefaultStartTime int64
+
+// Global constant for the server port
+const ServerPort = ":8181" // ToDo: hardcode the server port here
 
 // dataSource struct defines the fields for the data protocol
 type dataSource struct {
@@ -87,8 +89,8 @@ func (s *dataSource) startHTTPServer(ctx context.Context) error {
 	httpServer.POST("/inbox", s.handleInbox)
 
 	// Start server with graceful shutdown
-	go func() { //ToDo: here should not be hardcoded to :8181
-		if err := httpServer.Start(":8181"); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	go func() {
+		if err := httpServer.Start(ServerPort); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			zap.L().Error("server error", zap.Error(err))
 		}
 	}()
@@ -156,7 +158,7 @@ func (s *dataSource) handleInbox(c echo.Context) error {
 }
 
 func (s *dataSource) processMessages(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
-	messageChan, err := s.mastodonClient.ProcessIncomingMessages(ctx)
+	messageChan, err := s.mastodonClient.GetMessageChan()
 	if err != nil {
 		return fmt.Errorf("get message channel: %w", err)
 	}
@@ -167,7 +169,6 @@ func (s *dataSource) processMessages(ctx context.Context, tasksChan chan<- *engi
 	for {
 		select {
 		case <-ctx.Done():
-			// Wait for all goroutines in the pool to finish before returning
 			resultPool.Wait()
 			return ctx.Err()
 		case msg := <-messageChan:
