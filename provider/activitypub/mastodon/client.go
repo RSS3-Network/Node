@@ -23,8 +23,9 @@ import (
 )
 
 const (
-	DefaultTimeout  = 2 * time.Second
-	DefaultAttempts = 2
+	DefaultTimeout          = 2 * time.Second
+	DefaultAttempts         = 2
+	MessageChannelMaxLength = 1000
 )
 
 var _ Client = (*client)(nil)
@@ -94,7 +95,7 @@ func NewClient(endpoint string) (Client, error) {
 		zap.L().Error("Error creating NewSigner: %v", zap.Error(err))
 	}
 
-	// Set the
+	// Set the Relay URL list
 	relayURLs := []string{
 		"https://relay.fedi.buzz/instance/mas.to",
 		"https://relay.fedi.buzz/instance/mastodon.social",
@@ -104,7 +105,7 @@ func NewClient(endpoint string) (Client, error) {
 		domain:     endpoint,
 		privateKey: privateKey,
 		signer:     signer,
-		msgChan:    make(chan *map[string]interface{}, 1000), //ToDo: should we hardcode the length as 1000 there?
+		msgChan:    make(chan *map[string]interface{}, MessageChannelMaxLength),
 		actor:      actor,
 		httpClient: &http.Client{
 			Timeout: DefaultTimeout,
@@ -216,7 +217,7 @@ func (c *client) followRelay(ctx context.Context, instance string) error {
 	zap.L().Info("following relay", zap.String("url", reqURL))
 	zap.L().Info("instanceURL.HOST", zap.String("host", instanceURL.Host))
 
-	// Make a POST request with the content
+	// Make a POST request
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(content))
 	if err != nil {
 		return fmt.Errorf("create request: %w", err)

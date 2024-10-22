@@ -87,8 +87,8 @@ func (s *dataSource) startHTTPServer(ctx context.Context) error {
 	httpServer.POST("/inbox", s.handleInbox)
 
 	// Start server with graceful shutdown
-	go func() { //ToDo: here should not be hardcoded to :80
-		if err := httpServer.Start(":80"); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	go func() { //ToDo: here should not be hardcoded to :8181
+		if err := httpServer.Start(":8181"); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			zap.L().Error("server error", zap.Error(err))
 		}
 	}()
@@ -178,7 +178,7 @@ func (s *dataSource) processMessages(ctx context.Context, tasksChan chan<- *engi
 			resultPool.Go(func() *engine.Tasks {
 				zap.L().Info("processMessages - received message", zap.Any("message", msg))
 
-				// Check if the message is of type 'Announce'
+				// Check if the relay message is with type 'Announce'
 				if msgType, ok := (*msg)["type"].(string); ok && msgType == "Announce" {
 					if objectURL, ok := (*msg)["object"].(string); ok {
 						zap.L().Info("Processing Announce object", zap.String("object_url", objectURL))
@@ -216,8 +216,7 @@ func (s *dataSource) processMessages(ctx context.Context, tasksChan chan<- *engi
 
 // initialize sets up the Kafka consumer and Mastodon client
 func (s *dataSource) initialize() (err error) {
-	// Create a new Client instance with required kafka parameters
-	client, err := mastodon.NewClient(s.config.Endpoint.URL) // kafkaTopic, lo.ToPtr(s.state.LastOffset)) //ToDo: Resolve LastOffset
+	client, err := mastodon.NewClient(s.config.Endpoint.URL) //ToDo: Resolve LastOffset feature
 	if err != nil {
 		return fmt.Errorf("create activitypub client: %w", err)
 	}
