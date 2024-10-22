@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/go-fed/httpsig"
@@ -22,7 +23,7 @@ import (
 )
 
 const (
-	DefaultTimeout  = 3 * time.Second
+	DefaultTimeout  = 2 * time.Second
 	DefaultAttempts = 2
 )
 
@@ -46,6 +47,7 @@ type client struct {
 	signer     httpsig.Signer
 	msgChan    chan *map[string]interface{}
 	actor      *activitypub.Actor
+	relayURLs  []string
 }
 
 func NewClient(endpoint string) (Client, error) {
@@ -92,6 +94,12 @@ func NewClient(endpoint string) (Client, error) {
 		zap.L().Error("Error creating NewSigner: %v", zap.Error(err))
 	}
 
+	// Set the
+	relayURLs := []string{
+		"https://relay.fedi.buzz/instance/mas.to",
+		"https://relay.fedi.buzz/instance/mastodon.social",
+	}
+
 	return &client{
 		domain:     endpoint,
 		privateKey: privateKey,
@@ -101,8 +109,9 @@ func NewClient(endpoint string) (Client, error) {
 		httpClient: &http.Client{
 			Timeout: DefaultTimeout,
 		},
-		encoder:  form.NewEncoder(),
-		attempts: DefaultAttempts,
+		encoder:   form.NewEncoder(),
+		attempts:  DefaultAttempts,
+		relayURLs: relayURLs,
 	}, nil
 }
 func (c *client) FetchAnnouncedObject(ctx context.Context, objectURL string) (*activitypub.Object, error) {
@@ -172,10 +181,8 @@ func generateKeyPair() (*rsa.PrivateKey, string, error) {
 }
 
 func (c *client) FollowRelayServices(ctx context.Context) error {
-	instances := []string{
-		"https://relay.fedi.buzz/instance/mastodon.social",
-	} // ToDo: configure with relay URLs rather than domain names
-	for _, instance := range instances {
+	// ToDo: configure with relay URLs rather than domain names
+	for _, instance := range c.relayURLs {
 		if err := c.followRelay(ctx, instance); err != nil {
 			zap.L().Error("failed to follow relay",
 				zap.String("instance", instance),
@@ -187,6 +194,11 @@ func (c *client) FollowRelayServices(ctx context.Context) error {
 }
 
 func (c *client) followRelay(ctx context.Context, instance string) error {
+	httpClient, err := httpx.NewHTTPClient()
+	if err != nil {
+		return fmt.Errorf("create http client: %w", err)
+	}
+
 	uuidStr := uuid.New().String()
 	contentStr := fmt.Sprintf(
 		`{"@context":"https://www.w3.org/ns/activitystreams","id":"%s/%s","type":"Follow","actor":"%s/actor","object":"https://www.w3.org/ns/activitystreams#Public"}`,
@@ -194,38 +206,56 @@ func (c *client) followRelay(ctx context.Context, instance string) error {
 	)
 	content := []byte(contentStr)
 
-	req, err := http.NewRequestWithContext(ctx,
-		http.MethodPost,
-		instance,
-		bytes.NewReader(content),
-	)
+	// Parse the instance URL to extract the host dynamically
+	instanceURL, err := url.Parse(instance)
 	if err != nil {
-		return err
+		return fmt.Errorf("parse instance URL: %w", err)
 	}
 
-	req.Header.Set("Host", "relay.fedi.buzz")
+	reqURL := instanceURL.String()
+	zap.L().Info("following relay", zap.String("url", reqURL))
+	zap.L().Info("instanceURL.HOST", zap.String("host", instanceURL.Host))
+
+	// Make a POST request with the content
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(content))
+	if err != nil {
+		return fmt.Errorf("create request: %w", err)
+	}
+
+	req.Header.Set("Host", instanceURL.Host)
 	req.Header.Set("Content-Type", "application/activity+json")
 	req.Header.Set("Date", time.Now().Format(time.RFC1123))
 
+	// Sign the request
 	if err := c.signer.SignRequest(
 		c.privateKey,
 		fmt.Sprintf("%s/actor#main-key", c.domain),
 		req,
 		content,
 	); err != nil {
-		return err
+		return fmt.Errorf("sign request: %w", err)
 	}
 
-	resp, err := c.httpClient.Do(req)
+	// Use Fetch() to handle the request and retry logic
+	resp, err := httpClient.Fetch(ctx, reqURL)
 	if err != nil {
-		return err
+		return fmt.Errorf("send request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer resp.Close()
 
-	if resp.StatusCode != http.StatusAccepted {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("unexpected status: %s, body: %s", resp.Status, string(body))
+	// Read the response body
+	body, err := io.ReadAll(resp)
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %w", err)
 	}
+
+	// Check if the body contains an error or unexpected content
+	if len(body) == 0 {
+		return fmt.Errorf("empty response body from relay server: %s", instance)
+	}
+
+	// You can now process the body content, log it, or handle errors based on the content
+	zap.L().Info("Successfully followed relay", zap.String("instance", instance), zap.String("body", string(body)))
 
 	return nil
 }

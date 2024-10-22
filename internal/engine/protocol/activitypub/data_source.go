@@ -155,49 +155,6 @@ func (s *dataSource) handleInbox(c echo.Context) error {
 	return c.NoContent(http.StatusAccepted)
 }
 
-//
-//// consumeKafkaMessages consumes messages from a Kafka topic and processes them
-// func (s *dataSource) consumeKafkaMessages(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
-//	//consumer := s.mastodonClient.GetKafkaConsumer()
-//
-//	// Create a pool to process messages concurrently
-//	resultPool := pool.NewWithResults[*engine.Tasks]().WithMaxGoroutines(runtime.NumCPU())
-//
-//	// Loop to continuously process incoming messages
-//	for {
-//		// Start polling messages from the specified Kafka partition
-//		//fetches := consumer.PollFetches(ctx)
-//		//if errs := fetches.Errors(); len(errs) > 0 {
-//		//	for _, e := range errs {
-//		//		zap.L().Error("consumer poll fetch error", zap.Error(e.Err))
-//		//	}
-//		//
-//		//	return fmt.Errorf("consumer poll fetch error: %v", errs)
-//		//}
-//		//
-//		//fetches.EachRecord(func(record *kgo.Record) {
-//		//	// Process each message in a separate goroutine for concurrent processing
-//		//	resultPool.Go(func() *engine.Tasks {
-//		//		// Process each message
-//		//		tasks := s.processMessage(ctx, record)
-//		//		if tasks != nil {
-//		//			tasksChan <- tasks
-//		//		}
-//		//
-//		//		return tasks
-//		//	})
-//		//})
-//
-//		select {
-//		// Check if the context is done
-//		case <-ctx.Done():
-//			resultPool.Wait()
-//			return ctx.Err()
-//		default:
-//		}
-//	}
-//}
-
 func (s *dataSource) processMessages(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	messageChan, err := s.mastodonClient.ProcessIncomingMessages(ctx)
 	if err != nil {
@@ -256,33 +213,6 @@ func (s *dataSource) processMessages(ctx context.Context, tasksChan chan<- *engi
 		}
 	}
 }
-
-// processMessage processes a single Kafka message
-// func (s *dataSource) processMessage(ctx context.Context, record *kgo.Record) *engine.Tasks {
-//	// Update the state with the last processed message count number (offset)
-//	//s.state.LastOffset = record.Offset
-//
-//	//zap.L().Info("Consumed message",
-//	//	zap.Int64("offset", record.Offset),
-//	//	zap.String("value", string(record.Value)))
-//
-//	// Unmarshal the message and store it as an ActivityPub object
-//	messageValue := string(record.Value)
-//
-//	var object activitypub.Object
-//
-//	if err := json.Unmarshal([]byte(messageValue), &object); err != nil {
-//		zap.L().Error("failed to unmarshal message value", zap.Error(err))
-//		return nil
-//	}
-//
-//	// Build the corresponding message task for transformation
-//	tasks := s.buildMastodonMessageTasks(ctx, object)
-//
-//	zap.L().Info("Generated tasks from message", zap.Int("tasks", len(tasks.Tasks)))
-//
-//	return tasks
-// }
 
 // initialize sets up the Kafka consumer and Mastodon client
 func (s *dataSource) initialize() (err error) {
