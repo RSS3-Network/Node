@@ -20,6 +20,8 @@ func (h *Component) Handler(ctx echo.Context) error {
 
 	go h.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, path)
 
+	addRecentRequest(ctx.Request().RequestURI)
+
 	data, err := h.getActivities(ctx.Request().Context(), path, ctx.Request().URL)
 	if err != nil {
 		zap.L().Error("getActivities InternalError", zap.Error(err))

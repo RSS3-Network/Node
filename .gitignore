@@ -33,3 +33,5 @@ go.work
 
 ### Configuration
 deploy/config.yaml
+
+first_start_time.txt

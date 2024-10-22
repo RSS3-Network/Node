@@ -87,7 +87,7 @@ var command = cobra.Command{
 		var settlementCaller *vsl.SettlementCaller
 
 		// Apply database migrations for all modules except the broadcaster.
-		if module != BroadcasterArg && len(config.Component.Decentralized) > 0 {
+		if module != BroadcasterArg && (len(config.Component.Decentralized) > 0 || len(config.Component.Federated) > 0) {
 			databaseClient, err = dialer.Dial(cmd.Context(), config.Database)
 			if err != nil {
 				return fmt.Errorf("dial database: %w", err)
@@ -157,19 +157,18 @@ var command = cobra.Command{
 			}
 
 			//	set first start time
-			firstStartTime, err := info.GetFirstStartTime(cmd.Context(), redisClient)
+			firstStartTime, err := info.GetFirstStartTime()
 			if err != nil {
 				return fmt.Errorf("get first start time: %w", err)
 			}
 
 			if firstStartTime == 0 {
 				//	update first start time to current timestamp in seconds
-				err = info.UpdateFirstStartTime(cmd.Context(), redisClient, time.Now().Unix())
+				err = info.UpdateFirstStartTime(time.Now().Unix())
 				if err != nil {
 					return fmt.Errorf("update first start time: %w", err)
 				}
 			}
-
 		}
 
 		switch module {
