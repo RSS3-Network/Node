@@ -6,27 +6,14 @@ import (
 	"github.com/creasty/defaults"
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
+	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/node/schema/worker/federated"
-	"github.com/rss3-network/protocol-go/schema"
-	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
-	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
-func (c *Component) GetNetworkActivities(ctx echo.Context) (err error) {
-	var request NetworkActivitiesRequest
-
-	if err := ctx.Bind(&request); err != nil {
-		return response.BadRequestError(ctx, err)
-	}
-
-	if request.Type, err = c.parseTypes(ctx.QueryParams()["type"], request.Tag); err != nil {
-		return response.BadRequestError(ctx, err)
-	}
-
+func (c *Component) GetNetworkActivities(ctx echo.Context, net network.Network, request docs.GetFederatedNetworkNetworkParams) (err error) {
 	if err := defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
@@ -35,9 +22,9 @@ func (c *Component) GetNetworkActivities(ctx echo.Context) (err error) {
 		return response.ValidationFailedError(ctx, err)
 	}
 
-	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, request.Network.String())
+	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, net.String())
 
-	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, request.Network.String())
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, net.String())
 
 	addRecentRequest(ctx.Request().RequestURI)
 
@@ -56,7 +43,7 @@ func (c *Component) GetNetworkActivities(ctx echo.Context) (err error) {
 		ActionLimit:    request.ActionLimit,
 		Status:         request.Status,
 		Direction:      request.Direction,
-		Network:        []network.Network{request.Network},
+		Network:        []network.Network{net},
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(request.Type),
 		Platforms:      lo.Uniq(request.Platform),
@@ -75,19 +62,4 @@ func (c *Component) GetNetworkActivities(ctx echo.Context) (err error) {
 			Cursor: last,
 		}),
 	})
-}
-
-type NetworkActivitiesRequest struct {
-	Network network.Network `param:"network" validate:"required"`
-
-	Limit          int                  `query:"limit" validate:"min=1,max=100" default:"100"`
-	ActionLimit    int                  `query:"action_limit" validate:"min=1,max=20" default:"10"`
-	Cursor         *string              `query:"cursor"`
-	SinceTimestamp *uint64              `query:"since_timestamp"`
-	UntilTimestamp *uint64              `query:"until_timestamp"`
-	Status         *bool                `query:"success"`
-	Direction      *activityx.Direction `query:"direction"`
-	Tag            []tag.Tag            `query:"tag"`
-	Type           []schema.Type        `query:"-"`
-	Platform       []federated.Platform `query:"platform"`
 }

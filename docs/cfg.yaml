@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/HEAD/configuration-schema.json
+package: docs
+output: ./generated.go
+generate:
+  models: true
+  echo-server: true
+  embedded-spec: true
+output-options:
+  exclude-operation-ids: [GetRSS]
+  response-type-suffix: Abc

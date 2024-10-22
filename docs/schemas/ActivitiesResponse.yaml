@@ -1,0 +1,10 @@
+description: The response structure for a list of activities.
+properties:
+  data:
+    description: The list of activities.
+    items:
+      $ref: "./Activity.yaml"
+    type: array
+  meta:
+    $ref: "./MetaCursor.yaml"
+type: object

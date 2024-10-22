@@ -1,0 +1,9 @@
+description: Retrieve activities for the specified type(s).
+in: query
+name: type
+required: false
+schema:
+  items:
+    $ref: "../../schemas/Type.yaml"
+  type: array
+  x-go-type-skip-optional-pointer: true

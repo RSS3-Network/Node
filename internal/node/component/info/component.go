@@ -35,7 +35,7 @@ func (c *Component) Name() string {
 
 var _ component.Component = (*Component)(nil)
 
-func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller) component.Component {
+func NewComponent(_ context.Context, _ *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller) *Component {
 	c := &Component{
 		config:              config,
 		databaseClient:      databaseClient,
@@ -43,15 +43,6 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 		networkParamsCaller: networkParamsCaller,
 		httpClient:          http.DefaultClient,
 	}
-
-	apiServer.GET("/", c.GetNodeOperator)
-	apiServer.GET("/info", c.GetNodeInfo)
-	apiServer.GET("/version", c.GetVersion)
-	apiServer.GET("/activity_count", c.GetActivityCount)
-	apiServer.GET("/workers_status", c.GetWorkersStatus)
-
-	networks := apiServer.Group("/networks")
-	networks.GET("/config", c.GetNetworkConfig)
 
 	if err := c.InitMeter(); err != nil {
 		panic(err)

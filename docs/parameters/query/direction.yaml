@@ -1,0 +1,6 @@
+description: Retrieve activities based on direction.
+in: query
+name: direction
+required: false
+schema:
+  $ref: "../../schemas/Direction.yaml"

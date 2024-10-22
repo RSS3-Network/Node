@@ -1,0 +1,10 @@
+description: The direction of an activity.
+enum:
+- in
+- out
+- self
+type: string
+x-go-type: activityx.Direction
+x-go-type-import:
+  path: github.com/rss3-network/protocol-go/schema/activity
+  name: activityx

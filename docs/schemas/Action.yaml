@@ -1,0 +1,20 @@
+description: Represents an individual action within an activity.
+properties:
+  from:
+    $ref: './From.yaml'
+  metadata:
+    $ref: "./Metadata.yaml"
+  platform:
+    $ref: "./Platform.yaml"
+  related_urls:
+    description: A list of URLs related to the action.
+    items:
+      type: string
+    type: array
+  tag:
+    $ref: "./Tag.yaml"
+  to:
+    $ref: "./To.yaml"
+  type:
+    $ref: "./Type.yaml"
+type: object

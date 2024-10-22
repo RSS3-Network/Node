@@ -1,0 +1,8 @@
+description: A tag used to categorize activities.
+example: transaction
+type: string
+x-go-type: tag.Tag
+x-go-type-skip-optional-pointer: true
+x-go-type-import:
+  path: github.com/rss3-network/protocol-go/schema/tag
+  name: tag

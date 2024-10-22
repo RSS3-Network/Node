@@ -1,0 +1,20 @@
+properties:
+  api_key:
+    $ref: "./ConfigDetail.yaml"
+  authentication:
+    $ref: "./Authentication.yaml"
+  block_batch_size:
+    $ref: "./ConfigDetail.yaml"
+  block_receipts_batch_size:
+    $ref: "./ConfigDetail.yaml"
+  block_start:
+    $ref: "./ConfigDetail.yaml"
+  block_target:
+    $ref: "./ConfigDetail.yaml"
+  concurrent_block_requests:
+    $ref: "./ConfigDetail.yaml"
+  kafka_topic:
+    $ref: "./ConfigDetail.yaml"
+  receipts_batch_size:
+    $ref: "./ConfigDetail.yaml"
+type: object

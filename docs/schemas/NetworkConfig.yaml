@@ -1,0 +1,20 @@
+description: The worker config details by source.
+properties:
+  decentralized:
+    items:
+      $ref: "./NetworkConfigDetail.yaml"
+    type: array
+  federated:
+    items:
+      $ref: "./NetworkConfigDetail.yaml"
+    type: array
+  rss:
+    properties:
+      endpoint_configs:
+        $ref: "./EndpointConfig.yaml"
+      id:
+        type: string
+      worker_configs:
+        $ref: "./WorkerConfig.yaml"
+    type: object
+type: object

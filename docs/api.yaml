@@ -1,0 +1,62 @@
+openapi: 3.0.3
+info:
+  title: Node API
+  description: RSS3 Node API, data query services provided.
+  version: 1.0.0
+servers: []
+tags:
+  - name: RSS
+    description: Retrieve the details of RSS activities.
+  - name: Decentralized
+    description: Retrieve the details of decentralized activities.
+  - name: Federated
+    description: Retrieve the details of federated activities.
+paths:
+  /decentralized/tx/{id}:
+    $ref: "./path/decentralized/tx.yaml"
+  /decentralized/{account}:
+    $ref: "./path/decentralized/account.yaml"
+  /decentralized/accounts:
+    $ref: "./path/decentralized/accounts.yaml"
+  /decentralized/network/{network}:
+    $ref: "./path/decentralized/network.yaml"
+  /decentralized/platform/{platform}:
+    $ref: "./path/decentralized/platform.yaml"
+
+  /federated/tx/{id}:
+    $ref: "./path/federated/tx.yaml"
+  /federated/{account}:
+    $ref: "./path/federated/account.yaml"
+  /federated/accounts:
+    $ref: "./path/federated/accounts.yaml"
+  /federated/network/{network}:
+    $ref: "./path/federated/network.yaml"
+  /federated/platform/{platform}:
+    $ref: "./path/federated/platform.yaml"
+
+  # Rss route
+  /rss/{path}:
+    $ref: "./path/rss.yaml"
+
+  # Info routes without auth
+  /:
+    $ref: "./path/home.yaml"
+  /info:
+    $ref: "./path/info.yaml"
+  /version:
+    $ref: "./path/version.yaml"
+  /networks/config:
+    $ref: "./path/networks/config.yaml"
+  /activity_count:
+    $ref: "./path/activity_count.yaml"
+  /workers_status:
+    $ref: "./path/workers_status.yaml"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    ActivityResponse:
+      $ref: "./schemas/ActivityResponse.yaml"

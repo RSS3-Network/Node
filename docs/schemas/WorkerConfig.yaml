@@ -1,0 +1,16 @@
+properties:
+  endpoint:
+    $ref: "./ConfigDetail.yaml"
+  id:
+    $ref: "./ConfigDetail.yaml"
+  ipfs_gateways:
+    $ref: "./ConfigDetail.yaml"
+  minimum_resource:
+    $ref: "./MinimumResource.yaml"
+  network:
+    $ref: "./ConfigDetail.yaml"
+  parameters:
+    $ref: "./Parameters.yaml"
+  worker:
+    $ref: "./ConfigDetail.yaml"
+type: object

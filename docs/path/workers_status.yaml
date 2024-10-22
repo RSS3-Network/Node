@@ -1,0 +1,12 @@
+get:
+  summary: Get Node Worker Status
+  description: Retrieve node worker status details.
+  tags:
+    - Info
+  responses:
+    "200":
+      $ref: "../responses/WorkerInfoResponse.yaml"
+    "400":
+      $ref: "../responses/BadRequest.yaml"
+    "500":
+      $ref: "../responses/InternalError.yaml"

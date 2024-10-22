@@ -1,0 +1,20 @@
+get:
+  summary: Get Activity by ID
+  description: Retrieve details for the specified activity ID.
+  tags:
+    - Federated
+  security:
+    - bearerAuth: []
+  parameters:
+    - $ref: "../../parameters/path/activity_id.yaml"
+    - $ref: "../../parameters/query/action_limit.yaml"
+    - $ref: "../../parameters/query/action_page.yaml"
+  responses:
+    "200":
+      $ref: "../../responses/ActivityResponse.yaml"
+    "400":
+      $ref: "../../responses/BadRequest.yaml"
+    "404":
+      $ref: "../../responses/NotFound.yaml"
+    "500":
+      $ref: "../../responses/InternalError.yaml"

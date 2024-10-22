@@ -51,7 +51,7 @@ func (h *Component) Name() string {
 
 var _ component.Component = (*Component)(nil)
 
-func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File) component.Component {
+func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File) *Component {
 	RecentRequests = cb.New(MaxRecentRequests)
 
 	c := &Component{

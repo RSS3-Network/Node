@@ -1,0 +1,76 @@
+example:
+  coverage: 1
+  operator: '0x3ac803030c0efc29c5f4864f544dfbf411c86c27'
+  parameters: '{"network_tolerance":{"arbitrum":1000,"arweave":100,"avax":100,"base":100,"binance-smart-chain":100,"crossbell":500,"ethereum":100,"farcaster":3600000,"gnosis":100,"linea":100,"optimism":100,"polygon":100,"savm":100,"vsl":100},"network_start_block":{"arbitrum":185724972,"arweave":1374360,"avax":42301570,"base":11216527,"binance-smart-chain":36563564,"crossbell":58846671,"ethereum":19334220,"gnosis":32695982,"linea":2591120,"optimism":116811812,"polygon":54103805,"savm":60741,"vsl":14192},"network_core_worker_disk_space_per_month":{"arbitrum":26,"arweave":0,"avax":0,"base":10,"binance-smart-chain":117,"crossbell":0,"ethereum":51,"gnosis":9,"linea":31,"optimism":25,"polygon":153,"savm":1,"vsl":1,"farcaster":50}}'
+  records:
+    last_heartbeat: 1722222806
+    recent_requests:
+    - /decentralized/0x74751E741a196Ea0dA2A5a2bD37AdFBC364ecE0b
+    - /decentralized/accounts
+    recent_rewards:
+    - epoch: 184
+      operation_rewards: '0'
+      request_counts: '1464'
+      staking_rewards: '61566677110439209699134'
+    - epoch: 183
+      operation_rewards: '0'
+      request_counts: '1028'
+      staking_rewards: '61566670561038402335627'
+    - epoch: 182
+      operation_rewards: '0'
+      request_counts: '1028'
+      staking_rewards: '61566662342874148374381'
+    - epoch: 181
+      operation_rewards: '0'
+      request_counts: '488'
+      staking_rewards: '61566655779372426706676'
+    - epoch: 180
+      operation_rewards: '0'
+      request_counts: '488'
+      staking_rewards: '61566648792660016524299'
+    - epoch: 179
+      operation_rewards: '0'
+      request_counts: '0'
+      staking_rewards: '61566153707988192333335'
+    - epoch: 178
+      operation_rewards: '0'
+      request_counts: '140'
+      staking_rewards: '61563971158905216786644'
+    - epoch: 177
+      operation_rewards: '0'
+      request_counts: '56'
+      staking_rewards: '61563956191645848172624'
+    - epoch: 176
+      operation_rewards: '0'
+      request_counts: '48'
+      staking_rewards: '61563949144728300052868'
+    - epoch: 175
+      operation_rewards: '0'
+      request_counts: '20'
+      staking_rewards: '61563492485831412271309'
+    slashed_tokens: '0'
+  uptime: 249979
+  version:
+    commit: '000000'
+    tag: 0.0.0
+properties:
+  coverage:
+    description: The supported worker list of the node.
+    items:
+      description: The worker name.
+      type: string
+    type: array
+  operator:
+    description: The operator evm address of the node.
+    type: string
+  parameters:
+    description: The current network parameters of the node.
+    type: string
+  records:
+    $ref: "./Records.yaml"
+  uptime:
+    description: The total uptime of the node.
+    type: integer
+  version:
+    $ref: "./Version.yaml"
+type: object
