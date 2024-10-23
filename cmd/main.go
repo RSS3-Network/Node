@@ -155,24 +155,16 @@ var command = cobra.Command{
 					return fmt.Errorf("update current block start: %w", err)
 				}
 			}
-
-			//	set first start time
-			firstStartTime, err := info.GetFirstStartTime()
-			if err != nil {
-				return fmt.Errorf("get first start time: %w", err)
-			}
-
-			if firstStartTime == 0 {
-				//	update first start time to current timestamp in seconds
-				err = info.UpdateFirstStartTime(time.Now().Unix())
-				if err != nil {
-					return fmt.Errorf("update first start time: %w", err)
-				}
-			}
 		}
 
 		switch module {
 		case CoreServiceArg:
+			if err := recordFirstStartTime(); err != nil {
+				zap.L().Error("record first start time", zap.Error(err))
+
+				return fmt.Errorf("record first start time: %w", err)
+			}
+
 			return runCoreService(cmd.Context(), config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 		case WorkerArg:
 			return runWorker(cmd.Context(), config, databaseClient, streamClient, redisClient)
@@ -184,6 +176,25 @@ var command = cobra.Command{
 
 		return fmt.Errorf("unsupported module %s", lo.Must(flags.GetString(flag.KeyModule)))
 	},
+}
+
+// recordFirstStartTime set the first start time to the current timestamp in seconds if it is not set.
+func recordFirstStartTime() error {
+	//	set first start time
+	firstStartTime, err := info.GetFirstStartTime()
+	if err != nil {
+		return fmt.Errorf("get first start time: %w", err)
+	}
+
+	if firstStartTime == 0 {
+		//	update first start time to current timestamp in seconds
+		err = info.UpdateFirstStartTime(time.Now().Unix())
+		if err != nil {
+			return fmt.Errorf("update first start time: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func runCoreService(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
