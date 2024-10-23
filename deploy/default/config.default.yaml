@@ -42,9 +42,9 @@ endpoints:
 
 component:
   rss:
-    id: rss-rsshub
-    network: rss
-    worker: rsshub
+    id: rsshub-core
+    network: rsshub
+    worker: core
     endpoint: https://your.rsshub.com/
     parameters:
       authentication:
