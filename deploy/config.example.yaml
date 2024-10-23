@@ -56,9 +56,9 @@ endpoints:
 component:
   # `rss` network type includes the worker indexing data in RSS format.
   rss:
-    id: rss-rsshub
-    network: rss
-    worker: rsshub
+    id: rsshub-core
+    network: rsshub
+    worker: core
     endpoint: https://your.rsshub.com/
     parameters:
       authentication:
