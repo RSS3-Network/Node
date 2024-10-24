@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"runtime"
 	"time"
@@ -80,16 +79,18 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 
 func (s *dataSource) startHTTPServer(ctx context.Context) error {
 	httpServer := echo.New()
+	httpServer.HideBanner = true
+	httpServer.HidePort = true
 	httpServer.Use(middleware.Logger())
 	httpServer.Use(middleware.Recover())
 
 	// Setup routes
 	httpServer.GET("/actor", s.handleGetActor)
 	httpServer.POST("/actor/inbox", s.handleActorInbox)
-	httpServer.POST("/inbox", s.handleInbox)
+	httpServer.POST("/inbox", s.handleActorInbox)
 
 	// Start server with graceful shutdown
-	go func() {
+	go func() { //ToDo: When the HTTP server fails to start, is it expected that the node will not stop running?
 		if err := httpServer.Start(ServerPort); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			zap.L().Error("server error", zap.Error(err))
 		}
@@ -107,50 +108,25 @@ func (s *dataSource) handleGetActor(c echo.Context) error {
 	if err != nil {
 		zap.L().Error("Error getting the actor: %v", zap.Error(err))
 	}
-	// Marshal the Go struct into JSON format
-	actorJSON, err := json.Marshal(actor)
-	if err != nil {
-		zap.L().Error("Error marshalling actor: %v", zap.Error(err))
-		return c.JSON(http.StatusInternalServerError, "Failed to generate actor")
-	}
 
 	// Return the JSON to the client
-	return c.JSONBlob(http.StatusOK, actorJSON)
+	return c.JSON(http.StatusOK, actor)
 }
 
 func (s *dataSource) handleActorInbox(c echo.Context) error {
-	data, err := io.ReadAll(c.Request().Body)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	//ToDO: se the max size to avoid overflow
+	maxBodySize := int64(1048576) // 1 MB in bytes
+	requestBody := http.MaxBytesReader(c.Response(), c.Request().Body, maxBodySize)
+
+	decoder := json.NewDecoder(requestBody)
+
+	var message activitypub.RelayObject
+	if err := decoder.Decode(&message); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid message format")
 	}
 
-	zap.L().Info("handleActorInbox - received actor inbox message", zap.String("content", string(data)))
-
-	// Unmarshal the data into a map or a struct, depending on your setup
-	var message map[string]interface{}
-	if err := json.Unmarshal(data, &message); err != nil {
-		zap.L().Error("Failed to unmarshal incoming message", zap.Error(err))
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to process the message")
-	}
-
-	s.mastodonClient.SendMessage(&message)
-
-	return c.NoContent(http.StatusAccepted)
-}
-
-func (s *dataSource) handleInbox(c echo.Context) error {
-	data, err := io.ReadAll(c.Request().Body)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
-	zap.L().Info("received inbox message", zap.String("content", string(data)))
-
-	var message map[string]interface{}
-	if err := json.Unmarshal(data, &message); err != nil {
-		zap.L().Error("Failed to unmarshal incoming message", zap.Error(err))
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to process the message")
-	}
+	// Log the relay object
+	zap.L().Info("handleActorInbox - received relay object", zap.Any("relayObject", message))
 
 	s.mastodonClient.SendMessage(&message)
 
@@ -179,37 +155,31 @@ func (s *dataSource) processMessages(ctx context.Context, tasksChan chan<- *engi
 			resultPool.Go(func() *engine.Tasks {
 				zap.L().Info("processMessages - received message", zap.Any("message", msg))
 
-				// Check if the relay message is with type 'Announce'
-				if msgType, ok := (*msg)["type"].(string); ok && msgType == "Announce" {
-					if objectURL, ok := (*msg)["object"].(string); ok {
-						zap.L().Info("Processing Announce object", zap.String("object_url", objectURL))
-
-						var fetchedObject *activitypub.Object
-						// Use retryOperation to handle transient failures
-						err := retryOperation(ctx, func(ctx context.Context) error {
-							var fetchErr error
-							fetchedObject, fetchErr = s.mastodonClient.FetchAnnouncedObject(ctx, objectURL)
-
-							return fetchErr
-						})
-
-						if err != nil {
-							zap.L().Error("Failed to fetch announced object after retries", zap.Error(err))
-							return nil
-						}
-
-						// Build the tasks for the message
-						tasks := s.buildMastodonMessageTasks(ctx, *fetchedObject)
-
-						if tasks != nil {
-							tasksChan <- tasks
-						}
-
-						return tasks
-					}
+				if msg.Type != "Announce" {
+					return nil
 				}
 
-				return nil
+				// Fetch and process the announced object
+				var fetchedObject *activitypub.Object
+
+				if err := retryOperation(ctx, func(ctx context.Context) error {
+					var err error
+					fetchedObject, err = s.mastodonClient.FetchAnnouncedObject(ctx, msg.Object)
+					return err
+				}); err != nil {
+					zap.L().Error("fetch failed",
+						zap.String("object_url", msg.Object),
+						zap.Error(err))
+
+					return nil
+				}
+
+				tasks := s.buildMastodonMessageTasks(ctx, *fetchedObject)
+				if tasks != nil {
+					tasksChan <- tasks
+				}
+
+				return tasks
 			})
 		}
 	}
