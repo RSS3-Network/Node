@@ -23,6 +23,16 @@ type Object struct {
 	Attributes map[string]interface{} `json:"attributes,omitempty"`
 }
 
+type RelayObject struct {
+	Context   string   `json:"@context"`
+	Actor     string   `json:"actor"`
+	ID        string   `json:"id"`
+	Object    string   `json:"object"`
+	Published string   `json:"published"`
+	To        []string `json:"to"`
+	Type      string   `json:"type"`
+}
+
 // Attachment represents an attachment to an ActivityPub object.
 type Attachment struct {
 	Type      string `json:"type"`
@@ -64,4 +74,24 @@ type StatusResponse struct {
 		Attachment []Attachment `json:"attachment"`
 		Tag        []Tag        `json:"tag"`
 	} `json:"object"`
+}
+
+type Actor struct {
+	Context   []string  `json:"@context"`
+	ID        string    `json:"id"`
+	Type      string    `json:"type"`
+	Inbox     string    `json:"inbox"`
+	Outbox    string    `json:"outbox"`
+	PublicKey PublicKey `json:"publicKey"`
+	Endpoints EndPoint  `json:"endpoints"`
+}
+
+type PublicKey struct {
+	ID           string `json:"id"`
+	Owner        string `json:"owner"`
+	PublicKeyPem string `json:"publicKeyPem"`
+}
+
+type EndPoint struct {
+	SharedInbox string `json:"sharedInbox"`
 }

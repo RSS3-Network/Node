@@ -4,6 +4,12 @@ package mastodon
 type MessageType int
 
 const (
+	ActivityStreamsContext       = "https://www.w3.org/ns/activitystreams"
+	SecurityV1Context            = "https://w3id.org/security/v1"
+	ActivityStreamsPublicContext = "https://www.w3.org/ns/activitystreams#Public"
+)
+
+const (
 	MessageTypeNone     MessageType = iota // Invalid default value
 	MessageTypeCreate                      // Create ActivityPub message
 	MessageTypeAnnounce                    // Announce ActivityPub message
