@@ -40,7 +40,7 @@ type Client interface {
 }
 
 type client struct {
-	httpClient httpx.Client // ToDo: check if needed to pass by reference?
+	httpClient httpx.Client //ToDo: check here
 	encoder    *form.Encoder
 	attempts   uint
 	domain     string
@@ -51,6 +51,8 @@ type client struct {
 	relayURLs  []string
 }
 
+// NewClient creates a new Mastodon client with the specified public endpoint.
+// It initializes necessary cryptographic keys and ActivityPub actor information.
 func NewClient(endpoint string) (Client, error) {
 	privateKey, publicKeyPem, err := generateKeyPair()
 	if err != nil {
@@ -63,18 +65,14 @@ func NewClient(endpoint string) (Client, error) {
 	// Create signer
 	signer, err := createSigner()
 	if err != nil {
-		zap.L().Error("Error creating NewSigner: %v", zap.Error(err))
+		return nil, fmt.Errorf("failed to create signer: %w", err)
 	}
 
-	if err != nil {
-		zap.L().Error("Error creating NewSigner: %v", zap.Error(err))
-	}
-
-	// Set the Relay URL list
-	relayURLs := []string{ // ToDo: This should not be hardcoded...
-		// "https://relay.fedi.buzz/tag/hello",
+	// RelayURLs is a list of URLs for the Mastodon relay service.
+	// ToDo: Pass it as a parameter or read it from the config file.
+	relayURLs := []string{
 		"https://relay.fedi.buzz/instance/mas.to",
-		// "https://relay.fedi.buzz/instance/mastodon.social",
+		"https://relay.fedi.buzz/instance/mastodon.social",
 	}
 
 	httpClient, err := httpx.NewHTTPClient()
@@ -82,7 +80,7 @@ func NewClient(endpoint string) (Client, error) {
 		return nil, fmt.Errorf("failed to create HTTP client: %w", err)
 	}
 
-	return &client{
+	c := &client{
 		domain:     endpoint,
 		privateKey: privateKey,
 		signer:     signer,
@@ -92,16 +90,19 @@ func NewClient(endpoint string) (Client, error) {
 		encoder:    form.NewEncoder(),
 		attempts:   DefaultAttempts,
 		relayURLs:  relayURLs,
-	}, nil
+	}
+
+	return c, nil
 }
 
-func createActor(endpoint string, publicKeyPem string) *activitypub.Actor {
+// createActor creates a new ActivityPub actor with the public endpoint and public key.
+func createActor(endpoint, publicKeyPem string) *activitypub.Actor {
 	actorPath := endpoint + "/actor"
 
 	return &activitypub.Actor{
 		Context: []string{
-			ActivityStreamsContext,
-			SecurityV1Context,
+			"https://www.w3.org/ns/activitystreams",
+			"https://w3id.org/security/v1",
 		},
 		Type:   "Application",
 		ID:     actorPath,
@@ -133,52 +134,49 @@ func createSigner() (httpsig.Signer, error) {
 	return signer, nil
 }
 
+// FetchAnnouncedObject retrieves an ActivityPub object from the specified URL.
 func (c *client) FetchAnnouncedObject(ctx context.Context, objectURL string) (*activitypub.Object, error) {
-	// Append /activity to the object URL
-	objectURLWithActivity := fmt.Sprintf("%s/activity", objectURL)
-	zap.L().Info("fetching announced object", zap.String("object_url_with_activity", objectURLWithActivity))
+	objectURLWithActivity := objectURL + "/activity"
 
-	// Use the embedded request function to fetch the object data
+	zap.L().Info("Fetching announced object with activity URL",
+		zap.String("activityURL", objectURLWithActivity),
+	)
+
 	req, err := c.httpClient.Fetch(ctx, objectURLWithActivity)
 	if err != nil {
-		zap.L().Error("failed to fetch announced object", zap.String("url", objectURLWithActivity), zap.Error(err))
-		return nil, fmt.Errorf("create request: %w", err)
+		return nil, fmt.Errorf("failed to fetch object: %w", err)
 	}
 
-	zap.L().Info("request successful", zap.String("url", objectURLWithActivity))
+	zap.L().Info("Request successful")
 
 	// Read the response body
 	body, err := io.ReadAll(req)
 	if err != nil {
-		zap.L().Error("failed to read response body", zap.String("url", objectURLWithActivity), zap.Error(err))
-		return nil, fmt.Errorf("read response body: %w", err)
+		return nil, fmt.Errorf("failed to read response: %w", err)
 	}
 
-	zap.L().Debug("response body received", zap.ByteString("body", body))
+	zap.L().Info("response body received", zap.ByteString("body", body))
 
 	// Unmarshal the JSON response into an activitypub.Object
-	var fetchedObject activitypub.Object
-	if err := json.Unmarshal(body, &fetchedObject); err != nil {
-		zap.L().Error("failed to decode response", zap.String("url", objectURLWithActivity), zap.Error(err))
-		return nil, fmt.Errorf("decode response: %w", err)
+	var obj activitypub.Object
+	if err := json.Unmarshal(body, &obj); err != nil {
+		return nil, fmt.Errorf("failed to decode object: %w", err)
 	}
 
 	//ToDo: test if this works or not
-	fetchedObject.ID = strings.TrimSuffix(fetchedObject.ID, "/activity")
+	obj.ID = strings.TrimSuffix(obj.ID, "/activity")
 
-	zap.L().Info("fetched object successfully", zap.Any("fetchedObject", fetchedObject))
+	zap.L().Info("fetched ActivityPub object", zap.Any("fetchedObject", obj))
 
-	return &fetchedObject, nil
+	return &obj, nil
 }
 
-// Function to generate RSA private and public key pair
+// generateKeyPair creates a new RSA key pair for signing ActivityPub messages.
 func generateKeyPair() (*rsa.PrivateKey, string, error) {
-	// Generate private key (2048-bit RSA key)
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("failed to generate RSA key: %w", err)
 	}
-
 	// Marshal the public key to PEM format
 	publicKeyBytes := x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)
 	publicKeyPem := pem.EncodeToMemory(&pem.Block{
@@ -189,66 +187,70 @@ func generateKeyPair() (*rsa.PrivateKey, string, error) {
 	return privateKey, string(publicKeyPem), nil
 }
 
+// FollowRelayServices attempts to follow all configured relay services.
 func (c *client) FollowRelayServices(ctx context.Context) error {
+	var errs []error
+
 	for _, instance := range c.relayURLs {
 		if err := c.followRelay(ctx, instance); err != nil {
-			zap.L().Error("failed to follow relay",
-				zap.String("instance", instance),
-				zap.Error(err))
+			zap.L().Error("failed to follow relay", zap.String("instance", instance), zap.Error(err))
+			errs = append(errs, fmt.Errorf("failed to follow relay instance %s: %w", instance, err))
 		}
+	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("multiple errors occurred while following relay services: %v", errs)
 	}
 
 	return nil
 }
+
+// followRelay attempts to follow a single relay instance.
 func (c *client) followRelay(ctx context.Context, instance string) error {
 	if c.domain == "" {
-		return fmt.Errorf("domain is empty")
+		return fmt.Errorf("domain not configured")
 	}
 
+	// Generate ActivityPub Message to subscribe relay services
 	content := c.generateFollowContent()
 
-	// Parse the instance URL to extract the host dynamically
 	instanceURL, err := url.Parse(instance)
 	if err != nil {
-		return fmt.Errorf("parse instance URL: %w", err)
+		return fmt.Errorf("failed to parse instance URL: %w", err)
 	}
 
 	// Create and sign the follow request
 	req, err := c.createAndSignFollowRequest(ctx, instanceURL, content)
 	if err != nil {
-		return fmt.Errorf("create and sign follow request: %w", err)
+		return fmt.Errorf("failed to create and sign follow request: %w", err)
 	}
 
 	// Send the request and handle the response
 	if err := c.sendRequest(req); err != nil {
-		return err
+		return fmt.Errorf("failed to send request for relay subscription: %w", err)
 	}
 
 	return nil
 }
 
+// generateFollowContent creates the JSON content for a follow request.
 func (c *client) generateFollowContent() []byte {
-	uuidStr := uuid.New().String()
-	contentStr := fmt.Sprintf(
+	return []byte(fmt.Sprintf(
 		`{"@context":"%s","id":"%s/%s","type":"Follow","actor":"%s/actor","object":"%s"}`,
 		ActivityStreamsContext,
-		c.domain, uuidStr, c.domain,
+		c.domain, uuid.New().String(), c.domain,
 		ActivityStreamsPublicContext,
-	)
-	content := []byte(contentStr)
-
-	return content
+	))
 }
 
+// createAndSignFollowRequest creates and signs an HTTP request for following a relay.
 func (c *client) createAndSignFollowRequest(ctx context.Context, instanceURL *url.URL, content []byte) (*http.Request, error) {
 	reqURL := instanceURL.String()
-	zap.L().Info("following relay", zap.String("url", reqURL))
-	zap.L().Info("instanceURL.Host", zap.String("host", instanceURL.Host))
 
 	// Create a POST request
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(content))
 	if err != nil {
-		return nil, fmt.Errorf("create request: %w", err)
+		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("Host", instanceURL.Host)
@@ -262,39 +264,47 @@ func (c *client) createAndSignFollowRequest(ctx context.Context, instanceURL *ur
 		req,
 		content,
 	); err != nil {
-		return nil, fmt.Errorf("sign request: %w", err)
+		return nil, fmt.Errorf("failed to sign request: %w", err)
 	}
 
 	return req, nil
 }
 
+// sendRequest sends an HTTP request and validates the response.
 func (c *client) sendRequest(req *http.Request) error {
 	httpClient := http.Client{}
 
 	resp, err := httpClient.Do(req) // ToDo: Use Fetch() to handle the request (now using it will cause hanging issue)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to perform request: %w", err)
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusAccepted {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("unexpected status: %s, body: %s", resp.Status, string(body))
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("unexpected status %s: failed to read error response", resp.Status)
+		}
+
+		return fmt.Errorf("unexpected status %s: %s", resp.Status, body)
 	}
 
 	return nil
 }
 
+// GetActor returns the ActivityPub actor associated with this client.
 func (c *client) GetActor() (*activitypub.Actor, error) {
 	return c.actor, nil
 }
 
+// GetMessageChan returns the channel for receiving relay messages.
 func (c *client) GetMessageChan() (<-chan *activitypub.RelayObject, error) {
 	return c.msgChan, nil
 }
 
-// Add the implementation to the client struct
+// SendMessage sends a message to the relay message channel.
+// If the channel is full, the message is dropped and logged.
 func (c *client) SendMessage(msg *activitypub.RelayObject) {
 	select {
 	case c.msgChan <- msg:
