@@ -1,0 +1,7 @@
+description: Retrieve details for the specified activity ID
+example: '0x840e42d573ebe1ff27a9e4914573b4e0518fcd685c7f9331d319abe854f780e3'
+in: query
+name: id
+required: true
+schema:
+  type: string

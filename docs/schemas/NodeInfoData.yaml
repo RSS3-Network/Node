@@ -1,0 +1,4 @@
+properties:
+  data:
+    $ref: "./NodeInfo.yaml"
+type: object

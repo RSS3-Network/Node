@@ -1,0 +1,3 @@
+description: The timestamp of when the activity occurred.
+type: integer
+x-go-type: uint64

@@ -1,0 +1,7 @@
+description: Retrieve activities from the specified platform.
+example: Uniswap
+in: path
+name: platform
+required: true
+schema:
+  $ref: "../../schemas/FederatedPlatform.yaml"

@@ -1,0 +1,5 @@
+content:
+  application/json:
+    schema:
+      $ref: "../schemas/WorkerInfoData.yaml"
+description: The request was successful.

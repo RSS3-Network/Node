@@ -41,7 +41,7 @@ func (c *Component) Name() string {
 
 var _ component.Component = (*Component)(nil)
 
-func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client) component.Component {
+func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client) *Component {
 	RecentRequests = cb.New(MaxRecentRequests)
 
 	c := &Component{
@@ -55,11 +55,6 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 	// Add middleware for bearer token authentication
 	group.Use(middleware.BearerAuth(config.Discovery.Server.AccessToken))
 
-	group.GET("/tx/:id", c.GetActivity)
-	group.GET("/:account", c.GetAccountActivities)
-	group.GET("/network/:network", c.GetNetworkActivities)
-	group.GET("/platform/:platform", c.GetPlatformActivities)
-	group.POST("/accounts", c.BatchGetAccountsActivities)
 	group.GET("/handles", c.GetHandles)
 
 	if err := c.InitMeter(); err != nil {

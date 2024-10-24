@@ -1,0 +1,14 @@
+properties:
+  cpu_core:
+    format: float
+    type: number
+  disk_space_in_gb:
+    type: integer
+  key:
+    type: string
+  memory_in_gb:
+    format: float
+    type: number
+  title:
+    type: string
+type: object

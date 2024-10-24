@@ -1,0 +1,25 @@
+get:
+  summary: Get Node Activity Count
+  description: Retrieve node worker status details.
+  tags:
+    - Info
+  responses:
+    "200":
+      description: Activity count retrieved successfully.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              count:
+                type: integer
+                description: The number of activities.
+                example: 1242092608
+              last_updated:
+                type: string
+                format: date-time
+                description: The last time the activity count was updated.
+    "400":
+      $ref: "../responses/BadRequest.yaml"
+    "500":
+      $ref: "../responses/InternalError.yaml"

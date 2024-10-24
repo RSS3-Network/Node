@@ -1,0 +1,8 @@
+description: Specify the number of activities to retrieve.
+example: '20'
+in: query
+name: limit
+required: false
+schema:
+  $ref: "../../schemas/Limit.yaml"
+

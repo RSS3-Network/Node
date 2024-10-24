@@ -1,0 +1,28 @@
+get:
+  summary: Get Network Activities
+  description: Retrieve a list of activities from the specified decentralized network. This endpoint allows you to filter activities by various parameters such as limit, timestamp, success status, and more.
+  tags:
+    - Decentralized
+  security:
+    - bearerAuth: []
+  parameters:
+    - $ref: "../../parameters/path/network.yaml"
+    - $ref: "../../parameters/query/limit.yaml"
+    - $ref: "../../parameters/query/action_limit.yaml"
+    - $ref: "../../parameters/query/cursor.yaml"
+    - $ref: "../../parameters/query/since_timestamp.yaml"
+    - $ref: "../../parameters/query/until_timestamp.yaml"
+    - $ref: "../../parameters/query/success.yaml"
+    - $ref: "../../parameters/query/direction.yaml"
+    - $ref: "../../parameters/query/tag.yaml"
+    - $ref: "../../parameters/query/type.yaml"
+    - $ref: "../../parameters/query/platform.yaml"
+  responses:
+    "200":
+      $ref: "../../responses/ActivitiesResponse.yaml"
+    "400":
+      $ref: "../../responses/BadRequest.yaml"
+    "404":
+      $ref: "../../responses/NotFound.yaml"
+    "500":
+      $ref: "../../responses/InternalError.yaml"

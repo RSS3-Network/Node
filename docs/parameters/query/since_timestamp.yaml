@@ -1,0 +1,6 @@
+description: Retrieve activities starting from this timestamp.
+in: query
+name: since_timestamp
+required: false
+schema:
+  $ref: "../../schemas/Timestamp.yaml"

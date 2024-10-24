@@ -6,6 +6,7 @@ import (
 	"github.com/creasty/defaults"
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
+	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
@@ -16,17 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (c *Component) GetPlatformActivities(ctx echo.Context) (err error) {
-	var request PlatformActivitiesRequest
-
-	if err := ctx.Bind(&request); err != nil {
-		return response.BadRequestError(ctx, err)
-	}
-
-	if request.Type, err = c.parseTypes(ctx.QueryParams()["type"], request.Tag); err != nil {
-		return response.BadRequestError(ctx, err)
-	}
-
+func (c *Component) GetPlatformActivities(ctx echo.Context, plat decentralized.Platform, request docs.GetDecentralizedPlatformPlatformParams) (err error) {
 	if err := defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
@@ -35,9 +26,9 @@ func (c *Component) GetPlatformActivities(ctx echo.Context) (err error) {
 		return response.ValidationFailedError(ctx, err)
 	}
 
-	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, request.Platform.String())
+	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, plat.String())
 
-	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, request.Platform.String())
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, plat.String())
 
 	addRecentRequest(ctx.Request().RequestURI)
 
@@ -59,7 +50,7 @@ func (c *Component) GetPlatformActivities(ctx echo.Context) (err error) {
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(request.Type),
-		Platforms:      []decentralized.Platform{request.Platform},
+		Platforms:      []decentralized.Platform{plat},
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)

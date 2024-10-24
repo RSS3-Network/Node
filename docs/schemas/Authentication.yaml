@@ -1,0 +1,4 @@
+properties:
+  access_key:
+    $ref: "./ConfigDetail.yaml"
+type: object

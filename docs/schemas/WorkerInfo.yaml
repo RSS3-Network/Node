@@ -1,0 +1,69 @@
+example:
+  decentralized:
+  - index_count: 1174
+    indexed_state: 20416808
+    network: ethereum
+    platform: VSL
+    remote_state: 20416809
+    status: Ready
+    tags:
+    - transaction
+    worker: vsl
+    worker_id: ethereum-core
+  - index_count: 2138457
+    indexed_state: 59974383
+    network: polygon
+    platform: Curve
+    remote_state: 59974392
+    status: Ready
+    tags:
+    - exchange
+    - transaction
+    worker: curve
+    worker_id: polygon-curve
+  - index_count: 697886
+    indexed_state: 1475385
+    network: arweave
+    platform: Mirror
+    remote_state: 1475386
+    status: Ready
+    tags:
+    - social
+    worker: mirror
+    worker_id: arweave-mirror
+  federated:
+  - indexed_state: 0
+    network: mastodon
+    platform: mastodon
+    remote_state: 0
+    status: Ready
+    tags:
+    - social
+    worker: mastodon
+    worker_id: mastodon-core
+  rss:
+  - indexed_state: 0
+    network: rss
+    platform: Unknown
+    remote_state: 0
+    status: Ready
+    tags:
+    - rss
+    worker: rsshub
+properties:
+  decentralized:
+    description: The decentralized worker status.
+    items:
+      $ref: "./WorkerStatus.yaml"
+    type: array
+  federated:
+    description: The federated worker status.
+    items:
+      $ref: "./WorkerStatus.yaml"
+    type: array
+  rss:
+    description: The rss worker status.
+    items:
+      $ref: "./WorkerStatus.yaml"
+    type: array
+type: object

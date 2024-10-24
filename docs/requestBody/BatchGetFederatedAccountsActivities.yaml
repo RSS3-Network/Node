@@ -1,0 +1,47 @@
+description: Request body for batch retrieving activities for multiple accounts
+required: true
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        accounts:
+          $ref: "../schemas/Accounts.yaml"
+        limit:
+          $ref: "../schemas/Limit.yaml"
+        action_limit:
+          $ref: "../schemas/ActionLimit.yaml"
+        cursor:
+          $ref: "../schemas/Cursor.yaml"
+        since_timestamp:
+          $ref: "../schemas/Timestamp.yaml"
+        until_timestamp:
+          $ref: "../schemas/Timestamp.yaml"
+        success:
+          $ref: "../schemas/Success.yaml"
+        direction:
+          $ref: "../schemas/Direction.yaml"
+        network:
+          type: array
+          items:
+            $ref: "../schemas/Network.yaml"
+          description: Retrieve activities from the specified network(s)
+          x-go-type-skip-optional-pointer: true
+        tag:
+          type: array
+          items:
+            $ref: "../schemas/Tag.yaml"
+          description: Retrieve activities for the specified tag(s)
+          x-go-type-skip-optional-pointer: true
+        type:
+          type: array
+          items:
+            $ref: "../schemas/Type.yaml"
+          description: Retrieve activities for the specified type(s)
+          x-go-type-skip-optional-pointer: true
+        platform:
+          type: array
+          items:
+            $ref: "../schemas/FederatedPlatform.yaml"
+          description: Retrieve activities from the specified platform(s)
+          x-go-type-skip-optional-pointer: true

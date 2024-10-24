@@ -1,0 +1,22 @@
+example:
+  data:
+    http2_disabled:
+      description: Some endpoints may not support HTTP2, set this to true to disable
+        HTTP2.
+      is_required: false
+      type: bool
+      value: null
+    http_headers:
+      description: HTTP headers to be sent with requests to this endpoint.
+      is_required: false
+      type: map[string]string
+      value: null
+    url:
+      description: The URL of the endpoint.
+      is_required: true
+      type: url
+      value: null
+properties:
+  data:
+    $ref: "./NetworkConfig.yaml"
+type: object

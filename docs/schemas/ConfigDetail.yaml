@@ -1,0 +1,19 @@
+properties:
+  description:
+    type: string
+  is_required:
+    type: boolean
+  key:
+    type: string
+  title:
+    type: string
+  type:
+    type: string
+  value:
+    type: string
+required:
+- is_required
+- type
+- value
+- description
+type: object

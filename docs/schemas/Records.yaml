@@ -1,0 +1,20 @@
+description: The records of node activities.
+properties:
+  last_heartbeat:
+    description: The last heartbeat of node.
+    type: integer
+  recent_requests:
+    description: The recent requests of node.
+    items:
+      description: The request to the node api.
+      type: string
+    type: array
+  recent_rewards:
+    description: The recent rewards of node.
+    items:
+      $ref: "./Reward.yaml"
+    type: array
+  slashed_tokens:
+    description: The slashed tokens of node.
+    type: string
+type: object

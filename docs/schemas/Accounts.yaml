@@ -1,0 +1,7 @@
+type: array
+items:
+  type: string
+description: List of accounts to retrieve activities for
+example:
+  - "0xd8da6bf26964af9d7eed9e03e53415d37aa96045"
+x-go-type-skip-optional-pointer: true

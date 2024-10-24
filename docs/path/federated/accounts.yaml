@@ -1,0 +1,16 @@
+post:
+  summary: Batch Get Accounts Activities
+  description: Retrieve a batch of activities associated with multiple specified accounts in the federated system. You can use various query parameters to filter and paginate the results, including limits on the number of activities and actions, timestamps, success status, direction, and more.
+  tags:
+    - Federated
+  security:
+    - bearerAuth: []
+  requestBody:
+    $ref: "../../requestBody/BatchGetFederatedAccountsActivities.yaml"
+  responses:
+    "200":
+      $ref: "../../responses/ActivitiesResponse.yaml"
+    "400":
+      $ref: "../../responses/BadRequest.yaml"
+    "500":
+      $ref: "../../responses/InternalError.yaml"

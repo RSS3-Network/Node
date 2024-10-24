@@ -1,0 +1,20 @@
+get:
+  summary: Get Node Version
+  description: Retrieve node status details.
+  tags:
+    - Info
+  responses:
+    "200":
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: "../schemas/Version.yaml"
+
+      description: Node status details.
+    "400":
+      $ref: "../responses/BadRequest.yaml"
+    "500":
+      $ref: "../responses/InternalError.yaml"

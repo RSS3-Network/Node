@@ -1,0 +1,6 @@
+description: Metadata indicating the total number of pages.
+properties:
+  totalPages:
+    description: The total number of pages available.
+    type: integer
+type: object

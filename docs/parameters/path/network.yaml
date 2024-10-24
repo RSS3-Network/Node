@@ -1,0 +1,7 @@
+description: Retrieve activities from the specified network.
+example: ethereum
+in: path
+name: network
+required: true
+schema:
+  $ref: "../../schemas/Network.yaml"

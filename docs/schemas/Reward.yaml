@@ -1,0 +1,15 @@
+description: The reward of node.
+properties:
+  epoch:
+    description: The epoch of reward.
+    type: integer
+  operator_rewards:
+    description: The operator rewards of reward.
+    type: string
+  request_counts:
+    description: The request counts of reward.
+    type: string
+  staking_rewards:
+    description: The staking rewards of reward.
+    type: string
+type: object
