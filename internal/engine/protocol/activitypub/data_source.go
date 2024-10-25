@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
 	"runtime"
+	"strings"
+	"sync"
 	"time"
 
-	"github.com/avast/retry-go/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rss3-network/node/config"
@@ -20,17 +23,28 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
+	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
 )
 
 var _ engine.DataSource = (*dataSource)(nil)
-var DefaultStartTime int64
+var defaultStartTime int64
 
 // serverPort is the default port for the ActivityPub server.
-const DefaultServerPort = ":8181"
-const MaxRequestBodySize = int64(1048576) // 1 MB in bytes
+const (
+	defaultServerPort  = ":8181"
+	maxRequestBodySize = 1 << 20 // 1 MB
 
-// dataSource struct defines the fields for the data protocol
+	// Version information
+	nodeInfoSchemaURL          = "http://nodeinfo.diaspora.software/ns/schema/2.0"
+	softwareName               = "custom-activitypub-relay"
+	softwareVersion            = "1.0.0"
+	protocolName               = "activitypub"
+	httpServerTimeOut          = 20
+	httpServerReadWriteTimeOut = 30
+)
+
+// dataSource implements the engine.DataSource interface.
 type dataSource struct {
 	config         *config.Module
 	databaseClient database.Client
@@ -48,15 +62,21 @@ func (s *dataSource) State() json.RawMessage {
 	return lo.Must(json.Marshal(s.state))
 }
 
-// Start initializes the data protocol and starts consuming Kafka messages
+// Start initializes the data protocol and starts consuming relay messages
 func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
 	if err := s.initialize(); err != nil {
 		errorChan <- fmt.Errorf("failed to initialize dataSource: %w", err)
 		return
 	}
 
+	var wg sync.WaitGroup
+
+	wg.Add(3)
+
 	// Start HTTP server
 	go func() {
+		defer wg.Done()
+
 		if err := s.startHTTPServer(ctx); err != nil {
 			errorChan <- fmt.Errorf("failed to start HTTP server: %w", err)
 		}
@@ -64,6 +84,8 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 
 	// Start relay service following
 	go func() {
+		defer wg.Done()
+
 		if err := s.mastodonClient.FollowRelayServices(ctx); err != nil {
 			errorChan <- fmt.Errorf("failed to follow relay services: %w", err)
 		}
@@ -71,64 +93,151 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 
 	// Start message processing
 	go func() {
+		defer wg.Done()
+
 		if err := s.processMessages(ctx, tasksChan); err != nil {
 			errorChan <- fmt.Errorf("failed to process messages: %w", err)
 		}
 	}()
+
+	wg.Wait()
 }
 
 // startHTTPServer initializes and runs the HTTP server for ActivityPub endpoints.
 func (s *dataSource) startHTTPServer(ctx context.Context) error {
-	httpServer := echo.New()
-	httpServer.HideBanner = true
-	httpServer.HidePort = true
+	server := echo.New()
+	server.HideBanner = true
+	server.HidePort = true
 
-	// Configure middleware
-	httpServer.Use(middleware.Logger())
-	httpServer.Use(middleware.Recover())
+	// Configure timeouts and middleware
+	server.Server.ReadTimeout = httpServerReadWriteTimeOut * time.Second
+	server.Server.WriteTimeout = httpServerReadWriteTimeOut * time.Second
+	server.Use(middleware.Logger())
+	server.Use(middleware.Recover())
 
 	// Setup routes
-	httpServer.GET("/actor", s.handleGetActor)
-	httpServer.POST("/actor/inbox", s.handleActorInbox)
-	httpServer.POST("/inbox", s.handleActorInbox)
+	server.GET("/actor", s.handleGetActor)
+	server.POST("/actor/inbox", s.handleActorInbox)
+	server.POST("/inbox", s.handleActorInbox)
+	server.GET("/.well-known/nodeinfo", s.handleNodeInfo)
+	server.GET("/nodeinfo/2.0", s.handleNodeInfoDetails)
+	server.GET("/api/v1/instance", s.handleInstanceInfo)
 
 	// Start server with graceful shutdown
-	go func() { //ToDo: When the HTTP server fails to start, is it expected that the node will not stop running?
-		if err := httpServer.Start(DefaultServerPort); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			zap.L().Error("server error", zap.Error(err))
+	errCh := make(chan error, 1)
+
+	go func() {
+		if err := server.Start(defaultServerPort); err != nil {
+			if !errors.Is(err, http.ErrServerClosed) {
+				zap.L().Error("server error", zap.Error(err))
+				errCh <- err
+			}
 		}
 	}()
 
-	<-ctx.Done()
+	// Wait for context cancellation or server error
+	select {
+	case err := <-errCh:
+		return fmt.Errorf("server startup failed: %w", err)
 
-	return httpServer.Shutdown(ctx)
+	case <-ctx.Done():
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), httpServerTimeOut*time.Second)
+		defer cancel()
+
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			return fmt.Errorf("server shutdown failed: %w", err)
+		}
+
+		return nil
+	}
 }
 
-// HTTP Handlers
+// handleGetActor retrieves and returns the ActivityPub actor information.
 func (s *dataSource) handleGetActor(c echo.Context) error {
-	// Modify fields dynamically
 	actor, err := s.mastodonClient.GetActor()
 	if err != nil {
-		zap.L().Error("failed to get the actor: %v", zap.Error(err))
+		zap.L().Error("failed to retrieve actor", zap.Error(err))
+
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to retrieve actor")
 	}
 
-	// Return the JSON to the client
 	return c.JSON(http.StatusOK, actor)
 }
 
-// handleActorInbox processes incoming ActivityPub messages.
+// handleActorInbox processes incoming ActivityPub messages sent to the actor's inbox.
 func (s *dataSource) handleActorInbox(c echo.Context) error {
-	requestBody := http.MaxBytesReader(c.Response(), c.Request().Body, MaxRequestBodySize)
+	requestBody := http.MaxBytesReader(c.Response(), c.Request().Body, maxRequestBodySize)
 
-	var message activitypub.RelayObject
-	if err := json.NewDecoder(requestBody).Decode(&message); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid message format")
+	// Close request body
+	defer func(requestBody io.ReadCloser) {
+		err := requestBody.Close()
+		if err != nil {
+			zap.L().Error("failed to close request body", zap.Error(err))
+		}
+	}(requestBody)
+
+	data, err := io.ReadAll(requestBody)
+	if err != nil {
+		zap.L().Error("failed to read request body", zap.Error(err))
+		return echo.NewHTTPError(http.StatusBadRequest, "failed to read request body")
 	}
 
-	zap.L().Info("received relay object", zap.Any("message", message))
-	s.mastodonClient.SendMessage(&message)
+	message := string(data)
+	zap.L().Info("received relay object", zap.String("message", message))
+	s.mastodonClient.SendMessage(message)
 
 	return c.NoContent(http.StatusAccepted)
+}
+
+// handleNodeInfo returns basic NodeInfo for service discovery.
+func (s *dataSource) handleNodeInfo(c echo.Context) error {
+	domain := s.config.Endpoint.URL
+
+	info := activitypub.NodeInfo{
+		Links: []activitypub.NodeInfoLink{
+			{
+				Rel:  nodeInfoSchemaURL,
+				Href: fmt.Sprintf("%s/nodeinfo/2.0", domain),
+			},
+		},
+	}
+
+	return c.JSON(http.StatusOK, info)
+}
+
+// handleNodeInfoDetails returns detailed node information.
+func (s *dataSource) handleNodeInfoDetails(c echo.Context) error {
+	details := activitypub.NodeInfoDetails{
+		Version: "2.0",
+		Software: activitypub.SoftwareInfo{
+			Name:    softwareName,
+			Version: softwareVersion,
+		},
+		Protocols: []string{protocolName},
+		Services: activitypub.ServicesInfo{
+			Inbound:  []string{protocolName},
+			Outbound: []string{protocolName},
+		},
+		OpenRegistrations: false,
+		Usage: activitypub.NodeUsageInfo{
+			Users: activitypub.UsersInfo{
+				Total: 1,
+			},
+		},
+	}
+
+	return c.JSON(http.StatusOK, details)
+}
+
+// handleInstanceInfo provides instance-specific information.
+func (s *dataSource) handleInstanceInfo(c echo.Context) error {
+	info := activitypub.InstanceInfo{
+		URI:         s.config.Endpoint.URL,
+		Title:       "Custom Relay Instance",
+		Description: "",
+	}
+
+	return c.JSON(http.StatusOK, info)
 }
 
 // processMessages handles incoming ActivityPub messages and generates tasks.
@@ -147,49 +256,106 @@ func (s *dataSource) processMessages(ctx context.Context, tasksChan chan<- *engi
 			resultPool.Wait()
 			return ctx.Err()
 		case msg := <-messageChan:
-			if msg == nil {
+			if msg == "" {
 				continue
 			}
 			// Process each message concurrently
 			resultPool.Go(func() *engine.Tasks {
-				zap.L().Info("processing message", zap.Any("message", msg))
-
-				if msg.Type != "Announce" {
-					zap.L().Info("message ignored, not an Announce type", zap.String("type", msg.Type))
-					return nil
-				}
-
-				// Fetch and process the announced object
-				var fetchedObject *activitypub.Object
-
-				if err := retryOperation(ctx, func(ctx context.Context) error {
-					var err error
-					fetchedObject, err = s.mastodonClient.FetchAnnouncedObject(ctx, msg.Object)
-					return err
-				}); err != nil {
-					zap.L().Error("failed to fetch",
-						zap.String("object_url", msg.Object),
-						zap.Error(err))
-
-					return nil
-				}
-
-				tasks := s.buildMastodonMessageTasks(ctx, *fetchedObject)
-				if tasks != nil {
-					zap.L().Info("sending tasks", zap.Any("tasks", tasks))
-					tasksChan <- tasks
-				}
-
-				return tasks
+				return s.handleMessage(ctx, msg, tasksChan)
 			})
 		}
 	}
 }
 
+// handleMessage processes a single ActivityPub message.
+func (s *dataSource) handleMessage(ctx context.Context, msg string, tasksChan chan<- *engine.Tasks) *engine.Tasks {
+	zap.L().Info("processing message", zap.Any("message", msg))
+
+	relayObjectID := gjson.Get(msg, "id").String()
+	// Check if the received message is a relay message or an ActivityPub message.
+	if isRelayMessage(relayObjectID) {
+		if gjson.Get(msg, "type").String() == "Accept" {
+			zap.L().Info("Relay Subscription request has been approved.", zap.String("relayObjectID", relayObjectID))
+			return nil
+		}
+
+		objectID := gjson.Get(msg, "object").String()
+		zap.L().Info("Found object ID", zap.String("objectID", objectID))
+
+		// Attempt to fetch the detailed ActivityPub object within the relay message.
+		fetchedObject, err := s.mastodonClient.FetchAnnouncedObject(ctx, objectID)
+		if err != nil {
+			zap.L().Error("Failed to fetch announced object",
+				zap.String("objectID", objectID), zap.Error(err))
+			return nil
+		}
+
+		return s.processObjectTask(ctx, fetchedObject, tasksChan)
+	}
+
+	// If the message is not a relay message, attempt to unmarshal it directly into an ActivityPub object.
+	var fetchedObject activitypub.Object
+	if err := json.Unmarshal([]byte(msg), &fetchedObject); err != nil {
+		zap.L().Error("Error unmarshalling message", zap.Error(err))
+		return nil
+	}
+
+	// Remove activity suffix if present
+	fetchedObject.ID = strings.TrimSuffix(fetchedObject.ID, mastodon.ActivitySuffix)
+
+	return s.processObjectTask(ctx, &fetchedObject, tasksChan)
+}
+
+// processFetchedObject builds and sends tasks based on the fetched ActivityPub object.
+func (s *dataSource) processObjectTask(ctx context.Context, obj *activitypub.Object, tasksChan chan<- *engine.Tasks) *engine.Tasks {
+	zap.L().Info("processing received ActivityPub object",
+		zap.String("objectID", obj.ID),
+		zap.String("objectType", obj.Type),
+		zap.Any("objectAttributes", obj),
+	)
+
+	tasks := s.buildMastodonMessageTasks(ctx, *obj)
+
+	if tasks != nil {
+		zap.L().Info("sending tasks", zap.Any("tasks", tasks))
+		tasksChan <- tasks
+	}
+
+	return tasks
+}
+
+// isRelayMessage determines if a URL is a relay message based on its host.
+func isRelayMessage(id string) bool {
+	parsedURL, err := url.Parse(id)
+	if err != nil {
+		zap.L().Error("parse URL failed",
+
+			zap.String("id", id),
+			zap.Error(err))
+
+		return false
+	}
+
+	if parsedURL.Host == "" {
+		zap.L().Error("Parsed URL has an empty host", zap.String("id", id))
+		return false
+	}
+
+	if strings.HasPrefix(parsedURL.Host, "relay.") || strings.HasPrefix(parsedURL.Host, "rel.") {
+		zap.L().Info("URL identified as a relay message", zap.String("id", id))
+
+		return true
+	}
+
+	zap.L().Info("URL is not a relay message", zap.String("id", id))
+
+	return false
+}
+
 // initialize creates and configures the Mastodon client.
 // It returns an error if the client creation fails.
 func (s *dataSource) initialize() (err error) {
-	client, err := mastodon.NewClient(s.config.Endpoint.URL) //ToDo: Resolve LastOffset feature
+	client, err := mastodon.NewClient(s.config.Endpoint.URL, s.option.RelayURLList)
 	if err != nil {
 		return fmt.Errorf("failed to create activitypub client: %w", err)
 	}
@@ -201,22 +367,7 @@ func (s *dataSource) initialize() (err error) {
 	return nil
 }
 
-// retryOperation retries an operation with specified delay and backoff
-func retryOperation(ctx context.Context, operation func(ctx context.Context) error) error {
-	return retry.Do(
-		func() error {
-			return operation(ctx)
-		},
-		retry.Attempts(0),
-		retry.Delay(1*time.Second),
-		retry.DelayType(retry.BackOffDelay),
-		retry.OnRetry(func(n uint, err error) {
-			zap.L().Warn("retry activityPub dataSource", zap.Uint("retry", n), zap.Error(err))
-		}),
-	)
-}
-
-// buildMastodonMessageTasks processes the Kafka message and creates tasks for the engine
+// buildMastodonMessageTasks processes the relay message and creates tasks for the engine
 func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activitypub.Object) *engine.Tasks {
 	var tasks engine.Tasks
 
@@ -226,18 +377,29 @@ func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activit
 		return nil
 	}
 
-	tasks.Tasks = append(tasks.Tasks, &Task{
+	task := &Task{
 		Network: s.Network(),
 		Message: object,
-	})
+	}
+
+	tasks.Tasks = append(tasks.Tasks, task)
+
+	zap.L().Info("task created for ActivityPub object",
+		zap.String("objectID", object.ID),
+		zap.Int("totalTasks", len(tasks.Tasks)),
+		zap.Any("taskDetails", task),
+	)
 
 	return &tasks
 }
 
 // NewSource creates a new data protocol instance
 func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.DataSource, error) {
-	var state State
+	if config == nil {
+		return nil, errors.New("config is required")
+	}
 
+	var state State
 	// Initialize state from checkpoint.
 	if checkpoint != nil {
 		if err := json.Unmarshal(checkpoint.State, &state); err != nil {
@@ -258,7 +420,7 @@ func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseCli
 		option:         option,
 	}
 
-	DefaultStartTime = instance.option.TimestampStart
+	defaultStartTime = instance.option.TimestampStart
 
 	zap.L().Info("initialized data source", zap.Any("option", option))
 
@@ -266,5 +428,5 @@ func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseCli
 }
 
 func GetTimestampStart() int64 {
-	return DefaultStartTime
+	return defaultStartTime
 }

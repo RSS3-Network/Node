@@ -315,7 +315,7 @@ func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, wo
 
 	switch workerType {
 	case federated.Core.String():
-		mastodonClient, err := mastodon.NewClient(endpoint.URL)
+		mastodonClient, err := mastodon.NewClient(endpoint.URL, []string{"default_url"}) //ToDo: complete activitypub monitor client
 
 		if err != nil {
 			return nil, fmt.Errorf("create Mastodon client: %w", err)

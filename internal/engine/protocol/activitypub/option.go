@@ -9,8 +9,8 @@ import (
 
 // Option represents the configuration options for the ActivityPub client.
 type Option struct {
-	KafkaTopic     string `json:"kafka_topic"`
-	TimestampStart int64  `json:"timestamp_start" mapstructure:"timestamp_start"`
+	RelayURLList   []string `json:"relay_url_list"`
+	TimestampStart int64    `json:"timestamp_start" mapstructure:"timestamp_start"`
 }
 
 // NewOption creates a new Option instance from the provided parameters.
@@ -32,6 +32,8 @@ func NewOption(n network.Network, parameters *config.Parameters) (*Option, error
 	if option.TimestampStart == 0 {
 		option.TimestampStart = parameter.CurrentNetworkStartBlock[n].Timestamp
 	}
+
+	zap.L().Info("option:", zap.Any("option", option))
 
 	return &option, nil
 }

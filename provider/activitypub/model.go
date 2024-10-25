@@ -23,16 +23,6 @@ type Object struct {
 	Attributes map[string]interface{} `json:"attributes,omitempty"`
 }
 
-type RelayObject struct {
-	Context   string   `json:"@context"`
-	Actor     string   `json:"actor"`
-	ID        string   `json:"id"`
-	Object    string   `json:"object"`
-	Published string   `json:"published"`
-	To        []string `json:"to"`
-	Type      string   `json:"type"`
-}
-
 // Attachment represents an attachment to an ActivityPub object.
 type Attachment struct {
 	Type      string `json:"type"`
@@ -94,4 +84,54 @@ type PublicKey struct {
 
 type EndPoint struct {
 	SharedInbox string `json:"sharedInbox"`
+}
+
+// NodeInfo represents the node information response structure
+type NodeInfo struct {
+	Links []NodeInfoLink `json:"links"`
+}
+
+// NodeInfoLink represents a link in NodeInfo.
+type NodeInfoLink struct {
+	Rel  string `json:"rel"`
+	Href string `json:"href"`
+}
+
+// NodeInfoDetails represents detailed node information.
+type NodeInfoDetails struct {
+	Version           string        `json:"version"`
+	Software          SoftwareInfo  `json:"software"`
+	Protocols         []string      `json:"protocols"`
+	Services          ServicesInfo  `json:"services"`
+	OpenRegistrations bool          `json:"openRegistrations"`
+	Usage             NodeUsageInfo `json:"usage"`
+}
+
+// SoftwareInfo provides software details in NodeInfo.
+type SoftwareInfo struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
+
+// ServicesInfo represents the inbound and outbound services of a node.
+type ServicesInfo struct {
+	Inbound  []string `json:"inbound"`
+	Outbound []string `json:"outbound"`
+}
+
+// NodeUsageInfo contains usage statistics for a node.
+type NodeUsageInfo struct {
+	Users UsersInfo `json:"users"`
+}
+
+// UsersInfo provides user statistics.
+type UsersInfo struct {
+	Total int `json:"total"`
+}
+
+// InstanceInfo represents instance-specific information response.
+type InstanceInfo struct {
+	URI         string `json:"uri"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
 }
