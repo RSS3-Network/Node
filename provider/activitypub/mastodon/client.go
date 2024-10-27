@@ -33,11 +33,24 @@ const (
 var _ Client = (*client)(nil)
 
 type Client interface {
+
+	// FollowRelayServices attempts to follow all configured relay services.
+	// Returns error if any relay service fails to respond.
 	FollowRelayServices(ctx context.Context) error
+
+	// GetMessageChan returns a channel for receiving relay messages.
+	// Returns error if the message channel is not initialized.
 	GetMessageChan() (<-chan string, error)
-	GetActor() (*activitypub.Actor, error)
-	SendMessage(object string)
+
+	// FetchAnnouncedObject retrieves an ActivityPub object from the specified URL.
+	// Returns the fetched object and any error encountered during the fetch.
 	FetchAnnouncedObject(ctx context.Context, objectURL string) (*activitypub.Object, error)
+
+	// GetActor returns the ActivityPub actor.
+	GetActor() (*activitypub.Actor, error)
+
+	// SendMessage queues a message to be processed.
+	SendMessage(object string)
 }
 
 type client struct {
@@ -378,6 +391,12 @@ func (c *client) fetchObject(ctx context.Context, url string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("fetch object: %w", err)
 	}
+
+	defer func() {
+		if err := resp.Close(); err != nil {
+			zap.L().Error("failed to close response body in fetchObject", zap.Error(err))
+		}
+	}()
 
 	zap.L().Info("Request was successful")
 
