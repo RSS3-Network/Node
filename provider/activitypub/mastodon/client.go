@@ -51,8 +51,19 @@ type client struct {
 	relayURLs  []string
 }
 
-// NewClient creates a new Mastodon client with the specified public endpoint.
-// It initializes cryptographic keys and ActivityPub actor information.
+// NewClient creates a new Mastodon client with the specified public endpoint (domain) and relay URLs (relayURLList).
+//
+//   - domain: This is the public URL of your server. It should be accessible to external services to enable
+//     federated communication. You can use a tool like Ngrok to expose a server at
+//     port 8181. e.g., "https://your-subdomain.ngrok.app".
+//     You can set it in config.yaml:
+//     config.yaml -> endpoints
+//
+//   - relayURLList: A slice of URLs representing relay services to follow. Relays aggregate messages from different servers,
+//     allowing your server to stay updated with other servers in the network.
+//
+//     You can add multiple relay URLs in config.yaml:
+//     config.yaml -> component -> federated -> id: mastodon-core -> parameters -> relay_url_list
 func NewClient(endpoint string, relayURLList []string) (Client, error) {
 	// Input Validation
 	if endpoint == "" {
