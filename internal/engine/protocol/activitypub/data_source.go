@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
@@ -59,19 +60,28 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 	// Get the channel to get the notification of the http server being ready
 	readyChan := s.mastodonClient.GetReadyChan()
 
-	select {
-	case <-ctx.Done():
-		zap.L().Info("context cancelled before server was ready",
-			zap.Error(ctx.Err()))
-		return
-	case <-readyChan:
-		zap.L().Info("server is ready, starting to process messages")
+	// Start processing in a goroutine
+	var wg sync.WaitGroup
 
-		if err := s.processMessages(ctx, tasksChan); err != nil {
-			zap.L().Error("failed to process messages", zap.Error(err))
-			errorChan <- fmt.Errorf("failed to process messages: %w", err)
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		select {
+		case <-ctx.Done():
+			zap.L().Info("context cancelled before server was ready",
+				zap.Error(ctx.Err()))
+			return
+		case <-readyChan:
+			zap.L().Info("server is ready, starting to process messages")
+
+			if err := s.processMessages(ctx, tasksChan); err != nil {
+				zap.L().Error("failed to process messages", zap.Error(err))
+				errorChan <- fmt.Errorf("failed to process messages: %w", err)
+			}
 		}
-	}
+	}()
 }
 
 // processMessages handles incoming ActivityPub messages and generates tasks.
@@ -105,14 +115,22 @@ func (s *dataSource) processMessages(ctx context.Context, tasksChan chan<- *engi
 
 			// Process each message concurrently
 			resultPool.Go(func() *engine.Tasks {
-				return s.handleMessage(ctx, msg, tasksChan)
+				tasks := s.handleMessage(ctx, msg)
+
+				if tasks != nil {
+					tasksChan <- tasks
+
+					zap.L().Info("sent message to tasks channel", zap.String("message", msg))
+				}
+
+				return tasks
 			})
 		}
 	}
 }
 
 // handleMessage processes a single ActivityPub message.
-func (s *dataSource) handleMessage(ctx context.Context, msg string, tasksChan chan<- *engine.Tasks) *engine.Tasks {
+func (s *dataSource) handleMessage(ctx context.Context, msg string) *engine.Tasks {
 	zap.L().Info("processing message", zap.Any("message", msg))
 
 	relayObjectID := gjson.Get(msg, "id").String()
@@ -134,7 +152,7 @@ func (s *dataSource) handleMessage(ctx context.Context, msg string, tasksChan ch
 			return nil
 		}
 
-		return s.processObjectTask(ctx, fetchedObject, tasksChan)
+		return s.processObjectTask(ctx, fetchedObject)
 	}
 
 	// If the message is not a relay message, attempt to unmarshal it directly into an ActivityPub object.
@@ -147,11 +165,11 @@ func (s *dataSource) handleMessage(ctx context.Context, msg string, tasksChan ch
 	// Remove activity suffix if present
 	fetchedObject.ID = strings.TrimSuffix(fetchedObject.ID, mastodon.ActivitySuffix)
 
-	return s.processObjectTask(ctx, &fetchedObject, tasksChan)
+	return s.processObjectTask(ctx, &fetchedObject)
 }
 
 // processFetchedObject builds and sends tasks based on the fetched ActivityPub object.
-func (s *dataSource) processObjectTask(ctx context.Context, obj *activitypub.Object, tasksChan chan<- *engine.Tasks) *engine.Tasks {
+func (s *dataSource) processObjectTask(ctx context.Context, obj *activitypub.Object) *engine.Tasks {
 	zap.L().Info("processing received ActivityPub object",
 		zap.String("objectID", obj.ID),
 		zap.String("objectType", obj.Type),
@@ -159,11 +177,6 @@ func (s *dataSource) processObjectTask(ctx context.Context, obj *activitypub.Obj
 	)
 
 	tasks := s.buildMastodonMessageTasks(ctx, *obj)
-
-	if tasks != nil {
-		zap.L().Info("sending tasks", zap.Any("tasks", tasks))
-		tasksChan <- tasks
-	}
 
 	return tasks
 }
