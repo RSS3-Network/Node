@@ -8,16 +8,20 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-fed/httpsig"
 	"github.com/go-playground/form/v4"
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/rss3-network/node/provider/activitypub"
 	"github.com/rss3-network/node/provider/httpx"
 	"go.uber.org/zap"
@@ -25,12 +29,28 @@ import (
 
 const (
 	defaultAttempts         = 2
+	waitGroupNumber         = 2
 	messageChannelMaxLength = 1000
 	keySize                 = 2048
 	sigExpiry               = 60 * 60
+	maxRequestBodySize      = 1 << 20 // 1 MB
+	defaultServerPort       = ":8181"
+
+	// Version information
+	nodeInfoSchemaURL          = "http://nodeinfo.diaspora.software/ns/schema/2.0"
+	softwareName               = "custom-activitypub-relay"
+	softwareVersion            = "1.0.0"
+	protocolName               = "activitypub"
+	httpServerTimeOut          = 20
+	httpServerReadWriteTimeOut = 30
+	serverStartWaitTimeOut     = 100
 )
 
 var _ Client = (*client)(nil)
+
+// globalMsgChan is the global message channel. It is buffered with messageChannelMaxLength capacity to prevent
+// blocking on message sends.
+var globalMsgChan = make(chan string, messageChannelMaxLength)
 
 type Client interface {
 
@@ -51,6 +71,9 @@ type Client interface {
 
 	// SendMessage queues a message to be processed.
 	SendMessage(object string)
+
+	// GetReadyChan returns the ready channel to notify if the http server is ready.
+	GetReadyChan() <-chan struct{}
 }
 
 type client struct {
@@ -59,9 +82,10 @@ type client struct {
 	attempts   uint
 	domain     string
 	privateKey *rsa.PrivateKey
-	msgChan    chan string
 	actor      *activitypub.Actor
 	relayURLs  []string
+	server     *echo.Echo
+	readyChan  chan struct{}
 }
 
 // NewClient creates a new Mastodon client with the specified public endpoint (domain) and relay URLs (relayURLList).
@@ -77,7 +101,7 @@ type client struct {
 //
 //     You can add multiple relay URLs in config.yaml:
 //     config.yaml -> component -> federated -> id: mastodon-core -> parameters -> relay_url_list
-func NewClient(endpoint string, relayURLList []string) (Client, error) {
+func NewClient(ctx context.Context, endpoint string, relayURLList []string, errorChan chan<- error) (Client, error) {
 	// Input Validation
 	if endpoint == "" {
 		return nil, fmt.Errorf("endpoint cannot be empty")
@@ -107,15 +131,214 @@ func NewClient(endpoint string, relayURLList []string) (Client, error) {
 	c := &client{
 		domain:     endpoint,
 		privateKey: privateKey,
-		msgChan:    make(chan string, messageChannelMaxLength),
 		actor:      actor,
 		httpClient: httpClient,
 		encoder:    form.NewEncoder(),
 		attempts:   defaultAttempts,
 		relayURLs:  relayURLList,
+		readyChan:  make(chan struct{}),
 	}
 
+	// Setup and store Echo server
+	c.initializeServer()
+	zap.L().Info("starting server service in background")
+
+	// Start server service
+	go func() {
+		c.startServerService(ctx, errorChan)
+	}()
+
 	return c, nil
+}
+
+// initializeServer initializes an echo http server
+func (c *client) initializeServer() {
+	server := echo.New()
+	server.HideBanner = true
+	server.HidePort = true
+
+	// Configure timeouts and middleware
+	server.Server.ReadTimeout = httpServerReadWriteTimeOut * time.Second
+	server.Server.WriteTimeout = httpServerReadWriteTimeOut * time.Second
+	server.Use(middleware.Logger())
+	server.Use(middleware.Recover())
+
+	// Setup routes
+	server.GET("/actor", c.handleGetActor)
+	server.POST("/actor/inbox", c.handleActorInbox)
+	server.POST("/inbox", c.handleActorInbox)
+	server.GET("/.well-known/nodeinfo", c.handleNodeInfo)
+	server.GET("/nodeinfo/2.0", c.handleNodeInfoDetails)
+	server.GET("/api/v1/instance", c.handleInstanceInfo)
+
+	c.server = server
+}
+
+// startServerService initializes the HTTP server and relay services in separate goroutines.
+// It waits for both services to complete, reporting any errors via the errChan channel.
+func (c *client) startServerService(ctx context.Context, errChan chan<- error) {
+	var wg sync.WaitGroup
+
+	wg.Add(waitGroupNumber)
+
+	// Launch the HTTP server in a separate goroutine.
+	go func() {
+		defer wg.Done()
+		// Attempt to start the HTTP server and report errors through errChan.
+		if err := c.startHTTPServer(ctx); err != nil {
+			select {
+			case errChan <- fmt.Errorf("HTTP server start error: %w", err):
+			case <-ctx.Done():
+				zap.L().Info("context cancelled, skipping error send",
+					zap.Error(err))
+			}
+		}
+
+		close(c.readyChan)
+		zap.L().Info("readiness signal sent")
+	}()
+
+	// Launch the relay service follower in a separate goroutine.
+	go func() {
+		defer wg.Done()
+		// Attempt to follow relay services and report errors through errChan.
+		if err := c.FollowRelayServices(ctx); err != nil {
+			select {
+			case <-ctx.Done():
+				zap.L().Info("context cancelled, skipping error send",
+					zap.Error(err))
+			default:
+				zap.L().Warn("relay service follow error (err channel might be closed)",
+					zap.Error(err))
+			}
+		}
+	}()
+
+	// Wait for both goroutines to complete before returning.
+	wg.Wait()
+}
+
+// startHTTPServer initializes and runs the HTTP server for ActivityPub endpoints.
+func (c *client) startHTTPServer(ctx context.Context) error {
+	// Start server with graceful shutdown
+	errCh := make(chan error, 1)
+
+	go func() {
+		if err := c.server.Start(defaultServerPort); err != nil {
+			if !errors.Is(err, http.ErrServerClosed) {
+				zap.L().Error("server error", zap.Error(err))
+				errCh <- err
+			}
+		}
+	}()
+
+	// Wait for context cancellation or server error
+	select {
+	case err := <-errCh:
+		return fmt.Errorf("server startup failed: %w", err)
+
+	case <-ctx.Done():
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), httpServerTimeOut*time.Second)
+		defer cancel()
+
+		if err := c.server.Shutdown(shutdownCtx); err != nil {
+			return fmt.Errorf("server shutdown failed: %w", err)
+		}
+
+		return nil
+	default:
+		zap.L().Info("HTTP server started successfully")
+		return nil
+	}
+}
+
+// handleGetActor retrieves and returns the ActivityPub actor information.
+func (c *client) handleGetActor(e echo.Context) error {
+	actor, err := c.GetActor()
+	if err != nil {
+		zap.L().Error("failed to retrieve actor", zap.Error(err))
+
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to retrieve actor")
+	}
+
+	return e.JSON(http.StatusOK, actor)
+}
+
+// handleActorInbox processes incoming ActivityPub messages sent to the actor's inbox.
+func (c *client) handleActorInbox(e echo.Context) error {
+	requestBody := http.MaxBytesReader(e.Response(), e.Request().Body, maxRequestBodySize)
+
+	// Close request body
+	defer func(requestBody io.ReadCloser) {
+		err := requestBody.Close()
+		if err != nil {
+			zap.L().Error("failed to close request body", zap.Error(err))
+		}
+	}(requestBody)
+
+	data, err := io.ReadAll(requestBody)
+	if err != nil {
+		zap.L().Error("failed to read request body", zap.Error(err))
+		return echo.NewHTTPError(http.StatusBadRequest, "failed to read request body")
+	}
+
+	message := string(data)
+	zap.L().Info("received relay object", zap.String("message", message))
+
+	c.SendMessage(message)
+
+	return e.NoContent(http.StatusAccepted)
+}
+
+// handleNodeInfo returns basic NodeInfo for service discovery.
+func (c *client) handleNodeInfo(e echo.Context) error {
+	domain := c.domain
+
+	info := activitypub.NodeInfo{
+		Links: []activitypub.NodeInfoLink{
+			{
+				Rel:  nodeInfoSchemaURL,
+				Href: fmt.Sprintf("%s/nodeinfo/2.0", domain),
+			},
+		},
+	}
+
+	return e.JSON(http.StatusOK, info)
+}
+
+// handleNodeInfoDetails returns detailed node information.
+func (c *client) handleNodeInfoDetails(e echo.Context) error {
+	details := activitypub.NodeInfoDetails{
+		Version: "2.0",
+		Software: activitypub.SoftwareInfo{
+			Name:    softwareName,
+			Version: softwareVersion,
+		},
+		Protocols: []string{protocolName},
+		Services: activitypub.ServicesInfo{
+			Inbound:  []string{protocolName},
+			Outbound: []string{protocolName},
+		},
+		OpenRegistrations: false,
+		Usage: activitypub.NodeUsageInfo{
+			Users: activitypub.UsersInfo{
+				Total: 1,
+			},
+		},
+	}
+
+	return e.JSON(http.StatusOK, details)
+}
+
+// handleInstanceInfo provides instance-specific information.
+func (c *client) handleInstanceInfo(e echo.Context) error {
+	info := activitypub.InstanceInfo{
+		URI:         c.domain,
+		Title:       "Custom Relay Instance",
+		Description: "",
+	}
+
+	return e.JSON(http.StatusOK, info)
 }
 
 // createActor creates a new ActivityPub actor with the public endpoint and public key.
@@ -161,7 +384,8 @@ func newSigner(instanceURL *url.URL) (httpsig.Signer, error) {
 		headers = append(headers, headerHost, headerDigest)
 	}
 
-	zap.L().Info("Creating signer", zap.String("instanceURL", instanceURL.String()), zap.Strings("headers", headers))
+	zap.L().Info("Creating signer", zap.String("instanceURL", instanceURL.String()),
+		zap.Strings("headers", headers))
 
 	signer, _, err := httpsig.NewSigner(
 		[]httpsig.Algorithm{httpsig.RSA_SHA256},
@@ -268,7 +492,8 @@ func (c *client) generateFollowContent() []byte {
 }
 
 // createAndSignFollowRequest creates and signs an HTTP request for following a relay.
-func (c *client) createAndSignFollowRequest(ctx context.Context, instanceURL *url.URL, content []byte, signer httpsig.Signer) (*http.Request, error) {
+func (c *client) createAndSignFollowRequest(ctx context.Context, instanceURL *url.URL,
+	content []byte, signer httpsig.Signer) (*http.Request, error) {
 	switch {
 	case instanceURL == nil:
 		return nil, fmt.Errorf("instance URL cannot be nil")
@@ -278,7 +503,9 @@ func (c *client) createAndSignFollowRequest(ctx context.Context, instanceURL *ur
 		return nil, fmt.Errorf("signer cannot be nil")
 	}
 
-	zap.L().Info("Creating follow request", zap.String("instanceURL", instanceURL.String()), zap.ByteString("content", content))
+	zap.L().Info("Creating follow request", zap.String("instanceURL", instanceURL.String()),
+		zap.ByteString("content", content))
+
 	reqURL := instanceURL.String()
 
 	// Create a POST request
@@ -334,7 +561,6 @@ func (c *client) sendRequest(req *http.Request) error {
 	zap.L().Info("received response",
 		zap.Int("status_code", resp.StatusCode),
 		zap.Any("headers", resp.Header),
-		zap.Any("resp", resp),
 	)
 
 	if resp.StatusCode != http.StatusAccepted {
@@ -373,7 +599,8 @@ func (c *client) FetchAnnouncedObject(ctx context.Context, objectURL string) (*a
 	// Unmarshal the JSON response into an ActivityPub object
 	var obj activitypub.Object
 	if err := json.Unmarshal(body, &obj); err != nil {
-		return nil, fmt.Errorf("failed to decode object: %w", err)
+		return nil, fmt.Errorf("failed to decode object: %w",
+			err)
 	}
 
 	// Handle ID manipulation by trimming /activity
@@ -398,8 +625,6 @@ func (c *client) fetchObject(ctx context.Context, url string) ([]byte, error) {
 		}
 	}()
 
-	zap.L().Info("Request was successful")
-
 	body, err := io.ReadAll(resp)
 	if err != nil {
 		return nil, fmt.Errorf("read response: %w", err)
@@ -421,11 +646,16 @@ func (c *client) GetActor() (*activitypub.Actor, error) {
 
 // GetMessageChan returns the channel for receiving relay messages.
 func (c *client) GetMessageChan() (<-chan string, error) {
-	if c.msgChan == nil {
+	if globalMsgChan == nil {
 		return nil, fmt.Errorf("message channel not initialized")
 	}
 
-	return c.msgChan, nil
+	return globalMsgChan, nil
+}
+
+// GetReadyChan returns the ready channel.
+func (c *client) GetReadyChan() <-chan struct{} {
+	return c.readyChan
 }
 
 // SendMessage queues a message string to the relay message channel.
@@ -436,10 +666,22 @@ func (c *client) SendMessage(msg string) {
 		return
 	}
 
-	select {
-	case c.msgChan <- msg:
-		zap.L().Info("message queued", zap.String("message", msg))
-	default:
-		zap.L().Info("channel full, dropping message", zap.String("message", msg))
-	}
+	go func(message string) {
+		defer func() {
+			if r := recover(); r != nil {
+				zap.L().Error("message send failed due to closed channel",
+					zap.String("message", message))
+			}
+		}()
+
+		select {
+		case globalMsgChan <- message:
+			zap.L().Info("message queued",
+				zap.String("message", message),
+				zap.Int("channel length", len(globalMsgChan)))
+		default:
+			zap.L().Info("channel full, dropping message",
+				zap.String("message", message))
+		}
+	}(msg)
 }
