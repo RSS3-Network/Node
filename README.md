@@ -20,6 +20,10 @@ The RSS3 Node, an RSS3 Data Sublayer (DSL) component, is responsible for indexin
 
 See <https://docs.rss3.io/guide/operator> for a detailed deployment guide.
 
+## Contribution
+
+See <https://docs.rss3.io/guide/dsl/worker/contributing-a-new-worker-to-node> for a detailed contribution guide.
+
 ## License
 <!-- We use MIT as it's almost unrestricted. -->
 [MIT](LICENSE).

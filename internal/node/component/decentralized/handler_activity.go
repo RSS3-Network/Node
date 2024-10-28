@@ -82,6 +82,10 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 		return response.BadRequestError(ctx, err)
 	}
 
+	if common.IsHexAddress(request.Account) {
+		request.Account = common.HexToAddress(request.Account).String()
+	}
+
 	if request.Type, err = c.parseTypes(ctx.QueryParams()["type"], request.Tag); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
@@ -110,7 +114,7 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
-		Owner:          lo.ToPtr(common.HexToAddress(request.Account).String()),
+		Owner:          lo.ToPtr(request.Account),
 		Limit:          request.Limit,
 		ActionLimit:    request.ActionLimit,
 		Status:         request.Status,
@@ -143,6 +147,12 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		return response.BadRequestError(ctx, err)
 	}
 
+	for i := range request.Accounts {
+		if common.IsHexAddress(request.Accounts[i]) {
+			request.Accounts[i] = common.HexToAddress(request.Accounts[i]).String()
+		}
+	}
+
 	types, err := c.parseTypes(request.Type, request.Tag)
 	if err != nil {
 		return response.BadRequestError(ctx, err)
@@ -172,17 +182,15 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
-		Owners: lo.Uniq(lo.Map(request.Accounts, func(account string, _ int) string {
-			return common.HexToAddress(account).String()
-		})),
-		Limit:       request.Limit,
-		ActionLimit: request.ActionLimit,
-		Status:      request.Status,
-		Direction:   request.Direction,
-		Network:     lo.Uniq(request.Network),
-		Tags:        lo.Uniq(request.Tag),
-		Types:       lo.Uniq(types),
-		Platforms:   lo.Uniq(request.Platform),
+		Owners:         lo.Uniq(request.Accounts),
+		Limit:          request.Limit,
+		ActionLimit:    request.ActionLimit,
+		Status:         request.Status,
+		Direction:      request.Direction,
+		Network:        lo.Uniq(request.Network),
+		Tags:           lo.Uniq(request.Tag),
+		Types:          lo.Uniq(types),
+		Platforms:      lo.Uniq(request.Platform),
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
