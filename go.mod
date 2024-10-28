@@ -58,7 +58,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
 	github.com/emirpasic/gods v1.18.1
 	github.com/go-redsync/redsync/v4 v4.13.0
-	github.com/grafana/pyroscope-go v1.1.2
+	github.com/grafana/pyroscope-go v1.2.0
 	github.com/jaytaylor/html2text v0.0.0-20230321000545-74c2419ad056
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/redis/rueidis v1.0.45
