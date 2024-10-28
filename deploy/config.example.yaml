@@ -97,4 +97,4 @@ component:
       worker: core
       endpoint: mastodon
       parameters:
-        kafka_topic: activitypub_events
+        relay_url_list: [ "https://relay.fedi.buzz/instance/mastodon.social"]

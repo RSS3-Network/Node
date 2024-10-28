@@ -69,7 +69,7 @@ type workerConfig struct {
 const (
 	relayURLArrayTypeDescription = "List of relay URLs to follow and receive messages from"
 
-	mastodonInstanceDescription = "A Mastodon instance is required. Please follow <a href=\"https://github.com/RSS3-Network/Mastodon-Instance-Kit\" target=\"_blank\">the guide</a> to either deploy a new Mastodon instance or modify an existing Mastodon instance. After completing either option, enter your Mastodon endpoint (format: your_instance_ip:9092) here."
+	mastodonInstanceEndpointDescription = "Your Mastodon instance must be accessible via a public URL, which exposes your local instance on port 8181. You can use services like ngrok (https://ngrok.com)."
 )
 
 var defaultNetworkParameters = map[network.Protocol]*Parameters{
@@ -294,7 +294,7 @@ func getEndpointConfig(n network.Network) Endpoint {
 		endpointConfig.URL.Value = "https://arweave.net"
 	case network.ActivityPubProtocol:
 		endpointConfig.URL.Type = StringType
-		endpointConfig.URL.Description = mastodonInstanceDescription
+		endpointConfig.URL.Description = mastodonInstanceEndpointDescription
 		endpointConfig.URL.Value = "https://domain.ngrok.app"
 	default:
 		endpointConfig.URL.Value = "https://your-network-endpoint"
@@ -456,7 +456,7 @@ var WorkerToConfigMap = map[network.Protocol]map[worker.Worker]workerConfig{
 				Title:       "Relay URL List",
 				Key:         "parameters.relay_url_list",
 			},
-		}, mastodonInstanceDescription),
+		}, mastodonInstanceEndpointDescription),
 	},
 	network.ArweaveProtocol: {
 		decentralized.Mirror:    customWorkerConfigWithoutEndpoint(decentralized.Mirror, network.ArweaveProtocol, nil, true),
