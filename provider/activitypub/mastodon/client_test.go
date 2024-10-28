@@ -1,7 +1,7 @@
 package mastodon
 
 //
-//import (
+// import (
 //	"context"
 //	"fmt"
 //	"testing"
@@ -12,20 +12,20 @@ package mastodon
 //)
 //
 //// testConfig holds test configuration parameters
-//var testConfig = struct {
+// var testConfig = struct {
 //	domain    string
 //	relayURLs []string
-//}{
+// }{
 //	// Set your ngrok or tunnel domain here
 //	domain: "https://newdomain7.ngrok.app",
 //	// Add your relay URLs here
 //	relayURLs: []string{
 //		"https://relay.fedi.buzz/instance/mastodon.social",
 //	},
-//}
+// }
 //
 //// TestClientMonitorRelayMessages tests the relay message monitoring functionality
-//func TestClientMonitorRelayMessages(t *testing.T) {
+// func TestClientMonitorRelayMessages(t *testing.T) {
 //	t.Parallel()
 //
 //	// Initialize logger for tests
@@ -78,10 +78,10 @@ package mastodon
 //			}
 //		})
 //	}
-//}
+// }
 //
 //// TestClientFetchAnnouncedObject tests fetching announced objects
-//func TestClientFetchAnnouncedObject(t *testing.T) {
+// func TestClientFetchAnnouncedObject(t *testing.T) {
 //	t.Parallel()
 //
 //	// Initialize logger for tests
@@ -141,10 +141,10 @@ package mastodon
 //			t.Logf("fetched object: id=%s, type=%s", obj.ID, obj.Type)
 //		})
 //	}
-//}
+// }
 //
 //// monitorMessages monitors incoming messages for the specified duration
-//func monitorMessages(t *testing.T, client Client, duration time.Duration, minCount int) ([]string, error) {
+// func monitorMessages(t *testing.T, client Client, duration time.Duration, minCount int) ([]string, error) {
 //	msgChan, err := client.GetMessageChan()
 //	if err != nil {
 //		return nil, err
@@ -180,4 +180,4 @@ package mastodon
 //	}
 //
 //	return messages, nil
-//}
+// }
