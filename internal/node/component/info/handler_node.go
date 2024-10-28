@@ -195,19 +195,19 @@ func (c *Component) getNodeWorkerCoverage() []string {
 
 	// append decentralized workers with network
 	for _, worker := range c.config.Component.Decentralized {
-		coverage := fmt.Sprintf("%s | %s", worker.Network, worker.Worker.Name())
+		coverage := fmt.Sprintf("%s_%s", worker.Network, worker.Worker.Name())
 		workerCoverage = append(workerCoverage, coverage)
 	}
 
 	// append RSS worker with network if exists
 	if c.config.Component.RSS != nil {
-		coverage := fmt.Sprintf("%s | %s", network.RSSHub, c.config.Component.RSS.Worker.Name())
+		coverage := fmt.Sprintf("%s_%s", network.RSSHub, c.config.Component.RSS.Worker.Name())
 		workerCoverage = append(workerCoverage, coverage)
 	}
 
 	// append federated workers with network
 	for _, worker := range c.config.Component.Federated {
-		coverage := fmt.Sprintf("%s | %s", worker.Network, worker.Worker.Name())
+		coverage := fmt.Sprintf("%s_%s", worker.Network, worker.Worker.Name())
 		workerCoverage = append(workerCoverage, coverage)
 	}
 
