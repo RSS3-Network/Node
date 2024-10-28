@@ -3,6 +3,7 @@ package monitor_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/orlangure/gnomock"
 	"github.com/orlangure/gnomock/preset/redis"
@@ -13,6 +14,7 @@ import (
 	redisx "github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/require"
@@ -975,6 +977,68 @@ func TestMonitor(t *testing.T) {
 			want:      worker.StatusReady,
 			wantError: require.NoError,
 		},
+
+		// ActivityPub (Mastodon)
+		{
+			name:   "Mastodon Worker Ready Status -> Ready Status",
+			source: network.ActivityPubProtocol,
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Federated: []*config.Module{
+							{
+								ID:      "mastodon-core",
+								Network: network.Mastodon,
+								Worker:  federated.Core,
+								Parameters: &config.Parameters{
+									"relay_url_list": []string{
+										"https://relay.fedi.buzz/instance/mastodon.social",
+									},
+								},
+								Endpoint: config.Endpoint{
+									URL: "https://newdomain7.ngrok.app",
+								},
+							},
+						},
+					},
+				},
+				currentState:  monitor.CheckpointState{},
+				latestState:   uint64(time.Now().Unix()),
+				initialStatus: worker.StatusReady,
+			},
+			want:      worker.StatusReady,
+			wantError: require.NoError,
+		},
+		{
+			name:   "Mastodon Worker Ready Status -> UnHealthy Status",
+			source: network.ActivityPubProtocol,
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Federated: []*config.Module{
+							{
+								ID:      "mastodon-core",
+								Network: network.Mastodon,
+								Worker:  federated.Core,
+								Parameters: &config.Parameters{
+									"relay_url_list": []string{
+										"https://relay.fedi.buzz/instance/mastodon.social",
+									},
+								},
+								Endpoint: config.Endpoint{
+									URL: "https://newdomain8.ngrok.app",
+								},
+							},
+						},
+					},
+				},
+				currentState:  monitor.CheckpointState{},
+				latestState:   uint64(time.Now().Unix()),
+				initialStatus: worker.StatusReady,
+			},
+			want:      worker.StatusReady,
+			wantError: require.NoError,
+		},
 	}
 
 	// Start Redis container
@@ -1041,6 +1105,26 @@ func TestMonitor(t *testing.T) {
 
 				// check final worker status
 				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS.ID)
+				require.Equal(t, testcase.want, status)
+			})
+		case network.ActivityPubProtocol:
+			t.Run(testcase.name, func(t *testing.T) {
+				ctx := context.Background()
+
+				instance, err := monitor.NewMonitor(ctx, testcase.arguments.config, nil, redisClient, nil, nil)
+				require.NoError(t, err)
+
+				// update worker status to initial status
+				err = instance.UpdateWorkerStatusByID(ctx, testcase.arguments.config.Component.Federated[0].ID, testcase.arguments.initialStatus.String())
+				require.NoError(t, err)
+
+				// run monitor
+				err = instance.MonitorMockWorkerStatus(ctx, testcase.arguments.currentState, testcase.arguments.targetState, testcase.arguments.latestState)
+				require.NoError(t, err)
+
+				time.Sleep(10 * time.Second)
+				// check final worker status
+				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.Federated[0].ID)
 				require.Equal(t, testcase.want, status)
 			})
 		default:

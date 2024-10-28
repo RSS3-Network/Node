@@ -18,6 +18,7 @@ import (
 	"github.com/rss3-network/node/provider/near"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/federated"
+	"go.uber.org/zap"
 )
 
 type Client interface {
@@ -278,30 +279,53 @@ func (c *activitypubClient) TargetState(_ *config.Parameters) (uint64, uint64) {
 	return 0, 0
 }
 
-// LatestState returns the latest state of the Kafka consuming process
-func (c *activitypubClient) LatestState(_ context.Context) (uint64, uint64, error) {
-	// consumer := c.activitypubClient.GetKafkaConsumer()
-	//// Create a very short timeout for the poll operation
-	// pollCtx, cancel := context.WithTimeout(ctx, 1000*time.Millisecond)
-	// defer cancel()
-	//
-	//// Use PollFetches with the short timeout
-	// fetches := consumer.PollFetches(pollCtx)
-	//
-	//// Check if the poll operation timed out
-	// if errors.Is(pollCtx.Err(), context.DeadlineExceeded) {
-	//	return 0, 0, fmt.Errorf("poll operation timed out, possible consumer issue")
-	// }
-	//
-	// if errs := fetches.Errors(); len(errs) > 0 {
-	//	for _, e := range errs {
-	//		fmt.Printf("consumer poll fetch error: %v\n", e.Err)
-	//	}
-	//
-	//	return 0, 0, fmt.Errorf("consumer poll fetch error: %v", fetches.Errors())
-	// }
-	// The service is healthy
-	return 0, 0, nil
+// LatestState checks the health of the ActivityPub connection.
+// Returns current timestamp if healthy, error otherwise.
+func (c *activitypubClient) LatestState(ctx context.Context) (uint64, uint64, error) {
+	if c.activitypubClient == nil {
+		return 0, 0, fmt.Errorf("client not initialized")
+	}
+
+	msgChan, err := c.activitypubClient.GetMessageChan()
+	if err != nil {
+		return 0, 0, fmt.Errorf("get message channel: %w", err)
+	}
+
+	// Create a timeout context
+	healthCheckTimeout := 10 * time.Second
+	checkCtx, cancel := context.WithTimeout(ctx, healthCheckTimeout)
+
+	defer cancel()
+
+	// Check server readiness first
+	select {
+	case <-c.activitypubClient.GetReadyChan():
+		zap.L().Debug("server is ready")
+	case <-checkCtx.Done():
+		return 0, 0, fmt.Errorf("timeout waiting for server readiness")
+	}
+
+	// Check connection health and message flow
+	select {
+	case <-checkCtx.Done():
+		if ctx.Err() != nil {
+			return 0, 0, fmt.Errorf("context cancelled: %w", ctx.Err())
+		}
+
+		return 0, uint64(time.Now().Unix()), nil
+
+	case msg := <-msgChan:
+		currentTime := uint64(time.Now().Unix())
+
+		// Re-send the message back to the channel for other listeners
+		c.activitypubClient.SendMessage(msg)
+
+		zap.L().Info("received message during health check",
+			zap.String("message", msg),
+			zap.Uint64("timestamp", currentTime))
+
+		return 0, currentTime, nil
+	}
 }
 
 // NewActivityPubClient returns a new ActivityPub client.
@@ -310,21 +334,69 @@ func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, wo
 		return nil, fmt.Errorf("parameters are nil")
 	}
 
-	// Retrieve worker type from the parameters
-	workerType := worker.Name()
+	// Get relay URLs directly from parameters
+	relayURLList, err := getRelayURLList(param)
+	if err != nil {
+		return nil, fmt.Errorf("get relay URL list: %w", err)
+	}
 
+	// Create a context with cancellation
+	ctx := context.Background()
+	errorChan := make(chan error, 1)
+
+	workerType := worker.Name()
 	switch workerType {
 	case federated.Core.String():
-		mastodonClient, err := mastodon.NewClient(endpoint.URL, []string{"default_url"}) //ToDo: complete activitypub monitor client
-
+		mastodonClient, err := mastodon.NewClient(ctx, endpoint.URL, relayURLList, errorChan)
 		if err != nil {
-			return nil, fmt.Errorf("create Mastodon client: %w", err)
+			return nil, fmt.Errorf("create mastodon client: %w", err)
 		}
+
+		// Monitor error channel in background
+		go func() {
+			for err := range errorChan {
+				if err != nil {
+					zap.L().Error("mastodon client error",
+						zap.Error(err))
+				}
+			}
+		}()
 
 		return &activitypubClient{
 			activitypubClient: mastodonClient,
 		}, nil
+
 	default:
 		return nil, fmt.Errorf("unsupported worker type: %s", workerType)
+	}
+}
+
+// getRelayURLList extracts the relay URL list from parameters
+func getRelayURLList(param *config.Parameters) ([]string, error) {
+	relayURLsRaw, ok := (*param)["relay_url_list"]
+	if !ok {
+		return nil, fmt.Errorf("relay_url_list not found in parameters")
+	}
+
+	// Handle different types of input
+	switch urls := relayURLsRaw.(type) {
+	case []string:
+		return urls, nil
+	case []interface{}:
+		relayURLs := make([]string, 0, len(urls))
+
+		for _, currentURL := range urls {
+			if strURL, ok := currentURL.(string); ok {
+				relayURLs = append(relayURLs, strURL)
+			}
+		}
+
+		if len(relayURLs) == 0 {
+			return nil, fmt.Errorf("no valid URLs found in relay_url_list")
+		}
+
+		return relayURLs, nil
+	default:
+		return nil, fmt.Errorf("invalid relay_url_list type: %T", urls)
 	}
 }
