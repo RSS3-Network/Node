@@ -28,6 +28,8 @@ var DefaultRelayURLList = []string{
 	"https://relay.toot.io/inbox",
 	"https://relay.infosec.exchange/inbox",
 	"https://relay.intahnet.co.uk/inbox",
+	"https://relay.fedi.buzz/instance/mas.to",
+	"https://relay.fedi.buzz/instance/mastodon.online",
 }
 
 // ActivityPub message properties and types
