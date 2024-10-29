@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"runtime"
 	"strings"
-	"sync"
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
@@ -60,14 +59,7 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 	// Get the channel to get the notification of the http server being ready
 	readyChan := s.mastodonClient.GetReadyChan()
 
-	// Start processing in a goroutine
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-
 	go func() {
-		defer wg.Done()
-
 		select {
 		case <-ctx.Done():
 			zap.L().Info("context cancelled before server was ready",

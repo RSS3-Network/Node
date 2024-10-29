@@ -184,17 +184,21 @@ func (c *client) startServerService(ctx context.Context, errChan chan<- error) {
 	// Launch the HTTP server in a separate goroutine.
 	go func() {
 		defer wg.Done()
+		defer close(c.readyChan)
+
 		// Attempt to start the HTTP server and report errors through errChan.
 		if err := c.startHTTPServer(ctx); err != nil {
 			select {
-			case errChan <- fmt.Errorf("HTTP server start error: %w", err):
+			case errChan <- err:
+				zap.L().Error("HTTP server failed", zap.Error(err))
 			case <-ctx.Done():
 				zap.L().Info("context cancelled, skipping error send",
 					zap.Error(err))
 			}
+
+			return
 		}
 
-		close(c.readyChan)
 		zap.L().Info("readiness signal sent")
 	}()
 
@@ -208,8 +212,7 @@ func (c *client) startServerService(ctx context.Context, errChan chan<- error) {
 				zap.L().Info("context cancelled, skipping error send",
 					zap.Error(err))
 			default:
-				zap.L().Warn("relay service follow error (err channel might be closed)",
-					zap.Error(err))
+				zap.L().Error("relay service error occurred", zap.Error(err))
 			}
 		}
 	}()
@@ -222,20 +225,26 @@ func (c *client) startServerService(ctx context.Context, errChan chan<- error) {
 func (c *client) startHTTPServer(ctx context.Context) error {
 	// Start server with graceful shutdown
 	errCh := make(chan error, 1)
+	startedCh := make(chan struct{}, 1)
 
-	go func() {
-		if err := c.server.Start(defaultServerPort); err != nil {
-			if !errors.Is(err, http.ErrServerClosed) {
-				zap.L().Error("server error", zap.Error(err))
-				errCh <- err
-			}
+	if err := c.server.Start(defaultServerPort); err != nil {
+		if !errors.Is(err, http.ErrServerClosed) {
+			zap.L().Error("server error", zap.Error(err))
+			errCh <- err
 		}
-	}()
+	}
+
+	// notify the server has been started using the channel
+	startedCh <- struct{}{}
 
 	// Wait for context cancellation or server error
 	select {
 	case err := <-errCh:
 		return fmt.Errorf("server startup failed: %w", err)
+
+	case <-startedCh:
+		zap.L().Info("HTTP server started successfully")
+		return nil
 
 	case <-ctx.Done():
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), httpServerTimeOut*time.Second)
@@ -245,9 +254,6 @@ func (c *client) startHTTPServer(ctx context.Context) error {
 			return fmt.Errorf("server shutdown failed: %w", err)
 		}
 
-		return nil
-	default:
-		zap.L().Info("HTTP server started successfully")
 		return nil
 	}
 }
