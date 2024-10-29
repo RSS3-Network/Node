@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/internal/engine/protocol/activitypub"
 	"github.com/rss3-network/node/internal/node/component/rss"
 	"github.com/rss3-network/node/provider/activitypub/mastodon"
 	"github.com/rss3-network/node/provider/arweave"
@@ -335,7 +336,7 @@ func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, wo
 	}
 
 	// Get relay URLs directly from parameters
-	relayURLList, port, err := getParams(param)
+	relayURLList, port, err := activitypub.GetParams(param)
 	if err != nil {
 		return nil, fmt.Errorf("get relay URL list: %w", err)
 	}
@@ -368,43 +369,5 @@ func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, wo
 
 	default:
 		return nil, fmt.Errorf("unsupported worker type: %s", workerType)
-	}
-}
-
-// getParams extracts the mastodon parameters
-func getParams(param *config.Parameters) ([]string, int, error) {
-	// Extract relay URL list
-	relayURLsRaw, ok := (*param)["relay_url_list"]
-	if !ok {
-		return nil, 0, fmt.Errorf("relay_url_list not found in parameters")
-	}
-
-	// Extract port, ensuring it's a string
-	port, ok := (*param)["port"].(int)
-	if !ok {
-		return nil, 0, fmt.Errorf("port not found or is not a string in parameters")
-	}
-
-	// Parse relay URLs based on type
-	switch urls := relayURLsRaw.(type) {
-	case []string:
-		return urls, port, nil
-	case []interface{}:
-		var relayURLs []string
-
-		for _, u := range urls {
-			strURL, ok := u.(string)
-			if ok {
-				relayURLs = append(relayURLs, strURL)
-			}
-		}
-
-		if len(relayURLs) == 0 {
-			return nil, 0, fmt.Errorf("no valid URLs found in relay_url_list")
-		}
-
-		return relayURLs, port, nil
-	default:
-		return nil, 0, fmt.Errorf("invalid relay_url_list type: %T", urls)
 	}
 }

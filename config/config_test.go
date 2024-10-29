@@ -80,7 +80,7 @@ component:
       endpoint: mastodon
       parameters:
         relay_url_list: ["https://relay.fedi.buzz/instance/mastodon.social"]
-		port: 8181
+
   decentralized:
     - network: ethereum
       worker: core
@@ -175,8 +175,7 @@ component:
       "parameters": {
 		  "relay_url_list": [
 			"https://relay.fedi.buzz/instance/mastodon.social"
-		  ],
-		  "port": 8181,
+		  ]
       }
     }
   ],
@@ -270,7 +269,6 @@ endpoint = "mastodon"
 
 [component.federated.parameters]
 relay_url_list = ["https://relay.fedi.buzz/instance/mastodon.social"]
-port = 8181
 
 [[component.decentralized]]
 network = "ethereum"
@@ -350,7 +348,7 @@ var configFileExpected = &File{
 				},
 				Parameters: &Parameters{
 					"relay_url_list": []interface{}{"https://relay.fedi.buzz/instance/mastodon.social"},
-					"port":           8181,
+					// "port":           8181, //ToDo: add port here and other places
 				},
 			},
 		},
