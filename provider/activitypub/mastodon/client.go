@@ -13,6 +13,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -44,8 +45,6 @@ const (
 	httpServerReadWriteTimeOut = 30
 	serverStartWaitTimeOut     = 100
 )
-
-var defaultServerPort = ":8181"
 
 var _ Client = (*client)(nil)
 
@@ -87,6 +86,7 @@ type client struct {
 	relayURLs  []string
 	server     *echo.Echo
 	readyChan  chan struct{}
+	port       int64
 }
 
 // NewClient creates a new Mastodon client with the specified public endpoint (domain) and relay URLs (relayURLList).
@@ -97,27 +97,19 @@ type client struct {
 //     You can set it in config.yaml:
 //     config.yaml -> endpoints
 //
-//   - relayURLList: A slice of URLs representing relay services to follow. Relays aggregate messages from different servers,
+//   - relayList: A slice of URLs representing relay services to follow. Relays aggregate messages from different servers,
 //     allowing your server to stay updated with other servers in the network.
 //
 //     You can add multiple relay URLs in config.yaml:
 //     config.yaml -> component -> federated -> id: mastodon-core -> parameters -> relay_url_list
-func NewClient(ctx context.Context, endpoint string, relayURLList []string, port string, errorChan chan<- error) (Client, error) {
+func NewClient(ctx context.Context, endpoint string, relayList []string, port int64, errorChan chan<- error) (Client, error) {
 	// Input Validation
 	if endpoint == "" {
 		return nil, fmt.Errorf("endpoint cannot be empty")
 	}
 
-	if len(relayURLList) == 0 {
-		return nil, fmt.Errorf("relayURLList cannot be empty")
-	}
-
-	if port == "" {
-		return nil, fmt.Errorf("port cannot be empty")
-	}
-
-	// ReAssign value to default server Port
-	defaultServerPort = ":" + port
+	zap.L().Info("Using relayURLList", zap.Strings("relayURLList", relayList))
+	zap.L().Info("Using server port", zap.Int64("port", port))
 
 	// Generate the Key Pair
 	privateKey, publicKeyPem, err := generateKeyPair()
@@ -143,7 +135,8 @@ func NewClient(ctx context.Context, endpoint string, relayURLList []string, port
 		httpClient: httpClient,
 		encoder:    form.NewEncoder(),
 		attempts:   defaultAttempts,
-		relayURLs:  relayURLList,
+		port:       port,
+		relayURLs:  relayList,
 		readyChan:  make(chan struct{}),
 	}
 
@@ -235,7 +228,8 @@ func (c *client) startHTTPServer(ctx context.Context) error {
 	errCh := make(chan error, 1)
 	startedCh := make(chan struct{}, 1)
 
-	if err := c.server.Start(defaultServerPort); err != nil {
+	serverPortStr := ":" + strconv.Itoa(int(c.port))
+	if err := c.server.Start(serverPortStr); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			zap.L().Error("server error", zap.Error(err))
 			errCh <- err
@@ -487,8 +481,6 @@ func (c *client) followRelay(ctx context.Context, instance string) error {
 	if err := c.sendRequest(req); err != nil {
 		return fmt.Errorf("failed to send request for relay subscription: %w", err)
 	}
-
-	zap.L().Info("successfully followed relay", zap.String("instance", instance))
 
 	return nil
 }

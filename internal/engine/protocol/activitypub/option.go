@@ -1,10 +1,9 @@
 package activitypub
 
 import (
-	"fmt"
-
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/parameter"
+	"github.com/rss3-network/node/provider/activitypub/mastodon"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"go.uber.org/zap"
 )
@@ -24,12 +23,25 @@ func NewOption(n network.Network, parameters *config.Parameters) (*Option, error
 
 	if parameters == nil {
 		return &Option{
+			RelayURLList:   mastodon.DefaultRelayURLList,
+			Port:           mastodon.DefaultServerPort,
 			TimestampStart: parameter.CurrentNetworkStartBlock[n].Timestamp,
 		}, nil
 	}
 
 	if err := parameters.Decode(&option); err != nil {
 		return nil, err
+	}
+
+	// Apply defaults if RelayURLList or Port are not set
+	if len(option.RelayURLList) == 0 {
+		option.RelayURLList = mastodon.DefaultRelayURLList
+		zap.L().Info("RelayURLList not specified, using default", zap.Strings("defaultRelayURLList", mastodon.DefaultRelayURLList))
+	}
+
+	if option.Port == 0 {
+		option.Port = mastodon.DefaultServerPort
+		zap.L().Info("Port not specified, using default", zap.Int64("defaultPort", mastodon.DefaultServerPort))
 	}
 
 	if option.TimestampStart == 0 {
@@ -39,42 +51,4 @@ func NewOption(n network.Network, parameters *config.Parameters) (*Option, error
 	zap.L().Info("option:", zap.Any("option", option))
 
 	return &option, nil
-}
-
-// GetParams extracts the mastodon parameters
-func GetParams(param *config.Parameters) ([]string, int, error) {
-	// Extract relay URL list
-	relayURLsRaw, ok := (*param)["relay_url_list"]
-	if !ok {
-		return nil, 0, fmt.Errorf("relay_url_list not found in parameters")
-	}
-
-	// Extract port, ensuring it's a string
-	port, ok := (*param)["port"].(int)
-	if !ok {
-		return nil, 0, fmt.Errorf("port not found or is not a string in parameters")
-	}
-
-	// Parse relay URLs based on type
-	switch urls := relayURLsRaw.(type) {
-	case []string:
-		return urls, port, nil
-	case []interface{}:
-		var relayURLs []string
-
-		for _, u := range urls {
-			strURL, ok := u.(string)
-			if ok {
-				relayURLs = append(relayURLs, strURL)
-			}
-		}
-
-		if len(relayURLs) == 0 {
-			return nil, 0, fmt.Errorf("no valid URLs found in relay_url_list")
-		}
-
-		return relayURLs, port, nil
-	default:
-		return nil, 0, fmt.Errorf("invalid relay_url_list type: %T", urls)
-	}
 }

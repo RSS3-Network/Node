@@ -17,6 +17,20 @@ const (
 	ActivityStreamsPublicContext = "https://www.w3.org/ns/activitystreams#Public"
 )
 
+// Default Configuration Values
+
+// DefaultServerPort is the server port
+const DefaultServerPort = 8181
+const DefaultMonitorServerPort = 9191
+
+// DefaultRelayURLList is a list of hardcoded relay URLs to follow
+var DefaultRelayURLList = []string{
+	"https://relay.toot.io/inbox",
+	"https://relay.infosec.exchange/inbox",
+	"https://relay.intahnet.co.uk/inbox",
+	"https://relay.an.exchange/inbox",
+}
+
 // ActivityPub message properties and types
 const (
 	InReplyTo           = "inReplyTo"

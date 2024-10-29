@@ -299,7 +299,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 
 	switch config.Network.Protocol() {
 	case network.ActivityPubProtocol:
-		instance.monitorClient, err = monitor.NewActivityPubClient(config.Endpoint, config.Parameters, config.Worker)
+		instance.monitorClient, err = monitor.NewActivityPubClient(config.Endpoint, config.Worker)
 		if err != nil {
 			return nil, fmt.Errorf("error occurred in creating new activitypub monitorClient: %w", err)
 		}

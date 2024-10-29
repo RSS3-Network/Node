@@ -19,6 +19,7 @@ import (
 	"github.com/rss3-network/node/provider/near"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/federated"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"go.uber.org/zap"
 )
 
@@ -330,16 +331,21 @@ func (c *activitypubClient) LatestState(ctx context.Context) (uint64, uint64, er
 }
 
 // NewActivityPubClient returns a new ActivityPub client.
-func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, worker worker.Worker) (Client, error) {
-	if param == nil {
-		return nil, fmt.Errorf("parameters are nil")
+func NewActivityPubClient(endpoint config.Endpoint, worker worker.Worker) (Client, error) {
+	if endpoint.URL == "" {
+		return nil, fmt.Errorf("endpoint URL is required")
 	}
 
-	// Get relay URLs directly from parameters
-	relayURLList, port, err := activitypub.GetParams(param)
+	// Get relay URLs directly from parameters using NewOption
+	option, err := activitypub.NewOption(network.Mastodon, nil)
 	if err != nil {
-		return nil, fmt.Errorf("get relay URL list: %w", err)
+		return nil, fmt.Errorf("failed to create option: %w", err)
 	}
+
+	relayURLList := option.RelayURLList
+	port := mastodon.DefaultMonitorServerPort // Default port for Monitor client
+
+	zap.L().Info("Using relay URL list and port in NewActivityPubClient", zap.Strings("relayURLList", relayURLList), zap.Int64("port", int64(port)))
 
 	// Create a context with cancellation
 	ctx := context.Background()
@@ -348,7 +354,7 @@ func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, wo
 	workerType := worker.Name()
 	switch workerType {
 	case federated.Core.String():
-		mastodonClient, err := mastodon.NewClient(ctx, endpoint.URL, relayURLList, strconv.Itoa(port), errorChan)
+		mastodonClient, err := mastodon.NewClient(ctx, endpoint.URL, relayURLList, int64(port), errorChan)
 		if err != nil {
 			return nil, fmt.Errorf("create mastodon client: %w", err)
 		}
