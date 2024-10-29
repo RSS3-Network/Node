@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/rss3-network/node/config"
-	"github.com/rss3-network/node/internal/engine/protocol/activitypub"
 	"github.com/rss3-network/node/internal/node/component/rss"
 	"github.com/rss3-network/node/provider/activitypub/mastodon"
 	"github.com/rss3-network/node/provider/arweave"
@@ -19,7 +18,6 @@ import (
 	"github.com/rss3-network/node/provider/near"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/federated"
-	"github.com/rss3-network/protocol-go/schema/network"
 	"go.uber.org/zap"
 )
 
@@ -329,12 +327,13 @@ func NewActivityPubClient(endpoint config.Endpoint, worker worker.Worker) (Clien
 	}
 
 	// Get relay URLs directly from parameters using NewOption
-	option, err := activitypub.NewOption(network.Mastodon, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create option: %w", err)
-	}
+	// option, err := activitypub.NewOption(network.Mastodon, nil)
+	// if err != nil {
+	//	return nil, fmt.Errorf("failed to create option: %w", err)
+	//}
+	// relayURLList := option.RelayURLList
 
-	relayURLList := option.RelayURLList       // ToDo: The monitor client currently uses the default Relay URL list rather than the node-config URL list. Its requests for following Relay services may conflict with data-source client requests, resulting in request errors on the data-source side.
+	relayURLList := []string{}                // ToDo: The monitor client's requests for following Relay services may conflict with data-source client requests, resulting in request errors on the data-source side. Need to fix.
 	port := mastodon.DefaultMonitorServerPort // Default port for Monitor client  //ToDo: Currently set it as '9191' in mastodon/type.go. Consider modifying it or not.
 
 	zap.L().Info("Using relay URL list and port in NewActivityPubClient", zap.Strings("relayURLList", relayURLList), zap.Int64("port", int64(port)))
