@@ -34,7 +34,6 @@ const (
 	keySize                 = 2048
 	sigExpiry               = 60 * 60
 	maxRequestBodySize      = 1 << 20 // 1 MB
-	defaultServerPort       = ":8181"
 
 	// Version information
 	nodeInfoSchemaURL          = "http://nodeinfo.diaspora.software/ns/schema/2.0"
@@ -45,6 +44,8 @@ const (
 	httpServerReadWriteTimeOut = 30
 	serverStartWaitTimeOut     = 100
 )
+
+var defaultServerPort = ":8181"
 
 var _ Client = (*client)(nil)
 
@@ -101,7 +102,7 @@ type client struct {
 //
 //     You can add multiple relay URLs in config.yaml:
 //     config.yaml -> component -> federated -> id: mastodon-core -> parameters -> relay_url_list
-func NewClient(ctx context.Context, endpoint string, relayURLList []string, errorChan chan<- error) (Client, error) {
+func NewClient(ctx context.Context, endpoint string, relayURLList []string, port string, errorChan chan<- error) (Client, error) {
 	// Input Validation
 	if endpoint == "" {
 		return nil, fmt.Errorf("endpoint cannot be empty")
@@ -110,6 +111,13 @@ func NewClient(ctx context.Context, endpoint string, relayURLList []string, erro
 	if len(relayURLList) == 0 {
 		return nil, fmt.Errorf("relayURLList cannot be empty")
 	}
+
+	if port == "" {
+		return nil, fmt.Errorf("port cannot be empty")
+	}
+
+	// ReAssign value to default server Port
+	defaultServerPort = ":" + port
 
 	// Generate the Key Pair
 	privateKey, publicKeyPem, err := generateKeyPair()

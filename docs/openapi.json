@@ -1520,6 +1520,9 @@
                     },
                     "relay_url_list": {
                         "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "port": {
+                        "$ref": "#/components/schemas/ConfigDetail"
                     }
                 }
             },

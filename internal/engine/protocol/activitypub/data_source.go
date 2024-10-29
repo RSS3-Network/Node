@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/url"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/rss3-network/node/config"
@@ -204,7 +205,7 @@ func isRelayMessage(id string) bool {
 // initialize creates and configures the Mastodon client.
 // It returns an error if the client creation fails.
 func (s *dataSource) initialize(ctx context.Context, errorChan chan<- error) (err error) {
-	client, err := mastodon.NewClient(ctx, s.config.Endpoint.URL, s.option.RelayURLList, errorChan)
+	client, err := mastodon.NewClient(ctx, s.config.Endpoint.URL, s.option.RelayURLList, strconv.Itoa(s.option.Port), errorChan)
 	if err != nil {
 		return fmt.Errorf("failed to create activitypub client: %w", err)
 	}

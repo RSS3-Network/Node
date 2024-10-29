@@ -994,6 +994,7 @@ func TestMonitor(t *testing.T) {
 									"relay_url_list": []string{
 										"https://relay.fedi.buzz/instance/mastodon.social",
 									},
+									"port": 8181,
 								},
 								Endpoint: config.Endpoint{
 									URL: "https://newdomain7.ngrok.app",
@@ -1024,6 +1025,7 @@ func TestMonitor(t *testing.T) {
 									"relay_url_list": []string{
 										"https://relay.fedi.buzz/instance/mastodon.social",
 									},
+									"port": 8181,
 								},
 								Endpoint: config.Endpoint{
 									URL: "https://newdomain8.ngrok.app",

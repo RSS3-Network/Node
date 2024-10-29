@@ -10,6 +10,7 @@ import (
 // Option represents the configuration options for the ActivityPub client.
 type Option struct {
 	RelayURLList   []string `json:"relay_url_list"`
+	Port           int      `json:"port"`
 	TimestampStart int64    `json:"timestamp_start" mapstructure:"timestamp_start"`
 }
 

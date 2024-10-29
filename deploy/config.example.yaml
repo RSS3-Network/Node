@@ -98,3 +98,4 @@ component:
       endpoint: mastodon
       parameters:
         relay_url_list: [ "https://relay.fedi.buzz/instance/mastodon.social"]
+        port: 8181

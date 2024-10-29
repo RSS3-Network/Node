@@ -335,7 +335,7 @@ func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, wo
 	}
 
 	// Get relay URLs directly from parameters
-	relayURLList, err := getRelayURLList(param)
+	relayURLList, port, err := getParams(param)
 	if err != nil {
 		return nil, fmt.Errorf("get relay URL list: %w", err)
 	}
@@ -347,7 +347,7 @@ func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, wo
 	workerType := worker.Name()
 	switch workerType {
 	case federated.Core.String():
-		mastodonClient, err := mastodon.NewClient(ctx, endpoint.URL, relayURLList, errorChan)
+		mastodonClient, err := mastodon.NewClient(ctx, endpoint.URL, relayURLList, strconv.Itoa(port), errorChan)
 		if err != nil {
 			return nil, fmt.Errorf("create mastodon client: %w", err)
 		}
@@ -371,32 +371,40 @@ func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, wo
 	}
 }
 
-// getRelayURLList extracts the relay URL list from parameters
-func getRelayURLList(param *config.Parameters) ([]string, error) {
+// getParams extracts the mastodon parameters
+func getParams(param *config.Parameters) ([]string, int, error) {
+	// Extract relay URL list
 	relayURLsRaw, ok := (*param)["relay_url_list"]
 	if !ok {
-		return nil, fmt.Errorf("relay_url_list not found in parameters")
+		return nil, 0, fmt.Errorf("relay_url_list not found in parameters")
 	}
 
-	// Handle different types of input
+	// Extract port, ensuring it's a string
+	port, ok := (*param)["port"].(int)
+	if !ok {
+		return nil, 0, fmt.Errorf("port not found or is not a string in parameters")
+	}
+
+	// Parse relay URLs based on type
 	switch urls := relayURLsRaw.(type) {
 	case []string:
-		return urls, nil
+		return urls, port, nil
 	case []interface{}:
-		relayURLs := make([]string, 0, len(urls))
+		var relayURLs []string
 
-		for _, currentURL := range urls {
-			if strURL, ok := currentURL.(string); ok {
+		for _, u := range urls {
+			strURL, ok := u.(string)
+			if ok {
 				relayURLs = append(relayURLs, strURL)
 			}
 		}
 
 		if len(relayURLs) == 0 {
-			return nil, fmt.Errorf("no valid URLs found in relay_url_list")
+			return nil, 0, fmt.Errorf("no valid URLs found in relay_url_list")
 		}
 
-		return relayURLs, nil
+		return relayURLs, port, nil
 	default:
-		return nil, fmt.Errorf("invalid relay_url_list type: %T", urls)
+		return nil, 0, fmt.Errorf("invalid relay_url_list type: %T", urls)
 	}
 }

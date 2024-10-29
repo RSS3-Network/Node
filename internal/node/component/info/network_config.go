@@ -54,6 +54,7 @@ type Parameters struct {
 	Authentication          *Authentication `json:"authentication,omitempty"`
 	TimestampStart          *ConfigDetail   `json:"timestamp_start,omitempty"`
 	RelayURLList            *ConfigDetail   `json:"relay_url_list,omitempty"`
+	Port                    *ConfigDetail   `json:"port,omitempty"`
 }
 
 type workerConfig struct {
@@ -69,7 +70,9 @@ type workerConfig struct {
 const (
 	relayURLArrayTypeDescription = "List of relay URLs to follow and receive messages from"
 
-	mastodonInstanceEndpointDescription = "Your Mastodon instance must be accessible via a public URL, which exposes your local instance on port 8181. You can use services like ngrok (https://ngrok.com)."
+	domainPortDescription = "The port number that the mastodon endpoint domain will listen on. This should be an available network port"
+
+	mastodonInstanceEndpointDescription = "Your Mastodon instance must be accessible via a public URL, which exposes your local instance on the port number you select. You can use services like ngrok (https://ngrok.com)."
 )
 
 var defaultNetworkParameters = map[network.Protocol]*Parameters{
@@ -455,6 +458,13 @@ var WorkerToConfigMap = map[network.Protocol]map[worker.Worker]workerConfig{
 				Description: relayURLArrayTypeDescription,
 				Title:       "Relay URL List",
 				Key:         "parameters.relay_url_list",
+			},
+			Port: &ConfigDetail{
+				IsRequired:  true,
+				Type:        UintType,
+				Description: domainPortDescription,
+				Title:       "Port Number",
+				Key:         "parameters.port",
 			},
 		}, mastodonInstanceEndpointDescription),
 	},
