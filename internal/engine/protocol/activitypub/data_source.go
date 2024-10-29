@@ -56,22 +56,17 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 		return
 	}
 
-	// Get the channel to get the notification of the http server being ready
-	readyChan := s.mastodonClient.GetReadyChan()
-
 	go func() {
-		select {
-		case <-ctx.Done():
-			zap.L().Info("context cancelled before server was ready",
+		// Check if context is cancelled before we start
+		if ctx.Err() != nil {
+			zap.L().Info("context cancelled before starting message processing",
 				zap.Error(ctx.Err()))
 			return
-		case <-readyChan:
-			zap.L().Info("server is ready, starting to process messages")
+		}
 
-			if err := s.processMessages(ctx, tasksChan); err != nil {
-				zap.L().Error("failed to process messages", zap.Error(err))
-				errorChan <- fmt.Errorf("failed to process messages: %w", err)
-			}
+		if err := s.processMessages(ctx, tasksChan); err != nil {
+			zap.L().Error("failed to process messages", zap.Error(err))
+			errorChan <- fmt.Errorf("failed to process messages: %w", err)
 		}
 	}()
 }

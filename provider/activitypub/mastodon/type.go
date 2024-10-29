@@ -28,7 +28,6 @@ var DefaultRelayURLList = []string{
 	"https://relay.toot.io/inbox",
 	"https://relay.infosec.exchange/inbox",
 	"https://relay.intahnet.co.uk/inbox",
-	"https://relay.an.exchange/inbox",
 }
 
 // ActivityPub message properties and types

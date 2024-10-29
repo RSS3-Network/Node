@@ -71,9 +71,6 @@ type Client interface {
 
 	// SendMessage queues a message to be processed.
 	SendMessage(object string)
-
-	// GetReadyChan returns the ready channel to notify if the http server is ready.
-	GetReadyChan() <-chan struct{}
 }
 
 type client struct {
@@ -85,7 +82,6 @@ type client struct {
 	actor      *activitypub.Actor
 	relayURLs  []string
 	server     *echo.Echo
-	readyChan  chan struct{}
 	port       int64
 }
 
@@ -137,7 +133,6 @@ func NewClient(ctx context.Context, endpoint string, relayList []string, port in
 		attempts:   defaultAttempts,
 		port:       port,
 		relayURLs:  relayList,
-		readyChan:  make(chan struct{}),
 	}
 
 	// Setup and store Echo server
@@ -185,7 +180,6 @@ func (c *client) startServerService(ctx context.Context, errChan chan<- error) {
 	// Launch the HTTP server in a separate goroutine.
 	go func() {
 		defer wg.Done()
-		defer close(c.readyChan)
 
 		// Attempt to start the HTTP server and report errors through errChan.
 		if err := c.startHTTPServer(ctx); err != nil {
@@ -199,8 +193,6 @@ func (c *client) startServerService(ctx context.Context, errChan chan<- error) {
 
 			return
 		}
-
-		zap.L().Info("readiness signal sent")
 	}()
 
 	// Launch the relay service follower in a separate goroutine.
@@ -229,6 +221,8 @@ func (c *client) startHTTPServer(ctx context.Context) error {
 	startedCh := make(chan struct{}, 1)
 
 	serverPortStr := ":" + strconv.Itoa(int(c.port))
+	zap.L().Info("Starting server", zap.String("port", serverPortStr))
+
 	if err := c.server.Start(serverPortStr); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			zap.L().Error("server error", zap.Error(err))
@@ -657,11 +651,6 @@ func (c *client) GetMessageChan() (<-chan string, error) {
 	}
 
 	return globalMsgChan, nil
-}
-
-// GetReadyChan returns the ready channel.
-func (c *client) GetReadyChan() <-chan struct{} {
-	return c.readyChan
 }
 
 // SendMessage queues a message string to the relay message channel.

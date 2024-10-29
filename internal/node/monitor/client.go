@@ -299,14 +299,6 @@ func (c *activitypubClient) LatestState(ctx context.Context) (uint64, uint64, er
 
 	defer cancel()
 
-	// Check server readiness first
-	select {
-	case <-c.activitypubClient.GetReadyChan():
-		zap.L().Debug("server is ready")
-	case <-checkCtx.Done():
-		return 0, 0, fmt.Errorf("timeout waiting for server readiness")
-	}
-
 	// Check connection health and message flow
 	select {
 	case <-checkCtx.Done():
@@ -342,8 +334,8 @@ func NewActivityPubClient(endpoint config.Endpoint, worker worker.Worker) (Clien
 		return nil, fmt.Errorf("failed to create option: %w", err)
 	}
 
-	relayURLList := option.RelayURLList
-	port := mastodon.DefaultMonitorServerPort // Default port for Monitor client
+	relayURLList := option.RelayURLList       // ToDo: The monitor client currently uses the default Relay URL list rather than the node-config URL list. Its requests for following Relay services may conflict with data-source client requests, resulting in request errors on the data-source side.
+	port := mastodon.DefaultMonitorServerPort // Default port for Monitor client  //ToDo: Currently set it as '9191' in mastodon/type.go. Consider modifying it or not.
 
 	zap.L().Info("Using relay URL list and port in NewActivityPubClient", zap.Strings("relayURLList", relayURLList), zap.Int64("port", int64(port)))
 
