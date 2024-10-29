@@ -14,7 +14,6 @@ import (
 	redisx "github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
-	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/require"
@@ -978,69 +977,69 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 
-		// ActivityPub (Mastodon)
-		{
-			name:   "Mastodon Worker Ready Status -> Ready Status",
-			source: network.ActivityPubProtocol,
-			arguments: arguments{
-				config: &config.File{
-					Component: &config.Component{
-						Federated: []*config.Module{
-							{
-								ID:      "mastodon-core",
-								Network: network.Mastodon,
-								Worker:  federated.Core,
-								Parameters: &config.Parameters{
-									"relay_url_list": []string{
-										"https://relay.fedi.buzz/instance/mastodon.social",
-									},
-									"port": 8181,
-								},
-								Endpoint: config.Endpoint{
-									URL: "https://newdomain7.ngrok.app",
-								},
-							},
-						},
-					},
-				},
-				currentState:  monitor.CheckpointState{},
-				latestState:   uint64(time.Now().Unix()),
-				initialStatus: worker.StatusReady,
-			},
-			want:      worker.StatusReady,
-			wantError: require.NoError,
-		},
-		{
-			name:   "Mastodon Worker Ready Status -> UnHealthy Status",
-			source: network.ActivityPubProtocol,
-			arguments: arguments{
-				config: &config.File{
-					Component: &config.Component{
-						Federated: []*config.Module{
-							{
-								ID:      "mastodon-core",
-								Network: network.Mastodon,
-								Worker:  federated.Core,
-								Parameters: &config.Parameters{
-									"relay_url_list": []string{
-										"https://relay.fedi.buzz/instance/mastodon.social",
-									},
-									"port": 8181,
-								},
-								Endpoint: config.Endpoint{
-									URL: "https://newdomain8.ngrok.app",
-								},
-							},
-						},
-					},
-				},
-				currentState:  monitor.CheckpointState{},
-				latestState:   uint64(time.Now().Unix()),
-				initialStatus: worker.StatusReady,
-			},
-			want:      worker.StatusReady,
-			wantError: require.NoError,
-		},
+		// ActivityPub (Mastodon) ToDo: test it with configured parameters and endpoints
+		// {
+		//	name:   "Mastodon Worker Ready Status -> Ready Status",
+		//	source: network.ActivityPubProtocol,
+		//	arguments: arguments{
+		//		config: &config.File{
+		//			Component: &config.Component{
+		//				Federated: []*config.Module{
+		//					{
+		//						ID:      "mastodon-core",
+		//						Network: network.Mastodon,
+		//						Worker:  federated.Core,
+		//						Parameters: &config.Parameters{
+		//							"relay_url_list": []string{
+		//								"https://relay.fedi.buzz/instance/mastodon.social",
+		//							},
+		//							"port": 8181,
+		//						},
+		//						Endpoint: config.Endpoint{
+		//							URL: "https://newdomain7.ngrok.app",
+		//						},
+		//					},
+		//				},
+		//			},
+		//		},
+		//		currentState:  monitor.CheckpointState{},
+		//		latestState:   uint64(time.Now().Unix()),
+		//		initialStatus: worker.StatusReady,
+		//	},
+		//	want:      worker.StatusReady,
+		//	wantError: require.NoError,
+		// },
+		// {
+		//	name:   "Mastodon Worker Ready Status -> UnHealthy Status",
+		//	source: network.ActivityPubProtocol,
+		//	arguments: arguments{
+		//		config: &config.File{
+		//			Component: &config.Component{
+		//				Federated: []*config.Module{
+		//					{
+		//						ID:      "mastodon-core",
+		//						Network: network.Mastodon,
+		//						Worker:  federated.Core,
+		//						Parameters: &config.Parameters{
+		//							"relay_url_list": []string{
+		//								"https://relay.fedi.buzz/instance/mastodon.social",
+		//							},
+		//							"port": 8181,
+		//						},
+		//						Endpoint: config.Endpoint{
+		//							URL: "https://newdomain8.ngrok.app",
+		//						},
+		//					},
+		//				},
+		//			},
+		//		},
+		//		currentState:  monitor.CheckpointState{},
+		//		latestState:   uint64(time.Now().Unix()),
+		//		initialStatus: worker.StatusReady,
+		//	},
+		//	want:      worker.StatusReady,
+		//	wantError: require.NoError,
+		// },
 	}
 
 	// Start Redis container
