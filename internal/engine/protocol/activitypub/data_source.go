@@ -250,7 +250,7 @@ func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activit
 	// Check if the published timestamp is valid (within 3 months)
 	zap.L().Info("object.Published value before calling ValidatePublicationTimestamp", zap.String("published", object.Published))
 
-	if !ValidatePublicationTimestamp(object.Published) {
+	if !ValidatePublicationTimestamp(object.Published) { // ToDo: Verify if this is the correct location to validate timestamps on incoming AP messages; Cannot have it in mastodon/client.go due to the message-parsing process.
 		zap.L().Info("skipping message: timestamp is not valid",
 			zap.String("objectID", object.ID),
 			zap.String("publishedTime", object.Published),

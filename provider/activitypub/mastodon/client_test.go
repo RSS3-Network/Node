@@ -1,5 +1,6 @@
 package mastodon
 
+// ToDo: need a better way to test mastodon client without excluding it
 //
 // import (
 //	"context"
