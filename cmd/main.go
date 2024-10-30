@@ -54,21 +54,18 @@ var command = cobra.Command{
 	RunE: func(cmd *cobra.Command, _ []string) error {
 		flags = cmd.PersistentFlags()
 
-		config, err := config.Setup(lo.Must(flags.GetString(flag.KeyConfig)))
-
-		// Check if at least one worker is deployed.
-		workerCount := len(config.Component.Decentralized) + lo.Ternary(config.Component.RSS != nil, 1, 0) + len(config.Component.Federated)
-
-		if workerCount == 0 {
-			return fmt.Errorf("at least one worker must be deployed")
-		}
+		configFile, err := config.Setup(lo.Must(flags.GetString(flag.KeyConfig)))
 
 		if err != nil {
 			return fmt.Errorf("setup config file: %w", err)
 		}
 
-		if config.Observability != nil {
-			if err := setOpenTelemetry(config); err != nil {
+		if err = config.HasOneWorker(configFile); err != nil {
+			return err
+		}
+
+		if configFile.Observability != nil {
+			if err := setOpenTelemetry(configFile); err != nil {
 				return fmt.Errorf("set open telemetry: %w", err)
 			}
 		}
@@ -76,8 +73,8 @@ var command = cobra.Command{
 		// Init stream client.
 		var streamClient stream.Client
 
-		if config.Stream != nil && *config.Stream.Enable {
-			streamClient, err = provider.New(cmd.Context(), config.Stream)
+		if configFile.Stream != nil && *configFile.Stream.Enable {
+			streamClient, err = provider.New(cmd.Context(), configFile.Stream)
 			if err != nil {
 				return fmt.Errorf("dial stream client: %w", err)
 			}
@@ -95,8 +92,8 @@ var command = cobra.Command{
 		var settlementCaller *vsl.SettlementCaller
 
 		// Apply database migrations for all modules except the broadcaster.
-		if module != BroadcasterArg && (len(config.Component.Decentralized) > 0 || len(config.Component.Federated) > 0) {
-			databaseClient, err = dialer.Dial(cmd.Context(), config.Database)
+		if module != BroadcasterArg && (len(configFile.Component.Decentralized) > 0 || len(configFile.Component.Federated) > 0) {
+			databaseClient, err = dialer.Dial(cmd.Context(), configFile.Database)
 			if err != nil {
 				return fmt.Errorf("dial database: %w", err)
 			}
@@ -115,12 +112,12 @@ var command = cobra.Command{
 			}
 
 			// Init a Redis client.
-			if config.Redis == nil {
-				zap.L().Error("redis config is missing")
-				return fmt.Errorf("redis config is missing")
+			if configFile.Redis == nil {
+				zap.L().Error("redis configFile is missing")
+				return fmt.Errorf("redis configFile is missing")
 			}
 
-			redisClient, err = redis.NewClient(*config.Redis)
+			redisClient, err = redis.NewClient(*configFile.Redis)
 			if err != nil {
 				return fmt.Errorf("new redis client: %w", err)
 			}
@@ -191,13 +188,13 @@ var command = cobra.Command{
 				return fmt.Errorf("record first start time: %w", err)
 			}
 
-			return runCoreService(cmd.Context(), config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
+			return runCoreService(cmd.Context(), configFile, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 		case WorkerArg:
-			return runWorker(cmd.Context(), config, databaseClient, streamClient, redisClient)
+			return runWorker(cmd.Context(), configFile, databaseClient, streamClient, redisClient)
 		case BroadcasterArg:
-			return runBroadcaster(cmd.Context(), config)
+			return runBroadcaster(cmd.Context(), configFile)
 		case MonitorArg:
-			return runMonitor(cmd.Context(), config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
+			return runMonitor(cmd.Context(), configFile, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 		}
 
 		return fmt.Errorf("unsupported module %s", lo.Must(flags.GetString(flag.KeyModule)))
