@@ -70,7 +70,7 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 					Status:   worker.StatusReady},
 			},
 		}
-	case c.config.Component.Federated != nil && len(c.config.Component.Federated) > 0:
+	case len(c.config.Component.Federated) > 0:
 		f := c.config.Component.Federated[0]
 		switch f.Worker {
 		case federated.Core:
