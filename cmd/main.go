@@ -92,7 +92,7 @@ var command = cobra.Command{
 		var settlementCaller *vsl.SettlementCaller
 
 		// Apply database migrations for all modules except the broadcaster.
-		if module != BroadcasterArg && (len(configFile.Component.Decentralized) > 0 || len(configFile.Component.Federated) > 0) {
+		if module != BroadcasterArg && !config.IsRSSComponentOnly(configFile) {
 			databaseClient, err = dialer.Dial(cmd.Context(), configFile.Database)
 			if err != nil {
 				return fmt.Errorf("dial database: %w", err)
@@ -220,17 +220,19 @@ func recordFirstStartTime() error {
 	return nil
 }
 
-func runCoreService(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
-	server := node.NewCoreService(ctx, config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
+func runCoreService(ctx context.Context, configFile *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
+	server := node.NewCoreService(ctx, configFile, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 
 	checkCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	go func() {
-		if err := node.CheckParams(checkCtx, redisClient, networkParamsCaller, settlementCaller); err != nil {
-			fmt.Printf("Error checking parameters: %v\n", err)
-		}
-	}()
+	if !config.IsRSSComponentOnly(configFile) {
+		go func() {
+			if err := node.CheckParams(checkCtx, redisClient, networkParamsCaller, settlementCaller); err != nil {
+				fmt.Printf("Error checking parameters: %v\n", err)
+			}
+		}()
+	}
 
 	apiErrChan := make(chan error, 1)
 	go func() {
