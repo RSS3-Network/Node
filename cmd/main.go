@@ -55,6 +55,14 @@ var command = cobra.Command{
 		flags = cmd.PersistentFlags()
 
 		config, err := config.Setup(lo.Must(flags.GetString(flag.KeyConfig)))
+
+		// Check if at least one worker is deployed.
+		workerCount := len(config.Component.Decentralized) + lo.Ternary(config.Component.RSS != nil, 1, 0) + len(config.Component.Federated)
+
+		if workerCount == 0 {
+			return fmt.Errorf("at least one worker must be deployed")
+		}
+
 		if err != nil {
 			return fmt.Errorf("setup config file: %w", err)
 		}
