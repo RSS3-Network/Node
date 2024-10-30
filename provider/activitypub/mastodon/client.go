@@ -76,15 +76,16 @@ type Client interface {
 }
 
 type client struct {
-	httpClient httpx.Client
-	encoder    *form.Encoder
-	attempts   uint
-	domain     string
-	privateKey *rsa.PrivateKey
-	actor      *activitypub.Actor
-	relayURLs  []string
-	server     *echo.Echo
-	port       int64
+	httpClient    httpx.Client
+	netHTTPClient http.Client
+	encoder       *form.Encoder
+	attempts      uint
+	domain        string
+	privateKey    *rsa.PrivateKey
+	actor         *activitypub.Actor
+	relayURLs     []string
+	server        *echo.Echo
+	port          int64
 }
 
 // NewClient creates a new Mastodon client with the specified public endpoint (domain) and relay URLs (relayURLList).
@@ -127,14 +128,15 @@ func NewClient(ctx context.Context, endpoint string, relayList []string, port in
 	}
 
 	c := &client{
-		domain:     endpoint,
-		privateKey: privateKey,
-		actor:      actor,
-		httpClient: httpClient,
-		encoder:    form.NewEncoder(),
-		attempts:   defaultAttempts,
-		port:       port,
-		relayURLs:  relayList,
+		domain:        endpoint,
+		privateKey:    privateKey,
+		actor:         actor,
+		httpClient:    httpClient,
+		netHTTPClient: http.Client{},
+		encoder:       form.NewEncoder(),
+		attempts:      defaultAttempts,
+		port:          port,
+		relayURLs:     relayList,
 	}
 
 	// Setup and store Echo server
@@ -576,8 +578,7 @@ func (c *client) sendRequest(req *http.Request) error {
 		return fmt.Errorf("request cannot be nil")
 	}
 
-	httpClient := http.Client{}
-	resp, err := httpClient.Do(req)
+	resp, err := c.netHTTPClient.Do(req)
 
 	if err != nil {
 		return fmt.Errorf("failed to perform request: %w", err)
