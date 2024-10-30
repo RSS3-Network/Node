@@ -93,7 +93,16 @@ var command = cobra.Command{
 				return fmt.Errorf("dial database: %w", err)
 			}
 
-			if err := databaseClient.Migrate(cmd.Context()); err != nil {
+			tx, err := databaseClient.Begin(cmd.Context())
+			if err != nil {
+				return fmt.Errorf("begin transaction: %w", err)
+			}
+
+			if err := tx.Migrate(cmd.Context()); err != nil {
+				err := tx.Rollback()
+				if err != nil {
+					return fmt.Errorf("rollback database: %w", err)
+				}
 				return fmt.Errorf("migrate database: %w", err)
 			}
 
@@ -159,6 +168,10 @@ var command = cobra.Command{
 				if err != nil {
 					return fmt.Errorf("update current block start: %w", err)
 				}
+			}
+
+			if err := tx.Commit(); err != nil {
+				return fmt.Errorf("commit transaction: %w", err)
 			}
 		}
 
