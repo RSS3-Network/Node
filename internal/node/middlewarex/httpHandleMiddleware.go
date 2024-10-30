@@ -38,10 +38,13 @@ func HeadToGetMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 			// Call the next handler and then clear the response body
 			if err := next(c); err != nil {
+				if err.Error() == echo.ErrMethodNotAllowed.Error() {
+					c.NoContent(http.StatusOK) //nolint:errcheck
+					return nil
+				}
+
 				return err
 			}
-
-			return c.NoContent(http.StatusOK)
 		}
 
 		return next(c)

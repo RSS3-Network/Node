@@ -69,6 +69,7 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 	apiServer.Use(
 		middleware.CORSWithConfig(middleware.DefaultCORSConfig),
 		middlewarex.DecodePathParamsMiddleware,
+		middlewarex.HeadToGetMiddleware,
 	)
 
 	infoComponent := info.NewComponent(ctx, apiServer, config, databaseClient, redisClient, networkParamsCaller)
