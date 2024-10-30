@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
@@ -238,6 +239,26 @@ func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activit
 		return nil
 	}
 
+	if object.Published == "" {
+		zap.L().Info("missing published timestamp",
+			zap.String("objectID", object.ID),
+		)
+
+		return nil
+	}
+
+	// Check if the published timestamp is valid (within 3 months)
+	zap.L().Info("object.Published value before calling ValidatePublicationTimestamp", zap.String("published", object.Published))
+
+	if !ValidatePublicationTimestamp(object.Published) {
+		zap.L().Info("skipping message: timestamp is not valid",
+			zap.String("objectID", object.ID),
+			zap.String("publishedTime", object.Published),
+		)
+
+		return nil
+	}
+
 	task := &Task{
 		Network: s.Network(),
 		Message: object,
@@ -300,4 +321,26 @@ func extractDomain(urlStr string) (string, error) {
 	}
 
 	return parsedURL.Host, nil
+}
+
+// ValidatePublicationTimestamp checks if a received ActivityPub message has an acceptable timestamp (within 3 months)
+func ValidatePublicationTimestamp(publicationTimestamp string) bool {
+	// Parse the RFC3339 formatted timestamp
+	publicationTime, err := time.Parse(time.RFC3339, publicationTimestamp)
+	if err != nil {
+		zap.L().Info("failed to parse the RFC3339 formatted timestamp.")
+		return false
+	}
+
+	zap.L().Info("Parsed publication timestamp", zap.Time("publicationTime", publicationTime))
+
+	// In this case, we subtract 3 months from current time
+	cutoffTime := time.Now().AddDate(0, -3, 0)
+
+	zap.L().Info("Calculated cutoff time", zap.Time("cutoffTime", cutoffTime))
+
+	// Compares if publicationTime is chronologically later than cutoffTime
+	isValid := publicationTime.After(cutoffTime)
+
+	return isValid
 }
