@@ -23,7 +23,6 @@ func IsRSSComponentOnly(config *File) bool {
 // CalculateWorkerCount returns the number of workers deployed
 func CalculateWorkerCount(config *File) int {
 	return len(config.Component.Decentralized) + lo.Ternary(config.Component.RSS != nil, 1, 0) + len(config.Component.Federated)
-
 }
 
 // CalculateComponentCount returns the number of components deployed
