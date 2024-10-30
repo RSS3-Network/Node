@@ -40,6 +40,7 @@ func HeadToGetMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			if err := next(c); err != nil {
 				return err
 			}
+
 			return c.NoContent(http.StatusOK)
 		}
 
