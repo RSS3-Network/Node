@@ -132,6 +132,11 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 						Name: "id",
 					},
 				},
+				Where: clause.Where{
+					Exprs: []clause.Expression{
+						gorm.Expr(fmt.Sprintf("%s.platform IS NULL OR %s.platform = ''", name, name)),
+					},
+				},
 				UpdateAll: true,
 			}
 
@@ -364,7 +369,7 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activ
 		errorPool.Go(func(ctx context.Context) error {
 			return c.database.WithContext(ctx).
 				Table(indexes[0].PartitionName()).
-				Where("(id, network) IN (?)", condition).
+				Where("(id, network) IN (?) AND platform = ''", condition).
 				Delete(&table.Index{}).
 				Error
 		})
@@ -387,6 +392,11 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activ
 				Name: "owner",
 			},
 		},
+		Where: clause.Where{
+			Exprs: []clause.Expression{
+				gorm.Expr(fmt.Sprintf("%s.platform IS NULL OR %s.platform = ''", indexes[0].PartitionName(), indexes[0].PartitionName())),
+			},
+		},
 		UpdateAll: true,
 	}
 
@@ -396,7 +406,7 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activ
 		index := index
 
 		errorPool.Go(func(ctx context.Context) error {
-			return c.database.WithContext(ctx).
+			return c.database.WithContext(ctx).Debug().
 				Table(indexes[0].PartitionName()).
 				Clauses(onConflict).
 				Create(index).
