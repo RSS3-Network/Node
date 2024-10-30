@@ -97,7 +97,12 @@ var command = cobra.Command{
 				return fmt.Errorf("migrate database: %w", err)
 			}
 
-			// Init redis client
+			// Init a Redis client.
+			if config.Redis == nil {
+				zap.L().Error("redis config is missing")
+				return fmt.Errorf("redis config is missing")
+			}
+
 			redisClient, err = redis.NewClient(*config.Redis)
 			if err != nil {
 				return fmt.Errorf("new redis client: %w", err)
