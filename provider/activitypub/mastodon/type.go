@@ -21,7 +21,6 @@ const (
 
 // DefaultServerPort is the server port
 const DefaultServerPort = 8181
-const DefaultMonitorServerPort = 9191
 
 // DefaultRelayURLList is a list of hardcoded relay URLs to follow
 var DefaultRelayURLList = []string{
