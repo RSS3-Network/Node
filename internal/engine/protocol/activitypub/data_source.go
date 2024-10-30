@@ -31,6 +31,7 @@ type dataSource struct {
 	mastodonClient mastodon.Client
 	option         *Option
 	state          State
+	acceptDomains  []string
 }
 
 // Network returns the network configuration from the config
@@ -124,8 +125,23 @@ func (s *dataSource) handleMessage(ctx context.Context, msg string) *engine.Task
 	// Check if the received message is a relay message or an ActivityPub message.
 	if isRelayMessage(relayObjectID) {
 		if gjson.Get(msg, "type").String() == "Accept" {
-			zap.L().Info("Relay Subscription request has been approved successfully.", zap.String("relayObjectID", relayObjectID))
-			return nil
+			domain, err := extractDomain(relayObjectID)
+			if err != nil {
+				zap.L().Error("failed to extract domain from relay object ID",
+					zap.String("relayObjectID", relayObjectID),
+					zap.Error(err))
+			} else {
+				// Add domain to acceptDomains
+				if !lo.Contains(s.acceptDomains, domain) {
+					s.acceptDomains = append(s.acceptDomains, domain)
+				}
+
+				// Log the accept message and current domains list
+				zap.L().Info("Relay Subscription request has been approved",
+					zap.String("relayObjectID", relayObjectID),
+					zap.String("acceptingDomain", domain),
+					zap.Strings("allAcceptDomains", s.acceptDomains))
+			}
 		}
 
 		objectID := gjson.Get(msg, "object").String()
@@ -274,4 +290,14 @@ func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseCli
 
 func GetTimestampStart() int64 {
 	return defaultStartTime
+}
+
+// Add this helper function to extract domain from URL
+func extractDomain(urlStr string) (string, error) {
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse URL: %w", err)
+	}
+
+	return parsedURL.Host, nil
 }

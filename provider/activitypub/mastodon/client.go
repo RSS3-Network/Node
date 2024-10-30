@@ -41,9 +41,11 @@ const (
 	softwareName               = "custom-activitypub-relay"
 	softwareVersion            = "1.0.0"
 	protocolName               = "activitypub"
-	httpServerTimeOut          = 20
-	httpServerReadWriteTimeOut = 30
+	httpServerTimeOut          = 20 * time.Second
+	httpServerReadWriteTimeOut = 30 * time.Second
 	serverStartWaitTimeOut     = 100
+	maxFollowRequestRetries    = 3
+	followRequestRetryDelay    = 5 * time.Second
 )
 
 var _ Client = (*client)(nil)
@@ -154,8 +156,8 @@ func (c *client) initializeServer() {
 	server.HidePort = true
 
 	// Configure timeouts and middleware
-	server.Server.ReadTimeout = httpServerReadWriteTimeOut * time.Second
-	server.Server.WriteTimeout = httpServerReadWriteTimeOut * time.Second
+	server.Server.ReadTimeout = httpServerReadWriteTimeOut
+	server.Server.WriteTimeout = httpServerReadWriteTimeOut
 	server.Use(middleware.Logger())
 	server.Use(middleware.Recover())
 
@@ -243,7 +245,7 @@ func (c *client) startHTTPServer(ctx context.Context) error {
 		return nil
 
 	case <-ctx.Done():
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), httpServerTimeOut*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), httpServerTimeOut)
 		defer cancel()
 
 		if err := c.server.Shutdown(shutdownCtx); err != nil {
@@ -432,13 +434,39 @@ func (c *client) FollowRelayServices(ctx context.Context) error {
 	var errs []error
 
 	for _, instance := range c.relayURLs {
-		if err := c.followRelay(ctx, instance); err != nil {
-			zap.L().Error("failed to follow relay", zap.String("instance", instance), zap.Error(err))
-			errs = append(errs, fmt.Errorf("failed to follow relay instance %s: %w", instance, err))
+		var lastErr error
+
+		// Try up to maxRetries times
+		for attempt := 1; attempt <= maxFollowRequestRetries; attempt++ {
+			err := c.followRelay(ctx, instance)
+			if err == nil {
+				zap.L().Info("successfully send request to follow relay",
+					zap.String("instance", instance),
+					zap.Int("attempt", attempt))
+
+				break
+			}
+
+			lastErr = err
+
+			if attempt == maxFollowRequestRetries {
+				continue
+			}
+
+			zap.L().Warn("retry following relay",
+				zap.String("instance", instance),
+				zap.Int("attempt", attempt),
+				zap.Error(err))
+
+			time.Sleep(followRequestRetryDelay)
+		}
+
+		if lastErr != nil {
+			errs = append(errs, fmt.Errorf("failed to follow relay instance %s: %w", instance, lastErr))
 		}
 	}
 
-	if len(errs) > 0 {
+	if len(errs) > 1 {
 		return fmt.Errorf("multiple errors occurred while following relay services: %v", errs)
 	}
 
@@ -470,6 +498,11 @@ func (c *client) followRelay(ctx context.Context, instance string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create and sign follow request: %w", err)
 	}
+
+	zap.L().Info("Follow request created and signed successfully",
+		zap.String("instanceURL", instanceURL.String()),
+		zap.String("content", string(content)),
+	)
 
 	// Send the request and handle the response
 	if err := c.sendRequest(req); err != nil {
