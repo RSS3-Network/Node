@@ -16,7 +16,6 @@ import (
 	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
-	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
@@ -44,7 +43,7 @@ type WorkerInfo struct {
 func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, "status")
 
-	workerCount := len(c.config.Component.Decentralized) + lo.Ternary(c.config.Component.RSS != nil, 1, 0) + len(c.config.Component.Federated)
+	workerCount := config.CalculateWorkerCount(c.config)
 	workerInfoChan := make(chan *WorkerInfo, workerCount)
 
 	var response *WorkerResponse
