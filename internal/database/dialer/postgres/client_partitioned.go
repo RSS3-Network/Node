@@ -88,7 +88,7 @@ func (c *client) loadIndexesPartitionTables(ctx context.Context) {
 }
 
 // saveActivitiesPartitioned saves Activities in partitioned tables.
-func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*activityx.Activity) error {
+func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*activityx.Activity, lowPriority bool) error {
 	partitions := make(map[string][]*activityx.Activity)
 
 	// Group activities by partition name.
@@ -132,12 +132,16 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 						Name: "id",
 					},
 				},
-				Where: clause.Where{
+				UpdateAll: true,
+			}
+
+			// If low priority, only save activities without platform.
+			if lowPriority {
+				onConflict.Where = clause.Where{
 					Exprs: []clause.Expression{
 						gorm.Expr(fmt.Sprintf("%s.platform IS NULL OR %s.platform = ''", name, name)),
 					},
-				},
-				UpdateAll: true,
+				}
 			}
 
 			if err := c.database.WithContext(ctx).
@@ -148,7 +152,7 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 				return err
 			}
 
-			return c.saveIndexesPartitioned(ctx, activities)
+			return c.saveIndexesPartitioned(ctx, activities, lowPriority)
 		})
 	}
 
@@ -327,7 +331,7 @@ func (c *client) findFederatedActivitiesPartitioned(ctx context.Context, query m
 }
 
 // saveIndexesPartitioned saves indexes in partitioned tables.
-func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activityx.Activity) error {
+func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activityx.Activity, lowPriority bool) error {
 	indexes := make(table.Indexes, 0)
 
 	if err := indexes.Import(activities); err != nil {
@@ -363,13 +367,21 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activ
 
 	errorPool := pool.New().WithContext(ctx).WithMaxGoroutines(10).WithCancelOnError().WithFirstError()
 
+	var conditionSQL = "(id, network) IN (?)"
+
+	// If low priority, only delete indexes without platform.
+	if lowPriority {
+		conditionSQL = "(id, network) IN (?) AND platform = ''"
+	}
+
+	//nolint:wsl
 	for _, condition := range lo.Chunk(conditions, math.MaxUint8) {
 		condition := condition
 
 		errorPool.Go(func(ctx context.Context) error {
 			return c.database.WithContext(ctx).
 				Table(indexes[0].PartitionName()).
-				Where("(id, network) IN (?) AND platform = ''", condition).
+				Where(conditionSQL, condition).
 				Delete(&table.Index{}).
 				Error
 		})
@@ -392,12 +404,16 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activ
 				Name: "owner",
 			},
 		},
-		Where: clause.Where{
+		UpdateAll: true,
+	}
+
+	// If low priority, only save indexes without platform.
+	if lowPriority {
+		onConflict.Where = clause.Where{
 			Exprs: []clause.Expression{
 				gorm.Expr(fmt.Sprintf("%s.platform IS NULL OR %s.platform = ''", indexes[0].PartitionName(), indexes[0].PartitionName())),
 			},
-		},
-		UpdateAll: true,
+		}
 	}
 
 	errorPool = pool.New().WithContext(ctx).WithMaxGoroutines(10).WithCancelOnError().WithFirstError()

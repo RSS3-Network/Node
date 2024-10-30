@@ -24,18 +24,21 @@ func TestClient(t *testing.T) {
 	t.Parallel()
 
 	testcases := []struct {
-		name                       string
-		driver                     database.Driver
-		partition                  *bool
-		activityCreated            []*activityx.Activity
-		activityUpdated            []*activityx.Activity
-		activityUpdatedLowPriority []*activityx.Activity
+		name                        string
+		driver                      database.Driver
+		partition                   *bool
+		coreWorkerActivityCreated   []*activityx.Activity
+		otherWorkerActivityCreated  []*activityx.Activity
+		coreWorkerActivityUpdated   []*activityx.Activity
+		otherWorkerActivityUpdated  []*activityx.Activity
+		activityUpdatedLowPriority  []*activityx.Activity
+		activityUpdatedHighPriority []*activityx.Activity
 	}{
 		{
 			name:      "postgres",
 			driver:    database.DriverPostgreSQL,
 			partition: lo.ToPtr(true),
-			activityCreated: []*activityx.Activity{
+			coreWorkerActivityCreated: []*activityx.Activity{
 				{
 					ID:      "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
 					Network: network.Ethereum,
@@ -66,6 +69,8 @@ func TestClient(t *testing.T) {
 					},
 					Timestamp: uint64(time.Now().Add(-3 * 31 * 24 * time.Hour).Unix()),
 				},
+			},
+			otherWorkerActivityCreated: []*activityx.Activity{
 				{
 					ID:       "0xc5549085b553588eb6fe13878c761f3447a87df1e28ebdc9af1ff30340b764ab",
 					Network:  network.Ethereum,
@@ -83,7 +88,7 @@ func TestClient(t *testing.T) {
 					Timestamp: uint64(time.Now().Add(-3 * 31 * 24 * time.Hour).Unix()),
 				},
 			},
-			activityUpdated: []*activityx.Activity{
+			coreWorkerActivityUpdated: []*activityx.Activity{
 				{
 					ID:      "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
 					Network: network.Ethereum,
@@ -105,6 +110,24 @@ func TestClient(t *testing.T) {
 					Timestamp: uint64(time.Now().Unix()),
 				},
 			},
+			otherWorkerActivityUpdated: []*activityx.Activity{
+				{
+					ID:       "0xc5549085b553588eb6fe13878c761f3447a87df1e28ebdc9af1ff30340b764ab",
+					Network:  network.Ethereum,
+					From:     "0xd66570eDCdAde24eDda902B28F2172e9Ef8395dD",
+					To:       "0x5B93D80DA1a359340d1F339FB574bDC56763f995",
+					Platform: decentralized.PlatformUniswap.String(),
+					Type:     typex.ExchangeLiquidity,
+					Actions: []*activityx.Action{
+						{
+							Type: typex.ExchangeLiquidity,
+							From: "0xd66570eDCdAde24eDda902B28F2172e9Ef8395dD",
+							To:   "0x5B93D80DA1a359340d1F339FB574bDC56763f995",
+						},
+					},
+					Timestamp: uint64(time.Now().Add(-3 * 31 * 24 * time.Hour).Unix()),
+				},
+			},
 			activityUpdatedLowPriority: []*activityx.Activity{
 				{
 					ID:      "0xc5549085b553588eb6fe13878c761f3447a87df1e28ebdc9af1ff30340b764ab",
@@ -120,6 +143,24 @@ func TestClient(t *testing.T) {
 						},
 					},
 					Timestamp: uint64(time.Now().Add(-3 * 31 * 24 * time.Hour).Unix()),
+				},
+			},
+			activityUpdatedHighPriority: []*activityx.Activity{
+				{
+					ID:       "0x30182d4468ddc7001b897908203abb57939fc57663c491435a2f88cafd51d101",
+					Network:  network.Ethereum,
+					From:     "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+					To:       "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
+					Platform: decentralized.Platform1Inch.String(),
+					Type:     typex.ExchangeSwap,
+					Actions: []*activityx.Action{
+						{
+							Type: typex.ExchangeSwap,
+							From: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+							To:   "0x9D22816f6611cFcB0cDE5076C5f4e4A269E79Bef",
+						},
+					},
+					Timestamp: uint64(time.Now().Unix()),
 				},
 			},
 		},
@@ -162,10 +203,11 @@ func TestClient(t *testing.T) {
 			require.NoError(t, client.Migrate(context.Background()))
 
 			// Begin a transaction.
-			require.NoError(t, client.SaveActivities(context.Background(), testcase.activityCreated))
+			require.NoError(t, client.SaveActivities(context.Background(), testcase.coreWorkerActivityCreated, true))
+			require.NoError(t, client.SaveActivities(context.Background(), testcase.otherWorkerActivityCreated, false))
 
 			// Query first activity
-			for _, activity := range testcase.activityCreated {
+			for _, activity := range append(testcase.coreWorkerActivityCreated, testcase.otherWorkerActivityCreated...) {
 				data, page, err := client.FindActivity(context.Background(), model.ActivityQuery{ID: lo.ToPtr(activity.ID), ActionLimit: 10})
 				require.NoError(t, err)
 				require.NotNil(t, data)
@@ -179,7 +221,7 @@ func TestClient(t *testing.T) {
 			// Query activities by account.
 			accounts := make(map[string]int)
 
-			for _, activity := range testcase.activityCreated {
+			for _, activity := range append(testcase.coreWorkerActivityCreated, testcase.otherWorkerActivityCreated...) {
 				accounts[activity.From]++
 				accounts[activity.To]++
 			}
@@ -191,10 +233,11 @@ func TestClient(t *testing.T) {
 			}
 
 			// Update activities.
-			require.NoError(t, client.SaveActivities(context.Background(), testcase.activityUpdated))
+			require.NoError(t, client.SaveActivities(context.Background(), testcase.coreWorkerActivityUpdated, true))
+			require.NoError(t, client.SaveActivities(context.Background(), testcase.otherWorkerActivityUpdated, false))
 
 			// Query updated activities.
-			for _, activity := range testcase.activityUpdated {
+			for _, activity := range append(testcase.coreWorkerActivityUpdated, testcase.otherWorkerActivityUpdated...) {
 				data, page, err := client.FindActivity(context.Background(), model.ActivityQuery{ID: lo.ToPtr(activity.ID), ActionLimit: 10})
 				require.NoError(t, err)
 				require.NotNil(t, data)
@@ -203,10 +246,11 @@ func TestClient(t *testing.T) {
 				require.Equal(t, data.From, activity.From)
 				require.Equal(t, data.To, activity.To)
 				require.Equal(t, data.Platform, activity.Platform)
+				require.Equal(t, data.Type, activity.Type)
 			}
 
 			// Update activities with low priority.
-			require.NoError(t, client.SaveActivities(context.Background(), testcase.activityUpdatedLowPriority))
+			require.NoError(t, client.SaveActivities(context.Background(), testcase.activityUpdatedLowPriority, true))
 
 			// Query updated activities with low priority.
 			for _, activity := range testcase.activityUpdatedLowPriority {
@@ -214,9 +258,21 @@ func TestClient(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, data)
 				require.Greater(t, lo.FromPtr(page), 0)
-
 				require.NotEqual(t, data.Platform, activity.Platform)
 				require.NotEqual(t, data.Type, activity.Type)
+			}
+
+			// Update activities with high priority.
+			require.NoError(t, client.SaveActivities(context.Background(), testcase.activityUpdatedHighPriority, false))
+
+			// Query updated activities with low priority.
+			for _, activity := range testcase.activityUpdatedHighPriority {
+				data, page, err := client.FindActivity(context.Background(), model.ActivityQuery{ID: lo.ToPtr(activity.ID), ActionLimit: 10})
+				require.NoError(t, err)
+				require.NotNil(t, data)
+				require.Greater(t, lo.FromPtr(page), 0)
+				require.Equal(t, data.Platform, activity.Platform)
+				require.Equal(t, data.Type, activity.Type)
 			}
 		})
 	}
