@@ -50,7 +50,7 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 	var response *WorkerResponse
 
 	switch {
-	case c.redisClient != nil:
+	case c.redisClient != nil && len(c.config.Component.Decentralized) > 0:
 		// Fetch all worker info concurrently.
 		c.fetchAllWorkerInfo(ctx, workerInfoChan)
 
@@ -70,7 +70,7 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 					Status:   worker.StatusReady},
 			},
 		}
-	case c.config.Component.Federated != nil:
+	case c.config.Component.Federated != nil && len(c.config.Component.Federated) > 0:
 		f := c.config.Component.Federated[0]
 		switch f.Worker {
 		case federated.Core:
