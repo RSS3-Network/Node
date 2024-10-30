@@ -252,7 +252,7 @@ func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseCli
 		}
 	}
 
-	option, err := NewOption(config.Network, config.Parameters)
+	option, err := NewOption(config.Network, config.Parameters, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create option: %w", err)
 	}

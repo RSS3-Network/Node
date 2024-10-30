@@ -42,6 +42,18 @@ func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState Chec
 		}(m.config.Component.RSS)
 	}
 
+	for _, w := range m.config.Component.Federated {
+		wg.Add(1)
+
+		go func(w *config.Module) {
+			defer wg.Done()
+
+			if err := m.processMockFederatedWorker(ctx, w); err != nil {
+				errChan <- err
+			}
+		}(w)
+	}
+
 	go func() {
 		wg.Wait()
 		close(errChan)
@@ -86,6 +98,21 @@ func (m *Monitor) processMockWorker(ctx context.Context, w *config.Module, curre
 
 // processMockRSSWorker processes the rss worker status.
 func (m *Monitor) processMockRSSWorker(ctx context.Context, w *config.Module) error {
+	client, ok := m.clients[w.Network]
+	if !ok {
+		return fmt.Errorf("client not exist")
+	}
+
+	targetStatus := workerx.StatusReady
+	if _, _, err := client.LatestState(ctx); err != nil {
+		targetStatus = workerx.StatusUnhealthy
+	}
+
+	return m.UpdateWorkerStatusByID(ctx, w.ID, targetStatus.String())
+}
+
+// processFederatedWorker processes the federated worker status.
+func (m *Monitor) processMockFederatedWorker(ctx context.Context, w *config.Module) error {
 	client, ok := m.clients[w.Network]
 	if !ok {
 		return fmt.Errorf("client not exist")

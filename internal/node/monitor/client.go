@@ -9,15 +9,14 @@ import (
 	"time"
 
 	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/internal/engine/protocol/activitypub"
 	"github.com/rss3-network/node/internal/node/component/rss"
-	"github.com/rss3-network/node/provider/activitypub/mastodon"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/farcaster"
 	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/near"
-	"github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/node/schema/worker/federated"
+	"github.com/rss3-network/protocol-go/schema/network"
 	"go.uber.org/zap"
 )
 
@@ -32,7 +31,8 @@ type Client interface {
 
 // activitypubClient is a client implementation for ActivityPub.
 type activitypubClient struct {
-	activitypubClient mastodon.Client // ToDo: (Note) Currently use Matodon Client for all ActivityPub Source.
+	httpClient httpx.Client
+	relayURLs  []string
 }
 
 // set a default client
@@ -282,89 +282,55 @@ func (c *activitypubClient) TargetState(_ *config.Parameters) (uint64, uint64) {
 // LatestState checks the health of the ActivityPub connection.
 // Returns current timestamp if healthy, error otherwise.
 func (c *activitypubClient) LatestState(ctx context.Context) (uint64, uint64, error) {
-	if c.activitypubClient == nil {
-		return 0, 0, fmt.Errorf("client not initialized")
-	}
+	currentTime := uint64(time.Now().Unix())
 
-	msgChan, err := c.activitypubClient.GetMessageChan()
-	if err != nil {
-		return 0, 0, fmt.Errorf("get message channel: %w", err)
-	}
+	// Check each relay URL
+	for _, relayURL := range c.relayURLs {
+		resp, err := c.httpClient.Fetch(ctx, relayURL)
+		if err != nil {
+			zap.L().Warn("relay health check failed",
+				zap.String("relay_url", relayURL),
+				zap.Error(err))
 
-	// Create a timeout context
-	healthCheckTimeout := 10 * time.Second
-	checkCtx, cancel := context.WithTimeout(ctx, healthCheckTimeout)
-
-	defer cancel()
-
-	// Check connection health and message flow
-	select {
-	case <-checkCtx.Done():
-		if ctx.Err() != nil {
-			return 0, 0, fmt.Errorf("context cancelled: %w", ctx.Err())
+			continue
 		}
 
-		return 0, uint64(time.Now().Unix()), nil
+		// Close response body
+		if resp != nil {
+			resp.Close()
+		}
 
-	case msg := <-msgChan:
-		currentTime := uint64(time.Now().Unix())
-
-		// Re-send the message back to the channel for other listeners
-		c.activitypubClient.SendMessage(msg)
-
-		zap.L().Info("received message during health check",
-			zap.String("message", msg),
-			zap.Uint64("timestamp", currentTime))
+		// If we got a successful response from any relay, consider the service healthy
+		zap.L().Info("relay check succeeded",
+			zap.String("relay_url", relayURL))
 
 		return 0, currentTime, nil
 	}
+
+	// No relays were accessible
+	return 0, 0, fmt.Errorf("no accessible relays found")
 }
 
 // NewActivityPubClient returns a new ActivityPub client.
-func NewActivityPubClient(endpoint config.Endpoint, worker worker.Worker) (Client, error) {
-	if endpoint.URL == "" {
-		return nil, fmt.Errorf("endpoint URL is required")
-	}
-
+func NewActivityPubClient(network network.Network, param *config.Parameters) (Client, error) {
 	// Get relay URLs directly from parameters using NewOption
-	// option, err := activitypub.NewOption(network.Mastodon, nil)
-	// if err != nil {
-	//	return nil, fmt.Errorf("failed to create option: %w", err)
-	//}
-	// relayURLList := option.RelayURLList
-
-	relayURLList := []string{}                // ToDo: The monitor client's requests for following Relay services may conflict with data-source client requests, resulting in request errors on the data-source side. Need to fix.
-	port := mastodon.DefaultMonitorServerPort // Default port for Monitor client  //ToDo: Currently set it as '9191' in mastodon/type.go. Consider modifying it or not.
-
-	zap.L().Info("Using relay URL list and port in NewActivityPubClient", zap.Strings("relayURLList", relayURLList), zap.Int64("port", int64(port)))
-
-	// Create a context with cancellation
-	ctx := context.Background()
-	errorChan := make(chan error, 1)
-
-	workerType := worker.Name()
-	switch workerType {
-	case federated.Core.String():
-		mastodonClient, err := mastodon.NewClient(ctx, endpoint.URL, relayURLList, int64(port), errorChan)
-		if err != nil {
-			return nil, fmt.Errorf("create mastodon client: %w", err)
-		}
-
-		// Monitor error channel in background
-		go func() {
-			for err := range errorChan {
-				if err != nil {
-					zap.L().Error("mastodon client error",
-						zap.Error(err))
-				}
-			}
-		}()
-
-		return &activitypubClient{
-			activitypubClient: mastodonClient,
-		}, nil
-
-	default:
-		return nil, fmt.Errorf("unsupported worker type: %s", workerType)
+	option, err := activitypub.NewOption(network, param, true)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create option: %w", err)
 	}
+
+	relayURLList := option.RelayURLList
+	httpClient, err := httpx.NewHTTPClient()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP client: %w", err)
+	}
+
+	zap.L().Info("initializing ActivityPub client",
+		zap.Strings("relay_urls", relayURLList))
+
+	return &activitypubClient{
+		httpClient: httpClient,
+		relayURLs:  relayURLList,
+	}, nil
 }

@@ -16,12 +16,19 @@ type Option struct {
 }
 
 // NewOption creates a new Option instance from the provided parameters.
-func NewOption(n network.Network, parameters *config.Parameters) (*Option, error) {
+func NewOption(n network.Network, parameters *config.Parameters, isMonitor bool) (*Option, error) {
 	var option Option
 
 	zap.L().Info("parameters:", zap.Any("parameters", parameters))
 
 	if parameters == nil {
+		if isMonitor {
+			return &Option{
+				RelayURLList: mastodon.DefaultRelayURLList,
+				Port:         mastodon.DefaultServerPort,
+			}, nil
+		}
+
 		return &Option{
 			RelayURLList:   mastodon.DefaultRelayURLList,
 			Port:           mastodon.DefaultServerPort,
@@ -44,8 +51,10 @@ func NewOption(n network.Network, parameters *config.Parameters) (*Option, error
 		zap.L().Info("Port not specified, using default", zap.Int64("defaultPort", mastodon.DefaultServerPort))
 	}
 
-	if option.TimestampStart == 0 {
-		option.TimestampStart = parameter.CurrentNetworkStartBlock[n].Timestamp
+	if !isMonitor {
+		if option.TimestampStart == 0 {
+			option.TimestampStart = parameter.CurrentNetworkStartBlock[n].Timestamp
+		}
 	}
 
 	zap.L().Info("option:", zap.Any("option", option))
