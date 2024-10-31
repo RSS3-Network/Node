@@ -58,7 +58,7 @@ func getNetworkConfigDetailForRSS(protocol network.Protocol) NetworkConfigDetail
 	worker := rss.Core
 	config := WorkerToConfigMap[protocol][worker]
 
-	workerConfig := config
+	workerConfig := deepCopyWorkerConfig(config)
 	workerConfig.ID.Value = n.String() + "-" + worker.Name()
 	workerConfig.Network.Value = n.String()
 	workerConfig.MinimumResource = calculateMinimumResources(n, worker)
@@ -119,7 +119,7 @@ func getWorkerConfigs(protocol network.Protocol, n network.Network) []workerConf
 
 	for w, config := range WorkerToConfigMap[protocol] {
 		if lo.Contains(NetworkToWorkersMap[n], w) {
-			workerConfig := createWorkerConfig(n, w, config)
+			workerConfig := createWorkerConfig(n, w, deepCopyWorkerConfig(config))
 			workerConfigs = append(workerConfigs, workerConfig)
 		}
 	}
@@ -128,17 +128,27 @@ func getWorkerConfigs(protocol network.Protocol, n network.Network) []workerConf
 }
 
 func createWorkerConfig(n network.Network, worker worker.Worker, config workerConfig) workerConfig {
-	workerConfig := config
-	workerConfig.ID.Value = n.String() + "-" + worker.Name()
-	workerConfig.Network.Value = n.String()
-	workerConfig.MinimumResource = calculateMinimumResources(n, worker)
+	config.ID.Value = n.String() + "-" + worker.Name()
+	config.Network.Value = n.String()
+	config.MinimumResource = calculateMinimumResources(n, worker)
 
-	if workerConfig.EndpointID != nil {
-		workerConfig.EndpointID.Type = StringType
-		workerConfig.EndpointID.Value = n.String()
+	if config.EndpointID != nil {
+		config.EndpointID.Type = StringType
+		config.EndpointID.Value = n.String()
 	}
 
-	return workerConfig
+	return config
+}
+
+func deepCopyWorkerConfig(config workerConfig) workerConfig {
+	newConfig := config
+
+	if config.EndpointID != nil {
+		newEndpointID := *config.EndpointID
+		newConfig.EndpointID = &newEndpointID
+	}
+
+	return newConfig
 }
 
 func sortWorkerConfigs(workerConfigs []workerConfig) {
