@@ -107,8 +107,9 @@ func NewClient(ctx context.Context, endpoint string, relayList []string, port in
 		return nil, fmt.Errorf("endpoint cannot be empty")
 	}
 
-	zap.L().Info("Using relayURLList", zap.Strings("relayURLList", relayList))
-	zap.L().Info("Using server port", zap.Int64("port", port))
+	zap.L().Info("Initializing server configuration",
+		zap.Strings("relay URL List", relayList),
+		zap.Int64("port", port))
 
 	// Generate the Key Pair
 	privateKey, publicKeyPem, err := generateKeyPair()
