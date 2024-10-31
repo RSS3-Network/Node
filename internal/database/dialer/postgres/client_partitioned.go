@@ -422,7 +422,7 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activ
 		index := index
 
 		errorPool.Go(func(ctx context.Context) error {
-			return c.database.WithContext(ctx).Debug().
+			return c.database.WithContext(ctx).
 				Table(indexes[0].PartitionName()).
 				Clauses(onConflict).
 				Create(index).
