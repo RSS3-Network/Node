@@ -147,14 +147,16 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 
 			var affectedActivities table.Activities
 
+			activityIDs := lo.Map(tableActivities, func(item *table.Activity, _ int) string {
+				return item.ID
+			})
+
 			if err := c.database.WithContext(ctx).
 				Table(name).
 				Clauses(onConflict).
 				Select("*").
 				CreateInBatches(tableActivities, math.MaxUint8).
-				Where("id IN ?", lo.Map(tableActivities, func(item *table.Activity, _ int) string {
-					return item.ID
-				})).
+				Where("id IN ?", activityIDs).
 				Scan(&affectedActivities).
 				Error; err != nil {
 				return err
