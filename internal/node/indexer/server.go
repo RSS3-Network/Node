@@ -15,6 +15,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/internal/engine/protocol"
 	decentralizedWorker "github.com/rss3-network/node/internal/engine/worker/decentralized"
+
 	// worker "github.com/rss3-network/node/internal/engine/worker/decentralized"
 	federatedWorker "github.com/rss3-network/node/internal/engine/worker/federated"
 	"github.com/rss3-network/node/internal/node/monitor"
@@ -163,6 +164,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 	checkpoint.IndexCount = int64(len(activities))
 
 	// Low priority for Ethereum protocol and Core worker.
+	// Prevent low priority worker from overwriting activities from high priority worker in database.
 	lowPriority := checkpoint.Network.Protocol() == network.EthereumProtocol && s.worker.Name() == decentralizedx.Core.String()
 
 	// Save activities and checkpoint to the database.
