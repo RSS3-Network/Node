@@ -15,8 +15,6 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/internal/engine/protocol"
 	decentralizedWorker "github.com/rss3-network/node/internal/engine/worker/decentralized"
-
-	// worker "github.com/rss3-network/node/internal/engine/worker/decentralized"
 	federatedWorker "github.com/rss3-network/node/internal/engine/worker/federated"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
@@ -154,7 +152,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		})
 	}
 
-	// Filter failed activities and activities without actions.
+	// Filter out activities that failed to transform or contain no actions
 	activities := lo.Filter(resultPool.Wait(), func(activity *activityx.Activity, _ int) bool {
 		return activity != nil && len(activity.Actions) > 0
 	})
