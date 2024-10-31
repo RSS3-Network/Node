@@ -154,10 +154,9 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 			if err := c.database.WithContext(ctx).
 				Table(name).
 				Clauses(onConflict).
-				Select("*").
 				CreateInBatches(tableActivities, math.MaxUint8).
 				Where("id IN ?", activityIDs).
-				Scan(&affectedActivities).
+				Find(&affectedActivities).
 				Error; err != nil {
 				return err
 			}
