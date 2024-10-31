@@ -376,7 +376,6 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activ
 
 	errorPool := pool.New().WithContext(ctx).WithMaxGoroutines(10).WithCancelOnError().WithFirstError()
 
-	//nolint:wsl
 	for _, condition := range lo.Chunk(conditions, math.MaxUint8) {
 		condition := condition
 
