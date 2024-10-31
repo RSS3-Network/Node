@@ -73,7 +73,7 @@ func initLevelDB(tempDir string) (*leveldb.DB, error) {
 	// open the database
 	database, err := leveldb.OpenFile(tempDir, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open leveldb: %w", err)
+		return nil, fmt.Errorf("[ignore in local development] failed to open leveldb: %w", err)
 	}
 
 	// mock data

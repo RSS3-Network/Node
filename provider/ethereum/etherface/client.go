@@ -15,6 +15,7 @@ var (
 )
 
 const (
+	// EtherfaceDBPath: this DB is downloaded by CI, so it is not available in the local environment
 	EtherfaceDBPath = "/root/node/etherface"
 	DefaultAttempts = 3
 )
@@ -87,7 +88,7 @@ func extractFunctionName(str string) string {
 func NewEtherfaceClient() (Client, error) {
 	database, err := leveldb.OpenFile(EtherfaceDBPath, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open leveldb: %w", err)
+		return nil, fmt.Errorf("[ignore in local development] failed to open leveldb: %w", err)
 	}
 
 	instance := etherfaceClient{

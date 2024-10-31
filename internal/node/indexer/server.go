@@ -152,9 +152,9 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		})
 	}
 
-	// Filter failed activities.
+	// Filter out activities that failed to transform or contain no actions
 	activities := lo.Filter(resultPool.Wait(), func(activity *activityx.Activity, _ int) bool {
-		return activity != nil
+		return activity != nil && len(activity.Actions) > 0
 	})
 
 	// Deprecated: use meterTasksHistogram instead.
