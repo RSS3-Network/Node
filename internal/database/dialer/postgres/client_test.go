@@ -275,7 +275,8 @@ func TestClient(t *testing.T) {
 			}
 
 			for _, address := range shouldNotExist {
-				activities, err := client.FindActivities(context.Background(), model.ActivitiesQuery{Owner: &address, Limit: 100})
+				addressTemp := address
+				activities, err := client.FindActivities(context.Background(), model.ActivitiesQuery{Owner: &addressTemp, Limit: 100})
 				require.NoError(t, err)
 				require.Len(t, activities, 0)
 			}
