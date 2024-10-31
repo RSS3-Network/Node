@@ -136,6 +136,7 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 			}
 
 			// If low priority, only save activities without platform.
+			// Otherwise, insert/update activities into the database based on id
 			if lowPriority {
 				onConflict.Where = clause.Where{
 					Exprs: []clause.Expression{
@@ -370,6 +371,7 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activ
 	var conditionSQL = "(id, network) IN (?)"
 
 	// If low priority, only delete indexes without platform.
+	// Otherwise, delete indexes  the database based on id
 	if lowPriority {
 		conditionSQL = "(id, network) IN (?) AND platform = ''"
 	}
@@ -408,6 +410,7 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activ
 	}
 
 	// If low priority, only save indexes without platform.
+	// Otherwise, insert/update indexes into the database based on id
 	if lowPriority {
 		onConflict.Where = clause.Where{
 			Exprs: []clause.Expression{
