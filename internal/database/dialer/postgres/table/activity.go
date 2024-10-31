@@ -119,6 +119,7 @@ func (f *Activity) Export(index *Index) (*activityx.Activity, error) {
 		ID:           f.ID,
 		From:         f.From,
 		To:           f.To,
+		Index:        f.Index,
 		Network:      f.Network,
 		Platform:     f.Platform,
 		Status:       f.Status,
