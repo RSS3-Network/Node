@@ -43,7 +43,6 @@ const (
 	protocolName               = "activitypub"
 	httpServerTimeOut          = 20 * time.Second
 	httpServerReadWriteTimeOut = 30 * time.Second
-	serverStartWaitTimeOut     = 100
 	maxFollowRequestRetries    = 3
 	followRequestRetryDelay    = 5 * time.Second
 )
@@ -228,11 +227,9 @@ func (c *client) startHTTPServer(ctx context.Context) error {
 	serverPortStr := ":" + strconv.Itoa(int(c.port))
 	zap.L().Info("Starting server", zap.String("port", serverPortStr))
 
-	if err := c.server.Start(serverPortStr); err != nil {
-		if !errors.Is(err, http.ErrServerClosed) {
-			zap.L().Error("server error", zap.Error(err))
-			errCh <- err
-		}
+	if err := c.server.Start(serverPortStr); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		zap.L().Error("server error", zap.Error(err))
+		errCh <- err
 	}
 
 	// notify the server has been started using the channel
@@ -276,12 +273,9 @@ func (c *client) handleActorInbox(e echo.Context) error {
 	requestBody := http.MaxBytesReader(e.Response(), e.Request().Body, maxRequestBodySize)
 
 	// Close request body
-	defer func(requestBody io.ReadCloser) {
-		err := requestBody.Close()
-		if err != nil {
-			zap.L().Error("failed to close request body", zap.Error(err))
-		}
-	}(requestBody)
+	defer func() {
+		_ = requestBody.Close()
+	}()
 
 	data, err := io.ReadAll(requestBody)
 	if err != nil {
@@ -587,9 +581,7 @@ func (c *client) sendRequest(req *http.Request) error {
 
 	// Close request body
 	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			zap.L().Error("closing response body", zap.Error(err))
-		}
+		_ = resp.Body.Close()
 	}()
 
 	// Log basic response details (status code and headers)
@@ -599,12 +591,11 @@ func (c *client) sendRequest(req *http.Request) error {
 	)
 
 	if resp.StatusCode != http.StatusAccepted {
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("unexpected status %s: failed to read error response", resp.Status)
+		if body, err := io.ReadAll(resp.Body); err == nil {
+			return fmt.Errorf("unexpected status %s: %s", resp.Status, body)
 		}
 
-		return fmt.Errorf("unexpected status %s: %s", resp.Status, body)
+		return fmt.Errorf("unexpected status %s: failed to read error response", resp.Status)
 	}
 
 	return nil
@@ -655,9 +646,7 @@ func (c *client) fetchObject(ctx context.Context, url string) ([]byte, error) {
 	}
 
 	defer func() {
-		if err := resp.Close(); err != nil {
-			zap.L().Error("failed to close response body in fetchObject", zap.Error(err))
-		}
+		_ = resp.Close()
 	}()
 
 	body, err := io.ReadAll(resp)

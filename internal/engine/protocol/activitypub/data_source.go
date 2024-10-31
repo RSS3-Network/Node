@@ -53,11 +53,6 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 		return
 	}
 
-	if s.mastodonClient == nil {
-		zap.L().Error("Mastodon client is nil after initialization")
-		return
-	}
-
 	go func() {
 		// Check if context is cancelled before we start
 		if ctx.Err() != nil {
