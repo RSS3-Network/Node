@@ -44,18 +44,10 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 		httpClient:          http.DefaultClient,
 	}
 
-	// Register routes both at root and under /operators prefix
-	apiServer.GET("/", c.GetNodeOperator)
-	apiServer.GET("/info", c.GetNodeInfo)
-	apiServer.GET("/version", c.GetVersion)
-	apiServer.GET("/activity_count", c.GetActivityCount)
-	apiServer.GET("/workers_status", c.GetWorkersStatus)
-
 	operators := apiServer.Group("/operators")
 
 	operators.GET("", c.GetNodeOperator)
 	operators.GET("/info", c.GetNodeInfo)
-	operators.GET("/version", c.GetVersion)
 	operators.GET("/activity_count", c.GetActivityCount)
 	operators.GET("/workers_status", c.GetWorkersStatus)
 
