@@ -157,11 +157,7 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 				return err
 			}
 
-			return c.saveIndexesPartitioned(ctx, lo.Must(affectedActivities.Export(lo.Map(affectedActivities, func(activity *table.Activity, _ int) *table.Index {
-				return &table.Index{
-					ID: activity.ID,
-				}
-			}))))
+			return c.saveIndexesPartitioned(ctx, lo.Must(affectedActivities.Export()))
 		})
 	}
 
@@ -244,7 +240,7 @@ func (c *client) findActivitiesPartitioned(ctx context.Context, query model.Acti
 			locker.Lock()
 			defer locker.Unlock()
 
-			activities, err := tableActivities.Export(index)
+			activities, err := tableActivities.ExportByIndexes(index)
 			if err != nil {
 				return err
 			}
@@ -313,7 +309,7 @@ func (c *client) findFederatedActivitiesPartitioned(ctx context.Context, query m
 			locker.Lock()
 			defer locker.Unlock()
 
-			activities, err := tableActivities.Export(index)
+			activities, err := tableActivities.ExportByIndexes(index)
 			if err != nil {
 				return err
 			}

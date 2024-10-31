@@ -138,8 +138,13 @@ func TestClient(t *testing.T) {
 					Actions: []*activityx.Action{
 						{
 							Type: typex.TransactionTransfer,
-							From: "0xd66570eDCdAde24eDda902B28F2172e9Ef8395dD",
+							From: "0x69Ed24795649c23F9C13BFE317432fe0e679f1F6",
 							To:   "0x5B93D80DA1a359340d1F339FB574bDC56763f995",
+						},
+						{
+							Type: typex.TransactionTransfer,
+							From: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640",
+							To:   "0x2cC846fFf0b08FB3bFfaD71f53a60B4b6E6d6482",
 						},
 					},
 					Timestamp: uint64(time.Now().Add(-3 * 31 * 24 * time.Hour).Unix()),
@@ -260,6 +265,19 @@ func TestClient(t *testing.T) {
 				require.Greater(t, lo.FromPtr(page), 0)
 				require.NotEqual(t, data.Platform, activity.Platform)
 				require.NotEqual(t, data.Type, activity.Type)
+			}
+
+			// Check if the activities are not updated.
+			shouldNotExist := []string{
+				"0x69Ed24795649c23F9C13BFE317432fe0e679f1F6",
+				"0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640",
+				"0x2cC846fFf0b08FB3bFfaD71f53a60B4b6E6d6482",
+			}
+
+			for _, address := range shouldNotExist {
+				activities, err := client.FindActivities(context.Background(), model.ActivitiesQuery{Owner: &address, Limit: 100})
+				require.NoError(t, err)
+				require.Len(t, activities, 0)
 			}
 
 			// Update activities with high priority.

@@ -174,7 +174,22 @@ func (f *Activities) Import(activities []*activityx.Activity) error {
 	return nil
 }
 
-func (f *Activities) Export(indexes []*Index) ([]*activityx.Activity, error) {
+func (f *Activities) Export() ([]*activityx.Activity, error) {
+	activities := make([]*activityx.Activity, 0, len(*f))
+
+	for _, activity := range *f {
+		data, err := activity.Export(&Index{})
+		if err != nil {
+			return nil, err
+		}
+
+		activities = append(activities, data)
+	}
+
+	return activities, nil
+}
+
+func (f *Activities) ExportByIndexes(indexes []*Index) ([]*activityx.Activity, error) {
 	activities := make(map[string]*Activity)
 
 	for _, activity := range *f {
