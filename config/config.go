@@ -41,7 +41,7 @@ type File struct {
 	Component     *Component          `mapstructure:"component" validate:"required"`
 	Database      *Database           `mapstructure:"database" validate:"required"`
 	Stream        *Stream             `mapstructure:"stream"`
-	Redis         *Redis              `mapstructure:"redis"`
+	Redis         *Redis              `mapstructure:"redis" validate:"required"`
 	Observability *Telemetry          `mapstructure:"observability"`
 }
 

@@ -91,26 +91,8 @@ var command = cobra.Command{
 
 		var settlementCaller *vsl.SettlementCaller
 
-		// Apply database migrations for all modules except the broadcaster.
-		if module != BroadcasterArg && !config.IsRSSComponentOnly(configFile) {
-			databaseClient, err = dialer.Dial(cmd.Context(), configFile.Database)
-			if err != nil {
-				return fmt.Errorf("dial database: %w", err)
-			}
-
-			tx, err := databaseClient.Begin(cmd.Context())
-			if err != nil {
-				return fmt.Errorf("begin transaction: %w", err)
-			}
-
-			if err := tx.Migrate(cmd.Context()); err != nil {
-				err := tx.Rollback()
-				if err != nil {
-					return fmt.Errorf("rollback database: %w", err)
-				}
-				return fmt.Errorf("migrate database: %w", err)
-			}
-
+		// Broadcaster does not need Redis, DB and Network Params Client
+		if module != BroadcasterArg {
 			// Init a Redis client.
 			if configFile.Redis == nil {
 				zap.L().Error("redis configFile is missing")
@@ -122,61 +104,82 @@ var command = cobra.Command{
 				return fmt.Errorf("new redis client: %w", err)
 			}
 
-			vslClient, err := parameter.InitVSLClient()
-			if err != nil {
-				return fmt.Errorf("init vsl client: %w", err)
-			}
-
-			chainID, err := vslClient.ChainID(context.Background())
-			if err != nil {
-				return fmt.Errorf("get chain id: %w", err)
-			}
-
-			networkParamsCaller, err = vsl.NewNetworkParamsCaller(vsl.AddressNetworkParams[chainID.Int64()], vslClient)
-			if err != nil {
-				return fmt.Errorf("new network params caller: %w", err)
-			}
-
-			settlementCaller, err = vsl.NewSettlementCaller(vsl.AddressSettlement[chainID.Int64()], vslClient)
-			if err != nil {
-				return fmt.Errorf("new settlement caller: %w", err)
-			}
-
-			epoch, err := parameter.GetCurrentEpochFromVSL(settlementCaller)
-			if err != nil {
-				return fmt.Errorf("get current epoch: %w", err)
-			}
-
-			// save epoch to redis cache
-			err = parameter.UpdateCurrentEpoch(cmd.Context(), redisClient, epoch)
-			if err != nil {
-				return fmt.Errorf("update current epoch: %w", err)
-			}
-
-			// when start or restart the core, worker or monitor module, it will pull network parameters from VSL and record current epoch
-			if _, err = parameter.PullNetworkParamsFromVSL(networkParamsCaller, uint64(epoch)); err != nil {
-				zap.L().Error("pull network parameters from VSL", zap.Error(err))
-
-				return fmt.Errorf("pull network parameters from VSL: %w", err)
-			}
-
-			for network, blockStart := range parameter.CurrentNetworkStartBlock {
-				if blockStart == nil {
-					continue // Skip if the start block is not defined.
-				}
-
-				// Convert big.Int to int64; safe as long as the value fits in int64.
-				blockStartInt64 := blockStart.Block.Int64()
-
-				// Update the current block start for the network in Redis.
-				err := parameter.UpdateBlockStart(cmd.Context(), redisClient, network.String(), blockStartInt64)
+			// DB and Network Params Client is not needed for RSS component only Node
+			if !config.IsRSSComponentOnly(configFile) {
+				databaseClient, err = dialer.Dial(cmd.Context(), configFile.Database)
 				if err != nil {
-					return fmt.Errorf("update current block start: %w", err)
+					return fmt.Errorf("dial database: %w", err)
 				}
-			}
 
-			if err := tx.Commit(); err != nil {
-				return fmt.Errorf("commit transaction: %w", err)
+				tx, err := databaseClient.Begin(cmd.Context())
+				if err != nil {
+					return fmt.Errorf("begin transaction: %w", err)
+				}
+
+				if err := tx.Migrate(cmd.Context()); err != nil {
+					err := tx.Rollback()
+					if err != nil {
+						return fmt.Errorf("rollback database: %w", err)
+					}
+					return fmt.Errorf("migrate database: %w", err)
+				}
+
+				vslClient, err := parameter.InitVSLClient()
+				if err != nil {
+					return fmt.Errorf("init vsl client: %w", err)
+				}
+
+				chainID, err := vslClient.ChainID(context.Background())
+				if err != nil {
+					return fmt.Errorf("get chain id: %w", err)
+				}
+
+				networkParamsCaller, err = vsl.NewNetworkParamsCaller(vsl.AddressNetworkParams[chainID.Int64()], vslClient)
+				if err != nil {
+					return fmt.Errorf("new network params caller: %w", err)
+				}
+
+				settlementCaller, err = vsl.NewSettlementCaller(vsl.AddressSettlement[chainID.Int64()], vslClient)
+				if err != nil {
+					return fmt.Errorf("new settlement caller: %w", err)
+				}
+
+				epoch, err := parameter.GetCurrentEpochFromVSL(settlementCaller)
+				if err != nil {
+					return fmt.Errorf("get current epoch: %w", err)
+				}
+
+				// save epoch to redis cache
+				err = parameter.UpdateCurrentEpoch(cmd.Context(), redisClient, epoch)
+				if err != nil {
+					return fmt.Errorf("update current epoch: %w", err)
+				}
+
+				// when start or restart the core, worker or monitor module, it will pull network parameters from VSL and record current epoch
+				if _, err = parameter.PullNetworkParamsFromVSL(networkParamsCaller, uint64(epoch)); err != nil {
+					zap.L().Error("pull network parameters from VSL", zap.Error(err))
+
+					return fmt.Errorf("pull network parameters from VSL: %w", err)
+				}
+
+				for network, blockStart := range parameter.CurrentNetworkStartBlock {
+					if blockStart == nil {
+						continue // Skip if the start block is not defined.
+					}
+
+					// Convert big.Int to int64; safe as long as the value fits in int64.
+					blockStartInt64 := blockStart.Block.Int64()
+
+					// Update the current block start for the network in Redis.
+					err := parameter.UpdateBlockStart(cmd.Context(), redisClient, network.String(), blockStartInt64)
+					if err != nil {
+						return fmt.Errorf("update current block start: %w", err)
+					}
+				}
+
+				if err := tx.Commit(); err != nil {
+					return fmt.Errorf("commit transaction: %w", err)
+				}
 			}
 		}
 

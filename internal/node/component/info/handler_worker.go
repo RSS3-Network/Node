@@ -46,52 +46,14 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 	workerCount := config.CalculateWorkerCount(c.config)
 	workerInfoChan := make(chan *WorkerInfo, workerCount)
 
-	// Handle redis + decentralized case first
-	if c.redisClient != nil && len(c.config.Component.Decentralized) > 0 {
-		c.fetchAllWorkerInfo(ctx, workerInfoChan)
-		response := c.buildWorkerResponse(workerInfoChan)
-
-		return ctx.JSON(http.StatusOK, response)
+	if c.redisClient == nil {
+		return ctx.JSON(http.StatusInternalServerError, "redis client is required for monitor module")
 	}
 
-	// Logic for RSS and Federated
-	response := &WorkerResponse{
-		Data: ComponentInfo{},
-	}
+	c.fetchAllWorkerInfo(ctx, workerInfoChan)
+	response := c.buildWorkerResponse(workerInfoChan)
 
-	// Handle RSS if exists
-	if c.config.Component.RSS != nil {
-		m := c.config.Component.RSS
-		response.Data.RSS = &WorkerInfo{
-			WorkerID: m.ID,
-			Network:  m.Network,
-			Worker:   m.Worker,
-			Tags:     rss.ToTagsMap[m.Worker.(rss.Worker)],
-			Platform: rss.ToPlatformMap[m.Worker.(rss.Worker)].String(),
-			Status:   worker.StatusReady,
-		}
-	}
-
-	// Handle Federated if exists
-	if len(c.config.Component.Federated) > 0 {
-		f := c.config.Component.Federated[0]
-		if f.Worker == federated.Core {
-			response.Data.Federated = []*WorkerInfo{{
-				WorkerID: f.ID,
-				Network:  f.Network,
-				Worker:   f.Worker,
-				Tags:     federated.ToTagsMap[federated.Core],
-				Platform: federated.ToPlatformMap[federated.Core].String(),
-				Status:   worker.StatusReady,
-			}}
-		}
-	}
-
-	if response.Data.RSS != nil || len(response.Data.Federated) > 0 {
-		return ctx.JSON(http.StatusOK, response)
-	}
-
-	return nil
+	return ctx.JSON(http.StatusOK, response)
 }
 
 // fetchAllWorkerInfo fetches the status of all workers concurrently.
@@ -141,10 +103,15 @@ func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *
 // buildWorkerResponse builds the worker response from the worker info channel
 func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *WorkerResponse {
 	response := &WorkerResponse{
-		Data: ComponentInfo{
-			Decentralized: []*WorkerInfo{},
-			Federated:     []*WorkerInfo{},
-		},
+		Data: ComponentInfo{},
+	}
+
+	if len(c.config.Component.Decentralized) > 0 {
+		response.Data.Decentralized = []*WorkerInfo{}
+	}
+
+	if len(c.config.Component.Federated) > 0 {
+		response.Data.Federated = []*WorkerInfo{}
 	}
 
 	for workerInfo := range workerInfoChan {
