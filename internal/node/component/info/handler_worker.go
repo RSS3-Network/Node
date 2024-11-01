@@ -24,9 +24,9 @@ type WorkerResponse struct {
 }
 
 type ComponentInfo struct {
-	Decentralized []*WorkerInfo `json:"decentralized"`
-	RSS           *WorkerInfo   `json:"rss"`
-	Federated     []*WorkerInfo `json:"federated"`
+	Decentralized []*WorkerInfo `json:"decentralized,omitempty"`
+	RSS           *WorkerInfo   `json:"rss,omitempty"`
+	Federated     []*WorkerInfo `json:"federated,omitempty"`
 }
 
 type WorkerInfo struct {
@@ -46,52 +46,52 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 	workerCount := config.CalculateWorkerCount(c.config)
 	workerInfoChan := make(chan *WorkerInfo, workerCount)
 
-	var response *WorkerResponse
-
-	switch {
-	case c.redisClient != nil && len(c.config.Component.Decentralized) > 0:
-		// Fetch all worker info concurrently.
+	// Handle redis + decentralized case first
+	if c.redisClient != nil && len(c.config.Component.Decentralized) > 0 {
 		c.fetchAllWorkerInfo(ctx, workerInfoChan)
+		response := c.buildWorkerResponse(workerInfoChan)
 
-		// Build the worker response.
-		response = c.buildWorkerResponse(workerInfoChan)
-	case c.config.Component.RSS != nil:
-		m := c.config.Component.RSS
-
-		response = &WorkerResponse{
-			Data: ComponentInfo{
-				RSS: &WorkerInfo{
-					WorkerID: m.ID,
-					Network:  m.Network,
-					Worker:   m.Worker,
-					Tags:     rss.ToTagsMap[m.Worker.(rss.Worker)],
-					Platform: rss.ToPlatformMap[m.Worker.(rss.Worker)].String(),
-					Status:   worker.StatusReady},
-			},
-		}
-	case len(c.config.Component.Federated) > 0:
-		f := c.config.Component.Federated[0]
-		switch f.Worker {
-		case federated.Core:
-			response = &WorkerResponse{
-				Data: ComponentInfo{
-					RSS: &WorkerInfo{
-						WorkerID: f.ID,
-						Network:  f.Network,
-						Worker:   f.Worker,
-						Tags:     federated.ToTagsMap[federated.Core],
-						Platform: rss.ToPlatformMap[f.Worker.(rss.Worker)].String(),
-						Status:   worker.StatusReady},
-				},
-			}
-		default:
-			return nil
-		}
-	default:
-		return nil
+		return ctx.JSON(http.StatusOK, response)
 	}
 
-	return ctx.JSON(http.StatusOK, response)
+	// Logic for RSS and Federated
+	response := &WorkerResponse{
+		Data: ComponentInfo{},
+	}
+
+	// Handle RSS if exists
+	if c.config.Component.RSS != nil {
+		m := c.config.Component.RSS
+		response.Data.RSS = &WorkerInfo{
+			WorkerID: m.ID,
+			Network:  m.Network,
+			Worker:   m.Worker,
+			Tags:     rss.ToTagsMap[m.Worker.(rss.Worker)],
+			Platform: rss.ToPlatformMap[m.Worker.(rss.Worker)].String(),
+			Status:   worker.StatusReady,
+		}
+	}
+
+	// Handle Federated if exists
+	if len(c.config.Component.Federated) > 0 {
+		f := c.config.Component.Federated[0]
+		if f.Worker == federated.Core {
+			response.Data.Federated = []*WorkerInfo{{
+				WorkerID: f.ID,
+				Network:  f.Network,
+				Worker:   f.Worker,
+				Tags:     federated.ToTagsMap[federated.Core],
+				Platform: federated.ToPlatformMap[federated.Core].String(),
+				Status:   worker.StatusReady,
+			}}
+		}
+	}
+
+	if response.Data.RSS != nil || len(response.Data.Federated) > 0 {
+		return ctx.JSON(http.StatusOK, response)
+	}
+
+	return nil
 }
 
 // fetchAllWorkerInfo fetches the status of all workers concurrently.
@@ -108,7 +108,19 @@ func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *
 		}(w)
 	}
 
-	modules := append(append(c.config.Component.Decentralized, c.config.Component.RSS), c.config.Component.Federated...)
+	modules := make([]*config.Module, 0, config.CalculateWorkerCount(c.config))
+
+	if len(c.config.Component.Decentralized) > 0 {
+		modules = append(modules, c.config.Component.Decentralized...)
+	}
+
+	if len(c.config.Component.Federated) > 0 {
+		modules = append(modules, c.config.Component.Federated...)
+	}
+
+	if c.config.Component.RSS != nil {
+		modules = append(modules, c.config.Component.RSS)
+	}
 
 	for _, m := range modules {
 		if m.Network.Protocol() == network.RSSProtocol {
@@ -131,7 +143,6 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 	response := &WorkerResponse{
 		Data: ComponentInfo{
 			Decentralized: []*WorkerInfo{},
-			RSS:           &WorkerInfo{},
 			Federated:     []*WorkerInfo{},
 		},
 	}
@@ -139,7 +150,9 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 	for workerInfo := range workerInfoChan {
 		switch workerInfo.Network.Protocol() {
 		case network.RSSProtocol:
-			response.Data.RSS = workerInfo
+			if c.config.Component.RSS != nil {
+				response.Data.RSS = workerInfo
+			}
 		case network.EthereumProtocol, network.FarcasterProtocol, network.ArweaveProtocol, network.NearProtocol:
 			response.Data.Decentralized = append(response.Data.Decentralized, workerInfo)
 		case network.ActivityPubProtocol:
