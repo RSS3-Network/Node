@@ -374,8 +374,8 @@ github.com/prometheus/procfs v0.15.1 h1:YagwOFzUgYfKKHX6Dr+sHT7km/hxC76UB0leargg
 github.com/prometheus/procfs v0.15.1/go.mod h1:fB45yRUv8NstnjriLhBQLuOUt+WW4BsoGhij/e3PBqk=
 github.com/redis/go-redis/v9 v9.5.1 h1:H1X4D3yHPaYrkL5X06Wh6xNVM/pX0Ft4RV0vMGvLBh8=
 github.com/redis/go-redis/v9 v9.5.1/go.mod h1:hdY0cQFCN4fnSYT6TkisLufl/4W5UIXyv0b/CLO2V2M=
-github.com/redis/rueidis v1.0.45 h1:j7hfcqfLLIqgTK3IkxBhXdeJcP34t3XLXvorDLqXfgM=
-github.com/redis/rueidis v1.0.45/go.mod h1:by+34b0cFXndxtYmPAHpoTHO5NkosDlBvhexoTURIxM=
+github.com/redis/rueidis v1.0.48 h1:ggZHjEtc/echUmPkGTfssRisnc3p/mIUEwrpbNsZ1mQ=
+github.com/redis/rueidis v1.0.48/go.mod h1:by+34b0cFXndxtYmPAHpoTHO5NkosDlBvhexoTURIxM=
 github.com/redis/rueidis/mock v1.0.45 h1:r2LRiwOtFib8+NAuVxNmcdxL7IMUk3as9IGPzx2v5tA=
 github.com/redis/rueidis/mock v1.0.45/go.mod h1:bjpk7ox5jwue03L8NpjgPBE91tLkm9Amla+XFYhaezc=
 github.com/redis/rueidis/rueidiscompat v1.0.45 h1:G+3HIaETgtwr6aL6BOTFCa2DfpPDhxqcoiDn8cvd5Ps=
