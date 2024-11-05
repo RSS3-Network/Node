@@ -23,7 +23,7 @@ require (
 	github.com/multiformats/go-varint v0.0.7
 	github.com/orlangure/gnomock v0.31.0
 	github.com/pressly/goose/v3 v3.22.1
-	github.com/prometheus/client_golang v1.20.4
+	github.com/prometheus/client_golang v1.20.5
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/samber/lo v1.47.0
 	github.com/shopspring/decimal v1.4.0
