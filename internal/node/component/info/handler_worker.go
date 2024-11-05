@@ -12,6 +12,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/config"
+	rssx "github.com/rss3-network/node/internal/node/component/rss"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
@@ -158,6 +159,16 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 		}
 
 		baseURL.Path = path.Join(baseURL.Path, "healthz")
+
+		// Parse RSS options from module parameters
+		option, err := rssx.NewOption(module.Parameters)
+		if err != nil {
+			zap.L().Error("parse config parameters", zap.Error(err))
+		} else if option.Authentication.AccessKey != "" {
+			query := baseURL.Query()
+			query.Set("key", option.Authentication.AccessKey)
+			baseURL.RawQuery = query.Encode()
+		}
 
 		var body io.ReadCloser
 		body, err = c.httpClient.Fetch(ctx, baseURL.String())
