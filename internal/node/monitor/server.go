@@ -97,8 +97,6 @@ func initNetworkClient(m *config.Module) (Client, error) {
 		client, err = NewArweaveClient()
 	case network.FarcasterProtocol:
 		client, err = NewFarcasterClient()
-	case network.RSSProtocol:
-		client, err = NewRssClient(m.EndpointID, m.Parameters)
 	case network.EthereumProtocol:
 		client, err = NewEthereumClient(m.Endpoint)
 	case network.NearProtocol:

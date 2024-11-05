@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
+	"path"
 	"sync"
 
 	"github.com/labstack/echo/v4"
@@ -46,11 +49,9 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 	workerCount := config.CalculateWorkerCount(c.config)
 	workerInfoChan := make(chan *WorkerInfo, workerCount)
 
-	if c.redisClient == nil {
-		return ctx.JSON(http.StatusInternalServerError, "redis client is required for monitor module")
-	}
-
+	// Fetch the status of all workers concurrently
 	c.fetchAllWorkerInfo(ctx, workerInfoChan)
+
 	response := c.buildWorkerResponse(workerInfoChan)
 
 	return ctx.JSON(http.StatusOK, response)
@@ -142,8 +143,36 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 		}
 	}
 
-	// Fetch status and progress from a specific worker by id.
-	status, workerProgress := c.getWorkerStatusAndProgressByID(ctx, module.ID)
+	var (
+		status         worker.Status
+		workerProgress monitor.WorkerProgress
+	)
+
+	status = worker.StatusUnhealthy
+
+	if module.Network.Protocol() == network.RSSProtocol {
+		// Check RSS worker health status
+		baseURL, err := url.Parse(module.EndpointID)
+		if err != nil {
+			zap.L().Error("invalid RSS endpoint", zap.String("endpoint", module.EndpointID))
+		}
+
+		baseURL.Path = path.Join(baseURL.Path, "healthz")
+
+		var body io.ReadCloser
+		body, err = c.httpClient.Fetch(ctx, baseURL.String())
+
+		if err != nil {
+			zap.L().Error("fetch RSS healthz", zap.String("endpoint", baseURL.String()), zap.Error(err))
+		} else {
+			defer body.Close()
+
+			status = worker.StatusReady
+		}
+	} else {
+		// Fetch status and progress from a specific worker by id.
+		status, workerProgress = c.getWorkerStatusAndProgressByID(ctx, module.ID)
+	}
 
 	workerInfo := &WorkerInfo{
 		WorkerID: module.ID,
