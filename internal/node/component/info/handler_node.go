@@ -171,15 +171,6 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 	})
 }
 
-// GetVersion returns the version of the network component.
-func (c *Component) GetVersion(ctx echo.Context) error {
-	version := c.buildVersion()
-
-	return ctx.JSON(http.StatusOK, VersionResponse{
-		Data: version,
-	})
-}
-
 func (c *Component) buildVersion() Version {
 	tag, commit := constant.BuildVersionDetail()
 
