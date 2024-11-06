@@ -91,7 +91,7 @@ var command = cobra.Command{
 
 		var settlementCaller *vsl.SettlementCaller
 
-		// Broadcaster does not need Redis, DB and Network Params Client
+		// Broadcaster and RSS Only Node does not need Redis, DB and Network Params Client
 		if module != BroadcasterArg && !config.IsRSSComponentOnly(configFile) {
 			// Init a Redis client.
 			if configFile.Redis == nil {
