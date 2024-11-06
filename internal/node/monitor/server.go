@@ -115,19 +115,12 @@ func initNetworkClient(m *config.Module) (Client, error) {
 // NewMonitor creates a new monitor instance.
 func NewMonitor(_ context.Context, configFile *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) (*Monitor, error) {
 	totalModules := len(configFile.Component.Decentralized) + len(configFile.Component.Federated)
-	if configFile.Component.RSS != nil {
-		totalModules++
-	}
 
 	modules := make([]*config.Module, 0, totalModules)
 
 	modules = append(modules, configFile.Component.Decentralized...)
 
 	modules = append(modules, configFile.Component.Federated...)
-
-	if configFile.Component.RSS != nil {
-		modules = append(modules, configFile.Component.RSS)
-	}
 
 	clients := make(map[network.Network]Client)
 
