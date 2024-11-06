@@ -91,8 +91,19 @@ var command = cobra.Command{
 
 		var settlementCaller *vsl.SettlementCaller
 
-		// Apply database migrations for all modules except the broadcaster.
+		// Broadcaster and RSS Only Node does not need Redis, DB and Network Params Client
 		if module != BroadcasterArg && !config.IsRSSComponentOnly(configFile) {
+			// Init a Redis client.
+			if configFile.Redis == nil {
+				zap.L().Error("redis configFile is missing")
+				return fmt.Errorf("redis configFile is missing")
+			}
+
+			redisClient, err = redis.NewClient(*configFile.Redis)
+			if err != nil {
+				return fmt.Errorf("new redis client: %w", err)
+			}
+
 			databaseClient, err = dialer.Dial(cmd.Context(), configFile.Database)
 			if err != nil {
 				return fmt.Errorf("dial database: %w", err)
@@ -109,17 +120,6 @@ var command = cobra.Command{
 					return fmt.Errorf("rollback database: %w", err)
 				}
 				return fmt.Errorf("migrate database: %w", err)
-			}
-
-			// Init a Redis client.
-			if configFile.Redis == nil {
-				zap.L().Error("redis configFile is missing")
-				return fmt.Errorf("redis configFile is missing")
-			}
-
-			redisClient, err = redis.NewClient(*configFile.Redis)
-			if err != nil {
-				return fmt.Errorf("new redis client: %w", err)
 			}
 
 			vslClient, err := parameter.InitVSLClient()

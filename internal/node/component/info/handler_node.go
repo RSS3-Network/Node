@@ -291,30 +291,14 @@ func (c *Component) sendRequest(ctx context.Context, path string, result any) er
 
 	internalURL.Path = path
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, internalURL.String(), nil)
+	body, err := c.httpClient.Fetch(ctx, internalURL.String())
 	if err != nil {
-		return fmt.Errorf("new request: %w", err)
+		return fmt.Errorf("fetch request: %w", err)
 	}
+	defer body.Close()
 
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("do request: %w", err)
-	}
-
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-
-	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err = json.NewDecoder(body).Decode(&result); err != nil {
 		return fmt.Errorf("decode response: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		marshal, _ := json.Marshal(result)
-
-		return fmt.Errorf("unexpected status: %s, response: %s", resp.Status, string(marshal))
 	}
 
 	return nil

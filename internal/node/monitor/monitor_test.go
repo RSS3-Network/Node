@@ -13,7 +13,6 @@ import (
 	redisx "github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
-	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/require"
 )
@@ -931,50 +930,6 @@ func TestMonitor(t *testing.T) {
 			want:      worker.StatusIndexing,
 			wantError: require.NoError,
 		},
-
-		// RSS rsshub
-		{
-			name:   "RSSHub Worker Ready Status -> Unhealthy Status",
-			source: network.RSSProtocol,
-			arguments: arguments{
-				config: &config.File{
-					Component: &config.Component{
-						RSS: &config.Module{
-							ID:         "rss-rsshub",
-							Network:    network.RSSHub,
-							Worker:     rss.Core,
-							EndpointID: "https://rsshub3.bruce.com",
-						},
-					},
-				},
-				currentState:  monitor.CheckpointState{},
-				latestState:   0,
-				initialStatus: worker.StatusReady,
-			},
-			want:      worker.StatusUnhealthy,
-			wantError: require.NoError,
-		},
-		{
-			name:   "Rsshub Worker Ready Status -> Ready Status",
-			source: network.RSSProtocol,
-			arguments: arguments{
-				config: &config.File{
-					Component: &config.Component{
-						RSS: &config.Module{
-							ID:         "rss-rsshub",
-							Network:    network.RSSHub,
-							Worker:     rss.Core,
-							EndpointID: "https://rsshub.app",
-						},
-					},
-				},
-				currentState:  monitor.CheckpointState{},
-				latestState:   0,
-				initialStatus: worker.StatusReady,
-			},
-			want:      worker.StatusReady,
-			wantError: require.NoError,
-		},
 	}
 
 	// Start Redis container
@@ -1001,7 +956,7 @@ func TestMonitor(t *testing.T) {
 		testcase := testcase
 
 		switch testcase.source {
-		case network.FarcasterProtocol, network.ArweaveProtocol, network.EthereumProtocol, network.NearProtocol:
+		case network.FarcasterProtocol, network.ArweaveProtocol, network.EthereumProtocol, network.NearProtocol, network.ActivityPubProtocol:
 			t.Run(testcase.name, func(t *testing.T) {
 				ctx := context.Background()
 
@@ -1022,25 +977,6 @@ func TestMonitor(t *testing.T) {
 
 				// check final worker status
 				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.Decentralized[0].ID)
-				require.Equal(t, testcase.want, status)
-			})
-		case network.RSSProtocol:
-			t.Run(testcase.name, func(t *testing.T) {
-				ctx := context.Background()
-
-				instance, err := monitor.NewMonitor(ctx, testcase.arguments.config, nil, redisClient, nil, nil)
-				require.NoError(t, err)
-
-				// update worker status to initial status
-				err = instance.UpdateWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS.ID, testcase.arguments.initialStatus.String())
-				require.NoError(t, err)
-
-				// run monitor
-				err = instance.MonitorMockWorkerStatus(ctx, testcase.arguments.currentState, testcase.arguments.targetState, testcase.arguments.latestState)
-				require.NoError(t, err)
-
-				// check final worker status
-				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS.ID)
 				require.Equal(t, testcase.want, status)
 			})
 		default:

@@ -326,11 +326,6 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 		if err != nil {
 			return nil, fmt.Errorf("new near monitorClient: %w", err)
 		}
-	case network.RSSProtocol:
-		instance.monitorClient, err = monitor.NewRssClient(config.EndpointID, config.Parameters)
-		if err != nil {
-			return nil, fmt.Errorf("new rss monitorClient: %w", err)
-		}
 	}
 
 	if err := instance.initializeMeter(); err != nil {

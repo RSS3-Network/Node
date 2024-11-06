@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"path"
 	"sync"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/config"
+	rssx "github.com/rss3-network/node/internal/node/component/rss"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
@@ -24,9 +27,9 @@ type WorkerResponse struct {
 }
 
 type ComponentInfo struct {
-	Decentralized []*WorkerInfo `json:"decentralized"`
-	RSS           *WorkerInfo   `json:"rss"`
-	Federated     []*WorkerInfo `json:"federated"`
+	Decentralized []*WorkerInfo `json:"decentralized,omitempty"`
+	RSS           *WorkerInfo   `json:"rss,omitempty"`
+	Federated     []*WorkerInfo `json:"federated,omitempty"`
 }
 
 type WorkerInfo struct {
@@ -46,50 +49,10 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 	workerCount := config.CalculateWorkerCount(c.config)
 	workerInfoChan := make(chan *WorkerInfo, workerCount)
 
-	var response *WorkerResponse
+	// Fetch the status of all workers concurrently
+	c.fetchAllWorkerInfo(ctx, workerInfoChan)
 
-	switch {
-	case c.redisClient != nil && len(c.config.Component.Decentralized) > 0:
-		// Fetch all worker info concurrently.
-		c.fetchAllWorkerInfo(ctx, workerInfoChan)
-
-		// Build the worker response.
-		response = c.buildWorkerResponse(workerInfoChan)
-	case c.config.Component.RSS != nil:
-		m := c.config.Component.RSS
-
-		response = &WorkerResponse{
-			Data: ComponentInfo{
-				RSS: &WorkerInfo{
-					WorkerID: m.ID,
-					Network:  m.Network,
-					Worker:   m.Worker,
-					Tags:     rss.ToTagsMap[m.Worker.(rss.Worker)],
-					Platform: rss.ToPlatformMap[m.Worker.(rss.Worker)].String(),
-					Status:   worker.StatusReady},
-			},
-		}
-	case len(c.config.Component.Federated) > 0:
-		f := c.config.Component.Federated[0]
-		switch f.Worker {
-		case federated.Core:
-			response = &WorkerResponse{
-				Data: ComponentInfo{
-					RSS: &WorkerInfo{
-						WorkerID: f.ID,
-						Network:  f.Network,
-						Worker:   f.Worker,
-						Tags:     federated.ToTagsMap[federated.Core],
-						Platform: rss.ToPlatformMap[f.Worker.(rss.Worker)].String(),
-						Status:   worker.StatusReady},
-				},
-			}
-		default:
-			return nil
-		}
-	default:
-		return nil
-	}
+	response := c.buildWorkerResponse(workerInfoChan)
 
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -108,7 +71,19 @@ func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *
 		}(w)
 	}
 
-	modules := append(append(c.config.Component.Decentralized, c.config.Component.RSS), c.config.Component.Federated...)
+	modules := make([]*config.Module, 0, config.CalculateWorkerCount(c.config))
+
+	if len(c.config.Component.Decentralized) > 0 {
+		modules = append(modules, c.config.Component.Decentralized...)
+	}
+
+	if len(c.config.Component.Federated) > 0 {
+		modules = append(modules, c.config.Component.Federated...)
+	}
+
+	if c.config.Component.RSS != nil {
+		modules = append(modules, c.config.Component.RSS)
+	}
 
 	for _, m := range modules {
 		if m.Network.Protocol() == network.RSSProtocol {
@@ -129,17 +104,23 @@ func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *
 // buildWorkerResponse builds the worker response from the worker info channel
 func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *WorkerResponse {
 	response := &WorkerResponse{
-		Data: ComponentInfo{
-			Decentralized: []*WorkerInfo{},
-			RSS:           &WorkerInfo{},
-			Federated:     []*WorkerInfo{},
-		},
+		Data: ComponentInfo{},
+	}
+
+	if len(c.config.Component.Decentralized) > 0 {
+		response.Data.Decentralized = []*WorkerInfo{}
+	}
+
+	if len(c.config.Component.Federated) > 0 {
+		response.Data.Federated = []*WorkerInfo{}
 	}
 
 	for workerInfo := range workerInfoChan {
 		switch workerInfo.Network.Protocol() {
 		case network.RSSProtocol:
-			response.Data.RSS = workerInfo
+			if c.config.Component.RSS != nil {
+				response.Data.RSS = workerInfo
+			}
 		case network.EthereumProtocol, network.FarcasterProtocol, network.ArweaveProtocol, network.NearProtocol:
 			response.Data.Decentralized = append(response.Data.Decentralized, workerInfo)
 		case network.ActivityPubProtocol:
@@ -162,8 +143,18 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 		}
 	}
 
-	// Fetch status and progress from a specific worker by id.
-	status, workerProgress := c.getWorkerStatusAndProgressByID(ctx, module.ID)
+	var (
+		status         worker.Status
+		workerProgress monitor.WorkerProgress
+	)
+
+	if module.Network.Protocol() == network.RSSProtocol {
+		// Check RSS worker health status
+		status, _ = c.checkRSSWorkerHealth(ctx, module)
+	} else {
+		// Fetch decentralized or federated worker status and progress from a specific worker by id.
+		status, workerProgress = c.getWorkerStatusAndProgressByID(ctx, module.ID)
+	}
 
 	workerInfo := &WorkerInfo{
 		WorkerID: module.ID,
@@ -209,6 +200,39 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 	}
 
 	return workerInfo
+}
+
+// checkRSSWorkerHealth checks the health of the RSS worker by `healthz` api.
+func (c *Component) checkRSSWorkerHealth(ctx context.Context, module *config.Module) (worker.Status, error) {
+	baseURL, err := url.Parse(module.EndpointID)
+	if err != nil {
+		zap.L().Error("invalid RSS endpoint", zap.String("endpoint", module.EndpointID))
+		return worker.StatusUnhealthy, err
+	}
+
+	baseURL.Path = path.Join(baseURL.Path, "healthz")
+
+	// Parse RSS options from module parameters
+	option, err := rssx.NewOption(module.Parameters)
+	if err != nil {
+		zap.L().Error("parse config parameters", zap.Error(err))
+		return worker.StatusUnhealthy, err
+	}
+
+	if option.Authentication.AccessKey != "" {
+		query := baseURL.Query()
+		query.Set("key", option.Authentication.AccessKey)
+		baseURL.RawQuery = query.Encode()
+	}
+
+	body, err := c.httpClient.Fetch(ctx, baseURL.String())
+	if err != nil {
+		zap.L().Error("fetch RSS healthz", zap.String("endpoint", baseURL.String()), zap.Error(err))
+		return worker.StatusUnhealthy, err
+	}
+	defer body.Close()
+
+	return worker.StatusReady, nil
 }
 
 // getWorkerStatusAndProgressByID gets both worker status and progress from Redis cache by worker ID.
