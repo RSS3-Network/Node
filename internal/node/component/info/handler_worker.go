@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -153,35 +152,9 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 
 	if module.Network.Protocol() == network.RSSProtocol {
 		// Check RSS worker health status
-		baseURL, err := url.Parse(module.EndpointID)
-		if err != nil {
-			zap.L().Error("invalid RSS endpoint", zap.String("endpoint", module.EndpointID))
-		}
-
-		baseURL.Path = path.Join(baseURL.Path, "healthz")
-
-		// Parse RSS options from module parameters
-		option, err := rssx.NewOption(module.Parameters)
-		if err != nil {
-			zap.L().Error("parse config parameters", zap.Error(err))
-		} else if option.Authentication.AccessKey != "" {
-			query := baseURL.Query()
-			query.Set("key", option.Authentication.AccessKey)
-			baseURL.RawQuery = query.Encode()
-		}
-
-		var body io.ReadCloser
-		body, err = c.httpClient.Fetch(ctx, baseURL.String())
-
-		if err != nil {
-			zap.L().Error("fetch RSS healthz", zap.String("endpoint", baseURL.String()), zap.Error(err))
-		} else {
-			defer body.Close()
-
-			status = worker.StatusReady
-		}
+		status, _ = c.checkRSSWorkerHealth(ctx, module)
 	} else {
-		// Fetch status and progress from a specific worker by id.
+		// Fetch decentralized or federated worker status and progress from a specific worker by id.
 		status, workerProgress = c.getWorkerStatusAndProgressByID(ctx, module.ID)
 	}
 
@@ -229,6 +202,39 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 	}
 
 	return workerInfo
+}
+
+// checkRSSWorkerHealth checks the health of the RSS worker by `healthz` api.
+func (c *Component) checkRSSWorkerHealth(ctx context.Context, module *config.Module) (worker.Status, error) {
+	baseURL, err := url.Parse(module.EndpointID)
+	if err != nil {
+		zap.L().Error("invalid RSS endpoint", zap.String("endpoint", module.EndpointID))
+		return worker.StatusUnhealthy, err
+	}
+
+	baseURL.Path = path.Join(baseURL.Path, "healthz")
+
+	// Parse RSS options from module parameters
+	option, err := rssx.NewOption(module.Parameters)
+	if err != nil {
+		zap.L().Error("parse config parameters", zap.Error(err))
+		return worker.StatusUnhealthy, err
+	}
+
+	if option.Authentication.AccessKey != "" {
+		query := baseURL.Query()
+		query.Set("key", option.Authentication.AccessKey)
+		baseURL.RawQuery = query.Encode()
+	}
+
+	body, err := c.httpClient.Fetch(ctx, baseURL.String())
+	if err != nil {
+		zap.L().Error("fetch RSS healthz", zap.String("endpoint", baseURL.String()), zap.Error(err))
+		return worker.StatusUnhealthy, err
+	}
+	defer body.Close()
+
+	return worker.StatusReady, nil
 }
 
 // getWorkerStatusAndProgressByID gets both worker status and progress from Redis cache by worker ID.
