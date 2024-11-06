@@ -148,8 +148,6 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 		workerProgress monitor.WorkerProgress
 	)
 
-	status = worker.StatusUnhealthy
-
 	if module.Network.Protocol() == network.RSSProtocol {
 		// Check RSS worker health status
 		status, _ = c.checkRSSWorkerHealth(ctx, module)
