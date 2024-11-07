@@ -60,6 +60,20 @@ var command = cobra.Command{
 			return fmt.Errorf("setup config file: %w", err)
 		}
 
+		// set the logger level based on the environment
+		// if the environment variable is not set, use the environment from the config file
+		environment := os.Getenv(config.Environment)
+		if environment == "" {
+			environment = configFile.Environment
+			if environment == config.EnvironmentDevelopment {
+				zap.ReplaceGlobals(zap.Must(zap.NewDevelopment()))
+			} else {
+				zap.ReplaceGlobals(zap.Must(zap.NewProduction()))
+			}
+		}
+
+		zap.L().Info("logger initialized", zap.String("environment", environment))
+
 		if err = config.HasOneWorker(configFile); err != nil {
 			return err
 		}
