@@ -65,32 +65,46 @@ func (c *client) Migrate(ctx context.Context) error {
 
 // WithTransaction executes a transaction.
 func (c *client) WithTransaction(ctx context.Context, transactionFunction func(ctx context.Context, client database.Client) error, transactionOptions ...*sql.TxOptions) error {
+	zap.L().Debug("starting database transaction")
+
 	transactionFunc := func() error {
 		transaction, err := c.Begin(ctx, transactionOptions...)
 		if err != nil {
 			return fmt.Errorf("begin transaction: %w", err)
 		}
 
+		zap.L().Debug("transaction began successfully")
+
 		if err := transactionFunction(ctx, transaction); err != nil {
+			zap.L().Warn("rolling back transaction due to error", zap.Error(err))
+
 			_ = transaction.Rollback()
 
 			return fmt.Errorf("execute transaction: %w", err)
 		}
 
 		if err := transaction.Commit(); err != nil {
+			zap.L().Error("failed to commit transaction", zap.Error(err))
 			return fmt.Errorf("commit transaction: %w", err)
 		}
+
+		zap.L().Info("transaction committed successfully")
 
 		return nil
 	}
 
 	retryIfFunc := func(err error) bool {
 		// https://www.cockroachlabs.com/docs/stable/transaction-retry-error-reference#retry_serializable
-		return strings.Contains(err.Error(), "TransactionRetryWithProtoRefreshError: TransactionRetryError:")
+		shouldRetry := strings.Contains(err.Error(), "TransactionRetryWithProtoRefreshError: TransactionRetryError:")
+		if shouldRetry {
+			zap.L().Debug("transaction needs retry", zap.Error(err))
+		}
+
+		return shouldRetry
 	}
 
 	onRetryFunc := func(n uint, err error) {
-		zap.L().Error("execute transaction", zap.Uint("retry", n), zap.Error(err))
+		zap.L().Error("retrying failed transaction", zap.Uint("retry_attempt", n), zap.Error(err))
 	}
 
 	return retry.Do(
@@ -125,15 +139,29 @@ func (c *client) Commit() error {
 func (c *client) LoadCheckpoint(ctx context.Context, id string, network networkx.Network, worker string) (*engine.Checkpoint, error) {
 	var value table.Checkpoint
 
-	zap.L().Info("load checkpoint", zap.String("id", id), zap.String("network", network.String()), zap.String("worker", worker))
+	zap.L().Debug("attempting to load checkpoint from database",
+		zap.String("id", id),
+		zap.String("network", network.String()),
+		zap.String("worker", worker))
 
 	if err := c.database.WithContext(ctx).
 		Where("id = ? AND network = ? AND worker = ?", id, network, worker).
 		First(&value).
 		Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			zap.L().Error("failed to query checkpoint from database",
+				zap.String("id", id),
+				zap.String("network", network.String()),
+				zap.String("worker", worker),
+				zap.Error(err))
+
 			return nil, err
 		}
+
+		zap.L().Info("checkpoint not found, initializing default checkpoint",
+			zap.String("id", id),
+			zap.String("network", network.String()),
+			zap.String("worker", worker))
 
 		// Initialize a default checkpoint.
 		value = table.Checkpoint{
@@ -146,6 +174,11 @@ func (c *client) LoadCheckpoint(ctx context.Context, id string, network networkx
 		}
 	}
 
+	zap.L().Debug("successfully loaded checkpoint",
+		zap.String("id", id),
+		zap.String("network", network.String()),
+		zap.String("worker", worker))
+
 	return value.Export()
 }
 
@@ -154,7 +187,10 @@ func (c *client) LoadCheckpoints(ctx context.Context, id string, network network
 
 	var checkpoints []*table.Checkpoint
 
-	zap.L().Info("load checkpoints", zap.String("id", id), zap.String("network", network.String()), zap.String("worker", worker))
+	zap.L().Debug("attempting to load checkpoints from database",
+		zap.String("id", id),
+		zap.String("network", network.String()),
+		zap.String("worker", worker))
 
 	if id != "" {
 		databaseStatement = databaseStatement.Where("id = ?", id)
@@ -170,8 +206,23 @@ func (c *client) LoadCheckpoints(ctx context.Context, id string, network network
 
 	if err := databaseStatement.Find(&checkpoints).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			zap.L().Error("failed to query checkpoints from database",
+				zap.String("id", id),
+				zap.String("network", network.String()),
+				zap.String("worker", worker),
+				zap.Error(err))
+
 			return nil, err
 		}
+	}
+
+	if len(checkpoints) == 0 {
+		zap.L().Info("no checkpoints found with given criteria",
+			zap.String("id", id),
+			zap.String("network", network.String()),
+			zap.String("worker", worker))
+
+		return nil, nil
 	}
 
 	result := make([]*engine.Checkpoint, 0, len(checkpoints))
@@ -179,16 +230,33 @@ func (c *client) LoadCheckpoints(ctx context.Context, id string, network network
 	for _, checkpoint := range checkpoints {
 		data, err := checkpoint.Export()
 		if err != nil {
+			zap.L().Error("failed to export checkpoint",
+				zap.String("id", checkpoint.ID),
+				zap.String("network", checkpoint.Network.String()),
+				zap.String("worker", checkpoint.Worker),
+				zap.Error(err))
+
 			return nil, err
 		}
 
 		result = append(result, data)
 	}
 
+	zap.L().Debug("successfully loaded checkpoints",
+		zap.Int("count", len(result)),
+		zap.String("id", id),
+		zap.String("network", network.String()),
+		zap.String("worker", worker))
+
 	return result, nil
 }
 
 func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error {
+	zap.L().Debug("saving checkpoint",
+		zap.String("id", checkpoint.ID),
+		zap.String("state", string(checkpoint.State)),
+		zap.Int64("index_count", checkpoint.IndexCount))
+
 	spanStartOptions := []trace.SpanStartOption{
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(
@@ -212,14 +280,33 @@ func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoi
 
 	var value table.Checkpoint
 	if err := value.Import(checkpoint); err != nil {
+		zap.L().Error("failed to import checkpoint",
+			zap.String("id", checkpoint.ID),
+			zap.Error(err))
+
 		return err
 	}
 
-	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
+	if err := c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error; err != nil {
+		zap.L().Error("failed to save checkpoint",
+			zap.String("id", checkpoint.ID),
+			zap.Error(err))
+
+		return err
+	}
+
+	zap.L().Info("checkpoint saved successfully",
+		zap.Any("checkpoint", checkpoint))
+
+	return nil
 }
 
 // SaveActivities saves activities and indexes to the database.
 func (c *client) SaveActivities(ctx context.Context, activities []*activityx.Activity, lowPriority bool) error {
+	zap.L().Debug("saving activities",
+		zap.Int("count", len(activities)),
+		zap.Bool("low_priority", lowPriority))
+
 	spanStartOptions := []trace.SpanStartOption{
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(
@@ -231,8 +318,18 @@ func (c *client) SaveActivities(ctx context.Context, activities []*activityx.Act
 	defer span.End()
 
 	if c.partition {
-		return c.saveActivitiesPartitioned(ctx, activities, lowPriority)
+		if err := c.saveActivitiesPartitioned(ctx, activities, lowPriority); err != nil {
+			zap.L().Error("failed to save activities with partition",
+				zap.Int("count", len(activities)),
+				zap.Error(err))
+
+			return err
+		}
+
+		return nil
 	}
+
+	zap.L().Warn("saving activities without partition is not implemented")
 
 	return fmt.Errorf("not implemented")
 }
