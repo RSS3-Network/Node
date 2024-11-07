@@ -11,7 +11,7 @@ discovery:
     # You MUST NOT share the signature with anyone.
     signature: 0x...signature
   server:
-    # `endpoint` is how how Global Indexers access your Node.
+    # `endpoint` is how Global Indexers access your Node.
     # You can use a domain or an IP address.
     endpoint: https://your.node.com
     # If your Node is registered on the VSL Testnet, use https://gi.rss3.dev.
