@@ -11,7 +11,6 @@ import (
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema/network"
-	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
@@ -35,7 +34,7 @@ type WorkerProgress struct {
 func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 	var wg sync.WaitGroup
 
-	errChan := make(chan error, len(m.config.Component.Decentralized)+lo.Ternary(m.config.Component.RSS != nil, 1, 0)+len(m.config.Component.Federated))
+	errChan := make(chan error, len(m.config.Component.Decentralized)+len(m.config.Component.Federated))
 
 	processWorker := func(w *config.Module, processFunc func(context.Context, *config.Module) error) {
 		wg.Add(1)
@@ -51,10 +50,6 @@ func (m *Monitor) MonitorWorkerStatus(ctx context.Context) error {
 
 	for _, w := range m.config.Component.Decentralized {
 		processWorker(w, m.processDecentralizedWorker)
-	}
-
-	if m.config.Component.RSS != nil {
-		processWorker(m.config.Component.RSS, m.processRSSWorker)
 	}
 
 	if m.config.Component.Federated != nil {
@@ -119,21 +114,6 @@ func (m *Monitor) processFederatedWorker(ctx context.Context, w *config.Module) 
 	}
 
 	// Check health with timeout context
-	targetStatus := workerx.StatusReady
-	if _, _, err := client.LatestState(ctx); err != nil {
-		targetStatus = workerx.StatusUnhealthy
-	}
-
-	return m.UpdateWorkerStatusByID(ctx, w.ID, targetStatus.String())
-}
-
-// processRSSWorker processes the rss worker status.
-func (m *Monitor) processRSSWorker(ctx context.Context, w *config.Module) error {
-	client, ok := m.clients[w.Network]
-	if !ok {
-		return fmt.Errorf("client not exist")
-	}
-
 	targetStatus := workerx.StatusReady
 	if _, _, err := client.LatestState(ctx); err != nil {
 		targetStatus = workerx.StatusUnhealthy

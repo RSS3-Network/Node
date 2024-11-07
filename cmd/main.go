@@ -54,13 +54,18 @@ var command = cobra.Command{
 	RunE: func(cmd *cobra.Command, _ []string) error {
 		flags = cmd.PersistentFlags()
 
-		config, err := config.Setup(lo.Must(flags.GetString(flag.KeyConfig)))
+		configFile, err := config.Setup(lo.Must(flags.GetString(flag.KeyConfig)))
+
 		if err != nil {
 			return fmt.Errorf("setup config file: %w", err)
 		}
 
-		if config.Observability != nil {
-			if err := setOpenTelemetry(config); err != nil {
+		if err = config.HasOneWorker(configFile); err != nil {
+			return err
+		}
+
+		if configFile.Observability != nil {
+			if err := setOpenTelemetry(configFile); err != nil {
 				return fmt.Errorf("set open telemetry: %w", err)
 			}
 		}
@@ -68,8 +73,8 @@ var command = cobra.Command{
 		// Init stream client.
 		var streamClient stream.Client
 
-		if config.Stream != nil && *config.Stream.Enable {
-			streamClient, err = provider.New(cmd.Context(), config.Stream)
+		if configFile.Stream != nil && *configFile.Stream.Enable {
+			streamClient, err = provider.New(cmd.Context(), configFile.Stream)
 			if err != nil {
 				return fmt.Errorf("dial stream client: %w", err)
 			}
@@ -86,21 +91,35 @@ var command = cobra.Command{
 
 		var settlementCaller *vsl.SettlementCaller
 
-		// Apply database migrations for all modules except the broadcaster.
-		if module != BroadcasterArg && (len(config.Component.Decentralized) > 0 || len(config.Component.Federated) > 0) {
-			databaseClient, err = dialer.Dial(cmd.Context(), config.Database)
+		// Broadcaster and RSS Only Node does not need Redis, DB and Network Params Client
+		if module != BroadcasterArg && !config.IsRSSComponentOnly(configFile) {
+			// Init a Redis client.
+			if configFile.Redis == nil {
+				zap.L().Error("redis configFile is missing")
+				return fmt.Errorf("redis configFile is missing")
+			}
+
+			redisClient, err = redis.NewClient(*configFile.Redis)
+			if err != nil {
+				return fmt.Errorf("new redis client: %w", err)
+			}
+
+			databaseClient, err = dialer.Dial(cmd.Context(), configFile.Database)
 			if err != nil {
 				return fmt.Errorf("dial database: %w", err)
 			}
 
-			if err := databaseClient.Migrate(cmd.Context()); err != nil {
-				return fmt.Errorf("migrate database: %w", err)
+			tx, err := databaseClient.Begin(cmd.Context())
+			if err != nil {
+				return fmt.Errorf("begin transaction: %w", err)
 			}
 
-			// Init redis client
-			redisClient, err = redis.NewClient(*config.Redis)
-			if err != nil {
-				return fmt.Errorf("new redis client: %w", err)
+			if err := tx.Migrate(cmd.Context()); err != nil {
+				err := tx.Rollback()
+				if err != nil {
+					return fmt.Errorf("rollback database: %w", err)
+				}
+				return fmt.Errorf("migrate database: %w", err)
 			}
 
 			vslClient, err := parameter.InitVSLClient()
@@ -155,6 +174,10 @@ var command = cobra.Command{
 					return fmt.Errorf("update current block start: %w", err)
 				}
 			}
+
+			if err := tx.Commit(); err != nil {
+				return fmt.Errorf("commit transaction: %w", err)
+			}
 		}
 
 		switch module {
@@ -165,13 +188,13 @@ var command = cobra.Command{
 				return fmt.Errorf("record first start time: %w", err)
 			}
 
-			return runCoreService(cmd.Context(), config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
+			return runCoreService(cmd.Context(), configFile, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 		case WorkerArg:
-			return runWorker(cmd.Context(), config, databaseClient, streamClient, redisClient)
+			return runWorker(cmd.Context(), configFile, databaseClient, streamClient, redisClient)
 		case BroadcasterArg:
-			return runBroadcaster(cmd.Context(), config)
+			return runBroadcaster(cmd.Context(), configFile)
 		case MonitorArg:
-			return runMonitor(cmd.Context(), config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
+			return runMonitor(cmd.Context(), configFile, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 		}
 
 		return fmt.Errorf("unsupported module %s", lo.Must(flags.GetString(flag.KeyModule)))
@@ -197,17 +220,19 @@ func recordFirstStartTime() error {
 	return nil
 }
 
-func runCoreService(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
-	server := node.NewCoreService(ctx, config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
+func runCoreService(ctx context.Context, configFile *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
+	server := node.NewCoreService(ctx, configFile, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 
 	checkCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	go func() {
-		if err := node.CheckParams(checkCtx, redisClient, networkParamsCaller, settlementCaller); err != nil {
-			fmt.Printf("Error checking parameters: %v\n", err)
-		}
-	}()
+	if !config.IsRSSComponentOnly(configFile) {
+		go func() {
+			if err := node.CheckParams(checkCtx, redisClient, networkParamsCaller, settlementCaller); err != nil {
+				fmt.Printf("Error checking parameters: %v\n", err)
+			}
+		}()
+	}
 
 	apiErrChan := make(chan error, 1)
 	go func() {

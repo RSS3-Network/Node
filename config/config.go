@@ -256,10 +256,17 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 		return nil, fmt.Errorf("unmarshal config file: %w", err)
 	}
 
+	// Check if at least 1 component is enabled.
+	if configFile.Component == nil {
+		return nil, fmt.Errorf("at least 1 component is required")
+	}
+
 	// Add extra logic to convert federated worker string to correct worker type.
-	for _, module := range configFile.Component.Federated {
-		if federatedWorker := federated.GetValueByWorkerStr(module.Worker.Name()); federatedWorker != 0 {
-			module.Worker = federatedWorker
+	if configFile.Component.Federated != nil {
+		for _, module := range configFile.Component.Federated {
+			if federatedWorker := federated.GetValueByWorkerStr(module.Worker.Name()); federatedWorker != 0 {
+				module.Worker = federatedWorker
+			}
 		}
 	}
 

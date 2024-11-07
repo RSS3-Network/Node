@@ -88,7 +88,7 @@ func (c *client) loadIndexesPartitionTables(ctx context.Context) {
 }
 
 // saveActivitiesPartitioned saves Activities in partitioned tables.
-func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*activityx.Activity) error {
+func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*activityx.Activity, lowPriority bool) error {
 	partitions := make(map[string][]*activityx.Activity)
 
 	// Group activities by partition name.
@@ -135,15 +135,33 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 				UpdateAll: true,
 			}
 
+			// If low priority, only save activities without platform.
+			// Otherwise, insert/update activities into the database based on id
+			if lowPriority {
+				onConflict.Where = clause.Where{
+					Exprs: []clause.Expression{
+						gorm.Expr(fmt.Sprintf("%s.platform IS NULL OR %s.platform = ''", name, name)),
+					},
+				}
+			}
+
+			var affectedActivities table.Activities
+
+			activityIDs := lo.Map(tableActivities, func(item *table.Activity, _ int) string {
+				return item.ID
+			})
+
 			if err := c.database.WithContext(ctx).
 				Table(name).
 				Clauses(onConflict).
 				CreateInBatches(tableActivities, math.MaxUint8).
+				Where("id IN ?", activityIDs).
+				Find(&affectedActivities).
 				Error; err != nil {
 				return err
 			}
 
-			return c.saveIndexesPartitioned(ctx, activities)
+			return c.saveIndexesPartitioned(ctx, lo.Must(affectedActivities.Export()))
 		})
 	}
 
@@ -226,7 +244,7 @@ func (c *client) findActivitiesPartitioned(ctx context.Context, query model.Acti
 			locker.Lock()
 			defer locker.Unlock()
 
-			activities, err := tableActivities.Export(index)
+			activities, err := tableActivities.ExportByIndexes(index)
 			if err != nil {
 				return err
 			}
@@ -295,7 +313,7 @@ func (c *client) findFederatedActivitiesPartitioned(ctx context.Context, query m
 			locker.Lock()
 			defer locker.Unlock()
 
-			activities, err := tableActivities.Export(index)
+			activities, err := tableActivities.ExportByIndexes(index)
 			if err != nil {
 				return err
 			}

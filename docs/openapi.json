@@ -577,7 +577,7 @@
                 }
             }
         },
-        "/workers_status": {
+        "/operators/workers_status": {
             "get": {
                 "summary": "Get Node Worker Status",
                 "description": "Retrieve node worker status details.",
@@ -597,7 +597,7 @@
                 }
             }
         },
-        "/info": {
+        "/operators/info": {
             "get": {
                 "summary": "Get Node Status",
                 "description": "Retrieve node status details.",
@@ -1410,9 +1410,6 @@
                         "properties": {
                             "id": {
                                 "type": "string"
-                            },
-                            "endpoint_configs": {
-                                "$ref": "#/components/schemas/Endpoint"
                             },
                             "worker_configs": {
                                 "$ref": "#/components/schemas/WorkerConfig"

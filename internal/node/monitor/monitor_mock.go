@@ -7,16 +7,14 @@ import (
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/parameter"
-	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
-	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
 func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState CheckpointState, targetWorkerState, latestState uint64) error {
 	var wg sync.WaitGroup
 
-	errChan := make(chan error, len(m.config.Component.Decentralized)+lo.Ternary(m.config.Component.RSS != nil, 1, 0))
+	errChan := make(chan error, len(m.config.Component.Decentralized)+len(m.config.Component.Federated))
 
 	for _, w := range m.config.Component.Decentralized {
 		wg.Add(1)
@@ -28,18 +26,6 @@ func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState Chec
 				errChan <- err
 			}
 		}(w)
-	}
-
-	if m.config.Component.RSS != nil {
-		wg.Add(1)
-
-		go func(w *config.Module) {
-			defer wg.Done()
-
-			if err := m.processMockRSSWorker(ctx, w); err != nil {
-				errChan <- err
-			}
-		}(m.config.Component.RSS)
 	}
 
 	for _, w := range m.config.Component.Federated {
@@ -94,21 +80,6 @@ func (m *Monitor) processMockWorker(ctx context.Context, w *config.Module, curre
 	}
 
 	return nil
-}
-
-// processMockRSSWorker processes the rss worker status.
-func (m *Monitor) processMockRSSWorker(ctx context.Context, w *config.Module) error {
-	client, ok := m.clients[w.Network]
-	if !ok {
-		return fmt.Errorf("client not exist")
-	}
-
-	targetStatus := workerx.StatusReady
-	if _, _, err := client.LatestState(ctx); err != nil {
-		targetStatus = workerx.StatusUnhealthy
-	}
-
-	return m.UpdateWorkerStatusByID(ctx, w.ID, targetStatus.String())
 }
 
 // processFederatedWorker processes the federated worker status.

@@ -24,3 +24,29 @@ func DecodePathParamsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
+
+// HeadToGetMiddleware Add HEAD to all GET methods.
+func HeadToGetMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if c.Request().Method == http.MethodHead {
+			// Set the method to GET temporarily to reuse the handler
+			c.Request().Method = http.MethodGet
+
+			defer func() {
+				c.Request().Method = http.MethodHead
+			}() // Restore method after
+
+			// Call the next handler and then clear the response body
+			if err := next(c); err != nil {
+				if err.Error() == echo.ErrMethodNotAllowed.Error() {
+					c.NoContent(http.StatusOK) //nolint:errcheck
+					return nil
+				}
+
+				return err
+			}
+		}
+
+		return next(c)
+	}
+}

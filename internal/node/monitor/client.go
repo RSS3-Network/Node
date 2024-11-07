@@ -3,18 +3,16 @@ package monitor
 import (
 	"context"
 	"fmt"
-	"net/url"
-	"path"
 	"strconv"
 	"time"
 
 	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/provider/activitypub/mastodon"
 	"github.com/rss3-network/node/internal/engine/protocol/activitypub"
 	"github.com/rss3-network/node/internal/node/component/rss"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/farcaster"
-	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/near"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"go.uber.org/zap"
@@ -209,66 +207,6 @@ func convertToUint64(value interface{}) (uint64, error) {
 // NewFarcasterClient returns a new farcaster client.
 func NewFarcasterClient() (Client, error) {
 	return &farcasterClient{}, nil
-}
-
-// rssClient is a client implementation for rss.
-type rssClient struct {
-	httpClient httpx.Client
-	url        string
-}
-
-// make sure client implements Client
-var _ Client = (*rssClient)(nil)
-
-func (c *rssClient) CurrentState(_ CheckpointState) (uint64, uint64) {
-	return 0, 0
-}
-
-func (c *rssClient) TargetState(_ *config.Parameters) (uint64, uint64) {
-	return 0, 0
-}
-
-// LatestState requests a URL to check if it can be accessed correctly.
-func (c *rssClient) LatestState(ctx context.Context) (uint64, uint64, error) {
-	_, err := c.httpClient.Fetch(ctx, c.url)
-
-	if err != nil {
-		return 0, 0, err
-	}
-
-	return 0, 0, nil
-}
-
-// NewRssClient returns a new rss client.
-func NewRssClient(endpoint string, param *config.Parameters) (Client, error) {
-	base, err := url.Parse(endpoint)
-	if err != nil {
-		return nil, fmt.Errorf("parse RSSHub endpoint: %w", err)
-	}
-
-	// used for health checks
-	base.Path = path.Join(base.Path, "healthz")
-
-	option, err := rss.NewOption(param)
-	if err != nil {
-		return nil, fmt.Errorf("parse config parameters: %w", err)
-	}
-
-	if option.Authentication.AccessKey != "" {
-		query := base.Query()
-		query.Set("key", option.Authentication.AccessKey)
-		base.RawQuery = query.Encode()
-	}
-
-	httpClient, err := httpx.NewHTTPClient()
-	if err != nil {
-		return nil, err
-	}
-
-	return &rssClient{
-		httpClient: httpClient,
-		url:        base.String(),
-	}, nil
 }
 
 func (c *activitypubClient) CurrentState(_ CheckpointState) (uint64, uint64) {

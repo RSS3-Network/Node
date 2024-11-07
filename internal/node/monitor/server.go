@@ -97,8 +97,6 @@ func initNetworkClient(m *config.Module) (Client, error) {
 		client, err = NewArweaveClient()
 	case network.FarcasterProtocol:
 		client, err = NewFarcasterClient()
-	case network.RSSProtocol:
-		client, err = NewRssClient(m.EndpointID, m.Parameters)
 	case network.EthereumProtocol:
 		client, err = NewEthereumClient(m.Endpoint)
 	case network.NearProtocol:
@@ -117,19 +115,12 @@ func initNetworkClient(m *config.Module) (Client, error) {
 // NewMonitor creates a new monitor instance.
 func NewMonitor(_ context.Context, configFile *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) (*Monitor, error) {
 	totalModules := len(configFile.Component.Decentralized) + len(configFile.Component.Federated)
-	if configFile.Component.RSS != nil {
-		totalModules++
-	}
 
 	modules := make([]*config.Module, 0, totalModules)
 
 	modules = append(modules, configFile.Component.Decentralized...)
 
 	modules = append(modules, configFile.Component.Federated...)
-
-	if configFile.Component.RSS != nil {
-		modules = append(modules, configFile.Component.RSS)
-	}
 
 	clients := make(map[network.Network]Client)
 

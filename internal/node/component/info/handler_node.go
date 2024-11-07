@@ -171,15 +171,6 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 	})
 }
 
-// GetVersion returns the version of the network component.
-func (c *Component) GetVersion(ctx echo.Context) error {
-	version := c.buildVersion()
-
-	return ctx.JSON(http.StatusOK, VersionResponse{
-		Data: version,
-	})
-}
-
 func (c *Component) buildVersion() Version {
 	tag, commit := constant.BuildVersionDetail()
 
@@ -300,30 +291,14 @@ func (c *Component) sendRequest(ctx context.Context, path string, result any) er
 
 	internalURL.Path = path
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, internalURL.String(), nil)
+	body, err := c.httpClient.Fetch(ctx, internalURL.String())
 	if err != nil {
-		return fmt.Errorf("new request: %w", err)
+		return fmt.Errorf("fetch request: %w", err)
 	}
+	defer body.Close()
 
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("do request: %w", err)
-	}
-
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-
-	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err = json.NewDecoder(body).Decode(&result); err != nil {
 		return fmt.Errorf("decode response: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		marshal, _ := json.Marshal(result)
-
-		return fmt.Errorf("unexpected status: %s, response: %s", resp.Status, string(marshal))
 	}
 
 	return nil

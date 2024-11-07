@@ -219,7 +219,7 @@ func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoi
 }
 
 // SaveActivities saves activities and indexes to the database.
-func (c *client) SaveActivities(ctx context.Context, activities []*activityx.Activity) error {
+func (c *client) SaveActivities(ctx context.Context, activities []*activityx.Activity, lowPriority bool) error {
 	spanStartOptions := []trace.SpanStartOption{
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(
@@ -231,7 +231,7 @@ func (c *client) SaveActivities(ctx context.Context, activities []*activityx.Act
 	defer span.End()
 
 	if c.partition {
-		return c.saveActivitiesPartitioned(ctx, activities)
+		return c.saveActivitiesPartitioned(ctx, activities, lowPriority)
 	}
 
 	return fmt.Errorf("not implemented")

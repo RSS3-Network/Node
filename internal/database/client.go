@@ -27,7 +27,7 @@ type Client interface {
 	LoadCheckpoints(ctx context.Context, id string, network network.Network, worker string) ([]*engine.Checkpoint, error)
 	SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error
 
-	SaveActivities(ctx context.Context, activities []*activityx.Activity) error
+	SaveActivities(ctx context.Context, activities []*activityx.Activity, lowPriority bool) error
 	FindActivity(ctx context.Context, query model.ActivityQuery) (*activityx.Activity, *int, error)
 	FindActivities(ctx context.Context, query model.ActivitiesQuery) ([]*activityx.Activity, error)
 	FindFederatedActivities(ctx context.Context, query model.FederatedActivitiesQuery) ([]*activityx.Activity, error)

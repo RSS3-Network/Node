@@ -15,7 +15,6 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/internal/engine/protocol"
 	decentralizedWorker "github.com/rss3-network/node/internal/engine/worker/decentralized"
-	// worker "github.com/rss3-network/node/internal/engine/worker/decentralized"
 	federatedWorker "github.com/rss3-network/node/internal/engine/worker/federated"
 	"github.com/rss3-network/node/internal/node/monitor"
 	"github.com/rss3-network/node/internal/stream"
@@ -153,17 +152,21 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		})
 	}
 
-	// Filter failed activities.
+	// Filter out activities that failed to transform or contain no actions
 	activities := lo.Filter(resultPool.Wait(), func(activity *activityx.Activity, _ int) bool {
-		return activity != nil
+		return activity != nil && len(activity.Actions) > 0
 	})
 
 	// Deprecated: use meterTasksHistogram instead.
 	s.meterTasksCounter.Add(ctx, int64(tasks.Len()), meterTasksCounterAttributes)
 	checkpoint.IndexCount = int64(len(activities))
 
+	// Low priority for Ethereum protocol and Core worker.
+	// Prevent low priority worker from overwriting activities from high priority worker in database.
+	lowPriority := checkpoint.Network.Protocol() == network.EthereumProtocol && s.worker.Name() == decentralizedx.Core.String()
+
 	// Save activities and checkpoint to the database.
-	if err := s.databaseClient.SaveActivities(ctx, activities); err != nil {
+	if err := s.databaseClient.SaveActivities(ctx, activities, lowPriority); err != nil {
 		return fmt.Errorf("save %d activities: %w", len(activities), err)
 	}
 
@@ -322,11 +325,6 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 		instance.monitorClient, err = monitor.NewNearClient(config.Endpoint)
 		if err != nil {
 			return nil, fmt.Errorf("new near monitorClient: %w", err)
-		}
-	case network.RSSProtocol:
-		instance.monitorClient, err = monitor.NewRssClient(config.EndpointID, config.Parameters)
-		if err != nil {
-			return nil, fmt.Errorf("new rss monitorClient: %w", err)
 		}
 	}
 
