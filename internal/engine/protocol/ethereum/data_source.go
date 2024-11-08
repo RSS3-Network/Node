@@ -102,6 +102,9 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 	// Set the block number to the start block number if it is greater than the current block number.
 	if s.option.BlockStart != nil && s.option.BlockStart.Uint64() > s.state.BlockNumber {
 		s.state.BlockNumber = s.option.BlockStart.Uint64()
+		zap.L().Info("Updated block number from start block",
+			zap.Uint64("block.number.start", s.option.BlockStart.Uint64()),
+			zap.Uint64("block.number.current", s.state.BlockNumber))
 	}
 
 	for {
@@ -117,6 +120,10 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 
 		remoteBlockStart, err := parameter.GetNetworkBlockStart(ctx, s.redisClient, s.config.Network.String())
 		if err != nil {
+			zap.L().Error("Failed to get network block start from cache",
+				zap.Error(err),
+				zap.String("network", s.config.Network.String()))
+
 			return fmt.Errorf("get network block start from cache: %w", err)
 		}
 
@@ -133,8 +140,13 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 			// Refresh the remote block number.
 			blockNumber, err := s.ethereumClient.BlockNumber(ctx)
 			if err != nil {
+				zap.L().Error("Failed to get latest block number",
+					zap.Error(err))
 				return fmt.Errorf("get latest block number: %w", err)
 			}
+
+			zap.L().Debug("Retrieved latest block number from remote",
+				zap.Uint64("block.number.remote", blockNumber.Uint64()))
 
 			blockNumberLatestRemote = blockNumber.Uint64()
 
@@ -157,6 +169,10 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 			return blockNumber.Uint64() <= blockNumberLatestRemote
 		})
 
+		zap.L().Debug("Processing block range",
+			zap.String("block.number.start", blockNumbers[0].String()),
+			zap.String("block.number.end", blockNumbers[len(blockNumbers)-1].String()))
+
 		span.SetAttributes(
 			attribute.Stringer("block.number.start", blockNumbers[0]),
 			attribute.Stringer("block.number.end", blockNumbers[len(blockNumbers)-1]),
@@ -164,11 +180,20 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 
 		blocks, err := s.getBlocks(ctx, blockNumbers)
 		if err != nil {
+			zap.L().Error("Failed to get blocks",
+				zap.Error(err),
+				zap.String("block.number.start", blockNumbers[0].String()),
+				zap.String("block.number.end", blockNumbers[len(blockNumbers)-1].String()))
+
 			return fmt.Errorf("get blocks by block numbers: %w", err)
 		}
 
 		receipts, err := s.getReceipts(ctx, blocks)
 		if err != nil {
+			zap.L().Error("Failed to get receipts",
+				zap.Error(err),
+				zap.Int("blocks.count", len(blocks)))
+
 			return fmt.Errorf("get receipts: %w", err)
 		}
 
@@ -195,6 +220,11 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 
 		s.state.BlockHash = latestBlock.Hash
 		s.state.BlockNumber = latestBlock.Number.Uint64()
+
+		zap.L().Info("Successfully polled blocks",
+			zap.String("block.hash", s.state.BlockHash.String()),
+			zap.Uint64("block.number", s.state.BlockNumber),
+			zap.Int("tasks.count", len(tasks.Tasks)))
 	}
 
 	return nil
@@ -205,6 +235,8 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 
 	if s.option.BlockStart != nil && s.option.BlockStart.Uint64() > s.state.BlockNumber {
 		s.state.BlockNumber = s.option.BlockStart.Uint64()
+		zap.L().Info("Updated initial block number from BlockStart option",
+			zap.Uint64("block.number", s.state.BlockNumber))
 	}
 
 	for {
@@ -213,19 +245,24 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 		// Stop the dataSource if the block number target is not nil and the current block number is greater than the target
 		// block number. This is useful when the dataSource is used to index a specific range of blocks.
 		if s.option.BlockTarget != nil && s.option.BlockTarget.Uint64() < s.state.BlockNumber {
-			zap.L().Info("dataSource has indexed the specified block range", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.target", s.option.BlockTarget.Uint64()))
+			zap.L().Info("dataSource has indexed the specified block range",
+				zap.Uint64("block.number.local", s.state.BlockNumber),
+				zap.Uint64("block.number.target", s.option.BlockTarget.Uint64()))
 
 			break
 		}
 
 		remoteBlockStart, err := parameter.GetNetworkBlockStart(ctx, s.redisClient, s.config.Network.String())
 		if err != nil {
+			zap.L().Error("Failed to get network block start from cache",
+				zap.Error(err))
 			return fmt.Errorf("get network block start from cache: %w", err)
 		}
 
 		if remoteBlockStart > s.state.BlockNumber {
 			s.state.BlockNumber = remoteBlockStart
-			zap.L().Info("Updated block number from remote", zap.Uint64("newBlockNumber", s.state.BlockNumber))
+			zap.L().Info("Updated block number from remote",
+				zap.Uint64("newBlockNumber", s.state.BlockNumber))
 		}
 
 		blockNumberStart := s.state.BlockNumber + 1
@@ -236,6 +273,8 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 			// Refresh the remote block number.
 			blockNumber, err := s.ethereumClient.BlockNumber(ctx)
 			if err != nil {
+				zap.L().Error("Failed to get latest block number",
+					zap.Error(err))
 				return fmt.Errorf("get latest block number: %w", err)
 			}
 
@@ -243,7 +282,10 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 
 			// No new block has been mined, or the RPC node is lagging.
 			if blockNumberStart > blockNumberLatestRemote {
-				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestRemote), zap.Duration("block.time", defaultBlockTime))
+				zap.L().Info("waiting new block",
+					zap.Uint64("block.number.local", s.state.BlockNumber),
+					zap.Uint64("block.number.remote", blockNumberLatestRemote),
+					zap.Duration("block.time", defaultBlockTime))
 
 				time.Sleep(defaultBlockTime)
 			}
@@ -253,6 +295,10 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 
 		// The block number end is the start block number plus the number of blocks to be processed in parallel.
 		blockNumberEnd := min(blockNumberStart+*s.option.ConcurrentBlockRequests-1, blockNumberStart)
+
+		zap.L().Debug("Processing block range",
+			zap.Uint64("block.start", blockNumberStart),
+			zap.Uint64("block.end", blockNumberEnd))
 
 		span.SetAttributes(
 			attribute.String("block.number.start", strconv.FormatUint(blockNumberStart, 10)),
@@ -270,14 +316,27 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 
 		logs, err := s.ethereumClient.FilterLogs(ctx, logFilter)
 		if err != nil {
+			zap.L().Error("Failed to get logs by filter",
+				zap.Error(err),
+				zap.Uint64("block.start", blockNumberStart),
+				zap.Uint64("block.end", blockNumberEnd))
+
 			return fmt.Errorf("get logs by filter: %w", err)
 		}
 
 		var latestBlock *ethereum.Block
 
 		if len(logs) == 0 {
+			zap.L().Debug("No logs found in block range",
+				zap.Uint64("block.start", blockNumberStart),
+				zap.Uint64("block.end", blockNumberEnd))
+
 			latestBlock, err = s.updateLatestBlock(ctx, blockNumberEnd)
 			if err != nil {
+				zap.L().Error("Failed to update latest block",
+					zap.Error(err),
+					zap.Uint64("block.number", blockNumberEnd))
+
 				return err
 			}
 
@@ -285,8 +344,17 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 
 			s.pushTasks(ctx, tasksChan, new(engine.Tasks))
 		} else {
+			zap.L().Info("Found logs in block range",
+				zap.Int("logs.count", len(logs)),
+				zap.Uint64("block.start", blockNumberStart),
+				zap.Uint64("block.end", blockNumberEnd))
+
 			latestBlock, err = s.processLogs(ctx, logs, tasksChan)
 			if err != nil {
+				zap.L().Error("Failed to process logs",
+					zap.Error(err),
+					zap.Int("logs.count", len(logs)))
+
 				return err
 			}
 		}
@@ -316,6 +384,9 @@ func (s *dataSource) processLogs(ctx context.Context, logs []*ethereum.Log, task
 		return transactionHash
 	})
 
+	zap.L().Debug("Processing unique transaction hashes",
+		zap.Int("transaction.hashes.count", len(transactionHashes)))
+
 	blockNumbers := lo.Map(logs, func(log *ethereum.Log, _ int) *big.Int {
 		return log.BlockNumber
 	})
@@ -324,8 +395,15 @@ func (s *dataSource) processLogs(ctx context.Context, logs []*ethereum.Log, task
 		return blockNumber.Uint64()
 	})
 
+	zap.L().Debug("Processing unique block numbers",
+		zap.Int("block.numbers.count", len(blockNumbers)))
+
 	blocks, err := s.getBlocks(ctx, blockNumbers)
 	if err != nil {
+		zap.L().Error("Failed to get blocks",
+			zap.Error(err),
+			zap.Int("block.numbers.count", len(blockNumbers)))
+
 		return nil, fmt.Errorf("get blocks: %w", err)
 	}
 
@@ -339,11 +417,16 @@ func (s *dataSource) processLogs(ctx context.Context, logs []*ethereum.Log, task
 
 	latestBlock, exist := lo.Last(blocks)
 	if !exist {
+		zap.L().Warn("No blocks found after filtering")
 		return nil, fmt.Errorf("empty blocks")
 	}
 
 	receipts, err := s.getReceiptsByTransactionHashes(ctx, transactionHashes)
 	if err != nil {
+		zap.L().Error("Failed to get transaction receipts",
+			zap.Error(err),
+			zap.Int("transaction.hashes.count", len(transactionHashes)))
+
 		return nil, fmt.Errorf("get receipts: %w", err)
 	}
 
@@ -352,11 +435,20 @@ func (s *dataSource) processLogs(ctx context.Context, logs []*ethereum.Log, task
 	for _, block := range blocks {
 		blockTasks, err := s.buildTasks(block, receipts)
 		if err != nil {
+			zap.L().Error("Failed to build tasks for block",
+				zap.Error(err),
+				zap.String("block.hash", block.Hash.String()),
+				zap.String("block.number", block.Number.String()))
+
 			return nil, err
 		}
 
 		tasks.Tasks = append(tasks.Tasks, lo.Map(blockTasks, func(blockTask *Task, _ int) engine.Task { return blockTask })...)
 	}
+
+	zap.L().Info("Successfully built tasks from logs",
+		zap.Int("tasks.count", len(tasks.Tasks)),
+		zap.Int("blocks.count", len(blocks)))
 
 	s.pushTasks(ctx, tasksChan, &tasks)
 
@@ -370,7 +462,12 @@ func (s *dataSource) getBlocks(ctx context.Context, blockNumbers []*big.Int) ([]
 		WithFirstError().
 		WithCancelOnError()
 
-	for _, blockNumbers := range lo.Chunk(blockNumbers, int(*s.option.BlockBatchSize)) {
+	batches := lo.Chunk(blockNumbers, int(*s.option.BlockBatchSize))
+	zap.L().Debug("Processing block batches",
+		zap.Int("batches.count", len(batches)),
+		zap.Int("batch.size", int(*s.option.BlockBatchSize)))
+
+	for _, blockNumbers := range batches {
 		blockNumbers := blockNumbers
 
 		resultPool.Go(func(ctx context.Context) ([]*ethereum.Block, error) {
@@ -380,6 +477,8 @@ func (s *dataSource) getBlocks(ctx context.Context, blockNumbers []*big.Int) ([]
 
 	batchResults, err := resultPool.Wait()
 	if err != nil {
+		zap.L().Error("Failed to get blocks in batch",
+			zap.Error(err))
 		return nil, err
 	}
 
@@ -389,6 +488,9 @@ func (s *dataSource) getBlocks(ctx context.Context, blockNumbers []*big.Int) ([]
 	sort.SliceStable(blocks, func(left, right int) bool {
 		return blocks[left].Number.Cmp(blocks[right].Number) == -1
 	})
+
+	zap.L().Debug("Successfully retrieved blocks",
+		zap.Int("blocks.count", len(blocks)))
 
 	return blocks, nil
 }
@@ -407,11 +509,17 @@ func (s *dataSource) getReceipts(ctx context.Context, blocks []*ethereum.Block) 
 			})
 		})
 
+		zap.L().Debug("Getting receipts by transaction hashes",
+			zap.Int("transaction.count", len(lo.Flatten(transactionHashes))))
+
 		return s.getReceiptsByTransactionHashes(ctx, lo.Flatten(transactionHashes))
 	default:
 		blockNumbers := lo.Map(blocks, func(block *ethereum.Block, _ int) *big.Int {
 			return block.Number
 		})
+
+		zap.L().Debug("Getting receipts by block numbers",
+			zap.Int("block.count", len(blockNumbers)))
 
 		return s.getReceiptsByBlockNumbers(ctx, blockNumbers)
 	}
@@ -423,12 +531,21 @@ func (s *dataSource) getReceiptsByBlockNumbers(ctx context.Context, blockNumbers
 		WithFirstError().
 		WithCancelOnError()
 
-	for _, blockNumbers := range lo.Chunk(blockNumbers, int(*s.option.BlockReceiptsBatchSize)) {
+	batches := lo.Chunk(blockNumbers, int(*s.option.BlockReceiptsBatchSize))
+	zap.L().Debug("Processing receipt batches by block numbers",
+		zap.Int("batches.count", len(batches)),
+		zap.Int("batch.size", int(*s.option.BlockReceiptsBatchSize)))
+
+	for _, blockNumbers := range batches {
 		blockNumbers := blockNumbers
 
 		resultPool.Go(func(ctx context.Context) ([]*ethereum.Receipt, error) {
 			batchReceipts, err := s.ethereumClient.BatchBlockReceipts(ctx, blockNumbers)
 			if err != nil {
+				zap.L().Error("Failed to get batch receipts by block numbers",
+					zap.Error(err),
+					zap.Int("block.count", len(blockNumbers)))
+
 				return nil, err
 			}
 
@@ -438,10 +555,16 @@ func (s *dataSource) getReceiptsByBlockNumbers(ctx context.Context, blockNumbers
 
 	batchResults, err := resultPool.Wait()
 	if err != nil {
+		zap.L().Error("Failed to get all receipts by block numbers",
+			zap.Error(err))
 		return nil, err
 	}
 
-	return lo.Flatten(batchResults), nil
+	receipts := lo.Flatten(batchResults)
+	zap.L().Debug("Successfully retrieved receipts by block numbers",
+		zap.Int("receipts.count", len(receipts)))
+
+	return receipts, nil
 }
 
 func (s *dataSource) getReceiptsByTransactionHashes(ctx context.Context, transactionHashes []common.Hash) ([]*ethereum.Receipt, error) {
@@ -450,20 +573,40 @@ func (s *dataSource) getReceiptsByTransactionHashes(ctx context.Context, transac
 		WithFirstError().
 		WithCancelOnError()
 
-	for _, transactionHashes := range lo.Chunk(transactionHashes, int(*s.option.BlockReceiptsBatchSize)) {
+	batches := lo.Chunk(transactionHashes, int(*s.option.BlockReceiptsBatchSize))
+	zap.L().Debug("Processing receipt batches by transaction hashes",
+		zap.Int("batches.count", len(batches)),
+		zap.Int("batch.size", int(*s.option.BlockReceiptsBatchSize)))
+
+	for _, transactionHashes := range batches {
 		transactionHashes := transactionHashes
 
 		resultPool.Go(func(ctx context.Context) ([]*ethereum.Receipt, error) {
-			return s.ethereumClient.BatchTransactionReceipt(ctx, transactionHashes)
+			batchReceipts, err := s.ethereumClient.BatchTransactionReceipt(ctx, transactionHashes)
+			if err != nil {
+				zap.L().Error("Failed to get batch receipts by transaction hashes",
+					zap.Error(err),
+					zap.Int("transaction.count", len(transactionHashes)))
+
+				return nil, err
+			}
+
+			return batchReceipts, nil
 		})
 	}
 
 	batchResults, err := resultPool.Wait()
 	if err != nil {
+		zap.L().Error("Failed to get all receipts by transaction hashes",
+			zap.Error(err))
 		return nil, err
 	}
 
-	return lo.Flatten(batchResults), nil
+	receipts := lo.Flatten(batchResults)
+	zap.L().Debug("Successfully retrieved receipts by transaction hashes",
+		zap.Int("receipts.count", len(receipts)))
+
+	return receipts, nil
 }
 
 func (s *dataSource) buildTasks(block *ethereum.Block, receipts []*ethereum.Receipt) ([]*Task, error) {
@@ -471,6 +614,11 @@ func (s *dataSource) buildTasks(block *ethereum.Block, receipts []*ethereum.Rece
 		tasks  = make([]*Task, len(block.Transactions))
 		header = block.Header()
 	)
+
+	zap.L().Debug("Building tasks for block",
+		zap.String("block.hash", block.Hash.String()),
+		zap.Uint64("block.number", block.Number.Uint64()),
+		zap.Int("transactions.count", len(block.Transactions)))
 
 	for index, transaction := range block.Transactions {
 		// There is no guarantee that the receipts provided by RPC will be in the same order as the transactions,
@@ -482,11 +630,19 @@ func (s *dataSource) buildTasks(block *ethereum.Block, receipts []*ethereum.Rece
 		// TODO Often this is also caused by a lagging RPC node failing to get the latest data,
 		// and it's best to fix this before the build task.
 		if !exists {
+			zap.L().Error("No receipt found for transaction",
+				zap.String("transaction.hash", transaction.Hash.String()),
+				zap.String("block.hash", block.Hash.String()))
+
 			return nil, fmt.Errorf("no receipt matched to transaction hash %s", transaction.Hash)
 		}
 
 		chain, err := network.EthereumChainIDString(s.Network().String())
 		if err != nil {
+			zap.L().Error("Failed to get chain ID for network",
+				zap.String("network", s.Network().String()),
+				zap.Error(err))
+
 			return nil, fmt.Errorf("unsupported chain %s", s.Network())
 		}
 
@@ -501,6 +657,10 @@ func (s *dataSource) buildTasks(block *ethereum.Block, receipts []*ethereum.Rece
 		tasks[index] = &task
 	}
 
+	zap.L().Debug("Successfully built tasks for block",
+		zap.String("block.hash", block.Hash.String()),
+		zap.Int("tasks.count", len(tasks)))
+
 	return tasks, nil
 }
 
@@ -509,6 +669,9 @@ func (s *dataSource) pushTasks(ctx context.Context, tasksChan chan<- *engine.Tas
 
 	_, span := otel.Tracer("").Start(ctx, "DataSource pushTasks", trace.WithSpanKind(trace.SpanKindProducer))
 	defer span.End()
+
+	zap.L().Debug("Pushing tasks to channel",
+		zap.Int("tasks.count", len(tasks.Tasks)))
 
 	tasksChan <- tasks
 }
@@ -522,6 +685,8 @@ func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, chec
 	// Initialize state from checkpoint.
 	if checkpoint != nil {
 		if err := json.Unmarshal(checkpoint.State, &state); err != nil {
+			zap.L().Error("Failed to unmarshal checkpoint state",
+				zap.Error(err))
 			return nil, err
 		}
 	}
@@ -537,15 +702,21 @@ func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, chec
 	if sourceFilter != nil {
 		var ok bool
 		if instance.filter, ok = sourceFilter.(*Filter); !ok {
+			zap.L().Error("Invalid data source filter type",
+				zap.String("type", fmt.Sprintf("%T", sourceFilter)))
 			return nil, fmt.Errorf("invalid dataSource filter type %T", sourceFilter)
 		}
 	}
 
 	if instance.option, err = NewOption(config.Network, config.Parameters); err != nil {
+		zap.L().Error("Failed to parse config options",
+			zap.Error(err))
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
-	zap.L().Info("apply option", zap.Any("option", instance.option))
+	zap.L().Info("Successfully initialized data source",
+		zap.Any("option", instance.option),
+		zap.String("network", config.Network.String()))
 
 	return &instance, nil
 }

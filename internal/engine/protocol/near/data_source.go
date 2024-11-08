@@ -44,17 +44,25 @@ func (s *dataSource) State() json.RawMessage {
 }
 
 func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
+	zap.L().Info("Starting Near data source")
+
 	// Initialize dataSource.
 	if err := s.initialize(ctx); err != nil {
+		zap.L().Error("Failed to initialize Near data source", zap.Error(err))
 		errorChan <- fmt.Errorf("initialize dataSource: %w", err)
+
 		return
 	}
 
 	// Start a goroutine to poll blocks.
 	go s.startPolling(ctx, tasksChan, errorChan)
+
+	zap.L().Info("Successfully started Near data source")
 }
 
 func (s *dataSource) startPolling(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
+	zap.L().Debug("Starting block polling")
+
 	retryableFunc := func() error {
 		if err := s.pollBlocks(ctx, tasksChan); err != nil {
 			return fmt.Errorf("poll blocks: %w", err)
@@ -69,20 +77,25 @@ func (s *dataSource) startPolling(ctx context.Context, tasksChan chan<- *engine.
 		retry.DelayType(retry.BackOffDelay),
 		retry.MaxDelay(5*time.Minute),
 		retry.OnRetry(func(n uint, err error) {
-			zap.L().Error("retry near dataSource start", zap.Uint("retry", n), zap.Error(err))
+			zap.L().Error("Retrying Near data source start", zap.Uint("retry", n), zap.Error(err))
 		}),
 	)
 	if err != nil {
+		zap.L().Error("Failed to start block polling", zap.Error(err))
 		errorChan <- err
 	}
 }
 
 // initialize initializes the dataSource.
 func (s *dataSource) initialize(ctx context.Context) (err error) {
+	zap.L().Debug("Initializing Near data source")
+
 	// Initialize near client.
 	if s.nearClient, err = near.Dial(ctx, s.config.Endpoint.URL); err != nil {
 		return fmt.Errorf("create near client: %w", err)
 	}
+
+	zap.L().Debug("Successfully initialized Near data source")
 
 	return nil
 }
@@ -90,6 +103,10 @@ func (s *dataSource) initialize(ctx context.Context) (err error) {
 // initializeBlockHeights initializes block heights.
 func (s *dataSource) initializeBlockHeights() {
 	if s.option.BlockStart != nil && s.option.BlockStart.Uint64() > s.state.BlockHeight {
+		zap.L().Info("Updating initial block height",
+			zap.Uint64("oldHeight", s.state.BlockHeight),
+			zap.Uint64("newHeight", s.option.BlockStart.Uint64()))
+
 		s.state.BlockHeight = s.option.BlockStart.Uint64()
 	}
 }
@@ -99,39 +116,45 @@ func (s *dataSource) initializeBlockHeights() {
 func (s *dataSource) updateBlockHeight(ctx context.Context) {
 	remoteBlockStart, err := parameter.GetNetworkBlockStart(ctx, s.redisClient, s.config.Network.String())
 	if err != nil {
-		zap.L().Error("get network block start from cache", zap.Error(err))
+		zap.L().Error("Failed to get network block start from cache", zap.Error(err))
 		return
 	}
 
 	if remoteBlockStart > s.state.BlockHeight {
+		zap.L().Info("Updating block height from remote",
+			zap.Uint64("oldHeight", s.state.BlockHeight),
+			zap.Uint64("newHeight", remoteBlockStart))
+
 		s.state.BlockHeight = remoteBlockStart
-		zap.L().Info("Updated block height from remote", zap.Uint64("newBlockHeight", s.state.BlockHeight))
 	}
 }
 
 func (s *dataSource) getLatestBlockHeight(ctx context.Context) (int64, error) {
 	if s.option.BlockTarget != nil {
-		zap.L().Info("block height target", zap.Uint64("block.height.target", s.option.BlockTarget.Uint64()))
+		zap.L().Info("Using target block height", zap.Uint64("targetHeight", s.option.BlockTarget.Uint64()))
 		return int64(s.option.BlockTarget.Uint64()), nil
 	}
 
 	blockHeightLatestRemote, err := s.nearClient.GetBlockHeight(ctx)
 	if err != nil {
+		zap.L().Error("Failed to get latest block height", zap.Error(err))
 		return 0, fmt.Errorf("get latest block height: %w", err)
 	}
 
-	zap.L().Info("get latest block height", zap.Int64("block.height", blockHeightLatestRemote))
+	zap.L().Debug("Retrieved latest block height", zap.Int64("height", blockHeightLatestRemote))
 
 	return blockHeightLatestRemote, nil
 }
 
 // pollBlocks polls blocks from near network.
 func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
+	zap.L().Debug("Starting block polling cycle")
 	s.initializeBlockHeights()
 
 	for {
 		blockHeightLatestRemote, err := s.getLatestBlockHeight(ctx)
 		if err != nil {
+			zap.L().Error("Failed to get latest block height", zap.Error(err))
 			return err
 		}
 
@@ -139,9 +162,13 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 
 		if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {
 			if s.option.BlockTarget != nil && s.option.BlockTarget.Uint64() <= s.state.BlockHeight {
+				zap.L().Info("Reached target block height", zap.Uint64("height", s.state.BlockHeight))
 				break
 			}
 
+			zap.L().Debug("Waiting for new blocks",
+				zap.Uint64("currentHeight", s.state.BlockHeight),
+				zap.Int64("latestHeight", blockHeightLatestRemote))
 			time.Sleep(defaultBlockTime)
 
 			continue
@@ -153,8 +180,17 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 			blockHeightStart + *s.option.ConcurrentBlockRequests - 1,
 		})
 
+		zap.L().Debug("Pulling block range",
+			zap.Uint64("startHeight", blockHeightStart),
+			zap.Uint64("endHeight", blockHeightEnd))
+
 		blocks, err := s.batchPullBlocksByRange(ctx, blockHeightStart, blockHeightEnd)
 		if err != nil {
+			zap.L().Error("Failed to pull blocks",
+				zap.Uint64("startHeight", blockHeightStart),
+				zap.Uint64("endHeight", blockHeightEnd),
+				zap.Error(err))
+
 			return fmt.Errorf("batch pull blocks: %w", err)
 		}
 
@@ -163,13 +199,14 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 		tasksChan <- tasks
 
 		s.state.BlockHeight = blockHeightEnd
+		zap.L().Debug("Updated block height", zap.Uint64("newHeight", blockHeightEnd))
 	}
 
 	return nil
 }
 
 func (s *dataSource) processBlocks(ctx context.Context, blocks []*near.Block) *engine.Tasks {
-	zap.L().Info("begin to process blocks", zap.Int("blocks", len(blocks)))
+	zap.L().Info("Processing blocks", zap.Int("count", len(blocks)))
 
 	resultPool := pool.NewWithResults[[]engine.Task]().
 		WithContext(ctx).
@@ -186,6 +223,7 @@ func (s *dataSource) processBlocks(ctx context.Context, blocks []*near.Block) *e
 			}
 
 			s.state.BlockTimestamp = uint64(time.Duration(block.Header.Timestamp).Seconds())
+			zap.L().Debug("Updated block timestamp", zap.Uint64("timestamp", s.state.BlockTimestamp))
 
 			return chunkTasks, nil
 		})
@@ -193,7 +231,7 @@ func (s *dataSource) processBlocks(ctx context.Context, blocks []*near.Block) *e
 
 	allTasks, err := resultPool.Wait()
 	if err != nil {
-		zap.L().Error("error processing blocks", zap.Error(err))
+		zap.L().Error("Failed to process blocks", zap.Error(err))
 		return &engine.Tasks{}
 	}
 
@@ -201,11 +239,13 @@ func (s *dataSource) processBlocks(ctx context.Context, blocks []*near.Block) *e
 		Tasks: lo.Flatten(allTasks),
 	}
 
+	zap.L().Info("Successfully processed blocks", zap.Int("tasks", len(tasks.Tasks)))
+
 	return tasks
 }
 
 func (s *dataSource) processChunks(ctx context.Context, block *near.Block) ([]engine.Task, error) {
-	zap.L().Info("begin to process chunks", zap.Int("chunks", len(block.Chunks)))
+	zap.L().Info("Processing chunks", zap.Int("count", len(block.Chunks)))
 
 	resultPool := pool.NewWithResults[[]engine.Task]().
 		WithContext(ctx).
@@ -219,11 +259,12 @@ func (s *dataSource) processChunks(ctx context.Context, block *near.Block) ([]en
 			retryableFunc := func() ([]engine.Task, error) {
 				chunk, err := s.nearClient.ChunkByHash(ctx, chunkHash.ChunkHash)
 				if err != nil {
+					zap.L().Error("Failed to get chunk by hash", zap.String("hash", chunkHash.ChunkHash), zap.Error(err))
 					return nil, fmt.Errorf("get chunk by hash: %w", err)
 				}
 
 				localTasks := make([]engine.Task, 0, len(chunk.Transactions))
-				zap.L().Info("begin to pull transactions", zap.Int("transactions", len(chunk.Transactions)))
+				zap.L().Info("Processing transactions", zap.Int("count", len(chunk.Transactions)))
 
 				transactionPool := pool.NewWithResults[*near.Transaction]().
 					WithContext(ctx).
@@ -234,6 +275,7 @@ func (s *dataSource) processChunks(ctx context.Context, block *near.Block) ([]en
 					transaction := transaction
 
 					if s.filter.ReceiverIDs != nil && !lo.Contains(s.filter.ReceiverIDs, transaction.ReceiverID) {
+						zap.L().Debug("Skipping transaction - receiver ID not in filter", zap.String("receiver", transaction.ReceiverID))
 						continue
 					}
 
@@ -244,6 +286,7 @@ func (s *dataSource) processChunks(ctx context.Context, block *near.Block) ([]en
 
 				fullTransactions, err := transactionPool.Wait()
 				if err != nil {
+					zap.L().Error("Failed to pull transactions", zap.Error(err))
 					return nil, fmt.Errorf("pull transactions: %w", err)
 				}
 
@@ -255,6 +298,8 @@ func (s *dataSource) processChunks(ctx context.Context, block *near.Block) ([]en
 					})
 				}
 
+				zap.L().Debug("Created tasks for chunk", zap.Int("tasks", len(localTasks)))
+
 				return localTasks, nil
 			}
 
@@ -264,7 +309,7 @@ func (s *dataSource) processChunks(ctx context.Context, block *near.Block) ([]en
 				retry.Delay(defaultRetryDelay),
 				retry.DelayType(retry.BackOffDelay),
 				retry.OnRetry(func(attempt uint, err error) {
-					zap.L().Error("retry process chunk", zap.String("chunk.hash", chunkHash.ChunkHash), zap.Uint("attempt", attempt), zap.Error(err))
+					zap.L().Error("Retrying chunk processing", zap.String("hash", chunkHash.ChunkHash), zap.Uint("attempt", attempt), zap.Error(err))
 				}),
 			)
 		})
@@ -272,15 +317,22 @@ func (s *dataSource) processChunks(ctx context.Context, block *near.Block) ([]en
 
 	allTasks, err := resultPool.Wait()
 	if err != nil {
+		zap.L().Error("Failed to process chunks", zap.Error(err))
+
 		return nil, fmt.Errorf("process chunks: %w", err)
 	}
 
-	return lo.Flatten(allTasks), nil
+	tasks := lo.Flatten(allTasks)
+	zap.L().Info("Successfully processed chunks", zap.Int("tasks", len(tasks)))
+
+	return tasks, nil
 }
 
 // batchPullBlocksByRange pulls blocks by range, from local state block height to remote block height.
 func (s *dataSource) batchPullBlocksByRange(ctx context.Context, blockHeightStart, blockHeightEnd uint64) ([]*near.Block, error) {
-	zap.L().Info("begin to batch pull blocks by range", zap.Uint64("block.height.start", blockHeightStart), zap.Uint64("block.height.end", blockHeightEnd))
+	zap.L().Info("Pulling blocks by range",
+		zap.Uint64("startHeight", blockHeightStart),
+		zap.Uint64("endHeight", blockHeightEnd))
 
 	// Generate block heights
 	blockHeights := lo.Map(lo.RangeWithSteps(blockHeightStart, blockHeightEnd+1, 1), func(blockHeight uint64, _ int) *big.Int {
@@ -292,7 +344,7 @@ func (s *dataSource) batchPullBlocksByRange(ctx context.Context, blockHeightStar
 
 // batchPullBlocks pulls blocks by block heights.
 func (s *dataSource) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) ([]*near.Block, error) {
-	zap.L().Info("begin to pull blocks", zap.Int("blocks", len(blockHeights)))
+	zap.L().Info("Pulling blocks", zap.Int("count", len(blockHeights)))
 
 	resultPool := pool.NewWithResults[*near.Block]().
 		WithContext(ctx).
@@ -313,17 +365,29 @@ func (s *dataSource) batchPullBlocks(ctx context.Context, blockHeights []*big.In
 				retry.Delay(defaultRetryDelay),
 				retry.DelayType(retry.BackOffDelay),
 				retry.OnRetry(func(attempt uint, err error) {
-					zap.L().Error("retry pull block", zap.Stringer("block.height", blockHeight), zap.Uint("attempt", attempt), zap.Error(err))
+					zap.L().Error("Retrying block pull", zap.Stringer("height", blockHeight), zap.Uint("attempt", attempt), zap.Error(err))
 				}),
 			)
 		})
 	}
 
-	return resultPool.Wait()
+	blocks, err := resultPool.Wait()
+	if err != nil {
+		zap.L().Error("Failed to pull blocks", zap.Error(err))
+		return nil, err
+	}
+
+	zap.L().Info("Successfully pulled blocks", zap.Int("count", len(blocks)))
+
+	return blocks, nil
 }
 
 // NewSource creates a new near dataSource.
 func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint, redisClient rueidis.Client) (engine.DataSource, error) {
+	zap.L().Info("Creating new Near data source",
+		zap.String("network", config.Network.String()),
+		zap.Bool("hasCheckpoint", checkpoint != nil))
+
 	var (
 		state State
 		err   error
@@ -332,8 +396,12 @@ func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, chec
 	// Initialize state from checkpoint.
 	if checkpoint != nil {
 		if err := json.Unmarshal(checkpoint.State, &state); err != nil {
+			zap.L().Error("Failed to unmarshal checkpoint state", zap.Error(err))
+
 			return nil, err
 		}
+
+		zap.L().Debug("Initialized state from checkpoint")
 	}
 
 	instance := dataSource{
@@ -347,13 +415,21 @@ func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, chec
 	if sourceFilter != nil {
 		var ok bool
 		if instance.filter, ok = sourceFilter.(*Filter); !ok {
+			zap.L().Error("Invalid data source filter type", zap.String("type", fmt.Sprintf("%T", sourceFilter)))
 			return nil, fmt.Errorf("invalid dataSource filter type %T", sourceFilter)
 		}
+
+		zap.L().Debug("Initialized data source filter")
 	}
 
 	if instance.option, err = NewOption(config.Network, config.Parameters); err != nil {
+		zap.L().Error("Failed to parse config options", zap.Error(err))
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
+
+	zap.L().Debug("Successfully created new Near data source",
+		zap.String("network", config.Network.String()),
+		zap.Bool("hasFilter", sourceFilter != nil))
 
 	return &instance, nil
 }
