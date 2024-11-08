@@ -84,11 +84,10 @@ func (c *client) WithTransaction(ctx context.Context, transactionFunction func(c
 		}
 
 		if err := transaction.Commit(); err != nil {
-			zap.L().Error("failed to commit transaction", zap.Error(err))
 			return fmt.Errorf("commit transaction: %w", err)
 		}
 
-		zap.L().Info("transaction committed successfully")
+		zap.L().Debug("transaction committed successfully")
 
 		return nil
 	}
@@ -149,12 +148,6 @@ func (c *client) LoadCheckpoint(ctx context.Context, id string, network networkx
 		First(&value).
 		Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			zap.L().Error("failed to query checkpoint from database",
-				zap.String("id", id),
-				zap.String("network", network.String()),
-				zap.String("worker", worker),
-				zap.Error(err))
-
 			return nil, err
 		}
 
@@ -206,12 +199,6 @@ func (c *client) LoadCheckpoints(ctx context.Context, id string, network network
 
 	if err := databaseStatement.Find(&checkpoints).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			zap.L().Error("failed to query checkpoints from database",
-				zap.String("id", id),
-				zap.String("network", network.String()),
-				zap.String("worker", worker),
-				zap.Error(err))
-
 			return nil, err
 		}
 	}
@@ -230,12 +217,6 @@ func (c *client) LoadCheckpoints(ctx context.Context, id string, network network
 	for _, checkpoint := range checkpoints {
 		data, err := checkpoint.Export()
 		if err != nil {
-			zap.L().Error("failed to export checkpoint",
-				zap.String("id", checkpoint.ID),
-				zap.String("network", checkpoint.Network.String()),
-				zap.String("worker", checkpoint.Worker),
-				zap.Error(err))
-
 			return nil, err
 		}
 
@@ -280,25 +261,10 @@ func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoi
 
 	var value table.Checkpoint
 	if err := value.Import(checkpoint); err != nil {
-		zap.L().Error("failed to import checkpoint",
-			zap.String("id", checkpoint.ID),
-			zap.Error(err))
-
 		return err
 	}
 
-	if err := c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error; err != nil {
-		zap.L().Error("failed to save checkpoint",
-			zap.String("id", checkpoint.ID),
-			zap.Error(err))
-
-		return err
-	}
-
-	zap.L().Info("checkpoint saved successfully",
-		zap.Any("checkpoint", checkpoint))
-
-	return nil
+	return c.database.WithContext(ctx).Clauses(clauses...).Create(&value).Error
 }
 
 // SaveActivities saves activities and indexes to the database.
@@ -319,10 +285,6 @@ func (c *client) SaveActivities(ctx context.Context, activities []*activityx.Act
 
 	if c.partition {
 		if err := c.saveActivitiesPartitioned(ctx, activities, lowPriority); err != nil {
-			zap.L().Error("failed to save activities with partition",
-				zap.Int("count", len(activities)),
-				zap.Error(err))
-
 			return err
 		}
 
