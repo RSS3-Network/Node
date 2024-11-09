@@ -25,19 +25,13 @@ var indexesTables sync.Map
 
 // createPartitionTable creates a partition table.
 func (c *client) createPartitionTable(ctx context.Context, name, template string) error {
-	zap.L().Debug("Creating partition table",
-		zap.String("name", name),
-		zap.String("template", template))
-
 	statement := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS "%s" (LIKE "%s" INCLUDING ALL);`, name, template)
+
+	zap.L().Debug("Creating partition table",
+		zap.String("statement", statement))
 
 	err := c.database.WithContext(ctx).Exec(statement).Error
 	if err != nil {
-		zap.L().Error("Failed to create partition table",
-			zap.String("name", name),
-			zap.String("template", template),
-			zap.Error(err))
-
 		return err
 	}
 
@@ -46,25 +40,21 @@ func (c *client) createPartitionTable(ctx context.Context, name, template string
 	}
 
 	zap.L().Debug("Successfully created partition table",
-		zap.String("name", name))
+		zap.String("statement", statement))
 
 	return nil
 }
 
 // findPartitionTableExists check if a partition table exists.
 func (c *client) findPartitionTableExists(ctx context.Context, name string) (bool, error) {
-	zap.L().Debug("Checking if partition table exists",
-		zap.String("name", name))
-
 	statement := fmt.Sprintf(`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = '%s')`, name)
+
+	zap.L().Debug("Checking if partition table exists",
+		zap.String("statement", statement))
 
 	var exists bool
 
 	if err := c.database.WithContext(ctx).Raw(statement).Scan(&exists).Error; err != nil {
-		zap.L().Error("Failed to check if partition table exists",
-			zap.String("name", name),
-			zap.Error(err))
-
 		return false, err
 	}
 
@@ -105,8 +95,8 @@ func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index
 			zap.Time("new_timestamp", index.Timestamp))
 	}
 
-	zap.L().Info("Completed finding index partition tables",
-		zap.Int("found_tables", len(partitionedNames)))
+	zap.L().Debug("Completed finding index partition tables",
+		zap.Any("found_tables", partitionedNames))
 
 	return partitionedNames
 }
@@ -163,7 +153,7 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 			}
 
 			if len(tableActivities) == 0 {
-				zap.L().Info("No activities to save for partition",
+				zap.L().Debug("No activities to save for partition",
 					zap.String("partition_name", name))
 				return nil
 			}
@@ -209,14 +199,10 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 				Where("id IN ?", activityIDs).
 				Find(&affectedActivities).
 				Error; err != nil {
-				zap.L().Error("Failed to save activities",
-					zap.String("partition_name", name),
-					zap.Error(err))
-
 				return err
 			}
 
-			zap.L().Info("Successfully saved activities",
+			zap.L().Debug("Successfully saved activities",
 				zap.String("partition_name", name),
 				zap.Int("affected_count", len(affectedActivities)))
 
@@ -225,12 +211,10 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 	}
 
 	if err := errorGroup.Wait(); err != nil {
-		zap.L().Error("Failed to save activities in partitioned tables", zap.Error(err))
-
 		return err
 	}
 
-	zap.L().Info("Successfully saved all activities in partitioned tables", zap.Int("total_count", len(activities)))
+	zap.L().Debug("Successfully saved all activities in partitioned tables", zap.Int("total_count", len(activities)))
 
 	return nil
 }
@@ -238,7 +222,7 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 // findActivityPartitioned finds an activity  by id.
 func (c *client) findActivityPartitioned(ctx context.Context, query model.ActivityQuery) (*activityx.Activity, *int, error) {
 	zap.L().Debug("Finding activity in partitioned table",
-		zap.String("id", lo.FromPtr(query.ID)))
+		zap.Any("query", query))
 
 	matchedActivity, err := c.findIndexPartitioned(ctx, query)
 	if err != nil {
@@ -269,7 +253,7 @@ func (c *client) findActivityPartitioned(ctx context.Context, query model.Activi
 
 	activity.Actions = lo.Slice(activity.Actions, query.ActionLimit*(query.ActionPage-1), query.ActionLimit*query.ActionPage)
 
-	zap.L().Info("Successfully found and exported activity",
+	zap.L().Debug("Successfully found and exported activity",
 		zap.String("id", result.ID),
 		zap.String("network", result.Network.String()),
 		zap.Int("action_count", len(activity.Actions)))
@@ -319,10 +303,6 @@ func (c *client) findActivitiesPartitioned(ctx context.Context, query model.Acti
 			tableActivities := make(table.Activities, 0)
 
 			if err := c.database.WithContext(errorCtx).Table(tableName).Where("id IN ?", lo.Uniq(ids)).Find(&tableActivities).Error; err != nil {
-				zap.L().Error("Failed to find activities in partition",
-					zap.Error(err),
-					zap.String("table", tableName))
-
 				return err
 			}
 
@@ -356,7 +336,7 @@ func (c *client) findActivitiesPartitioned(ctx context.Context, query model.Acti
 		return result[i].Timestamp > result[j].Timestamp
 	})
 
-	zap.L().Info("Successfully found all activities",
+	zap.L().Debug("Successfully found all activities",
 		zap.Int("total_count", len(result)))
 
 	return result, nil
@@ -397,8 +377,6 @@ func (c *client) findFederatedActivitiesPartitioned(ctx context.Context, query m
 			tableActivities := make(table.Activities, 0)
 
 			if err := c.database.WithContext(errorCtx).Table(tableName).Where("id IN ?", lo.Uniq(ids)).Find(&tableActivities).Error; err != nil {
-				zap.L().Error("failed to find activities", zap.Error(err), zap.String("tableName", tableName))
-
 				return err
 			}
 
@@ -528,7 +506,7 @@ func (c *client) saveIndexesPartitioned(ctx context.Context, activities []*activ
 		return fmt.Errorf("failed to save indexes: %w", err)
 	}
 
-	zap.L().Info("Successfully saved indexes in partitioned tables",
+	zap.L().Debug("Successfully saved indexes in partitioned tables",
 		zap.Int("total_count", len(indexes)))
 
 	return nil
@@ -558,10 +536,6 @@ func (c *client) findIndexPartitioned(ctx context.Context, query model.ActivityQ
 			var result table.Index
 
 			if err := c.buildFindIndexStatement(errorContext, tableName, query).Limit(1).Find(&result).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-				zap.L().Error("Failed to find first index",
-					zap.Error(err),
-					zap.String("partition_table", tableName))
-
 				return fmt.Errorf("find first index: %w", err)
 			}
 
@@ -588,15 +562,16 @@ func (c *client) findIndexPartitioned(ctx context.Context, query model.ActivityQ
 		select {
 		case err := <-errorChan:
 			if err != nil {
-				zap.L().Error("Failed to wait for result",
-					zap.Error(err))
 				return nil, fmt.Errorf("failed to wait result: %w", err)
 			}
 		case data := <-resultChan:
 			count++
 
+			zap.L().Debug("Found index in partition table",
+				zap.Any("data", data))
+
 			if data != nil && lo.IsNotEmpty(data.ID) {
-				zap.L().Info("Successfully found index",
+				zap.L().Debug("Successfully found index",
 					zap.String("id", data.ID))
 
 				close(stopChan)
@@ -686,13 +661,14 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.Activit
 		select {
 		case err := <-errorChan:
 			if err != nil {
-				zap.L().Error("Failed to wait for result",
-					zap.Error(err))
 				return nil, fmt.Errorf("failed to wait result: %w", err)
 			}
 		case <-resultChan:
 			result := make([]*table.Index, 0, query.Limit)
 			flag := true
+
+			zap.L().Debug("Found indexes in partition tables",
+				zap.Any("indexes", indexes))
 
 			mutex.RLock()
 
@@ -707,7 +683,7 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.Activit
 				result = append(result, data...)
 
 				if len(result) >= query.Limit {
-					zap.L().Info("Found indexes up to limit",
+					zap.L().Debug("Found indexes up to limit",
 						zap.Int("count", query.Limit))
 					close(stopChan)
 					mutex.RUnlock()
@@ -719,7 +695,7 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.Activit
 			mutex.RUnlock()
 
 			if flag {
-				zap.L().Info("Successfully found all indexes",
+				zap.L().Debug("Successfully found all indexes",
 					zap.Int("count", len(result)))
 				return result, nil
 			}
@@ -849,6 +825,9 @@ func (c *client) deleteExpiredActivitiesPartitioned(ctx context.Context, network
 		checkTablesTimestamp = append(checkTablesTimestamp, timestamp.AddDate(0, -3*i, 0))
 	}
 
+	zap.L().Debug("drop activities table list",
+		zap.Any("tables", lo.Keys(dropActivitiesTableMap)))
+
 	for _, checkTimestamp := range checkTablesTimestamp {
 		activityTable := c.buildActivitiesTableNames(network, checkTimestamp)
 
@@ -867,36 +846,44 @@ func (c *client) deleteExpiredActivitiesPartitioned(ctx context.Context, network
 
 		_, dropActivity := dropActivitiesTableMap[activityTable]
 
-		zap.L().Info("Deleting expired activities",
+		zap.L().Info("Beginning to delete expired activities",
 			zap.String("activity_table", activityTable),
 			zap.String("index_table", indexTable))
 
 		for {
+			zap.L().Debug("Deleting expired activities",
+				zap.String("activity_table", activityTable),
+				zap.String("index_table", indexTable),
+				zap.String("network", network.String()),
+				zap.Time("timestamp", timestamp),
+				zap.Int("batch_size", batchSize),
+				zap.Bool("drop_activity", dropActivity))
+
 			done, err := c.batchDeleteExpiredActivities(ctx, network, timestamp, batchSize, &indexTable, lo.Ternary(dropActivity, nil, &activityTable))
 			if err != nil {
 				return fmt.Errorf("batch delete expired activities: %w", err)
 			}
 
 			if done {
+				zap.L().Debug("Successfully deleted expired activities",
+					zap.String("activity_table", activityTable),
+					zap.String("index_table", indexTable))
+
 				break
 			}
 		}
 
 		if dropActivity {
-			zap.L().Info("Dropping activity table",
+			zap.L().Debug("Dropping activity table",
 				zap.String("table", activityTable))
 
 			if err := c.database.WithContext(ctx).Exec(fmt.Sprintf(`DROP TABLE IF EXISTS "%s"`, activityTable)).Error; err != nil {
-				zap.L().Error("Failed to drop activity table",
-					zap.Error(err),
-					zap.String("table", activityTable))
-
 				return fmt.Errorf("drop table: %w", err)
 			}
 		}
 	}
 
-	zap.L().Info("Successfully deleted expired activities",
+	zap.L().Debug("Successfully deleted expired activities",
 		zap.String("network", network.String()),
 		zap.Time("timestamp", timestamp))
 
@@ -918,10 +905,6 @@ func (c *client) batchDeleteExpiredActivities(ctx context.Context, network netwo
 	if err := c.database.WithContext(ctx).Table(*indexTable).Select("id").Where("network = ?", network.String()).
 		Where("timestamp < ?", timestamp).Limit(batchSize).
 		Pluck("id", &transactionIDs).Error; err != nil {
-		zap.L().Error("Failed to find expired activities",
-			zap.Error(err),
-			zap.String("table", *indexTable))
-
 		return false, fmt.Errorf("find expired activities: %w", err)
 	}
 
@@ -935,10 +918,6 @@ func (c *client) batchDeleteExpiredActivities(ctx context.Context, network netwo
 		zap.Int("count", len(transactionIDs)))
 
 	if err := databaseTransaction.Table(*indexTable).Where("id IN ?", transactionIDs).Delete(&table.Index{}).Error; err != nil {
-		zap.L().Error("Failed to delete expired indexes",
-			zap.Error(err),
-			zap.String("table", *indexTable))
-
 		return false, fmt.Errorf("delete expired indexes: %w", err)
 	}
 
@@ -948,22 +927,15 @@ func (c *client) batchDeleteExpiredActivities(ctx context.Context, network netwo
 			zap.Int("count", len(transactionIDs)))
 
 		if err := databaseTransaction.Table(*activityTable).Where("id IN ?", transactionIDs).Delete(&table.Activity{}).Error; err != nil {
-			zap.L().Error("Failed to delete expired activities",
-				zap.Error(err),
-				zap.String("table", *activityTable))
-
 			return false, fmt.Errorf("delete expired activities: %w", err)
 		}
 	}
 
 	if err := databaseTransaction.Commit().Error; err != nil {
-		zap.L().Error("Failed to commit transaction",
-			zap.Error(err))
-
 		return false, fmt.Errorf("commit transaction: %w", err)
 	}
 
-	zap.L().Info("Successfully deleted batch of expired records",
+	zap.L().Debug("Successfully deleted batch of expired records",
 		zap.Int("count", len(transactionIDs)))
 
 	return false, nil

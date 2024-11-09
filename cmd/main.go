@@ -138,7 +138,6 @@ var command = cobra.Command{
 			}
 
 			if err := tx.Migrate(cmd.Context()); err != nil {
-				zap.L().Error("database migration failed", zap.Error(err))
 				err := tx.Rollback()
 				if err != nil {
 					return fmt.Errorf("rollback database: %w", err)
