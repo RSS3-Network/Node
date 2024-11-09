@@ -49,6 +49,8 @@ func (s *Core) Run(_ context.Context) error {
 
 // NewCoreService initializes the core services required by the Core
 func NewCoreService(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) *Core {
+	zap.L().Debug("Initializing core service")
+
 	apiServer := echo.New()
 
 	node := Core{
@@ -66,26 +68,36 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 		Validator: validator.New(),
 	}
 
+	zap.L().Debug("Configuring API server middleware")
+
 	apiServer.Use(
 		middleware.CORSWithConfig(middleware.DefaultCORSConfig),
 		middlewarex.DecodePathParamsMiddleware,
 		middlewarex.HeadToGetMiddleware,
 	)
 
+	zap.L().Debug("Initializing info component")
+
 	infoComponent := info.NewComponent(ctx, apiServer, config, databaseClient, redisClient, networkParamsCaller)
 	node.components = append(node.components, &infoComponent)
 
 	if config.Component.RSS != nil {
+		zap.L().Debug("Initializing RSS component")
+
 		rssComponent := rss.NewComponent(ctx, apiServer, config)
 		node.components = append(node.components, &rssComponent)
 	}
 
 	if len(config.Component.Decentralized) > 0 {
+		zap.L().Debug("Initializing decentralized component")
+
 		decentralizedComponent := decentralized.NewComponent(ctx, apiServer, config, databaseClient, redisClient)
 		node.components = append(node.components, &decentralizedComponent)
 	}
 
 	if len(config.Component.Federated) > 0 {
+		zap.L().Debug("Initializing federated component")
+
 		federatedComponent := federated.NewComponent(ctx, apiServer, config, databaseClient, redisClient)
 		node.components = append(node.components, &federatedComponent)
 	}
@@ -96,54 +108,73 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 		endpoint = config.Discovery.Server.Endpoint
 	}
 
+	zap.L().Debug("Generating OpenAPI documentation")
+
 	content, err := docs.Generate(endpoint)
 	if err != nil {
-		zap.L().Error("docs generation error", zap.Error(err))
+		zap.L().Error("Failed to generate OpenAPI documentation",
+			zap.Error(err))
 	}
 
 	apiServer.GET("/openapi.json", func(c echo.Context) error {
 		return c.Blob(http.StatusOK, "application/json", content)
 	})
 
+	zap.L().Info("Core service initialization completed")
+
 	return &node
 }
 
 // CheckParams checks the network parameters and settlement tasks
 func CheckParams(ctx context.Context, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
+	zap.L().Debug("Starting network parameters check service")
+
 	checkParamsCron := cron.New()
 
 	_, err := checkParamsCron.AddFunc("@every 5m", func() {
+		zap.L().Debug("Running scheduled network parameters check")
+
 		localEpoch, err := parameter.GetCurrentEpoch(ctx, redisClient)
 		if err != nil {
-			zap.L().Error("get current epoch", zap.Error(err))
+			zap.L().Error("Failed to get current epoch from local storage",
+				zap.Error(err))
 			return
 		}
 
 		remoteEpoch, err := parameter.GetCurrentEpochFromVSL(settlementCaller)
 		if err != nil {
-			zap.L().Error("get current epoch", zap.Error(err))
+			zap.L().Error("Failed to get current epoch from VSL",
+				zap.Error(err))
 			return
 		}
 
 		if remoteEpoch > localEpoch {
+			zap.L().Info("Updating local epoch to match remote",
+				zap.Int64("local_epoch", localEpoch),
+				zap.Int64("remote_epoch", remoteEpoch))
+
 			err = parameter.UpdateCurrentEpoch(ctx, redisClient, remoteEpoch)
 			if err != nil {
-				zap.L().Error("update current epoch", zap.Error(err))
+				zap.L().Error("Failed to update current epoch",
+					zap.Error(err))
 				return
 			}
 		}
 
 		if err := parameter.CheckParamsTask(ctx, redisClient, networkParamsCaller); err != nil {
-			zap.L().Error("check params tasks", zap.Error(err))
+			zap.L().Error("Failed to check network parameters",
+				zap.Error(err))
 		}
 	})
 	if err != nil {
 		return fmt.Errorf("add check param cron job: %w", err)
 	}
 
+	zap.L().Info("Starting network parameters check cron job")
 	checkParamsCron.Start()
 
 	<-ctx.Done()
+	zap.L().Info("Stopping network parameters check cron job")
 	checkParamsCron.Stop()
 
 	return ctx.Err()
