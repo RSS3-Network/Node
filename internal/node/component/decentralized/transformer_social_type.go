@@ -25,6 +25,9 @@ func (c *Component) TransformSocialType(ctx context.Context, network network.Net
 		return c.TransformSocialProxy(ctx, platform, action)
 	}
 
+	zap.L().Warn("unknown social action type",
+		zap.String("type", action.Type.Name()))
+
 	return action, nil
 }
 
@@ -32,18 +35,27 @@ func (c *Component) TransformSocialType(ctx context.Context, network network.Net
 func (c *Component) TransformSocialPost(ctx context.Context, network network.Network, platform string, action activity.Action) (activity.Action, error) {
 	post, ok := action.Metadata.(*metadata.SocialPost)
 	if !ok {
-		zap.L().Error("invalid post metadata type", zap.Any("metadata", action.Metadata))
+		zap.L().Error("invalid post metadata type",
+			zap.Any("metadata", action.Metadata),
+			zap.String("expected", "SocialPost"),
+			zap.String("actual", fmt.Sprintf("%T", action.Metadata)))
 
 		return activity.Action{}, fmt.Errorf("invalid post metadata type: %T", action.Metadata)
 	}
 
 	if lo.IsEmpty(post.Handle) {
+		zap.L().Debug("empty handle, using from address",
+			zap.String("from", action.From))
+
 		post.Handle = action.From
 	}
 
 	post.AuthorURL = c.buildSocialAuthorURL(ctx, platform, post.Handle)
 
 	if post.Target != nil && platform != "" && platform != decentralized.PlatformMirror.String() {
+		zap.L().Debug("adding target URLs",
+			zap.String("target_handle", post.Target.Handle))
+
 		post.Target.AuthorURL = c.buildSocialAuthorURL(ctx, platform, post.Target.Handle)
 		post.TargetURL = c.buildSocialNoteURL(ctx, network, platform, lo.ToPtr(post.Target.Handle), lo.ToPtr(post.Target.ProfileID), lo.ToPtr(post.Target.PublicationID))
 	}
@@ -74,7 +86,10 @@ func (c *Component) TransformSocialPost(ctx context.Context, network network.Net
 func (c *Component) TransformSocialProfile(ctx context.Context, platform string, action activity.Action) (activity.Action, error) {
 	profile, ok := action.Metadata.(*metadata.SocialProfile)
 	if !ok {
-		zap.L().Error("invalid profile metadata type", zap.Any("metadata", action.Metadata))
+		zap.L().Error("invalid profile metadata type",
+			zap.Any("metadata", action.Metadata),
+			zap.String("expected", "SocialProfile"),
+			zap.String("actual", fmt.Sprintf("%T", action.Metadata)))
 
 		return activity.Action{}, fmt.Errorf("invalid profile metadata type: %T", action.Metadata)
 	}
@@ -88,7 +103,10 @@ func (c *Component) TransformSocialProfile(ctx context.Context, platform string,
 func (c *Component) TransformSocialProxy(ctx context.Context, platform string, action activity.Action) (activity.Action, error) {
 	proxy, ok := action.Metadata.(*metadata.SocialProxy)
 	if !ok {
-		zap.L().Error("invalid proxy metadata type", zap.Any("metadata", action.Metadata))
+		zap.L().Error("invalid proxy metadata type",
+			zap.Any("metadata", action.Metadata),
+			zap.String("expected", "SocialProxy"),
+			zap.String("actual", fmt.Sprintf("%T", action.Metadata)))
 
 		return activity.Action{}, fmt.Errorf("invalid proxy metadata type: %T", action.Metadata)
 	}
@@ -101,6 +119,10 @@ func (c *Component) TransformSocialProxy(ctx context.Context, platform string, a
 // buildSocialAuthorURL returns author url based on platform and handle
 func (c *Component) buildSocialAuthorURL(_ context.Context, platform string, handle string) string {
 	if lo.IsEmpty(handle) || lo.IsEmpty(platform) {
+		zap.L().Debug("empty handle or platform, skipping author URL build",
+			zap.String("handle", handle),
+			zap.String("platform", platform))
+
 		return ""
 	}
 
@@ -122,6 +144,8 @@ func (c *Component) buildSocialAuthorURL(_ context.Context, platform string, han
 	case decentralized.PlatformNearSocial.String():
 		return fmt.Sprintf("https://near.social/mob.near/widget/ProfilePage?accountId=%s", handle)
 	default:
+		zap.L().Warn("unsupported platform for author URL",
+			zap.String("platform", platform))
 		return ""
 	}
 }
@@ -152,6 +176,10 @@ func (c *Component) buildSocialNoteURL(_ context.Context, n network.Network, pla
 	case decentralized.PlatformParagraph.String():
 		return lo.Ternary(lo.IsEmpty(pubID) || lo.IsEmpty(handle), "", fmt.Sprintf("https://paragraph.xyz/@%s/%s", lo.FromPtr(handle), lo.FromPtr(pubID)))
 	}
+
+	zap.L().Warn("unsupported platform for note URL",
+		zap.String("platform", platform),
+		zap.String("network", n.String()))
 
 	return ""
 }
