@@ -85,6 +85,8 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 			errorChan <- err
 		}
 	}()
+
+	zap.L().Info("Successfully started Ethereum data source")
 }
 
 func (s *dataSource) initialize(ctx context.Context) (err error) {

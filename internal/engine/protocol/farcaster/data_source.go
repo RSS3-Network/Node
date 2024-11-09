@@ -46,10 +46,9 @@ func (s *dataSource) State() json.RawMessage {
 }
 
 func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
-	zap.L().Info("Starting Farcaster data source")
+	zap.L().Debug("Starting Farcaster data source")
 
 	if err := s.initialize(); err != nil {
-		zap.L().Error("Failed to initialize Farcaster data source", zap.Error(err))
 		errorChan <- fmt.Errorf("initialize dataSource: %w", err)
 
 		return
@@ -61,7 +60,6 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 		if err := retryOperation(ctx, func(ctx context.Context) error {
 			return s.pollCasts(ctx, tasksChan)
 		}); err != nil {
-			zap.L().Error("Failed to poll historical casts", zap.Error(err))
 			errorChan <- err
 		} else {
 			zap.L().Debug("Completed polling historical casts")
@@ -75,7 +73,6 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 		if err := retryOperation(ctx, func(ctx context.Context) error {
 			return s.pollReactions(ctx, tasksChan)
 		}); err != nil {
-			zap.L().Error("Failed to poll historical reactions", zap.Error(err))
 			errorChan <- err
 		} else {
 			zap.L().Debug("Completed polling historical reactions")
@@ -89,7 +86,6 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 		if err := retryOperation(ctx, func(ctx context.Context) error {
 			return s.pollEvents(ctx, tasksChan)
 		}); err != nil {
-			zap.L().Error("Failed to poll latest events", zap.Error(err))
 			errorChan <- err
 		}
 	}()
@@ -119,18 +115,17 @@ func (s *dataSource) pollCasts(ctx context.Context, tasksChan chan<- *engine.Tas
 
 	// If fid is 0 and backfill is not complete, fetch the maximum fid from the Farcaster Hub.
 	if s.state.CastsFid == 0 && !s.state.CastsBackfill {
-		zap.L().Info("Fetching maximum fid from Farcaster Hub")
+		zap.L().Debug("Fetching maximum fid from Farcaster Hub")
 
 		fidsResponse, err := s.farcasterClient.GetFids(ctx, true, lo.ToPtr(1))
 
 		if err != nil {
-			zap.L().Error("Failed to fetch maximum fid", zap.Error(err))
-
 			return fmt.Errorf("failed to fetch farcaster max fid: %w", err)
 		}
 
 		s.pendingState.CastsFid = fidsResponse.Fids[0]
-		zap.L().Info("Successfully fetched maximum fid", zap.Uint64("fid", fidsResponse.Fids[0]))
+
+		zap.L().Debug("Successfully fetched maximum fid", zap.Uint64("fid", fidsResponse.Fids[0]))
 	}
 
 	// Poll casts by fid until backfill is complete.
@@ -138,8 +133,6 @@ func (s *dataSource) pollCasts(ctx context.Context, tasksChan chan<- *engine.Tas
 		zap.L().Debug("Polling casts for fid", zap.Uint64("fid", s.pendingState.CastsFid))
 
 		if err := s.pollCastsByFid(ctx, lo.ToPtr(int64(s.pendingState.CastsFid)), "", tasksChan); err != nil {
-			zap.L().Error("Failed to poll casts for fid", zap.Uint64("fid", s.pendingState.CastsFid), zap.Error(err))
-
 			return err
 		}
 
@@ -149,7 +142,7 @@ func (s *dataSource) pollCasts(ctx context.Context, tasksChan chan<- *engine.Tas
 
 		// If pending fid is 0, mark backfill as complete.
 		if s.pendingState.CastsFid == 0 {
-			zap.L().Info("Completed casts backfill")
+			zap.L().Debug("Completed casts backfill")
 
 			s.pendingState.CastsBackfill = true
 			s.state = s.pendingState
@@ -167,7 +160,6 @@ func (s *dataSource) pollCastsByFid(ctx context.Context, fid *int64, pageToken s
 		castsByFidResponse, err := s.farcasterClient.GetCastsByFid(ctx, fid, true, nil, pageToken)
 
 		if err != nil {
-			zap.L().Error("Failed to fetch casts by fid", zap.Int64("fid", *fid), zap.Error(err))
 			return err
 		}
 
@@ -211,13 +203,11 @@ func (s *dataSource) pollReactions(ctx context.Context, tasksChan chan<- *engine
 		fidsResponse, err := s.farcasterClient.GetFids(ctx, true, lo.ToPtr(1))
 
 		if err != nil {
-			zap.L().Error("Failed to fetch maximum fid", zap.Error(err))
-
 			return fmt.Errorf("failed to fetch farcaster max fid: %w", err)
 		}
 
 		s.pendingState.ReactionsFid = fidsResponse.Fids[0]
-		zap.L().Info("Successfully fetched maximum fid", zap.Uint64("fid", fidsResponse.Fids[0]))
+		zap.L().Debug("Successfully fetched maximum fid", zap.Uint64("fid", fidsResponse.Fids[0]))
 	}
 
 	// Poll reactions by fid until backfill is complete.
@@ -225,8 +215,6 @@ func (s *dataSource) pollReactions(ctx context.Context, tasksChan chan<- *engine
 		zap.L().Debug("Polling reactions for fid", zap.Uint64("fid", s.pendingState.ReactionsFid))
 
 		if err := s.pollReactionsByFid(ctx, lo.ToPtr(int64(s.pendingState.ReactionsFid)), "", tasksChan); err != nil {
-			zap.L().Error("Failed to poll reactions for fid", zap.Uint64("fid", s.pendingState.ReactionsFid), zap.Error(err))
-
 			return err
 		}
 
@@ -236,7 +224,7 @@ func (s *dataSource) pollReactions(ctx context.Context, tasksChan chan<- *engine
 
 		// If pending fid is 0, mark backfill as complete.
 		if s.pendingState.ReactionsFid == 0 {
-			zap.L().Info("Completed reactions backfill")
+			zap.L().Debug("Completed reactions backfill")
 
 			s.pendingState.ReactionsBackfill = true
 			s.state = s.pendingState
@@ -254,7 +242,6 @@ func (s *dataSource) pollReactionsByFid(ctx context.Context, fid *int64, pageTok
 		reactionsByFidResponse, err := s.farcasterClient.GetReactionsByFid(ctx, fid, true, nil, pageToken, farcaster.ReactionTypeRecast.String())
 
 		if err != nil {
-			zap.L().Error("Failed to fetch reactions by fid", zap.Int64("fid", *fid), zap.Error(err))
 			return err
 		}
 
@@ -302,7 +289,7 @@ func (s *dataSource) buildFarcasterMessageTasks(ctx context.Context, messages []
 			switch message.Data.Type {
 			case farcaster.MessageTypeCastAdd.String():
 				if err := s.fillCastParams(ctx, &message); err != nil {
-					zap.L().Warn("Failed to fill cast parameters",
+					zap.L().Error("Failed to fill cast parameters",
 						zap.Uint64("fid", message.Data.Fid),
 						zap.String("hash", message.Hash),
 						zap.Error(err))
@@ -311,7 +298,7 @@ func (s *dataSource) buildFarcasterMessageTasks(ctx context.Context, messages []
 				}
 			case farcaster.MessageTypeReactionAdd.String():
 				if err := s.fillReactionParams(ctx, &message); err != nil {
-					zap.L().Warn("Failed to fill reaction parameters",
+					zap.L().Error("Failed to fill reaction parameters",
 						zap.Uint64("fid", message.Data.Fid),
 						zap.String("hash", message.Hash),
 						zap.Error(err))
@@ -354,7 +341,7 @@ func (s *dataSource) pollEvents(ctx context.Context, tasksChan chan<- *engine.Ta
 
 	for {
 		// Fetch events from the Farcaster Hub using the cursor.
-		zap.L().Info("Fetching events from Farcaster Hub",
+		zap.L().Debug("Fetching events from Farcaster Hub",
 			zap.Uint64("event.from.id", cursor))
 
 		eventsResponse, err := s.farcasterClient.GetEvents(ctx, lo.ToPtr(int64(cursor)))
@@ -371,7 +358,7 @@ func (s *dataSource) pollEvents(ctx context.Context, tasksChan chan<- *engine.Ta
 
 		// If the fetched events are empty, log an info message, wait for a default block time, and continue to the next iteration.
 		if len(eventsResponse.Events) == 0 {
-			zap.L().Info("No new events found, waiting for next poll",
+			zap.L().Debug("No new events found, waiting for next poll",
 				zap.Uint64("event.from.id", cursor),
 				zap.Duration("block.time", defaultBlockTime))
 
@@ -406,7 +393,7 @@ func (s *dataSource) buildFarcasterEventTasks(ctx context.Context, events []farc
 		return &tasks
 	}
 
-	zap.L().Info("Building tasks from events", zap.Int("events.count", len(events)))
+	zap.L().Debug("Building tasks from events", zap.Int("events.count", len(events)))
 
 	resultPool := pool.NewWithResults[*Task]().WithMaxGoroutines(lo.Ternary(len(events) < 20*runtime.NumCPU(), len(events), 20*runtime.NumCPU()))
 
@@ -423,7 +410,7 @@ func (s *dataSource) buildFarcasterEventTasks(ctx context.Context, events []farc
 			switch message.Data.Type {
 			case farcaster.MessageTypeCastAdd.String():
 				if err := s.fillCastParams(ctx, &message); err != nil {
-					zap.L().Warn("Failed to fill cast parameters",
+					zap.L().Error("Failed to fill cast parameters",
 						zap.Uint64("fid", message.Data.Fid),
 						zap.String("hash", message.Hash),
 						zap.Error(err))
@@ -436,7 +423,7 @@ func (s *dataSource) buildFarcasterEventTasks(ctx context.Context, events []farc
 			case farcaster.MessageTypeReactionAdd.String():
 				if message.Data.ReactionBody.Type == farcaster.ReactionTypeRecast.String() {
 					if err := s.fillReactionParams(ctx, &message); err != nil {
-						zap.L().Warn("Failed to fill reaction parameters",
+						zap.L().Error("Failed to fill reaction parameters",
 							zap.Uint64("fid", message.Data.Fid),
 							zap.String("hash", message.Hash),
 							zap.Error(err))
@@ -456,14 +443,14 @@ func (s *dataSource) buildFarcasterEventTasks(ctx context.Context, events []farc
 				farcaster.MessageTypeUsernameProof.String():
 				fid := int64(message.Data.Fid)
 
-				zap.L().Info("Processing verification/user data message",
+				zap.L().Debug("Processing verification/user data message",
 					zap.Int64("fid", fid),
 					zap.String("message.type", message.Data.Type))
 
 				_, _ = s.updateProfileByFid(ctx, &fid)
 
 				if message.Data.Type == farcaster.MessageTypeVerificationAddEthAddress.String() {
-					zap.L().Info("Polling casts and reactions for new ETH address verification",
+					zap.L().Debug("Polling casts and reactions for new ETH address verification",
 						zap.Int64("fid", fid))
 
 					_ = s.pollCastsByFid(ctx, &fid, "", tasksChan)
@@ -490,7 +477,7 @@ func (s *dataSource) buildFarcasterEventTasks(ctx context.Context, events []farc
 		}
 	}
 
-	zap.L().Info("Successfully built tasks from events",
+	zap.L().Debug("Successfully built tasks from events",
 		zap.Int("total.events", len(events)),
 		zap.Int("processed.tasks", len(tasks.Tasks)))
 
@@ -518,7 +505,6 @@ func (s *dataSource) updateProfileByFid(ctx context.Context, fid *int64) (*model
 	custodyAddress, username, err := s.getCustodyAddress(ctx, fid, username)
 
 	if err != nil {
-		zap.L().Error("Failed to get custody address", zap.Error(err), zap.Int64("fid", *fid))
 		return nil, err
 	}
 
@@ -527,8 +513,6 @@ func (s *dataSource) updateProfileByFid(ctx context.Context, fid *int64) (*model
 	ethAddresses, err := s.getEthAddresses(ctx, fid)
 
 	if err != nil {
-		zap.L().Error("Failed to get ETH addresses", zap.Error(err), zap.Int64("fid", *fid))
-
 		return nil, err
 	}
 
@@ -542,11 +526,10 @@ func (s *dataSource) updateProfileByFid(ctx context.Context, fid *int64) (*model
 	zap.L().Debug("Saving profile to database", zap.Int64("fid", *fid))
 
 	if err = s.databaseClient.SaveDatasetFarcasterProfile(ctx, profile); err != nil {
-		zap.L().Error("Failed to save profile", zap.Error(err), zap.Int64("fid", *fid))
 		return nil, err
 	}
 
-	zap.L().Info("Successfully updated profile", zap.Int64("fid", *fid))
+	zap.L().Debug("Successfully updated profile", zap.Int64("fid", *fid))
 
 	return profile, nil
 }
@@ -557,7 +540,6 @@ func (s *dataSource) getCustodyAddress(ctx context.Context, fid *int64, username
 	userProofs, err := s.farcasterClient.GetUserNameProofsByFid(ctx, fid)
 
 	if err != nil {
-		zap.L().Error("Failed to fetch username proofs", zap.Error(err), zap.Int64("fid", *fid))
 		return "", "", fmt.Errorf("fetch custody address by fid error: %w,%d", err, fid)
 	}
 
@@ -584,8 +566,6 @@ func (s *dataSource) getCustodyAddress(ctx context.Context, fid *int64, username
 		nameProof, err := s.farcasterClient.GetUserNameProofByName(ctx, username)
 
 		if err != nil || nameProof == nil {
-			zap.L().Error("Failed to fetch name proof", zap.Error(err), zap.String("username", username))
-
 			return "", "", fmt.Errorf("fetch custody address by name error: %w,%d", err, fid)
 		}
 
@@ -602,7 +582,6 @@ func (s *dataSource) getEthAddresses(ctx context.Context, fid *int64) ([]string,
 	verifications, err := s.farcasterClient.GetVerificationsByFid(ctx, fid, "")
 
 	if err != nil {
-		zap.L().Error("Failed to fetch verifications", zap.Error(err), zap.Int64("fid", *fid))
 		return nil, fmt.Errorf("failed to fetch eth address for fid %d: %w", fid, err)
 	}
 
@@ -632,7 +611,6 @@ func (s *dataSource) getProfileByFid(ctx context.Context, fid *int64) (*model.Pr
 	profile, err = s.databaseClient.LoadDatasetFarcasterProfile(ctx, *fid)
 
 	if err != nil {
-		zap.L().Error("Failed to load profile", zap.Error(err), zap.Int64("fid", *fid))
 		return nil, err
 	}
 
@@ -641,7 +619,6 @@ func (s *dataSource) getProfileByFid(ctx context.Context, fid *int64) (*model.Pr
 		profile, err = s.updateProfileByFid(ctx, fid)
 
 		if err != nil {
-			zap.L().Error("Failed to update profile", zap.Error(err), zap.Int64("fid", *fid))
 			return nil, fmt.Errorf("failed to update farcaster profile for fid %d: %w", fid, err)
 		}
 	}
@@ -660,7 +637,7 @@ func (s *dataSource) fillMentionsUsernames(ctx context.Context, message *farcast
 		profile, err := s.getProfileByFid(ctx, &fid)
 
 		if err != nil {
-			zap.L().Warn("Failed to fetch profile for mention",
+			zap.L().Error("Failed to fetch profile for mention",
 				zap.Int64("fid", fid),
 				zap.Error(err))
 
@@ -709,15 +686,10 @@ func (s *dataSource) fillCastParams(ctx context.Context, message *farcaster.Mess
 		targetMessage, err := s.farcasterClient.GetCastByFidAndHash(ctx, &targetFid, message.Data.CastAddBody.ParentCastID.Hash)
 
 		if err != nil {
-			zap.L().Error("Failed to fetch parent cast",
-				zap.Int64("target_fid", targetFid),
-				zap.Error(err))
-
 			return fmt.Errorf("failed to fetch target cast for target fid %d: %w", targetFid, err)
 		}
 
 		if targetMessage == nil {
-			zap.L().Error("Parent cast not found", zap.Int64("target_fid", targetFid))
 			return fmt.Errorf("not found target cast for target fid %d", targetFid)
 		}
 
@@ -750,15 +722,10 @@ func (s *dataSource) fillReactionParams(ctx context.Context, message *farcaster.
 		targetMessage, err := s.farcasterClient.GetCastByFidAndHash(ctx, &targetFid, message.Data.ReactionBody.TargetCastID.Hash)
 
 		if err != nil {
-			zap.L().Error("Failed to fetch target cast for reaction",
-				zap.Int64("target_fid", targetFid),
-				zap.Error(err))
-
 			return fmt.Errorf("failed to fetch target reaction for target fid %d: %w", targetFid, err)
 		}
 
 		if targetMessage == nil {
-			zap.L().Error("Target cast for reaction not found", zap.Int64("target_fid", targetFid))
 			return fmt.Errorf("not found target reaction for target fid %d", targetFid)
 		}
 
@@ -793,7 +760,7 @@ func retryOperation(ctx context.Context, operation func(ctx context.Context) err
 }
 
 func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseClient database.Client) (engine.DataSource, error) {
-	zap.L().Info("Creating new Farcaster data source")
+	zap.L().Debug("Creating new Farcaster data source")
 
 	var (
 		state State
@@ -805,7 +772,6 @@ func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseCli
 		zap.L().Debug("Initializing state from checkpoint")
 
 		if err := json.Unmarshal(checkpoint.State, &state); err != nil {
-			zap.L().Error("Failed to unmarshal checkpoint state", zap.Error(err))
 			return nil, err
 		}
 	}
@@ -818,7 +784,6 @@ func NewSource(config *config.Module, checkpoint *engine.Checkpoint, databaseCli
 	}
 
 	if instance.option, err = NewOption(config.Network, config.Parameters); err != nil {
-		zap.L().Error("Failed to parse config options", zap.Error(err))
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
