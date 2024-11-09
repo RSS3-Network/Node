@@ -97,7 +97,6 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 			}),
 		)
 		if err != nil {
-			zap.L().Error("Failed to start Arweave data source after retries", zap.Error(err))
 			errorChan <- err
 		}
 	}()
@@ -215,7 +214,6 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 		// Pull blocks by range.
 		blocks, err := s.batchPullBlocksByRange(ctx, blockHeightStart, blockHeightEnd)
 		if err != nil {
-			zap.L().Error("Failed to batch pull blocks", zap.Error(err))
 			return fmt.Errorf("batch pull blocks: %w", err)
 		}
 
@@ -230,7 +228,6 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 		// Batch pull transactions by ids.
 		transactions, err := s.batchPullTransactions(ctx, s.arweaveClient, transactionIDs)
 		if err != nil {
-			zap.L().Error("Failed to batch pull transactions", zap.Error(err))
 			return fmt.Errorf("batch pull transactions: %w", err)
 		}
 
@@ -239,7 +236,6 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 
 		// Pull transaction data and ignore the transaction if the owner is bundlr node.
 		if err := s.batchPullData(ctx, s.arweaveClient, transactions, true); err != nil {
-			zap.L().Error("Failed to batch pull transaction data", zap.Error(err))
 			return fmt.Errorf("batch pull data: %w", err)
 		}
 
@@ -252,7 +248,6 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 
 			bundleTransactions, err := s.batchPullBundleTransactions(ctx, bundleTransactionIDs)
 			if err != nil {
-				zap.L().Error("Failed to pull bundle transactions", zap.Error(err))
 				return fmt.Errorf("pull bundle transacctions: %w", err)
 			}
 
@@ -419,8 +414,8 @@ func (s *dataSource) batchPullBlocksByRange(ctx context.Context, blockHeightStar
 
 // batchPullBlocks pulls blocks by block heights.
 func (s *dataSource) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) ([]*arweave.Block, error) {
-	zap.L().Info("Starting to batch pull blocks",
-		zap.Int("block_count", len(blockHeights)))
+	zap.L().Debug("Starting to batch pull blocks",
+		zap.Any("block_heights", blockHeights))
 
 	resultPool := pool.NewWithResults[*arweave.Block]().
 		WithContext(ctx).
@@ -449,24 +444,15 @@ func (s *dataSource) batchPullBlocks(ctx context.Context, blockHeights []*big.In
 		})
 	}
 
-	blocks, err := resultPool.Wait()
-	if err != nil {
-		zap.L().Error("Failed to batch pull blocks",
-			zap.Error(err),
-			zap.Int("block_count", len(blockHeights)))
+	zap.L().Debug("Successfully pulled blocks",
+		zap.Any("block_heights", blockHeights))
 
-		return nil, err
-	}
-
-	zap.L().Info("Successfully pulled blocks",
-		zap.Int("block_count", len(blocks)))
-
-	return blocks, nil
+	return resultPool.Wait()
 }
 
 // batchPullTransactions pulls transactions by transaction ids.
 func (s *dataSource) batchPullTransactions(ctx context.Context, arweaveClient arweave.Client, transactionIDs []string) ([]*arweave.Transaction, error) {
-	zap.L().Info("Starting to batch pull transactions",
+	zap.L().Debug("Starting to batch pull transactions",
 		zap.Int("transaction_count", len(transactionIDs)))
 
 	resultPool := pool.NewWithResults[*arweave.Transaction]().
@@ -499,14 +485,10 @@ func (s *dataSource) batchPullTransactions(ctx context.Context, arweaveClient ar
 
 	transactions, err := resultPool.Wait()
 	if err != nil {
-		zap.L().Error("Failed to batch pull transactions",
-			zap.Error(err),
-			zap.Int("transaction_count", len(transactionIDs)))
-
 		return nil, err
 	}
 
-	zap.L().Info("Successfully pulled transactions",
+	zap.L().Debug("Successfully pulled transactions",
 		zap.Int("transaction_count", len(transactions)))
 
 	return transactions, nil
@@ -515,7 +497,7 @@ func (s *dataSource) batchPullTransactions(ctx context.Context, arweaveClient ar
 // batchPullData pulls data by transactions.
 // It will discard the transaction if the owner is bundlr node.
 func (s *dataSource) batchPullData(ctx context.Context, arweaveClient arweave.Client, transactions []*arweave.Transaction, skipBundler bool) error {
-	zap.L().Info("Starting to batch pull transaction data",
+	zap.L().Debug("Starting to batch pull transaction data",
 		zap.Int("transaction_count", len(transactions)),
 		zap.Bool("skip_bundler", skipBundler))
 
@@ -529,10 +511,6 @@ func (s *dataSource) batchPullData(ctx context.Context, arweaveClient arweave.Cl
 
 		owner, err := arweave.PublicKeyToAddress(transaction.Owner)
 		if err != nil {
-			zap.L().Error("Invalid transaction owner",
-				zap.Error(err),
-				zap.String("transaction_id", transaction.ID))
-
 			return fmt.Errorf("invalid owner of transaction %s: %w", transaction.ID, err)
 		}
 
@@ -585,23 +563,15 @@ func (s *dataSource) batchPullData(ctx context.Context, arweaveClient arweave.Cl
 		})
 	}
 
-	if err := resultPool.Wait(); err != nil {
-		zap.L().Error("Failed to batch pull transaction data",
-			zap.Error(err),
-			zap.Int("transaction_count", len(transactions)))
-
-		return err
-	}
-
-	zap.L().Info("Successfully pulled transaction data",
+	zap.L().Debug("Successfully batch pull transaction data",
 		zap.Int("transaction_count", len(transactions)))
 
-	return nil
+	return resultPool.Wait()
 }
 
 // batchPullBundleTransactions pulls bundle transactions by transaction ids.
 func (s *dataSource) batchPullBundleTransactions(ctx context.Context, transactionIDs []string) ([]*arweave.Transaction, error) {
-	zap.L().Info("Starting to batch pull bundle transactions",
+	zap.L().Debug("Starting to batch pull bundle transactions",
 		zap.Int("transaction_count", len(transactionIDs)))
 
 	resultPool := pool.NewWithResults[[]*arweave.Transaction]().
@@ -639,18 +609,13 @@ func (s *dataSource) batchPullBundleTransactions(ctx context.Context, transactio
 
 	bundleTransactions, err := resultPool.Wait()
 	if err != nil {
-		zap.L().Error("Failed to batch pull bundle transactions",
-			zap.Error(err),
-			zap.Int("transaction_count", len(transactionIDs)))
-
 		return nil, fmt.Errorf("wait result pool: %w", err)
 	}
 
-	flattened := lo.Flatten(bundleTransactions)
-	zap.L().Info("Successfully pulled bundle transactions",
-		zap.Int("transaction_count", len(flattened)))
+	zap.L().Debug("Successfully batch pull bundle transactions",
+		zap.Int("transaction_count", len(bundleTransactions)))
 
-	return flattened, nil
+	return lo.Flatten(bundleTransactions), nil
 }
 
 // pullBundleTransactions pulls bundle transactions by transaction id.
@@ -662,14 +627,10 @@ func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID s
 	response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
 	if err != nil {
 		if errors.Is(err, arweave.ErrorNotFound) {
-			zap.L().Debug("Bundle transaction not found",
+			zap.L().Warn("Bundle transaction not found",
 				zap.String("transaction_id", transactionID))
 			return nil, nil
 		}
-
-		zap.L().Error("Failed to get transaction data",
-			zap.String("transaction_id", transactionID),
-			zap.Error(err))
 
 		return nil, fmt.Errorf("fetch transaction: %w", err)
 	}
@@ -732,10 +693,6 @@ func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID s
 				zap.String("owner", transactionOwner))
 
 			if _, err := io.Copy(io.Discard, dataItem); err != nil {
-				zap.L().Error("Failed to discard data item",
-					zap.String("id", dataItemInfo.ID),
-					zap.Error(err))
-
 				return nil, fmt.Errorf("discard data item %s: %w", dataItemInfo.ID, err)
 			}
 
@@ -752,10 +709,6 @@ func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID s
 				continue
 			}
 
-			zap.L().Error("Failed to read data item",
-				zap.String("id", dataItemInfo.ID),
-				zap.Error(err))
-
 			return nil, fmt.Errorf("read data item %s: %w", dataItemInfo.ID, err)
 		}
 
@@ -765,9 +718,8 @@ func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID s
 		bundleTransactions = append(bundleTransactions, &bundleTransaction)
 	}
 
-	zap.L().Info("Successfully pulled bundle transactions",
-		zap.String("transaction_id", transactionID),
-		zap.Int("transaction_count", len(bundleTransactions)))
+	zap.L().Debug("Successfully pull bundle transactions",
+		zap.String("transaction_id", transactionID))
 
 	return bundleTransactions, nil
 }
@@ -781,7 +733,7 @@ func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction
 		hasBundleFormatTag := lo.ContainsBy(transaction.Tags, func(tag arweave.Tag) bool {
 			tagName, err := base64.RawURLEncoding.DecodeString(tag.Name)
 			if err != nil {
-				zap.L().Debug("Failed to decode bundle format tag name",
+				zap.L().Error("Failed to decode bundle format tag name",
 					zap.String("transaction_id", transaction.ID),
 					zap.Error(err))
 
@@ -790,7 +742,7 @@ func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction
 
 			tagValue, err := base64.RawURLEncoding.DecodeString(tag.Value)
 			if err != nil {
-				zap.L().Debug("Failed to decode bundle format tag value",
+				zap.L().Error("Failed to decode bundle format tag value",
 					zap.String("transaction_id", transaction.ID),
 					zap.Error(err))
 
@@ -803,7 +755,7 @@ func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction
 		hasBundleVersionTag := lo.ContainsBy(transaction.Tags, func(tag arweave.Tag) bool {
 			tagName, err := base64.RawURLEncoding.DecodeString(tag.Name)
 			if err != nil {
-				zap.L().Debug("Failed to decode bundle version tag name",
+				zap.L().Error("Failed to decode bundle version tag name",
 					zap.String("transaction_id", transaction.ID),
 					zap.Error(err))
 
@@ -813,7 +765,7 @@ func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction
 			tagValue, err := base64.RawURLEncoding.DecodeString(tag.Value)
 
 			if err != nil {
-				zap.L().Debug("Failed to decode bundle version tag value",
+				zap.L().Error("Failed to decode bundle version tag value",
 					zap.String("transaction_id", transaction.ID),
 					zap.Error(err))
 
@@ -847,7 +799,7 @@ func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction
 		return transaction.ID, lo.Contains(s.filter.BundlrAddresses, owner)
 	})
 
-	zap.L().Info("Successfully grouped bundle transactions",
+	zap.L().Debug("Successfully grouped bundle transactions",
 		zap.Int("filtered_count", len(filtered)))
 
 	return filtered
@@ -871,7 +823,7 @@ func (s *dataSource) discardRootBundleTransaction(transactions []*arweave.Transa
 		return !lo.Contains(s.filter.BundlrAddresses, transactionOwner)
 	})
 
-	zap.L().Info("Successfully discarded root bundle transactions",
+	zap.L().Debug("Successfully discarded root bundle transactions",
 		zap.Int("original_count", len(transactions)),
 		zap.Int("filtered_count", len(filtered)))
 
@@ -892,6 +844,7 @@ func (s *dataSource) discardDuplicateBundleTransaction(transactions []*arweave.T
 		if _, found := cache[transactions[index].ID]; found {
 			zap.L().Debug("Found duplicate transaction",
 				zap.String("transaction_id", transactions[index].ID))
+
 			continue
 		}
 
@@ -900,7 +853,7 @@ func (s *dataSource) discardDuplicateBundleTransaction(transactions []*arweave.T
 		results = append(results, transactions[index])
 	}
 
-	zap.L().Info("Successfully discarded duplicate bundle transactions",
+	zap.L().Debug("Successfully discarded duplicate bundle transactions",
 		zap.Int("original_count", len(transactions)),
 		zap.Int("filtered_count", len(results)))
 
@@ -926,7 +879,7 @@ func (s *dataSource) filterOwnerTransaction(transactions []*arweave.Transaction,
 		return lo.Contains(ownerAddress, transactionOwner)
 	})
 
-	zap.L().Info("Successfully filtered transactions by owner",
+	zap.L().Debug("Successfully filtered transactions by owner",
 		zap.Int("original_count", len(transactions)),
 		zap.Int("filtered_count", len(filtered)))
 
@@ -953,7 +906,7 @@ func (s *dataSource) buildTasks(_ context.Context, blocks []*arweave.Block, tran
 		})
 	}
 
-	zap.L().Info("Successfully built tasks",
+	zap.L().Debug("Successfully built tasks",
 		zap.Int("task_count", len(tasks.Tasks)))
 
 	return &tasks
@@ -971,8 +924,6 @@ func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, chec
 	// Initialize state from checkpoint.
 	if checkpoint != nil {
 		if err := json.Unmarshal(checkpoint.State, &state); err != nil {
-			zap.L().Error("Failed to unmarshal checkpoint state",
-				zap.Error(err))
 			return nil, err
 		}
 	}
@@ -988,15 +939,11 @@ func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, chec
 	if sourceFilter != nil {
 		var ok bool
 		if instance.filter, ok = sourceFilter.(*Filter); !ok {
-			zap.L().Error("Invalid data source filter type",
-				zap.String("type", fmt.Sprintf("%T", sourceFilter)))
 			return nil, fmt.Errorf("invalid dataSource filter type %T", sourceFilter)
 		}
 	}
 
 	if instance.option, err = NewOption(config.Network, config.Parameters); err != nil {
-		zap.L().Error("Failed to parse config",
-			zap.Error(err))
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
