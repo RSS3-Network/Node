@@ -102,7 +102,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 	// Set the block number to the start block number if it is greater than the current block number.
 	if s.option.BlockStart != nil && s.option.BlockStart.Uint64() > s.state.BlockNumber {
 		s.state.BlockNumber = s.option.BlockStart.Uint64()
-		zap.L().Info("Updated block number from start block",
+		zap.L().Debug("Updated block number from start block",
 			zap.Uint64("block.number.start", s.option.BlockStart.Uint64()),
 			zap.Uint64("block.number.current", s.state.BlockNumber))
 	}
@@ -120,16 +120,12 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 
 		remoteBlockStart, err := parameter.GetNetworkBlockStart(ctx, s.redisClient, s.config.Network.String())
 		if err != nil {
-			zap.L().Error("Failed to get network block start from cache",
-				zap.Error(err),
-				zap.String("network", s.config.Network.String()))
-
 			return fmt.Errorf("get network block start from cache: %w", err)
 		}
 
 		if remoteBlockStart > s.state.BlockNumber {
 			s.state.BlockNumber = remoteBlockStart
-			zap.L().Info("Updated block number from remote", zap.Uint64("newBlockNumber", s.state.BlockNumber))
+			zap.L().Debug("Updated block number from remote", zap.Uint64("newBlockNumber", s.state.BlockNumber))
 		}
 
 		blockNumberStart := s.state.BlockNumber + 1
@@ -140,8 +136,6 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 			// Refresh the remote block number.
 			blockNumber, err := s.ethereumClient.BlockNumber(ctx)
 			if err != nil {
-				zap.L().Error("Failed to get latest block number",
-					zap.Error(err))
 				return fmt.Errorf("get latest block number: %w", err)
 			}
 
@@ -152,7 +146,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 
 			// No new block has been mined, or the RPC node is lagging.
 			if blockNumberStart > blockNumberLatestRemote {
-				zap.L().Info("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestRemote), zap.Duration("block.time", defaultBlockTime))
+				zap.L().Debug("waiting new block", zap.Uint64("block.number.local", s.state.BlockNumber), zap.Uint64("block.number.remote", blockNumberLatestRemote), zap.Duration("block.time", defaultBlockTime))
 
 				time.Sleep(defaultBlockTime)
 			}
@@ -180,20 +174,11 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 
 		blocks, err := s.getBlocks(ctx, blockNumbers)
 		if err != nil {
-			zap.L().Error("Failed to get blocks",
-				zap.Error(err),
-				zap.String("block.number.start", blockNumbers[0].String()),
-				zap.String("block.number.end", blockNumbers[len(blockNumbers)-1].String()))
-
 			return fmt.Errorf("get blocks by block numbers: %w", err)
 		}
 
 		receipts, err := s.getReceipts(ctx, blocks)
 		if err != nil {
-			zap.L().Error("Failed to get receipts",
-				zap.Error(err),
-				zap.Int("blocks.count", len(blocks)))
-
 			return fmt.Errorf("get receipts: %w", err)
 		}
 
@@ -221,7 +206,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 		s.state.BlockHash = latestBlock.Hash
 		s.state.BlockNumber = latestBlock.Number.Uint64()
 
-		zap.L().Info("Successfully polled blocks",
+		zap.L().Debug("Successfully polled blocks",
 			zap.String("block.hash", s.state.BlockHash.String()),
 			zap.Uint64("block.number", s.state.BlockNumber),
 			zap.Int("tasks.count", len(tasks.Tasks)))
@@ -235,7 +220,7 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 
 	if s.option.BlockStart != nil && s.option.BlockStart.Uint64() > s.state.BlockNumber {
 		s.state.BlockNumber = s.option.BlockStart.Uint64()
-		zap.L().Info("Updated initial block number from BlockStart option",
+		zap.L().Debug("Updated initial block number from BlockStart option",
 			zap.Uint64("block.number", s.state.BlockNumber))
 	}
 
@@ -245,7 +230,7 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 		// Stop the dataSource if the block number target is not nil and the current block number is greater than the target
 		// block number. This is useful when the dataSource is used to index a specific range of blocks.
 		if s.option.BlockTarget != nil && s.option.BlockTarget.Uint64() < s.state.BlockNumber {
-			zap.L().Info("dataSource has indexed the specified block range",
+			zap.L().Debug("dataSource has indexed the specified block range",
 				zap.Uint64("block.number.local", s.state.BlockNumber),
 				zap.Uint64("block.number.target", s.option.BlockTarget.Uint64()))
 
@@ -254,14 +239,12 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 
 		remoteBlockStart, err := parameter.GetNetworkBlockStart(ctx, s.redisClient, s.config.Network.String())
 		if err != nil {
-			zap.L().Error("Failed to get network block start from cache",
-				zap.Error(err))
 			return fmt.Errorf("get network block start from cache: %w", err)
 		}
 
 		if remoteBlockStart > s.state.BlockNumber {
 			s.state.BlockNumber = remoteBlockStart
-			zap.L().Info("Updated block number from remote",
+			zap.L().Debug("Updated block number from remote",
 				zap.Uint64("newBlockNumber", s.state.BlockNumber))
 		}
 
@@ -273,8 +256,6 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 			// Refresh the remote block number.
 			blockNumber, err := s.ethereumClient.BlockNumber(ctx)
 			if err != nil {
-				zap.L().Error("Failed to get latest block number",
-					zap.Error(err))
 				return fmt.Errorf("get latest block number: %w", err)
 			}
 
@@ -282,7 +263,7 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 
 			// No new block has been mined, or the RPC node is lagging.
 			if blockNumberStart > blockNumberLatestRemote {
-				zap.L().Info("waiting new block",
+				zap.L().Debug("waiting new block",
 					zap.Uint64("block.number.local", s.state.BlockNumber),
 					zap.Uint64("block.number.remote", blockNumberLatestRemote),
 					zap.Duration("block.time", defaultBlockTime))
@@ -316,11 +297,6 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 
 		logs, err := s.ethereumClient.FilterLogs(ctx, logFilter)
 		if err != nil {
-			zap.L().Error("Failed to get logs by filter",
-				zap.Error(err),
-				zap.Uint64("block.start", blockNumberStart),
-				zap.Uint64("block.end", blockNumberEnd))
-
 			return fmt.Errorf("get logs by filter: %w", err)
 		}
 
@@ -333,10 +309,6 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 
 			latestBlock, err = s.updateLatestBlock(ctx, blockNumberEnd)
 			if err != nil {
-				zap.L().Error("Failed to update latest block",
-					zap.Error(err),
-					zap.Uint64("block.number", blockNumberEnd))
-
 				return err
 			}
 
@@ -344,17 +316,13 @@ func (s *dataSource) pollLogs(ctx context.Context, tasksChan chan<- *engine.Task
 
 			s.pushTasks(ctx, tasksChan, new(engine.Tasks))
 		} else {
-			zap.L().Info("Found logs in block range",
+			zap.L().Debug("Found logs in block range",
 				zap.Int("logs.count", len(logs)),
 				zap.Uint64("block.start", blockNumberStart),
 				zap.Uint64("block.end", blockNumberEnd))
 
 			latestBlock, err = s.processLogs(ctx, logs, tasksChan)
 			if err != nil {
-				zap.L().Error("Failed to process logs",
-					zap.Error(err),
-					zap.Int("logs.count", len(logs)))
-
 				return err
 			}
 		}
@@ -400,10 +368,6 @@ func (s *dataSource) processLogs(ctx context.Context, logs []*ethereum.Log, task
 
 	blocks, err := s.getBlocks(ctx, blockNumbers)
 	if err != nil {
-		zap.L().Error("Failed to get blocks",
-			zap.Error(err),
-			zap.Int("block.numbers.count", len(blockNumbers)))
-
 		return nil, fmt.Errorf("get blocks: %w", err)
 	}
 
@@ -423,10 +387,6 @@ func (s *dataSource) processLogs(ctx context.Context, logs []*ethereum.Log, task
 
 	receipts, err := s.getReceiptsByTransactionHashes(ctx, transactionHashes)
 	if err != nil {
-		zap.L().Error("Failed to get transaction receipts",
-			zap.Error(err),
-			zap.Int("transaction.hashes.count", len(transactionHashes)))
-
 		return nil, fmt.Errorf("get receipts: %w", err)
 	}
 
@@ -435,18 +395,13 @@ func (s *dataSource) processLogs(ctx context.Context, logs []*ethereum.Log, task
 	for _, block := range blocks {
 		blockTasks, err := s.buildTasks(block, receipts)
 		if err != nil {
-			zap.L().Error("Failed to build tasks for block",
-				zap.Error(err),
-				zap.String("block.hash", block.Hash.String()),
-				zap.String("block.number", block.Number.String()))
-
 			return nil, err
 		}
 
 		tasks.Tasks = append(tasks.Tasks, lo.Map(blockTasks, func(blockTask *Task, _ int) engine.Task { return blockTask })...)
 	}
 
-	zap.L().Info("Successfully built tasks from logs",
+	zap.L().Debug("Successfully built tasks from logs",
 		zap.Int("tasks.count", len(tasks.Tasks)),
 		zap.Int("blocks.count", len(blocks)))
 
@@ -477,8 +432,6 @@ func (s *dataSource) getBlocks(ctx context.Context, blockNumbers []*big.Int) ([]
 
 	batchResults, err := resultPool.Wait()
 	if err != nil {
-		zap.L().Error("Failed to get blocks in batch",
-			zap.Error(err))
 		return nil, err
 	}
 
@@ -542,10 +495,6 @@ func (s *dataSource) getReceiptsByBlockNumbers(ctx context.Context, blockNumbers
 		resultPool.Go(func(ctx context.Context) ([]*ethereum.Receipt, error) {
 			batchReceipts, err := s.ethereumClient.BatchBlockReceipts(ctx, blockNumbers)
 			if err != nil {
-				zap.L().Error("Failed to get batch receipts by block numbers",
-					zap.Error(err),
-					zap.Int("block.count", len(blockNumbers)))
-
 				return nil, err
 			}
 
@@ -555,8 +504,6 @@ func (s *dataSource) getReceiptsByBlockNumbers(ctx context.Context, blockNumbers
 
 	batchResults, err := resultPool.Wait()
 	if err != nil {
-		zap.L().Error("Failed to get all receipts by block numbers",
-			zap.Error(err))
 		return nil, err
 	}
 
@@ -584,10 +531,6 @@ func (s *dataSource) getReceiptsByTransactionHashes(ctx context.Context, transac
 		resultPool.Go(func(ctx context.Context) ([]*ethereum.Receipt, error) {
 			batchReceipts, err := s.ethereumClient.BatchTransactionReceipt(ctx, transactionHashes)
 			if err != nil {
-				zap.L().Error("Failed to get batch receipts by transaction hashes",
-					zap.Error(err),
-					zap.Int("transaction.count", len(transactionHashes)))
-
 				return nil, err
 			}
 
@@ -597,8 +540,6 @@ func (s *dataSource) getReceiptsByTransactionHashes(ctx context.Context, transac
 
 	batchResults, err := resultPool.Wait()
 	if err != nil {
-		zap.L().Error("Failed to get all receipts by transaction hashes",
-			zap.Error(err))
 		return nil, err
 	}
 
@@ -630,19 +571,11 @@ func (s *dataSource) buildTasks(block *ethereum.Block, receipts []*ethereum.Rece
 		// TODO Often this is also caused by a lagging RPC node failing to get the latest data,
 		// and it's best to fix this before the build task.
 		if !exists {
-			zap.L().Error("No receipt found for transaction",
-				zap.String("transaction.hash", transaction.Hash.String()),
-				zap.String("block.hash", block.Hash.String()))
-
 			return nil, fmt.Errorf("no receipt matched to transaction hash %s", transaction.Hash)
 		}
 
 		chain, err := network.EthereumChainIDString(s.Network().String())
 		if err != nil {
-			zap.L().Error("Failed to get chain ID for network",
-				zap.String("network", s.Network().String()),
-				zap.Error(err))
-
 			return nil, fmt.Errorf("unsupported chain %s", s.Network())
 		}
 
@@ -677,6 +610,8 @@ func (s *dataSource) pushTasks(ctx context.Context, tasksChan chan<- *engine.Tas
 }
 
 func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint, redisClient rueidis.Client) (engine.DataSource, error) {
+	zap.L().Debug("Creating new Ethereum data source")
+
 	var (
 		state State
 		err   error
@@ -685,8 +620,6 @@ func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, chec
 	// Initialize state from checkpoint.
 	if checkpoint != nil {
 		if err := json.Unmarshal(checkpoint.State, &state); err != nil {
-			zap.L().Error("Failed to unmarshal checkpoint state",
-				zap.Error(err))
 			return nil, err
 		}
 	}
@@ -702,15 +635,11 @@ func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, chec
 	if sourceFilter != nil {
 		var ok bool
 		if instance.filter, ok = sourceFilter.(*Filter); !ok {
-			zap.L().Error("Invalid data source filter type",
-				zap.String("type", fmt.Sprintf("%T", sourceFilter)))
 			return nil, fmt.Errorf("invalid dataSource filter type %T", sourceFilter)
 		}
 	}
 
 	if instance.option, err = NewOption(config.Network, config.Parameters); err != nil {
-		zap.L().Error("Failed to parse config options",
-			zap.Error(err))
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
