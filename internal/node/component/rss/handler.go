@@ -15,6 +15,9 @@ type Response struct {
 
 func (h *Component) Handler(ctx echo.Context) error {
 	path := ctx.Param("*")
+	zap.L().Debug("Handling RSS request",
+		zap.String("path", path),
+		zap.String("request_uri", ctx.Request().RequestURI))
 
 	go h.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, path)
 
@@ -24,9 +27,16 @@ func (h *Component) Handler(ctx echo.Context) error {
 
 	data, err := h.getActivities(ctx.Request().Context(), path, ctx.Request().URL)
 	if err != nil {
-		zap.L().Error("getActivities InternalError", zap.Error(err))
+		zap.L().Error("Failed to get activities from RSS feed",
+			zap.String("path", path),
+			zap.Error(err))
+
 		return response.InternalError(ctx)
 	}
+
+	zap.L().Info("Successfully retrieved RSS activities",
+		zap.String("path", path),
+		zap.Int("activity_count", len(data)))
 
 	return ctx.JSON(http.StatusOK, Response{
 		Data: data,
