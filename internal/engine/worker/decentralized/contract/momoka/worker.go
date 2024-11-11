@@ -29,6 +29,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
+	"go.uber.org/zap"
 )
 
 // make sure worker implements engine.Worker
@@ -84,6 +85,7 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform returns an activity  with the action of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
+	zap.L().Debug("transforming momoka task", zap.String("task_id", task.ID()))
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
@@ -110,11 +112,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		activity.Actions = append(activity.Actions, actions...)
 	}
 
+	zap.L().Debug("successfully transformed momoka task")
+
 	return activity, nil
 }
 
 // transformPostOrReviseAction Returns the actions of mirror post or revise.
 func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) ([]*activityx.Action, error) {
+	zap.L().Debug("start transforming momoka action", zap.String("transaction_id", task.Transaction.ID))
+
 	data, err := base64.RawURLEncoding.DecodeString(task.Transaction.Data)
 	if err != nil {
 		return nil, fmt.Errorf("decode transaction data: %w", err)
@@ -123,16 +129,28 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 	transactionData := gjson.ParseBytes(data)
 
 	rawPublicationID := transactionData.Get("publicationId").String()
+	zap.L().Debug("got publication id", zap.String("publication_id", rawPublicationID))
 
 	timestamp := transactionData.Get("event.timestamp").Uint()
+	zap.L().Debug("got timestamp", zap.Uint64("timestamp", timestamp))
 
 	// Polygon block number
 	blockNumber := transactionData.Get("chainProofs.thisPublication.blockNumber").Uint()
+	zap.L().Debug("got block number", zap.Uint64("block_number", blockNumber))
 
 	contentURI, rawProfileID, rawProfileIDPointed, socialType := w.parseTransactionDataByType(transactionData)
+	zap.L().Debug("parsed transaction data",
+		zap.String("content_uri", contentURI),
+		zap.String("profile_id", rawProfileID),
+		zap.String("profile_id_pointed", rawProfileIDPointed),
+		zap.String("social_type", socialType.String()))
 
 	// Discard unsupported transaction type
 	if rawProfileID == "" || rawPublicationID == "" {
+		zap.L().Warn("missing required fields",
+			zap.String("profile_id", rawProfileID),
+			zap.String("publication_id", rawPublicationID))
+
 		return nil, fmt.Errorf("missing profile id or publication id")
 	}
 
@@ -150,6 +168,8 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 		if err != nil {
 			return nil, fmt.Errorf("get lens handle: %w", err)
 		}
+
+		zap.L().Debug("got lens handle", zap.String("profile", profile))
 	}
 
 	momokaMetadata, err := w.buildArweaveMomokaPostMetadata(ctx, rawProfileID, profile, rawPublicationID, contentURI, false, timestamp)
@@ -168,7 +188,11 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 			return nil, fmt.Errorf("get lens handle: %w", err)
 		}
 
+		zap.L().Debug("got pointed lens handle", zap.String("profile_pointed", profilePointed))
+
 		location := transactionData.Get("chainProofs.pointer.location").String()
+
+		zap.L().Debug("got chain proofs location", zap.String("location", location))
 
 		body, err := w.getDataFromHTTP(ctx, location)
 		if err != nil {
@@ -197,7 +221,10 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 			targetContentURI = targetData.Get("event.contentURI").String()
 		}
 
+		zap.L().Debug("got target content uri", zap.String("target_content_uri", targetContentURI))
+
 		targetPublicationID := targetData.Get("publicationId").String()
+		zap.L().Debug("got target publication id", zap.String("target_publication_id", targetPublicationID))
 
 		momokaMetadata.Target, err = w.buildArweaveMomokaPostMetadata(ctx, rawProfileIDPointed, profilePointed, targetPublicationID, targetContentURI, true, timestamp)
 		if err != nil {
@@ -210,14 +237,20 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 		return nil, fmt.Errorf("get lens owner of: %w", err)
 	}
 
+	zap.L().Debug("got lens owner", zap.String("owner", from.String()))
+
 	activityFrom, err := arweave.PublicKeyToAddress(task.Transaction.Owner)
 	if err != nil {
 		return nil, fmt.Errorf("public key to address: %w", err)
 	}
 
+	zap.L().Debug("got activity from address", zap.String("activity_from", activityFrom))
+
 	actions := []*activityx.Action{
 		w.buildArweaveMomokaAction(ctx, from.String(), activityFrom, socialType, momokaMetadata),
 	}
+
+	zap.L().Debug("successfully transformed momoka action")
 
 	return actions, nil
 }
@@ -287,6 +320,8 @@ func (w *worker) buildArweaveMomokaPostMetadata(ctx context.Context, profileID, 
 	if contentURI != "" {
 		var err error
 
+		zap.L().Debug("fetching content from HTTP", zap.String("content_uri", contentURI))
+
 		body, err := w.getDataFromHTTP(ctx, contentURI)
 		if err != nil {
 			return nil, fmt.Errorf("get publication from ipfs: %w", err)
@@ -297,6 +332,8 @@ func (w *worker) buildArweaveMomokaPostMetadata(ctx context.Context, profileID, 
 		if err != nil {
 			return nil, fmt.Errorf("read all: %w", err)
 		}
+
+		zap.L().Debug("successfully fetched content data", zap.Int("bytes", len(contentData)))
 	}
 
 	momokaData := gjson.ParseBytes(contentData)
@@ -308,6 +345,8 @@ func (w *worker) buildArweaveMomokaPostMetadata(ctx context.Context, profileID, 
 	var content string
 
 	if momokaData.Get("lens").Exists() {
+		zap.L().Debug("parsing lens format content")
+
 		content = momokaData.Get("lens.content").String()
 
 		momokaImages := lo.Map(momokaData.Get("lens.image").Array(), func(media gjson.Result, _ int) metadata.Media {
@@ -341,7 +380,13 @@ func (w *worker) buildArweaveMomokaPostMetadata(ctx context.Context, profileID, 
 		momokaTags = lo.Map(momokaData.Get("lens.tags").Array(), func(tag gjson.Result, _ int) string {
 			return tag.String()
 		})
+
+		zap.L().Debug("parsed lens content",
+			zap.Int("media_count", len(momokaMedia)),
+			zap.Int("tags_count", len(momokaTags)))
 	} else {
+		zap.L().Debug("parsing standard format content")
+
 		content = momokaData.Get("content").String()
 
 		momokaMedia = lo.Map(momokaData.Get("media").Array(), func(media gjson.Result, _ int) metadata.Media {
@@ -354,7 +399,16 @@ func (w *worker) buildArweaveMomokaPostMetadata(ctx context.Context, profileID, 
 		momokaTags = lo.Map(momokaData.Get("tags").Array(), func(tag gjson.Result, _ int) string {
 			return tag.String()
 		})
+
+		zap.L().Debug("parsed standard content",
+			zap.Int("media_count", len(momokaMedia)),
+			zap.Int("tags_count", len(momokaTags)))
 	}
+
+	zap.L().Debug("building social post metadata",
+		zap.String("handle", handle),
+		zap.String("profile_id", profileID),
+		zap.String("pub_id", pubID))
 
 	return &metadata.SocialPost{
 		Handle:        handle,
