@@ -30,6 +30,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 )
 
 // Worker is the worker for ENS.
@@ -113,6 +114,8 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform Ethereum task to activityx.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
+	zap.L().Debug("transforming ENS task", zap.String("task_id", task.ID()))
+
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -136,16 +139,26 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		)
 
 		if len(log.Topics) == 0 {
+			zap.L().Debug("skipping log with no topics")
 			continue
 		}
+
+		zap.L().Debug("processing log",
+			zap.String("task_id", ethereumTask.ID()),
+			zap.String("log_address", log.Address.String()),
+			zap.String("log_topic", log.Topics[0].String()))
 
 		if exist {
 			_activities.Type = typex.CollectibleTrade
 
 			switch {
 			case w.matchEnsNameRegisteredV1(ctx, *log):
+				zap.L().Debug("processing ENS name registration V1")
+
 				actions, err = w.transformEnsNameRegisteredV1(ctx, *log, ethereumTask)
 			case w.matchEnsNameRegisteredV2(ctx, *log):
+				zap.L().Debug("processing ENS name registration V2")
+
 				actions, err = w.transformEnsNameRegisteredV2(ctx, *log, ethereumTask)
 			default:
 				continue
@@ -155,24 +168,44 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 			switch {
 			case w.matchEnsNameRenewed(ctx, *log):
+				zap.L().Debug("processing ENS name renewal")
+
 				actions, err = w.transformEnsNameRenewed(ctx, *log, ethereumTask)
 			case w.matchEnsTextChanged(ctx, *log):
+				zap.L().Debug("processing ENS text change")
+
 				actions, err = w.transformEnsTextChanged(ctx, *log, ethereumTask)
 			case w.matchEnsTextChangedWithValue(ctx, *log):
+				zap.L().Debug("processing ENS text change with value")
+
 				actions, err = w.transformEnsTextChangedWithValue(ctx, *log, ethereumTask)
 			case w.matchEnsNameWrapped(ctx, *log):
+				zap.L().Debug("processing ENS name wrap")
+
 				actions, err = w.transformEnsNameWrapped(ctx, *log, ethereumTask)
 			case w.matchEnsNameUnwrapped(ctx, *log):
+				zap.L().Debug("processing ENS name unwrap")
+
 				actions, err = w.transformEnsNameUnwrapped(ctx, *log, ethereumTask)
 			case w.matchEnsFusesSet(ctx, *log):
+				zap.L().Debug("processing ENS fuses set")
+
 				actions, err = w.transformEnsFusesSet(ctx, *log, ethereumTask)
 			case w.matchEnsContenthashChanged(ctx, *log):
+				zap.L().Debug("processing ENS content hash change")
+
 				actions, err = w.transformEnsContenthashChanged(ctx, *log, ethereumTask)
 			case w.matchEnsNameChanged(ctx, *log):
+				zap.L().Debug("processing ENS name change")
+
 				actions, err = w.transformEnsNameChanged(ctx, *log, ethereumTask)
 			case w.matchEnsAddressChanged(ctx, *log):
+				zap.L().Debug("processing ENS address change")
+
 				actions, err = w.transformEnsAddressChanged(ctx, *log, ethereumTask)
 			case w.matchEnsPubkeyChanged(ctx, *log):
+				zap.L().Debug("processing ENS pubkey change")
+
 				actions, err = w.transformEnsPubkeyChanged(ctx, *log, ethereumTask)
 			default:
 				continue
@@ -190,6 +223,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		_activities.Actions = append(_activities.Actions, actions...)
 	}
+
+	zap.L().Debug("successfully transformed ENS task")
 
 	return _activities, nil
 }
@@ -480,6 +515,12 @@ func (w *worker) transformEnsPubkeyChanged(ctx context.Context, log ethereum.Log
 }
 
 func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *source.Task, labels [32]byte, from, to common.Address, cost *big.Int, name string) (*activityx.Action, error) {
+	zap.L().Debug("building ethereum ENS register action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.String("name", name),
+		zap.String("cost", cost.String()))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, lo.ToPtr(ens.AddressBaseRegistrarImplementation), new(big.Int).SetBytes(labels[:]), task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s %s: %w", ens.AddressBaseRegistrarImplementation.String(), new(big.Int).SetBytes(labels[:]), err)
@@ -503,6 +544,9 @@ func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("save dataset ens namehash: %w", err)
 	}
 
+	zap.L().Debug("successfully built ethereum ENS register action",
+		zap.String("name", fullName))
+
 	return &activityx.Action{
 		Type:     typex.CollectibleTrade,
 		Platform: w.Platform(),
@@ -517,6 +561,14 @@ func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *sourc
 }
 
 func (w *worker) buildEthereumENSProfileAction(_ context.Context, from, to common.Address, expires *big.Int, name, key, value string, action metadata.SocialProfileAction) *activityx.Action {
+	zap.L().Debug("building ethereum ENS profile action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.String("name", name),
+		zap.String("key", key),
+		zap.String("value", value),
+		zap.String("action", action.String()))
+
 	label := strings.Split(name, ".eth")[0]
 	tokenID := common.BytesToHash(crypto.Keccak256([]byte(label))).Big()
 
@@ -534,6 +586,10 @@ func (w *worker) buildEthereumENSProfileAction(_ context.Context, from, to commo
 		socialProfile.Expiry = lo.ToPtr(time.Unix(expires.Int64(), 0))
 	}
 
+	zap.L().Debug("successfully built ethereum ENS profile action",
+		zap.String("profile_id", tokenID.String()),
+		zap.String("handle", name))
+
 	return &activityx.Action{
 		Type:     typex.SocialProfile,
 		Platform: w.Platform(),
@@ -545,6 +601,13 @@ func (w *worker) buildEthereumENSProfileAction(_ context.Context, from, to commo
 
 // NewWorker creates a new ENS worker.
 func NewWorker(config *config.Module, databaseClient database.Client) (engine.Worker, error) {
+	zap.L().Debug("initializing ens worker",
+		zap.String("ID", config.ID),
+		zap.String("network", config.Network.String()),
+		zap.String("worker", config.Worker.Name()),
+		zap.String("endpoint", config.Endpoint.URL),
+		zap.Any("params", config.Parameters))
+
 	var (
 		err      error
 		instance = worker{
@@ -574,6 +637,8 @@ func NewWorker(config *config.Module, databaseClient database.Client) (engine.Wo
 	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
 	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
 	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
+
+	zap.L().Info("ens worker initialized successfully")
 
 	return &instance, nil
 }

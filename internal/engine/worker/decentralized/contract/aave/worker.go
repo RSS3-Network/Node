@@ -583,7 +583,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
 	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
 
-	zap.L().Debug("aave worker initialized successfully")
+	zap.L().Info("aave worker initialized successfully")
 
 	return &instance, nil
 }

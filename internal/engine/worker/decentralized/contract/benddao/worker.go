@@ -602,7 +602,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 		return nil, fmt.Errorf("dial Ethereum: %w", err)
 	}
 
-	zap.L().Debug("benddao worker initialized successfully")
+	zap.L().Info("benddao worker initialized successfully")
 
 	return &worker{
 		tokenClient:          token.NewClient(ethereumClient),

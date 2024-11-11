@@ -1145,7 +1145,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance.tipsFilterer = lo.Must(tips.NewTipsFilterer(ethereum.AddressGenesis, nil))
 	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
 
-	zap.L().Debug("crossbell worker initialized successfully")
+	zap.L().Info("crossbell worker initialized successfully")
 
 	return &instance, nil
 }

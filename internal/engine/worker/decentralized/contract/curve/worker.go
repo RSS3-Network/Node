@@ -801,7 +801,7 @@ func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker
 		return nil, fmt.Errorf("refresh curve pool registry: %w", err)
 	}
 
-	zap.L().Debug("curve worker initialized successfully")
+	zap.L().Info("curve worker initialized successfully")
 
 	return &instance, nil
 }
