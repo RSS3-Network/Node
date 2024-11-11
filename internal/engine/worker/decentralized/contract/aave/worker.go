@@ -189,44 +189,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	return activity, nil
 }
 
-// NewWorker creates a new worker.
-func NewWorker(config *config.Module) (engine.Worker, error) {
-	zap.L().Debug("initializing aave worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
-	var (
-		err      error
-		instance = worker{
-			config: config,
-		}
-	)
-
-	// Initialize ethereum client.
-	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint.URL, config.Endpoint.BuildEthereumOptions()...); err != nil {
-		return nil, fmt.Errorf("initialize ethereum client: %w", err)
-	}
-
-	// Initialize token client.
-	instance.tokenClient = token.NewClient(instance.ethereumClient)
-
-	// Initialize filterers.
-	instance.v1LendingPoolFilterer = lo.Must(aave.NewV1LendingPoolFilterer(ethereum.AddressGenesis, nil))
-	instance.v2LendingPoolFilterer = lo.Must(aave.NewV2LendingPoolFilterer(ethereum.AddressGenesis, nil))
-	instance.v3PoolFilterer = lo.Must(aave.NewV3PoolFilterer(ethereum.AddressGenesis, nil))
-
-	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
-	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
-	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
-
-	zap.L().Debug("aave worker initialized completely")
-
-	return &instance, nil
-}
-
 func (w *worker) matchLiquidityV1Pool(_ *source.Task, log *ethereum.Log) bool {
 	return contract.MatchEventHashes(
 		log.Topics[0],
@@ -586,4 +548,42 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task 
 	}
 
 	return &action, nil
+}
+
+// NewWorker creates a new worker.
+func NewWorker(config *config.Module) (engine.Worker, error) {
+	zap.L().Debug("initializing aave worker",
+		zap.String("ID", config.ID),
+		zap.String("network", config.Network.String()),
+		zap.String("worker", config.Worker.Name()),
+		zap.String("endpoint", config.Endpoint.URL),
+		zap.Any("params", config.Parameters))
+
+	var (
+		err      error
+		instance = worker{
+			config: config,
+		}
+	)
+
+	// Initialize ethereum client.
+	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint.URL, config.Endpoint.BuildEthereumOptions()...); err != nil {
+		return nil, fmt.Errorf("initialize ethereum client: %w", err)
+	}
+
+	// Initialize token client.
+	instance.tokenClient = token.NewClient(instance.ethereumClient)
+
+	// Initialize filterers.
+	instance.v1LendingPoolFilterer = lo.Must(aave.NewV1LendingPoolFilterer(ethereum.AddressGenesis, nil))
+	instance.v2LendingPoolFilterer = lo.Must(aave.NewV2LendingPoolFilterer(ethereum.AddressGenesis, nil))
+	instance.v3PoolFilterer = lo.Must(aave.NewV3PoolFilterer(ethereum.AddressGenesis, nil))
+
+	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
+	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
+	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
+
+	zap.L().Debug("aave worker initialized successfully")
+
+	return &instance, nil
 }

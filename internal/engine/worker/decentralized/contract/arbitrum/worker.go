@@ -380,7 +380,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance.contractL1CustomGatewayFilterer = lo.Must(arbitrum.NewL1CustomGatewayFilterer(ethereum.AddressGenesis, nil))
 	instance.contractL2ReverseCustomGatewayFilterer = lo.Must(arbitrum.NewL2ReverseCustomGatewayFilterer(ethereum.AddressGenesis, nil))
 
-	zap.L().Debug("arbitrum worker initialized completely")
+	zap.L().Debug("arbitrum worker initialized successfully")
 
 	return &instance, nil
 }

@@ -89,6 +89,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	zap.L().Debug("transforming base task",
+		zap.String("task_id", ethereumTask.ID()))
+
 	// Build the activity.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
@@ -98,6 +101,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
+			zap.L().Debug("skipping anonymous log",
+				zap.String("task_id", ethereumTask.ID()))
+
 			continue
 		}
 
@@ -108,21 +114,43 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		switch {
 		case w.matchEthereumOptimismPortalTransactionDepositedLog(log):
+			zap.L().Debug("handling optimism portal transaction deposited log",
+				zap.String("task_id", ethereumTask.ID()))
+
 			action, err = w.handleEthereumOptimismPortalTransactionDepositedLog(ctx, *ethereumTask, activity, log)
 		case w.matchEthereumL1StandardBridgeETHDepositInitiatedLog(log):
+			zap.L().Debug("handling L1 standard bridge ETH deposit initiated log",
+				zap.String("task_id", ethereumTask.ID()))
+
 			action, err = w.handleEthereumL1StandardBridgeETHDepositInitiatedLog(ctx, *ethereumTask, activity, log)
 		case w.matchEthereumL1StandardBridgeERC20DepositInitiatedLog(log):
+			zap.L().Debug("handling L1 standard bridge ERC20 deposit initiated log",
+				zap.String("task_id", ethereumTask.ID()))
+
 			action, err = w.handleEthereumL1StandardBridgeERC20DepositInitiatedLog(ctx, *ethereumTask, activity, log)
 		case w.matchEthereumL1StandardBridgeETHWithdrawalFinalizedLog(log):
+			zap.L().Debug("handling L1 standard bridge ETH withdrawal finalized log",
+				zap.String("task_id", ethereumTask.ID()))
+
 			action, err = w.handleEthereumL1StandardBridgeETHWithdrawalFinalizedLog(ctx, *ethereumTask, activity, log)
 		case w.matchEthereumL1StandardBridgeERC20WithdrawalFinalizedLog(log):
+			zap.L().Debug("handling L1 standard bridge ERC20 withdrawal finalized log",
+				zap.String("task_id", ethereumTask.ID()))
+
 			action, err = w.handleEthereumL1StandardBridgeERC20WithdrawalFinalizedLog(ctx, *ethereumTask, activity, log)
 		default:
+			zap.L().Debug("skipping unsupported log",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("topic", log.Topics[0].String()))
+
 			continue
 		}
 
 		if err != nil {
-			zap.L().Warn("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
+			zap.L().Error("failed to handle ethereum log",
+				zap.Error(err),
+				zap.String("task_id", task.ID()))
+
 			continue
 		}
 
@@ -133,8 +161,14 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	activity.Tag = tag.Transaction
 
 	if len(activity.Actions) == 0 {
+		zap.L().Info("no actions found for task",
+			zap.String("task_id", task.ID()))
+
 		return nil, nil
 	}
+
+	zap.L().Debug("successfully transformed base task",
+		zap.String("task_id", task.ID()))
 
 	return activity, nil
 }
@@ -238,6 +272,15 @@ func (w *worker) handleEthereumL1StandardBridgeERC20WithdrawalFinalizedLog(ctx c
 }
 
 func (w *worker) buildEthereumTransactionBridgeAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver common.Address, source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building ethereum transaction bridge action",
+		zap.String("sender", sender.String()),
+		zap.String("receiver", receiver.String()),
+		zap.String("source_network", source.String()),
+		zap.String("target_network", target.String()),
+		zap.String("action", bridgeAction.String()),
+		zap.String("token_address", tokenAddress.String()),
+		zap.String("token_value", tokenValue.String()))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -259,11 +302,20 @@ func (w *worker) buildEthereumTransactionBridgeAction(ctx context.Context, block
 		},
 	}
 
+	zap.L().Debug("successfully built ethereum transaction bridge action")
+
 	return &action, nil
 }
 
 // NewWorker returns a new base worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
+	zap.L().Debug("initializing base worker",
+		zap.String("ID", config.ID),
+		zap.String("network", config.Network.String()),
+		zap.String("worker", config.Worker.Name()),
+		zap.String("endpoint", config.Endpoint.URL),
+		zap.Any("params", config.Parameters))
+
 	instance := worker{
 		baseOptimismPortalFilterer:   lo.Must(base.NewOptimismPortalFilterer(ethereum.AddressGenesis, nil)),
 		baseL1StandardBridgeFilterer: lo.Must(base.NewL1StandardBridgeFilterer(ethereum.AddressGenesis, nil)),
@@ -275,6 +327,8 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	}
 
 	instance.tokenClient = token.NewClient(instance.ethereumClient)
+
+	zap.L().Debug("base worker initialized successfully")
 
 	return &instance, nil
 }

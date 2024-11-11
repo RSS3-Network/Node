@@ -377,7 +377,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 		return nil, fmt.Errorf("dial Ethereum: %w", err)
 	}
 
-	zap.L().Info("aavegotchi worker initialized completely")
+	zap.L().Info("aavegotchi worker initialized successfully")
 
 	return &worker{
 		tokenClient:                token.NewClient(ethereumClient),

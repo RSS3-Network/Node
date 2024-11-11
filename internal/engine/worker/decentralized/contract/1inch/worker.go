@@ -971,7 +971,7 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 
 	instance.tokenClient = token.NewClient(instance.ethereumClient)
 
-	zap.L().Debug("1inch worker initialization completed")
+	zap.L().Debug("1inch worker initialized successfully")
 
 	return &instance, nil
 }
