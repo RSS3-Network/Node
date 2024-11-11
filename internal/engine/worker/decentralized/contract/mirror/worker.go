@@ -22,6 +22,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
+	"go.uber.org/zap"
 )
 
 // make sure worker implements engine.Worker
@@ -68,6 +69,8 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform returns an activity  with the action of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
+	zap.L().Debug("transforming mirror task", zap.String("task_id", task.ID()))
+
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
@@ -94,6 +97,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		activity.Actions = append(activity.Actions, actions...)
 	}
 
+	zap.L().Debug("successfully transformed mirror task")
+
 	return activity, nil
 }
 
@@ -104,6 +109,8 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 		originContentDigest string
 		emptyOriginDigest   bool
 	)
+
+	zap.L().Debug("transforming mirror action", zap.String("transaction_id", task.Transaction.ID))
 
 	for _, tag := range task.Transaction.Tags {
 		tagName, err := arweave.Base64Decode(tag.Name)
@@ -119,17 +126,22 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 		switch string(tagName) {
 		case "Content-Digest":
 			contentDigest = string(tagValue)
+			zap.L().Debug("found content digest", zap.String("digest", contentDigest))
 		case "Original-Content-Digest":
 			originContentDigest = string(tagValue)
+			zap.L().Debug("found original content digest", zap.String("digest", originContentDigest))
 
 			if len(string(tagValue)) == 0 {
 				emptyOriginDigest = true
+
+				zap.L().Debug("original content digest is empty")
 			}
 		}
 	}
 
 	// Construct content URI from tx id
 	contentURI := fmt.Sprintf("ar://%s", task.Transaction.ID)
+	zap.L().Debug("constructed content URI", zap.String("uri", contentURI))
 
 	// Get detailed post info from transaction data
 	transactionData, err := arweave.Base64Decode(task.Transaction.Data)
@@ -140,12 +152,15 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 	mirrorData := gjson.ParseBytes(transactionData)
 
 	author := mirrorData.Get("authorship.contributor").String()
+	zap.L().Debug("found post author", zap.String("author", author))
 
 	var media []metadata.Media
 
 	// Get mirror nft as media
 	address := mirrorData.Get("wnft.imageURI").String()
 	if address != "" {
+		zap.L().Debug("fetching NFT image", zap.String("address", address))
+
 		file, err := w.ipfsClient.Fetch(ctx, fmt.Sprintf("/ipfs/%s", address), ipfs.FetchModeQuick)
 		if err != nil {
 			return nil, fmt.Errorf("fetch ipfs: %w", err)
@@ -167,18 +182,23 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 			Address:  fmt.Sprintf("ipfs://%s", address),
 			MimeType: result.String(),
 		})
+
+		zap.L().Debug("added NFT media", zap.String("mimetype", result.String()))
 	}
 
 	var publicationID string
 
 	if contentDigest == "" {
 		publicationID = mirrorData.Get("digest").String()
+		zap.L().Debug("using digest as publication ID", zap.String("publication_id", publicationID))
 	} else {
 		publicationID = contentDigest
+		zap.L().Debug("using content digest as publication ID", zap.String("publication_id", publicationID))
 	}
 
 	if originContentDigest != "" {
 		publicationID = originContentDigest
+		zap.L().Debug("using original content digest as publication ID", zap.String("publication_id", publicationID))
 	}
 
 	// Construct mirror Metadata
@@ -190,6 +210,7 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 		Media:         media,
 		Timestamp:     mirrorData.Get("content.timestamp").Uint(),
 	}
+	zap.L().Debug("constructed mirror metadata", zap.String("title", mirrorMetadata.Title))
 
 	// Build the post or revise action
 	action, err := w.buildMirrorAction(ctx, task.Transaction.ID, author, mirror.AddressMirror, mirrorMetadata, emptyOriginDigest, originContentDigest)
@@ -207,35 +228,52 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 		return nil, fmt.Errorf("save dataset mirror post: %w", err)
 	}
 
+	zap.L().Info("saved dataset mirror post", zap.String("transaction_id", task.Transaction.ID))
+
 	actions := []*activityx.Action{
 		action,
 	}
+
+	zap.L().Debug("successfully transformed mirror action")
 
 	return actions, nil
 }
 
 // buildArweaveTransactionTransferAction Returns the native transfer transaction action.
 func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, mirrorMetadata *metadata.SocialPost, emptyOriginDigest bool, originContentDigest string) (*activityx.Action, error) {
+	zap.L().Debug("building mirror action",
+		zap.String("transaction_id", txID),
+		zap.String("from", from),
+		zap.String("to", to),
+		zap.Bool("empty_origin_digest", emptyOriginDigest),
+		zap.String("origin_content_digest", originContentDigest))
+
 	// Default action type is post.
 	filterType :=
 		typex.SocialPost
 
 	// if the origin digest is empty, the action type should be revise.
 	if emptyOriginDigest {
-		filterType =
-			typex.SocialRevise
+		zap.L().Debug("empty origin digest detected, setting action type to revise")
+
+		filterType = typex.SocialRevise
 	}
 
 	// If the origin digest is not empty, check if the origin digest is the first mirror post.
 	if originContentDigest != "" {
+		zap.L().Debug("loading dataset mirror post", zap.String("origin_content_digest", originContentDigest))
+
 		post, err := w.databaseClient.LoadDatasetMirrorPost(ctx, originContentDigest)
 		if err != nil {
 			return nil, fmt.Errorf("load dataset mirror post: %w", err)
 		}
 
 		if post != nil && txID != post.TransactionID {
-			filterType =
-				typex.SocialRevise
+			zap.L().Debug("post exists with different transaction ID, setting action type to revise",
+				zap.String("post_transaction_id", post.TransactionID),
+				zap.String("current_transaction_id", txID))
+
+			filterType = typex.SocialRevise
 		}
 	}
 
@@ -248,6 +286,8 @@ func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, m
 		To:       to,
 		Metadata: mirrorMetadata,
 	}
+
+	zap.L().Debug("successfully built mirror action")
 
 	return &action, nil
 }
