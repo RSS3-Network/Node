@@ -91,6 +91,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	zap.L().Debug("transforming arbitrum task",
+		zap.String("task_id", ethereumTask.ID()))
+
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build activity: %w", err)
@@ -104,31 +107,56 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
+			zap.L().Debug("skipping anonymous log",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.Uint("log_index", log.Index))
+
 			continue
 		}
 
 		switch {
 		case w.matchBridgeMessageDeliveredLog(ethereumTask, log):
+			zap.L().Debug("handling bridge message delivered log",
+				zap.String("task_id", ethereumTask.ID()))
+
 			actions, err = w.transformBridgeMessageDeliveredLog(ctx, ethereumTask, log)
 		case w.matchL1CustomGatewayDepositInitiatedLog(ethereumTask, log):
+			zap.L().Debug("handling L1 custom gateway deposit initiated log",
+				zap.String("task_id", ethereumTask.ID()))
+
 			actions, err = w.transformL1CustomGatewayDepositInitiatedLog(ctx, ethereumTask, log)
 		case w.matchL2ReverseCustomGatewayWithdrawalInitiatedLog(ethereumTask, log):
+			zap.L().Debug("handling L2 reverse custom gateway withdrawal initiated log",
+				zap.String("task_id", ethereumTask.ID()))
+
 			actions, err = w.transformL2ReverseCustomGatewayWithdrawalInitiatedLog(ctx, ethereumTask, log)
 		case w.matchArbSysL2ToL1TxLog(ethereumTask, log):
+			zap.L().Debug("handling ArbSys L2 to L1 tx log",
+				zap.String("task_id", ethereumTask.ID()))
+
 			actions, err = w.transformArbSysL2ToL1TxLog(ctx, ethereumTask, log)
 		case w.matchL1CustomGatewayWithdrawalFinalizedLog(ethereumTask, log):
+			zap.L().Debug("handling L1 custom gateway withdrawal finalized log",
+				zap.String("task_id", ethereumTask.ID()))
+
 			actions, err = w.transformL1CustomGatewayWithdrawalFinalizedLog(ctx, ethereumTask, log)
 		case w.matchL2ReverseCustomGatewayDepositFinalizedLog(ethereumTask, log):
+			zap.L().Debug("handling L2 reverse custom gateway deposit finalized log",
+				zap.String("task_id", ethereumTask.ID()))
+
 			actions, err = w.transformL2ReverseCustomGatewayDepositFinalizedLog(ctx, ethereumTask, log)
 		default:
-			zap.L().Warn("unsupported log", zap.String("task", task.ID()), zap.Uint("topic.index", log.Index))
+			zap.L().Warn("unsupported log",
+				zap.String("task_id", ethereumTask.ID()))
+
 			continue
 		}
 
-		// Log the entire task using zap.Any for structured logging
-
 		if err != nil {
-			zap.L().Warn("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
+			zap.L().Error("failed to handle ethereum log",
+				zap.Error(err),
+				zap.String("task_id", ethereumTask.ID()))
+
 			continue
 		}
 
@@ -136,6 +164,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	}
 
 	activity.Type = typex.TransactionBridge
+
+	zap.L().Debug("successfully transformed arbitrum task",
+		zap.String("task_id", ethereumTask.ID()))
 
 	return activity, nil
 }
@@ -281,13 +312,21 @@ func (w *worker) transformArbSysL2ToL1TxLog(ctx context.Context, task *source.Ta
 func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address,
 	source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address,
 	tokenValue *big.Int, blockNumber *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building transaction bridge action",
+		zap.String("sender", sender.String()),
+		zap.String("receiver", receiver.String()),
+		zap.String("source_network", source.String()),
+		zap.String("target_network", target.String()),
+		zap.String("action", bridgeAction.String()),
+		zap.String("token_address", tokenAddress.String()),
+		zap.String("token_value", tokenValue.String()))
+
 	// If the chain is 'Arbitrum', then set blockNumber to be nil by default to use Lookup()
 	if source == network.Arbitrum {
 		blockNumber = nil
 	}
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
-
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
@@ -307,10 +346,19 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 		},
 	}
 
+	zap.L().Debug("successfully built transaction bridge action")
+
 	return action, nil
 }
 
 func NewWorker(config *config.Module) (engine.Worker, error) {
+	zap.L().Debug("initializing arbitrum worker",
+		zap.String("ID", config.ID),
+		zap.String("network", config.Network.String()),
+		zap.String("worker", config.Worker.Name()),
+		zap.String("endpoint", config.Endpoint.URL),
+		zap.Any("params", config.Parameters))
+
 	var (
 		err      error
 		instance = worker{
@@ -331,6 +379,8 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance.contractArbSysFilterer = lo.Must(arbitrum.NewArbSysFilterer(ethereum.AddressGenesis, nil))
 	instance.contractL1CustomGatewayFilterer = lo.Must(arbitrum.NewL1CustomGatewayFilterer(ethereum.AddressGenesis, nil))
 	instance.contractL2ReverseCustomGatewayFilterer = lo.Must(arbitrum.NewL2ReverseCustomGatewayFilterer(ethereum.AddressGenesis, nil))
+
+	zap.L().Debug("arbitrum worker initialized completely")
 
 	return &instance, nil
 }
