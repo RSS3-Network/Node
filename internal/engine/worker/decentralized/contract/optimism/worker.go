@@ -79,6 +79,8 @@ func (w *worker) Filter() engine.DataSourceFilter {
 }
 
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
+	zap.L().Debug("transforming optimism task", zap.String("task_id", task.ID()))
+
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -97,21 +99,39 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
+			zap.L().Debug("ignoring anonymous log")
+
 			continue
 		}
 
+		zap.L().Debug("matching optimism event",
+			zap.String("address", log.Address.String()),
+			zap.String("event", log.Topics[0].String()))
+
 		switch {
 		case w.matchL1StandardBridgeETHDepositInitiatedLog(ethereumTask, log):
+			zap.L().Debug("matched l1 standard bridge eth deposit initiated event")
+
 			actions, err = w.transformL1StandardBridgeETHDepositInitiatedLog(ctx, ethereumTask, log)
 		case w.matchL1StandardBridgeERC20DepositInitiatedLog(ethereumTask, log):
+			zap.L().Debug("matched l1 standard bridge erc20 deposit initiated event")
+
 			actions, err = w.transformL1StandardBridgeERC20DepositInitiatedLog(ctx, ethereumTask, log)
 		case w.matchL1StandardBridgeETHWithdrawalFinalizedLog(ethereumTask, log):
+			zap.L().Debug("matched l1 standard bridge eth withdrawal finalized event")
+
 			actions, err = w.transformL1StandardBridgeETHWithdrawalFinalizedLog(ctx, ethereumTask, log)
 		case w.matchL1StandardBridgeERC20WithdrawalFinalizedLog(ethereumTask, log):
+			zap.L().Debug("matched l1 standard bridge erc20 withdrawal finalized event")
+
 			actions, err = w.transformL1StandardBridgeERC20WithdrawalFinalizedLog(ctx, ethereumTask, log)
 		case w.matchL2StandardBridgeWithdrawalInitiatedLog(ethereumTask, log):
+			zap.L().Debug("matched l2 standard bridge withdrawal initiated event")
+
 			actions, err = w.transformL2StandardBridgeWithdrawalInitiatedLog(ctx, ethereumTask, log)
 		case w.matchL2StandardBridgeDepositFinalizedLog(ethereumTask, log):
+			zap.L().Debug("matched l2 standard bridge deposit finalized event")
+
 			actions, err = w.transformL2StandardBridgeDepositFinalizedLog(ctx, ethereumTask, log)
 		default:
 			zap.L().Warn("unsupported log", zap.String("task", task.ID()), zap.Uint("topic.index", log.Index))
@@ -128,6 +148,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		activity.Type = typex.TransactionBridge
 		activity.Actions = append(activity.Actions, actions...)
 	}
+
+	zap.L().Debug("successfully transformed optimism task")
 
 	return activity, nil
 }
@@ -270,6 +292,12 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 		tokenAddress = nil
 	}
 
+	zap.L().Debug("building transaction bridge action",
+		zap.String("sender", sender.String()),
+		zap.String("receiver", receiver.String()),
+		zap.String("token", lo.If(tokenAddress == nil, "").Else(tokenAddress.String())),
+		zap.String("token_value", tokenValue.String()))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
@@ -289,6 +317,8 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 			Token:         *tokenMetadata,
 		},
 	}
+
+	zap.L().Debug("successfully built transaction bridge action")
 
 	return &action, nil
 }
