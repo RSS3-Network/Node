@@ -22,6 +22,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 )
 
 // Worker is the worker for KiwiStand.
@@ -82,6 +83,8 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform Ethereum task to activityx.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
+	zap.L().Debug("transforming KiwiStand task", zap.String("task_id", task.ID()))
+
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -100,15 +103,27 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
+		zap.L().Debug("processing log",
+			zap.String("task_id", ethereumTask.ID()),
+			zap.String("log_address", log.Address.String()))
+
 		// Match kiwistand core contract events
 		switch {
 		case w.matchRewardsDeposit(ethereumTask, log):
+			zap.L().Debug("processing rewards deposit event")
+
 			actions, err = w.transformRewardsDeposit(ctx, ethereumTask, log)
 		case w.matchTransfer(ethereumTask, log):
+			zap.L().Debug("processing transfer event")
+
 			actions, err = w.transformKiwiMint(ctx, ethereumTask, log)
 		case w.matchSale(ethereumTask, log):
+			zap.L().Debug("processing sale event")
+
 			actions, err = w.transformSale(ctx, ethereumTask, log)
 		case w.matchMintComment(ethereumTask, log):
+			zap.L().Debug("processing mint comment event")
+
 			actions, err = w.transformMintComment(ctx, ethereumTask, log)
 		default:
 			continue
@@ -122,6 +137,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		activity.Actions = append(activity.Actions, actions...)
 	}
+
+	zap.L().Debug("successfully transformed KiwiStand task")
 
 	return activity, nil
 }
@@ -255,12 +272,21 @@ func (w *worker) transformMintComment(ctx context.Context, task *source.Task, lo
 
 // buildKiwiMintAction builds KiwiMint action.
 func (w *worker) buildKiwiMintAction(ctx context.Context, task *source.Task, from, to common.Address, contract common.Address, id *big.Int, value *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building kiwi mint action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.String("contract", contract.String()),
+		zap.String("token_id", id.String()),
+		zap.String("value", value.String()))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &contract, id, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
+
+	zap.L().Debug("successfully built kiwi mint action")
 
 	return &activityx.Action{
 		Type:     typex.CollectibleMint,
@@ -273,7 +299,12 @@ func (w *worker) buildKiwiMintAction(ctx context.Context, task *source.Task, fro
 
 // buildKiwiMintCommentAction builds KiwiMintComment action.
 func (w *worker) buildKiwiMintCommentAction(_ context.Context, from common.Address, to common.Address, comment string) *activityx.Action {
-	return &activityx.Action{
+	zap.L().Debug("building kiwi mint comment action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.String("comment", comment))
+
+	action := &activityx.Action{
 		From:     from.String(),
 		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
 		Platform: w.Platform(),
@@ -283,16 +314,27 @@ func (w *worker) buildKiwiMintCommentAction(_ context.Context, from common.Addre
 			Body:  comment,
 		},
 	}
+
+	zap.L().Debug("successfully built kiwi mint comment action")
+
+	return action
 }
 
 // buildKiwiFee builds fee
 func (w *worker) buildKiwiFeeAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, amount *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building kiwi fee action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.String("amount", amount.String()))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, nil, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
+
+	zap.L().Debug("successfully built kiwi fee action")
 
 	return &activityx.Action{
 		Type:     typex.TransactionTransfer,
@@ -305,6 +347,13 @@ func (w *worker) buildKiwiFeeAction(ctx context.Context, task *source.Task, from
 
 // NewWorker creates a new KiwiStand worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
+	zap.L().Debug("initializing kiwistand worker",
+		zap.String("ID", config.ID),
+		zap.String("network", config.Network.String()),
+		zap.String("worker", config.Worker.Name()),
+		zap.String("endpoint", config.Endpoint.URL),
+		zap.Any("params", config.Parameters))
+
 	var (
 		err      error
 		instance = worker{
@@ -323,6 +372,8 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	// Initialize kiwistand filterers.
 	instance.kiwiFilterer = lo.Must(kiwistand.NewKiwiFilterer(ethereum.AddressGenesis, nil))
 	instance.protocolRewardsFilterer = lo.Must(kiwistand.NewProtocolRewardsFilterer(ethereum.AddressGenesis, nil))
+
+	zap.L().Info("kiwistand worker initialized successfully")
 
 	return &instance, nil
 }
