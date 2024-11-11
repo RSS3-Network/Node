@@ -36,6 +36,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 )
 
 // Worker is the worker for Crossbell.
@@ -123,6 +124,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	zap.L().Debug("transforming crossbell task",
+		zap.String("task_id", ethereumTask.ID()))
+
 	// Build default crossbell activity from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
@@ -133,6 +137,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
+			zap.L().Debug("skipping anonymous log",
+				zap.String("task_id", ethereumTask.ID()))
 			continue
 		}
 
@@ -143,34 +149,95 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		// Match crossbell core contract events
 		switch {
 		case w.matchProfileCreated(ethereumTask, log):
+			zap.L().Debug("processing profile created event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			actions, err = w.transformProfileCreated(ctx, ethereumTask, log)
 		case w.matchSetProfileURI(ethereumTask, log):
+			zap.L().Debug("processing set profile URI event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			actions, err = w.transformSetProfileURI(ctx, ethereumTask, log)
 		case w.matchCharacterCreated(ethereumTask, log):
+			zap.L().Debug("processing character created event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			actions, err = w.transformCharacterCreated(ctx, ethereumTask, log)
 		case w.matchCharacterSetHandle(ethereumTask, log):
+			zap.L().Debug("processing character set handle event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			actions, err = w.transformCharacterSetHandle(ctx, ethereumTask, log)
 		case w.matchSetCharacterURI(ethereumTask, log):
+			zap.L().Debug("processing set character URI event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			actions, err = w.transformSetCharacterURI(ctx, ethereumTask, log)
 		case w.matchPostCreated(ethereumTask, log):
+			zap.L().Debug("processing post created event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			actions, err = w.transformPostCreated(ctx, ethereumTask, log)
 		case w.matchSetNoteURI(ethereumTask, log):
+			zap.L().Debug("processing set note URI event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			actions, err = w.transformSetNoteURI(ctx, ethereumTask, log)
 		case w.matchDeleteNote(ethereumTask, log):
+			zap.L().Debug("processing delete note event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			actions, err = w.transformDeleteNote(ctx, ethereumTask, log)
 		case w.matchMintNote(ethereumTask, log):
+			zap.L().Debug("processing mint note event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			actions, err = w.transformMintNote(ctx, ethereumTask, log)
 		case w.matchSetOperator(ethereumTask, log):
+			zap.L().Debug("processing set operator event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			actions, err = w.transformSetOperator(ctx, ethereumTask, log)
 		case w.matchAddOperator(ethereumTask, log):
+			zap.L().Debug("processing add operator event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			actions, err = w.transformAddOperator(ctx, ethereumTask, log)
 		case w.matchRemoveOperator(ethereumTask, log):
+			zap.L().Debug("processing remove operator event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			actions, err = w.transformRemoveOperator(ctx, ethereumTask, log)
 		case w.matchGrantOperatorPermissions(ethereumTask, log):
+			zap.L().Debug("processing grant operator permissions event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			actions, err = w.transformGrantOperatorPermissions(ctx, ethereumTask, log)
 		case w.matchTipsCharacterForNote(ethereumTask, log):
+			zap.L().Debug("processing tips character for note event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			actions, err = w.transformTipsCharacterForNote(ctx, ethereumTask, log)
 		default:
+			zap.L().Debug("unsupported event",
+				zap.String("task_id", ethereumTask.ID()),
+				zap.String("log_address", log.Address.String()),
+				zap.String("topic", log.Topics[0].String()))
+
 			continue
 		}
 
@@ -185,6 +252,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		activity.Actions = append(activity.Actions, actions...)
 	}
+
+	zap.L().Debug("successfully transformed crossbell task",
+		zap.String("task_id", ethereumTask.ID()))
 
 	return activity, nil
 }
@@ -998,21 +1068,37 @@ func (w *worker) buildProfileHandleSuffix(_ context.Context, handle string) stri
 
 // getIPFSContent gets IPFS content.
 func (w *worker) getIPFSContent(ctx context.Context, contentURI string) (json.RawMessage, error) {
+	zap.L().Debug("getting IPFS content",
+		zap.String("content_uri", contentURI))
+
 	_, path, err := ipfs.ParseURL(contentURI)
 	if err != nil {
 		return nil, fmt.Errorf("parse ipfs url: %w", err)
 	}
+
+	zap.L().Debug("fetching IPFS content",
+		zap.String("path", path))
 
 	body, err := w.ipfsClient.Fetch(ctx, path, ipfs.FetchModeQuick)
 	if err != nil {
 		return nil, fmt.Errorf("quick fetch ipfs: %w", err)
 	}
 
+	zap.L().Debug("successfully fetched IPFS content",
+		zap.String("path", path))
+
 	return io.ReadAll(body)
 }
 
 // NewWorker creates a new Lens worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
+	zap.L().Info("initializing crossbell worker",
+		zap.String("ID", config.ID),
+		zap.String("network", config.Network.String()),
+		zap.String("worker", config.Worker.Name()),
+		zap.String("endpoint", config.Endpoint.URL),
+		zap.Any("params", config.Parameters))
+
 	var (
 		err      error
 		instance = worker{
@@ -1058,6 +1144,8 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance.profileFilterer = lo.Must(profile.NewProfileFilterer(ethereum.AddressGenesis, nil))
 	instance.tipsFilterer = lo.Must(tips.NewTipsFilterer(ethereum.AddressGenesis, nil))
 	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
+
+	zap.L().Debug("crossbell worker initialized successfully")
 
 	return &instance, nil
 }
