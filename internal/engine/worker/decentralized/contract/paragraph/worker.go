@@ -21,6 +21,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
+	"go.uber.org/zap"
 )
 
 // make sure worker implements engine.Worker
@@ -66,6 +67,7 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform returns an activity  with the action of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
+	zap.L().Debug("transforming paragraph task", zap.String("task_id", task.ID()))
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
@@ -92,6 +94,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		activity.Actions = append(activity.Actions, actions...)
 	}
 
+	zap.L().Debug("successfully transformed paragraph task")
+
 	return activity, nil
 }
 
@@ -115,6 +119,8 @@ func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task
 			return nil, err
 		}
 
+		zap.L().Debug("tag", zap.String("name", string(tagName)), zap.String("value", string(tagValue)))
+
 		switch string(tagName) {
 		case "Contributor":
 			contributor = string(tagValue)
@@ -132,6 +138,8 @@ func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task
 		return nil, fmt.Errorf("invalid foramt of transaction data: %w", err)
 	}
 
+	zap.L().Debug("transaction data", zap.String("data", string(transactionData)))
+
 	paragraphData := gjson.ParseBytes(transactionData)
 
 	contentURI := fmt.Sprintf("https://arweave.net/%s", task.Transaction.ID)
@@ -140,6 +148,8 @@ func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task
 	if err != nil {
 		return nil, fmt.Errorf("build arweave paragraph post metadata failed: %w", err)
 	}
+
+	zap.L().Debug("paragraph metadata", zap.Any("metadata", paragraphMetadata))
 
 	var updated bool
 
@@ -163,6 +173,12 @@ func (w *worker) transformParagraphAction(ctx context.Context, task *source.Task
 
 // buildArweaveTransactionTransferAction Returns the native transfer transaction action.
 func (w *worker) buildParagraphAction(_ context.Context, from, to string, paragraphMetadata *metadata.SocialPost, updated bool) *activityx.Action {
+	zap.L().Debug("building paragraph action",
+		zap.String("from", from),
+		zap.String("to", to),
+		zap.Any("metadata", paragraphMetadata),
+		zap.Bool("updated", updated))
+
 	// Default action type is post.
 	filterType :=
 		typex.SocialPost
@@ -187,6 +203,10 @@ func (w *worker) buildParagraphAction(_ context.Context, from, to string, paragr
 
 // buildParagraphMetadata Returns the metadata of the paragraph post.
 func (w *worker) buildParagraphMetadata(ctx context.Context, handle, contentURI string, contentData []byte) (*metadata.SocialPost, error) {
+	zap.L().Debug("building paragraph metadata",
+		zap.String("handle", handle),
+		zap.String("content_uri", contentURI))
+
 	paragraphData := gjson.ParseBytes(contentData)
 
 	var media []metadata.Media
