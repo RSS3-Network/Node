@@ -132,7 +132,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid transaction to: %s", ethereumTask.Transaction.Hash)
 	}
 
-	zap.L().Debug("building activity from task",
+	zap.L().Debug("transforming activity from task",
 		zap.String("task_id", ethereumTask.ID()))
 
 	// Build activity base from task.
