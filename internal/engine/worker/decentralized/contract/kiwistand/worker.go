@@ -347,13 +347,6 @@ func (w *worker) buildKiwiFeeAction(ctx context.Context, task *source.Task, from
 
 // NewWorker creates a new KiwiStand worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
-	zap.L().Debug("initializing kiwistand worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
 	var (
 		err      error
 		instance = worker{
@@ -372,8 +365,6 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	// Initialize kiwistand filterers.
 	instance.kiwiFilterer = lo.Must(kiwistand.NewKiwiFilterer(ethereum.AddressGenesis, nil))
 	instance.protocolRewardsFilterer = lo.Must(kiwistand.NewProtocolRewardsFilterer(ethereum.AddressGenesis, nil))
-
-	zap.L().Info("kiwistand worker initialized successfully")
 
 	return &instance, nil
 }

@@ -309,13 +309,6 @@ func (w *worker) buildEthereumTransactionBridgeAction(ctx context.Context, block
 
 // NewWorker returns a new base worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
-	zap.L().Debug("initializing base worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
 	instance := worker{
 		baseOptimismPortalFilterer:   lo.Must(base.NewOptimismPortalFilterer(ethereum.AddressGenesis, nil)),
 		baseL1StandardBridgeFilterer: lo.Must(base.NewL1StandardBridgeFilterer(ethereum.AddressGenesis, nil)),
@@ -327,8 +320,6 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	}
 
 	instance.tokenClient = token.NewClient(instance.ethereumClient)
-
-	zap.L().Info("base worker initialized successfully")
 
 	return &instance, nil
 }

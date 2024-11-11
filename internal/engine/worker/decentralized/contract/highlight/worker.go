@@ -291,13 +291,6 @@ func (w *worker) buildHighlightMintAction(ctx context.Context, task *source.Task
 
 // NewWorker creates a new Highlight worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
-	zap.L().Debug("initializing highlight worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
 	var (
 		err      error
 		instance = worker{
@@ -316,8 +309,6 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	// Initialize highlight filterers.
 	instance.mintManagerFilterer = lo.Must(highlight.NewMintManagerFilterer(ethereum.AddressGenesis, nil))
 	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
-
-	zap.L().Info("highlight worker initialized successfully")
 
 	return &instance, nil
 }

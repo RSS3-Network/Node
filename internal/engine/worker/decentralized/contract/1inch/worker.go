@@ -946,13 +946,6 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 
 // NewWorker returns a new 1inch worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
-	zap.L().Debug("initializing 1inch worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
 	instance := worker{
 		oneinchExchangeFilterer:            lo.Must(oneinch.NewExchangeFilterer(ethereum.AddressGenesis, nil)),
 		oneinchAggregationRouterV2Filterer: lo.Must(oneinch.NewAggregationRouterV2Filterer(ethereum.AddressGenesis, nil)),
@@ -970,8 +963,6 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	}
 
 	instance.tokenClient = token.NewClient(instance.ethereumClient)
-
-	zap.L().Info("1inch worker initialized successfully")
 
 	return &instance, nil
 }

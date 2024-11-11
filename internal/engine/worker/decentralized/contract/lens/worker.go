@@ -1005,13 +1005,6 @@ func (w *worker) buildEthereumV2TransactionPostMetadata(ctx context.Context, blo
 
 // NewWorker creates a new Lens worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
-	zap.L().Debug("initializing lens worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
 	var (
 		err      error
 		instance = worker{
@@ -1066,8 +1059,6 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance.eventsFiltererV1 = lo.Must(lens.NewV1EventsFilterer(ethereum.AddressGenesis, nil))
 	instance.eventsFiltererV2 = lo.Must(lens.NewV2EventsFilterer(ethereum.AddressGenesis, nil))
 	instance.eventsCollectPublicationAction = lo.Must(lens.NewV2CollectPublicationActionFilterer(ethereum.AddressGenesis, nil))
-
-	zap.L().Info("lens worker initialized successfully")
 
 	return &instance, nil
 }

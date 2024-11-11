@@ -229,13 +229,6 @@ func (w *worker) getEthereumIPFSContent(ctx context.Context, ipfsID string) ([]b
 
 // NewWorker creates a new IQWiki worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
-	zap.L().Debug("initializing iqwiki worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
 	var (
 		err      error
 		instance = worker{
@@ -260,8 +253,6 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 
 	// Initialize iqwiki filterer.
 	instance.iqWikiFilterer = lo.Must(iqwiki.NewIqWikiFilterer(ethereum.AddressGenesis, nil))
-
-	zap.L().Info("iqwiki worker initialized successfully")
 
 	return &instance, nil
 }

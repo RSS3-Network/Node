@@ -758,13 +758,6 @@ func (w *worker) buildEthereumTransactionStakingAction(ctx context.Context, task
 
 // NewWorker creates a new Curve worker.
 func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker, error) {
-	zap.L().Info("initializing curve worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
 	var (
 		err      error
 		instance = worker{
@@ -800,8 +793,6 @@ func NewWorker(config *config.Module, redisClient rueidis.Client) (engine.Worker
 	if err := instance.curvePoolRegistry.Refresh(context.Background()); err != nil {
 		return nil, fmt.Errorf("refresh curve pool registry: %w", err)
 	}
-
-	zap.L().Info("curve worker initialized successfully")
 
 	return &instance, nil
 }

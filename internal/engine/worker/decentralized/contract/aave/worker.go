@@ -552,13 +552,6 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task 
 
 // NewWorker creates a new worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
-	zap.L().Debug("initializing aave worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
 	var (
 		err      error
 		instance = worker{
@@ -582,8 +575,6 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
 	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
 	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
-
-	zap.L().Info("aave worker initialized successfully")
 
 	return &instance, nil
 }

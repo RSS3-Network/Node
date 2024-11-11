@@ -621,13 +621,6 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 
 // NewWorker creates a new Lido worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
-	zap.L().Debug("initializing lido worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
 	var (
 		err      error
 		instance = worker{
@@ -649,8 +642,6 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance.stakedETHWithdrawalNFTFilterer = lo.Must(lido.NewStakedETHWithdrawalNFTFilterer(ethereum.AddressGenesis, nil))
 	instance.stakedMATICFilterer = lo.Must(lido.NewStakedMATICFilterer(ethereum.AddressGenesis, nil))
 	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
-
-	zap.L().Info("lido worker initialized successfully")
 
 	return &instance, nil
 }

@@ -286,6 +286,13 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 		redisClient:    redisClient,
 	}
 
+	zap.L().Debug("initializing worker",
+		zap.String("ID", config.ID),
+		zap.String("network", config.Network.String()),
+		zap.String("worker", config.Worker.Name()),
+		zap.String("endpoint", config.Endpoint.URL),
+		zap.Any("params", config.Parameters))
+
 	// Initialize worker.
 	switch config.Network.Protocol() {
 	case network.ArweaveProtocol, network.EthereumProtocol, network.FarcasterProtocol, network.RSSProtocol, network.NearProtocol:
@@ -299,6 +306,12 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 	default:
 		return nil, fmt.Errorf("unknown worker protocol: %s", config.Network.Protocol())
 	}
+
+	zap.L().Info("worker initialized successfully", zap.String("ID", config.ID),
+		zap.String("network", config.Network.String()),
+		zap.String("worker", config.Worker.Name()))
+
+	zap.L().Debug("initializing monitor")
 
 	switch config.Network.Protocol() {
 	case network.ActivityPubProtocol:
@@ -327,6 +340,8 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 			return nil, fmt.Errorf("new near monitorClient: %w", err)
 		}
 	}
+
+	zap.L().Info("monitor initialized successfully")
 
 	if err := instance.initializeMeter(); err != nil {
 		return nil, fmt.Errorf("initialize meter: %w", err)

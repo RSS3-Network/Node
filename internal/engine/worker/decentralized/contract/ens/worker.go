@@ -601,13 +601,6 @@ func (w *worker) buildEthereumENSProfileAction(_ context.Context, from, to commo
 
 // NewWorker creates a new ENS worker.
 func NewWorker(config *config.Module, databaseClient database.Client) (engine.Worker, error) {
-	zap.L().Debug("initializing ens worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
 	var (
 		err      error
 		instance = worker{
@@ -637,8 +630,6 @@ func NewWorker(config *config.Module, databaseClient database.Client) (engine.Wo
 	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
 	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
 	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
-
-	zap.L().Info("ens worker initialized successfully")
 
 	return &instance, nil
 }

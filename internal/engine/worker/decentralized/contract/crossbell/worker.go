@@ -1092,13 +1092,6 @@ func (w *worker) getIPFSContent(ctx context.Context, contentURI string) (json.Ra
 
 // NewWorker creates a new Lens worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
-	zap.L().Info("initializing crossbell worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
 	var (
 		err      error
 		instance = worker{
@@ -1144,8 +1137,6 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance.profileFilterer = lo.Must(profile.NewProfileFilterer(ethereum.AddressGenesis, nil))
 	instance.tipsFilterer = lo.Must(tips.NewTipsFilterer(ethereum.AddressGenesis, nil))
 	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
-
-	zap.L().Info("crossbell worker initialized successfully")
 
 	return &instance, nil
 }

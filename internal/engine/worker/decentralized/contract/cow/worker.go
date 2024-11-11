@@ -194,13 +194,6 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 }
 
 func NewWorker(config *config.Module) (engine.Worker, error) {
-	zap.L().Info("initializing cow worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
 	instance := worker{
 		config:                config,
 		cowSettlementFilterer: lo.Must(cow.NewSettlementFilterer(ethereum.AddressGenesis, nil)),
@@ -212,8 +205,6 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	}
 
 	instance.tokenClient = token.NewClient(instance.ethereumClient)
-
-	zap.L().Info("cow worker initialized successfully")
 
 	return &instance, nil
 }

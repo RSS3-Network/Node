@@ -81,6 +81,8 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform linea task to activity.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
+	zap.L().Debug("transforming linea task", zap.String("task_id", task.ID()))
+
 	// Cast the task to a linea task.
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
@@ -96,6 +98,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
+			zap.L().Debug("ignoring anonymous log")
 			continue
 		}
 
@@ -104,18 +107,35 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
+		zap.L().Debug("processing log",
+			zap.String("task_id", task.ID()),
+			zap.String("log_address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
+
 		switch {
 		case w.matchEthereumZKEVMV2MessageSentLog(*ethereumTask, log):
+			zap.L().Debug("processing ZKEVMV2 message sent event")
+
 			actions, err = w.handleEthereumZKEVMV2MessageSentLog(ctx, *ethereumTask, *log, activity)
 		case w.matchEthereumZKEVMV2MessageClaimedLog(*ethereumTask, log):
+			zap.L().Debug("processing ZKEVMV2 message claimed event")
+
 			actions, err = w.handleEthereumZKEVMV2MessageClaimedLog(ctx, *ethereumTask, *log, activity)
 		case w.matchEthereumTokenBridgeBridgingInitiatedLog(*ethereumTask, log):
+			zap.L().Debug("processing token bridge bridging initiated event")
+
 			actions, err = w.handleEthereumTokenBridgeBridgingInitiatedLog(ctx, *ethereumTask, *log, activity)
 		case w.matchEthereumTokenBridgeBridgingFinalizedLog(*ethereumTask, log):
+			zap.L().Debug("processing token bridge bridging finalized event")
+
 			actions, err = w.handleEthereumTokenBridgeBridgingFinalizedLog(ctx, *ethereumTask, *log, activity)
 		case w.matchEthereumL1USDCBridgeDepositedLog(*ethereumTask, log):
+			zap.L().Debug("processing L1 USDC bridge deposited event")
+
 			actions, err = w.handleEthereumL1USDCBridgeDepositedLog(ctx, *ethereumTask, *log, activity)
 		case w.matchEthereumL1USDCBridgeReceivedFromOtherLayerLog(*ethereumTask, log):
+			zap.L().Debug("processing L1 USDC bridge received from other layer event")
+
 			actions, err = w.handleEthereumL1USDCBridgeReceivedFromOtherLayerLog(ctx, *ethereumTask, *log, activity)
 		default:
 			zap.L().Debug("unsupported log", zap.String("task", task.ID()), zap.Uint("topic_index", log.Index))
@@ -124,7 +144,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		}
 
 		if err != nil {
-			zap.L().Warn("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
+			zap.L().Warn("failed to handle ethereum log",
+				zap.Error(err),
+				zap.String("task", task.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			continue
 		}
 
@@ -135,8 +159,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	activity.Tag = tag.Transaction
 
 	if len(activity.Actions) == 0 {
+		zap.L().Info("no actions generated for task", zap.String("task_id", task.ID()))
 		return nil, nil
 	}
+
+	zap.L().Debug("successfully transformed linea task")
 
 	return activity, nil
 }
@@ -339,6 +366,14 @@ func (w *worker) handleEthereumL1USDCBridgeReceivedFromOtherLayerLog(ctx context
 }
 
 func (w *worker) buildEthereumTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address, source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int, blockNumber *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building ethereum transaction bridge action",
+		zap.String("sender", sender.String()),
+		zap.String("receiver", receiver.String()),
+		zap.String("source_network", source.String()),
+		zap.String("target_network", target.String()),
+		zap.String("token_address", tokenAddress.String()),
+		zap.String("token_value", tokenValue.String()))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token: %w", err)
@@ -359,6 +394,8 @@ func (w *worker) buildEthereumTransactionBridgeAction(ctx context.Context, chain
 			Token:         *tokenMetadata,
 		},
 	}
+
+	zap.L().Debug("successfully built ethereum transaction bridge action")
 
 	return &action, nil
 }

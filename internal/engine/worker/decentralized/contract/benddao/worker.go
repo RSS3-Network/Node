@@ -590,19 +590,10 @@ func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, tas
 
 // NewWorker creates a new worker.
 func NewWorker(config *config.Module) (engine.Worker, error) {
-	zap.L().Debug("initializing benddao worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
 	ethereumClient, err := ethereum.Dial(context.Background(), config.Endpoint.URL, config.Endpoint.BuildEthereumOptions()...)
 	if err != nil {
 		return nil, fmt.Errorf("dial Ethereum: %w", err)
 	}
-
-	zap.L().Info("benddao worker initialized successfully")
 
 	return &worker{
 		tokenClient:          token.NewClient(ethereumClient),

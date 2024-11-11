@@ -352,13 +352,6 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 }
 
 func NewWorker(config *config.Module) (engine.Worker, error) {
-	zap.L().Debug("initializing arbitrum worker",
-		zap.String("ID", config.ID),
-		zap.String("network", config.Network.String()),
-		zap.String("worker", config.Worker.Name()),
-		zap.String("endpoint", config.Endpoint.URL),
-		zap.Any("params", config.Parameters))
-
 	var (
 		err      error
 		instance = worker{
@@ -379,8 +372,6 @@ func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance.contractArbSysFilterer = lo.Must(arbitrum.NewArbSysFilterer(ethereum.AddressGenesis, nil))
 	instance.contractL1CustomGatewayFilterer = lo.Must(arbitrum.NewL1CustomGatewayFilterer(ethereum.AddressGenesis, nil))
 	instance.contractL2ReverseCustomGatewayFilterer = lo.Must(arbitrum.NewL2ReverseCustomGatewayFilterer(ethereum.AddressGenesis, nil))
-
-	zap.L().Info("arbitrum worker initialized successfully")
 
 	return &instance, nil
 }
