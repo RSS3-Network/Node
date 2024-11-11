@@ -85,6 +85,8 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform matters task to activityx.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
+	zap.L().Debug("transforming matters task", zap.String("task_id", task.ID()))
+
 	// Cast the task to a matters task.
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
@@ -100,6 +102,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
+			zap.L().Debug("skipping anonymous log")
 			continue
 		}
 
@@ -108,10 +111,18 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
+		zap.L().Debug("processing ethereum log",
+			zap.String("log_address", log.Address.String()),
+			zap.String("log_topic", log.Topics[0].String()))
+
 		switch {
 		case w.matchEthereumCurationTransaction(log):
+			zap.L().Debug("matched ethereum curation transaction")
+
 			actions, err = w.handleEthereumCurationTransaction(ctx, *ethereumTask, *log, activity)
 		default:
+			zap.L().Debug("no matching event found for log")
+
 			continue
 		}
 
@@ -126,6 +137,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 	activity.TotalActions = uint(len(activity.Actions))
 	activity.Tag = tag.Social
+
+	zap.L().Debug("successfully transformed matters task")
 
 	return activity, nil
 }
@@ -152,7 +165,10 @@ func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task sou
 
 	return []*activityx.Action{action}, nil
 }
+
 func (w *worker) fetchArticle(ctx context.Context, uri string) (*readability.Article, error) {
+	zap.L().Debug("fetching article", zap.String("uri", uri))
+
 	_, path, err := ipfs.ParseURL(uri)
 
 	var (
@@ -165,11 +181,15 @@ func (w *worker) fetchArticle(ctx context.Context, uri string) (*readability.Art
 			return nil, fmt.Errorf("parse IPFS URL: %w", err)
 		}
 
+		zap.L().Debug("fetching from IPFS", zap.String("path", path))
+
 		readCloser, err = w.ipfsClient.Fetch(ctx, path, ipfs.FetchModeQuick)
 		if err != nil {
 			return nil, fmt.Errorf("quick fetch %s: %w", path, err)
 		}
 	default:
+		zap.L().Debug("fetching from HTTP", zap.String("uri", uri))
+
 		readCloser, err = w.httpClient.Fetch(ctx, uri)
 		if err != nil {
 			return nil, fmt.Errorf("fetch metadata from HTTP %s: %w", uri, err)
@@ -181,6 +201,7 @@ func (w *worker) fetchArticle(ctx context.Context, uri string) (*readability.Art
 		return nil, fmt.Errorf("parse html: %w", err)
 	}
 
+	zap.L().Debug("removing unused HTML tags")
 	w.removeUnusedHTMLTags(node)
 
 	article, err := w.readabilityParser.ParseDocument(node, nil)
@@ -195,6 +216,8 @@ func (w *worker) fetchArticle(ctx context.Context, uri string) (*readability.Art
 	}
 
 	article.Byline = w.filterName(article.Byline)
+
+	zap.L().Debug("successfully fetched and parsed article")
 
 	return &article, nil
 }
@@ -222,7 +245,15 @@ func (w *worker) removeUnusedHTMLTags(node *html.Node) {
 		}
 	}
 }
+
 func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Task, trigger, recipient, token common.Address, amount *big.Int, uri string) (*activityx.Action, error) {
+	zap.L().Debug("building ethereum curation action",
+		zap.String("trigger", trigger.String()),
+		zap.String("recipient", recipient.String()),
+		zap.String("token", token.String()),
+		zap.String("amount", amount.String()),
+		zap.String("uri", uri))
+
 	article, err := w.fetchArticle(ctx, uri)
 
 	if err != nil || article == nil {
@@ -235,6 +266,8 @@ func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Ta
 	}
 
 	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
+
+	zap.L().Debug("successfully built ethereum curation action")
 
 	return &activityx.Action{
 		Type:     typex.SocialReward,
