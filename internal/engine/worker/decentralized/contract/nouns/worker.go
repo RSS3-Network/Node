@@ -22,6 +22,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -84,6 +85,8 @@ func (w *worker) Filter() engine.DataSourceFilter {
 }
 
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
+	zap.L().Debug("transforming nouns task", zap.String("task_id", task.ID()))
+
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -104,26 +107,43 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
+		zap.L().Debug("matching nouns event",
+			zap.String("address", log.Address.String()),
+			zap.String("event", log.Topics[0].String()))
+
 		switch {
 		case w.matchNounsAuctionBid(log):
+			zap.L().Debug("matched nouns auction bid event")
+
 			actions, err = w.handleNounsAuctionBid(ctx, ethereumTask, log)
 			activity.Type = typex.CollectibleAuction
 		case w.matchNounsAuctionSettled(log):
+			zap.L().Debug("matched nouns auction settled event")
+
 			actions, err = w.handleNounsAuctionSettled(ctx, ethereumTask, log)
 			activity.Type = typex.CollectibleAuction
 		case w.matchNounsAuctionCreated(log):
+			zap.L().Debug("matched nouns auction created event")
+
 			actions, err = w.handleNounsAuctionCreated(ctx, ethereumTask, log)
 			activity.Type = typex.CollectibleAuction
 		case w.matchNounCreated(log):
+			zap.L().Debug("matched noun created event")
+
 			actions, err = w.handleNounCreated(ctx, ethereumTask, log)
 			activity.Type = typex.CollectibleMint
 		case w.matchNounsProposal(log):
+			zap.L().Debug("matched nouns proposal event")
+
 			actions, err = w.handleNounsProposal(ctx, ethereumTask, log)
 			activity.Type = typex.GovernanceProposal
 		case w.matchNounsVote(log):
+			zap.L().Debug("matched nouns vote event")
+
 			actions, err = w.handleNounsVote(ctx, ethereumTask, log)
 			activity.Type = typex.GovernanceVote
 		default:
+			zap.L().Debug("no matching nouns event")
 			continue
 		}
 
@@ -133,6 +153,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		activity.Actions = append(activity.Actions, actions...)
 	}
+
+	zap.L().Debug("successfully transformed nouns task")
 
 	return activity, nil
 }
@@ -205,6 +227,14 @@ func (w *worker) handleNounsAuctionCreated(ctx context.Context, task *source.Tas
 }
 
 func (w *worker) buildCollectibleAuctionAction(ctx context.Context, task *source.Task, sender, receiver common.Address, action metadata.CollectibleAuctionAction, nftID, nftValue, offerValue *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building collectible auction action",
+		zap.String("sender", sender.String()),
+		zap.String("receiver", receiver.String()),
+		zap.String("action", action.String()),
+		zap.String("nft_id", nftID.String()),
+		zap.String("nft_value", nftValue.String()),
+		zap.String("offer_value", offerValue.String()))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &(nouns.AddressNouns), nftID, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s %s: %w", &(nouns.AddressNouns), nftID, err)
@@ -222,6 +252,8 @@ func (w *worker) buildCollectibleAuctionAction(ctx context.Context, task *source
 
 		offerTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(offerValue, 0))
 	}
+
+	zap.L().Debug("successfully built collectible auction action")
 
 	return &activityx.Action{
 		Type:     typex.CollectibleAuction,
@@ -251,12 +283,21 @@ func (w *worker) handleNounCreated(ctx context.Context, task *source.Task, log *
 }
 
 func (w *worker) buildCollectibleMintAction(ctx context.Context, task *source.Task, from, to, contract common.Address, id, value *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building collectible mint action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.String("contract", contract.String()),
+		zap.String("id", id.String()),
+		zap.String("value", value.String()))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &contract, id, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s %s: %w", contract, id, err)
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
+
+	zap.L().Debug("successfully built collectible mint action")
 
 	return &activityx.Action{
 		Type:     typex.CollectibleMint,
@@ -279,6 +320,14 @@ func (w *worker) handleNounsProposal(_ context.Context, _ *source.Task, log *eth
 }
 
 func (w *worker) buildGovernanceProposalAction(from, to common.Address, id *big.Int, description string, start, end *big.Int) *activityx.Action {
+	zap.L().Debug("building governance proposal action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.String("id", id.String()),
+		zap.String("description", description),
+		zap.String("start", start.String()),
+		zap.String("end", end.String()))
+
 	return &activityx.Action{
 		Type:     typex.GovernanceProposal,
 		Platform: w.Platform(),
@@ -333,6 +382,14 @@ func (w *worker) handleNounsVote(_ context.Context, _ *source.Task, log *ethereu
 }
 
 func (w *worker) buildGovernanceVoteAction(from, to common.Address, proposalID, votes *big.Int, reason string, action metadata.GovernanceVoteAction) *activityx.Action {
+	zap.L().Debug("building governance vote action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.String("proposal_id", proposalID.String()),
+		zap.String("votes", votes.String()),
+		zap.String("reason", reason),
+		zap.String("action", action.String()))
+
 	return &activityx.Action{
 		Type:     typex.GovernanceVote,
 		Platform: w.Platform(),
