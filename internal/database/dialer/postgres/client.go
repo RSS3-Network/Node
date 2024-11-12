@@ -65,8 +65,6 @@ func (c *client) Migrate(ctx context.Context) error {
 
 // WithTransaction executes a transaction.
 func (c *client) WithTransaction(ctx context.Context, transactionFunction func(ctx context.Context, client database.Client) error, transactionOptions ...*sql.TxOptions) error {
-	zap.L().Debug("starting database transaction")
-
 	transactionFunc := func() error {
 		transaction, err := c.Begin(ctx, transactionOptions...)
 		if err != nil {
@@ -76,8 +74,6 @@ func (c *client) WithTransaction(ctx context.Context, transactionFunction func(c
 		zap.L().Debug("transaction began successfully")
 
 		if err := transactionFunction(ctx, transaction); err != nil {
-			zap.L().Warn("rolling back transaction due to error", zap.Error(err))
-
 			_ = transaction.Rollback()
 
 			return fmt.Errorf("execute transaction: %w", err)
@@ -87,19 +83,12 @@ func (c *client) WithTransaction(ctx context.Context, transactionFunction func(c
 			return fmt.Errorf("commit transaction: %w", err)
 		}
 
-		zap.L().Debug("transaction committed successfully")
-
 		return nil
 	}
 
 	retryIfFunc := func(err error) bool {
 		// https://www.cockroachlabs.com/docs/stable/transaction-retry-error-reference#retry_serializable
-		shouldRetry := strings.Contains(err.Error(), "TransactionRetryWithProtoRefreshError: TransactionRetryError:")
-		if shouldRetry {
-			zap.L().Debug("transaction needs retry", zap.Error(err))
-		}
-
-		return shouldRetry
+		return strings.Contains(err.Error(), "TransactionRetryWithProtoRefreshError: TransactionRetryError:")
 	}
 
 	onRetryFunc := func(n uint, err error) {
@@ -168,9 +157,7 @@ func (c *client) LoadCheckpoint(ctx context.Context, id string, network networkx
 	}
 
 	zap.L().Debug("successfully loaded checkpoint",
-		zap.String("id", id),
-		zap.String("network", network.String()),
-		zap.String("worker", worker))
+		zap.Any("value", value))
 
 	return value.Export()
 }
@@ -224,19 +211,14 @@ func (c *client) LoadCheckpoints(ctx context.Context, id string, network network
 	}
 
 	zap.L().Debug("successfully loaded checkpoints",
-		zap.Int("count", len(result)),
-		zap.String("id", id),
-		zap.String("network", network.String()),
-		zap.String("worker", worker))
+		zap.Any("checkpoints", result))
 
 	return result, nil
 }
 
 func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error {
 	zap.L().Debug("saving checkpoint",
-		zap.String("id", checkpoint.ID),
-		zap.String("state", string(checkpoint.State)),
-		zap.Int64("index_count", checkpoint.IndexCount))
+		zap.Any("checkpoint", checkpoint))
 
 	spanStartOptions := []trace.SpanStartOption{
 		trace.WithSpanKind(trace.SpanKindClient),
@@ -290,8 +272,6 @@ func (c *client) SaveActivities(ctx context.Context, activities []*activityx.Act
 
 		return nil
 	}
-
-	zap.L().Warn("saving activities without partition is not implemented")
 
 	return fmt.Errorf("not implemented")
 }
