@@ -117,12 +117,12 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform Ethereum task to activityx.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	zap.L().Debug("transforming lens task", zap.String("task_id", task.ID()))
-
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
+
+	zap.L().Debug("transforming lens task", zap.String("task_id", ethereumTask.ID()))
 
 	// Build default lens activity from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
@@ -135,6 +135,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
 			zap.L().Debug("ignoring anonymous log")
+
 			continue
 		}
 
@@ -144,8 +145,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		)
 
 		zap.L().Debug("processing log",
-			zap.String("task_id", ethereumTask.ID()),
-			zap.String("log_address", log.Address.String()),
+			zap.String("address", log.Address.String()),
 			zap.String("topic", log.Topics[0].String()))
 
 		// Match lens core contract events
@@ -779,6 +779,14 @@ func (w *worker) buildEthereumTransactionPostAction(_ context.Context, from comm
 }
 
 func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blockNumber *big.Int, profileID, pubID *big.Int, contentURI string, isTarget bool, timestamp uint64) (*metadata.SocialPost, string, error) {
+	zap.L().Debug("building ethereum V1 transaction post metadata",
+		zap.String("block_number", blockNumber.String()),
+		zap.Any("profile_id", profileID),
+		zap.Any("pub_id", pubID),
+		zap.String("content_uri", contentURI),
+		zap.Bool("is_target", isTarget),
+		zap.Any("timestamp", timestamp))
+
 	handle, err := w.getLensHandle(ctx, blockNumber, profileID)
 	if err != nil {
 		return nil, "", err
@@ -793,6 +801,8 @@ func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blo
 	if err = json.Unmarshal(content, &publication); err != nil {
 		return nil, "", fmt.Errorf("unmarshal publication: %w", err)
 	}
+
+	zap.L().Debug("successfully built ethereum V1 transaction post metadata")
 
 	return &metadata.SocialPost{
 		Handle: handle,
@@ -946,9 +956,11 @@ func (w *worker) buildEthereumTransactionProfileAction(_ context.Context, from c
 func (w *worker) buildEthereumV2TransactionPostMetadata(ctx context.Context, blockNumber *big.Int, profileID, pubID *big.Int, contentURI string, isTarget bool, timestamp uint64) (*metadata.SocialPost, string, error) {
 	zap.L().Debug("building ethereum V2 transaction post metadata",
 		zap.String("block_number", blockNumber.String()),
-		zap.String("profile_id", profileID.String()),
-		zap.String("pub_id", pubID.String()),
-		zap.String("content_uri", contentURI))
+		zap.Any("profile_id", profileID),
+		zap.Any("pub_id", pubID),
+		zap.String("content_uri", contentURI),
+		zap.Bool("is_target", isTarget),
+		zap.Any("timestamp", timestamp))
 
 	handle, err := w.getLensHandle(ctx, blockNumber, profileID)
 	if err != nil {

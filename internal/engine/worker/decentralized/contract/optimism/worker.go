@@ -79,12 +79,12 @@ func (w *worker) Filter() engine.DataSourceFilter {
 }
 
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	zap.L().Debug("transforming optimism task", zap.String("task_id", task.ID()))
-
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
+
+	zap.L().Debug("transforming optimism task", zap.String("task_id", ethereumTask.ID()))
 
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
@@ -106,7 +106,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		zap.L().Debug("matching optimism event",
 			zap.String("address", log.Address.String()),
-			zap.String("event", log.Topics[0].String()))
+			zap.String("topic", log.Topics[0].String()))
 
 		switch {
 		case w.matchL1StandardBridgeETHDepositInitiatedLog(ethereumTask, log):
@@ -287,16 +287,19 @@ func (w *worker) transformL2StandardBridgeDepositFinalizedLog(ctx context.Contex
 }
 
 func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address, source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int, blockNumber *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building transaction bridge action",
+		zap.String("sender", sender.String()),
+		zap.String("receiver", receiver.String()),
+		zap.String("source", source.String()),
+		zap.String("target", target.String()),
+		zap.String("bridge_action", bridgeAction.String()),
+		zap.Any("token", tokenAddress),
+		zap.Any("token_value", tokenValue))
+
 	// Ignore L2 ETH token address.
 	if tokenAddress != nil && (*tokenAddress == optimism.AddressL1ETH || *tokenAddress == optimism.AddressL2ETH) {
 		tokenAddress = nil
 	}
-
-	zap.L().Debug("building transaction bridge action",
-		zap.String("sender", sender.String()),
-		zap.String("receiver", receiver.String()),
-		zap.String("token", lo.If(tokenAddress == nil, "").Else(tokenAddress.String())),
-		zap.String("token_value", tokenValue.String()))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {

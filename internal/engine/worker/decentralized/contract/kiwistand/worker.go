@@ -83,12 +83,12 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform Ethereum task to activityx.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	zap.L().Debug("transforming KiwiStand task", zap.String("task_id", task.ID()))
-
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
+
+	zap.L().Debug("transforming KiwiStand task", zap.String("task_id", ethereumTask.ID()))
 
 	// Build default kiwistand activity from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
@@ -104,8 +104,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		)
 
 		zap.L().Debug("processing log",
-			zap.String("task_id", ethereumTask.ID()),
-			zap.String("log_address", log.Address.String()))
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
 
 		// Match kiwistand core contract events
 		switch {
@@ -276,8 +276,8 @@ func (w *worker) buildKiwiMintAction(ctx context.Context, task *source.Task, fro
 		zap.String("from", from.String()),
 		zap.String("to", to.String()),
 		zap.String("contract", contract.String()),
-		zap.String("token_id", id.String()),
-		zap.String("value", value.String()))
+		zap.Any("token_id", id),
+		zap.Any("value", value))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &contract, id, task.Header.Number)
 	if err != nil {
@@ -325,7 +325,7 @@ func (w *worker) buildKiwiFeeAction(ctx context.Context, task *source.Task, from
 	zap.L().Debug("building kiwi fee action",
 		zap.String("from", from.String()),
 		zap.String("to", to.String()),
-		zap.String("amount", amount.String()))
+		zap.Any("amount", amount))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, nil, nil, task.Header.Number)
 	if err != nil {

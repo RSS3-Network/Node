@@ -101,12 +101,12 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform Ethereum task to activityx.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	zap.L().Debug("transforming lido task", zap.String("task_id", task.ID()))
-
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
+
+	zap.L().Debug("transforming lido task", zap.String("task_id", ethereumTask.ID()))
 
 	// Build default lido activity from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
@@ -128,8 +128,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		)
 
 		zap.L().Debug("processing log",
-			zap.String("task_id", ethereumTask.ID()),
-			zap.String("log_address", log.Address.String()),
+			zap.String("address", log.Address.String()),
 			zap.String("topic", log.Topics[0].String()))
 
 		// Match lido core contract events
@@ -501,8 +500,8 @@ func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, blo
 	zap.L().Debug("building ethereum transaction transfer action",
 		zap.String("sender", sender.String()),
 		zap.String("receiver", receiver.String()),
-		zap.String("token_address", tokenAddress.String()),
-		zap.String("token_value", tokenValue.String()))
+		zap.Any("token_address", tokenAddress),
+		zap.Any("token_value", tokenValue))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
@@ -543,8 +542,8 @@ func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, blo
 		zap.String("sender", sender.String()),
 		zap.String("receiver", receiver.String()),
 		zap.String("token_address", tokenAddress.String()),
-		zap.String("token_id", tokenID.String()),
-		zap.String("token_value", tokenValue.String()))
+		zap.Any("token_id", tokenID),
+		zap.Any("token_value", tokenValue))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, &tokenAddress, tokenID, blockNumber)
 	if err != nil {
@@ -586,8 +585,8 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 		zap.String("to", to.String()),
 		zap.String("token_in", tokenIn.String()),
 		zap.String("token_out", tokenOut.String()),
-		zap.String("amount_in", amountIn.String()),
-		zap.String("amount_out", amountOut.String()))
+		zap.Any("amount_in", amountIn),
+		zap.Any("amount_out", amountOut))
 
 	tokenInMetadata, err := w.tokenClient.Lookup(ctx, chainID, &tokenIn, nil, blockNumber)
 	if err != nil {

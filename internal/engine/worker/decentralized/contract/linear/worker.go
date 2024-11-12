@@ -73,13 +73,13 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform returns an activity with the actions of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	zap.L().Debug("transforming linear task", zap.String("task_id", task.ID()))
-
 	// Cast the task to a Near task.
 	nearTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
+
+	zap.L().Debug("transforming linear task", zap.String("task_id", nearTask.ID()))
 
 	// Build the activity.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))

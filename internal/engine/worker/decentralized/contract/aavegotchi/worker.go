@@ -84,8 +84,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	zap.L().Debug("transforming aavegotchi task",
-		zap.String("task_id", ethereumTask.ID()))
+	zap.L().Debug("transforming aavegotchi task", zap.String("task_id", ethereumTask.ID()))
 
 	// Build the activity.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
@@ -100,38 +99,39 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		)
 
 		if len(log.Topics) == 0 {
-			zap.L().Debug("skipping log with no topics",
-				zap.String("task_id", ethereumTask.ID()))
+			zap.L().Debug("skipping anonymous log")
+
 			continue
 		}
 
+		zap.L().Debug("processing aavegotchi log",
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
+
 		switch {
 		case w.matchERC721ListingAdd(ctx, *log):
-			zap.L().Debug("handling ERC721 listing add",
-				zap.String("task_id", ethereumTask.ID()))
+			zap.L().Debug("handling ERC721 listing add")
 
 			action, err = w.handleERC721ListingAdd(ctx, ethereumTask, *log, activity)
 		case w.matchERC721ExecutedListing(ctx, *log):
-			zap.L().Debug("handling ERC721 executed listing",
-				zap.String("task_id", ethereumTask.ID()))
+			zap.L().Debug("handling ERC721 executed listing")
 
 			action, err = w.handleERC721ExecutedListing(ctx, ethereumTask, *log, activity)
 		case w.matchERC1155ListingAdd(ctx, *log):
-			zap.L().Debug("handling ERC1155 listing add",
-				zap.String("task_id", ethereumTask.ID()))
+			zap.L().Debug("handling ERC1155 listing add")
 
 			action, err = w.handleERC1155ListingAdd(ctx, ethereumTask, *log, activity)
 		case w.matchERC1155ExecutedListing(ctx, *log):
-			zap.L().Debug("handling ERC1155 executed listing",
-				zap.String("task_id", ethereumTask.ID()))
+			zap.L().Debug("handling ERC1155 executed listing")
 
 			action, err = w.handleERC1155ExecutedListing(ctx, ethereumTask, *log, activity)
 		case w.matchERC20TransferLog(ctx, *log):
-			zap.L().Debug("handling ERC20 transfer",
-				zap.String("task_id", ethereumTask.ID()))
+			zap.L().Debug("handling ERC20 transfer")
 
 			action, err = w.handleERC20TransferLog(ctx, ethereumTask, *log, activity)
 		default:
+			zap.L().Warn("unsupported log")
+
 			continue
 		}
 
@@ -146,8 +146,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return w.handleMetaverseTradeCost(ctx, activity)
 	}
 
-	zap.L().Debug("successfully transformed aavegotchi task",
-		zap.String("task_id", ethereumTask.ID()))
+	zap.L().Debug("successfully transformed aavegotchi task")
 
 	return activity, nil
 }
@@ -302,8 +301,8 @@ func (w *worker) buildTradeAction(
 		zap.String("from", from.String()),
 		zap.String("to", to.String()),
 		zap.String("token_address", tokenAddress.String()),
-		zap.String("value", value.String()),
-		zap.String("action", metadataAction.String()))
+		zap.Any("value", value),
+		zap.Any("action", metadataAction))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, lo.ToPtr(tokenAddress), tokenID, blockNumber)
 	if err != nil {
@@ -341,7 +340,8 @@ func (w *worker) buildTransferAction(
 		zap.String("from", from.String()),
 		zap.String("to", to.String()),
 		zap.String("token_address", tokenAddress.String()),
-		zap.String("value", value.String()),
+		zap.Any("token_id", tokenID),
+		zap.Any("value", value),
 		zap.String("action_type", actionType.String()))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, lo.ToPtr(tokenAddress), tokenID, blockNumber)

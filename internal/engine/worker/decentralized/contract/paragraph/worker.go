@@ -67,12 +67,13 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform returns an activity  with the action of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	zap.L().Debug("transforming paragraph task", zap.String("task_id", task.ID()))
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
+
+	zap.L().Debug("transforming paragraph task", zap.String("task_id", arweaveTask.ID()))
 
 	// Build the activity.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
@@ -198,6 +199,8 @@ func (w *worker) buildParagraphAction(_ context.Context, from, to string, paragr
 		Metadata: paragraphMetadata,
 	}
 
+	zap.L().Debug("successfully built paragraph action")
+
 	return &action
 }
 
@@ -255,6 +258,8 @@ func (w *worker) buildParagraphMetadata(ctx context.Context, handle, contentURI 
 	if paragraphData.Get("authors").Exists() && len(paragraphData.Get("authors").Array()) > 0 {
 		profileID = paragraphData.Get("authors").Array()[0].String()
 	}
+
+	zap.L().Debug("successfully built paragraph metadata")
 
 	return &metadata.SocialPost{
 		Handle:        handle,

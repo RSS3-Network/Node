@@ -97,8 +97,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	zap.L().Debug("transforming 1inch task",
-		zap.String("task_id", task.ID()))
+	zap.L().Debug("transforming 1inch task", zap.String("task_id", oneinchTask.ID()))
 
 	// Build the activity.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
@@ -120,14 +119,12 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 	if err != nil {
 		zap.L().Warn("failed to handle ethereum log",
-			zap.Error(err),
-			zap.String("task", task.ID()))
+			zap.Error(err))
 
 		return nil, err
 	}
 
-	zap.L().Debug("successfully transformed 1inch task",
-		zap.String("task_id", task.ID()))
+	zap.L().Debug("successfully transformed 1inch task")
 
 	return activity, nil
 }
@@ -202,8 +199,14 @@ func (w *worker) handleEthereumImplicitAggregationRouterTransaction(ctx context.
 
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
+			zap.L().Debug("skipping anonymous log")
+
 			continue
 		}
+
+		zap.L().Debug("processing 1inch log",
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
 
 		switch log.Topics[0] {
 		case erc20.EventHashTransfer:
@@ -809,6 +812,8 @@ func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.
 
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
+			zap.L().Debug("skipping anonymous log")
+
 			continue
 		}
 
@@ -817,31 +822,32 @@ func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.
 			err    error
 		)
 
+		zap.L().Debug("processing 1inch log",
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
+
 		switch log.Topics[0] {
 		case oneinch.EventHashExchangeSwapped:
-			zap.L().Debug("processing exchange swapped event",
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing exchange swapped event")
 
 			action, err = w.handleEthereumExchangeSwappedLog(ctx, task, log)
 		case oneinch.EventHashAggregationRouterV2Swapped:
-			zap.L().Debug("processing aggregation router v2 swapped event",
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing aggregation router v2 swapped event")
 
 			action, err = w.handleEthereumAggregationRouterV2SwappedLog(ctx, task, log)
 		case oneinch.EventHashAggregationRouterV3Swapped:
-			zap.L().Debug("processing aggregation router v3 swapped event",
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing aggregation router v3 swapped event")
 
 			action, err = w.handleEthereumAggregationRouterV3SwappedLog(ctx, task, log)
 		default:
+			zap.L().Debug("unsupported log")
+
 			continue
 		}
 
 		if err != nil {
 			zap.L().Error("failed to handle ethereum swap transaction",
-				zap.Error(err),
-				zap.String("worker", w.Name()),
-				zap.String("task_id", task.ID()))
+				zap.Error(err))
 
 			continue
 		}
@@ -849,8 +855,7 @@ func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.
 		actions = append(actions, action)
 	}
 
-	zap.L().Debug("successfully processed ethereum explicit aggregation router transaction",
-		zap.String("task_id", task.ID()))
+	zap.L().Debug("successfully processed ethereum explicit aggregation router transaction")
 
 	return actions
 }
@@ -903,7 +908,9 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 		zap.String("from", from.String()),
 		zap.String("to", to.String()),
 		zap.String("token_in", tokenIn.String()),
-		zap.String("token_out", tokenOut.String()))
+		zap.String("token_out", tokenOut.String()),
+		zap.Any("amount_in", amountIn),
+		zap.Any("amount_out", amountOut))
 
 	var (
 		tokenInAddress  = lo.Ternary(tokenIn != oneinch.AddressEther, lo.ToPtr(tokenIn), nil)
@@ -935,11 +942,7 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 		},
 	}
 
-	zap.L().Debug("ethereum exchange swap action built successfully",
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.String("token_in", tokenIn.String()),
-		zap.String("token_out", tokenOut.String()))
+	zap.L().Debug("ethereum exchange swap action built successfully")
 
 	return &action, nil
 }

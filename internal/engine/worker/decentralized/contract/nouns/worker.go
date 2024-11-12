@@ -99,6 +99,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 	for _, log := range ethereumTask.Receipt.Logs {
 		if len(log.Topics) == 0 {
+			zap.L().Debug("ignoring anonymous log")
+
 			continue
 		}
 
@@ -109,7 +111,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		zap.L().Debug("matching nouns event",
 			zap.String("address", log.Address.String()),
-			zap.String("event", log.Topics[0].String()))
+			zap.String("topic", log.Topics[0].String()))
 
 		switch {
 		case w.matchNounsAuctionBid(log):
@@ -232,8 +234,8 @@ func (w *worker) buildCollectibleAuctionAction(ctx context.Context, task *source
 		zap.String("receiver", receiver.String()),
 		zap.String("action", action.String()),
 		zap.String("nft_id", nftID.String()),
-		zap.String("nft_value", nftValue.String()),
-		zap.String("offer_value", offerValue.String()))
+		zap.Any("nft_value", nftValue),
+		zap.Any("offer_value", offerValue))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &(nouns.AddressNouns), nftID, task.Header.Number)
 	if err != nil {
@@ -287,8 +289,8 @@ func (w *worker) buildCollectibleMintAction(ctx context.Context, task *source.Ta
 		zap.String("from", from.String()),
 		zap.String("to", to.String()),
 		zap.String("contract", contract.String()),
-		zap.String("id", id.String()),
-		zap.String("value", value.String()))
+		zap.Any("id", id),
+		zap.Any("value", value))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &contract, id, task.Header.Number)
 	if err != nil {
@@ -323,10 +325,10 @@ func (w *worker) buildGovernanceProposalAction(from, to common.Address, id *big.
 	zap.L().Debug("building governance proposal action",
 		zap.String("from", from.String()),
 		zap.String("to", to.String()),
-		zap.String("id", id.String()),
+		zap.Any("id", id),
 		zap.String("description", description),
-		zap.String("start", start.String()),
-		zap.String("end", end.String()))
+		zap.Any("start", start),
+		zap.Any("end", end))
 
 	return &activityx.Action{
 		Type:     typex.GovernanceProposal,
@@ -386,7 +388,7 @@ func (w *worker) buildGovernanceVoteAction(from, to common.Address, proposalID, 
 		zap.String("from", from.String()),
 		zap.String("to", to.String()),
 		zap.String("proposal_id", proposalID.String()),
-		zap.String("votes", votes.String()),
+		zap.Any("votes", votes),
 		zap.String("reason", reason),
 		zap.String("action", action.String()))
 

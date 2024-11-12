@@ -124,8 +124,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	zap.L().Debug("transforming crossbell task",
-		zap.String("task_id", ethereumTask.ID()))
+	zap.L().Debug("transforming crossbell task", zap.String("task_id", ethereumTask.ID()))
 
 	// Build default crossbell activity from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
@@ -137,8 +136,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
-			zap.L().Debug("skipping anonymous log",
-				zap.String("task_id", ethereumTask.ID()))
+			zap.L().Debug("skipping anonymous log")
+
 			continue
 		}
 
@@ -146,97 +145,71 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			actions []*activityx.Action
 			err     error
 		)
+
+		zap.L().Debug("processing log",
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
+
 		// Match crossbell core contract events
 		switch {
 		case w.matchProfileCreated(ethereumTask, log):
-			zap.L().Debug("processing profile created event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing profile created event")
 
 			actions, err = w.transformProfileCreated(ctx, ethereumTask, log)
 		case w.matchSetProfileURI(ethereumTask, log):
-			zap.L().Debug("processing set profile URI event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing set profile URI event")
 
 			actions, err = w.transformSetProfileURI(ctx, ethereumTask, log)
 		case w.matchCharacterCreated(ethereumTask, log):
-			zap.L().Debug("processing character created event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing character created event")
 
 			actions, err = w.transformCharacterCreated(ctx, ethereumTask, log)
 		case w.matchCharacterSetHandle(ethereumTask, log):
-			zap.L().Debug("processing character set handle event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing character set handle event")
 
 			actions, err = w.transformCharacterSetHandle(ctx, ethereumTask, log)
 		case w.matchSetCharacterURI(ethereumTask, log):
-			zap.L().Debug("processing set character URI event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing set character URI event")
 
 			actions, err = w.transformSetCharacterURI(ctx, ethereumTask, log)
 		case w.matchPostCreated(ethereumTask, log):
-			zap.L().Debug("processing post created event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing post created event")
 
 			actions, err = w.transformPostCreated(ctx, ethereumTask, log)
 		case w.matchSetNoteURI(ethereumTask, log):
-			zap.L().Debug("processing set note URI event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing set note URI event")
 
 			actions, err = w.transformSetNoteURI(ctx, ethereumTask, log)
 		case w.matchDeleteNote(ethereumTask, log):
-			zap.L().Debug("processing delete note event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing delete note event")
 
 			actions, err = w.transformDeleteNote(ctx, ethereumTask, log)
 		case w.matchMintNote(ethereumTask, log):
-			zap.L().Debug("processing mint note event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing mint note event")
 
 			actions, err = w.transformMintNote(ctx, ethereumTask, log)
 		case w.matchSetOperator(ethereumTask, log):
-			zap.L().Debug("processing set operator event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing set operator event")
 
 			actions, err = w.transformSetOperator(ctx, ethereumTask, log)
 		case w.matchAddOperator(ethereumTask, log):
-			zap.L().Debug("processing add operator event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing add operator event")
 
 			actions, err = w.transformAddOperator(ctx, ethereumTask, log)
 		case w.matchRemoveOperator(ethereumTask, log):
-			zap.L().Debug("processing remove operator event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing remove operator event")
 
 			actions, err = w.transformRemoveOperator(ctx, ethereumTask, log)
 		case w.matchGrantOperatorPermissions(ethereumTask, log):
-			zap.L().Debug("processing grant operator permissions event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing grant operator permissions event")
 
 			actions, err = w.transformGrantOperatorPermissions(ctx, ethereumTask, log)
 		case w.matchTipsCharacterForNote(ethereumTask, log):
-			zap.L().Debug("processing tips character for note event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing tips character for note event")
 
 			actions, err = w.transformTipsCharacterForNote(ctx, ethereumTask, log)
 		default:
-			zap.L().Debug("unsupported event",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()),
-				zap.String("topic", log.Topics[0].String()))
+			zap.L().Debug("skipping unsupported log")
 
 			continue
 		}
@@ -253,8 +226,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	zap.L().Debug("successfully transformed crossbell task",
-		zap.String("task_id", ethereumTask.ID()))
+	zap.L().Debug("successfully transformed crossbell task")
 
 	return activity, nil
 }

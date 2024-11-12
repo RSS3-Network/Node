@@ -83,12 +83,12 @@ func matchEthereumIqWiki(task *source.Task) bool {
 
 // Transform Ethereum task to activityx.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	zap.L().Debug("transforming IQWiki task", zap.String("task_id", task.ID()))
-
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
+
+	zap.L().Debug("transforming IQWiki task", zap.String("task_id", ethereumTask.ID()))
 
 	if ethereumTask.Transaction.To == nil {
 		return nil, fmt.Errorf("invalid transaction to: %s", ethereumTask.Transaction.Hash)
@@ -111,12 +111,14 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
 			zap.L().Debug("skipping anonymous log")
+
 			continue
 		}
 
 		action, err := w.parseAction(ctx, log, ethereumTask)
 		if err != nil {
 			zap.L().Error("failed to parse action", zap.Error(err))
+
 			continue
 		}
 

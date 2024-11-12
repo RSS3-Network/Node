@@ -98,12 +98,12 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform Ethereum task to activityx.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	zap.L().Debug("transforming highlight task", zap.String("task_id", task.ID()))
-
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
+
+	zap.L().Debug("transforming highlight task", zap.String("task_id", ethereumTask.ID()))
 
 	// Build default highlight activity from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
@@ -116,6 +116,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
 			zap.L().Debug("skipping anonymous log")
+
 			continue
 		}
 
@@ -124,7 +125,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
-		zap.L().Debug("processing ethereum log", zap.String("topic", log.Topics[0].String()))
+		zap.L().Debug("processing ethereum log",
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
 
 		// Match highlight core contract events
 		switch {
@@ -242,7 +245,7 @@ func (w *worker) buildTransferAction(ctx context.Context, task *source.Task, fro
 	zap.L().Debug("building transfer action",
 		zap.String("from", from.String()),
 		zap.String("to", to.String()),
-		zap.String("amount", amount.String()))
+		zap.Any("amount", amount))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, nil, nil, task.Header.Number)
 	if err != nil {
@@ -268,8 +271,8 @@ func (w *worker) buildHighlightMintAction(ctx context.Context, task *source.Task
 		zap.String("from", from.String()),
 		zap.String("to", to.String()),
 		zap.String("contract", contract.String()),
-		zap.String("token_id", id.String()),
-		zap.String("value", value.String()))
+		zap.Any("token_id", id),
+		zap.Any("value", value))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &contract, id, task.Header.Number)
 	if err != nil {

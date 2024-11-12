@@ -69,13 +69,13 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform returns an activity  with the action of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	zap.L().Debug("transforming mirror task", zap.String("task_id", task.ID()))
-
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
+
+	zap.L().Debug("transforming mirror task", zap.String("task_id", arweaveTask.ID()))
 
 	// Build the activity.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
@@ -245,6 +245,7 @@ func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, m
 		zap.String("transaction_id", txID),
 		zap.String("from", from),
 		zap.String("to", to),
+		zap.Any("metadata", mirrorMetadata),
 		zap.Bool("empty_origin_digest", emptyOriginDigest),
 		zap.String("origin_content_digest", originContentDigest))
 

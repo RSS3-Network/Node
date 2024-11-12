@@ -92,12 +92,12 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform Ethereum task to activityx.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	zap.L().Debug("transforming looksrare task", zap.String("task_id", task.ID()))
-
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
+
+	zap.L().Debug("transforming looksrare task", zap.String("task_id", ethereumTask.ID()))
 
 	// Build default looksrare activity from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
@@ -110,6 +110,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
 			zap.L().Debug("skipping anonymous log")
+
 			continue
 		}
 
@@ -119,8 +120,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		)
 
 		zap.L().Debug("processing ethereum log",
-			zap.String("log_address", log.Address.String()),
-			zap.String("log_topic", log.Topics[0].String()),
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()),
 		)
 
 		// Match looksrare core contract events

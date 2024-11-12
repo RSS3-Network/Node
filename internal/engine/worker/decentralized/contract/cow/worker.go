@@ -72,13 +72,12 @@ func (w *worker) Filter() engine.DataSourceFilter {
 }
 
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	zap.L().Debug("transforming cow task",
-		zap.String("task_id", task.ID()))
-
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type %T", task)
 	}
+
+	zap.L().Debug("transforming cow task", zap.String("task_id", ethereumTask.ID()))
 
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
@@ -87,24 +86,18 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 	for _, log := range ethereumTask.Receipt.Logs {
 		if len(log.Topics) == 0 {
-			zap.L().Debug("skipping anonymous log",
-				zap.String("task_id", ethereumTask.ID()))
+			zap.L().Debug("skipping anonymous log")
 
 			continue
 		}
 
 		switch {
 		case w.matchSettlementTradeLog(ethereumTask, log):
-			zap.L().Debug("processing settlement trade log",
-				zap.String("task_id", ethereumTask.ID()),
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing settlement trade log")
 
 			actions, err := w.transformSettlementTradeLog(ctx, ethereumTask, log)
 			if err != nil {
-				zap.L().Warn("failed to handle settlement trade log",
-					zap.Error(err),
-					zap.String("worker", w.Name()),
-					zap.String("task_id", ethereumTask.ID()))
+				zap.L().Warn("failed to handle settlement trade log", zap.Error(err))
 
 				continue
 			}
@@ -112,10 +105,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			activity.Actions = append(activity.Actions, actions...)
 
 		default:
-			zap.L().Debug("unsupported log",
-				zap.String("worker", w.Name()),
-				zap.String("task_id", ethereumTask.ID()),
-				zap.Stringer("topic", log.Topics[0]))
+			zap.L().Debug("skipping unsupported log")
 		}
 	}
 
@@ -123,8 +113,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("no actions")
 	}
 
-	zap.L().Debug("successfully transformed cow task",
-		zap.String("task_id", ethereumTask.ID()))
+	zap.L().Debug("successfully transformed cow task")
 
 	return activity, nil
 }
@@ -159,8 +148,8 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 		zap.String("to", to.String()),
 		zap.String("token_in", tokenIn.String()),
 		zap.String("token_out", tokenOut.String()),
-		zap.String("amount_in", amountIn.String()),
-		zap.String("amount_out", amountOut.String()))
+		zap.Any("amount_in", amountIn),
+		zap.Any("amount_out", amountOut))
 
 	tokenInAddress := lo.Ternary(tokenIn != cow.AddressETH, &tokenIn, nil)
 	tokenOutAddress := lo.Ternary(tokenOut != cow.AddressETH, &tokenOut, nil)

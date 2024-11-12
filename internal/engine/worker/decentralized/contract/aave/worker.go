@@ -128,12 +128,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	zap.L().Debug("transforming activity from task", zap.String("task_id", ethereumTask.ID()))
+
 	if ethereumTask.Transaction.To == nil {
 		return nil, fmt.Errorf("invalid transaction to: %s", ethereumTask.Transaction.Hash)
 	}
-
-	zap.L().Debug("transforming activity from task",
-		zap.String("task_id", ethereumTask.ID()))
 
 	// Build activity base from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
@@ -144,6 +143,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
+			zap.L().Debug("skipping anonymous log")
+
 			continue
 		}
 
@@ -152,23 +153,26 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
+		zap.L().Debug("processing aave log",
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
+
 		switch {
 		case w.matchLiquidityV1Pool(ethereumTask, log):
-			zap.L().Debug("handling v1 lending pool log",
-				zap.String("task_id", ethereumTask.ID()))
+			zap.L().Debug("handling v1 lending pool log")
 
 			actions, err = w.handleV1LendingPool(ctx, ethereumTask, log)
 		case w.matchLiquidityV2LendingPool(ethereumTask, log):
-			zap.L().Debug("handling v2 lending pool log",
-				zap.String("task_id", ethereumTask.ID()))
+			zap.L().Debug("handling v2 lending pool log")
 
 			actions, err = w.handleV2LendingPool(ctx, ethereumTask, log)
 		case w.matchLiquidityV3Pool(ethereumTask, log):
-			zap.L().Debug("handling v3 pool log",
-				zap.String("task_id", ethereumTask.ID()))
+			zap.L().Debug("handling v3 pool log")
 
 			actions, err = w.handleV3Pool(ctx, ethereumTask, log)
 		default:
+			zap.L().Warn("unsupported log")
+
 			continue
 		}
 
@@ -183,8 +187,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		}
 	}
 
-	zap.L().Debug("successfully transformed aave task",
-		zap.String("task_id", ethereumTask.ID()))
+	zap.L().Debug("successfully transformed aave task")
 
 	return activity, nil
 }
@@ -524,8 +527,8 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task 
 		zap.String("from", from.String()),
 		zap.String("to", to.String()),
 		zap.String("action", exchangeLiquidityAction.String()),
-		zap.String("token", tokenAddress.String()),
-		zap.String("value", tokenValue.String()))
+		zap.Any("token", tokenAddress),
+		zap.Any("value", tokenValue))
 
 	targetToken, err := w.tokenClient.Lookup(ctx, task.ChainID, &tokenAddress, nil, task.Header.Number)
 	if err != nil {

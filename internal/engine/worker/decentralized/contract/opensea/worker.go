@@ -120,7 +120,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		zap.L().Debug("matching opensea event",
 			zap.String("address", log.Address.String()),
-			zap.String("event", log.Topics[0].String()))
+			zap.String("topic", log.Topics[0].String()))
 
 		// Match opensea core contract events
 		switch {
@@ -331,8 +331,10 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 		zap.String("seller", seller.String()),
 		zap.String("buyer", buyer.String()),
 		zap.String("nft", nft.String()),
-		zap.String("offer_token", offerToken.String()),
-		zap.String("offer_value", offerValue.String()))
+		zap.Any("nft_id", nftID),
+		zap.Any("nft_value", nftValue),
+		zap.Any("offer_token", offerToken),
+		zap.Any("offer_value", offerValue))
 
 	if nftID == nil {
 		return nil, fmt.Errorf("nft id is nil")
@@ -373,6 +375,8 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 			Cost:  costTokenMetadata,
 		},
 	}
+
+	zap.L().Debug("successfully built collectible trade action")
 
 	return &action, nil
 }

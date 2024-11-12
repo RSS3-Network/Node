@@ -92,12 +92,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	zap.L().Debug("transforming benddao task", zap.String("task_id", ethereumTask.ID()))
+
 	if ethereumTask.Transaction.To == nil {
 		return nil, fmt.Errorf("invalid transaction to: %s", ethereumTask.Transaction.Hash)
 	}
-
-	zap.L().Debug("transforming benddao task",
-		zap.String("task_id", ethereumTask.ID()))
 
 	// Build activity base from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
@@ -108,6 +107,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
+			zap.L().Debug("skipping anonymous log")
+
 			continue
 		}
 
@@ -116,65 +117,62 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
+		zap.L().Debug("processing benddao log",
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
+
 		switch {
 		// Bend exchange
 		case w.matchBendExchangeTakerAsk(log):
-			zap.L().Debug("processing bend exchange taker ask event",
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing bend exchange taker ask event")
 
 			actions, err = w.transformBendExchangeTakerAsk(ctx, ethereumTask, log)
 			activity.Type = typex.CollectibleTrade
 		case w.matchBendExchangeTakerBid(log):
-			zap.L().Debug("processing bend exchange taker bid event",
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing bend exchange taker bid event")
 
 			actions, err = w.transformBendExchangeTakerBid(ctx, ethereumTask, log)
 			activity.Type = typex.CollectibleTrade
 
 		// Lend pool
 		case w.matchLendPoolDeposit(log):
-			zap.L().Debug("processing lend pool deposit event",
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing lend pool deposit event")
 
 			actions, err = w.transformLendPoolDeposit(ctx, ethereumTask, log)
 			activity.Type = typex.ExchangeLiquidity
 		case w.matchLendPoolWithdraw(log):
-			zap.L().Debug("processing lend pool withdraw event",
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing lend pool withdraw event")
 
 			actions, err = w.transformLendPoolWithdraw(ctx, ethereumTask, log)
 			activity.Type = typex.ExchangeLiquidity
 		case w.matchLendPoolBorrow(log):
-			zap.L().Debug("processing lend pool borrow event",
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing lend pool borrow event")
 
 			actions, err = w.transformLendPoolBorrow(ctx, ethereumTask, log)
 			activity.Type = typex.ExchangeLoan
 		case w.matchLendPoolRepay(log):
-			zap.L().Debug("processing lend pool repay event",
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing lend pool repay event")
 
 			actions, err = w.transformLendPoolRepay(ctx, ethereumTask, log)
 			activity.Type = typex.ExchangeLoan
 		case w.matchLendPoolAuction(log):
-			zap.L().Debug("processing lend pool auction event",
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing lend pool auction event")
 
 			actions, err = w.transformLendPoolAuction(ctx, ethereumTask, log)
 			activity.Type = typex.CollectibleAuction
 		case w.matchLendPoolRedeem(log):
-			zap.L().Debug("processing lend pool redeem event",
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing lend pool redeem event")
 
 			actions, err = w.transformLendPoolRedeem(ctx, ethereumTask, log)
 			activity.Type = typex.ExchangeLoan
 		case w.matchLendPoolLiquidate(log):
-			zap.L().Debug("processing lend pool liquidate event",
-				zap.String("log_address", log.Address.String()))
+			zap.L().Debug("processing lend pool liquidate event")
 
 			actions, err = w.transformLendPoolLiquidate(ctx, ethereumTask, log)
 			activity.Type = typex.ExchangeLoan
 		default:
+			zap.L().Debug("skipping unsupported log")
+
 			continue
 		}
 
@@ -185,8 +183,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		activity.Actions = append(activity.Actions, actions...)
 	}
 
-	zap.L().Debug("successfully transformed benddao task",
-		zap.String("task_id", ethereumTask.ID()))
+	zap.L().Debug("successfully transformed benddao task")
 
 	return activity, nil
 }
@@ -421,7 +418,10 @@ func (w *worker) buildEthereumAuctionAction(ctx context.Context, task *source.Ta
 		zap.String("from", from.String()),
 		zap.String("to", to.String()),
 		zap.String("nft", nft.String()),
-		zap.String("nft_id", nftID.String()),
+		zap.Any("nft_id", nftID),
+		zap.Any("nft_value", nftValue),
+		zap.Any("offer_token", offerToken),
+		zap.Any("offer_value", offerValue),
 		zap.String("action", action.String()))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &nft, nftID, task.Header.Number)
@@ -464,7 +464,9 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 		zap.String("seller", seller.String()),
 		zap.String("buyer", buyer.String()),
 		zap.String("nft", nft.String()),
-		zap.String("nft_id", nftID.String()))
+		zap.Any("nft_id", nftID),
+		zap.Any("offer_token", offerToken),
+		zap.Any("offer_value", offerValue))
 
 	offerTokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, offerToken, nil, task.Header.Number)
 	if err != nil {
@@ -499,8 +501,8 @@ func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, tas
 	zap.L().Debug("building ethereum transaction transfer action",
 		zap.String("from", from.String()),
 		zap.String("to", to.String()),
-		zap.String("token", token.String()),
-		zap.String("value", value.String()))
+		zap.Any("token", token),
+		zap.Any("value", value))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, token, nil, task.Header.Number)
 	if err != nil {
@@ -525,7 +527,10 @@ func (w *worker) buildEthereumExchangeLoanAction(ctx context.Context, task *sour
 		zap.String("lender", lender.String()),
 		zap.String("borrower", borrower.String()),
 		zap.String("nft", nft.String()),
-		zap.String("nft_id", nftID.String()),
+		zap.Any("offer_token", offerToken),
+		zap.Any("nft_id", nftID),
+		zap.Any("nft_value", nftValue),
+		zap.Any("offer_value", offerValue),
 		zap.String("action", action.String()))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &nft, nftID, task.Header.Number)
@@ -568,7 +573,8 @@ func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, tas
 		zap.String("seller", seller.String()),
 		zap.String("buyer", buyer.String()),
 		zap.String("nft", nft.String()),
-		zap.String("nft_id", nftID.String()))
+		zap.Any("nft_id", nftID),
+		zap.Any("value", value))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &nft, nftID, task.Header.Number)
 	if err != nil {

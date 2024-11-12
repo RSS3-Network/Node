@@ -70,12 +70,13 @@ func (w *worker) Filter() engine.DataSourceFilter {
 // Transform processes a Near task and returns an activity.
 // It is the main entry point for processing Near Social transactions.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	zap.L().Debug("transforming near social task", zap.String("task_id", task.ID()))
 	// Cast the task to a Near task.
 	nearTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
+
+	zap.L().Debug("transforming near social task", zap.String("task_id", nearTask.ID()))
 
 	// Build the activity with the platform information.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
@@ -176,6 +177,8 @@ func (w *worker) buildSocialAction(signerID, path string, postData PostData, arg
 	if userContent, ok := args.Data[signerID]; ok {
 		action = w.processUserContent(action, userContent, signerID, timestamp)
 	}
+
+	zap.L().Debug("successfully built social action")
 
 	return action, nil
 }

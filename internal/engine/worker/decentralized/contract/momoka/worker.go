@@ -85,12 +85,13 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform returns an activity  with the action of the task.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	zap.L().Debug("transforming momoka task", zap.String("task_id", task.ID()))
 	// Cast the task to an Arweave task.
 	arweaveTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
+
+	zap.L().Debug("transforming momoka task", zap.String("task_id", arweaveTask.ID()))
 
 	// Build the activity.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
@@ -315,6 +316,13 @@ func (w *worker) buildArweaveMomokaAction(_ context.Context, from, to string, so
 }
 
 func (w *worker) buildArweaveMomokaPostMetadata(ctx context.Context, profileID, handle, pubID string, contentURI string, isTarget bool, timestamp uint64) (*metadata.SocialPost, error) {
+	zap.L().Debug("building arweave momoka post metadata",
+		zap.String("profile_id", profileID),
+		zap.String("handle", handle),
+		zap.String("pub_id", pubID),
+		zap.String("content_uri", contentURI),
+		zap.Bool("is_target", isTarget))
+
 	var contentData []byte
 
 	if contentURI != "" {
@@ -405,10 +413,7 @@ func (w *worker) buildArweaveMomokaPostMetadata(ctx context.Context, profileID, 
 			zap.Int("tags_count", len(momokaTags)))
 	}
 
-	zap.L().Debug("building social post metadata",
-		zap.String("handle", handle),
-		zap.String("profile_id", profileID),
-		zap.String("pub_id", pubID))
+	zap.L().Debug("building social post metadata")
 
 	return &metadata.SocialPost{
 		Handle:        handle,
