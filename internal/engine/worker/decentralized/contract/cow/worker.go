@@ -113,6 +113,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("no actions")
 	}
 
+	activity.Type = typex.ExchangeSwap
+
 	zap.L().Debug("successfully transformed cow task")
 
 	return activity, nil

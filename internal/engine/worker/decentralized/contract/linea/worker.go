@@ -372,8 +372,8 @@ func (w *worker) buildEthereumTransactionBridgeAction(ctx context.Context, chain
 		zap.String("receiver", receiver.String()),
 		zap.String("source_network", source.String()),
 		zap.String("target_network", target.String()),
-		zap.String("token_address", tokenAddress.String()),
-		zap.String("token_value", tokenValue.String()))
+		zap.Any("token_address", tokenAddress),
+		zap.Any("token_value", tokenValue))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
