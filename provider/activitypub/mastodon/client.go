@@ -107,8 +107,9 @@ func NewClient(ctx context.Context, endpoint string, relayList []string, port in
 	}
 
 	zap.L().Info("Initializing server configuration",
-		zap.Strings("relay URL List", relayList),
-		zap.Int64("port", port))
+		zap.String("mastodon server endpoint", endpoint),
+		zap.Int64("server port", port),
+		zap.Strings("relay URL List", relayList))
 
 	// Generate the Key Pair
 	privateKey, publicKeyPem, err := generateKeyPair()
@@ -116,11 +117,15 @@ func NewClient(ctx context.Context, endpoint string, relayList []string, port in
 		return nil, fmt.Errorf("failed to generate key pair: %w", err)
 	}
 
+	zap.L().Debug("successfully generated key pair")
+
 	// Create actor
 	actor, err := createActor(endpoint, publicKeyPem)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create actor: %w", err)
 	}
+
+	zap.L().Debug("successfully created actor", zap.Any("actor", actor))
 
 	httpClient, err := httpx.NewHTTPClient()
 	if err != nil {
@@ -141,12 +146,14 @@ func NewClient(ctx context.Context, endpoint string, relayList []string, port in
 
 	// Setup and store Echo server
 	c.initializeServer()
-	zap.L().Info("starting server service in background")
+	zap.L().Debug("successfully initialized mastodon relay server")
 
 	// Start server service
 	go func() {
 		c.startServerService(ctx, errorChan)
 	}()
+
+	zap.L().Debug("successfully started mastodon relay server")
 
 	return c, nil
 }
@@ -225,7 +232,7 @@ func (c *client) startHTTPServer(ctx context.Context) error {
 	startedCh := make(chan struct{}, 1)
 
 	serverPortStr := ":" + strconv.Itoa(int(c.port))
-	zap.L().Info("Starting server", zap.String("port", serverPortStr))
+	zap.L().Info("Starting mastodon relay server", zap.String("port", serverPortStr))
 
 	if err := c.server.Start(serverPortStr); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		zap.L().Error("server error", zap.Error(err))
@@ -428,6 +435,8 @@ func generateKeyPair() (*rsa.PrivateKey, string, error) {
 
 // FollowRelayServices attempts to follow all configured relay services.
 func (c *client) FollowRelayServices(ctx context.Context) error {
+	zap.L().Debug("Beginning to follow relay services", zap.Strings("relayURLs", c.relayURLs))
+
 	var errs []error
 
 	for _, instance := range c.relayURLs {

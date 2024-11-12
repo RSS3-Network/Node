@@ -46,8 +46,9 @@ func (s *dataSource) State() json.RawMessage {
 
 // Start initializes the data protocol and starts consuming relay messages
 func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
+	zap.L().Debug("starting mastodon data source")
+
 	if err := s.initialize(ctx, errorChan); err != nil {
-		zap.L().Error("Failed to initialize", zap.Error(err))
 		errorChan <- fmt.Errorf("failed to initialize dataSource: %w", err)
 
 		return
@@ -56,13 +57,12 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 	go func() {
 		// Check if context is cancelled before we start
 		if ctx.Err() != nil {
-			zap.L().Info("context cancelled before starting message processing",
+			zap.L().Error("context cancelled before starting message processing",
 				zap.Error(ctx.Err()))
 			return
 		}
 
 		if err := s.processMessages(ctx, tasksChan); err != nil {
-			zap.L().Error("failed to process messages", zap.Error(err))
 			errorChan <- fmt.Errorf("failed to process messages: %w", err)
 		}
 	}()
@@ -85,16 +85,20 @@ func (s *dataSource) processMessages(ctx context.Context, tasksChan chan<- *engi
 		select {
 		case <-ctx.Done():
 			zap.L().Info("context canceled, stopping message processing")
+
 			resultPool.Wait()
 
 			return ctx.Err()
 		case msg := <-messageChan:
 			if msg == "" {
 				zap.L().Info("empty message received, skipping")
+
 				continue
 			}
 
-			zap.L().Info("received message for processing",
+			zap.L().Info("received message from mastodon relay server")
+
+			zap.L().Debug("received message from mastodon relay server for processing",
 				zap.String("message", msg))
 
 			// Process each message concurrently
@@ -104,7 +108,9 @@ func (s *dataSource) processMessages(ctx context.Context, tasksChan chan<- *engi
 				if tasks != nil {
 					tasksChan <- tasks
 
-					zap.L().Info("sent message to tasks channel", zap.String("message", msg))
+					zap.L().Info("sent message to tasks channel", zap.Int("totalTasks", len(tasks.Tasks)))
+
+					zap.L().Debug("sent message to tasks channel", zap.String("message", msg))
 				}
 
 				return tasks
@@ -115,9 +121,12 @@ func (s *dataSource) processMessages(ctx context.Context, tasksChan chan<- *engi
 
 // handleMessage processes a single ActivityPub message.
 func (s *dataSource) handleMessage(ctx context.Context, msg string) *engine.Tasks {
-	zap.L().Info("processing message", zap.Any("message", msg))
-
 	relayObjectID := gjson.Get(msg, "id").String()
+
+	zap.L().Info("processing message", zap.Any("relayObjectID", relayObjectID))
+
+	zap.L().Debug("processing message", zap.String("message", msg))
+
 	// Check if the received message is a relay message or an ActivityPub message.
 	if isRelayMessage(relayObjectID) {
 		if gjson.Get(msg, "type").String() == "Accept" {
@@ -185,7 +194,6 @@ func isRelayMessage(id string) bool {
 	parsedURL, err := url.Parse(id)
 	if err != nil {
 		zap.L().Error("parse URL failed",
-
 			zap.String("id", id),
 			zap.Error(err))
 
@@ -193,7 +201,7 @@ func isRelayMessage(id string) bool {
 	}
 
 	if parsedURL.Host == "" {
-		zap.L().Error("Parsed URL has an empty host", zap.String("id", id))
+		zap.L().Warn("Parsed URL has an empty host", zap.String("id", id))
 		return false
 	}
 
@@ -230,12 +238,13 @@ func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activit
 
 	// If the object is empty, return an empty task
 	if object.Type == "" {
-		zap.L().Info("skipping empty object")
+		zap.L().Warn("skipping empty object")
+
 		return nil
 	}
 
 	if object.Published == "" {
-		zap.L().Info("missing published timestamp",
+		zap.L().Warn("missing published timestamp",
 			zap.String("objectID", object.ID),
 		)
 
@@ -246,7 +255,7 @@ func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activit
 	zap.L().Info("object.Published value before calling ValidatePublicationTimestamp", zap.String("published", object.Published))
 
 	if !ValidatePublicationTimestamp(object.Published) { // ToDo: Verify if this is the correct location to validate timestamps on incoming AP messages; Cannot have it in mastodon/client.go due to the message-parsing process.
-		zap.L().Info("skipping message: timestamp is not valid",
+		zap.L().Warn("skipping message: timestamp is not valid",
 			zap.String("objectID", object.ID),
 			zap.String("publishedTime", object.Published),
 		)
@@ -263,9 +272,10 @@ func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activit
 
 	zap.L().Info("task created for ActivityPub object",
 		zap.String("objectID", object.ID),
-		zap.Int("totalTasks", len(tasks.Tasks)),
-		zap.Any("taskDetails", task),
-	)
+		zap.Int("totalTasks", len(tasks.Tasks)))
+
+	zap.L().Debug("task created for ActivityPub object",
+		zap.Any("taskDetails", task))
 
 	return &tasks
 }
