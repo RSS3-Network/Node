@@ -538,6 +538,11 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
 
+	// If the token value is nil, set it to zero.
+	if tokenValue == nil {
+		tokenValue = big.NewInt(0)
+	}
+
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
 	var actionType typex.TransactionType
@@ -572,6 +577,11 @@ func (w *worker) buildTransactionApprovalAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
 
+	// If the token value is nil, set it to zero.
+	if tokenValue == nil {
+		tokenValue = big.NewInt(0)
+	}
+
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
 	// Use the token value to determine the action type.
@@ -602,6 +612,11 @@ func (w *worker) buildCollectibleTransferAction(ctx context.Context, task *sourc
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, uint64(chainID), &tokenAddress, tokenID, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
+	}
+
+	// If the token value is nil, set it to zero.
+	if tokenValue == nil {
+		tokenValue = big.NewInt(0)
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
@@ -672,6 +687,11 @@ func (w *worker) buildExchangeStakingVSLAction(ctx context.Context, task *source
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
+	// If the token value is nil, set it to zero.
+	if tokenValue == nil {
+		tokenValue = big.NewInt(0)
+	}
+
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
 
 	action := activityx.Action{
@@ -695,6 +715,11 @@ func (w *worker) buildChipsMintAction(ctx context.Context, task *source.Task, fr
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
 	}
 
+	// If the token value is nil, set it to zero.
+	if value == nil {
+		value = big.NewInt(0)
+	}
+
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
 
 	return &activityx.Action{
@@ -710,6 +735,11 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
+	}
+
+	// If the token value is nil, set it to zero.
+	if tokenValue == nil {
+		tokenValue = big.NewInt(0)
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
