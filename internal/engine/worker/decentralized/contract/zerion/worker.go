@@ -97,6 +97,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type %T", task)
 	}
 
+	zap.L().Debug("transforming zerion task", zap.String("task", ethereumTask.ID()))
+
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 
 	if err != nil {
@@ -106,21 +108,30 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	// Iterate through all logs in the transaction receipt
 	for _, log := range ethereumTask.Receipt.Logs {
 		if len(log.Topics) == 0 {
+			zap.L().Debug("ignoring anonymous log")
+
 			continue
 		}
 
+		zap.L().Debug("transforming zerion log",
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
+
 		switch {
 		case w.matchSwapLog(ethereumTask, log):
+			zap.L().Debug("transforming zerion swap log")
+
 			actions, err := w.transformSwapLog(ctx, ethereumTask, log)
 			if err != nil {
-				zap.L().Warn("handle settlement trade log", zap.Error(err), zap.String("worker", w.Name()), zap.String("task", ethereumTask.ID()))
+				zap.L().Error("handle settlement trade log", zap.Error(err), zap.String("task", ethereumTask.ID()))
+
 				continue
 			}
 
 			activity.Actions = append(activity.Actions, actions...)
 
 		default:
-			zap.L().Debug("unsupported log", zap.String("worker", w.Name()), zap.String("task", ethereumTask.ID()), zap.Stringer("topic", log.Topics[0]))
+			zap.L().Debug("no matching zerion log")
 		}
 	}
 
@@ -128,10 +139,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("no actions")
 	}
 
-	zap.L().Info("Processing task", zap.Any("task", ethereumTask))
-	zap.L().Info("activity is: ", zap.Any("activity", activity))
-
 	activity.Type = typex.ExchangeSwap
+
+	zap.L().Debug("successfully transformed zerion task")
 
 	return activity, nil
 }
@@ -174,12 +184,20 @@ func (w *worker) transformSwapLog(ctx context.Context, task *source.Task, log *e
 
 // buildTransactionTransferAction creates a TransactionTransfer action for a given transfer.
 func (w *worker) buildTransactionTransferAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress *common.Address, amount *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building transaction transfer action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.Any("token_address", tokenAddress),
+		zap.Any("amount", amount))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenAddress, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
+
+	zap.L().Debug("successfully built transaction transfer action")
 
 	return &activityx.Action{
 		Type:     typex.TransactionTransfer,
@@ -192,6 +210,14 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 
 // buildExchangeSwapAction creates an ExchangeSwap action for a given swap.
 func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building exchange swap action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.String("token_in", tokenIn.String()),
+		zap.String("token_out", tokenOut.String()),
+		zap.Any("amount_in", amountIn),
+		zap.Any("amount_out", amountOut))
+
 	tokenInAddress := lo.Ternary(tokenIn != zerion.AddressNativeToken, &tokenIn, nil)
 	tokenOutAddress := lo.Ternary(tokenOut != zerion.AddressNativeToken, &tokenOut, nil)
 
@@ -208,6 +234,8 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 	}
 
 	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0))
+
+	zap.L().Debug("successfully built exchange swap action")
 
 	return &activityx.Action{
 		Type:     typex.ExchangeSwap,

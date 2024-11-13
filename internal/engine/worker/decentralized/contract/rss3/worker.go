@@ -23,6 +23,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -84,6 +85,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	zap.L().Debug("transforming rss3 task", zap.String("task_id", ethereumTask.ID()))
+
 	_activities, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build _activities: %w", err)
@@ -93,6 +96,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
+			zap.L().Debug("ignoring anonymous log")
+
 			continue
 		}
 
@@ -101,15 +106,27 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
+		zap.L().Debug("matching rss3 event",
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
+
 		switch {
 		// Ethereum Mainnet
 		case w.matchStakingDeposited(ethereumTask, log):
+			zap.L().Debug("matching staking deposited event")
+
 			actions, err = w.transformStakingDeposited(ctx, ethereumTask, log)
 		case w.matchStakingWithdrawn(ethereumTask, log):
+			zap.L().Debug("matching staking withdrawn event")
+
 			actions, err = w.transformStakingWithdrawn(ctx, ethereumTask, log)
 		case w.matchStakingRewardsClaimed(ethereumTask, log):
+			zap.L().Debug("matching staking rewards claimed event")
+
 			actions, err = w.transformStakingRewardsClaimed(ctx, ethereumTask, log)
 		default:
+			zap.L().Debug("no matching rss3 event")
+
 			continue
 		}
 
@@ -124,6 +141,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		_activities.Actions = append(_activities.Actions, actions...)
 	}
+
+	zap.L().Debug("successfully transformed rss3 task")
 
 	return _activities, nil
 }
@@ -207,6 +226,13 @@ func (w *worker) transformStakingRewardsClaimed(ctx context.Context, task *sourc
 
 // buildExchangeStakingAction builds the exchange staking action.
 func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Task, from, to common.Address, tokenValue *big.Int, stakingAction metadata.ExchangeStakingAction, period *metadata.ExchangeStakingPeriod) (*activityx.Action, error) {
+	zap.L().Debug("building exchange staking action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.Any("token_value", tokenValue),
+		zap.String("staking_action", stakingAction.String()),
+		zap.Any("period", period))
+
 	// The Token always is $RSS3.
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &rss3.AddressToken, nil, task.Header.Number)
 	if err != nil {
@@ -226,6 +252,8 @@ func (w *worker) buildExchangeStakingAction(ctx context.Context, task *source.Ta
 			Period: period,
 		},
 	}
+
+	zap.L().Debug("successfully built exchange staking action")
 
 	return &action, nil
 }

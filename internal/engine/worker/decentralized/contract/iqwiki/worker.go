@@ -22,6 +22,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 // Worker is the worker for IQWiki.
@@ -87,6 +88,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	zap.L().Debug("transforming IQWiki task", zap.String("task_id", ethereumTask.ID()))
+
 	if ethereumTask.Transaction.To == nil {
 		return nil, fmt.Errorf("invalid transaction to: %s", ethereumTask.Transaction.Hash)
 	}
@@ -96,6 +99,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	}
 
 	// Build default IQWiki activity from task.
+	zap.L().Debug("building default IQWiki activity")
+
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build activity: %w", err)
@@ -105,11 +110,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
+			zap.L().Debug("skipping anonymous log")
+
 			continue
 		}
 
 		action, err := w.parseAction(ctx, log, ethereumTask)
 		if err != nil {
+			zap.L().Error("failed to parse action", zap.Error(err))
+
 			continue
 		}
 
@@ -125,17 +134,24 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	activity.Tag = tag.Social
 	activity.TotalActions = uint(len(activity.Actions))
 
+	zap.L().Debug("successfully transformed IQWiki task")
+
 	return activity, nil
 }
 
 // Parse action from Ethereum log.
 func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTask *source.Task) (*activityx.Action, error) {
+	zap.L().Debug("parsing IQWiki action",
+		zap.String("transaction_hash", ethereumTask.Transaction.Hash.String()))
+
 	wikiPosted, err := w.iqWikiFilterer.ParsePosted(log.Export())
 	if err != nil {
 		return nil, fmt.Errorf("parse posted: %w", err)
 	}
 
 	ipfsID := wikiPosted.Ipfs
+	zap.L().Debug("fetching IPFS content",
+		zap.String("ipfs_id", ipfsID))
 
 	content, err := w.getEthereumIPFSContent(ctx, ipfsID)
 	if err != nil {
@@ -155,10 +171,18 @@ func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTas
 		return nil, fmt.Errorf("invalid wiki, hash %s, %w", ethereumTask.Transaction.Hash, err)
 	}
 
+	zap.L().Debug("fetching wiki details",
+		zap.String("wiki_id", wiki.ID),
+		zap.Int("block_number", int(ethereumTask.Header.Number.Int64())))
+
 	wikiResponse, err := iqwiki.ActivityByWikiIdAndBlock(context.Background(), w.iqWikiClient, int(ethereumTask.Header.Number.Int64()), wiki.ID)
 	if err != nil {
 		return nil, fmt.Errorf("fetch wiki %s, hash %s, %w", wiki.ID, ethereumTask.Transaction.Hash.String(), err)
 	}
+
+	zap.L().Debug("building IQWiki action",
+		zap.String("wiki_id", wikiResponse.ActivityByWikiIdAndBlock.WikiId),
+		zap.String("type", string(wikiResponse.ActivityByWikiIdAndBlock.Type)))
 
 	action := &activityx.Action{
 		Tag:      tag.Social,
@@ -185,6 +209,10 @@ func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTas
 			}),
 		},
 	}
+
+	zap.L().Debug("successfully built IQWiki action",
+		zap.String("wiki_id", wikiResponse.ActivityByWikiIdAndBlock.WikiId),
+		zap.String("type", action.Type.Name()))
 
 	return action, nil
 }

@@ -25,6 +25,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -127,6 +128,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	zap.L().Debug("transforming activity from task", zap.String("task_id", ethereumTask.ID()))
+
 	if ethereumTask.Transaction.To == nil {
 		return nil, fmt.Errorf("invalid transaction to: %s", ethereumTask.Transaction.Hash)
 	}
@@ -134,12 +137,14 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	// Build activity base from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build activity: %w", err)
+		return nil, fmt.Errorf("build activity: %w, task_id: %s", err, ethereumTask.ID())
 	}
 
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
+			zap.L().Debug("skipping anonymous log")
+
 			continue
 		}
 
@@ -148,14 +153,26 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
+		zap.L().Debug("processing aave log",
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
+
 		switch {
 		case w.matchLiquidityV1Pool(ethereumTask, log):
+			zap.L().Debug("handling v1 lending pool log")
+
 			actions, err = w.handleV1LendingPool(ctx, ethereumTask, log)
 		case w.matchLiquidityV2LendingPool(ethereumTask, log):
+			zap.L().Debug("handling v2 lending pool log")
+
 			actions, err = w.handleV2LendingPool(ctx, ethereumTask, log)
 		case w.matchLiquidityV3Pool(ethereumTask, log):
+			zap.L().Debug("handling v3 pool log")
+
 			actions, err = w.handleV3Pool(ctx, ethereumTask, log)
 		default:
+			zap.L().Warn("unsupported log")
+
 			continue
 		}
 
@@ -170,36 +187,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		}
 	}
 
+	zap.L().Debug("successfully transformed aave task")
+
 	return activity, nil
-}
-
-// NewWorker creates a new worker.
-func NewWorker(config *config.Module) (engine.Worker, error) {
-	var (
-		err      error
-		instance = worker{
-			config: config,
-		}
-	)
-
-	// Initialize ethereum client.
-	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint.URL, config.Endpoint.BuildEthereumOptions()...); err != nil {
-		return nil, fmt.Errorf("initialize ethereum client: %w", err)
-	}
-
-	// Initialize token client.
-	instance.tokenClient = token.NewClient(instance.ethereumClient)
-
-	// Initialize filterers.
-	instance.v1LendingPoolFilterer = lo.Must(aave.NewV1LendingPoolFilterer(ethereum.AddressGenesis, nil))
-	instance.v2LendingPoolFilterer = lo.Must(aave.NewV2LendingPoolFilterer(ethereum.AddressGenesis, nil))
-	instance.v3PoolFilterer = lo.Must(aave.NewV3PoolFilterer(ethereum.AddressGenesis, nil))
-
-	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
-	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
-	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
-
-	return &instance, nil
 }
 
 func (w *worker) matchLiquidityV1Pool(_ *source.Task, log *ethereum.Log) bool {
@@ -270,6 +260,10 @@ func (w *worker) matchLiquidityV3Pool(task *source.Task, log *ethereum.Log) bool
 }
 
 func (w *worker) handleV1LendingPool(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+	zap.L().Debug("handling aave v1 lending pool event",
+		zap.String("task_id", task.ID()),
+		zap.String("log_address", log.Address.String()))
+
 	var (
 		action *activityx.Action
 		err    error
@@ -290,10 +284,17 @@ func (w *worker) handleV1LendingPool(ctx context.Context, task *source.Task, log
 		return nil, fmt.Errorf("handle v1 pool: %w", err)
 	}
 
+	zap.L().Debug("successfully handled aave v1 lending pool event",
+		zap.String("task_id", task.ID()))
+
 	return []*activityx.Action{action}, nil
 }
 
 func (w *worker) handleV2LendingPool(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+	zap.L().Debug("handling aave v2 lending pool event",
+		zap.String("task_id", task.ID()),
+		zap.String("log_address", log.Address.String()))
+
 	var (
 		action *activityx.Action
 		err    error
@@ -316,10 +317,17 @@ func (w *worker) handleV2LendingPool(ctx context.Context, task *source.Task, log
 		return nil, fmt.Errorf("handle v2 pool: %w", err)
 	}
 
+	zap.L().Debug("successfully handled aave v2 lending pool event",
+		zap.String("task_id", task.ID()))
+
 	return []*activityx.Action{action}, nil
 }
 
 func (w *worker) handleV3Pool(ctx context.Context, task *source.Task, log *ethereum.Log) ([]*activityx.Action, error) {
+	zap.L().Debug("handling aave v3 pool event",
+		zap.String("task_id", task.ID()),
+		zap.String("log_address", log.Address.String()))
+
 	var (
 		action *activityx.Action
 		err    error
@@ -341,6 +349,9 @@ func (w *worker) handleV3Pool(ctx context.Context, task *source.Task, log *ether
 	if err != nil {
 		return nil, fmt.Errorf("handle v3 pool: %w", err)
 	}
+
+	zap.L().Debug("successfully handled aave v3 pool event",
+		zap.String("task_id", task.ID()))
 
 	return []*activityx.Action{action}, nil
 }
@@ -511,6 +522,14 @@ func (w *worker) transformV3PoolRepayLog(ctx context.Context, task *source.Task,
 }
 
 func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task *source.Task, from, to common.Address, exchangeLiquidityAction metadata.ExchangeLiquidityAction, tokenAddress common.Address, tokenValue *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building ethereum exchange liquidity action",
+		zap.String("task_id", task.ID()),
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.String("action", exchangeLiquidityAction.String()),
+		zap.Any("token", tokenAddress),
+		zap.Any("value", tokenValue))
+
 	targetToken, err := w.tokenClient.Lookup(ctx, task.ChainID, &tokenAddress, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenAddress, err)
@@ -532,4 +551,33 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task 
 	}
 
 	return &action, nil
+}
+
+// NewWorker creates a new worker.
+func NewWorker(config *config.Module) (engine.Worker, error) {
+	var (
+		err      error
+		instance = worker{
+			config: config,
+		}
+	)
+
+	// Initialize ethereum client.
+	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint.URL, config.Endpoint.BuildEthereumOptions()...); err != nil {
+		return nil, fmt.Errorf("initialize ethereum client: %w", err)
+	}
+
+	// Initialize token client.
+	instance.tokenClient = token.NewClient(instance.ethereumClient)
+
+	// Initialize filterers.
+	instance.v1LendingPoolFilterer = lo.Must(aave.NewV1LendingPoolFilterer(ethereum.AddressGenesis, nil))
+	instance.v2LendingPoolFilterer = lo.Must(aave.NewV2LendingPoolFilterer(ethereum.AddressGenesis, nil))
+	instance.v3PoolFilterer = lo.Must(aave.NewV3PoolFilterer(ethereum.AddressGenesis, nil))
+
+	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
+	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
+	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
+
+	return &instance, nil
 }

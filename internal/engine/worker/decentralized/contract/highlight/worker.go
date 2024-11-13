@@ -23,6 +23,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 )
 
 // Worker is the worker for Highlight.
@@ -102,6 +103,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	zap.L().Debug("transforming highlight task", zap.String("task_id", ethereumTask.ID()))
+
 	// Build default highlight activity from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
@@ -112,6 +115,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
+			zap.L().Debug("skipping anonymous log")
+
 			continue
 		}
 
@@ -120,14 +125,25 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
+		zap.L().Debug("processing ethereum log",
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
+
 		// Match highlight core contract events
 		switch {
 		case w.matchNativeGasTokenPaymentMatched(ethereumTask, log):
+			zap.L().Debug("processing native gas token payment event")
+
 			actions, err = w.transformNativeGasTokenPayment(ctx, ethereumTask, log)
 		case w.matchNumTokenMintMatched(ethereumTask, log):
+			zap.L().Debug("processing num token mint event")
+
 			activity.Type = typex.CollectibleMint
 			actions, err = w.transformNumTokenMint(ctx, ethereumTask, log)
 		default:
+			zap.L().Debug("skipping unmatched log",
+				zap.String("topic", log.Topics[0].String()))
+
 			continue
 		}
 
@@ -142,6 +158,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		activity.Actions = append(activity.Actions, actions...)
 	}
+
+	zap.L().Debug("successfully transformed highlight task")
 
 	return activity, nil
 }
@@ -224,12 +242,19 @@ func (w *worker) transformNumTokenMint(ctx context.Context, task *source.Task, l
 
 // buildTransferAction builds transfer action.
 func (w *worker) buildTransferAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, amount *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building transfer action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.Any("amount", amount))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, nil, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
+
+	zap.L().Debug("successfully built transfer action")
 
 	return &activityx.Action{
 		Type:     typex.TransactionTransfer,
@@ -242,12 +267,21 @@ func (w *worker) buildTransferAction(ctx context.Context, task *source.Task, fro
 
 // buildHighlightMintAction builds highlight mint action.
 func (w *worker) buildHighlightMintAction(ctx context.Context, task *source.Task, from, to common.Address, contract common.Address, id *big.Int, value *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building highlight mint action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.String("contract", contract.String()),
+		zap.Any("token_id", id),
+		zap.Any("value", value))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &contract, id, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
+
+	zap.L().Debug("successfully built highlight mint action")
 
 	return &activityx.Action{
 		Type:     typex.CollectibleMint,

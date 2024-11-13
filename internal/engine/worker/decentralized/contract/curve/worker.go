@@ -92,14 +92,14 @@ func (w *worker) Filter() engine.DataSourceFilter {
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	matched, err := w.matchCurveTransactions(ctx, task)
 	if err != nil {
-		zap.L().Error("match task", zap.String("task.id", task.ID()), zap.Error(err))
+		zap.L().Error("failed to match curve transactions", zap.Error(err))
 
 		return nil, nil
 	}
 
 	// If the task does not meet the filter conditions, it will be discarded.
 	if !matched {
-		zap.L().Warn("unmatched task", zap.String("task.id", task.ID()))
+		zap.L().Warn("unmatched curve task")
 
 		return nil, nil
 	}
@@ -109,6 +109,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	zap.L().Debug("transforming curve task", zap.String("task_id", ethereumTask.ID()))
+
 	// Build default curve feed from task.
 	feed, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
@@ -117,6 +119,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 	switch {
 	case w.matchStableSwapEventHashStableSwapAddLiquidityTransaction(ethereumTask):
+		zap.L().Debug("processing stable swap add liquidity transaction")
+
 		// Match stable swap add liquidity transaction.
 		feed.Type = typex.ExchangeLiquidity
 
@@ -130,6 +134,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		return feed, nil
 	case w.matchStableSwapEventHashStableSwapRemoveLiquidityTransaction(ethereumTask):
+		zap.L().Debug("processing stable swap remove liquidity transaction")
+
 		// Match stable swap remove liquidity transaction.
 		feed.Type = typex.ExchangeLiquidity
 
@@ -148,6 +154,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
+			zap.L().Debug("skipping anonymous log")
+
 			continue
 		}
 
@@ -156,25 +164,39 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
+		zap.L().Debug("processing log",
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
+
 		// Match curve core contract events
 		switch {
 		case w.matchEthereumRegistryExchangeExchangeMultipleLog(ethereumTask, log):
+			zap.L().Debug("processing registry exchange multiple log")
+
 			// Add registry exchange multiple
 			feed.Type = typex.ExchangeSwap
 			actions, err = w.transformRegistryExchangeExchangeMultipleLog(ctx, ethereumTask, log)
 		case w.matchEthereumStableSwapTokenExchangeLog(ethereumTask, log):
+			zap.L().Debug("processing stable swap token exchange log")
+
 			// Add stable swap token exchange
 			feed.Type = typex.ExchangeSwap
 			actions, err = w.transformStableSwapTokenExchangeLog(ctx, ethereumTask, log)
 		case w.matchEthereumLiquidityGaugeDepositLog(ethereumTask, log):
+			zap.L().Debug("processing liquidity gauge deposit log")
+
 			// Add liquidity gauge deposit
 			feed.Type = typex.ExchangeStaking
 			actions, err = w.transformLiquidityGaugeDepositLog(ctx, ethereumTask, log)
 		case w.matchEthereumLiquidityGaugeWithdrawLog(ethereumTask, log):
+			zap.L().Debug("processing liquidity gauge withdraw log")
+
 			// Add liquidity gauge withdraw
 			feed.Type = typex.ExchangeStaking
 			actions, err = w.transformLiquidityGaugeWithdrawLog(ctx, ethereumTask, log)
 		default:
+			zap.L().Debug("skipping unmatched log")
+
 			continue
 		}
 
@@ -184,6 +206,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		feed.Actions = append(feed.Actions, actions...)
 	}
+
+	zap.L().Debug("successfully transformed curve task")
 
 	return feed, nil
 }
@@ -562,6 +586,13 @@ func (w *worker) transformLiquidityGaugeWithdrawLog(ctx context.Context, task *s
 
 // buildExchangeLiquidityAction builds exchange liquidity action.
 func (w *worker) buildExchangeLiquidityAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver common.Address, tokenAddress *common.Address, tokenValue *big.Int, liquidityAction metadata.ExchangeLiquidityAction) (*activityx.Action, error) {
+	zap.L().Debug("building exchange liquidity action",
+		zap.String("sender", sender.String()),
+		zap.String("receiver", receiver.String()),
+		zap.Any("token", tokenAddress),
+		zap.Any("value", tokenValue),
+		zap.String("action", liquidityAction.String()))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token: %w", err)
@@ -582,11 +613,19 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, blockNumber *
 		},
 	}
 
+	zap.L().Debug("successfully built exchange liquidity action")
+
 	return &action, nil
 }
 
 // buildTransferAction builds transfer action.
 func (w *worker) buildTransferAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building transfer action",
+		zap.String("sender", sender.String()),
+		zap.String("receiver", receiver.String()),
+		zap.Any("token", tokenAddress),
+		zap.Any("value", tokenValue))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token: %w", err)
@@ -598,10 +637,16 @@ func (w *worker) buildTransferAction(ctx context.Context, blockNumber *big.Int, 
 
 	if sender == ethereum.AddressGenesis {
 		actionType = typex.TransactionMint
+
+		zap.L().Debug("detected mint transaction",
+			zap.String("sender", sender.String()))
 	}
 
 	if receiver == ethereum.AddressGenesis {
 		actionType = typex.TransactionBurn
+
+		zap.L().Debug("detected burn transaction",
+			zap.String("receiver", receiver.String()))
 	}
 
 	action := activityx.Action{
@@ -612,20 +657,34 @@ func (w *worker) buildTransferAction(ctx context.Context, blockNumber *big.Int, 
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
 	}
 
+	zap.L().Debug("successfully built transfer action")
+
 	return &action, nil
 }
 
 // buildExchangeSwapAction builds exchange swap action.
 func (w *worker) buildExchangeSwapAction(ctx context.Context, blockNumber *big.Int, chainID uint64, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building exchange swap action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.String("token_in", tokenIn.String()),
+		zap.String("token_out", tokenOut.String()),
+		zap.Any("amount_in", amountIn),
+		zap.Any("amount_out", amountOut))
+
 	// handle the eth address
 	tokenInAddr := &tokenIn
 	if tokenIn == curve.AddressETH {
 		tokenInAddr = nil
+
+		zap.L().Debug("detected ETH as input token")
 	}
 
 	tokenOutAddr := &tokenOut
 	if tokenOut == curve.AddressETH {
 		tokenOutAddr = nil
+
+		zap.L().Debug("detected ETH as output token")
 	}
 
 	tokenInMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenInAddr, nil, blockNumber)
@@ -653,11 +712,20 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, blockNumber *big.I
 		},
 	}
 
+	zap.L().Debug("successfully built exchange swap action")
+
 	return &action, nil
 }
 
 // buildEthereumTransactionStakingAction builds ethereum transaction staking action.
 func (w *worker) buildEthereumTransactionStakingAction(ctx context.Context, task *source.Task, from, to common.Address, token common.Address, value *big.Int, stakingAction metadata.ExchangeStakingAction, period *metadata.ExchangeStakingPeriod) (*activityx.Action, error) {
+	zap.L().Debug("building ethereum transaction staking action",
+		zap.String("from", from.String()),
+		zap.String("to", to.String()),
+		zap.String("token", token.String()),
+		zap.Any("value", value),
+		zap.String("action", stakingAction.String()))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &token, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token: %w", err)
@@ -676,6 +744,8 @@ func (w *worker) buildEthereumTransactionStakingAction(ctx context.Context, task
 			Period: period,
 		},
 	}
+
+	zap.L().Debug("successfully built ethereum transaction staking action")
 
 	return &action, nil
 }

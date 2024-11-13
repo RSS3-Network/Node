@@ -18,6 +18,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
+	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -75,6 +76,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	zap.L().Debug("transforming near social task", zap.String("task_id", nearTask.ID()))
+
 	// Build the activity with the platform information.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
@@ -93,6 +96,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	} else {
 		return nil, fmt.Errorf("no action found in transaction")
 	}
+
+	zap.L().Debug("successfully transformed near social task")
 
 	return activity, nil
 }
@@ -147,6 +152,12 @@ func (w *worker) processSetFunction(signerID string, functionCall *near.Function
 // buildSocialAction constructs an activityx.Action based on the provided social action data.
 // This function is crucial for creating the appropriate action type (post, comment, or share) and populating its metadata.
 func (w *worker) buildSocialAction(signerID, path string, postData PostData, args FunctionCallArgs, timestamp uint64) (*activityx.Action, error) {
+	zap.L().Debug("building social action",
+		zap.String("signer_id", signerID),
+		zap.String("path", path),
+		zap.Any("post_data", postData),
+		zap.Any("args", args))
+
 	action := &activityx.Action{
 		Type:     typex.SocialPost,
 		Platform: w.Platform(),
@@ -166,6 +177,8 @@ func (w *worker) buildSocialAction(signerID, path string, postData PostData, arg
 	if userContent, ok := args.Data[signerID]; ok {
 		action = w.processUserContent(action, userContent, signerID, timestamp)
 	}
+
+	zap.L().Debug("successfully built social action")
 
 	return action, nil
 }
