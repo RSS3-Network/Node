@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 type NetworkConfigResponse struct {
@@ -35,6 +36,8 @@ type NetworkConfigDetailForRSS struct {
 
 // GetNetworkConfig GetNetworksConfig returns the configuration for all supported networks.
 func (c *Component) GetNetworkConfig(ctx echo.Context) error {
+	zap.L().Debug("Getting network configuration")
+
 	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, "config")
 
 	config := NetworkConfig{
@@ -42,6 +45,8 @@ func (c *Component) GetNetworkConfig(ctx echo.Context) error {
 		Decentralized: getNetworkConfigDetail(network.ArweaveProtocol, network.EthereumProtocol, network.FarcasterProtocol, network.NearProtocol),
 		Federated:     getNetworkConfigDetail(network.ActivityPubProtocol),
 	}
+
+	zap.L().Debug("Successfully retrieved network configuration")
 
 	return ctx.JSON(http.StatusOK, NetworkConfigResponse{
 		Data: config,
@@ -69,15 +74,23 @@ func getNetworkConfigDetailForRSS(protocol network.Protocol) NetworkConfigDetail
 
 	networkDetail.WorkerConfig = workerConfig
 
+	zap.L().Debug("Successfully retrieved RSS network configuration details",
+		zap.String("networkID", n.String()))
+
 	return networkDetail
 }
 
 func getNetworkConfigDetail(protocols ...network.Protocol) []NetworkConfigDetail {
+	zap.L().Debug("Getting network configuration details for protocols",
+		zap.Any("protocols", protocols))
+
 	var details []NetworkConfigDetail
 
 	for _, protocol := range protocols {
 		for _, n := range protocol.Networks() {
 			if shouldSkipNetwork(n) {
+				zap.L().Debug("Skipping network",
+					zap.String("network", n.String()))
 				continue
 			}
 
@@ -93,6 +106,9 @@ func getNetworkConfigDetail(protocols ...network.Protocol) []NetworkConfigDetail
 		}
 	}
 
+	zap.L().Debug("Successfully retrieved network configuration details",
+		zap.Int("detailsCount", len(details)))
+
 	return details
 }
 
@@ -101,6 +117,9 @@ func shouldSkipNetwork(n network.Network) bool {
 }
 
 func createNetworkDetail(protocol network.Protocol, n network.Network) NetworkConfigDetail {
+	zap.L().Debug("Creating network detail",
+		zap.String("network", n.String()))
+
 	networkDetail := NetworkConfigDetail{
 		ID:           n.String(),
 		WorkerConfig: []workerConfig{},
@@ -115,6 +134,9 @@ func createNetworkDetail(protocol network.Protocol, n network.Network) NetworkCo
 }
 
 func getWorkerConfigs(protocol network.Protocol, n network.Network) []workerConfig {
+	zap.L().Debug("Getting worker configurations",
+		zap.String("network", n.String()))
+
 	var workerConfigs []workerConfig
 
 	for w, config := range WorkerToConfigMap[protocol] {
@@ -124,10 +146,17 @@ func getWorkerConfigs(protocol network.Protocol, n network.Network) []workerConf
 		}
 	}
 
+	zap.L().Debug("Successfully retrieved worker configurations",
+		zap.Int("configCount", len(workerConfigs)))
+
 	return workerConfigs
 }
 
 func createWorkerConfig(n network.Network, worker worker.Worker, config workerConfig) workerConfig {
+	zap.L().Debug("Creating worker configuration",
+		zap.String("network", n.String()),
+		zap.String("worker", worker.Name()))
+
 	config.ID.Value = n.String() + "-" + worker.Name()
 	config.Network.Value = n.String()
 	config.MinimumResource = calculateMinimumResources(n, worker)

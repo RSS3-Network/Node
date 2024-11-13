@@ -21,6 +21,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 const (
@@ -220,6 +221,8 @@ func Setup(configName string) (*File, error) {
 }
 
 func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
+	zap.L().Debug("setting up configuration", zap.String("configName", configName), zap.String("configType", configType))
+
 	v.SetConfigName(configName)
 	v.SetConfigType(configType)
 
@@ -229,6 +232,9 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	if currentDir, err := os.Getwd(); err == nil {
 		v.AddConfigPath(path.Join(currentDir, "config"))
 		v.AddConfigPath(path.Join(currentDir, "deploy"))
+		zap.L().Debug("added current directory config paths", zap.String("currentDir", currentDir))
+	} else {
+		zap.L().Warn("failed to get current directory", zap.Error(err))
 	}
 
 	v.SetEnvPrefix(EnvPrefix)
@@ -245,6 +251,8 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	if err := v.ReadInConfig(); err != nil {
 		return nil, err
 	}
+
+	zap.L().Debug("successfully loaded configuration file", zap.String("file", v.ConfigFileUsed()))
 
 	// Unmarshal config file.
 	var configFile File
@@ -263,17 +271,24 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 
 	// Add extra logic to convert federated worker string to correct worker type.
 	if configFile.Component.Federated != nil {
+		zap.L().Debug("processing federated workers configuration")
+
 		for _, module := range configFile.Component.Federated {
 			if federatedWorker := federated.GetValueByWorkerStr(module.Worker.Name()); federatedWorker != 0 {
 				module.Worker = federatedWorker
+
+				zap.L().Debug("converted federated worker", zap.String("name", module.Worker.Name()))
 			}
 		}
 	}
 
 	// Add extra logic to convert RSS worker string to correct worker type.
 	if configFile.Component.RSS != nil {
+		zap.L().Debug("processing RSS worker configuration")
+
 		if rssWorker := rss.GetValueByWorkerStr(configFile.Component.RSS.Worker.Name()); rssWorker != 0 {
 			configFile.Component.RSS.Worker = rssWorker
+			zap.L().Debug("converted RSS worker", zap.String("name", configFile.Component.RSS.Worker.Name()))
 		}
 	}
 
@@ -291,6 +306,7 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	// Explicitly set the access token from the environment if it exists
 	if envAccessToken := v.GetString("discovery.server.access_token"); envAccessToken != "" {
 		configFile.Discovery.Server.AccessToken = envAccessToken
+		zap.L().Debug("access token set from environment variable", zap.String("access_token", envAccessToken))
 	}
 
 	// validate config values.
@@ -298,6 +314,8 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	if err := validate.Struct(&configFile); err != nil {
 		return nil, fmt.Errorf("validate config file: %w", err)
 	}
+
+	zap.L().Info("configuration setup completed successfully")
 
 	return &configFile, nil
 }
@@ -318,6 +336,8 @@ func EvmAddressHookFunc() mapstructure.DecodeHookFuncType {
 		if t.Kind() != reflect.TypeOf(common.Address{}).Kind() {
 			return data, nil
 		}
+
+		zap.L().Debug("converting EVM address", zap.String("address", data.(string)))
 
 		return common.HexToAddress(data.(string)), nil
 	}

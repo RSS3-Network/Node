@@ -23,6 +23,9 @@ func (c *Component) TransformCollectibleType(ctx context.Context, n network.Netw
 		return c.transformCollectibleTrade(ctx, n, action)
 	}
 
+	zap.L().Warn("unknown collectible action type",
+		zap.String("type", action.Type.Name()))
+
 	return action, nil
 }
 
@@ -30,7 +33,8 @@ func (c *Component) TransformCollectibleType(ctx context.Context, n network.Netw
 func (c *Component) transformCollectibleTransfer(ctx context.Context, network network.Network, action activity.Action) (activity.Action, error) {
 	transfer, ok := action.Metadata.(*metadata.CollectibleTransfer)
 	if !ok {
-		zap.L().Error("invalid metadata type", zap.Any("metadata", action.Metadata))
+		zap.L().Error("invalid metadata type for collectible transfer",
+			zap.Any("metadata", action.Metadata))
 
 		return activity.Action{}, fmt.Errorf("invalid metadata type: %T", action.Metadata)
 	}
@@ -46,7 +50,8 @@ func (c *Component) transformCollectibleTransfer(ctx context.Context, network ne
 func (c *Component) transformCollectibleApproval(ctx context.Context, network network.Network, action activity.Action) (activity.Action, error) {
 	approval, ok := action.Metadata.(*metadata.CollectibleApproval)
 	if !ok {
-		zap.L().Error("invalid metadata type", zap.Any("metadata", action.Metadata))
+		zap.L().Error("invalid metadata type for collectible approval",
+			zap.Any("metadata", action.Metadata))
 
 		return activity.Action{}, fmt.Errorf("invalid metadata type: %T", action.Metadata)
 	}
@@ -62,7 +67,8 @@ func (c *Component) transformCollectibleApproval(ctx context.Context, network ne
 func (c *Component) transformCollectibleTrade(ctx context.Context, network network.Network, action activity.Action) (activity.Action, error) {
 	trade, ok := action.Metadata.(*metadata.CollectibleTrade)
 	if !ok {
-		zap.L().Error("invalid metadata type", zap.Any("metadata", action.Metadata))
+		zap.L().Error("invalid metadata type for collectible trade",
+			zap.Any("metadata", action.Metadata))
 
 		return activity.Action{}, fmt.Errorf("invalid metadata type: %T", action.Metadata)
 	}
@@ -94,6 +100,9 @@ func (c *Component) buildCollectibleChainURL(_ context.Context, n network.Networ
 		result = append(result, fmt.Sprintf("https://opensea.io/assets/avalanche/%s/%s", address, id))
 	case network.Base:
 		result = append(result, fmt.Sprintf("https://opensea.io/assets/base/%s/%s", address, id))
+	default:
+		zap.L().Warn("unsupported network for collectible URLs",
+			zap.String("network", n.String()))
 	}
 
 	return result
