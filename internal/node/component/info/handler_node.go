@@ -83,17 +83,22 @@ type Reward struct {
 // GetNodeOperator returns the node information.
 func (c *Component) GetNodeOperator(ctx echo.Context) error {
 	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, "info")
-
-	zap.L().Debug("get node info", zap.String("request.ip", ctx.Request().RemoteAddr))
+	zap.L().Debug("Getting node operator info")
 
 	// Get Operator address info
 	evmAddress := common.Address{}
 
 	if operator := c.config.Discovery.Operator; operator != nil {
 		evmAddress = operator.EvmAddress
+		zap.L().Debug("Found operator address",
+			zap.String("address", evmAddress.String()))
+	} else {
+		zap.L().Warn("No operator address configured")
 	}
 
 	response := fmt.Sprintf("This is an RSS3 Node operated by %s.", evmAddress)
+
+	zap.L().Debug("Successfully retrieved node operator info")
 
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -101,59 +106,91 @@ func (c *Component) GetNodeOperator(ctx echo.Context) error {
 // GetNodeInfo returns the node information.
 func (c *Component) GetNodeInfo(ctx echo.Context) error {
 	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, "info")
-
-	zap.L().Debug("get node info", zap.String("request.ip", ctx.Request().RemoteAddr))
+	zap.L().Debug("Getting node info")
 
 	// Get Version info
 	version := c.buildVersion()
+	zap.L().Debug("Retrieved version info",
+		zap.String("tag", version.Tag),
+		zap.String("commit", version.Commit))
 
 	// Get Operator address info
 	evmAddress := common.Address{}
 
 	if operator := c.config.Discovery.Operator; operator != nil {
 		evmAddress = operator.EvmAddress
+		zap.L().Debug("Found operator address",
+			zap.String("address", evmAddress.String()))
+	} else {
+		zap.L().Warn("No operator address configured")
 	}
 
 	// Get uptime info
 	uptime, err := c.getNodeUptime()
 	if err != nil {
-		zap.L().Error("failed to get node uptime", zap.Error(err))
-
+		zap.L().Error("Failed to get node uptime",
+			zap.Error(err))
 		return err
 	}
 
+	zap.L().Debug("Retrieved node uptime",
+		zap.Int64("uptime", uptime))
+
 	// Get worker coverage info
 	workerCoverage := c.getNodeWorkerCoverage()
+	zap.L().Debug("Retrieved worker coverage",
+		zap.Strings("coverage", workerCoverage))
 
 	// get reward info
 	rewards, err := c.getNodeRewards(ctx.Request().Context(), evmAddress)
 	if err != nil {
-		zap.L().Error("failed to get node rewards", zap.Error(err))
-
+		zap.L().Error("Failed to get node rewards",
+			zap.Error(err))
 		return err
 	}
+
+	zap.L().Debug("Retrieved node rewards",
+		zap.Int("reward_count", len(rewards)))
 
 	// get last heartbeat and slashed tokens
 	lastHeartbeat, slashedTokens, err := c.getNodeBasicInfo(ctx.Request().Context(), evmAddress)
 	if err != nil {
-		zap.L().Error("failed to get node basic info", zap.Error(err))
+		zap.L().Error("Failed to get node basic info",
+			zap.Error(err))
 
 		return err
 	}
 
+	zap.L().Debug("Retrieved node basic info",
+		zap.Int64("last_heartbeat", lastHeartbeat),
+		zap.String("slashed_tokens", slashedTokens.String()))
+
 	var recentRequests []string
 
 	if len(c.config.Component.Decentralized) > 0 {
-		recentRequests = append(recentRequests, decentralized.GetRecentRequest()...)
+		decentralizedRequests := decentralized.GetRecentRequest()
+		recentRequests = append(recentRequests, decentralizedRequests...)
+		zap.L().Debug("Retrieved decentralized requests",
+			zap.Int("count", len(decentralizedRequests)))
 	}
 
 	if len(c.config.Component.Federated) > 0 {
-		recentRequests = append(recentRequests, federated.GetRecentRequest()...)
+		federatedRequests := federated.GetRecentRequest()
+		recentRequests = append(recentRequests, federatedRequests...)
+		zap.L().Debug("Retrieved federated requests",
+			zap.Int("count", len(federatedRequests)))
 	}
 
 	if c.config.Component.RSS != nil {
-		recentRequests = append(recentRequests, rss.GetRecentRequest()...)
+		rssRequests := rss.GetRecentRequest()
+		recentRequests = append(recentRequests, rssRequests...)
+		zap.L().Debug("Retrieved RSS requests",
+			zap.Int("count", len(rssRequests)))
 	}
+
+	zap.L().Debug("Successfully retrieved all node info",
+		zap.String("operator", evmAddress.String()),
+		zap.Int("total_recent_requests", len(recentRequests)))
 
 	return ctx.JSON(http.StatusOK, NodeInfoResponse{
 		Data: NodeInfo{
@@ -188,46 +225,65 @@ func (c *Component) getNodeWorkerCoverage() []string {
 	for _, worker := range c.config.Component.Decentralized {
 		coverage := fmt.Sprintf("%s_%s", worker.Network, worker.Worker.Name())
 		workerCoverage = append(workerCoverage, coverage)
+		zap.L().Debug("Added decentralized worker coverage",
+			zap.String("coverage", coverage))
 	}
 
 	// append RSS worker with network if exists
 	if c.config.Component.RSS != nil {
 		coverage := fmt.Sprintf("%s_%s", network.RSSHub, c.config.Component.RSS.Worker.Name())
 		workerCoverage = append(workerCoverage, coverage)
+		zap.L().Debug("Added RSS worker coverage",
+			zap.String("coverage", coverage))
 	}
 
 	// append federated workers with network
 	for _, worker := range c.config.Component.Federated {
 		coverage := fmt.Sprintf("%s_%s", worker.Network, worker.Worker.Name())
 		workerCoverage = append(workerCoverage, coverage)
+		zap.L().Debug("Added federated worker coverage",
+			zap.String("coverage", coverage))
 	}
 
-	return lo.Uniq(workerCoverage)
+	uniqueCoverage := lo.Uniq(workerCoverage)
+	zap.L().Debug("Completed getting worker coverage",
+		zap.Int("total_coverage", len(uniqueCoverage)))
+
+	return uniqueCoverage
 }
 
 // getNodeUptime returns the node uptime.
 func (c *Component) getNodeUptime() (int64, error) {
+	zap.L().Debug("Getting node uptime")
+
 	var uptime int64
 
 	// get first start time from redis cache and calculate uptime
 	firstStartTime, err := GetFirstStartTime()
 	if err != nil {
-		zap.L().Error("failed to get first start time from cache", zap.Error(err))
-
+		zap.L().Error("Failed to get first start time from cache",
+			zap.Error(err))
 		return 0, err
 	}
 
 	if firstStartTime == 0 {
 		uptime = 0
 
+		zap.L().Info("First time node startup detected")
+
 		err := UpdateFirstStartTime(time.Now().Unix())
 		if err != nil {
-			zap.L().Error("failed to update first start time", zap.Error(err))
+			zap.L().Error("Failed to update first start time",
+				zap.Error(err))
 
 			return 0, err
 		}
+
+		zap.L().Debug("Successfully updated first start time")
 	} else {
 		uptime = time.Now().Unix() - firstStartTime
+		zap.L().Debug("Calculated uptime",
+			zap.Int64("uptime_seconds", uptime))
 	}
 
 	return uptime, nil
@@ -235,6 +291,9 @@ func (c *Component) getNodeUptime() (int64, error) {
 
 // getNodeRewards returns the node rewards.
 func (c *Component) getNodeRewards(ctx context.Context, address common.Address) ([]Reward, error) {
+	zap.L().Debug("Getting node rewards",
+		zap.String("address", address.String()))
+
 	var resp GIRewardsResponse
 
 	err := c.sendRequest(ctx, fmt.Sprintf("/nta/epochs/%s/rewards", address), &resp)
@@ -259,25 +318,42 @@ func (c *Component) getNodeRewards(ctx context.Context, address common.Address) 
 					StakingRewards:   rewardedNode.StakingRewards,
 					RequestCounts:    rewardedNode.RequestCount,
 				}
+
+				zap.L().Debug("Processed reward for epoch",
+					zap.Uint64("epoch", data.ID),
+					zap.String("operation_rewards", rewardedNode.OperationRewards.String()),
+					zap.String("staking_rewards", rewardedNode.StakingRewards.String()))
 			}
 
 			rewards = append(rewards, reward)
 		}
 	}
 
+	zap.L().Debug("Successfully retrieved node rewards",
+		zap.Int("total_rewards", len(rewards)))
+
 	return rewards, nil
 }
 
 // getNodeInfo returns the node slashed token.
 func (c *Component) getNodeBasicInfo(ctx context.Context, address common.Address) (int64, decimal.Decimal, error) {
+	zap.L().Debug("Getting node basic info",
+		zap.String("address", address.String()))
+
 	var resp GINodeInfoResponse
 
 	err := c.sendRequest(ctx, fmt.Sprintf("/nta/nodes/%s", address), &resp)
 	if err != nil {
-		zap.L().Error("failed to get node basic info", zap.Error(err))
+		zap.L().Error("Failed to get node basic info",
+			zap.String("address", address.String()),
+			zap.Error(err))
 
 		return 0, decimal.Decimal{}, err
 	}
+
+	zap.L().Debug("Successfully retrieved node basic info",
+		zap.Int64("last_heartbeat", resp.Data.LastHeartbeat),
+		zap.String("slashed_tokens", resp.Data.SlashedTokens.String()))
 
 	return resp.Data.LastHeartbeat, resp.Data.SlashedTokens, nil
 }
@@ -286,10 +362,15 @@ func (c *Component) getNodeBasicInfo(ctx context.Context, address common.Address
 func (c *Component) sendRequest(ctx context.Context, path string, result any) error {
 	internalURL, err := url.Parse(c.config.Discovery.Server.GlobalIndexerEndpoint)
 	if err != nil {
+		zap.L().Error("Failed to parse global indexer endpoint",
+			zap.Error(err))
 		return err
 	}
 
 	internalURL.Path = path
+
+	zap.L().Debug("Sending request to global indexer",
+		zap.String("url", internalURL.String()))
 
 	body, err := c.httpClient.Fetch(ctx, internalURL.String())
 	if err != nil {
@@ -301,6 +382,8 @@ func (c *Component) sendRequest(ctx context.Context, path string, result any) er
 		return fmt.Errorf("decode response: %w", err)
 	}
 
+	zap.L().Debug("Successfully completed request to global indexer")
+
 	return nil
 }
 
@@ -308,8 +391,12 @@ func (c *Component) sendRequest(ctx context.Context, path string, result any) er
 func GetFirstStartTime() (int64, error) {
 	filePath := "first_start_time.txt"
 
+	zap.L().Debug("Getting first start time from file",
+		zap.String("path", filePath))
+
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		zap.L().Debug("First start time file does not exist")
 		return 0, nil
 	}
 
@@ -325,12 +412,19 @@ func GetFirstStartTime() (int64, error) {
 		return 0, fmt.Errorf("parse int64: %w", err)
 	}
 
+	zap.L().Debug("Successfully retrieved first start time",
+		zap.Int64("timestamp", firstStartTime))
+
 	return firstStartTime, nil
 }
 
 // UpdateFirstStartTime updates the first start time in local file
 func UpdateFirstStartTime(timestamp int64) error {
 	filePath := "first_start_time.txt"
+
+	zap.L().Debug("Updating first start time",
+		zap.String("path", filePath),
+		zap.Int64("timestamp", timestamp))
 
 	// Convert timestamp to string
 	content := strconv.FormatInt(timestamp, 10)
@@ -340,6 +434,8 @@ func UpdateFirstStartTime(timestamp int64) error {
 	if err != nil {
 		return fmt.Errorf("write file: %w", err)
 	}
+
+	zap.L().Debug("Successfully updated first start time")
 
 	return nil
 }

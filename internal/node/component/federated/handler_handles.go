@@ -7,6 +7,7 @@ import (
 	"github.com/rss3-network/node/common/http/response"
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 var defaultLimit = 100
@@ -21,6 +22,12 @@ func (c *Component) GetHandles(ctx echo.Context) error {
 	if request.Limit == 0 {
 		request.Limit = defaultLimit
 	}
+
+	zap.L().Debug("processing get handles request",
+		zap.Uint64("since", request.Since),
+		zap.Int("limit", request.Limit),
+		zap.String("cursor", request.Cursor))
+
 	// Validate request
 	if err := ctx.Validate(&request); err != nil {
 		return response.ValidationFailedError(ctx, err)
@@ -34,6 +41,10 @@ func (c *Component) GetHandles(ctx echo.Context) error {
 
 	res, err := c.getUpdatedHandles(ctx.Request().Context(), query)
 	if err != nil {
+		zap.L().Error("failed to get updated handles",
+			zap.Error(err),
+			zap.Any("query", query))
+
 		return response.InternalError(ctx)
 	}
 
@@ -48,6 +59,10 @@ func (c *Component) GetHandles(ctx echo.Context) error {
 			cursor = handle.Handle
 		}
 	}
+
+	zap.L().Info("successfully retrieved handles",
+		zap.Int("count", len(handles)),
+		zap.String("cursor", cursor))
 
 	return ctx.JSON(http.StatusOK, PaginatedHandlesResponse{
 		Handles:    handles,

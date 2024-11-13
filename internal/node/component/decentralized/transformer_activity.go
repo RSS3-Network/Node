@@ -16,6 +16,7 @@ import (
 // TransformActivity should add related URLs to the activity based on action tag, network and platform
 func (c *Component) TransformActivity(ctx context.Context, activity *activityx.Activity) (*activityx.Activity, error) {
 	if activity == nil {
+		zap.L().Debug("activity is nil, skipping transformation")
 		return nil, nil
 	}
 
@@ -31,11 +32,17 @@ func (c *Component) TransformActivity(ctx context.Context, activity *activityx.A
 		case tag.Social:
 			*activity.Actions[index], err = c.TransformSocialType(ctx, activity.Network, activity.Platform, *actionPtr)
 		default:
+			zap.L().Debug("unknown action tag, keeping original action",
+				zap.String("tag", action.Tag.String()))
+
 			activity.Actions[index] = actionPtr
 		}
 
 		if err != nil {
-			zap.L().Error("failed to transform action", zap.Error(err), zap.String("id", activity.ID))
+			zap.L().Error("failed to transform action",
+				zap.Error(err),
+				zap.String("id", activity.ID),
+				zap.String("tag", action.Tag.String()))
 		}
 
 		activity.Actions[index].RelatedURLs = append(activity.Actions[index].RelatedURLs, c.AddTransactionChainURL(ctx, activity.Network, activity.Platform, activity.ID)...)
@@ -80,6 +87,8 @@ func (c *Component) AddTransactionChainURL(_ context.Context, n network.Network,
 		urls = append(urls, fmt.Sprintf("https://scan.rss3.io/tx/%s", id))
 
 	default:
+		zap.L().Warn("unknown network, no chain URL added",
+			zap.String("network", n.String()))
 		return nil
 	}
 
