@@ -102,7 +102,7 @@ func initNetworkClient(m *config.Module) (Client, error) {
 
 	switch m.Network.Protocol() {
 	case network.ActivityPubProtocol:
-		client, err = NewActivityPubClient(m.Endpoint, m.Parameters, m.Worker)
+		client, err = NewActivityPubClient(m.Network, m.Parameters)
 	case network.ArweaveProtocol:
 		client, err = NewArweaveClient()
 	case network.FarcasterProtocol:

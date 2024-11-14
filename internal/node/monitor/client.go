@@ -2,19 +2,19 @@ package monitor
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/rss3-network/node/config"
-	"github.com/rss3-network/node/provider/activitypub/mastodon"
+	"github.com/rss3-network/node/internal/engine/protocol/activitypub"
 	"github.com/rss3-network/node/provider/arweave"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/farcaster"
+	"github.com/rss3-network/node/provider/httpx"
 	"github.com/rss3-network/node/provider/near"
-	"github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/node/schema/worker/federated"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"go.uber.org/zap"
 )
 
 type Client interface {
@@ -28,7 +28,8 @@ type Client interface {
 
 // activitypubClient is a client implementation for ActivityPub.
 type activitypubClient struct {
-	activitypubClient mastodon.Client // ToDo: (Note) Currently use Matodon Client for all ActivityPub Source.
+	httpClient httpx.Client
+	relayURLs  []string
 }
 
 // set a default client
@@ -215,61 +216,58 @@ func (c *activitypubClient) TargetState(_ *config.Parameters) (uint64, uint64) {
 	return 0, 0
 }
 
-// LatestState returns the latest state of the Kafka consuming process
+// LatestState checks the health of the ActivityPub connection.
+// Returns current timestamp if healthy, error otherwise.
 func (c *activitypubClient) LatestState(ctx context.Context) (uint64, uint64, error) {
-	consumer := c.activitypubClient.GetKafkaConsumer()
-	// Create a very short timeout for the poll operation
-	pollCtx, cancel := context.WithTimeout(ctx, 1000*time.Millisecond)
-	defer cancel()
+	currentTime := uint64(time.Now().Unix())
 
-	// Use PollFetches with the short timeout
-	fetches := consumer.PollFetches(pollCtx)
+	// Check each relay URL
+	for _, relayURL := range c.relayURLs {
+		resp, err := c.httpClient.Fetch(ctx, relayURL)
+		if err != nil {
+			zap.L().Warn("relay health check failed",
+				zap.String("relay_url", relayURL),
+				zap.Error(err))
 
-	// Check if the poll operation timed out
-	if errors.Is(pollCtx.Err(), context.DeadlineExceeded) {
-		return 0, 0, fmt.Errorf("poll operation timed out, possible consumer issue")
-	}
-
-	if errs := fetches.Errors(); len(errs) > 0 {
-		for _, e := range errs {
-			fmt.Printf("consumer poll fetch error: %v\n", e.Err)
+			continue
 		}
 
-		return 0, 0, fmt.Errorf("consumer poll fetch error: %v", fetches.Errors())
+		// Close response body
+		if resp != nil {
+			resp.Close()
+		}
+
+		// If we got a successful response from any relay, consider the service healthy
+		zap.L().Info("relay check succeeded",
+			zap.String("relay_url", relayURL))
+
+		return 0, currentTime, nil
 	}
-	// The service is healthy
-	return 0, 0, nil
+
+	// No relays were accessible
+	return 0, 0, fmt.Errorf("no accessible relays found")
 }
 
 // NewActivityPubClient returns a new ActivityPub client.
-func NewActivityPubClient(endpoint config.Endpoint, param *config.Parameters, worker worker.Worker) (Client, error) {
-	var kafkaTopic string
-
-	if param != nil {
-		if topic, ok := (*param)[mastodon.KafkaTopic]; ok {
-			kafkaTopic = topic.(string)
-		} else {
-			return nil, fmt.Errorf("kafka_topic not found in parameters")
-		}
-	} else {
-		return nil, fmt.Errorf("parameters are nil")
+func NewActivityPubClient(network network.Network, param *config.Parameters) (Client, error) {
+	// Get relay URLs directly from parameters using NewOption
+	option, err := activitypub.NewOption(network, param, true)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create option: %w", err)
 	}
 
-	// Retrieve worker type from the parameters
-	workerType := worker.Name()
+	relayURLList := option.RelayURLList
+	httpClient, err := httpx.NewHTTPClient()
 
-	switch workerType {
-	case federated.Core.String():
-		mastodonClient, err := mastodon.NewClient(endpoint.URL, kafkaTopic, nil)
-
-		if err != nil {
-			return nil, fmt.Errorf("create Mastodon client: %w", err)
-		}
-
-		return &activitypubClient{
-			activitypubClient: mastodonClient,
-		}, nil
-	default:
-		return nil, fmt.Errorf("unsupported worker type: %s", workerType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP client: %w", err)
 	}
+
+	zap.L().Info("initializing ActivityPub client",
+		zap.Strings("relay_urls", relayURLList))
+
+	return &activitypubClient{
+		httpClient: httpClient,
+		relayURLs:  relayURLList,
+	}, nil
 }

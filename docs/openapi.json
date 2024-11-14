@@ -1515,7 +1515,10 @@
                     "authentication": {
                         "$ref": "#/components/schemas/Authentication"
                     },
-                    "kafka_topic": {
+                    "relay_url_list": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "port": {
                         "$ref": "#/components/schemas/ConfigDetail"
                     }
                 }

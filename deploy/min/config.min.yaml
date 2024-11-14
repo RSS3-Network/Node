@@ -22,7 +22,7 @@ redis:
 
 endpoints:
   mastodon:
-    url: your-kafka-ip:9092
+    url: https://your-public-url.app
   farcaster:
     url: https://nemes.farcaster.xyz:2281
   ethereum:
@@ -100,4 +100,3 @@ component:
       worker: core
       endpoint: mastodon
       parameters:
-        kafka_topic: activitypub_events
