@@ -7,6 +7,7 @@ import (
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/parameter"
+	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 	"go.uber.org/zap"
 )
@@ -23,6 +24,18 @@ func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState Chec
 			defer wg.Done()
 
 			if err := m.processMockWorker(ctx, w, currentState, targetWorkerState, latestState); err != nil {
+				errChan <- err
+			}
+		}(w)
+	}
+
+	for _, w := range m.config.Component.Federated {
+		wg.Add(1)
+
+		go func(w *config.Module) {
+			defer wg.Done()
+
+			if err := m.processMockFederatedWorker(ctx, w); err != nil {
 				errChan <- err
 			}
 		}(w)
@@ -68,4 +81,19 @@ func (m *Monitor) processMockWorker(ctx context.Context, w *config.Module, curre
 	}
 
 	return nil
+}
+
+// processFederatedWorker processes the federated worker status.
+func (m *Monitor) processMockFederatedWorker(ctx context.Context, w *config.Module) error {
+	client, ok := m.clients[w.Network]
+	if !ok {
+		return fmt.Errorf("client not exist")
+	}
+
+	targetStatus := workerx.StatusReady
+	if _, _, err := client.LatestState(ctx); err != nil {
+		targetStatus = workerx.StatusUnhealthy
+	}
+
+	return m.UpdateWorkerStatusByID(ctx, w.ID, targetStatus.String())
 }
