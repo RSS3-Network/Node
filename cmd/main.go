@@ -270,7 +270,7 @@ func runCoreService(ctx context.Context, configFile *config.File, databaseClient
 	if !config.IsRSSComponentOnly(configFile) {
 		go func() {
 			if err := node.CheckParams(checkCtx, redisClient, networkParamsCaller, settlementCaller); err != nil {
-				fmt.Printf("Error checking parameters: %v\n", err)
+				zap.L().Error("error checking parameters", zap.Error(err))
 			}
 		}()
 	}
@@ -288,7 +288,6 @@ func runCoreService(ctx context.Context, configFile *config.File, databaseClient
 	select {
 	case sig := <-stopChan:
 		zap.L().Info("shutdown signal received", zap.String("signal", sig.String()))
-		fmt.Printf("Shutdown signal received: %v.\n", sig)
 	case err := <-apiErrChan:
 		zap.L().Error("core service encountered an error", zap.Error(err))
 		cancel() // signal all goroutines to stop on error
