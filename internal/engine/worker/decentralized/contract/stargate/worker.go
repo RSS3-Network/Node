@@ -94,6 +94,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	zap.L().Debug("transforming stargate task", zap.String("task_id", ethereumTask.ID()))
+
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build activity: %w", err)
@@ -107,29 +109,39 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
+			zap.L().Debug("ignoring anonymous log")
+
 			continue
 		}
 
+		zap.L().Debug("matching stargate event",
+			zap.String("address", log.Address.String()),
+			zap.String("topic", log.Topics[0].String()))
+
 		switch {
 		case w.matchPoolSwapLog(ethereumTask, log):
+			zap.L().Debug("matching pool swap log")
+
 			actions, err = w.transformLPoolSwapLog(ctx, ethereumTask, log)
 		case w.matchPoolSwapRemoteLog(ethereumTask, log):
+			zap.L().Debug("matching pool swap remote log")
+
 			actions, err = w.transformLPoolSwapRemoteLog(ctx, ethereumTask, log)
 		default:
-			zap.L().Warn("unsupported log", zap.String("task", task.ID()), zap.Uint("topic.index", log.Index))
+			zap.L().Debug("no matching stargate event")
 
 			continue
 		}
 
 		if err != nil {
-			zap.L().Warn("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
-
 			return nil, err
 		}
 
 		activity.Type = typex.TransactionBridge
 		activity.Actions = append(activity.Actions, actions...)
 	}
+
+	zap.L().Debug("successfully transformed stargate task")
 
 	return activity, nil
 }
@@ -318,6 +330,15 @@ func (w *worker) transformLPoolSwapRemoteLog(ctx context.Context, task *source.T
 
 // buildTransactionBridgeAction builds the transaction bridge action.
 func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address, source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int, blockNumber *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building transaction bridge action",
+		zap.String("sender", sender.String()),
+		zap.String("receiver", receiver.String()),
+		zap.String("source", source.String()),
+		zap.String("target", target.String()),
+		zap.String("bridge_action", bridgeAction.String()),
+		zap.Any("token_address", tokenAddress),
+		zap.Any("token_value", tokenValue))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
@@ -338,11 +359,19 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 		},
 	}
 
+	zap.L().Debug("successfully built transaction bridge action")
+
 	return &action, nil
 }
 
 // buildTransactionTransferAction builds the Ethereum transaction transfer action.
 func (w *worker) buildTransactionTransferAction(ctx context.Context, task *source.Task, sender, receipt common.Address, token *common.Address, value *big.Int) (*activityx.Action, error) {
+	zap.L().Debug("building transaction transfer action",
+		zap.String("sender", sender.String()),
+		zap.String("receipt", receipt.String()),
+		zap.Any("token_address", token),
+		zap.Any("token_value", value))
+
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, token, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -356,6 +385,8 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 		To:       receipt.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
 	}
+
+	zap.L().Debug("successfully built transaction transfer action")
 
 	return &action, nil
 }

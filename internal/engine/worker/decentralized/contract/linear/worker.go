@@ -19,6 +19,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -78,6 +79,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
+	zap.L().Debug("transforming linear task", zap.String("task_id", nearTask.ID()))
+
 	// Build the activity.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
@@ -97,8 +100,13 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		})
 
 		if hasSwapAction {
+			zap.L().Debug("detected swap action, setting activity type to ExchangeSwap")
+
 			activity.Type = typex.ExchangeSwap
 		} else {
+			zap.L().Debug("no swap action detected, using first action type",
+				zap.String("type", actions[0].Type.Name()))
+
 			activity.Type = actions[0].Type
 		}
 
@@ -106,6 +114,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	} else {
 		return nil, fmt.Errorf("no actions found in transaction")
 	}
+
+	zap.L().Debug("successfully transformed linear task")
 
 	return activity, nil
 }
@@ -161,12 +171,17 @@ func (w *worker) buildTransferAction(event *Event) (*activityx.Action, error) {
 
 	data := event.Data[0]
 
+	zap.L().Debug("building transfer action",
+		zap.String("old_owner", data.OldOwnerID),
+		zap.String("new_owner", data.NewOwnerID),
+		zap.String("amount", data.Amount))
+
 	amount, ok := new(big.Int).SetString(data.Amount, 10)
 	if !ok {
 		return nil, fmt.Errorf("invalid amount: %s", data.Amount)
 	}
 
-	return &activityx.Action{
+	action := &activityx.Action{
 		Type: typex.TransactionTransfer,
 		From: data.OldOwnerID,
 		To:   data.NewOwnerID,
@@ -178,16 +193,24 @@ func (w *worker) buildTransferAction(event *Event) (*activityx.Action, error) {
 			Standard: getTokenStandard(event.Standard),
 			Address:  lo.ToPtr(event.TokenAddress),
 		},
-	}, nil
+	}
+
+	zap.L().Debug("successfully built transfer action")
+
+	return action, nil
 }
 
 func (w *worker) buildSwapAction(signerID string, event1, event2 *Event) (*activityx.Action, error) {
+	zap.L().Debug("building swap action",
+		zap.String("signer_id", signerID))
+
 	var fromToken, toToken metadata.Token
 
 	var toAddress string
 
 	for _, event := range []*Event{event1, event2} {
 		if len(event.Data) == 0 {
+			zap.L().Warn("empty event data, skipping")
 			continue
 		}
 
@@ -207,12 +230,20 @@ func (w *worker) buildSwapAction(signerID string, event1, event2 *Event) (*activ
 		if data.OldOwnerID == signerID {
 			fromToken = token
 			toAddress = data.NewOwnerID
+
+			zap.L().Debug("found from token",
+				zap.String("old_owner", data.OldOwnerID),
+				zap.String("amount", data.Amount))
 		} else if data.NewOwnerID == signerID {
 			toToken = token
+
+			zap.L().Debug("found to token",
+				zap.String("new_owner", data.NewOwnerID),
+				zap.String("amount", data.Amount))
 		}
 	}
 
-	return &activityx.Action{
+	action := &activityx.Action{
 		Type:     typex.ExchangeSwap,
 		Platform: w.Platform(),
 		From:     signerID,
@@ -221,7 +252,11 @@ func (w *worker) buildSwapAction(signerID string, event1, event2 *Event) (*activ
 			From: fromToken,
 			To:   toToken,
 		},
-	}, nil
+	}
+
+	zap.L().Debug("successfully built swap action")
+
+	return action, nil
 }
 
 func getTokenStandard(standard string) metadata.Standard {
