@@ -130,7 +130,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 			action, err = w.handleERC20TransferLog(ctx, ethereumTask, *log, activity)
 		default:
-			zap.L().Warn("unsupported log")
+			zap.L().Debug("unsupported log")
 
 			continue
 		}

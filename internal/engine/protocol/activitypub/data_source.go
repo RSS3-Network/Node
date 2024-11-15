@@ -201,7 +201,7 @@ func isRelayMessage(id string) bool {
 	}
 
 	if parsedURL.Host == "" {
-		zap.L().Warn("Parsed URL has an empty host", zap.String("id", id))
+		zap.L().Debug("Parsed URL has an empty host", zap.String("id", id))
 		return false
 	}
 
@@ -238,13 +238,13 @@ func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activit
 
 	// If the object is empty, return an empty task
 	if object.Type == "" {
-		zap.L().Warn("skipping empty object")
+		zap.L().Debug("skipping mastodon message object with empty type")
 
 		return nil
 	}
 
 	if object.Published == "" {
-		zap.L().Warn("missing published timestamp",
+		zap.L().Debug("skipping mastodon message object with missing published timestamp",
 			zap.String("objectID", object.ID),
 		)
 
@@ -255,7 +255,7 @@ func (s *dataSource) buildMastodonMessageTasks(_ context.Context, object activit
 	zap.L().Info("object.Published value before calling ValidatePublicationTimestamp", zap.String("published", object.Published))
 
 	if !ValidatePublicationTimestamp(object.Published) { // ToDo: Verify if this is the correct location to validate timestamps on incoming AP messages; Cannot have it in mastodon/client.go due to the message-parsing process.
-		zap.L().Warn("skipping message: timestamp is not valid",
+		zap.L().Debug("skipping mastodon message object with invalid published timestamp",
 			zap.String("objectID", object.ID),
 			zap.String("publishedTime", object.Published),
 		)

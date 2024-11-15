@@ -148,7 +148,7 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 
 	// Discard unsupported transaction type
 	if rawProfileID == "" || rawPublicationID == "" {
-		zap.L().Warn("missing required fields",
+		zap.L().Error("missing required fields",
 			zap.String("profile_id", rawProfileID),
 			zap.String("publication_id", rawPublicationID))
 

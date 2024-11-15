@@ -171,7 +171,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 			actions, err = w.handleV3Pool(ctx, ethereumTask, log)
 		default:
-			zap.L().Warn("unsupported log")
+			zap.L().Debug("unsupported log")
 
 			continue
 		}

@@ -142,7 +142,7 @@ func (h *Component) setAccessKey(config *config.Module) error {
 
 		h.rsshub.accessKey = option.Authentication.AccessKey
 	} else {
-		zap.L().Warn("No access key provided for RSS component")
+		zap.L().Debug("No access key provided for RSS component")
 	}
 
 	return nil

@@ -288,7 +288,7 @@ func (c *Component) getWorkerStatusAndProgressByID(ctx context.Context, workerID
 		zap.String("worker_id", workerID))
 
 	if c.redisClient == nil {
-		zap.L().Warn("Redis client is not initialized")
+		zap.L().Debug("Redis client is not initialized")
 		return worker.StatusUnknown, monitor.WorkerProgress{}
 	}
 

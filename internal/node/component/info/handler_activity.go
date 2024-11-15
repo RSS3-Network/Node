@@ -48,7 +48,7 @@ func (c *Component) getActivityCountFromDB(ctx context.Context) (int64, *time.Ti
 // GetActivityCount returns the total number of activities indexed by this Node.
 func (c *Component) GetActivityCount(ctx echo.Context) error {
 	if c.databaseClient == nil {
-		zap.L().Warn("Database client is not initialized, returning zero count")
+		zap.L().Debug("Database client is not initialized, returning zero count")
 
 		return ctx.JSON(http.StatusOK, StatisticResponse{
 			Count: 0,

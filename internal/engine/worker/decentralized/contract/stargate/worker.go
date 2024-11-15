@@ -84,7 +84,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 	// If the task does not meet the filter conditions, it will be discarded.
 	if !matched {
-		zap.L().Warn("unmatched task", zap.String("task.id", task.ID()))
+		zap.L().Debug("skipping unmatched task", zap.String("task.id", task.ID()))
 
 		return nil, nil
 	}

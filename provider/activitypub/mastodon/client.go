@@ -459,10 +459,13 @@ func (c *client) FollowRelayServices(ctx context.Context) error {
 				continue
 			}
 
-			zap.L().Warn("retry following relay",
+			zap.L().Warn("failed to follow relay, retrying",
 				zap.String("instance", instance),
-				zap.Int("attempt", attempt),
-				zap.Error(err))
+				zap.Int("currentAttempt", attempt),
+				zap.Int("maxAttempts", maxFollowRequestRetries),
+				zap.Duration("retryDelay", followRequestRetryDelay),
+				zap.Error(err),
+			)
 
 			time.Sleep(followRequestRetryDelay)
 		}
@@ -690,7 +693,8 @@ func (c *client) GetMessageChan() (<-chan string, error) {
 // If the channel is full, the message is dropped and logged.
 func (c *client) SendMessage(msg string) {
 	if msg == "" {
-		zap.L().Warn("empty message dropped")
+		zap.L().Debug("skipping empty message")
+
 		return
 	}
 

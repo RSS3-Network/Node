@@ -99,7 +99,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 	// If the task does not meet the filter conditions, it will be discarded.
 	if !matched {
-		zap.L().Warn("unmatched curve task")
+		zap.L().Debug("skip unmatched curve task")
 
 		return nil, nil
 	}

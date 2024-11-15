@@ -225,7 +225,7 @@ func (c *activitypubClient) LatestState(ctx context.Context) (uint64, uint64, er
 	for _, relayURL := range c.relayURLs {
 		resp, err := c.httpClient.Fetch(ctx, relayURL)
 		if err != nil {
-			zap.L().Warn("relay health check failed",
+			zap.L().Error("relay health check failed",
 				zap.String("relay_url", relayURL),
 				zap.Error(err))
 

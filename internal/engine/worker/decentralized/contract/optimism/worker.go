@@ -134,7 +134,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 			actions, err = w.transformL2StandardBridgeDepositFinalizedLog(ctx, ethereumTask, log)
 		default:
-			zap.L().Warn("unsupported log", zap.String("task", task.ID()), zap.Uint("topic.index", log.Index))
+			zap.L().Debug("unsupported log", zap.String("task", task.ID()), zap.Uint("topic.index", log.Index))
 
 			continue
 		}

@@ -383,7 +383,6 @@ func (s *dataSource) processLogs(ctx context.Context, logs []*ethereum.Log, task
 
 	latestBlock, exist := lo.Last(blocks)
 	if !exist {
-		zap.L().Warn("No blocks found after filtering")
 		return nil, fmt.Errorf("empty blocks")
 	}
 

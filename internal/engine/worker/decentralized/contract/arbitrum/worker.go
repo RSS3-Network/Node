@@ -141,7 +141,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 			actions, err = w.transformL2ReverseCustomGatewayDepositFinalizedLog(ctx, ethereumTask, log)
 		default:
-			zap.L().Warn("unsupported log")
+			zap.L().Debug("unsupported log")
 
 			continue
 		}

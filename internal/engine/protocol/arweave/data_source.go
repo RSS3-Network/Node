@@ -528,7 +528,7 @@ func (s *dataSource) batchPullData(ctx context.Context, arweaveClient arweave.Cl
 				response, err := arweaveClient.GetTransactionData(ctx, transaction.ID)
 				if err != nil {
 					if errors.Is(err, arweave.ErrorNotFound) {
-						zap.L().Warn("Transaction data not found",
+						zap.L().Error("Transaction data not found",
 							zap.String("transaction_id", transaction.ID))
 						return "", nil
 					}
@@ -627,7 +627,7 @@ func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID s
 	response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
 	if err != nil {
 		if errors.Is(err, arweave.ErrorNotFound) {
-			zap.L().Warn("Bundle transaction not found",
+			zap.L().Error("Bundle transaction not found",
 				zap.String("transaction_id", transactionID))
 			return nil, nil
 		}

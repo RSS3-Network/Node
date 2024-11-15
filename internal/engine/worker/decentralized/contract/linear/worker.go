@@ -210,7 +210,8 @@ func (w *worker) buildSwapAction(signerID string, event1, event2 *Event) (*activ
 
 	for _, event := range []*Event{event1, event2} {
 		if len(event.Data) == 0 {
-			zap.L().Warn("empty event data, skipping")
+			zap.L().Debug("skipping empty event data")
+
 			continue
 		}
 
