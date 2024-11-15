@@ -119,8 +119,6 @@ component:
   },
   "database": {
 	"coverage_period": 3,
-    "driver": "postgres",
-    "partition": true,
     "uri": "postgres://postgres@localhost:5432/postgres"
   },
   "stream": {
