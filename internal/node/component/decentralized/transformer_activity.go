@@ -33,6 +33,7 @@ func (c *Component) TransformActivity(ctx context.Context, activity *activityx.A
 			*activity.Actions[index], err = c.TransformSocialType(ctx, activity.Network, activity.Platform, *actionPtr)
 		default:
 			zap.L().Debug("unknown action tag, keeping original action",
+				zap.String("id", activity.ID),
 				zap.String("tag", action.Tag.String()))
 
 			activity.Actions[index] = actionPtr
