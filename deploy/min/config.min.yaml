@@ -11,8 +11,6 @@ discovery:
 
 database:
   coverage_period: 3
-  driver: postgres
-  partition: true
   uri: postgres://postgres:password@rss3_node_database:5432/postgres
 
 redis:

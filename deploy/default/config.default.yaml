@@ -11,8 +11,6 @@ discovery:
     access_token: your_access_token
 
 database:
-  driver: postgres
-  partition: true
   uri: postgres://postgres:password@localhost:5432/postgres
 
 redis:
@@ -22,8 +20,6 @@ redis:
 
 stream:
   enable: false
-  driver: kafka
-  topic: rss3.node.activities
   uri: localhost:9092
 
 observability:
