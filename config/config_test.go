@@ -128,7 +128,7 @@ component:
   "redis": {
     "endpoint": "localhost:6379",
     "username": "",
-    "password": "",
+    "password": ""
   },
   "observability": {
     "opentelemetry": {
