@@ -667,9 +667,6 @@ func (c *client) findIndexesPartitioned(ctx context.Context, query model.Activit
 			result := make([]*table.Index, 0, query.Limit)
 			flag := true
 
-			zap.L().Debug("Found indexes in partition tables",
-				zap.Any("indexes", indexes))
-
 			mutex.RLock()
 
 			for _, data := range indexes {
