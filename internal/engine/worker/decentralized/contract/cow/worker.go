@@ -97,7 +97,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 			actions, err := w.transformSettlementTradeLog(ctx, ethereumTask, log)
 			if err != nil {
-				zap.L().Warn("failed to handle settlement trade log", zap.Error(err))
+				zap.L().Error("failed to handle settlement trade log", zap.Error(err))
 
 				continue
 			}

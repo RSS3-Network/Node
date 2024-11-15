@@ -292,7 +292,7 @@ func (w *worker) processSwapLogs(ctx context.Context, task *source.Task, valueMa
 
 			event, err := w.erc20Filterer.ParseTransfer(log.Export())
 			if err != nil {
-				zap.L().Warn("parse event", zap.Error(err))
+				zap.L().Error("parse event", zap.Error(err))
 				continue
 			}
 
@@ -306,7 +306,7 @@ func (w *worker) processSwapLogs(ctx context.Context, task *source.Task, valueMa
 		case weth.EventHashWithdrawal:
 			event, err := w.weth9Filterer.ParseWithdrawal(log.Export())
 			if err != nil {
-				zap.L().Warn("parse event", zap.Error(err))
+				zap.L().Error("parse event", zap.Error(err))
 				continue
 			}
 

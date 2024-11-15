@@ -140,7 +140,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		}
 
 		if err != nil {
-			zap.L().Warn("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
+			zap.L().Error("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
 
 			return nil, err
 		}
