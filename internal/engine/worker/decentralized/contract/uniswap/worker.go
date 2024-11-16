@@ -2,7 +2,6 @@ package uniswap
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math/big"
 
@@ -129,7 +128,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		activity.Type = typex.ExchangeLiquidity
 		activity.Actions = w.transformLiquidityTransaction(ctx, ethereumTask, ethereumTask.Transaction)
 	default:
-		return nil, errors.New("unsupported transaction")
+		return nil, nil
 	}
 
 	return activity, nil
