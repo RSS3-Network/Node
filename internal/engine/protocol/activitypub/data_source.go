@@ -142,7 +142,7 @@ func (s *dataSource) handleMessage(ctx context.Context, msg string) *engine.Task
 				}
 
 				// Log the accept message and current domains list
-				zap.L().Info("Relay Subscription request has been approved",
+				zap.L().Info("relay subscription request has been approved",
 					zap.String("relayObjectID", relayObjectID),
 					zap.String("acceptingDomain", domain),
 					zap.Strings("allAcceptDomains", s.acceptDomains))
@@ -150,12 +150,12 @@ func (s *dataSource) handleMessage(ctx context.Context, msg string) *engine.Task
 		}
 
 		objectID := gjson.Get(msg, "object").String()
-		zap.L().Info("Found object ID", zap.String("objectID", objectID))
+		zap.L().Info("found object ID", zap.String("objectID", objectID))
 
 		// Attempt to fetch the detailed ActivityPub object within the relay message.
 		fetchedObject, err := s.mastodonClient.FetchAnnouncedObject(ctx, objectID)
 		if err != nil {
-			zap.L().Error("Failed to fetch announced object",
+			zap.L().Error("failed to fetch announced object",
 				zap.String("objectID", objectID), zap.Error(err))
 			return nil
 		}
@@ -166,7 +166,7 @@ func (s *dataSource) handleMessage(ctx context.Context, msg string) *engine.Task
 	// If the message is not a relay message, attempt to unmarshal it directly into an ActivityPub object.
 	var fetchedObject activitypub.Object
 	if err := json.Unmarshal([]byte(msg), &fetchedObject); err != nil {
-		zap.L().Error("Error unmarshalling message", zap.Error(err))
+		zap.L().Error("error unmarshalling message", zap.Error(err))
 		return nil
 	}
 
@@ -201,17 +201,17 @@ func isRelayMessage(id string) bool {
 	}
 
 	if parsedURL.Host == "" {
-		zap.L().Debug("Parsed URL has an empty host", zap.String("id", id))
+		zap.L().Debug("parsed URL has an empty host", zap.String("id", id))
 		return false
 	}
 
 	if strings.HasPrefix(parsedURL.Host, "relay.") || strings.HasPrefix(parsedURL.Host, "rel.") {
-		zap.L().Info("URL identified as a relay message", zap.String("id", id))
+		zap.L().Info("url identified as a relay message", zap.String("id", id))
 
 		return true
 	}
 
-	zap.L().Info("URL is not a relay message", zap.String("id", id))
+	zap.L().Info("url is not a relay message", zap.String("id", id))
 
 	return false
 }
@@ -337,12 +337,12 @@ func ValidatePublicationTimestamp(publicationTimestamp string) bool {
 		return false
 	}
 
-	zap.L().Info("Parsed publication timestamp", zap.Time("publicationTime", publicationTime))
+	zap.L().Info("parsed publication timestamp", zap.Time("publicationTime", publicationTime))
 
 	// In this case, we subtract 3 months from current time
 	cutoffTime := time.Now().AddDate(0, -3, 0)
 
-	zap.L().Info("Calculated cutoff time", zap.Time("cutoffTime", cutoffTime))
+	zap.L().Info("calculated cutoff time", zap.Time("cutoffTime", cutoffTime))
 
 	// Compares if publicationTime is chronologically later than cutoffTime
 	isValid := publicationTime.After(cutoffTime)

@@ -49,8 +49,6 @@ func (s *Core) Run(_ context.Context) error {
 
 // NewCoreService initializes the core services required by the Core
 func NewCoreService(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) *Core {
-	zap.L().Debug("Initializing core service")
-
 	apiServer := echo.New()
 
 	node := Core{
@@ -68,36 +66,26 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 		Validator: validator.New(),
 	}
 
-	zap.L().Debug("Configuring API server middleware")
-
 	apiServer.Use(
 		middleware.CORSWithConfig(middleware.DefaultCORSConfig),
 		middlewarex.DecodePathParamsMiddleware,
 		middlewarex.HeadToGetMiddleware,
 	)
 
-	zap.L().Debug("Initializing info component")
-
 	infoComponent := info.NewComponent(ctx, apiServer, config, databaseClient, redisClient, networkParamsCaller)
 	node.components = append(node.components, &infoComponent)
 
 	if config.Component.RSS != nil {
-		zap.L().Debug("Initializing RSS component")
-
 		rssComponent := rss.NewComponent(ctx, apiServer, config)
 		node.components = append(node.components, &rssComponent)
 	}
 
 	if len(config.Component.Decentralized) > 0 {
-		zap.L().Debug("Initializing decentralized component")
-
 		decentralizedComponent := decentralized.NewComponent(ctx, apiServer, config, databaseClient, redisClient)
 		node.components = append(node.components, &decentralizedComponent)
 	}
 
 	if len(config.Component.Federated) > 0 {
-		zap.L().Debug("Initializing federated component")
-
 		federatedComponent := federated.NewComponent(ctx, apiServer, config, databaseClient, redisClient)
 		node.components = append(node.components, &federatedComponent)
 	}
@@ -107,8 +95,6 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 	if config.Discovery != nil && config.Discovery.Server != nil {
 		endpoint = config.Discovery.Server.Endpoint
 	}
-
-	zap.L().Debug("Generating OpenAPI documentation")
 
 	content, err := docs.Generate(endpoint)
 	if err != nil {
@@ -127,12 +113,12 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 
 // CheckParams checks the network parameters and settlement tasks
 func CheckParams(ctx context.Context, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
-	zap.L().Debug("Starting network parameters check service")
+	zap.L().Debug("starting network parameters check service")
 
 	checkParamsCron := cron.New()
 
 	_, err := checkParamsCron.AddFunc("@every 5m", func() {
-		zap.L().Debug("Running scheduled network parameters check")
+		zap.L().Debug("running scheduled network parameters check")
 
 		localEpoch, err := parameter.GetCurrentEpoch(ctx, redisClient)
 		if err != nil {

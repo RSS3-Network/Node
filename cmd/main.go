@@ -74,7 +74,9 @@ var command = cobra.Command{
 			}
 		}
 
-		zap.L().Info("logger initialized", zap.String("environment", environment))
+		zap.L().Info("starting RSS3 Node",
+			zap.String("version", constant.BuildVersion()),
+			zap.String("environment", environment))
 
 		if err = config.HasOneWorker(configFile); err != nil {
 			return err
@@ -212,8 +214,6 @@ var command = cobra.Command{
 			if err := tx.Commit(); err != nil {
 				return fmt.Errorf("commit transaction: %w", err)
 			}
-
-			zap.L().Info("database transaction committed successfully")
 		}
 
 		switch module {
@@ -303,13 +303,10 @@ func runCoreService(ctx context.Context, configFile *config.File, databaseClient
 
 // findModuleByID find and returns the specified worker ID in all components.
 func findModuleByID(configFile *config.File, workerID string) (*config.Module, error) {
-	zap.L().Debug("searching for module", zap.String("workerID", workerID))
-
 	// find the module in a specific component list
 	findInComponent := func(components []*config.Module) (*config.Module, bool) {
 		for _, module := range components {
 			if strings.EqualFold(module.ID, workerID) {
-				zap.L().Debug("module found", zap.String("moduleID", module.ID))
 				return module, true
 			}
 		}
@@ -423,7 +420,7 @@ func setOpenTelemetry(config *config.File) error {
 		}()
 	}
 
-	zap.L().Debug("OpenTelemetry setup completed")
+	zap.L().Debug("openTelemetry setup completed")
 
 	return nil
 }
@@ -452,7 +449,7 @@ func initializePyroscope() {
 				ProfileTypes:    append(pyroscope.DefaultProfileTypes, pyroscope.ProfileGoroutines),
 			})
 		} else {
-			zap.L().Debug("Pyroscope endpoint not configured, skipping initialization")
+			zap.L().Debug("pyroscope endpoint not configured, skipping initialization")
 		}
 	}
 }

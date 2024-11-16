@@ -79,8 +79,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	zap.L().Debug("transforming mastodon task", zap.String("task_id", activityPubTask.ID()))
-
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 
 	if err != nil {
@@ -90,15 +88,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	// Handle ActivityPub message.
 	switch activityPubTask.Message.Type {
 	case mastodon.MessageTypeCreate.String():
-		zap.L().Debug("handling mastodon create message")
-
 		err = w.handleActivityPubCreate(ctx, activityPubTask.Message, activity)
 	case mastodon.MessageTypeAnnounce.String():
-		zap.L().Debug("handling mastodon announce message")
-
 		err = w.handleActivityPubAnnounce(ctx, activityPubTask.Message, activity)
 	default:
-		zap.L().Warn("unsupported type", zap.String("type", activityPubTask.Message.Type))
+		zap.L().Debug("unsupported type", zap.String("type", activityPubTask.Message.Type))
 
 		return nil, nil
 	}
@@ -106,8 +100,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	if err != nil {
 		return nil, fmt.Errorf("handle %s message: %w", activityPubTask.Message.Type, err)
 	}
-
-	zap.L().Debug("successfully transformed mastodon task")
 
 	return activity, nil
 }
@@ -450,7 +442,7 @@ func (w *worker) buildPostMedia(post *metadata.SocialPost, attachments interface
 			post.Media = append(post.Media, media)
 		}
 	default:
-		zap.L().Debug("Unexpected attachments type", zap.String("type", fmt.Sprintf("%T", attachments)))
+		zap.L().Debug("unexpected attachments type", zap.String("type", fmt.Sprintf("%T", attachments)))
 	}
 }
 
@@ -489,7 +481,7 @@ func (w *worker) buildPostTags(post *metadata.SocialPost, tags interface{}) {
 			processTag(t.Type, t.Name)
 		}
 	default:
-		zap.L().Debug("Unexpected tags type", zap.String("type", fmt.Sprintf("%T", tags)))
+		zap.L().Debug("unexpected tags type", zap.String("type", fmt.Sprintf("%T", tags)))
 	}
 }
 

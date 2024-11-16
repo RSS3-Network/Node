@@ -42,12 +42,12 @@ func NewOption(n network.Network, parameters *config.Parameters, isMonitor bool)
 	// Apply defaults if RelayURLList or Port are not set
 	if len(option.RelayURLList) == 0 {
 		option.RelayURLList = mastodon.DefaultRelayURLList
-		zap.L().Info("RelayURLList not specified, using default", zap.Strings("defaultRelayURLList", mastodon.DefaultRelayURLList))
+		zap.L().Info("relay URL list not specified, using default", zap.Strings("defaultRelayURLList", mastodon.DefaultRelayURLList))
 	}
 
 	if option.Port == 0 {
 		option.Port = mastodon.DefaultServerPort
-		zap.L().Info("Port not specified, using default", zap.Int64("defaultPort", mastodon.DefaultServerPort))
+		zap.L().Info("port not specified, using default", zap.Int64("defaultPort", mastodon.DefaultServerPort))
 	}
 
 	zap.L().Info("option:", zap.Any("option", option))

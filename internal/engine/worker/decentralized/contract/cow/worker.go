@@ -112,7 +112,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 }
 
 func (w *worker) matchSettlementTradeLog(_ *source.Task, log *ethereum.Log) bool {
-	// zap.L().Info("cow.EventHashSettlementTrade is: ", zap.Any("trade", cow.EventHashSettlementTrade))
 	return contract.MatchEventHashes(log.Topics[0], cow.EventHashSettlementTrade) &&
 		contract.MatchAddresses(log.Address, cow.AddressSettlement)
 }

@@ -127,7 +127,7 @@ func (h *Component) CollectTrace(ctx context.Context, path, value string) {
 // setAccessKey set the access code according to the RSSHub authentication specification.
 func (h *Component) setAccessKey(config *config.Module) error {
 	if config.Parameters == nil {
-		zap.L().Debug("No parameters provided for RSS component")
+		zap.L().Debug("no parameters provided for RSS component")
 		return nil
 	}
 
@@ -137,12 +137,12 @@ func (h *Component) setAccessKey(config *config.Module) error {
 	}
 
 	if option.Authentication.AccessKey != "" {
-		zap.L().Debug("Setting RSS component access key",
+		zap.L().Debug("setting RSS component access key",
 			zap.String("key", option.Authentication.AccessKey))
 
 		h.rsshub.accessKey = option.Authentication.AccessKey
 	} else {
-		zap.L().Debug("No access key provided for RSS component")
+		zap.L().Debug("no access key provided for RSS component")
 	}
 
 	return nil
