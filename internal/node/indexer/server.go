@@ -156,8 +156,10 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 				return nil
 			}
 
-			zap.L().Debug("successfully transformed task",
-				zap.String("task_id", task.ID()))
+			if activity != nil && len(activity.Actions) > 0 {
+				zap.L().Info("successfully transformed task",
+					zap.String("task_id", task.ID()))
+			}
 
 			return activity
 		})

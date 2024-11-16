@@ -280,7 +280,9 @@ func (w *worker) buildTradeAction(
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(value), 0))
+	tokenMetadata.Value = lo.If[*decimal.Decimal](value == nil, nil).ElseF(func() *decimal.Decimal {
+		return lo.ToPtr(decimal.NewFromBigInt(value, 0))
+	})
 
 	return &activityx.Action{
 		Type:     typex.MetaverseTrade,
@@ -308,7 +310,9 @@ func (w *worker) buildTransferAction(
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(value), 0))
+	tokenMetadata.Value = lo.If[*decimal.Decimal](value == nil, nil).ElseF(func() *decimal.Decimal {
+		return lo.ToPtr(decimal.NewFromBigInt(value, 0))
+	})
 
 	return &activityx.Action{
 		Type:     actionType,
