@@ -177,7 +177,7 @@ func (c *client) saveActivitiesPartitioned(ctx context.Context, activities []*ac
 			if lowPriority {
 				onConflict.Where = clause.Where{
 					Exprs: []clause.Expression{
-						gorm.Expr(fmt.Sprintf("%s.platform IS NULL OR %s.platform = ''", name, name)),
+						gorm.Expr(fmt.Sprintf("\"%s\".platform IS NULL OR \"%s\".platform = ''", name, name)),
 					},
 				}
 			}
