@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/benddao"
@@ -230,7 +231,7 @@ func (w *worker) transformLendPoolDeposit(ctx context.Context, task *source.Task
 	action, err := w.buildEthereumLendPoolLiquidityAction(ctx, task, event.OnBehalfOf, log.Address, metadata.ActionExchangeLiquiditySupply, []metadata.Token{
 		{
 			Address: lo.ToPtr(event.Reserve.String()),
-			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount, 0)),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount), 0)),
 		},
 	})
 	if err != nil {
@@ -249,7 +250,7 @@ func (w *worker) transformLendPoolWithdraw(ctx context.Context, task *source.Tas
 	action, err := w.buildEthereumLendPoolLiquidityAction(ctx, task, log.Address, event.To, metadata.ActionExchangeLiquidityWithdraw, []metadata.Token{
 		{
 			Address: lo.ToPtr(event.Reserve.String()),
-			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount, 0)),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount), 0)),
 		},
 	})
 	if err != nil {
@@ -381,7 +382,7 @@ func (w *worker) buildEthereumAuctionAction(ctx context.Context, task *source.Ta
 		return nil, fmt.Errorf("lookup token metadata %s %s: %w", nft, nftID, err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(nftValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(nftValue), 0))
 
 	var (
 		offerTokenMetadata *metadata.Token
@@ -393,7 +394,7 @@ func (w *worker) buildEthereumAuctionAction(ctx context.Context, task *source.Ta
 			return nil, fmt.Errorf("lookup token metadata %s: %w", offerToken, err)
 		}
 
-		offerTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(offerValue, 0))
+		offerTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(offerValue), 0))
 	}
 
 	return &activityx.Action{
@@ -415,14 +416,14 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 		return nil, fmt.Errorf("lookup token metadata %s: %w", offerToken, err)
 	}
 
-	offerTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(offerValue, 0))
+	offerTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(offerValue), 0))
 
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &nft, nftID, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s %s: %w", nft, nftID, err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(nftValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(nftValue), 0))
 
 	return &activityx.Action{
 		Type:     typex.CollectibleTrade,
@@ -443,7 +444,7 @@ func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, tas
 		return nil, fmt.Errorf("lookup token metadata %s: %w", token, err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(value), 0))
 
 	return &activityx.Action{
 		Type:     typex.TransactionTransfer,
@@ -460,7 +461,7 @@ func (w *worker) buildEthereumExchangeLoanAction(ctx context.Context, task *sour
 		return nil, fmt.Errorf("lookup token metadata %s %s: %w", nft, nftID, err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(nftValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(nftValue), 0))
 
 	var (
 		offerTokenMetadata *metadata.Token
@@ -472,7 +473,7 @@ func (w *worker) buildEthereumExchangeLoanAction(ctx context.Context, task *sour
 			return nil, fmt.Errorf("lookup token metadata %s: %w", "", err)
 		}
 
-		offerTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(offerValue, 0))
+		offerTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(offerValue), 0))
 	}
 
 	return &activityx.Action{
@@ -494,7 +495,7 @@ func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, tas
 		return nil, fmt.Errorf("lookup token metadata %s %s: %w", nft, nftID, err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(value), 0))
 
 	return &activityx.Action{
 		Type:     typex.CollectibleTransfer,

@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/polymarket"
@@ -135,8 +136,8 @@ func (w *worker) transformOrderFinalizedLog(ctx context.Context, task *source.Ta
 }
 
 func (w *worker) buildMarketTradeAction(ctx context.Context, _ *source.Task, chainID uint64, maker, taker common.Address, makerAssetID, takerAssetID *big.Int, _ [32]byte, makerAmountFilled, takerAmountFilled *big.Int) (*activityx.Action, *activityx.Action, error) {
-	makerAmountFilledDecimal := decimal.NewFromBigInt(makerAmountFilled, 0)
-	takerAmountFilledDecimal := decimal.NewFromBigInt(takerAmountFilled, 0)
+	makerAmountFilledDecimal := decimal.NewFromBigInt(utils.GetBigInt(makerAmountFilled), 0)
+	takerAmountFilledDecimal := decimal.NewFromBigInt(utils.GetBigInt(takerAmountFilled), 0)
 
 	var takerTokenAddress *common.Address
 	if takerAssetID.Cmp(big.NewInt(0)) == 0 {

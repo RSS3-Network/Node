@@ -12,6 +12,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/curve/pool"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/curve"
@@ -565,11 +566,7 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, blockNumber *
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
-	if tokenValue == nil {
-		tokenValue = big.NewInt(0)
-	}
-
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	return &activityx.Action{
 		Type:     typex.ExchangeLiquidity,
@@ -592,11 +589,7 @@ func (w *worker) buildTransferAction(ctx context.Context, blockNumber *big.Int, 
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
-	if tokenValue == nil {
-		tokenValue = big.NewInt(0)
-	}
-
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	actionType := typex.TransactionTransfer
 
@@ -635,22 +628,14 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, blockNumber *big.I
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenIn, err)
 	}
 
-	if amountIn == nil {
-		amountIn = big.NewInt(0)
-	}
-
-	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountIn, 0).Abs())
+	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountIn), 0).Abs())
 
 	tokenOutMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenOutAddr, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenOut, err)
 	}
 
-	if amountOut == nil {
-		amountOut = big.NewInt(0)
-	}
-
-	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
+	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountOut), 0).Abs())
 
 	return &activityx.Action{
 		Type:     typex.ExchangeSwap,
@@ -671,11 +656,7 @@ func (w *worker) buildEthereumTransactionStakingAction(ctx context.Context, task
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
-	if value == nil {
-		value = big.NewInt(0)
-	}
-
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(value), 0))
 
 	return &activityx.Action{
 		Type:     typex.ExchangeStaking,

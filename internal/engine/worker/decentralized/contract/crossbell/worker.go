@@ -15,6 +15,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/crossbell"
@@ -484,7 +485,7 @@ func (w *worker) transformTipsCharacterForNote(ctx context.Context, task *source
 		return nil, fmt.Errorf("lookup token metadata %s: %w", event.Token, err)
 	}
 
-	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(event.Amount, 0))
+	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount), 0))
 
 	post.Reward = rewardTokenMetadata
 

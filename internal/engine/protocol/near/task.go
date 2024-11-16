@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/rss3-network/node/internal/engine"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/near"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -94,7 +95,7 @@ func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, e
 		Type:    typex.Unknown,
 		Status:  true,
 		Fee: &activityx.Fee{
-			Amount:  decimal.NewFromBigInt(feeAmount, 0),
+			Amount:  decimal.NewFromBigInt(utils.GetBigInt(feeAmount), 0),
 			Decimal: defaultFeeDecimal,
 		},
 		Actions:   make([]*activityx.Action, 0),

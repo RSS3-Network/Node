@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
@@ -431,7 +432,7 @@ func (w *worker) buildCollectibleTradeAction(ctx context.Context, task *source.T
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(nftValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(nftValue), 0))
 
 	tradeToken := metadata.CollectibleTrade{
 		Action: action,
@@ -448,7 +449,7 @@ func (w *worker) buildCollectibleTradeAction(ctx context.Context, task *source.T
 			return nil, fmt.Errorf("lookup token metadata: %w", err)
 		}
 
-		offerTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(offerValue, 0))
+		offerTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(offerValue), 0))
 		tradeToken.Cost = offerTokenMetadata
 	}
 
@@ -504,7 +505,7 @@ func (w *worker) buildRoyaltyPaymentAction(ctx context.Context, task *source.Tas
 		}
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amount), 0))
 
 	return &activityx.Action{
 		Type:     typex.TransactionTransfer,
@@ -549,7 +550,7 @@ func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Ta
 		}
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(wad, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(wad), 0))
 
 	return &activityx.Action{
 		Type:     typex.TransactionTransfer,
@@ -571,7 +572,7 @@ func (w *worker) buildV2RoyaltyFeeAction(ctx context.Context, task *source.Task,
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amount), 0))
 
 	return &activityx.Action{
 		Type:     typex.TransactionTransfer,

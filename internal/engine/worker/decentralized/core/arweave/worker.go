@@ -8,6 +8,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/arweave"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/arweave"
 	workerx "github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
@@ -124,7 +125,7 @@ func (w *worker) buildArweaveTransactionTransferAction(_ context.Context, from, 
 		From: from,
 		To:   to,
 		Metadata: metadata.TransactionTransfer{
-			Value: lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0)),
+			Value: lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0)),
 		},
 	}, nil
 }

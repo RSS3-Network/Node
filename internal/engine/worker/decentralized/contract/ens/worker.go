@@ -15,6 +15,7 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/ens"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc1155"
@@ -492,11 +493,7 @@ func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("lookup token metadata %s: %w", "", err)
 	}
 
-	if cost == nil {
-		cost = big.NewInt(0)
-	}
-
-	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(cost, 0))
+	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(cost), 0))
 
 	// Save namehash into database for further query requirements
 	fullName := fmt.Sprintf("%s.%s", name, "eth")
