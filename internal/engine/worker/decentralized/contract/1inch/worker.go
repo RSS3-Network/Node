@@ -113,7 +113,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		oneinch.AddressAggregationRouterV5:
 		err = w.handleEthereumExchangeSwapTransaction(ctx, oneinchTask, activity)
 	default:
-		return nil, fmt.Errorf("unknown transaction %s", task.ID())
+		return nil, nil
 	}
 
 	if err != nil {
