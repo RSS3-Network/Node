@@ -22,7 +22,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -77,8 +76,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type %T", task)
 	}
 
-	zap.L().Debug("transforming polymarket task", zap.String("task_id", polygonTask.ID()))
-
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build activity: %w", err)
@@ -86,8 +83,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 	for _, log := range polygonTask.Receipt.Logs {
 		if len(log.Topics) == 0 {
-			zap.L().Debug("ignoring anonymous log")
-
 			continue
 		}
 
@@ -96,17 +91,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
-		zap.L().Debug("matching polymarket event",
-			zap.String("address", log.Address.String()),
-			zap.String("topic", log.Topics[0].String()))
-
 		switch {
 		case w.matchOrderFinalizedLog(polygonTask, log):
 			actions, err = w.transformOrderFinalizedLog(ctx, polygonTask, log)
 
 		default:
-			zap.L().Debug("no matching polymarket event")
-
 			continue
 		}
 
@@ -118,8 +107,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	}
 
 	activity.Type = typex.CollectibleTrade
-
-	zap.L().Debug("successfully transformed polymarket task")
 
 	return activity, nil
 }
@@ -148,14 +135,6 @@ func (w *worker) transformOrderFinalizedLog(ctx context.Context, task *source.Ta
 }
 
 func (w *worker) buildMarketTradeAction(ctx context.Context, _ *source.Task, chainID uint64, maker, taker common.Address, makerAssetID, takerAssetID *big.Int, _ [32]byte, makerAmountFilled, takerAmountFilled *big.Int) (*activityx.Action, *activityx.Action, error) {
-	zap.L().Debug("building market trade action",
-		zap.String("maker", maker.String()),
-		zap.String("taker", taker.String()),
-		zap.Any("maker_asset_id", makerAssetID),
-		zap.Any("taker_asset_id", takerAssetID),
-		zap.Any("maker_amount_filled", makerAmountFilled),
-		zap.Any("taker_amount_filled", takerAmountFilled))
-
 	makerAmountFilledDecimal := decimal.NewFromBigInt(makerAmountFilled, 0)
 	takerAmountFilledDecimal := decimal.NewFromBigInt(takerAmountFilled, 0)
 
@@ -215,8 +194,6 @@ func (w *worker) buildMarketTradeAction(ctx context.Context, _ *source.Task, cha
 			Cost:   makerToken,
 		},
 	}
-
-	zap.L().Debug("successfully built market trade action")
 
 	return buyAction, sellAction, nil
 }

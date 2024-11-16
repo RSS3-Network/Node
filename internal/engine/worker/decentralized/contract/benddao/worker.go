@@ -22,7 +22,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -92,8 +91,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	zap.L().Debug("transforming benddao task", zap.String("task_id", ethereumTask.ID()))
-
 	if ethereumTask.Transaction.To == nil {
 		return nil, fmt.Errorf("invalid transaction to: %s", ethereumTask.Transaction.Hash)
 	}
@@ -107,8 +104,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
-			zap.L().Debug("skipping anonymous log")
-
 			continue
 		}
 
@@ -117,62 +112,38 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
-		zap.L().Debug("processing benddao log",
-			zap.String("address", log.Address.String()),
-			zap.String("topic", log.Topics[0].String()))
-
 		switch {
 		// Bend exchange
 		case w.matchBendExchangeTakerAsk(log):
-			zap.L().Debug("processing bend exchange taker ask event")
-
 			actions, err = w.transformBendExchangeTakerAsk(ctx, ethereumTask, log)
 			activity.Type = typex.CollectibleTrade
 		case w.matchBendExchangeTakerBid(log):
-			zap.L().Debug("processing bend exchange taker bid event")
-
 			actions, err = w.transformBendExchangeTakerBid(ctx, ethereumTask, log)
 			activity.Type = typex.CollectibleTrade
 
 		// Lend pool
 		case w.matchLendPoolDeposit(log):
-			zap.L().Debug("processing lend pool deposit event")
-
 			actions, err = w.transformLendPoolDeposit(ctx, ethereumTask, log)
 			activity.Type = typex.ExchangeLiquidity
 		case w.matchLendPoolWithdraw(log):
-			zap.L().Debug("processing lend pool withdraw event")
-
 			actions, err = w.transformLendPoolWithdraw(ctx, ethereumTask, log)
 			activity.Type = typex.ExchangeLiquidity
 		case w.matchLendPoolBorrow(log):
-			zap.L().Debug("processing lend pool borrow event")
-
 			actions, err = w.transformLendPoolBorrow(ctx, ethereumTask, log)
 			activity.Type = typex.ExchangeLoan
 		case w.matchLendPoolRepay(log):
-			zap.L().Debug("processing lend pool repay event")
-
 			actions, err = w.transformLendPoolRepay(ctx, ethereumTask, log)
 			activity.Type = typex.ExchangeLoan
 		case w.matchLendPoolAuction(log):
-			zap.L().Debug("processing lend pool auction event")
-
 			actions, err = w.transformLendPoolAuction(ctx, ethereumTask, log)
 			activity.Type = typex.CollectibleAuction
 		case w.matchLendPoolRedeem(log):
-			zap.L().Debug("processing lend pool redeem event")
-
 			actions, err = w.transformLendPoolRedeem(ctx, ethereumTask, log)
 			activity.Type = typex.ExchangeLoan
 		case w.matchLendPoolLiquidate(log):
-			zap.L().Debug("processing lend pool liquidate event")
-
 			actions, err = w.transformLendPoolLiquidate(ctx, ethereumTask, log)
 			activity.Type = typex.ExchangeLoan
 		default:
-			zap.L().Debug("skipping unsupported log")
-
 			continue
 		}
 
@@ -182,8 +153,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		activity.Actions = append(activity.Actions, actions...)
 	}
-
-	zap.L().Debug("successfully transformed benddao task")
 
 	return activity, nil
 }
@@ -376,11 +345,6 @@ func (w *worker) transformLendPoolLiquidate(ctx context.Context, task *source.Ta
 }
 
 func (w *worker) buildEthereumLendPoolLiquidityAction(ctx context.Context, task *source.Task, sender, receipt common.Address, action metadata.ExchangeLiquidityAction, tokens []metadata.Token) (*activityx.Action, error) {
-	zap.L().Debug("building ethereum lend pool liquidity action",
-		zap.String("sender", sender.String()),
-		zap.String("receipt", receipt.String()),
-		zap.String("action", action.String()))
-
 	tokenMetadataSlice := make([]metadata.Token, 0, len(tokens))
 
 	for _, t := range tokens {
@@ -399,8 +363,6 @@ func (w *worker) buildEthereumLendPoolLiquidityAction(ctx context.Context, task 
 		tokenMetadataSlice = append(tokenMetadataSlice, *tokenMetadata)
 	}
 
-	zap.L().Debug("ethereum lend pool liquidity action built successfully")
-
 	return &activityx.Action{
 		Type:     typex.ExchangeLiquidity,
 		Platform: w.Platform(),
@@ -414,16 +376,6 @@ func (w *worker) buildEthereumLendPoolLiquidityAction(ctx context.Context, task 
 }
 
 func (w *worker) buildEthereumAuctionAction(ctx context.Context, task *source.Task, from, to, nft common.Address, nftID, nftValue, offerValue *big.Int, offerToken *common.Address, action metadata.CollectibleAuctionAction) (*activityx.Action, error) {
-	zap.L().Debug("building ethereum auction action",
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.String("nft", nft.String()),
-		zap.Any("nft_id", nftID),
-		zap.Any("nft_value", nftValue),
-		zap.Any("offer_token", offerToken),
-		zap.Any("offer_value", offerValue),
-		zap.String("action", action.String()))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &nft, nftID, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s %s: %w", nft, nftID, err)
@@ -444,8 +396,6 @@ func (w *worker) buildEthereumAuctionAction(ctx context.Context, task *source.Ta
 		offerTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(offerValue, 0))
 	}
 
-	zap.L().Debug("ethereum auction action built successfully")
-
 	return &activityx.Action{
 		Type:     typex.CollectibleAuction,
 		Platform: w.Platform(),
@@ -460,14 +410,6 @@ func (w *worker) buildEthereumAuctionAction(ctx context.Context, task *source.Ta
 }
 
 func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *source.Task, seller, buyer, nft common.Address, nftID, nftValue *big.Int, offerToken *common.Address, offerValue *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building ethereum collectible trade action",
-		zap.String("seller", seller.String()),
-		zap.String("buyer", buyer.String()),
-		zap.String("nft", nft.String()),
-		zap.Any("nft_id", nftID),
-		zap.Any("offer_token", offerToken),
-		zap.Any("offer_value", offerValue))
-
 	offerTokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, offerToken, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", offerToken, err)
@@ -481,8 +423,6 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(nftValue, 0))
-
-	zap.L().Debug("ethereum collectible trade action built successfully")
 
 	return &activityx.Action{
 		Type:     typex.CollectibleTrade,
@@ -498,20 +438,12 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 }
 
 func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, task *source.Task, from, to common.Address, token *common.Address, value *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building ethereum transaction transfer action",
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.Any("token", token),
-		zap.Any("value", value))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, token, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", token, err)
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
-
-	zap.L().Debug("ethereum transaction transfer action built successfully")
 
 	return &activityx.Action{
 		Type:     typex.TransactionTransfer,
@@ -523,16 +455,6 @@ func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, tas
 }
 
 func (w *worker) buildEthereumExchangeLoanAction(ctx context.Context, task *source.Task, lender, borrower, nft common.Address, offerToken *common.Address, nftID, nftValue, offerValue *big.Int, action metadata.ExchangeLoanAction) (*activityx.Action, error) {
-	zap.L().Debug("building ethereum exchange loan action",
-		zap.String("lender", lender.String()),
-		zap.String("borrower", borrower.String()),
-		zap.String("nft", nft.String()),
-		zap.Any("offer_token", offerToken),
-		zap.Any("nft_id", nftID),
-		zap.Any("nft_value", nftValue),
-		zap.Any("offer_value", offerValue),
-		zap.String("action", action.String()))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &nft, nftID, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s %s: %w", nft, nftID, err)
@@ -553,8 +475,6 @@ func (w *worker) buildEthereumExchangeLoanAction(ctx context.Context, task *sour
 		offerTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(offerValue, 0))
 	}
 
-	zap.L().Debug("ethereum exchange loan action built successfully")
-
 	return &activityx.Action{
 		Type:     typex.ExchangeLoan,
 		Platform: w.Platform(),
@@ -569,21 +489,12 @@ func (w *worker) buildEthereumExchangeLoanAction(ctx context.Context, task *sour
 }
 
 func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, task *source.Task, seller, buyer, nft common.Address, nftID, value *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building ethereum collectible transfer action",
-		zap.String("seller", seller.String()),
-		zap.String("buyer", buyer.String()),
-		zap.String("nft", nft.String()),
-		zap.Any("nft_id", nftID),
-		zap.Any("value", value))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &nft, nftID, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s %s: %w", nft, nftID, err)
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
-
-	zap.L().Debug("ethereum collectible transfer action built successfully")
 
 	return &activityx.Action{
 		Type:     typex.CollectibleTransfer,

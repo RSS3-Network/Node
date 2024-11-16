@@ -22,7 +22,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -84,8 +83,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	zap.L().Debug("transforming aavegotchi task", zap.String("task_id", ethereumTask.ID()))
-
 	// Build the activity.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
@@ -99,39 +96,21 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		)
 
 		if len(log.Topics) == 0 {
-			zap.L().Debug("skipping anonymous log")
-
 			continue
 		}
 
-		zap.L().Debug("processing aavegotchi log",
-			zap.String("address", log.Address.String()),
-			zap.String("topic", log.Topics[0].String()))
-
 		switch {
 		case w.matchERC721ListingAdd(ctx, *log):
-			zap.L().Debug("handling ERC721 listing add")
-
 			action, err = w.handleERC721ListingAdd(ctx, ethereumTask, *log, activity)
 		case w.matchERC721ExecutedListing(ctx, *log):
-			zap.L().Debug("handling ERC721 executed listing")
-
 			action, err = w.handleERC721ExecutedListing(ctx, ethereumTask, *log, activity)
 		case w.matchERC1155ListingAdd(ctx, *log):
-			zap.L().Debug("handling ERC1155 listing add")
-
 			action, err = w.handleERC1155ListingAdd(ctx, ethereumTask, *log, activity)
 		case w.matchERC1155ExecutedListing(ctx, *log):
-			zap.L().Debug("handling ERC1155 executed listing")
-
 			action, err = w.handleERC1155ExecutedListing(ctx, ethereumTask, *log, activity)
 		case w.matchERC20TransferLog(ctx, *log):
-			zap.L().Debug("handling ERC20 transfer")
-
 			action, err = w.handleERC20TransferLog(ctx, ethereumTask, *log, activity)
 		default:
-			zap.L().Debug("unsupported log")
-
 			continue
 		}
 
@@ -145,8 +124,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	if activity.Type == typex.MetaverseTrade {
 		return w.handleMetaverseTradeCost(ctx, activity)
 	}
-
-	zap.L().Debug("successfully transformed aavegotchi task")
 
 	return activity, nil
 }
@@ -297,13 +274,6 @@ func (w *worker) buildTradeAction(
 	from, to, tokenAddress common.Address,
 	tokenID, value *big.Int,
 ) (*activityx.Action, error) {
-	zap.L().Debug("building metaverse trade action",
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.String("token_address", tokenAddress.String()),
-		zap.Any("value", value),
-		zap.Any("action", metadataAction))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, lo.ToPtr(tokenAddress), tokenID, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token: %w", err)
@@ -312,8 +282,6 @@ func (w *worker) buildTradeAction(
 	tokenMetadata.Value = lo.If[*decimal.Decimal](value == nil, nil).ElseF(func() *decimal.Decimal {
 		return lo.ToPtr(decimal.NewFromBigInt(value, 0))
 	})
-
-	zap.L().Debug("successfully built metaverse trade action")
 
 	return &activityx.Action{
 		Type:     typex.MetaverseTrade,
@@ -336,14 +304,6 @@ func (w *worker) buildTransferAction(
 	from, to, tokenAddress common.Address,
 	tokenID, value *big.Int,
 ) (*activityx.Action, error) {
-	zap.L().Debug("building metaverse transfer action",
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.String("token_address", tokenAddress.String()),
-		zap.Any("token_id", tokenID),
-		zap.Any("value", value),
-		zap.String("action_type", actionType.String()))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, lo.ToPtr(tokenAddress), tokenID, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token: %w", err)
@@ -352,8 +312,6 @@ func (w *worker) buildTransferAction(
 	tokenMetadata.Value = lo.If[*decimal.Decimal](value == nil, nil).ElseF(func() *decimal.Decimal {
 		return lo.ToPtr(decimal.NewFromBigInt(value, 0))
 	})
-
-	zap.L().Debug("successfully built metaverse transfer action")
 
 	return &activityx.Action{
 		Type:     actionType,

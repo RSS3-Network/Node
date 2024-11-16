@@ -77,8 +77,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type %T", task)
 	}
 
-	zap.L().Debug("transforming cow task", zap.String("task_id", ethereumTask.ID()))
-
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build activity: %w", err)
@@ -86,15 +84,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 	for _, log := range ethereumTask.Receipt.Logs {
 		if len(log.Topics) == 0 {
-			zap.L().Debug("skipping anonymous log")
-
 			continue
 		}
 
 		switch {
 		case w.matchSettlementTradeLog(ethereumTask, log):
-			zap.L().Debug("processing settlement trade log")
-
 			actions, err := w.transformSettlementTradeLog(ctx, ethereumTask, log)
 			if err != nil {
 				zap.L().Error("failed to handle settlement trade log", zap.Error(err))
@@ -103,9 +97,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			}
 
 			activity.Actions = append(activity.Actions, actions...)
-
 		default:
-			zap.L().Debug("skipping unsupported log")
+			continue
 		}
 	}
 
@@ -114,8 +107,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	}
 
 	activity.Type = typex.ExchangeSwap
-
-	zap.L().Debug("successfully transformed cow task")
 
 	return activity, nil
 }
@@ -145,14 +136,6 @@ func (w *worker) transformSettlementTradeLog(ctx context.Context, task *source.T
 }
 
 func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building exchange swap action",
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.String("token_in", tokenIn.String()),
-		zap.String("token_out", tokenOut.String()),
-		zap.Any("amount_in", amountIn),
-		zap.Any("amount_out", amountOut))
-
 	tokenInAddress := lo.Ternary(tokenIn != cow.AddressETH, &tokenIn, nil)
 	tokenOutAddress := lo.Ternary(tokenOut != cow.AddressETH, &tokenOut, nil)
 
@@ -169,8 +152,6 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 	}
 
 	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0))
-
-	zap.L().Debug("exchange swap action built successfully")
 
 	return &activityx.Action{
 		Type:     typex.ExchangeSwap,

@@ -28,7 +28,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
-	"go.uber.org/zap"
 )
 
 // Worker is the worker for Lens.
@@ -122,8 +121,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	zap.L().Debug("transforming lens task", zap.String("task_id", ethereumTask.ID()))
-
 	// Build default lens activity from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
@@ -134,8 +131,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
-			zap.L().Debug("ignoring anonymous log")
-
 			continue
 		}
 
@@ -144,71 +139,37 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
-		zap.L().Debug("processing log",
-			zap.String("address", log.Address.String()),
-			zap.String("topic", log.Topics[0].String()))
-
 		// Match lens core contract events
 		switch {
 		case w.matchEthereumV1PostCreated(ethereumTask, log):
-			zap.L().Debug("processing V1 post created event")
-
 			actions, err = w.transformEthereumV1PostCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV1CommentCreated(ethereumTask, log):
-			zap.L().Debug("processing V1 comment created event")
-
 			actions, err = w.transformEthereumV1CommentCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV1MirrorCreated(ethereumTask, log):
-			zap.L().Debug("processing V1 mirror created event")
-
 			actions, err = w.transformEthereumV1MirrorCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV1ProfileCreated(ethereumTask, log):
-			zap.L().Debug("processing V1 profile created event")
-
 			actions, err = w.transformEthereumV1ProfileCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV1ProfileSet(ethereumTask, log):
-			zap.L().Debug("processing V1 profile set event")
-
 			actions, err = w.transformEthereumV1ProfileSet(ctx, ethereumTask, log)
 		case w.matchEthereumV1ProfileImageURISet(ethereumTask, log):
-			zap.L().Debug("processing V1 profile image URI set event")
-
 			actions, err = w.transformEthereumV1ProfileImageURISet(ctx, ethereumTask, log)
 		case w.matchEthereumV1CollectNFTTransferred(ethereumTask, log):
-			zap.L().Debug("processing V1 collect NFT transferred event")
-
 			actions, err = w.transformEthereumV1CollectNFTTransferred(ctx, ethereumTask, log)
 		case w.matchEthereumV2PostCreated(ethereumTask, log):
-			zap.L().Debug("processing V2 post created event")
-
 			actions, err = w.transformEthereumV2PostCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV2CommentCreated(ethereumTask, log):
-			zap.L().Debug("processing V2 comment created event")
-
 			actions, err = w.transformEthereumV2CommentCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV2MirrorCreated(ethereumTask, log):
-			zap.L().Debug("processing V2 mirror created event")
-
 			actions, err = w.transformEthereumV2MirrorCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV2QuoteCreated(ethereumTask, log):
-			zap.L().Debug("processing V2 quote created event")
-
 			actions, err = w.transformEthereumV2QuoteCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV2Collected(ethereumTask, log):
-			zap.L().Debug("processing V2 collected event")
-
 			actions, err = w.transformEthereumV2Collected(ctx, ethereumTask, log)
 		case w.matchEthereumV2ProfileCreated(ethereumTask, log):
-			zap.L().Debug("processing V2 profile created event")
-
 			actions, err = w.transformEthereumV2ProfileCreated(ctx, ethereumTask, log)
 		case w.matchEthereumV2ProfileSet(ethereumTask, log):
-			zap.L().Debug("processing V2 profile set event")
-
 			actions, err = w.transformEthereumV2ProfileSet(ctx, ethereumTask, log)
 		default:
-			zap.L().Debug("unmatched event, skipping")
-
 			continue
 		}
 
@@ -223,8 +184,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		activity.Actions = append(activity.Actions, actions...)
 	}
-
-	zap.L().Debug("successfully transformed lens task")
 
 	return activity, nil
 }
@@ -779,14 +738,6 @@ func (w *worker) buildEthereumTransactionPostAction(_ context.Context, from comm
 }
 
 func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blockNumber *big.Int, profileID, pubID *big.Int, contentURI string, isTarget bool, timestamp uint64) (*metadata.SocialPost, string, error) {
-	zap.L().Debug("building ethereum V1 transaction post metadata",
-		zap.String("block_number", blockNumber.String()),
-		zap.Any("profile_id", profileID),
-		zap.Any("pub_id", pubID),
-		zap.String("content_uri", contentURI),
-		zap.Bool("is_target", isTarget),
-		zap.Any("timestamp", timestamp))
-
 	handle, err := w.getLensHandle(ctx, blockNumber, profileID)
 	if err != nil {
 		return nil, "", err
@@ -801,8 +752,6 @@ func (w *worker) buildEthereumV1TransactionPostMetadata(ctx context.Context, blo
 	if err = json.Unmarshal(content, &publication); err != nil {
 		return nil, "", fmt.Errorf("unmarshal publication: %w", err)
 	}
-
-	zap.L().Debug("successfully built ethereum V1 transaction post metadata")
 
 	return &metadata.SocialPost{
 		Handle: handle,
@@ -885,40 +834,28 @@ func (w *worker) getContentFromURI(ctx context.Context, contentURI string) (json
 }
 
 func (w *worker) getDataFromHTTP(ctx context.Context, contentURL string) (io.ReadCloser, error) {
-	zap.L().Debug("fetching data from URL", zap.String("url", contentURL))
-
 	// get from ipfs
 	if _, path, err := ipfs.ParseURL(contentURL); err == nil {
-		zap.L().Debug("fetching from IPFS", zap.String("path", path))
-
 		resp, err := w.ipfsClient.Fetch(ctx, path, ipfs.FetchModeQuick)
 		if err != nil {
 			return nil, fmt.Errorf("quick fetch ipfs: %w", err)
 		}
-
-		zap.L().Debug("successfully fetched from IPFS")
 
 		return resp, nil
 	}
 
 	// get from arweave
 	if strings.HasPrefix(contentURL, "ar://") {
-		zap.L().Debug("detected ar:// prefix, removing")
 		//	remove ar:// prefix
 		contentURL = contentURL[5:]
 	} else if strings.HasPrefix(contentURL, "https://arweave.net/") {
-		zap.L().Debug("detected arweave.net URL, extracting transaction ID")
 		//	 remove https://arweave.net/
 		contentURL = contentURL[19:]
 	}
 
 	if strings.HasPrefix(contentURL, "https://") {
-		zap.L().Debug("fetching from HTTPS URL", zap.String("url", contentURL))
-
 		return w.httpClient.Fetch(ctx, contentURL)
 	}
-
-	zap.L().Debug("fetching from Arweave", zap.String("transaction_id", contentURL))
 
 	return w.arweaveClient.GetTransactionData(ctx, contentURL)
 }
@@ -935,33 +872,17 @@ func (w *worker) getEthereumPublicationContentURI(_ context.Context, blockNumber
 
 // buildEthereumTransactionProfileAction builds profile action.
 func (w *worker) buildEthereumTransactionProfileAction(_ context.Context, from common.Address, to common.Address, profile metadata.SocialProfile) *activityx.Action {
-	zap.L().Debug("building ethereum transaction profile action",
-		zap.String("from", from.String()),
-		zap.String("to", to.String()))
-
-	action := &activityx.Action{
+	return &activityx.Action{
 		From:     from.String(),
 		To:       lo.If(to == ethereum.AddressGenesis, "").Else(to.String()),
 		Platform: w.Platform(),
 		Type:     typex.SocialProfile,
 		Metadata: profile,
 	}
-
-	zap.L().Debug("successfully built ethereum transaction profile action")
-
-	return action
 }
 
 // buildEthereumV2TransactionPostMetadata builds post metadata.
 func (w *worker) buildEthereumV2TransactionPostMetadata(ctx context.Context, blockNumber *big.Int, profileID, pubID *big.Int, contentURI string, isTarget bool, timestamp uint64) (*metadata.SocialPost, string, error) {
-	zap.L().Debug("building ethereum V2 transaction post metadata",
-		zap.String("block_number", blockNumber.String()),
-		zap.Any("profile_id", profileID),
-		zap.Any("pub_id", pubID),
-		zap.String("content_uri", contentURI),
-		zap.Bool("is_target", isTarget),
-		zap.Any("timestamp", timestamp))
-
 	handle, err := w.getLensHandle(ctx, blockNumber, profileID)
 	if err != nil {
 		return nil, "", err
@@ -1009,8 +930,6 @@ func (w *worker) buildEthereumV2TransactionPostMetadata(ctx context.Context, blo
 		Tags:          lo.If(len(publication.Lens.Tags) > 0, publication.Lens.Tags).Else(nil),
 		Timestamp:     lo.If(isTarget, uint64(0)).Else(timestamp),
 	}
-
-	zap.L().Debug("successfully built ethereum V2 transaction post metadata")
 
 	return post, publication.Lens.AppID, nil
 }

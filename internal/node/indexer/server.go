@@ -147,9 +147,6 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		task := task
 
 		resultPool.Go(func() *activityx.Activity {
-			zap.L().Debug("Starting task transformation",
-				zap.String("task_id", task.ID()))
-
 			activity, err := s.worker.Transform(ctx, task)
 			if err != nil {
 				zap.L().Error("Failed to transform task",

@@ -18,7 +18,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -68,8 +67,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	zap.L().Debug("transforming arweave task", zap.String("task_id", arweaveTask.ID()))
-
 	// Build the activity.
 	activity, err := task.BuildActivity()
 	if err != nil {
@@ -87,8 +84,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		activity.Type = action.Type
 		activity.Actions = append(activity.Actions, action)
 	}
-
-	zap.L().Debug("successfully transformed arweave task")
 
 	return activity, nil
 }
@@ -124,23 +119,14 @@ func (w *worker) handleArweaveNativeTransferTransaction(ctx context.Context, tas
 
 // buildArweaveTransactionTransferAction returns the native transfer transaction action.
 func (w *worker) buildArweaveTransactionTransferAction(_ context.Context, from, to string, tokenValue *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building arweave transaction transfer action",
-		zap.String("from", from),
-		zap.String("to", to),
-		zap.Any("token_value", tokenValue))
-
-	action := activityx.Action{
+	return &activityx.Action{
 		Type: typex.TransactionTransfer,
 		From: from,
 		To:   to,
 		Metadata: metadata.TransactionTransfer{
 			Value: lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0)),
 		},
-	}
-
-	zap.L().Debug("successfully built arweave transaction transfer action")
-
-	return &action, nil
+	}, nil
 }
 
 // NewWorker returns a new Arweave worker.

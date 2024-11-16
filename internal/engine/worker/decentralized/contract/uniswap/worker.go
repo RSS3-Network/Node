@@ -115,8 +115,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type %T", task)
 	}
 
-	zap.L().Debug("transforming uniswap task", zap.String("task_id", ethereumTask.ID()))
-
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build activity: %w", err)
@@ -124,13 +122,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 	switch {
 	case w.matchSwapTransaction(ethereumTask, ethereumTask.Transaction):
-		zap.L().Debug("matching swap transaction")
-
 		activity.Type = typex.ExchangeSwap
 		activity.Actions = w.transformSwapTransaction(ctx, ethereumTask, ethereumTask.Transaction)
 	case w.matchLiquidityTransaction(ethereumTask, ethereumTask.Transaction):
-		zap.L().Debug("matching liquidity transaction")
-
 		activity.Type = typex.ExchangeLiquidity
 		activity.Actions = w.transformLiquidityTransaction(ctx, ethereumTask, ethereumTask.Transaction)
 	default:
@@ -145,8 +139,6 @@ func (w *worker) matchSwapTransaction(task *source.Task, transaction *ethereum.T
 		return false
 	}
 
-	zap.L().Debug("matching swap transaction", zap.String("to", transaction.To.String()))
-
 	switch *transaction.To {
 	case // Uniswap V3
 		uniswap.AddressV3SwapRouter,
@@ -156,15 +148,11 @@ func (w *worker) matchSwapTransaction(task *source.Task, transaction *ethereum.T
 		uniswap.AddressV3SwapRouter02BinanceSmartChain,
 		uniswap.AddressV3SwapRouter02Linea,
 		uniswap.AddressUniversalRouter:
-		zap.L().Debug("matching uniswap v3 swap transaction")
-
 		return true
 	case // Uniswap V2
 		uniswap.AddressV2SwapRouter01,
 		uniswap.AddressV2SwapRouter02,
 		uniswap.AddressV2SwapRouterSAVM:
-		zap.L().Debug("matching uniswap v2 swap transaction")
-
 		return lo.ContainsBy(task.Receipt.Logs, func(log *ethereum.Log) bool {
 			if len(log.Topics) == 0 {
 				return false
@@ -173,8 +161,6 @@ func (w *worker) matchSwapTransaction(task *source.Task, transaction *ethereum.T
 			return contract.MatchEventHashes(log.Topics[0], uniswap.EventHashV2PairSwap)
 		})
 	default: // Uniswap V1
-		zap.L().Debug("matching uniswap v1 swap transaction")
-
 		return lo.ContainsBy(task.Receipt.Logs, func(log *ethereum.Log) bool {
 			if len(log.Topics) == 0 {
 				return false
@@ -194,24 +180,18 @@ func (w *worker) matchLiquidityTransaction(task *source.Task, transaction *ether
 		return false
 	}
 
-	zap.L().Debug("matching liquidity transaction", zap.String("to", transaction.To.String()))
-
 	switch *task.Transaction.To {
 	case // Uniswap V3
 		uniswap.AddressNonfungiblePositionManager,
 		uniswap.AddressV3Migrator,
 		uniswap.AddressV3MigratorLinea,
 		uniswap.AddressNonfungiblePositionManagerLinea:
-		zap.L().Debug("matching uniswap v3 liquidity transaction")
-
 		return true
 	case // Uniswap V2
 		uniswap.AddressV2SwapRouter01,
 		uniswap.AddressV2SwapRouter02,
 		uniswap.AddressV2SwapRouterSAVM,
 		uniswap.AddressV2Migrator:
-		zap.L().Debug("matching uniswap v2 liquidity transaction")
-
 		return lo.ContainsBy(task.Receipt.Logs, func(item *ethereum.Log) bool {
 			if len(item.Topics) == 0 {
 				return false
@@ -224,8 +204,6 @@ func (w *worker) matchLiquidityTransaction(task *source.Task, transaction *ether
 			)
 		})
 	default: // Uniswap V1
-		zap.L().Debug("matching uniswap v1 liquidity transaction")
-
 		return lo.ContainsBy(task.Receipt.Logs, func(item *ethereum.Log) bool {
 			if len(item.Topics) == 0 {
 				return false
@@ -264,44 +242,25 @@ func (w *worker) transformSwapTransaction(ctx context.Context, task *source.Task
 
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
-			zap.L().Debug("ignoring anonymous log")
-
 			continue
 		}
 
 		var buffer []*activityx.Action
 
-		zap.L().Debug("transforming swap transaction",
-			zap.String("address", log.Address.String()),
-			zap.String("topic", log.Export().Topics[0].String()))
-
 		switch log.Export().Topics[0] {
 		case uniswap.EventHashV1ExchangeTokenPurchase:
-			zap.L().Debug("transforming v1 token purchase log")
-
 			buffer, err = w.transformV1TokenPurchaseLog(ctx, task, log)
 		case uniswap.EventHashV1ExchangeEthPurchase:
-			zap.L().Debug("transforming v1 eth purchase log")
-
 			buffer, err = w.transformV1EthPurchaseLog(ctx, task, log)
 		case uniswap.EventHashV2PairSwap:
-			zap.L().Debug("transforming v2 pair swap log")
-
 			buffer, err = w.transformV2SwapLog(ctx, task, log)
 		case uniswap.EventHashV3PoolSwap:
-			zap.L().Debug("transforming v3 pool swap log")
-
 			buffer, err = w.transformV3SwapLog(ctx, task, log)
 		case weth.EventHashDeposit:
-			zap.L().Debug("transforming weth deposit log")
-
 			buffer, err = w.transformWETHDepositLog(ctx, task, log)
 		case weth.EventHashWithdrawal:
-			zap.L().Debug("transforming weth withdrawal log")
-
 			buffer, err = w.transformWETHWithdrawalLog(ctx, task, log)
 		default:
-			zap.L().Debug("no matching uniswap swap transaction event")
 			continue
 		}
 
@@ -314,8 +273,6 @@ func (w *worker) transformSwapTransaction(ctx context.Context, task *source.Task
 		actions = append(actions, buffer...)
 	}
 
-	zap.L().Debug("successfully transformed swap transaction")
-
 	return actions
 }
 
@@ -324,57 +281,33 @@ func (w *worker) transformLiquidityTransaction(ctx context.Context, task *source
 
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
-			zap.L().Debug("ignoring anonymous log")
-
 			continue
 		}
 
 		var buffer []*activityx.Action
 
-		zap.L().Debug("transforming liquidity transaction",
-			zap.String("address", log.Address.String()),
-			zap.String("topic", log.Export().Topics[0].String()))
-
 		switch log.Export().Topics[0] {
 		case uniswap.EventHashV1ExchangeAddLiquidity:
-			zap.L().Debug("transforming v1 exchange add liquidity log")
-
 			buffer, err = w.transformV1ExchangeAddLiquidityLog(ctx, task, log)
 		case uniswap.EventHashV1ExchangeRemoveLiquidity:
-			zap.L().Debug("transforming v1 exchange remove liquidity log")
-
 			buffer, err = w.transformV1ExchangeRemoveLiquidityLog(ctx, task, log)
 		case uniswap.EventHashV2PairMint:
-			zap.L().Debug("transforming v2 pair mint log")
-
 			buffer, err = w.transformV2PairMintLog(ctx, task, log)
 		case uniswap.EventHashV2PairBurn:
-			zap.L().Debug("transforming v2 pair burn log")
-
 			buffer, err = w.transformV2PairBurnLog(ctx, task, log)
 		case uniswap.EventHashNonfungiblePositionManagerIncreaseLiquidity:
-			zap.L().Debug("transforming nonfungible position manager increase liquidity log")
-
 			buffer, err = w.transformNonfungiblePositionManagerIncreaseLiquidityLog(ctx, task, log)
 		case uniswap.EventHashNonfungiblePositionManagerDecreaseLiquidity:
-			zap.L().Debug("transforming nonfungible position manager decrease liquidity log")
-
 			buffer, err = w.transformNonfungiblePositionManagerDecreaseLiquidityLog(ctx, task, log)
 		case uniswap.EventHashNonfungiblePositionManagerCollect:
-			zap.L().Debug("transforming nonfungible position manager collect log")
-
 			buffer, err = w.transformNonfungiblePositionManagerCollectLog(ctx, task, log)
 		case erc721.EventHashTransfer:
-			zap.L().Debug("transforming nonfungible position manager transfer log")
-
 			if !w.matchNonfungiblePositionManagerTransferLog(task, log) {
 				continue
 			}
 
 			buffer, err = w.transformNonfungiblePositionManagerTransferLog(ctx, task, log)
 		default:
-			zap.L().Debug("no matching uniswap liquidity transaction event")
-
 			continue
 		}
 
@@ -386,8 +319,6 @@ func (w *worker) transformLiquidityTransaction(ctx context.Context, task *source
 
 		actions = append(actions, buffer...)
 	}
-
-	zap.L().Debug("successfully transformed liquidity transaction")
 
 	return actions
 }
@@ -957,14 +888,6 @@ func (w *worker) transformNonfungiblePositionManagerTransferLog(ctx context.Cont
 }
 
 func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task, sender, receipt common.Address, tokenIn, tokenOut *common.Address, amountIn, amountOut *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building exchange swap action",
-		zap.String("sender", sender.String()),
-		zap.String("receipt", receipt.String()),
-		zap.Any("token_in", tokenIn),
-		zap.Any("token_out", tokenOut),
-		zap.Any("amount_in", amountIn),
-		zap.Any("amount_out", amountOut))
-
 	tokenInMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenIn, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenIn, err)
@@ -989,8 +912,6 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 			To:   *tokenOutMetadata,
 		},
 	}
-
-	zap.L().Debug("successfully built exchange swap action")
 
 	return &action, nil
 }
@@ -1040,12 +961,6 @@ func (w *worker) transformWETHWithdrawalLog(ctx context.Context, task *source.Ta
 }
 
 func (w *worker) buildExchangeLiquidityAction(ctx context.Context, task *source.Task, sender, receipt common.Address, liquidityAction metadata.ExchangeLiquidityAction, tokens []metadata.Token) (*activityx.Action, error) {
-	zap.L().Debug("building exchange liquidity action",
-		zap.String("sender", sender.String()),
-		zap.String("receipt", receipt.String()),
-		zap.String("liquidity_action", liquidityAction.String()),
-		zap.Any("tokens", tokens))
-
 	tokenMetadataSlice := make([]metadata.Token, 0, len(tokens))
 
 	for _, t := range tokens {
@@ -1075,18 +990,10 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, task *source.
 		},
 	}
 
-	zap.L().Debug("successfully built exchange liquidity action")
-
 	return &action, nil
 }
 
 func (w *worker) buildTransactionMintAction(ctx context.Context, task *source.Task, sender, receipt, tokenAddress common.Address, tokenID *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building transaction mint action",
-		zap.String("sender", sender.String()),
-		zap.String("receipt", receipt.String()),
-		zap.String("token_address", tokenAddress.String()),
-		zap.Any("token_id", tokenID))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &tokenAddress, tokenID, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s %d: %w", tokenAddress, tokenID, err)
@@ -1102,8 +1009,6 @@ func (w *worker) buildTransactionMintAction(ctx context.Context, task *source.Ta
 		To:       receipt.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
 	}
-
-	zap.L().Debug("successfully built transaction mint action")
 
 	return &action, nil
 }

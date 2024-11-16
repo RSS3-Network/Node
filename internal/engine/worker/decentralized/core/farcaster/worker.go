@@ -69,8 +69,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	zap.L().Debug("transforming farcaster task", zap.String("task_id", farcasterTask.ID()))
-
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build activity: %w", err)
@@ -79,33 +77,22 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	// Handle Farcaster message.
 	switch farcasterTask.Message.Data.Type {
 	case farcaster.MessageTypeCastAdd.String():
-		zap.L().Debug("handling farcaster add cast message")
-
 		w.handleFarcasterAddCast(ctx, farcasterTask.Message, activity)
 	case farcaster.MessageTypeReactionAdd.String():
-		zap.L().Debug("handling farcaster recast reaction message")
-
 		w.handleFarcasterRecastReaction(ctx, farcasterTask.Message, activity)
 	default:
-		zap.L().Warn("unsupported farcaster message type", zap.String("type", farcasterTask.Message.Data.Type))
+		zap.L().Debug("unsupported farcaster message type", zap.String("type", farcasterTask.Message.Data.Type))
 	}
 
 	if len(activity.Actions) == 0 {
 		return nil, nil
 	}
 
-	zap.L().Debug("successfully transformed farcaster task")
-
 	return activity, nil
 }
 
 // handleFarcasterAddCast handles farcaster add cast message.
 func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.Message, activity *activityx.Activity) {
-	zap.L().Debug("handling farcaster add cast message",
-		zap.Int64("fid", int64(message.Data.Fid)),
-		zap.String("hash", message.Hash),
-		zap.Any("body", message.Data.CastAddBody))
-
 	fid := int64(message.Data.Fid)
 
 	post := w.buildPost(ctx, int64(message.Data.Fid), message.Hash, message.Data.CastAddBody, farcaster.CovertFarcasterTimeToTimestamp(int64(message.Data.Timestamp)))
@@ -115,29 +102,15 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 
 	// this represents a reply post.
 	if message.Data.CastAddBody.ParentCastID != nil {
-		zap.L().Debug("handling farcaster reply post",
-			zap.Int64("parent_cast_id_fid", int64(message.Data.CastAddBody.ParentCastID.Fid)),
-			zap.String("parent_cast_id_hash", message.Data.CastAddBody.ParentCastID.Hash),
-			zap.Any("parent_cast", message.Data.CastAddBody.ParentCast))
-
 		activity.Type = typex.SocialComment
-
 		targetFid := int64(message.Data.CastAddBody.ParentCastID.Fid)
-
 		targetMessage := message.Data.CastAddBody.ParentCast
-
 		post.Target = w.buildPost(ctx, targetFid, targetMessage.Hash, targetMessage.Data.CastAddBody, farcaster.CovertFarcasterTimeToTimestamp(int64(targetMessage.Data.Timestamp)))
 		// this represents a reply to self.
 		if fid == targetFid {
-			zap.L().Debug("handling farcaster reply to self post")
-
 			post.Target.Handle = post.Handle
-
 			activity.To = activity.From
-
 			w.buildPostActions(ctx, message.Data.Profile.EthAddresses, activity, post, activity.Type)
-
-			zap.L().Debug("successfully handled farcaster reply to self post")
 
 			return
 		}
@@ -159,51 +132,29 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 			}
 		}
 
-		zap.L().Debug("successfully handled farcaster reply post")
-
 		return
 	}
 
 	activity.Type = typex.SocialPost
 	activity.To = activity.From
-
 	w.buildPostActions(ctx, message.Data.Profile.EthAddresses, activity, post, activity.Type)
-
-	zap.L().Debug("successfully handled farcaster add cast message")
 }
 
 // handleFarcasterRecastReaction handles farcaster recast reaction message.
 func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farcaster.Message, activity *activityx.Activity) {
-	zap.L().Debug("handling farcaster recast reaction message",
-		zap.Int64("fid", int64(message.Data.Fid)),
-		zap.String("hash", message.Hash),
-		zap.Any("reaction_body", message.Data.ReactionBody))
-
 	fid := int64(message.Data.Fid)
-
 	post := w.buildPost(ctx, int64(message.Data.Fid), message.Hash, nil, farcaster.CovertFarcasterTimeToTimestamp(int64(message.Data.Timestamp)))
-
 	post.Handle = message.Data.Profile.Username
 	activity.From = message.Data.Profile.CustodyAddress
-
 	activity.Type = typex.SocialShare
-
 	targetFid := int64(message.Data.ReactionBody.TargetCastID.Fid)
-
 	targetMessage := message.Data.ReactionBody.TargetCast
-
 	post.Target = w.buildPost(ctx, targetFid, targetMessage.Hash, targetMessage.Data.CastAddBody, farcaster.CovertFarcasterTimeToTimestamp(int64(targetMessage.Data.Timestamp)))
 
 	if fid == targetFid {
-		zap.L().Debug("handling farcaster recast to self post")
-
 		post.Target.Handle = post.Handle
-
 		activity.To = activity.From
-
 		w.buildPostActions(ctx, message.Data.Profile.EthAddresses, activity, post, activity.Type)
-
-		zap.L().Debug("successfully handled farcaster recast to self post")
 
 		return
 	}
@@ -223,8 +174,6 @@ func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farc
 			activity.Actions = append(activity.Actions, &action)
 		}
 	}
-
-	zap.L().Debug("successfully handled farcaster recast reaction message")
 }
 
 // buildPostActions builds post actions from message.
@@ -237,6 +186,7 @@ func (w *worker) buildPostActions(_ context.Context, ethAddresses []string, acti
 			To:       from,
 			Metadata: *post,
 		}
+
 		activity.Actions = append(activity.Actions, &action)
 	}
 }

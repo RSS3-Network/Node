@@ -518,6 +518,10 @@ func (c *client) followRelay(ctx context.Context, instance string) error {
 		return fmt.Errorf("failed to send request for relay subscription: %w", err)
 	}
 
+	zap.L().Info("Successfully sent request to follow relay",
+		zap.String("instanceURL", instanceURL.String()),
+	)
+
 	return nil
 }
 

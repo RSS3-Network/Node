@@ -24,7 +24,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 // Worker is the worker for OpenSea.
@@ -97,8 +96,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	zap.L().Debug("transforming looksrare task", zap.String("task_id", ethereumTask.ID()))
-
 	// Build default looksrare activity from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
@@ -109,8 +106,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
-			zap.L().Debug("skipping anonymous log")
-
 			continue
 		}
 
@@ -119,44 +114,23 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
-		zap.L().Debug("processing ethereum log",
-			zap.String("address", log.Address.String()),
-			zap.String("topic", log.Topics[0].String()),
-		)
-
 		// Match looksrare core contract events
 		switch {
 		case w.matchExchangeAskMatched(ethereumTask, log):
-			zap.L().Debug("matched exchange ask event")
-
 			actions, err = w.transformExchangeAsk(ctx, ethereumTask, log)
 		case w.matchExchangeBidMatched(ethereumTask, log):
-			zap.L().Debug("matched exchange bid event")
-
 			actions, err = w.transformExchangeBid(ctx, ethereumTask, log)
 		case w.matchExchangeRoyaltyPaymentMatched(ethereumTask, log):
-			zap.L().Debug("matched exchange royalty payment event")
-
 			actions, err = w.transformExchangeRoyaltyPayment(ctx, ethereumTask, log)
 		case w.matchRoyaltyTransferMatched(ethereumTask, log):
-			zap.L().Debug("matched royalty transfer event")
-
 			actions, err = w.transformRoyaltyTransfer(ctx, ethereumTask, log)
 		case w.matchExchangeV2AskMatched(ethereumTask, log):
-			zap.L().Debug("matched exchange v2 ask event")
-
 			actions, err = w.transformExchangeV2Ask(ctx, ethereumTask, log)
 		case w.matchExchangeV2BidMatched(ethereumTask, log):
-			zap.L().Debug("matched exchange v2 bid event")
-
 			actions, err = w.transformExchangeV2Bid(ctx, ethereumTask, log)
 		case w.matchAggregatedBidMatched(ethereumTask, log):
-			zap.L().Debug("matched aggregated bid event")
-
 			actions, err = w.transformV2AggregatedBid(ctx, ethereumTask, log)
 		default:
-			zap.L().Debug("no matching event found for log")
-
 			continue
 		}
 
@@ -167,8 +141,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		activity.Type = typex.CollectibleTrade
 		activity.Actions = append(activity.Actions, actions...)
 	}
-
-	zap.L().Info("successfully transformed looksrare task")
 
 	return activity, nil
 }
@@ -454,14 +426,6 @@ func (w *worker) transformV2AggregatedBid(ctx context.Context, task *source.Task
 
 // buildEthereumCollectibleTradeAction builds collectible trade action.
 func (w *worker) buildCollectibleTradeAction(ctx context.Context, task *source.Task, maker, taker, nft common.Address, action metadata.CollectibleTradeAction, nftID, nftValue, offerValue *big.Int, currency *common.Address) (*activityx.Action, error) {
-	zap.L().Debug("building collectible trade action",
-		zap.String("maker", maker.String()),
-		zap.String("taker", taker.String()),
-		zap.String("nft", nft.String()),
-		zap.String("action", action.String()),
-		zap.String("nft_id", nftID.String()),
-		zap.String("nft_value", nftValue.String()))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &nft, nftID, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -475,8 +439,6 @@ func (w *worker) buildCollectibleTradeAction(ctx context.Context, task *source.T
 	}
 
 	if currency.String() == "0x0000000000000000000000000000000000000000" {
-		zap.L().Debug("currency address is zero, setting to nil")
-
 		currency = nil
 	}
 
@@ -499,8 +461,6 @@ func (w *worker) buildCollectibleTradeAction(ctx context.Context, task *source.T
 		to = taker.String()
 	}
 
-	zap.L().Debug("successfully built collectible trade action")
-
 	return &activityx.Action{
 		Type:     typex.CollectibleTrade,
 		Platform: w.Platform(),
@@ -512,11 +472,6 @@ func (w *worker) buildCollectibleTradeAction(ctx context.Context, task *source.T
 
 // buildRoyaltyPaymentAction builds royalty payment action.
 func (w *worker) buildRoyaltyPaymentAction(ctx context.Context, task *source.Task, currency common.Address, amount *big.Int, receipt common.Address) (*activityx.Action, error) {
-	zap.L().Debug("building royalty payment action",
-		zap.String("currency", currency.String()),
-		zap.String("amount", amount.String()),
-		zap.String("receipt", receipt.String()))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &currency, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -526,15 +481,11 @@ func (w *worker) buildRoyaltyPaymentAction(ctx context.Context, task *source.Tas
 
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
-			zap.L().Debug("skipping log with no topics")
-
 			continue
 		}
 
 		switch {
 		case w.matchExchangeAskMatched(task, log):
-			zap.L().Debug("matched exchange ask event")
-
 			event, err := w.exchangeFilterer.ParseTakerAsk(log.Export())
 			if err != nil {
 				return nil, fmt.Errorf("parse taker ask event: %w", err)
@@ -542,8 +493,6 @@ func (w *worker) buildRoyaltyPaymentAction(ctx context.Context, task *source.Tas
 
 			from = event.Maker
 		case w.matchExchangeBidMatched(task, log): // Deposit and withdraw ETH
-			zap.L().Debug("matched exchange bid event")
-
 			event, err := w.exchangeFilterer.ParseTakerBid(log.Export())
 			if err != nil {
 				return nil, fmt.Errorf("parse taker bid event: %w", err)
@@ -551,15 +500,11 @@ func (w *worker) buildRoyaltyPaymentAction(ctx context.Context, task *source.Tas
 
 			from = event.Maker
 		default:
-			zap.L().Debug("no matching event found for log")
-
 			continue
 		}
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
-
-	zap.L().Debug("successfully built royalty payment action")
 
 	return &activityx.Action{
 		Type:     typex.TransactionTransfer,
@@ -572,10 +517,6 @@ func (w *worker) buildRoyaltyPaymentAction(ctx context.Context, task *source.Tas
 
 // buildRoyaltyTransferAction builds royalty transfer action.
 func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Task, to common.Address, wad *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building royalty transfer action",
-		zap.String("to", to.String()),
-		zap.String("wad", wad.String()))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &weth.AddressMainnet, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
@@ -585,15 +526,11 @@ func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Ta
 
 	for _, log := range task.Receipt.Logs {
 		if len(log.Topics) == 0 {
-			zap.L().Debug("skipping log with no topics")
-
 			continue
 		}
 
 		switch {
 		case w.matchExchangeAskMatched(task, log):
-			zap.L().Debug("matched exchange ask event")
-
 			event, err := w.exchangeFilterer.ParseTakerAsk(log.Export())
 			if err != nil {
 				return nil, fmt.Errorf("parse taker ask event: %w", err)
@@ -601,8 +538,6 @@ func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Ta
 
 			from = event.Maker
 		case w.matchExchangeBidMatched(task, log): // Deposit and withdraw ETH
-			zap.L().Debug("matched exchange bid event")
-
 			event, err := w.exchangeFilterer.ParseTakerBid(log.Export())
 			if err != nil {
 				return nil, fmt.Errorf("parse taker bid event: %w", err)
@@ -610,15 +545,11 @@ func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Ta
 
 			from = event.Maker
 		default:
-			zap.L().Debug("no matching event found for log")
-
 			continue
 		}
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(wad, 0))
-
-	zap.L().Debug("successfully built royalty transfer action")
 
 	return &activityx.Action{
 		Type:     typex.TransactionTransfer,
@@ -631,14 +562,7 @@ func (w *worker) buildRoyaltyTransferAction(ctx context.Context, task *source.Ta
 
 // buildV2RoyaltyFeeAction builds royalty fee action.
 func (w *worker) buildV2RoyaltyFeeAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, amount *big.Int, currency *common.Address) (*activityx.Action, error) {
-	zap.L().Debug("building v2 royalty fee action",
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.String("amount", amount.String()))
-
 	if currency.String() == "0x0000000000000000000000000000000000000000" {
-		zap.L().Debug("currency address is zero, setting to nil")
-
 		currency = nil
 	}
 
@@ -648,8 +572,6 @@ func (w *worker) buildV2RoyaltyFeeAction(ctx context.Context, task *source.Task,
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
-
-	zap.L().Debug("successfully built v2 royalty fee action")
 
 	return &activityx.Action{
 		Type:     typex.TransactionTransfer,

@@ -89,34 +89,28 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type %T", task)
 	}
 
-	zap.L().Debug("transforming rainbow task", zap.String("task_id", ethereumTask.ID()))
-
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build activity: %w", err)
 	}
 
-	if w.matchSwapTransaction(ethereumTask) {
-		zap.L().Debug("matching rainbow swap transaction")
-
-		actions, err := w.transformSwapTransaction(ctx, ethereumTask)
-
-		if err != nil {
-			return nil, fmt.Errorf("handle ethereum swap transaction: %w", err)
-		}
-
-		activity.Actions = append(activity.Actions, actions...)
-	} else {
-		return nil, fmt.Errorf("unknown transaction %s", ethereumTask.ID())
+	if !w.matchSwapTransaction(ethereumTask) {
+		return nil, nil
 	}
+
+	actions, err := w.transformSwapTransaction(ctx, ethereumTask)
+
+	if err != nil {
+		return nil, fmt.Errorf("handle ethereum swap transaction: %w", err)
+	}
+
+	activity.Actions = append(activity.Actions, actions...)
 
 	if len(activity.Actions) == 0 {
 		return nil, fmt.Errorf("no actions")
 	}
 
 	activity.Type = typex.ExchangeSwap
-
-	zap.L().Debug("successfully transformed rainbow task")
 
 	return activity, nil
 }
@@ -380,14 +374,6 @@ func (w *worker) simulationTransfer(valueMap map[*common.Address]*big.Int, trans
 
 // buildExchangeSwapAction builds an exchange swap action.
 func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task, from, to common.Address, tokenIn, tokenOut *common.Address, amountIn, amountOut *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building exchange swap action",
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.Any("token_in", tokenIn),
-		zap.Any("token_out", tokenOut),
-		zap.Any("amount_in", amountIn),
-		zap.Any("amount_out", amountOut))
-
 	tokenInAddress := lo.Ternary(tokenIn != nil && *tokenIn != ethereum.AddressGenesis, tokenIn, nil)
 	tokenOutAddress := lo.Ternary(tokenOut != nil && *tokenOut != ethereum.AddressGenesis, tokenOut, nil)
 
@@ -405,8 +391,6 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 
 	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
 
-	zap.L().Debug("successfully built exchange swap action")
-
 	return &activityx.Action{
 		Type:     typex.ExchangeSwap,
 		Platform: w.Platform(),
@@ -421,20 +405,12 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 
 // buildTransactionTransferAction builds a transaction transfer action.
 func (w *worker) buildTransactionTransferAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress *common.Address, amount *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building transaction transfer action",
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.Any("token_address", tokenAddress),
-		zap.Any("amount", amount))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenAddress, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
 	}
 
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
-
-	zap.L().Debug("successfully built transaction transfer action")
 
 	return &activityx.Action{
 		Type:     typex.TransactionTransfer,
