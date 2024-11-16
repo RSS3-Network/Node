@@ -145,16 +145,14 @@ func (w *worker) transformMomokaAction(ctx context.Context, task *source.Task) (
 
 	var profileIDInt *big.Int
 
-	if rawProfileID != "" {
-		profileIDInt, err = hexutil.DecodeBig(strings.Replace(rawProfileID, "0x0", "0x", 1))
-		if err != nil {
-			return nil, fmt.Errorf("decode profile id: %w", err)
-		}
+	profileIDInt, err = hexutil.DecodeBig(strings.Replace(rawProfileID, "0x0", "0x", 1))
+	if err != nil {
+		return nil, fmt.Errorf("decode profile id: %w", err)
+	}
 
-		profile, err = w.getLensHandle(ctx, new(big.Int).SetUint64(blockNumber), profileIDInt)
-		if err != nil {
-			return nil, fmt.Errorf("get lens handle: %w", err)
-		}
+	profile, err = w.getLensHandle(ctx, new(big.Int).SetUint64(blockNumber), profileIDInt)
+	if err != nil {
+		return nil, fmt.Errorf("get lens handle: %w", err)
 	}
 
 	momokaMetadata, err := w.buildArweaveMomokaPostMetadata(ctx, rawProfileID, profile, rawPublicationID, contentURI, false, timestamp)
