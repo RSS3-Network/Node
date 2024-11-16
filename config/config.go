@@ -12,8 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/go-playground/validator/v10"
 	"github.com/mitchellh/mapstructure"
-	"github.com/rss3-network/node/internal/database"
-	"github.com/rss3-network/node/internal/stream"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/federated"
@@ -127,17 +125,13 @@ func (e Endpoint) BuildEthereumOptions() []ethereum.Option {
 }
 
 type Database struct {
-	CoveragePeriod int             `mapstructure:"coverage_period" validate:"min=3,max=12" default:"3"`
-	Driver         database.Driver `mapstructure:"driver" validate:"required" default:"postgres"`
-	Partition      *bool           `mapstructure:"partition" validate:"required" default:"true"`
-	URI            string          `mapstructure:"uri" validate:"required" default:"postgres://postgres@localhost:5432/postgres"`
+	CoveragePeriod int    `mapstructure:"coverage_period" validate:"min=3,max=12" default:"3"`
+	URI            string `mapstructure:"uri" validate:"required" default:"postgres://postgres@localhost:5432/postgres"`
 }
 
 type Stream struct {
-	Enable *bool         `mapstructure:"enable" validate:"required" default:"false"`
-	Driver stream.Driver `mapstructure:"driver" validate:"required" default:"kafka"`
-	Topic  string        `mapstructure:"topic" validate:"required" default:"rss3.node.activities"`
-	URI    string        `mapstructure:"uri" validate:"required" default:"localhost:9092"`
+	Enable *bool  `mapstructure:"enable" validate:"required" default:"false"`
+	URI    string `mapstructure:"uri" validate:"required" default:"localhost:9092"`
 }
 
 type Telemetry struct {
@@ -161,11 +155,10 @@ type OpenTelemetryTracesConfig struct {
 }
 
 type Redis struct {
-	Endpoint     string   `mapstructure:"endpoint" default:"localhost:6379" validate:"required"`
-	Username     string   `mapstructure:"username"`
-	Password     string   `mapstructure:"password"`
-	DisableCache bool     `mapstructure:"disable_cache" default:"true"`
-	TLS          RedisTLS `mapstructure:"tls"`
+	Endpoint string   `mapstructure:"endpoint" default:"localhost:6379" validate:"required"`
+	Username string   `mapstructure:"username"`
+	Password string   `mapstructure:"password"`
+	TLS      RedisTLS `mapstructure:"tls"`
 }
 
 type RedisTLS struct {

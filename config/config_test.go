@@ -41,19 +41,14 @@ endpoints:
       http_headers:
         user-agent: rss3-node
 database:
-  driver: postgres
-  partition: true
   uri: postgres://postgres@localhost:5432/postgres
 stream:
   enable: false
-  driver: kafka
-  topic: rss3.node.activities
   uri: localhost:9092
 redis:
   endpoint: localhost:6379
   username:
   password:
-  disable_cache: true
 observability:
   opentelemetry:
     metrics:
@@ -124,21 +119,16 @@ component:
   },
   "database": {
 	"coverage_period": 3,
-    "driver": "postgres",
-    "partition": true,
     "uri": "postgres://postgres@localhost:5432/postgres"
   },
   "stream": {
     "enable": false,
-    "driver": "kafka",
-    "topic": "rss3.node.activities",
     "uri": "localhost:9092"
   },
   "redis": {
     "endpoint": "localhost:6379",
     "username": "",
-    "password": "",
-    "disable_cache": true
+    "password": ""
   },
   "observability": {
     "opentelemetry": {
@@ -226,21 +216,16 @@ access_token = "test"
 
 [database]
 coverage_period = 3
-driver = "postgres"
-partition = true
 uri = "postgres://postgres@localhost:5432/postgres"
 
 [stream]
 enable = false
-driver = "kafka"
-topic = "rss3.node.activities"
 uri = "localhost:9092"
 
 [redis]
 endpoint = "localhost:6379"
 username = ""
 password = ""
-disable_cache = true
 
 [observability.opentelemetry.metrics]
 enable = true
@@ -384,21 +369,16 @@ var configFileExpected = &File{
 	},
 	Database: &Database{
 		CoveragePeriod: 3,
-		Driver:         "postgres",
-		Partition:      lo.ToPtr(true),
 		URI:            "postgres://postgres@localhost:5432/postgres",
 	},
 	Stream: &Stream{
 		Enable: lo.ToPtr(false),
-		Driver: "kafka",
-		Topic:  "rss3.node.activities",
 		URI:    "localhost:9092",
 	},
 	Redis: &Redis{
-		Endpoint:     "localhost:6379",
-		Username:     "",
-		Password:     "",
-		DisableCache: true,
+		Endpoint: "localhost:6379",
+		Username: "",
+		Password: "",
 	},
 	Observability: &Telemetry{
 		OpenTelemetry: &OpenTelemetryConfig{

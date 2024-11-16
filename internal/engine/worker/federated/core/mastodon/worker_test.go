@@ -26,7 +26,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
-	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )
 
@@ -88,9 +87,7 @@ func setupDatabaseClient(t *testing.T) database.Client {
 
 	// Dial the database
 	client, err := dialer.Dial(context.Background(), &config.Database{
-		Driver:    database.DriverPostgreSQL,
-		URI:       dataSourceName,
-		Partition: lo.ToPtr(true),
+		URI: dataSourceName,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, client)
