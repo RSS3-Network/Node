@@ -13,7 +13,7 @@ properties:
     $ref: "./ConfigDetail.yaml"
   concurrent_block_requests:
     $ref: "./ConfigDetail.yaml"
-  kafka_topic:
+  relay_url_list:
     $ref: "./ConfigDetail.yaml"
   receipts_batch_size:
     $ref: "./ConfigDetail.yaml"

@@ -29,14 +29,14 @@ func (c *Component) GetNetworkActivities(ctx echo.Context, net network.Network, 
 	addRecentRequest(ctx.Request().RequestURI)
 
 	zap.L().Debug("processing decentralized network activities request",
-		zap.String("network", request.Network.String()),
+		zap.String("network", net.String()),
 		zap.Int("limit", request.Limit),
 		zap.String("cursor", lo.FromPtr(request.Cursor)))
 
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
 		zap.L().Error("failed to get decentralized network activities cursor",
-			zap.String("network", request.Network.String()),
+			zap.String("network", net.String()),
 			zap.String("cursor", lo.FromPtr(request.Cursor)),
 			zap.Error(err))
 
@@ -60,14 +60,14 @@ func (c *Component) GetNetworkActivities(ctx echo.Context, net network.Network, 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
 	if err != nil {
 		zap.L().Error("failed to get decentralized network activities",
-			zap.String("network", request.Network.String()),
+			zap.String("network", net.String()),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
 
 	zap.L().Info("successfully retrieved decentralized network activities",
-		zap.String("network", request.Network.String()),
+		zap.String("network", net.String()),
 		zap.Int("count", len(activities)))
 
 	return ctx.JSON(http.StatusOK, ActivitiesResponse{

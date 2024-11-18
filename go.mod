@@ -57,21 +57,18 @@ require (
 	github.com/adrianbrad/psqldocker v1.2.1
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
 	github.com/emirpasic/gods v1.18.1
-	github.com/go-fed/httpsig v1.1.0
 	github.com/getkin/kin-openapi v0.127.0
+	github.com/go-fed/httpsig v1.1.0
 	github.com/go-redsync/redsync/v4 v4.13.0
 	github.com/google/uuid v1.6.0
 	github.com/grafana/pyroscope-go v1.2.0
 	github.com/jaytaylor/html2text v0.0.0-20230321000545-74c2419ad056
 	github.com/mitchellh/mapstructure v1.5.0
+	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
+	github.com/oapi-codegen/runtime v1.1.1
 	github.com/redis/rueidis v1.0.49
 	github.com/redis/rueidis/rueidiscompat v1.0.49
 	github.com/rss3-network/protocol-go v0.5.14
-	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
-	github.com/oapi-codegen/runtime v1.1.1
-	github.com/redis/rueidis v1.0.45
-	github.com/redis/rueidis/rueidiscompat v1.0.45
-	github.com/rss3-network/protocol-go v0.5.13
 	github.com/spf13/afero v1.11.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	github.com/vincent-petithory/dataurl v1.0.0
@@ -207,14 +204,10 @@ require (
 	golang.org/x/crypto v0.28.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/mod v0.20.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/text v0.19.0 // indirect
 	golang.org/x/sys v0.27.0 // indirect
 	golang.org/x/text v0.20.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20241007155032-5fefd90f89a9 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241007155032-5fefd90f89a9 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20241104194629-dd2ea8efbc28 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241104194629-dd2ea8efbc28 // indirect
 	google.golang.org/grpc v1.67.1 // indirect

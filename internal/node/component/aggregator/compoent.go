@@ -67,20 +67,16 @@ func (c Component) GetFederatedAccount(ctx echo.Context, account string, params 
 
 // Info Interface
 
-func (c Component) Get(ctx echo.Context) error {
-	return c.Info.GetNodeOperator(ctx)
-}
-
-func (c Component) GetVersion(ctx echo.Context) error {
-	return c.Info.GetVersion(ctx)
-}
-
-func (c Component) GetInfo(ctx echo.Context) error {
+func (c Component) GetOperatorsInfo(ctx echo.Context) error {
 	return c.Info.GetNodeInfo(ctx)
 }
 
-func (c Component) GetWorkersStatus(ctx echo.Context) error {
+func (c Component) GetOperatorsWorkersStatus(ctx echo.Context) error {
 	return c.Info.GetWorkersStatus(ctx)
+}
+
+func (c Component) Get(ctx echo.Context) error {
+	return c.Info.GetNodeOperator(ctx)
 }
 
 func (c Component) GetActivityCount(ctx echo.Context) error {

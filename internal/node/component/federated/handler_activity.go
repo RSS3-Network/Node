@@ -43,7 +43,7 @@ func (c *Component) GetActivity(ctx echo.Context, id string, request docs.GetFed
 	activity, page, err := c.getActivity(ctx.Request().Context(), query)
 	if err != nil {
 		zap.L().Error("failed to get federated activity",
-			zap.String("id", request.ID),
+			zap.String("id", id),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
@@ -53,14 +53,14 @@ func (c *Component) GetActivity(ctx echo.Context, id string, request docs.GetFed
 	result, err := c.TransformActivity(ctx.Request().Context(), activity)
 	if err != nil {
 		zap.L().Error("failed to transform federated activity",
-			zap.String("id", request.ID),
+			zap.String("id", id),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
 
 	zap.L().Info("successfully retrieved federated activity",
-		zap.String("id", request.ID))
+		zap.String("id", id))
 
 	return ctx.JSON(http.StatusOK, ActivityResponse{
 		Data: result,
@@ -91,7 +91,7 @@ func (c *Component) GetAccountActivities(ctx echo.Context, account string, reque
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
 		zap.L().Error("failed to get federated account activities cursor",
-			zap.String("account", request.Account),
+			zap.String("account", account),
 			zap.String("cursor", lo.FromPtr(request.Cursor)),
 			zap.Error(err))
 
@@ -116,14 +116,14 @@ func (c *Component) GetAccountActivities(ctx echo.Context, account string, reque
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
 	if err != nil {
 		zap.L().Error("failed to get federated account activities",
-			zap.String("account", request.Account),
+			zap.String("account", account),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
 
 	zap.L().Info("successfully retrieved federated account activities",
-		zap.String("account", request.Account),
+		zap.String("account", account),
 		zap.Int("count", len(activities)))
 
 	return ctx.JSON(http.StatusOK, ActivitiesResponse{

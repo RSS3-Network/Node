@@ -2,6 +2,11 @@ package decentralized
 
 import (
 	"context"
+	"fmt"
+	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"net/http"
 	"strconv"
 
@@ -45,7 +50,7 @@ func (c *Component) GetActivity(ctx echo.Context, id string, request docs.GetDec
 	activity, page, err := c.getActivity(ctx.Request().Context(), query)
 	if err != nil {
 		zap.L().Error("failed to get decentralized activity",
-			zap.String("id", request.ID),
+			zap.String("id", id),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
@@ -63,14 +68,14 @@ func (c *Component) GetActivity(ctx echo.Context, id string, request docs.GetDec
 	result, err := c.TransformActivity(ctx.Request().Context(), activity)
 	if err != nil {
 		zap.L().Error("failed to transform decentralized activity",
-			zap.String("id", request.ID),
+			zap.String("id", id),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
 
 	zap.L().Info("successfully retrieved decentralized activity",
-		zap.String("id", request.ID))
+		zap.String("id", id))
 
 	return ctx.JSON(http.StatusOK, ActivityResponse{
 		Data: result,
@@ -125,14 +130,14 @@ func (c *Component) GetAccountActivities(ctx echo.Context, account string, reque
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
 	if err != nil {
 		zap.L().Error("failed to get decentralized account activities",
-			zap.String("account", request.Account),
+			zap.String("account", account),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
 
 	zap.L().Info("successfully retrieved decentralized account activities",
-		zap.String("account", request.Account),
+		zap.String("account", account),
 		zap.Int("count", len(activities)))
 
 	return ctx.JSON(http.StatusOK, ActivitiesResponse{
@@ -155,11 +160,6 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		if common.IsHexAddress(request.Accounts[i]) {
 			request.Accounts[i] = common.HexToAddress(request.Accounts[i]).String()
 		}
-	}
-
-	types, err := c.parseTypes(request.Type, request.Tag)
-	if err != nil {
-		return response.BadRequestError(ctx, err)
 	}
 
 	if err = defaults.Set(&request); err != nil {
@@ -192,15 +192,15 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
-		Owners: lo.Uniq(request.Accounts),
-		Limit:       request.Limit,
-		ActionLimit: request.ActionLimit,
-		Status:      request.Status,
-		Direction:   request.Direction,
-		Network:     lo.Uniq(request.Network),
-		Tags:        lo.Uniq(request.Tag),
-		Types:       lo.Uniq(request.Type),
-		Platforms:   lo.Uniq(request.Platform),
+		Owners:         lo.Uniq(request.Accounts),
+		Limit:          request.Limit,
+		ActionLimit:    request.ActionLimit,
+		Status:         request.Status,
+		Direction:      request.Direction,
+		Network:        lo.Uniq(request.Network),
+		Tags:           lo.Uniq(request.Tag),
+		Types:          lo.Uniq(request.Type),
+		Platforms:      lo.Uniq(request.Platform),
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)

@@ -35,7 +35,7 @@ func (c *Component) Name() string {
 
 var _ component.Component = (*Component)(nil)
 
-func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller) component.Component {
+func NewComponent(_ context.Context, _ *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller) *Component {
 	httpxClient, err := httpx.NewHTTPClient()
 	if err != nil {
 		return nil
