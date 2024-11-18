@@ -378,10 +378,10 @@ github.com/redis/go-redis/v9 v9.5.1 h1:H1X4D3yHPaYrkL5X06Wh6xNVM/pX0Ft4RV0vMGvLB
 github.com/redis/go-redis/v9 v9.5.1/go.mod h1:hdY0cQFCN4fnSYT6TkisLufl/4W5UIXyv0b/CLO2V2M=
 github.com/redis/rueidis v1.0.49 h1:uhjMcQ663R8st3saoo85VV9Ce37zfvRXiveZcBrS3YQ=
 github.com/redis/rueidis v1.0.49/go.mod h1:by+34b0cFXndxtYmPAHpoTHO5NkosDlBvhexoTURIxM=
-github.com/redis/rueidis/mock v1.0.45 h1:r2LRiwOtFib8+NAuVxNmcdxL7IMUk3as9IGPzx2v5tA=
-github.com/redis/rueidis/mock v1.0.45/go.mod h1:bjpk7ox5jwue03L8NpjgPBE91tLkm9Amla+XFYhaezc=
-github.com/redis/rueidis/rueidiscompat v1.0.45 h1:G+3HIaETgtwr6aL6BOTFCa2DfpPDhxqcoiDn8cvd5Ps=
-github.com/redis/rueidis/rueidiscompat v1.0.45/go.mod h1:JMw3cktmwNqsSl2npjcxrOfLa1L3rmj1Ox5aPHiDjOU=
+github.com/redis/rueidis/mock v1.0.49 h1:MfVL45QLAOH+YnxuqxMIOYsfn+/GLyF4XpWwtBh7IOE=
+github.com/redis/rueidis/mock v1.0.49/go.mod h1:qVb3NaVgfqh1tMJw3+jmuqCUaMU0wu6NPS72TnuFWTE=
+github.com/redis/rueidis/rueidiscompat v1.0.49 h1:6EV2QSiKwGsIQDxJrx5/7NmXSIubH4NxSGAsnlbT9Zo=
+github.com/redis/rueidis/rueidiscompat v1.0.49/go.mod h1:Wepg5l4B2fjGxEiPEg9uzLea+G6D9EGjDSB4/x7VXbw=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/rivo/uniseg v0.2.0 h1:S1pD9weZBuJdFmowNwbpi7BJ8TNftyUImj/0WQi72jY=
