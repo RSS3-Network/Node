@@ -55,7 +55,7 @@ func (s *dataSource) State() json.RawMessage {
 }
 
 func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, errorChan chan<- error) {
-	zap.L().Debug("Starting Arweave data source")
+	zap.L().Debug("starting arweave data source")
 
 	// Initialize dataSource.
 	if err := s.initialize(); err != nil {
@@ -64,20 +64,20 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 		return
 	}
 
-	zap.L().Info("Successfully initialized Arweave data source")
+	zap.L().Info("successfully initialized arweave data source")
 
 	// Start a goroutine to poll blocks.
 	go func() {
 		retryableFunc := func() error {
 			switch {
 			case s.filter.BundlrOnly:
-				zap.L().Debug("Starting to poll transactions from Irys")
+				zap.L().Debug("starting to poll transactions from irys")
 
 				if err := s.pollTransactionsFromIrys(ctx, tasksChan, s.filter); err != nil {
 					return fmt.Errorf("poll transaction froms irys: %w", err)
 				}
 			default:
-				zap.L().Debug("Starting to poll blocks")
+				zap.L().Debug("starting to poll blocks")
 
 				if err := s.pollBlocks(ctx, tasksChan, s.filter); err != nil {
 					return fmt.Errorf("poll blocks: %w", err)
@@ -101,7 +101,7 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 		}
 	}()
 
-	zap.L().Info("Successfully started Arweave data source")
+	zap.L().Info("successfully started arweave data source")
 }
 
 // initialize initializes the dataSource.
@@ -132,7 +132,7 @@ func (s *dataSource) updateBlockHeight(ctx context.Context) {
 
 	if remoteBlockStart > s.state.BlockHeight {
 		s.state.BlockHeight = remoteBlockStart
-		zap.L().Info("Updated block height from remote", zap.Uint64("newBlockHeight", s.state.BlockHeight))
+		zap.L().Info("updated block height from remote", zap.Uint64("newBlockHeight", s.state.BlockHeight))
 	}
 }
 
@@ -150,7 +150,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 	// Get target block height from config
 	// if not set, use the latest block height from arweave network
 	if s.option.BlockTarget != nil {
-		zap.L().Info("Using configured block height target",
+		zap.L().Info("using configured block height target",
 			zap.Uint64("block_height_target", s.option.BlockTarget.Uint64()))
 
 		blockHeightLatestRemote = int64(s.option.BlockTarget.Uint64())
@@ -161,13 +161,13 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 			return fmt.Errorf("get latest block height: %w", err)
 		}
 
-		zap.L().Info("Retrieved latest block height from Arweave network",
+		zap.L().Info("retrieved latest block height from arweave network",
 			zap.Int64("block_height", blockHeightLatestRemote))
 	}
 
 	for {
 		if s.option.BlockTarget != nil && s.option.BlockTarget.Uint64() <= s.state.BlockHeight {
-			zap.L().Info("Reached target block height, stopping poll",
+			zap.L().Info("reached target block height, stopping poll",
 				zap.Uint64("target", s.option.BlockTarget.Uint64()),
 				zap.Uint64("current", s.state.BlockHeight))
 
@@ -185,11 +185,11 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 				return fmt.Errorf("get latest block height: %w", err)
 			}
 
-			zap.L().Debug("Reconfirmed latest block height",
+			zap.L().Debug("reconfirmed latest block height",
 				zap.Int64("block_height", blockHeightLatestRemote))
 
 			if s.state.BlockHeight >= uint64(blockHeightLatestRemote) {
-				zap.L().Debug("Waiting for next block",
+				zap.L().Debug("waiting for next block",
 					zap.Duration("wait_time", defaultBlockTime))
 				// Wait for the next block on arweave network.
 				time.Sleep(defaultBlockTime)
@@ -207,7 +207,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 			blockHeightStart + *s.option.ConcurrentBlockRequests,
 		})
 
-		zap.L().Debug("Pulling blocks by range",
+		zap.L().Debug("pulling blocks by range",
 			zap.Uint64("start", blockHeightStart),
 			zap.Uint64("end", blockHeightEnd))
 
@@ -222,7 +222,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 			return block.Txs
 		})
 
-		zap.L().Debug("Pulling transactions",
+		zap.L().Debug("pulling transactions",
 			zap.Int("transaction_count", len(transactionIDs)))
 
 		// Batch pull transactions by ids.
@@ -243,7 +243,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 		for index, block := range blocks {
 			bundleTransactionIDs := s.GroupBundleTransactions(transactions, block)
 
-			zap.L().Debug("Processing bundle transactions",
+			zap.L().Debug("processing bundle transactions",
 				zap.Int("bundle_transaction_count", len(bundleTransactionIDs)))
 
 			bundleTransactions, err := s.batchPullBundleTransactions(ctx, bundleTransactionIDs)
@@ -271,7 +271,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 
 		tasks := s.buildTasks(ctx, blocks, transactions)
 
-		zap.L().Info("Built tasks from blocks and transactions",
+		zap.L().Info("built tasks from blocks and transactions",
 			zap.Int("block_count", len(blocks)),
 			zap.Int("transaction_count", len(transactions)))
 
@@ -280,7 +280,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 
 		// Update block height to state.
 		s.state.BlockHeight = blockHeightEnd
-		zap.L().Debug("Updated state block height",
+		zap.L().Debug("updated state block height",
 			zap.Uint64("new_block_height", blockHeightEnd))
 	}
 
@@ -289,7 +289,7 @@ func (s *dataSource) pollBlocks(ctx context.Context, tasksChan chan<- *engine.Ta
 
 // pollTransactionsFromIrys polls transactions from Irys GraphQL endpoint.
 func (s *dataSource) pollTransactionsFromIrys(ctx context.Context, tasksChan chan<- *engine.Tasks, filter *Filter) error {
-	zap.L().Info("Starting to poll transactions from Irys",
+	zap.L().Info("starting to poll transactions from irys",
 		zap.Any("filter", filter))
 
 	// Initialize Irys GraphQL client.
@@ -304,7 +304,7 @@ func (s *dataSource) pollTransactionsFromIrys(ctx context.Context, tasksChan cha
 
 	for {
 		// Get transactions from Irys GraphQL endpoint.
-		zap.L().Debug("Fetching transactions from Irys GraphQL",
+		zap.L().Debug("fetching transactions from irys graphql",
 			zap.Strings("owners", filter.OwnerAddresses),
 			zap.String("cursor", s.state.Cursor))
 
@@ -343,7 +343,7 @@ func (s *dataSource) pollTransactionsFromIrys(ctx context.Context, tasksChan cha
 
 		blocks := lo.Values(blockMap)
 
-		zap.L().Debug("Batch pulling transactions from Irys gateway",
+		zap.L().Debug("batch pulling transactions from irys gateway",
 			zap.Int("transaction_count", len(transactionIDs)))
 
 		// Batch pull transactions from Irys gateway.
@@ -364,7 +364,7 @@ func (s *dataSource) pollTransactionsFromIrys(ctx context.Context, tasksChan cha
 			return transaction
 		})
 
-		zap.L().Debug("Batch pulling transaction data from Irys gateway",
+		zap.L().Debug("batch pulling transaction data from irys gateway",
 			zap.Int("transaction_count", len(transactions)))
 
 		// Batch pull transaction data from Irys gateway.
@@ -374,7 +374,7 @@ func (s *dataSource) pollTransactionsFromIrys(ctx context.Context, tasksChan cha
 
 		tasks := s.buildTasks(ctx, blocks, transactions)
 
-		zap.L().Info("Successfully built tasks from Irys transactions",
+		zap.L().Info("successfully built tasks from irys transactions",
 			zap.Int("block_count", len(blocks)),
 			zap.Int("transaction_count", len(transactions)))
 
@@ -383,14 +383,14 @@ func (s *dataSource) pollTransactionsFromIrys(ctx context.Context, tasksChan cha
 
 		// Update cursor to state.
 		s.state.Cursor = transactionsResponse.Transactions.PageInfo.EndCursor
-		zap.L().Debug("Updated state cursor",
+		zap.L().Debug("updated state cursor",
 			zap.String("new_cursor", s.state.Cursor))
 	}
 }
 
 // batchPullBlocksByRange pulls blocks by range, from local state block height to remote block height.
 func (s *dataSource) batchPullBlocksByRange(ctx context.Context, blockHeightStart, blockHeightEnd uint64) ([]*arweave.Block, error) {
-	zap.L().Info("Starting to batch pull blocks by range",
+	zap.L().Info("starting to batch pull blocks by range",
 		zap.Uint64("start_block_height", blockHeightStart),
 		zap.Uint64("end_block_height", blockHeightEnd))
 
@@ -404,7 +404,7 @@ func (s *dataSource) batchPullBlocksByRange(ctx context.Context, blockHeightStar
 		return nil, fmt.Errorf("batch pull blocks: %w", err)
 	}
 
-	zap.L().Info("Successfully pulled blocks by range",
+	zap.L().Info("successfully pulled blocks by range",
 		zap.Int("block_count", len(blocks)),
 		zap.Uint64("start_block_height", blockHeightStart),
 		zap.Uint64("end_block_height", blockHeightEnd))
@@ -414,7 +414,7 @@ func (s *dataSource) batchPullBlocksByRange(ctx context.Context, blockHeightStar
 
 // batchPullBlocks pulls blocks by block heights.
 func (s *dataSource) batchPullBlocks(ctx context.Context, blockHeights []*big.Int) ([]*arweave.Block, error) {
-	zap.L().Debug("Starting to batch pull blocks",
+	zap.L().Debug("starting to batch pull blocks",
 		zap.Any("block_heights", blockHeights))
 
 	resultPool := pool.NewWithResults[*arweave.Block]().
@@ -435,7 +435,7 @@ func (s *dataSource) batchPullBlocks(ctx context.Context, blockHeights []*big.In
 				retry.Delay(defaultRetryDelay),
 				retry.DelayType(retry.BackOffDelay),
 				retry.OnRetry(func(attempt uint, err error) {
-					zap.L().Error("Failed to pull block, retrying",
+					zap.L().Error("failed to pull block, retrying",
 						zap.Stringer("block_height", blockHeight),
 						zap.Uint("attempt", attempt),
 						zap.Error(err))
@@ -444,7 +444,7 @@ func (s *dataSource) batchPullBlocks(ctx context.Context, blockHeights []*big.In
 		})
 	}
 
-	zap.L().Debug("Successfully pulled blocks",
+	zap.L().Debug("successfully pulled blocks",
 		zap.Any("block_heights", blockHeights))
 
 	return resultPool.Wait()
@@ -452,7 +452,7 @@ func (s *dataSource) batchPullBlocks(ctx context.Context, blockHeights []*big.In
 
 // batchPullTransactions pulls transactions by transaction ids.
 func (s *dataSource) batchPullTransactions(ctx context.Context, arweaveClient arweave.Client, transactionIDs []string) ([]*arweave.Transaction, error) {
-	zap.L().Debug("Starting to batch pull transactions",
+	zap.L().Debug("starting to batch pull transactions",
 		zap.Int("transaction_count", len(transactionIDs)))
 
 	resultPool := pool.NewWithResults[*arweave.Transaction]().
@@ -474,7 +474,7 @@ func (s *dataSource) batchPullTransactions(ctx context.Context, arweaveClient ar
 				retry.Delay(defaultRetryDelay),
 				retry.DelayType(retry.BackOffDelay),
 				retry.OnRetry(func(attempt uint, err error) {
-					zap.L().Error("Failed to pull transaction, retrying",
+					zap.L().Error("failed to pull transaction, retrying",
 						zap.String("transaction_id", transactionID),
 						zap.Uint("attempt", attempt),
 						zap.Error(err))
@@ -488,7 +488,7 @@ func (s *dataSource) batchPullTransactions(ctx context.Context, arweaveClient ar
 		return nil, err
 	}
 
-	zap.L().Debug("Successfully pulled transactions",
+	zap.L().Debug("successfully pulled transactions",
 		zap.Int("transaction_count", len(transactions)))
 
 	return transactions, nil
@@ -497,7 +497,7 @@ func (s *dataSource) batchPullTransactions(ctx context.Context, arweaveClient ar
 // batchPullData pulls data by transactions.
 // It will discard the transaction if the owner is bundlr node.
 func (s *dataSource) batchPullData(ctx context.Context, arweaveClient arweave.Client, transactions []*arweave.Transaction, skipBundler bool) error {
-	zap.L().Debug("Starting to batch pull transaction data",
+	zap.L().Debug("starting to batch pull transaction data",
 		zap.Int("transaction_count", len(transactions)),
 		zap.Bool("skip_bundler", skipBundler))
 
@@ -516,7 +516,7 @@ func (s *dataSource) batchPullData(ctx context.Context, arweaveClient arweave.Cl
 
 		// If `skipBundler` is true, skip the transaction if the owner is Bundlr node.
 		if skipBundler && lo.Contains(s.filter.BundlrAddresses, owner) {
-			zap.L().Debug("Skipping bundler transaction",
+			zap.L().Debug("skipping bundler transaction",
 				zap.String("transaction_id", transaction.ID),
 				zap.String("owner", owner))
 
@@ -528,7 +528,7 @@ func (s *dataSource) batchPullData(ctx context.Context, arweaveClient arweave.Cl
 				response, err := arweaveClient.GetTransactionData(ctx, transaction.ID)
 				if err != nil {
 					if errors.Is(err, arweave.ErrorNotFound) {
-						zap.L().Warn("Transaction data not found",
+						zap.L().Error("transaction data not found",
 							zap.String("transaction_id", transaction.ID))
 						return "", nil
 					}
@@ -552,7 +552,7 @@ func (s *dataSource) batchPullData(ctx context.Context, arweaveClient arweave.Cl
 				retry.Delay(defaultRetryDelay),
 				retry.DelayType(retry.BackOffDelay),
 				retry.OnRetry(func(attempt uint, err error) {
-					zap.L().Error("Failed to pull transaction data, retrying",
+					zap.L().Error("failed to pull transaction data, retrying",
 						zap.String("transaction_id", transaction.ID),
 						zap.Uint("attempt", attempt),
 						zap.Error(err))
@@ -563,7 +563,7 @@ func (s *dataSource) batchPullData(ctx context.Context, arweaveClient arweave.Cl
 		})
 	}
 
-	zap.L().Debug("Successfully batch pull transaction data",
+	zap.L().Debug("successfully batch pull transaction data",
 		zap.Int("transaction_count", len(transactions)))
 
 	return resultPool.Wait()
@@ -571,7 +571,7 @@ func (s *dataSource) batchPullData(ctx context.Context, arweaveClient arweave.Cl
 
 // batchPullBundleTransactions pulls bundle transactions by transaction ids.
 func (s *dataSource) batchPullBundleTransactions(ctx context.Context, transactionIDs []string) ([]*arweave.Transaction, error) {
-	zap.L().Debug("Starting to batch pull bundle transactions",
+	zap.L().Debug("starting to batch pull bundle transactions",
 		zap.Int("transaction_count", len(transactionIDs)))
 
 	resultPool := pool.NewWithResults[[]*arweave.Transaction]().
@@ -598,7 +598,7 @@ func (s *dataSource) batchPullBundleTransactions(ctx context.Context, transactio
 				retry.Delay(defaultRetryDelay),
 				retry.DelayType(retry.BackOffDelay),
 				retry.OnRetry(func(attempt uint, err error) {
-					zap.L().Error("Failed to pull bundle transaction, retrying",
+					zap.L().Error("failed to pull bundle transaction, retrying",
 						zap.String("transaction_id", transactionID),
 						zap.Uint("attempt", attempt),
 						zap.Error(err))
@@ -612,7 +612,7 @@ func (s *dataSource) batchPullBundleTransactions(ctx context.Context, transactio
 		return nil, fmt.Errorf("wait result pool: %w", err)
 	}
 
-	zap.L().Debug("Successfully batch pull bundle transactions",
+	zap.L().Debug("successfully batch pull bundle transactions",
 		zap.Int("transaction_count", len(bundleTransactions)))
 
 	return lo.Flatten(bundleTransactions), nil
@@ -620,14 +620,14 @@ func (s *dataSource) batchPullBundleTransactions(ctx context.Context, transactio
 
 // pullBundleTransactions pulls bundle transactions by transaction id.
 func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID string) ([]*arweave.Transaction, error) {
-	zap.L().Debug("Starting to pull bundle transactions", zap.String("transaction_id", transactionID))
+	zap.L().Debug("starting to pull bundle transactions", zap.String("transaction_id", transactionID))
 
 	bundleTransactions := make([]*arweave.Transaction, 0)
 
 	response, err := s.arweaveClient.GetTransactionData(ctx, transactionID)
 	if err != nil {
 		if errors.Is(err, arweave.ErrorNotFound) {
-			zap.L().Warn("Bundle transaction not found",
+			zap.L().Error("bundle transaction not found",
 				zap.String("transaction_id", transactionID))
 			return nil, nil
 		}
@@ -642,7 +642,7 @@ func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID s
 	header, err := decoder.DecodeHeader()
 	if err != nil {
 		// Ignore invalid bundle transaction.
-		zap.L().Error("Failed to decode bundle header, discarding invalid bundle transaction",
+		zap.L().Error("failed to decode bundle header, discarding invalid bundle transaction",
 			zap.String("transaction_id", transactionID),
 			zap.Error(err))
 
@@ -655,7 +655,7 @@ func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID s
 		dataItem, err := decoder.DecodeDataItem()
 		if err != nil {
 			// Ignore invalid signature and data length.
-			zap.L().Error("Failed to decode data item",
+			zap.L().Error("failed to decode data item",
 				zap.Error(err),
 				zap.String("transaction_id", transactionID))
 
@@ -678,7 +678,7 @@ func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID s
 
 		transactionOwner, err := arweave.PublicKeyToAddress(bundleTransaction.Owner)
 		if err != nil {
-			zap.L().Error("Invalid owner of transaction",
+			zap.L().Error("invalid owner of transaction",
 				zap.String("id", dataItemInfo.ID),
 				zap.Any("owner", bundleTransaction.Owner),
 				zap.Error(err))
@@ -688,7 +688,7 @@ func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID s
 
 		// Filter owner addresses.
 		if !lo.Contains(s.filter.OwnerAddresses, transactionOwner) {
-			zap.L().Debug("Skipping transaction with non-matching owner",
+			zap.L().Debug("skipping transaction with non-matching owner",
 				zap.String("id", dataItemInfo.ID),
 				zap.String("owner", transactionOwner))
 
@@ -703,7 +703,7 @@ func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID s
 		if err != nil {
 			// when pull data from arweave, sometimes it will return INTERNAL_ERROR; received from peer, we can ignore it.
 			if strings.Contains(err.Error(), "INTERNAL_ERROR; received from peer") {
-				zap.L().Warn("Ignoring INTERNAL_ERROR from peer",
+				zap.L().Warn("ignoring internal error from peer",
 					zap.String("data_item_id", dataItemInfo.ID))
 
 				continue
@@ -718,7 +718,7 @@ func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID s
 		bundleTransactions = append(bundleTransactions, &bundleTransaction)
 	}
 
-	zap.L().Debug("Successfully pull bundle transactions",
+	zap.L().Debug("successfully pull bundle transactions",
 		zap.String("transaction_id", transactionID))
 
 	return bundleTransactions, nil
@@ -726,14 +726,14 @@ func (s *dataSource) pullBundleTransactions(ctx context.Context, transactionID s
 
 // GroupBundleTransactions groups bundle transactions by block.
 func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction, block *arweave.Block) []string {
-	zap.L().Debug("Grouping bundle transactions by block",
+	zap.L().Debug("grouping bundle transactions by block",
 		zap.Int("transaction_count", len(transactions)))
 
 	filtered := lo.FilterMap(transactions, func(transaction *arweave.Transaction, _ int) (string, bool) {
 		hasBundleFormatTag := lo.ContainsBy(transaction.Tags, func(tag arweave.Tag) bool {
 			tagName, err := base64.RawURLEncoding.DecodeString(tag.Name)
 			if err != nil {
-				zap.L().Error("Failed to decode bundle format tag name",
+				zap.L().Error("failed to decode bundle format tag name",
 					zap.String("transaction_id", transaction.ID),
 					zap.Error(err))
 
@@ -742,7 +742,7 @@ func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction
 
 			tagValue, err := base64.RawURLEncoding.DecodeString(tag.Value)
 			if err != nil {
-				zap.L().Error("Failed to decode bundle format tag value",
+				zap.L().Error("failed to decode bundle format tag value",
 					zap.String("transaction_id", transaction.ID),
 					zap.Error(err))
 
@@ -755,7 +755,7 @@ func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction
 		hasBundleVersionTag := lo.ContainsBy(transaction.Tags, func(tag arweave.Tag) bool {
 			tagName, err := base64.RawURLEncoding.DecodeString(tag.Name)
 			if err != nil {
-				zap.L().Error("Failed to decode bundle version tag name",
+				zap.L().Error("failed to decode bundle version tag name",
 					zap.String("transaction_id", transaction.ID),
 					zap.Error(err))
 
@@ -765,7 +765,7 @@ func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction
 			tagValue, err := base64.RawURLEncoding.DecodeString(tag.Value)
 
 			if err != nil {
-				zap.L().Error("Failed to decode bundle version tag value",
+				zap.L().Error("failed to decode bundle version tag value",
 					zap.String("transaction_id", transaction.ID),
 					zap.Error(err))
 
@@ -776,20 +776,20 @@ func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction
 		})
 
 		if !(hasBundleFormatTag && hasBundleVersionTag) {
-			zap.L().Debug("Transaction missing required bundle tags",
+			zap.L().Debug("transaction missing required bundle tags",
 				zap.String("transaction_id", transaction.ID))
 			return "", false
 		}
 
 		if !lo.Contains(block.Txs, transaction.ID) {
-			zap.L().Debug("Transaction not found in block",
+			zap.L().Debug("transaction not found in block",
 				zap.String("transaction_id", transaction.ID))
 			return "", false
 		}
 
 		owner, err := arweave.PublicKeyToAddress(transaction.Owner)
 		if err != nil {
-			zap.L().Error("Invalid owner of transaction",
+			zap.L().Error("invalid owner of transaction",
 				zap.String("transaction_id", transaction.ID),
 				zap.Error(err))
 
@@ -799,7 +799,7 @@ func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction
 		return transaction.ID, lo.Contains(s.filter.BundlrAddresses, owner)
 	})
 
-	zap.L().Debug("Successfully grouped bundle transactions",
+	zap.L().Debug("successfully grouped bundle transactions",
 		zap.Int("filtered_count", len(filtered)))
 
 	return filtered
@@ -807,13 +807,13 @@ func (s *dataSource) GroupBundleTransactions(transactions []*arweave.Transaction
 
 // discardRootBundleTransaction discards the root bundle transaction.
 func (s *dataSource) discardRootBundleTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
-	zap.L().Debug("Discarding root bundle transactions",
+	zap.L().Debug("discarding root bundle transactions",
 		zap.Int("transaction_count", len(transactions)))
 
 	filtered := lo.Filter(transactions, func(transaction *arweave.Transaction, _ int) bool {
 		transactionOwner, err := arweave.PublicKeyToAddress(transaction.Owner)
 		if err != nil {
-			zap.L().Error("Invalid transaction owner",
+			zap.L().Error("invalid transaction owner",
 				zap.String("transaction_id", transaction.ID),
 				zap.Error(err))
 
@@ -823,7 +823,7 @@ func (s *dataSource) discardRootBundleTransaction(transactions []*arweave.Transa
 		return !lo.Contains(s.filter.BundlrAddresses, transactionOwner)
 	})
 
-	zap.L().Debug("Successfully discarded root bundle transactions",
+	zap.L().Debug("successfully discarded root bundle transactions",
 		zap.Int("original_count", len(transactions)),
 		zap.Int("filtered_count", len(filtered)))
 
@@ -832,7 +832,7 @@ func (s *dataSource) discardRootBundleTransaction(transactions []*arweave.Transa
 
 // discardDuplicateBundleTransaction discards duplicate bundle transactions.
 func (s *dataSource) discardDuplicateBundleTransaction(transactions []*arweave.Transaction) []*arweave.Transaction {
-	zap.L().Debug("Discarding duplicate bundle transactions",
+	zap.L().Debug("discarding duplicate bundle transactions",
 		zap.Int("transaction_count", len(transactions)))
 
 	var (
@@ -842,7 +842,7 @@ func (s *dataSource) discardDuplicateBundleTransaction(transactions []*arweave.T
 
 	for index := range transactions {
 		if _, found := cache[transactions[index].ID]; found {
-			zap.L().Debug("Found duplicate transaction",
+			zap.L().Debug("found duplicate transaction",
 				zap.String("transaction_id", transactions[index].ID))
 
 			continue
@@ -853,7 +853,7 @@ func (s *dataSource) discardDuplicateBundleTransaction(transactions []*arweave.T
 		results = append(results, transactions[index])
 	}
 
-	zap.L().Debug("Successfully discarded duplicate bundle transactions",
+	zap.L().Debug("successfully discarded duplicate bundle transactions",
 		zap.Int("original_count", len(transactions)),
 		zap.Int("filtered_count", len(results)))
 
@@ -862,14 +862,14 @@ func (s *dataSource) discardDuplicateBundleTransaction(transactions []*arweave.T
 
 // filterOwnerTransaction filters owner transactions.
 func (s *dataSource) filterOwnerTransaction(transactions []*arweave.Transaction, ownerAddress []string) []*arweave.Transaction {
-	zap.L().Debug("Filtering transactions by owner",
+	zap.L().Debug("filtering transactions by owner",
 		zap.Int("transaction_count", len(transactions)),
 		zap.Strings("owner_addresses", ownerAddress))
 
 	filtered := lo.Filter(transactions, func(transaction *arweave.Transaction, _ int) bool {
 		transactionOwner, err := arweave.PublicKeyToAddress(transaction.Owner)
 		if err != nil {
-			zap.L().Error("Invalid transaction owner",
+			zap.L().Error("invalid transaction owner",
 				zap.String("transaction_id", transaction.ID),
 				zap.Error(err))
 
@@ -879,7 +879,7 @@ func (s *dataSource) filterOwnerTransaction(transactions []*arweave.Transaction,
 		return lo.Contains(ownerAddress, transactionOwner)
 	})
 
-	zap.L().Debug("Successfully filtered transactions by owner",
+	zap.L().Debug("successfully filtered transactions by owner",
 		zap.Int("original_count", len(transactions)),
 		zap.Int("filtered_count", len(filtered)))
 
@@ -888,7 +888,7 @@ func (s *dataSource) filterOwnerTransaction(transactions []*arweave.Transaction,
 
 // buildTasks builds tasks from blocks and transactions.
 func (s *dataSource) buildTasks(_ context.Context, blocks []*arweave.Block, transactions []*arweave.Transaction) *engine.Tasks {
-	zap.L().Debug("Building tasks from blocks and transactions",
+	zap.L().Debug("building tasks from blocks and transactions",
 		zap.Int("block_count", len(blocks)),
 		zap.Int("transaction_count", len(transactions)))
 
@@ -906,7 +906,7 @@ func (s *dataSource) buildTasks(_ context.Context, blocks []*arweave.Block, tran
 		})
 	}
 
-	zap.L().Debug("Successfully built tasks",
+	zap.L().Debug("successfully built tasks",
 		zap.Int("task_count", len(tasks.Tasks)))
 
 	return &tasks
@@ -914,7 +914,7 @@ func (s *dataSource) buildTasks(_ context.Context, blocks []*arweave.Block, tran
 
 // NewSource creates a new arweave dataSource.
 func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint *engine.Checkpoint, redisClient rueidis.Client) (engine.DataSource, error) {
-	zap.L().Debug("Creating new Arweave data source")
+	zap.L().Debug("creating new arweave data source")
 
 	var (
 		state State
@@ -947,7 +947,7 @@ func NewSource(config *config.Module, sourceFilter engine.DataSourceFilter, chec
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
-	zap.L().Info("Successfully created new Arweave data source")
+	zap.L().Info("successfully created new arweave data source")
 
 	return &instance, nil
 }

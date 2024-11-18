@@ -230,7 +230,7 @@ func (c *client) call(ctx context.Context, path string, query farcasterQuery, re
 
 			// If the error is an HTTP error and the status code is 4xx, we will not retry.
 			if errors.As(err, &httpErr) && httpErr.StatusCode >= http.StatusBadRequest && httpErr.StatusCode < http.StatusInternalServerError {
-				zap.L().Warn("failed to fetch farcaster request, will not retry", zap.Error(err), zap.Int("status.code", httpErr.StatusCode))
+				zap.L().Error("failed to fetch farcaster request, will not retry", zap.Error(err), zap.Int("status.code", httpErr.StatusCode))
 
 				return retry.Unrecoverable(err)
 			}

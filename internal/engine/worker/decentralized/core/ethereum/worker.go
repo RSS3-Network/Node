@@ -12,6 +12,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc1155"
@@ -32,7 +33,6 @@ import (
 	"github.com/sourcegraph/conc/pool"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -117,8 +117,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	zap.L().Debug("transforming ethereum task", zap.String("task_id", ethereumTask.ID()))
-
 	activity, err := task.BuildActivity()
 	if err != nil {
 		return nil, fmt.Errorf("build activity: %w", err)
@@ -132,8 +130,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	}
 
 	if w.matchNativeTransferTransaction(ethereumTask) {
-		zap.L().Debug("handling native transfer transaction")
-
 		action, err := w.handleNativeTransferTransaction(ctx, ethereumTask)
 		if err != nil {
 			return nil, fmt.Errorf("handle native transfer transaction: %w", err)
@@ -157,13 +153,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			continue
 		}
 
-		zap.L().Debug("handling ethereum log",
-			zap.String("task_id", ethereumTask.ID()),
-			zap.Uint("log_index", log.Index),
-			zap.String("address", log.Address.String()),
-			zap.Any("topic", log.Topics[0]),
-		)
-
 		contextPool.Go(func(ctx context.Context) error {
 			var (
 				logActions []*activityx.Action
@@ -173,49 +162,27 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			switch {
 			// VSL Bridge
 			case w.matchL2StandardBridgeWithdrawalInitiatedLog(ethereumTask, log):
-				zap.L().Debug("handling l2 standard bridge withdrawal initiated log", zap.String("task_id", ethereumTask.ID()))
-
 				logActions, err = w.transformL2StandardBridgeWithdrawalInitiatedLog(ctx, ethereumTask, log)
 			case w.matchL2StandardBridgeDepositFinalizedLog(ethereumTask, log):
-				zap.L().Debug("handling l2 standard bridge deposit finalized log", zap.String("task_id", ethereumTask.ID()))
-
 				logActions, err = w.transformL2StandardBridgeDepositFinalizedLog(ctx, ethereumTask, log)
 			// VSL Staking
 			case w.matchStakingVSLDeposited(ethereumTask, log):
-				zap.L().Debug("handling staking vsl deposited log", zap.String("task_id", ethereumTask.ID()))
-
 				logActions, err = w.handleStakingVSLDeposited(ctx, ethereumTask, log)
 			case w.matchStakingVSLStaked(ethereumTask, log):
-				zap.L().Debug("handling staking vsl staked log", zap.String("task_id", ethereumTask.ID()))
-
 				logActions, err = w.handleStakingVSLStaked(ctx, ethereumTask, log)
 			case w.matchChipsTransfer(ethereumTask, log):
-				zap.L().Debug("handling chips mint log", zap.String("task_id", ethereumTask.ID()))
-
 				logActions, err = w.handleChipsMint(ctx, ethereumTask, log)
 			case w.matchERC20TransferLog(ethereumTask, log):
-				zap.L().Debug("handling erc20 transfer log", zap.String("task_id", ethereumTask.ID()))
-
 				logActions, err = w.handleERC20TransferLog(ctx, ethereumTask, log)
 			case w.matchERC20ApprovalLog(ethereumTask, log):
-				zap.L().Debug("handling erc20 approval log", zap.String("task_id", ethereumTask.ID()))
-
 				logActions, err = w.handleERC20ApproveLog(ctx, ethereumTask, log)
 			case w.matchERC721TransferLog(ethereumTask, log):
-				zap.L().Debug("handling erc721 transfer log", zap.String("task_id", ethereumTask.ID()))
-
 				logActions, err = w.handleERC721TransferLog(ctx, ethereumTask, log)
 			case w.matchERC721ApprovalLog(ethereumTask, log):
-				zap.L().Debug("handling erc721 approval log", zap.String("task_id", ethereumTask.ID()))
-
 				logActions, err = w.handleERC721ApproveLog(ctx, ethereumTask, log)
 			case w.matchERC1155TransferLog(ethereumTask, log):
-				zap.L().Debug("handling erc1155 transfer log", zap.String("task_id", ethereumTask.ID()))
-
 				logActions, err = w.handleERC1155TransferLog(ctx, ethereumTask, log)
 			case w.matchERC1155ApprovalLog(ethereumTask, log):
-				zap.L().Debug("handling erc1155 approval log", zap.String("task_id", ethereumTask.ID()))
-
 				logActions, err = w.handleERC1155ApproveLog(ctx, ethereumTask, log)
 			}
 
@@ -242,8 +209,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, action := range activity.Actions {
 		activity.Type = action.Type
 	}
-
-	zap.L().Debug("successfully transformed ethereum task")
 
 	return activity, nil
 }
@@ -564,14 +529,6 @@ func (w *worker) transformL2StandardBridgeDepositFinalizedLog(ctx context.Contex
 }
 
 func (w *worker) buildTransactionTransferAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building transaction transfer action",
-		zap.String("task_id", task.ID()),
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.Any("token_address", tokenAddress),
-		zap.Any("token_value", tokenValue),
-	)
-
 	chainID, err := network.EthereumChainIDString(task.GetNetwork().String())
 	if err != nil {
 		return nil, fmt.Errorf("invalid chain id: %w", err)
@@ -582,12 +539,7 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
 
-	// If the token value is nil, set it to zero.
-	if tokenValue == nil {
-		tokenValue = big.NewInt(0)
-	}
-
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	var actionType typex.TransactionType
 
@@ -607,20 +559,10 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
 	}
 
-	zap.L().Debug("successfully built transaction transfer action", zap.String("task_id", task.ID()))
-
 	return &action, nil
 }
 
 func (w *worker) buildTransactionApprovalAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress *common.Address, tokenValue *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building transaction approval action",
-		zap.String("task_id", task.ID()),
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.Any("token_address", tokenAddress),
-		zap.Any("token_value", tokenValue),
-	)
-
 	chainID, err := network.EthereumChainIDString(task.GetNetwork().String())
 	if err != nil {
 		return nil, fmt.Errorf("invalid chain id: %w", err)
@@ -631,12 +573,7 @@ func (w *worker) buildTransactionApprovalAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
 
-	// If the token value is nil, set it to zero.
-	if tokenValue == nil {
-		tokenValue = big.NewInt(0)
-	}
-
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	// Use the token value to determine the action type.
 	metadataAction := metadata.ActionTransactionApprove
@@ -654,21 +591,10 @@ func (w *worker) buildTransactionApprovalAction(ctx context.Context, task *sourc
 		},
 	}
 
-	zap.L().Debug("successfully built transaction approval action", zap.String("task_id", task.ID()))
-
 	return &action, nil
 }
 
 func (w *worker) buildCollectibleTransferAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress common.Address, tokenID *big.Int, tokenValue *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building collectible transfer action",
-		zap.String("task_id", task.ID()),
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.String("token_address", tokenAddress.String()),
-		zap.Any("token_id", tokenID),
-		zap.Any("token_value", tokenValue),
-	)
-
 	chainID, err := network.EthereumChainIDString(task.GetNetwork().String())
 	if err != nil {
 		return nil, fmt.Errorf("invalid chain id: %w", err)
@@ -679,12 +605,7 @@ func (w *worker) buildCollectibleTransferAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
 
-	// If the token value is nil, set it to zero.
-	if tokenValue == nil {
-		tokenValue = big.NewInt(0)
-	}
-
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	var actionType typex.CollectibleType
 
@@ -704,21 +625,10 @@ func (w *worker) buildCollectibleTransferAction(ctx context.Context, task *sourc
 		Metadata: metadata.CollectibleTransfer(*tokenMetadata),
 	}
 
-	zap.L().Debug("successfully built collectible transfer action", zap.String("task_id", task.ID()))
-
 	return &action, nil
 }
 
 func (w *worker) buildCollectibleApprovalAction(ctx context.Context, task *source.Task, from common.Address, to common.Address, tokenAddress common.Address, id *big.Int, approved *bool) (*activityx.Action, error) {
-	zap.L().Debug("building collectible approval action",
-		zap.String("task_id", task.ID()),
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.String("token_address", tokenAddress.String()),
-		zap.Any("id", id),
-		zap.Any("approved", approved),
-	)
-
 	chainID, err := network.EthereumChainIDString(task.GetNetwork().String())
 	if err != nil {
 		return nil, fmt.Errorf("invalid chain id: %w", err)
@@ -752,33 +662,18 @@ func (w *worker) buildCollectibleApprovalAction(ctx context.Context, task *sourc
 		},
 	}
 
-	zap.L().Debug("successfully built collectible approval action", zap.String("task_id", task.ID()))
-
 	return &action, nil
 }
 
 // buildExchangeStakingVSLAction builds the exchange staking VSL action.
 func (w *worker) buildExchangeStakingVSLAction(ctx context.Context, task *source.Task, from, to common.Address, tokenValue *big.Int, stakingAction metadata.ExchangeStakingAction) (*activityx.Action, error) {
-	zap.L().Debug("building exchange staking vsl action",
-		zap.String("task_id", task.ID()),
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.Any("token_value", tokenValue),
-		zap.String("staking_action", stakingAction.String()),
-	)
-
 	// The Token always is $RSS3.
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, nil, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
-	// If the token value is nil, set it to zero.
-	if tokenValue == nil {
-		tokenValue = big.NewInt(0)
-	}
-
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	action := activityx.Action{
 		Type:     typex.ExchangeStaking,
@@ -791,35 +686,17 @@ func (w *worker) buildExchangeStakingVSLAction(ctx context.Context, task *source
 		},
 	}
 
-	zap.L().Debug("successfully built exchange staking vsl action", zap.String("task_id", task.ID()))
-
 	return &action, nil
 }
 
 // buildChipsMintAction builds the ChipsMint action.
 func (w *worker) buildChipsMintAction(ctx context.Context, task *source.Task, from, to common.Address, contract common.Address, id *big.Int, value *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building chips mint action",
-		zap.String("task_id", task.ID()),
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.Any("contract", contract),
-		zap.Any("id", id),
-		zap.Any("value", value),
-	)
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, &contract, id, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
 	}
 
-	// If the token value is nil, set it to zero.
-	if value == nil {
-		value = big.NewInt(0)
-	}
-
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
-
-	zap.L().Debug("successfully built chips mint action", zap.String("task_id", task.ID()))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(value), 0))
 
 	return &activityx.Action{
 		Type:     typex.CollectibleMint,
@@ -831,27 +708,12 @@ func (w *worker) buildChipsMintAction(ctx context.Context, task *source.Task, fr
 }
 
 func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address, source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int, blockNumber *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building transaction bridge action",
-		zap.String("sender", sender.String()),
-		zap.String("receiver", receiver.String()),
-		zap.String("source", source.String()),
-		zap.String("target", target.String()),
-		zap.String("bridge_action", bridgeAction.String()),
-		zap.Any("token_address", tokenAddress),
-		zap.Any("token_value", tokenValue),
-	)
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
 
-	// If the token value is nil, set it to zero.
-	if tokenValue == nil {
-		tokenValue = big.NewInt(0)
-	}
-
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	action := activityx.Action{
 		Type:     typex.TransactionBridge,
@@ -865,8 +727,6 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 			Token:         *tokenMetadata,
 		},
 	}
-
-	zap.L().Debug("successfully built transaction bridge action")
 
 	return &action, nil
 }

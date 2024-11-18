@@ -227,7 +227,7 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 		v.AddConfigPath(path.Join(currentDir, "deploy"))
 		zap.L().Debug("added current directory config paths", zap.String("currentDir", currentDir))
 	} else {
-		zap.L().Warn("failed to get current directory", zap.Error(err))
+		zap.L().Error("failed to get current directory", zap.Error(err))
 	}
 
 	v.SetEnvPrefix(EnvPrefix)

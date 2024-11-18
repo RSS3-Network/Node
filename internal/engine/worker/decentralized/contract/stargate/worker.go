@@ -10,6 +10,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/layerzero"
@@ -84,8 +85,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 	// If the task does not meet the filter conditions, it will be discarded.
 	if !matched {
-		zap.L().Warn("unmatched task", zap.String("task.id", task.ID()))
-
 		return nil, nil
 	}
 
@@ -93,8 +92,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
-
-	zap.L().Debug("transforming stargate task", zap.String("task_id", ethereumTask.ID()))
 
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
@@ -109,27 +106,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
-			zap.L().Debug("ignoring anonymous log")
-
 			continue
 		}
 
-		zap.L().Debug("matching stargate event",
-			zap.String("address", log.Address.String()),
-			zap.String("topic", log.Topics[0].String()))
-
 		switch {
 		case w.matchPoolSwapLog(ethereumTask, log):
-			zap.L().Debug("matching pool swap log")
-
 			actions, err = w.transformLPoolSwapLog(ctx, ethereumTask, log)
 		case w.matchPoolSwapRemoteLog(ethereumTask, log):
-			zap.L().Debug("matching pool swap remote log")
-
 			actions, err = w.transformLPoolSwapRemoteLog(ctx, ethereumTask, log)
 		default:
-			zap.L().Debug("no matching stargate event")
-
 			continue
 		}
 
@@ -140,8 +125,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		activity.Type = typex.TransactionBridge
 		activity.Actions = append(activity.Actions, actions...)
 	}
-
-	zap.L().Debug("successfully transformed stargate task")
 
 	return activity, nil
 }
@@ -239,13 +222,13 @@ func (w *worker) transformLPoolSwapLog(ctx context.Context, task *source.Task, l
 		return nil, fmt.Errorf("build transaction bridge action: %w", err)
 	}
 
-	layerzeroFeeValue := decimal.NewFromBigInt(task.Transaction.Value, 0)
+	layerzeroFeeValue := decimal.NewFromBigInt(utils.GetBigInt(task.Transaction.Value), 0)
 	if stargate.IsSGETH(tokenAddress) {
 		layerzeroFeeValue = layerzeroFeeValue.
-			Sub(decimal.NewFromBigInt(event.AmountSD, 0)).
-			Sub(decimal.NewFromBigInt(event.EqFee, 0)).
-			Sub(decimal.NewFromBigInt(event.ProtocolFee, 0)).
-			Sub(decimal.NewFromBigInt(event.LpFee, 0))
+			Sub(decimal.NewFromBigInt(utils.GetBigInt(event.AmountSD), 0)).
+			Sub(decimal.NewFromBigInt(utils.GetBigInt(event.EqFee), 0)).
+			Sub(decimal.NewFromBigInt(utils.GetBigInt(event.ProtocolFee), 0)).
+			Sub(decimal.NewFromBigInt(utils.GetBigInt(event.LpFee), 0))
 	}
 
 	layerzeroUltraLightNodeAddress, exists := layerzero.UltraLightNodeAddress(task.Network)
@@ -259,9 +242,9 @@ func (w *worker) transformLPoolSwapLog(ctx context.Context, task *source.Task, l
 	}
 
 	stargateFee := decimal.Zero.
-		Add(decimal.NewFromBigInt(event.EqFee, 0)).
-		Add(decimal.NewFromBigInt(event.ProtocolFee, 0)).
-		Add(decimal.NewFromBigInt(event.LpFee, 0))
+		Add(decimal.NewFromBigInt(utils.GetBigInt(event.EqFee), 0)).
+		Add(decimal.NewFromBigInt(utils.GetBigInt(event.ProtocolFee), 0)).
+		Add(decimal.NewFromBigInt(utils.GetBigInt(event.LpFee), 0))
 
 	stargateFeeAction, err := w.buildTransactionTransferAction(ctx, task, task.Transaction.From, event.Raw.Address, lo.Ternary(stargate.IsSGETH(tokenAddress), nil, &tokenAddress), stargateFee.BigInt())
 	if err != nil {
@@ -330,21 +313,12 @@ func (w *worker) transformLPoolSwapRemoteLog(ctx context.Context, task *source.T
 
 // buildTransactionBridgeAction builds the transaction bridge action.
 func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint64, sender, receiver common.Address, source, target network.Network, bridgeAction metadata.TransactionBridgeAction, tokenAddress *common.Address, tokenValue *big.Int, blockNumber *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building transaction bridge action",
-		zap.String("sender", sender.String()),
-		zap.String("receiver", receiver.String()),
-		zap.String("source", source.String()),
-		zap.String("target", target.String()),
-		zap.String("bridge_action", bridgeAction.String()),
-		zap.Any("token_address", tokenAddress),
-		zap.Any("token_value", tokenValue))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	action := activityx.Action{
 		Type:     typex.TransactionBridge,
@@ -359,25 +333,17 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 		},
 	}
 
-	zap.L().Debug("successfully built transaction bridge action")
-
 	return &action, nil
 }
 
 // buildTransactionTransferAction builds the Ethereum transaction transfer action.
 func (w *worker) buildTransactionTransferAction(ctx context.Context, task *source.Task, sender, receipt common.Address, token *common.Address, value *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building transaction transfer action",
-		zap.String("sender", sender.String()),
-		zap.String("receipt", receipt.String()),
-		zap.Any("token_address", token),
-		zap.Any("token_value", value))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, token, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(value), 0))
 
 	action := activityx.Action{
 		Type:     typex.TransactionTransfer,
@@ -385,8 +351,6 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 		To:       receipt.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
 	}
-
-	zap.L().Debug("successfully built transaction transfer action")
 
 	return &action, nil
 }

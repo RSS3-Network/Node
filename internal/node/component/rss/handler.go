@@ -15,7 +15,7 @@ type Response struct {
 
 func (h *Component) Handler(ctx echo.Context) error {
 	path := ctx.Param("*")
-	zap.L().Debug("Handling RSS request",
+	zap.L().Debug("handling RSS request",
 		zap.String("path", path),
 		zap.String("request_uri", ctx.Request().RequestURI))
 
@@ -27,14 +27,14 @@ func (h *Component) Handler(ctx echo.Context) error {
 
 	data, err := h.getActivities(ctx.Request().Context(), path, ctx.Request().URL)
 	if err != nil {
-		zap.L().Error("Failed to get activities from RSS feed",
+		zap.L().Error("failed to get activities from RSS feed",
 			zap.String("path", path),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
 
-	zap.L().Info("Successfully retrieved RSS activities",
+	zap.L().Info("successfully retrieved RSS activities",
 		zap.String("path", path),
 		zap.Int("activity_count", len(data)))
 

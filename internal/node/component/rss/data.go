@@ -26,7 +26,7 @@ func (h *Component) getActivities(ctx context.Context, path string, url *url.URL
 		return nil, fmt.Errorf("format request: %w", err)
 	}
 
-	zap.L().Debug("Sending request to RSSHub",
+	zap.L().Debug("sending request to RSSHub",
 		zap.String("url", request.String()))
 
 	//nolint:bodyclose // False positive
@@ -35,7 +35,7 @@ func (h *Component) getActivities(ctx context.Context, path string, url *url.URL
 		return nil, fmt.Errorf("failed to get RSSHub response: %w", err)
 	}
 
-	zap.L().Debug("Successfully received response from RSSHub",
+	zap.L().Debug("successfully received response from RSSHub",
 		zap.Int("status_code", response.StatusCode))
 
 	return h.formatResponse(ctx, response)

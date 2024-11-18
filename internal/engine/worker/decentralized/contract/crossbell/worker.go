@@ -15,6 +15,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/crossbell"
@@ -36,7 +37,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 // Worker is the worker for Crossbell.
@@ -124,8 +124,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	zap.L().Debug("transforming crossbell task", zap.String("task_id", ethereumTask.ID()))
-
 	// Build default crossbell activity from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
@@ -136,8 +134,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
-			zap.L().Debug("skipping anonymous log")
-
 			continue
 		}
 
@@ -146,71 +142,37 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
-		zap.L().Debug("processing log",
-			zap.String("address", log.Address.String()),
-			zap.String("topic", log.Topics[0].String()))
-
 		// Match crossbell core contract events
 		switch {
 		case w.matchProfileCreated(ethereumTask, log):
-			zap.L().Debug("processing profile created event")
-
 			actions, err = w.transformProfileCreated(ctx, ethereumTask, log)
 		case w.matchSetProfileURI(ethereumTask, log):
-			zap.L().Debug("processing set profile URI event")
-
 			actions, err = w.transformSetProfileURI(ctx, ethereumTask, log)
 		case w.matchCharacterCreated(ethereumTask, log):
-			zap.L().Debug("processing character created event")
-
 			actions, err = w.transformCharacterCreated(ctx, ethereumTask, log)
 		case w.matchCharacterSetHandle(ethereumTask, log):
-			zap.L().Debug("processing character set handle event")
-
 			actions, err = w.transformCharacterSetHandle(ctx, ethereumTask, log)
 		case w.matchSetCharacterURI(ethereumTask, log):
-			zap.L().Debug("processing set character URI event")
-
 			actions, err = w.transformSetCharacterURI(ctx, ethereumTask, log)
 		case w.matchPostCreated(ethereumTask, log):
-			zap.L().Debug("processing post created event")
-
 			actions, err = w.transformPostCreated(ctx, ethereumTask, log)
 		case w.matchSetNoteURI(ethereumTask, log):
-			zap.L().Debug("processing set note URI event")
-
 			actions, err = w.transformSetNoteURI(ctx, ethereumTask, log)
 		case w.matchDeleteNote(ethereumTask, log):
-			zap.L().Debug("processing delete note event")
-
 			actions, err = w.transformDeleteNote(ctx, ethereumTask, log)
 		case w.matchMintNote(ethereumTask, log):
-			zap.L().Debug("processing mint note event")
-
 			actions, err = w.transformMintNote(ctx, ethereumTask, log)
 		case w.matchSetOperator(ethereumTask, log):
-			zap.L().Debug("processing set operator event")
-
 			actions, err = w.transformSetOperator(ctx, ethereumTask, log)
 		case w.matchAddOperator(ethereumTask, log):
-			zap.L().Debug("processing add operator event")
-
 			actions, err = w.transformAddOperator(ctx, ethereumTask, log)
 		case w.matchRemoveOperator(ethereumTask, log):
-			zap.L().Debug("processing remove operator event")
-
 			actions, err = w.transformRemoveOperator(ctx, ethereumTask, log)
 		case w.matchGrantOperatorPermissions(ethereumTask, log):
-			zap.L().Debug("processing grant operator permissions event")
-
 			actions, err = w.transformGrantOperatorPermissions(ctx, ethereumTask, log)
 		case w.matchTipsCharacterForNote(ethereumTask, log):
-			zap.L().Debug("processing tips character for note event")
-
 			actions, err = w.transformTipsCharacterForNote(ctx, ethereumTask, log)
 		default:
-			zap.L().Debug("skipping unsupported log")
-
 			continue
 		}
 
@@ -225,8 +187,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		activity.Actions = append(activity.Actions, actions...)
 	}
-
-	zap.L().Debug("successfully transformed crossbell task")
 
 	return activity, nil
 }
@@ -525,7 +485,7 @@ func (w *worker) transformTipsCharacterForNote(ctx context.Context, task *source
 		return nil, fmt.Errorf("lookup token metadata %s: %w", event.Token, err)
 	}
 
-	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(event.Amount, 0))
+	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount), 0))
 
 	post.Reward = rewardTokenMetadata
 
@@ -692,7 +652,7 @@ func (w *worker) buildPostMetadata(ctx context.Context, blockNumber, characterID
 
 	content, err := w.getIPFSContent(ctx, contentURI)
 	if err != nil {
-		return nil, common.Hash{}, "", err
+		return nil, common.Hash{}, "", fmt.Errorf("get ipfs content: %w, uri: %s", err, contentURI)
 	}
 
 	var note NoteContent
@@ -776,7 +736,7 @@ func (w *worker) buildProfileMetadata(
 	if lo.IsNotEmpty(uri) {
 		content, err := w.getIPFSContent(ctx, uri)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("get ipfs content: %w, uri: %s", err, uri)
 		}
 
 		mimeType := http.DetectContentType(content)
@@ -935,7 +895,7 @@ func (w *worker) buildCharacterProfileMetadata(
 	if !lo.IsEmpty(uri) {
 		content, err := w.getIPFSContent(ctx, uri)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("get ipfs content: %w, uri: %s", err, uri)
 		}
 
 		var characterURI CharacterURIContent
@@ -1040,24 +1000,15 @@ func (w *worker) buildProfileHandleSuffix(_ context.Context, handle string) stri
 
 // getIPFSContent gets IPFS content.
 func (w *worker) getIPFSContent(ctx context.Context, contentURI string) (json.RawMessage, error) {
-	zap.L().Debug("getting IPFS content",
-		zap.String("content_uri", contentURI))
-
 	_, path, err := ipfs.ParseURL(contentURI)
 	if err != nil {
 		return nil, fmt.Errorf("parse ipfs url: %w", err)
 	}
 
-	zap.L().Debug("fetching IPFS content",
-		zap.String("path", path))
-
 	body, err := w.ipfsClient.Fetch(ctx, path, ipfs.FetchModeQuick)
 	if err != nil {
 		return nil, fmt.Errorf("quick fetch ipfs: %w", err)
 	}
-
-	zap.L().Debug("successfully fetched IPFS content",
-		zap.String("path", path))
 
 	return io.ReadAll(body)
 }

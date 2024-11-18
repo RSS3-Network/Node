@@ -13,6 +13,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/matters"
@@ -91,8 +92,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	zap.L().Debug("transforming matters task", zap.String("task_id", ethereumTask.ID()))
-
 	// Build the activity.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
@@ -102,8 +101,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
-			zap.L().Debug("skipping anonymous log")
-
 			continue
 		}
 
@@ -112,23 +109,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
-		zap.L().Debug("processing ethereum log",
-			zap.String("address", log.Address.String()),
-			zap.String("topic", log.Topics[0].String()))
-
 		switch {
 		case w.matchEthereumCurationTransaction(log):
-			zap.L().Debug("matched ethereum curation transaction")
-
 			actions, err = w.handleEthereumCurationTransaction(ctx, *ethereumTask, *log, activity)
 		default:
-			zap.L().Debug("no matching event found for log")
-
 			continue
 		}
 
 		if err != nil {
-			zap.L().Warn("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
+			zap.L().Error("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
 
 			return nil, err
 		}
@@ -138,8 +127,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 	activity.TotalActions = uint(len(activity.Actions))
 	activity.Tag = tag.Social
-
-	zap.L().Debug("successfully transformed matters task")
 
 	return activity, nil
 }
@@ -168,8 +155,6 @@ func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task sou
 }
 
 func (w *worker) fetchArticle(ctx context.Context, uri string) (*readability.Article, error) {
-	zap.L().Debug("fetching article", zap.String("uri", uri))
-
 	_, path, err := ipfs.ParseURL(uri)
 
 	var (
@@ -182,15 +167,11 @@ func (w *worker) fetchArticle(ctx context.Context, uri string) (*readability.Art
 			return nil, fmt.Errorf("parse IPFS URL: %w", err)
 		}
 
-		zap.L().Debug("fetching from IPFS", zap.String("path", path))
-
 		readCloser, err = w.ipfsClient.Fetch(ctx, path, ipfs.FetchModeQuick)
 		if err != nil {
 			return nil, fmt.Errorf("quick fetch %s: %w", path, err)
 		}
 	default:
-		zap.L().Debug("fetching from HTTP", zap.String("uri", uri))
-
 		readCloser, err = w.httpClient.Fetch(ctx, uri)
 		if err != nil {
 			return nil, fmt.Errorf("fetch metadata from HTTP %s: %w", uri, err)
@@ -202,7 +183,6 @@ func (w *worker) fetchArticle(ctx context.Context, uri string) (*readability.Art
 		return nil, fmt.Errorf("parse html: %w", err)
 	}
 
-	zap.L().Debug("removing unused HTML tags")
 	w.removeUnusedHTMLTags(node)
 
 	article, err := w.readabilityParser.ParseDocument(node, nil)
@@ -217,8 +197,6 @@ func (w *worker) fetchArticle(ctx context.Context, uri string) (*readability.Art
 	}
 
 	article.Byline = w.filterName(article.Byline)
-
-	zap.L().Debug("successfully fetched and parsed article")
 
 	return &article, nil
 }
@@ -248,15 +226,7 @@ func (w *worker) removeUnusedHTMLTags(node *html.Node) {
 }
 
 func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Task, trigger, recipient, token common.Address, amount *big.Int, uri string) (*activityx.Action, error) {
-	zap.L().Debug("building ethereum curation action",
-		zap.String("trigger", trigger.String()),
-		zap.String("recipient", recipient.String()),
-		zap.String("token", token.String()),
-		zap.Any("amount", amount),
-		zap.String("uri", uri))
-
 	article, err := w.fetchArticle(ctx, uri)
-
 	if err != nil || article == nil {
 		return nil, fmt.Errorf("fetch article: %w", err)
 	}
@@ -266,9 +236,7 @@ func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Ta
 		return nil, fmt.Errorf("lookup token metadata %s: %w", "", err)
 	}
 
-	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
-
-	zap.L().Debug("successfully built ethereum curation action")
+	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amount), 0))
 
 	return &activityx.Action{
 		Type:     typex.SocialReward,

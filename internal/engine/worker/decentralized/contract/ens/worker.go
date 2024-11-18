@@ -15,6 +15,7 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/ens"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc1155"
@@ -30,7 +31,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 // Worker is the worker for ENS.
@@ -119,12 +119,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type: %T", task)
 	}
 
-	zap.L().Debug("transforming ENS task", zap.String("task_id", ethereumTask.ID()))
-
 	// Build default ens _activities from task.
-	_activities, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
+	activities, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build _activities: %w", err)
+		return nil, fmt.Errorf("build activities: %w", err)
 	}
 
 	exist := lo.ContainsBy(ethereumTask.Receipt.Logs, func(log *ethereum.Log) bool {
@@ -139,96 +137,62 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		)
 
 		if len(log.Topics) == 0 {
-			zap.L().Debug("skipping anonymous log")
-
 			continue
 		}
 
-		zap.L().Debug("processing log",
-			zap.String("address", log.Address.String()),
-			zap.String("topic", log.Topics[0].String()))
-
 		if exist {
-			_activities.Type = typex.CollectibleTrade
+			activities.Type = typex.CollectibleTrade
 
 			switch {
 			case w.matchEnsNameRegisteredV1(ctx, *log):
-				zap.L().Debug("processing ENS name registration V1")
-
 				actions, err = w.transformEnsNameRegisteredV1(ctx, *log, ethereumTask)
 			case w.matchEnsNameRegisteredV2(ctx, *log):
-				zap.L().Debug("processing ENS name registration V2")
-
 				actions, err = w.transformEnsNameRegisteredV2(ctx, *log, ethereumTask)
 			default:
 				continue
 			}
 		} else {
-			_activities.Type = typex.SocialProfile
+			activities.Type = typex.SocialProfile
 
 			switch {
 			case w.matchEnsNameRenewed(ctx, *log):
-				zap.L().Debug("processing ENS name renewal")
-
 				actions, err = w.transformEnsNameRenewed(ctx, *log, ethereumTask)
 			case w.matchEnsTextChanged(ctx, *log):
-				zap.L().Debug("processing ENS text change")
-
 				actions, err = w.transformEnsTextChanged(ctx, *log, ethereumTask)
 			case w.matchEnsTextChangedWithValue(ctx, *log):
-				zap.L().Debug("processing ENS text change with value")
-
 				actions, err = w.transformEnsTextChangedWithValue(ctx, *log, ethereumTask)
 			case w.matchEnsNameWrapped(ctx, *log):
-				zap.L().Debug("processing ENS name wrap")
-
 				actions, err = w.transformEnsNameWrapped(ctx, *log, ethereumTask)
 			case w.matchEnsNameUnwrapped(ctx, *log):
-				zap.L().Debug("processing ENS name unwrap")
-
 				actions, err = w.transformEnsNameUnwrapped(ctx, *log, ethereumTask)
 			case w.matchEnsFusesSet(ctx, *log):
-				zap.L().Debug("processing ENS fuses set")
-
 				actions, err = w.transformEnsFusesSet(ctx, *log, ethereumTask)
 			case w.matchEnsContenthashChanged(ctx, *log):
-				zap.L().Debug("processing ENS content hash change")
-
 				actions, err = w.transformEnsContenthashChanged(ctx, *log, ethereumTask)
 			case w.matchEnsNameChanged(ctx, *log):
-				zap.L().Debug("processing ENS name change")
-
 				actions, err = w.transformEnsNameChanged(ctx, *log, ethereumTask)
 			case w.matchEnsAddressChanged(ctx, *log):
-				zap.L().Debug("processing ENS address change")
-
 				actions, err = w.transformEnsAddressChanged(ctx, *log, ethereumTask)
 			case w.matchEnsPubkeyChanged(ctx, *log):
-				zap.L().Debug("processing ENS pubkey change")
-
 				actions, err = w.transformEnsPubkeyChanged(ctx, *log, ethereumTask)
 			default:
-				zap.L().Debug("skipping unmatched log")
-
 				continue
 			}
 		}
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("transform ENS task: %w", err)
 		}
 
 		// Change _activities type to the first action type.
 		for _, action := range actions {
-			_activities.Type = action.Type
+			activities.Type = action.Type
 		}
 
-		_activities.Actions = append(_activities.Actions, actions...)
+		activities.Actions = append(activities.Actions, actions...)
 	}
 
-	zap.L().Debug("successfully transformed ENS task")
-
-	return _activities, nil
+	return activities, nil
 }
 
 // matchEnsNameRegisteredV1 matches events that ENS name register through V1 contract
@@ -517,12 +481,6 @@ func (w *worker) transformEnsPubkeyChanged(ctx context.Context, log ethereum.Log
 }
 
 func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *source.Task, labels [32]byte, from, to common.Address, cost *big.Int, name string) (*activityx.Action, error) {
-	zap.L().Debug("building ethereum ENS register action",
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.String("name", name),
-		zap.Any("cost", cost))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, lo.ToPtr(ens.AddressBaseRegistrarImplementation), new(big.Int).SetBytes(labels[:]), task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s %s: %w", ens.AddressBaseRegistrarImplementation.String(), new(big.Int).SetBytes(labels[:]), err)
@@ -535,7 +493,7 @@ func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("lookup token metadata %s: %w", "", err)
 	}
 
-	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(cost, 0))
+	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(cost), 0))
 
 	// Save namehash into database for further query requirements
 	fullName := fmt.Sprintf("%s.%s", name, "eth")
@@ -545,9 +503,6 @@ func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *sourc
 	}); err != nil {
 		return nil, fmt.Errorf("save dataset ens namehash: %w", err)
 	}
-
-	zap.L().Debug("successfully built ethereum ENS register action",
-		zap.String("name", fullName))
 
 	return &activityx.Action{
 		Type:     typex.CollectibleTrade,
@@ -563,15 +518,6 @@ func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *sourc
 }
 
 func (w *worker) buildEthereumENSProfileAction(_ context.Context, from, to common.Address, expires *big.Int, name, key, value string, action metadata.SocialProfileAction) *activityx.Action {
-	zap.L().Debug("building ethereum ENS profile action",
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.Any("expires", expires),
-		zap.String("name", name),
-		zap.String("key", key),
-		zap.String("value", value),
-		zap.String("action", action.String()))
-
 	label := strings.Split(name, ".eth")[0]
 	tokenID := common.BytesToHash(crypto.Keccak256([]byte(label))).Big()
 
@@ -588,10 +534,6 @@ func (w *worker) buildEthereumENSProfileAction(_ context.Context, from, to commo
 	if expires != nil {
 		socialProfile.Expiry = lo.ToPtr(time.Unix(expires.Int64(), 0))
 	}
-
-	zap.L().Debug("successfully built ethereum ENS profile action",
-		zap.String("profile_id", tokenID.String()),
-		zap.String("handle", name))
 
 	return &activityx.Action{
 		Type:     typex.SocialProfile,

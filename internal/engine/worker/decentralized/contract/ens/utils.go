@@ -16,7 +16,7 @@ func (w *worker) getEnsName(ctx context.Context, _ *big.Int, namehash common.Has
 	// Load name from dataset
 	namehashRecord, err := w.databaseClient.LoadDatasetENSNamehash(ctx, namehash)
 	if err != nil {
-		zap.L().Error("Fail to find ens namehash from dataset", zap.String("namehash", namehash.Hex()), zap.Error(err))
+		zap.L().Error("failed to find ens namehash from dataset", zap.String("namehash", namehash.Hex()), zap.Error(err))
 
 		return "", fmt.Errorf("fail to find ens namehash %v, all methods failed", namehash.String())
 	}

@@ -54,7 +54,7 @@ func (s *Server) Run(ctx context.Context) error {
 		errorChan = make(chan error)
 	)
 
-	zap.L().Info("Starting node server",
+	zap.L().Info("starting node server",
 		zap.String("version", constant.BuildVersion()),
 		zap.String("worker", s.worker.Name()))
 
@@ -63,7 +63,7 @@ func (s *Server) Run(ctx context.Context) error {
 	for {
 		select {
 		case tasks := <-tasksChan:
-			zap.L().Debug("Received tasks from source",
+			zap.L().Debug("received tasks from source",
 				zap.Int("task_count", tasks.Len()))
 
 			retryableFunc := func() error {
@@ -80,7 +80,7 @@ func (s *Server) Run(ctx context.Context) error {
 				retry.DelayType(retry.BackOffDelay), // Use backoff delay type, increasing delay on each retry.
 				retry.MaxDelay(5*time.Minute),
 				retry.OnRetry(func(n uint, err error) {
-					zap.L().Error("Failed to handle tasks, retrying",
+					zap.L().Error("failed to handle tasks, retrying",
 						zap.Uint("retry_count", n),
 						zap.Error(err))
 				}),
@@ -131,7 +131,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 
 	// If no tasks are returned, only save the checkpoint to the database.
 	if tasks.Len() == 0 {
-		zap.L().Info("No tasks to process, saving checkpoint",
+		zap.L().Info("no tasks to process, saving checkpoint",
 			zap.Any("checkpoint", checkpoint))
 
 		if err := s.databaseClient.SaveCheckpoint(ctx, &checkpoint); err != nil {
@@ -147,20 +147,19 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		task := task
 
 		resultPool.Go(func() *activityx.Activity {
-			zap.L().Debug("Starting task transformation",
-				zap.String("task_id", task.ID()))
-
 			activity, err := s.worker.Transform(ctx, task)
 			if err != nil {
-				zap.L().Error("Failed to transform task",
+				zap.L().Error("failed to transform task",
 					zap.String("task_id", task.ID()),
 					zap.Error(err))
 
 				return nil
 			}
 
-			zap.L().Debug("Successfully transformed task",
-				zap.String("task_id", task.ID()))
+			if activity != nil && len(activity.Actions) > 0 {
+				zap.L().Info("successfully transformed task",
+					zap.String("task_id", task.ID()))
+			}
 
 			return activity
 		})
@@ -171,7 +170,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		return activity != nil && len(activity.Actions) > 0
 	})
 
-	zap.L().Info("Task transformation completed",
+	zap.L().Info("task transformation completed",
 		zap.Int("total_tasks", tasks.Len()),
 		zap.Int("successful_activities", len(activities)))
 
@@ -188,7 +187,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		return fmt.Errorf("save %d activities: %w", len(activities), err)
 	}
 
-	zap.L().Info("Successfully saved activities and checkpoint",
+	zap.L().Info("successfully saved activities and checkpoint",
 		zap.Int("activity_count", len(activities)),
 		zap.Any("checkpoint", checkpoint))
 
@@ -206,7 +205,7 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 			return fmt.Errorf("publish %d activities: %w", len(activities), err)
 		}
 
-		zap.L().Debug("Successfully pushed activities to stream",
+		zap.L().Debug("successfully pushed activities to stream",
 			zap.Int("activity_count", len(activities)))
 	}
 
@@ -233,7 +232,7 @@ func (s *Server) initializeMeter() (err error) {
 		return fmt.Errorf("failed to observe meter LatestBlock: %w", err)
 	}
 
-	zap.L().Info("Successfully initialized meters")
+	zap.L().Info("successfully initialized meters")
 
 	return nil
 }
@@ -244,7 +243,7 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 		// get current block height state
 		latestCheckpoint, err := s.databaseClient.LoadCheckpoint(ctx, s.id, s.source.Network(), s.worker.Name())
 		if err != nil {
-			zap.L().Error("Failed to find latest checkpoint",
+			zap.L().Error("failed to find latest checkpoint",
 				zap.Error(err))
 			return
 		}
@@ -253,7 +252,7 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 			// Get the current block height/block number from the checkpoint state.
 			var state monitor.CheckpointState
 			if err := json.Unmarshal(latestCheckpoint.State, &state); err != nil {
-				zap.L().Error("Failed to unmarshal checkpoint state",
+				zap.L().Error("failed to unmarshal checkpoint state",
 					zap.Error(err))
 				return
 			}
@@ -273,7 +272,7 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 				attribute.String("worker", s.worker.Name()),
 			))
 
-			zap.L().Debug("Successfully observed current block metric",
+			zap.L().Debug("successfully observed current block metric",
 				zap.Uint64("current_block", current))
 		}
 	}()
@@ -284,14 +283,14 @@ func (s *Server) currentBlockMetricHandler(ctx context.Context, observer metric.
 // latestBlockMetricHandler gets the latest block height/number from the network rpc.
 func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.Int64Observer) error {
 	go func() {
-		zap.L().Debug("Start getting latest block state")
+		zap.L().Debug("starting to get latest block state")
 
 		var latest uint64
 
 		// get latest block height
 		latestBlockHeight, latestBlockTimestamp, err := s.monitorClient.LatestState(ctx)
 		if err != nil {
-			zap.L().Error("Failed to get latest block state",
+			zap.L().Error("failed to get latest block state",
 				zap.Error(err))
 			return
 		}
@@ -306,7 +305,7 @@ func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.I
 			attribute.String("service", constant.Name),
 			attribute.String("worker", s.worker.Name())))
 
-		zap.L().Debug("Successfully observed latest block metric",
+		zap.L().Debug("successfully observed latest block metric",
 			zap.Uint64("latest_block", latest),
 			zap.String("worker", s.worker.Name()))
 	}()
@@ -315,7 +314,7 @@ func (s *Server) latestBlockMetricHandler(ctx context.Context, observer metric.I
 }
 
 func NewServer(ctx context.Context, config *config.Module, databaseClient database.Client, streamClient stream.Client, redisClient rueidis.Client) (server *Server, err error) {
-	zap.L().Debug("Creating new server instance",
+	zap.L().Debug("creating new server instance",
 		zap.String("id", config.ID),
 		zap.String("network", config.Network.String()))
 
@@ -341,19 +340,20 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 			return nil, fmt.Errorf("new decentralized worker: %w", err)
 		}
 
-		zap.L().Debug("Created decentralized worker",
+		zap.L().Debug("created decentralized worker",
 			zap.String("protocol", string(config.Network.Protocol())))
 	case network.ActivityPubProtocol:
 		if instance.worker, err = federatedWorker.New(instance.config, databaseClient, instance.redisClient); err != nil {
 			return nil, fmt.Errorf("new federated worker: %w", err)
 		}
 
-		zap.L().Debug("Created federated worker")
+		zap.L().Debug("created federated worker")
 	default:
 		return nil, fmt.Errorf("unknown worker protocol: %s", config.Network.Protocol())
 	}
 
-	zap.L().Info("worker initialized successfully", zap.String("ID", config.ID),
+	zap.L().Info("worker initialized successfully",
+		zap.String("ID", config.ID),
 		zap.String("network", config.Network.String()),
 		zap.String("worker", config.Worker.Name()))
 
@@ -387,7 +387,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 		}
 	}
 
-	zap.L().Debug("Successfully created monitor client",
+	zap.L().Debug("successfully created monitor client",
 		zap.String("protocol", string(config.Network.Protocol())))
 
 	if err := instance.initializeMeter(); err != nil {
@@ -406,7 +406,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 		return nil, fmt.Errorf("unmarshal checkpoint state: %w", err)
 	}
 
-	zap.L().Debug("Successfully loaded checkpoint",
+	zap.L().Debug("successfully loaded checkpoint",
 		zap.String("checkpoint.id", checkpoint.ID),
 		zap.String("checkpoint.network", checkpoint.Network.String()),
 		zap.String("checkpoint.worker", checkpoint.Worker),
@@ -417,7 +417,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 		return nil, fmt.Errorf("new protocol: %w", err)
 	}
 
-	zap.L().Info("Successfully created new indexer server")
+	zap.L().Info("successfully created new indexer server")
 
 	return &instance, nil
 }

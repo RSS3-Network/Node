@@ -10,6 +10,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc1155"
@@ -26,7 +27,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 // Worker is the worker for OpenSea.
@@ -92,8 +92,6 @@ func (w *worker) Filter() engine.DataSourceFilter {
 
 // Transform Ethereum task to activityx.
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
-	zap.L().Debug("transforming opensea task", zap.String("task_id", task.ID()))
-
 	ethereumTask, ok := task.(*source.Task)
 	if !ok {
 		return nil, fmt.Errorf("invalid task type: %T", task)
@@ -109,7 +107,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	for _, log := range ethereumTask.Receipt.Logs {
 		// Ignore anonymous logs.
 		if len(log.Topics) == 0 {
-			zap.L().Debug("ignoring anonymous log")
 			continue
 		}
 
@@ -118,33 +115,20 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			err     error
 		)
 
-		zap.L().Debug("matching opensea event",
-			zap.String("address", log.Address.String()),
-			zap.String("topic", log.Topics[0].String()))
-
 		// Match opensea core contract events
 		switch {
 		case w.matchWyvernExchangeV1Orders(ethereumTask, log):
-			zap.L().Debug("matched wyvern exchange v1 orders event")
-
 			actions, err = w.transformWyvernExchangeV1Orders(ctx, ethereumTask, log)
 		case w.matchWyvernExchangeV2Orders(ethereumTask, log):
-			zap.L().Debug("matched wyvern exchange v2 orders event")
-
 			actions, err = w.transformWyvernExchangeV2Orders(ctx, ethereumTask, log)
 		case w.matchSeaportV1OrderFulfilled(ethereumTask, log):
-			zap.L().Debug("matched seaport v1 order fulfilled event")
-
 			actions, err = w.transformSeaportV1OrderFulfilled(ctx, ethereumTask, log)
 		default:
-			zap.L().Debug("no matching opensea event")
-
 			continue
 		}
 
 		if err != nil {
 			if isInvalidTokenErr(err) {
-				zap.L().Debug("invalid token error", zap.Error(err))
 				return activityx.NewUnknownActivity(activity), nil
 			}
 
@@ -158,8 +142,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		activity.Actions = append(activity.Actions, actions...)
 	}
-
-	zap.L().Debug("successfully transformed opensea task")
 
 	return activity, nil
 }
@@ -327,15 +309,6 @@ func (w *worker) transformSeaportV1OrderFulfilled(ctx context.Context, task *sou
 }
 
 func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *source.Task, seller, buyer, nft common.Address, nftID, nftValue *big.Int, offerToken *common.Address, offerValue *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building collectible trade action",
-		zap.String("seller", seller.String()),
-		zap.String("buyer", buyer.String()),
-		zap.String("nft", nft.String()),
-		zap.Any("nft_id", nftID),
-		zap.Any("nft_value", nftValue),
-		zap.Any("offer_token", offerToken),
-		zap.Any("offer_value", offerValue))
-
 	if nftID == nil {
 		return nil, fmt.Errorf("nft id is nil")
 	}
@@ -348,8 +321,8 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 		return nil, fmt.Errorf("lookup collectible token metadata: %w", err)
 	}
 
-	collectibleTokenMetadata.ID = lo.ToPtr(decimal.NewFromBigInt(nftID, 0))
-	collectibleTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(nftValue, 0))
+	collectibleTokenMetadata.ID = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(nftID), 0))
+	collectibleTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(nftValue), 0))
 
 	// Get offer token metadata.
 	costTokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, offerToken, nil, task.Header.Number)
@@ -357,11 +330,7 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 		return nil, fmt.Errorf("lookup collectible token metadata: %w", err)
 	}
 
-	if offerValue == nil {
-		offerValue = big.NewInt(0)
-	}
-
-	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(offerValue, 0))
+	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(offerValue), 0))
 
 	action := activityx.Action{
 		Type:     typex.CollectibleTrade,
@@ -375,8 +344,6 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 			Cost:  costTokenMetadata,
 		},
 	}
-
-	zap.L().Debug("successfully built collectible trade action")
 
 	return &action, nil
 }

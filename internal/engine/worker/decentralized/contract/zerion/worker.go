@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
@@ -97,8 +98,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type %T", task)
 	}
 
-	zap.L().Debug("transforming zerion task", zap.String("task", ethereumTask.ID()))
-
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 
 	if err != nil {
@@ -108,19 +107,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	// Iterate through all logs in the transaction receipt
 	for _, log := range ethereumTask.Receipt.Logs {
 		if len(log.Topics) == 0 {
-			zap.L().Debug("ignoring anonymous log")
-
 			continue
 		}
 
-		zap.L().Debug("transforming zerion log",
-			zap.String("address", log.Address.String()),
-			zap.String("topic", log.Topics[0].String()))
-
 		switch {
 		case w.matchSwapLog(ethereumTask, log):
-			zap.L().Debug("transforming zerion swap log")
-
 			actions, err := w.transformSwapLog(ctx, ethereumTask, log)
 			if err != nil {
 				zap.L().Error("handle settlement trade log", zap.Error(err), zap.String("task", ethereumTask.ID()))
@@ -129,9 +120,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			}
 
 			activity.Actions = append(activity.Actions, actions...)
-
 		default:
-			zap.L().Debug("no matching zerion log")
+			continue
 		}
 	}
 
@@ -140,8 +130,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	}
 
 	activity.Type = typex.ExchangeSwap
-
-	zap.L().Debug("successfully transformed zerion task")
 
 	return activity, nil
 }
@@ -184,20 +172,12 @@ func (w *worker) transformSwapLog(ctx context.Context, task *source.Task, log *e
 
 // buildTransactionTransferAction creates a TransactionTransfer action for a given transfer.
 func (w *worker) buildTransactionTransferAction(ctx context.Context, task *source.Task, from, to common.Address, tokenAddress *common.Address, amount *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building transaction transfer action",
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.Any("token_address", tokenAddress),
-		zap.Any("amount", amount))
-
 	tokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenAddress, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
-
-	zap.L().Debug("successfully built transaction transfer action")
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amount), 0))
 
 	return &activityx.Action{
 		Type:     typex.TransactionTransfer,
@@ -210,14 +190,6 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 
 // buildExchangeSwapAction creates an ExchangeSwap action for a given swap.
 func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building exchange swap action",
-		zap.String("from", from.String()),
-		zap.String("to", to.String()),
-		zap.String("token_in", tokenIn.String()),
-		zap.String("token_out", tokenOut.String()),
-		zap.Any("amount_in", amountIn),
-		zap.Any("amount_out", amountOut))
-
 	tokenInAddress := lo.Ternary(tokenIn != zerion.AddressNativeToken, &tokenIn, nil)
 	tokenOutAddress := lo.Ternary(tokenOut != zerion.AddressNativeToken, &tokenOut, nil)
 
@@ -226,16 +198,14 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 		return nil, fmt.Errorf("lookup token in metadata: %w", err)
 	}
 
-	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountIn, 0))
+	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountIn), 0))
 
 	tokenOutMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenOutAddress, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token out metadata: %w", err)
 	}
 
-	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0))
-
-	zap.L().Debug("successfully built exchange swap action")
+	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountOut), 0))
 
 	return &activityx.Action{
 		Type:     typex.ExchangeSwap,

@@ -71,8 +71,6 @@ func (c *client) WithTransaction(ctx context.Context, transactionFunction func(c
 			return fmt.Errorf("begin transaction: %w", err)
 		}
 
-		zap.L().Debug("transaction began successfully")
-
 		if err := transactionFunction(ctx, transaction); err != nil {
 			_ = transaction.Rollback()
 

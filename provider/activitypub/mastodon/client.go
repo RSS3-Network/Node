@@ -196,7 +196,7 @@ func (c *client) startServerService(ctx context.Context, errChan chan<- error) {
 		if err := c.startHTTPServer(ctx); err != nil {
 			select {
 			case errChan <- err:
-				zap.L().Error("HTTP server failed", zap.Error(err))
+				zap.L().Error("http server failed", zap.Error(err))
 			case <-ctx.Done():
 				zap.L().Info("context cancelled, skipping error send",
 					zap.Error(err))
@@ -232,7 +232,7 @@ func (c *client) startHTTPServer(ctx context.Context) error {
 	startedCh := make(chan struct{}, 1)
 
 	serverPortStr := ":" + strconv.Itoa(int(c.port))
-	zap.L().Info("Starting mastodon relay server", zap.String("port", serverPortStr))
+	zap.L().Info("starting mastodon relay server", zap.String("port", serverPortStr))
 
 	if err := c.server.Start(serverPortStr); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		zap.L().Error("server error", zap.Error(err))
@@ -248,7 +248,7 @@ func (c *client) startHTTPServer(ctx context.Context) error {
 		return fmt.Errorf("server startup failed: %w", err)
 
 	case <-startedCh:
-		zap.L().Info("HTTP server started successfully")
+		zap.L().Info("http server started successfully")
 		return nil
 
 	case <-ctx.Done():
@@ -392,7 +392,7 @@ func newSigner(instanceURL *url.URL) (httpsig.Signer, error) {
 		headers = append(headers, headerHost, headerDigest)
 	}
 
-	zap.L().Info("Creating signer", zap.String("instanceURL", instanceURL.String()),
+	zap.L().Info("creating signer", zap.String("instanceURL", instanceURL.String()),
 		zap.Strings("headers", headers))
 
 	signer, _, err := httpsig.NewSigner(
@@ -435,7 +435,7 @@ func generateKeyPair() (*rsa.PrivateKey, string, error) {
 
 // FollowRelayServices attempts to follow all configured relay services.
 func (c *client) FollowRelayServices(ctx context.Context) error {
-	zap.L().Debug("Beginning to follow relay services", zap.Strings("relayURLs", c.relayURLs))
+	zap.L().Debug("beginning to follow relay services", zap.Strings("relayURLs", c.relayURLs))
 
 	var errs []error
 
@@ -459,10 +459,13 @@ func (c *client) FollowRelayServices(ctx context.Context) error {
 				continue
 			}
 
-			zap.L().Warn("retry following relay",
+			zap.L().Warn("failed to follow relay, retrying",
 				zap.String("instance", instance),
-				zap.Int("attempt", attempt),
-				zap.Error(err))
+				zap.Int("currentAttempt", attempt),
+				zap.Int("maxAttempts", maxFollowRequestRetries),
+				zap.Duration("retryDelay", followRequestRetryDelay),
+				zap.Error(err),
+			)
 
 			time.Sleep(followRequestRetryDelay)
 		}
@@ -505,7 +508,7 @@ func (c *client) followRelay(ctx context.Context, instance string) error {
 		return fmt.Errorf("failed to create and sign follow request: %w", err)
 	}
 
-	zap.L().Info("Follow request created and signed successfully",
+	zap.L().Info("follow request created and signed successfully",
 		zap.String("instanceURL", instanceURL.String()),
 		zap.String("content", string(content)),
 	)
@@ -514,6 +517,10 @@ func (c *client) followRelay(ctx context.Context, instance string) error {
 	if err := c.sendRequest(req); err != nil {
 		return fmt.Errorf("failed to send request for relay subscription: %w", err)
 	}
+
+	zap.L().Info("successfully sent request to follow relay",
+		zap.String("instanceURL", instanceURL.String()),
+	)
 
 	return nil
 }
@@ -542,7 +549,7 @@ func (c *client) createAndSignFollowRequest(ctx context.Context, instanceURL *ur
 		return nil, fmt.Errorf("signer cannot be nil")
 	}
 
-	zap.L().Info("Creating follow request", zap.String("instanceURL", instanceURL.String()),
+	zap.L().Info("creating follow request", zap.String("instanceURL", instanceURL.String()),
 		zap.ByteString("content", content))
 
 	reqURL := instanceURL.String()
@@ -559,7 +566,7 @@ func (c *client) createAndSignFollowRequest(ctx context.Context, instanceURL *ur
 	// Set Host header only if instance URL doesn't end in /inbox
 	if !strings.HasSuffix(instanceURL.Path, inBoxPath) {
 		req.Header.Set(headerHost, instanceURL.Host)
-		zap.L().Info("Set Host header", zap.String(headerHost, instanceURL.Host))
+		zap.L().Info("set host header", zap.String(headerHost, instanceURL.Host))
 	}
 
 	// Sign the request
@@ -622,7 +629,7 @@ func (c *client) FetchAnnouncedObject(ctx context.Context, objectURL string) (*a
 		activityURL += ActivitySuffix
 	}
 
-	zap.L().Info("Fetching announced object with activity URL",
+	zap.L().Info("fetching announced object with activity URL",
 		zap.String("activityURL", activityURL),
 	)
 
@@ -690,7 +697,8 @@ func (c *client) GetMessageChan() (<-chan string, error) {
 // If the channel is full, the message is dropped and logged.
 func (c *client) SendMessage(msg string) {
 	if msg == "" {
-		zap.L().Warn("empty message dropped")
+		zap.L().Debug("skipping empty message")
+
 		return
 	}
 

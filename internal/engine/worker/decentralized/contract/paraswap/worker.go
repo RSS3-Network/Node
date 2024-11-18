@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/paraswap"
@@ -22,7 +23,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -79,8 +79,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		return nil, fmt.Errorf("invalid task type %T", task)
 	}
 
-	zap.L().Debug("transforming paraswap task", zap.String("task_id", ethereumTask.ID()))
-
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
 		return nil, fmt.Errorf("build activity: %w", err)
@@ -89,15 +87,12 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	activity.Type = typex.ExchangeSwap
 	activity.Actions = w.transformSwapTransaction(ctx, ethereumTask)
 
-	zap.L().Debug("successfully transformed paraswap task")
-
 	return activity, nil
 }
 
 func (w *worker) transformSwapTransaction(ctx context.Context, ethereumTask *source.Task) (actions []*activityx.Action) {
 	for _, log := range ethereumTask.Receipt.Logs {
 		if len(log.Topics) == 0 {
-			zap.L().Debug("ignoring anonymous log")
 			continue
 		}
 
@@ -106,39 +101,23 @@ func (w *worker) transformSwapTransaction(ctx context.Context, ethereumTask *sou
 			err    error
 		)
 
-		zap.L().Debug("matching paraswap event",
-			zap.String("address", log.Address.String()),
-			zap.String("event", log.Topics[0].String()))
-
 		switch {
 		case w.matchV3SwappedLog(ethereumTask, log):
-			zap.L().Debug("matched v3 swapped event")
-
 			buffer, err = w.transformV3SwappedLog(ctx, ethereumTask, log)
 		case w.matchV3BoughtLog(ethereumTask, log):
-			zap.L().Debug("matched v3 bought event")
-
 			buffer, err = w.transformV3BoughtLog(ctx, ethereumTask, log)
 		case w.matchSwappedDirectLog(ethereumTask, log):
-			zap.L().Debug("matched swapped direct event")
-
 			buffer, err = w.transformSwappedDirectLog(ctx, ethereumTask, log)
 		default:
-			zap.L().Debug("no matching paraswap event")
-
 			continue
 		}
 
 		if err != nil {
-			zap.L().Debug("error transforming paraswap event", zap.Error(err))
-
 			continue
 		}
 
 		actions = append(actions, buffer...)
 	}
-
-	zap.L().Debug("successfully transformed paraswap task")
 
 	return actions
 }
@@ -201,14 +180,6 @@ func (w *worker) transformSwappedDirectLog(ctx context.Context, task *source.Tas
 }
 
 func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task, sender, receiver common.Address, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*activityx.Action, error) {
-	zap.L().Debug("building exchange swap action",
-		zap.String("sender", sender.String()),
-		zap.String("receiver", receiver.String()),
-		zap.String("token_in", tokenIn.String()),
-		zap.String("token_out", tokenOut.String()),
-		zap.Any("amount_in", amountIn),
-		zap.Any("amount_out", amountOut))
-
 	tokenInAddress := lo.Ternary(tokenIn != paraswap.AddressETH, &tokenIn, nil)
 	tokenOutAddress := lo.Ternary(tokenOut != paraswap.AddressETH, &tokenOut, nil)
 
@@ -217,14 +188,14 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 		return nil, fmt.Errorf("lookup token in metadata: %w", err)
 	}
 
-	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountIn, 0))
+	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountIn), 0))
 
 	tokenOutMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenOutAddress, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token out metadata: %w", err)
 	}
 
-	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0))
+	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountOut), 0))
 
 	action := activityx.Action{
 		Type:     typex.ExchangeSwap,
@@ -236,8 +207,6 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 			To:   *tokenOutMetadata,
 		},
 	}
-
-	zap.L().Debug("successfully built exchange swap action")
 
 	return &action, nil
 }
