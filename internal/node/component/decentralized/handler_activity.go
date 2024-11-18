@@ -2,11 +2,6 @@ package decentralized
 
 import (
 	"context"
-	"fmt"
-	"github.com/rss3-network/node/schema/worker/decentralized"
-	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/network"
-	"github.com/rss3-network/protocol-go/schema/tag"
 	"net/http"
 	"strconv"
 
@@ -16,7 +11,11 @@ import (
 	"github.com/rss3-network/node/common/http/response"
 	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database/model"
+	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/network"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	lop "github.com/samber/lo/parallel"
@@ -252,35 +251,6 @@ func (c *Component) TransformActivities(ctx context.Context, activities []*activ
 	})
 
 	return results
-}
-
-func (c *Component) parseTypes(types []string, tags []tag.Tag) ([]schema.Type, error) {
-	if len(tags) == 0 {
-		return nil, nil
-	}
-
-	schemaTypes := make([]schema.Type, 0)
-
-	for _, typex := range types {
-		var (
-			value schema.Type
-			err   error
-		)
-
-		for _, tagx := range tags {
-			value, err = schema.ParseTypeFromString(tagx, typex)
-			if err == nil {
-				schemaTypes = append(schemaTypes, value)
-				break
-			}
-		}
-
-		if err != nil {
-			return nil, fmt.Errorf("invalid type: %s", typex)
-		}
-	}
-
-	return schemaTypes, nil
 }
 
 type ActivityRequest struct {
