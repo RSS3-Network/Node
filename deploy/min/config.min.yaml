@@ -11,8 +11,6 @@ discovery:
 
 database:
   coverage_period: 3
-  driver: postgres
-  partition: true
   uri: postgres://postgres:password@rss3_node_database:5432/postgres
 
 redis:
@@ -22,7 +20,7 @@ redis:
 
 endpoints:
   mastodon:
-    url: your-kafka-ip:9092
+    url: https://your-public-url.app
   farcaster:
     url: https://nemes.farcaster.xyz:2281
   ethereum:
@@ -55,9 +53,9 @@ endpoints:
 
 component:
   rss:
-    id: rss-rsshub
-    network: rss
-    worker: rsshub
+    id: rsshub-core
+    network: rsshub
+    worker: core
     endpoint: https://your.rsshub.com/
     parameters:
       authentication:
@@ -100,4 +98,3 @@ component:
       worker: core
       endpoint: mastodon
       parameters:
-        kafka_topic: activitypub_events

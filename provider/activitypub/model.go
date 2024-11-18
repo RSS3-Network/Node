@@ -65,3 +65,73 @@ type StatusResponse struct {
 		Tag        []Tag        `json:"tag"`
 	} `json:"object"`
 }
+
+type Actor struct {
+	Context   []string  `json:"@context"`
+	ID        string    `json:"id"`
+	Type      string    `json:"type"`
+	Inbox     string    `json:"inbox"`
+	Outbox    string    `json:"outbox"`
+	PublicKey PublicKey `json:"publicKey"`
+	Endpoints EndPoint  `json:"endpoints"`
+}
+
+type PublicKey struct {
+	ID           string `json:"id"`
+	Owner        string `json:"owner"`
+	PublicKeyPem string `json:"publicKeyPem"`
+}
+
+type EndPoint struct {
+	SharedInbox string `json:"sharedInbox"`
+}
+
+// NodeInfo represents the node information response structure
+type NodeInfo struct {
+	Links []NodeInfoLink `json:"links"`
+}
+
+// NodeInfoLink represents a link in NodeInfo.
+type NodeInfoLink struct {
+	Rel  string `json:"rel"`
+	Href string `json:"href"`
+}
+
+// NodeInfoDetails represents detailed node information.
+type NodeInfoDetails struct {
+	Version           string        `json:"version"`
+	Software          SoftwareInfo  `json:"software"`
+	Protocols         []string      `json:"protocols"`
+	Services          ServicesInfo  `json:"services"`
+	OpenRegistrations bool          `json:"openRegistrations"`
+	Usage             NodeUsageInfo `json:"usage"`
+}
+
+// SoftwareInfo provides software details in NodeInfo.
+type SoftwareInfo struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
+
+// ServicesInfo represents the inbound and outbound services of a node.
+type ServicesInfo struct {
+	Inbound  []string `json:"inbound"`
+	Outbound []string `json:"outbound"`
+}
+
+// NodeUsageInfo contains usage statistics for a node.
+type NodeUsageInfo struct {
+	Users UsersInfo `json:"users"`
+}
+
+// UsersInfo provides user statistics.
+type UsersInfo struct {
+	Total int `json:"total"`
+}
+
+// InstanceInfo represents instance-specific information response.
+type InstanceInfo struct {
+	URI         string `json:"uri"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+}

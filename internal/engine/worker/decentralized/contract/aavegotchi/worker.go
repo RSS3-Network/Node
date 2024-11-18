@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/aavegotchi"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
@@ -243,7 +244,7 @@ func (w *worker) handleMetaverseTradeCost(_ context.Context, activity *activityx
 			if cost.Value.IsZero() {
 				cost = metadata.Token(action.Metadata.(metadata.MetaverseTransfer))
 			} else {
-				cost.Value = lo.ToPtr(cost.Value.Add(decimal.NewFromBigInt(action.Metadata.(metadata.MetaverseTransfer).Value.BigInt(), 0)))
+				cost.Value = lo.ToPtr(cost.Value.Add(decimal.NewFromBigInt(utils.GetBigInt(action.Metadata.(metadata.MetaverseTransfer).Value.BigInt()), 0)))
 			}
 		}
 	}

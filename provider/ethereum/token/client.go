@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/redis/rueidis"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc1155"
@@ -348,7 +349,7 @@ func (c *client) lookupNFTByRedis(ctx context.Context, chainID uint64, address c
 func (c *client) lookupERC721(ctx context.Context, chainID uint64, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
-		ID:       lo.ToPtr(decimal.NewFromBigInt(id, 0)),
+		ID:       lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(id), 0)),
 		Standard: metadata.StandardERC721,
 	}
 
@@ -420,7 +421,7 @@ func (c *client) lookupERC721(ctx context.Context, chainID uint64, address commo
 func (c *client) lookupERC1155(ctx context.Context, chainID uint64, address common.Address, id *big.Int, blockNumber *big.Int) (*metadata.Token, error) {
 	tokenMetadata := metadata.Token{
 		Address:  lo.ToPtr(address.String()),
-		ID:       lo.ToPtr(decimal.NewFromBigInt(id, 0)),
+		ID:       lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(id), 0)),
 		Standard: metadata.StandardERC1155,
 	}
 
@@ -510,7 +511,7 @@ func (c *client) lookupENS(_ context.Context, _ uint64, address *common.Address,
 		return &tokenMetadata, nil
 	}
 
-	tokenMetadata.ID = lo.ToPtr(decimal.NewFromBigInt(id, 0))
+	tokenMetadata.ID = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(id), 0))
 
 	return &tokenMetadata, nil
 }

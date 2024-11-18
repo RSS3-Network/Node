@@ -66,7 +66,7 @@ func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, 
 	// Initialize etherface client, an optional dependency
 	etherfaceClient, err := etherface.NewEtherfaceClient()
 	if err != nil {
-		zap.L().Warn("failed to initialize etherface client", zap.Any("error", err))
+		zap.L().Error("failed to initialize etherface client", zap.Any("error", err))
 	} else {
 		c.etherfaceClient = etherfaceClient
 	}

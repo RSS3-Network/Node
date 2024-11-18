@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/nouns"
@@ -210,7 +211,7 @@ func (w *worker) buildCollectibleAuctionAction(ctx context.Context, task *source
 		return nil, fmt.Errorf("lookup token metadata %s %s: %w", &(nouns.AddressNouns), nftID, err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(nftValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(nftValue), 0))
 
 	var offerTokenMetadata *metadata.Token
 
@@ -220,7 +221,7 @@ func (w *worker) buildCollectibleAuctionAction(ctx context.Context, task *source
 			return nil, fmt.Errorf("lookup offer token metadata: %w", err)
 		}
 
-		offerTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(offerValue, 0))
+		offerTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(offerValue), 0))
 	}
 
 	return &activityx.Action{
@@ -256,7 +257,7 @@ func (w *worker) buildCollectibleMintAction(ctx context.Context, task *source.Ta
 		return nil, fmt.Errorf("lookup token metadata %s %s: %w", contract, id, err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(value), 0))
 
 	return &activityx.Action{
 		Type:     typex.CollectibleMint,
@@ -292,8 +293,8 @@ func (w *worker) buildGovernanceProposalAction(from, to common.Address, id *big.
 				metadata.ActionGovernanceVoteAgainst.String(),
 				metadata.ActionGovernanceVoteAbstain.String(),
 			},
-			StartBlock: decimal.NewFromBigInt(start, 0).String(),
-			EndBlock:   decimal.NewFromBigInt(end, 0).String(),
+			StartBlock: decimal.NewFromBigInt(utils.GetBigInt(start), 0).String(),
+			EndBlock:   decimal.NewFromBigInt(utils.GetBigInt(end), 0).String(),
 		},
 	}
 }
@@ -340,7 +341,7 @@ func (w *worker) buildGovernanceVoteAction(from, to common.Address, proposalID, 
 		To:       to.String(),
 		Metadata: metadata.GovernanceVote{
 			Action: action,
-			Count:  uint64(decimal.NewFromBigInt(votes, 0).IntPart()),
+			Count:  uint64(decimal.NewFromBigInt(utils.GetBigInt(votes), 0).IntPart()),
 			Reason: reason,
 			Proposal: metadata.GovernanceProposal{
 				ID:   proposalID.String(),

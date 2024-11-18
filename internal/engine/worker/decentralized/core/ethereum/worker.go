@@ -12,6 +12,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc1155"
@@ -538,7 +539,7 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	var actionType typex.TransactionType
 
@@ -572,7 +573,7 @@ func (w *worker) buildTransactionApprovalAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	// Use the token value to determine the action type.
 	metadataAction := metadata.ActionTransactionApprove
@@ -604,7 +605,7 @@ func (w *worker) buildCollectibleTransferAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	var actionType typex.CollectibleType
 
@@ -672,7 +673,7 @@ func (w *worker) buildExchangeStakingVSLAction(ctx context.Context, task *source
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	action := activityx.Action{
 		Type:     typex.ExchangeStaking,
@@ -695,7 +696,7 @@ func (w *worker) buildChipsMintAction(ctx context.Context, task *source.Task, fr
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(value), 0))
 
 	return &activityx.Action{
 		Type:     typex.CollectibleMint,
@@ -712,7 +713,7 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	action := activityx.Action{
 		Type:     typex.TransactionBridge,

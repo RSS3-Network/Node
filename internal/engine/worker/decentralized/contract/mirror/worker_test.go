@@ -180,9 +180,7 @@ func TestWorker_Arweave(t *testing.T) {
 
 	// Dial the database.
 	databaseClient, err := dialer.Dial(context.Background(), &config.Database{
-		Driver:    driver,
-		URI:       dataSourceName,
-		Partition: &partition,
+		URI: dataSourceName,
 	})
 	require.NoError(t, err)
 

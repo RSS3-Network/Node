@@ -54,25 +54,52 @@ var command = cobra.Command{
 	RunE: func(cmd *cobra.Command, _ []string) error {
 		flags = cmd.PersistentFlags()
 
-		config, err := config.Setup(lo.Must(flags.GetString(flag.KeyConfig)))
+		configFile, err := config.Setup(lo.Must(flags.GetString(flag.KeyConfig)))
+
 		if err != nil {
 			return fmt.Errorf("setup config file: %w", err)
 		}
 
-		if config.Observability != nil {
-			if err := setOpenTelemetry(config); err != nil {
+		zap.L().Debug("config file loaded", zap.Any("config", configFile))
+
+		// set the logger level based on the environment
+		// if the environment variable is not set, use the environment from the config file
+		environment := os.Getenv(config.Environment)
+		if environment == "" {
+			environment = configFile.Environment
+			if environment == config.EnvironmentDevelopment {
+				zap.ReplaceGlobals(zap.Must(zap.NewDevelopment()))
+			} else {
+				zap.ReplaceGlobals(zap.Must(zap.NewProduction()))
+			}
+		}
+
+		zap.L().Info("starting RSS3 Node",
+			zap.String("version", constant.BuildVersion()),
+			zap.String("environment", environment))
+
+		if err = config.HasOneWorker(configFile); err != nil {
+			return err
+		}
+
+		if configFile.Observability != nil {
+			if err := setOpenTelemetry(configFile); err != nil {
 				return fmt.Errorf("set open telemetry: %w", err)
 			}
+
+			zap.L().Info("open telemetry configured successfully")
 		}
 
 		// Init stream client.
 		var streamClient stream.Client
 
-		if config.Stream != nil && *config.Stream.Enable {
-			streamClient, err = provider.New(cmd.Context(), config.Stream)
+		if configFile.Stream != nil && *configFile.Stream.Enable {
+			streamClient, err = provider.New(cmd.Context(), configFile.Stream)
 			if err != nil {
 				return fmt.Errorf("dial stream client: %w", err)
 			}
+
+			zap.L().Info("stream client initialized successfully")
 		}
 
 		var (
@@ -86,22 +113,42 @@ var command = cobra.Command{
 
 		var settlementCaller *vsl.SettlementCaller
 
-		// Apply database migrations for all modules except the broadcaster.
-		if module != BroadcasterArg && (len(config.Component.Decentralized) > 0 || len(config.Component.Federated) > 0) {
-			databaseClient, err = dialer.Dial(cmd.Context(), config.Database)
+		// Broadcaster and RSS Only Node does not need Redis, DB and Network Params Client
+		if module != BroadcasterArg && !config.IsRSSComponentOnly(configFile) {
+			// Init a Redis client.
+			if configFile.Redis == nil {
+				return fmt.Errorf("redis configFile is missing")
+			}
+
+			redisClient, err = redis.NewClient(*configFile.Redis)
+			if err != nil {
+				return fmt.Errorf("new redis client: %w", err)
+			}
+
+			zap.L().Info("redis client initialized successfully")
+
+			databaseClient, err = dialer.Dial(cmd.Context(), configFile.Database)
 			if err != nil {
 				return fmt.Errorf("dial database: %w", err)
 			}
 
-			if err := databaseClient.Migrate(cmd.Context()); err != nil {
+			zap.L().Info("database client initialized successfully")
+
+			tx, err := databaseClient.Begin(cmd.Context())
+			if err != nil {
+				return fmt.Errorf("begin transaction: %w", err)
+			}
+
+			if err := tx.Migrate(cmd.Context()); err != nil {
+				err := tx.Rollback()
+				if err != nil {
+					return fmt.Errorf("rollback database: %w", err)
+				}
+
 				return fmt.Errorf("migrate database: %w", err)
 			}
 
-			// Init redis client
-			redisClient, err = redis.NewClient(*config.Redis)
-			if err != nil {
-				return fmt.Errorf("new redis client: %w", err)
-			}
+			zap.L().Info("database migration completed successfully")
 
 			vslClient, err := parameter.InitVSLClient()
 			if err != nil {
@@ -134,15 +181,21 @@ var command = cobra.Command{
 				return fmt.Errorf("update current epoch: %w", err)
 			}
 
+			zap.L().Info("current epoch updated successfully", zap.Int64("epoch", epoch))
+
 			// when start or restart the core, worker or monitor module, it will pull network parameters from VSL and record current epoch
 			if _, err = parameter.PullNetworkParamsFromVSL(networkParamsCaller, uint64(epoch)); err != nil {
-				zap.L().Error("pull network parameters from VSL", zap.Error(err))
-
 				return fmt.Errorf("pull network parameters from VSL: %w", err)
 			}
 
+			zap.L().Info("network parameters pulled successfully")
+
+			zap.L().Debug("network parameters pulled successfully", zap.Any("parameters", parameter.CurrentNetworkStartBlock))
+
 			for network, blockStart := range parameter.CurrentNetworkStartBlock {
 				if blockStart == nil {
+					zap.L().Debug("skipping network with nil block start", zap.String("network", network.String()))
+
 					continue // Skip if the start block is not defined.
 				}
 
@@ -154,52 +207,77 @@ var command = cobra.Command{
 				if err != nil {
 					return fmt.Errorf("update current block start: %w", err)
 				}
+
+				zap.L().Debug("block start updated", zap.String("network", network.String()), zap.Int64("block", blockStartInt64))
 			}
 
-			//	set first start time
-			firstStartTime, err := info.GetFirstStartTime()
-			if err != nil {
-				return fmt.Errorf("get first start time: %w", err)
-			}
-
-			if firstStartTime == 0 {
-				//	update first start time to current timestamp in seconds
-				err = info.UpdateFirstStartTime(time.Now().Unix())
-				if err != nil {
-					return fmt.Errorf("update first start time: %w", err)
-				}
+			if err := tx.Commit(); err != nil {
+				return fmt.Errorf("commit transaction: %w", err)
 			}
 		}
 
 		switch module {
 		case CoreServiceArg:
-			return runCoreService(cmd.Context(), config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
+			if err := recordFirstStartTime(); err != nil {
+				return fmt.Errorf("record first start time: %w", err)
+			}
+
+			return runCoreService(cmd.Context(), configFile, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 		case WorkerArg:
-			return runWorker(cmd.Context(), config, databaseClient, streamClient, redisClient)
+			return runWorker(cmd.Context(), configFile, databaseClient, streamClient, redisClient)
 		case BroadcasterArg:
-			return runBroadcaster(cmd.Context(), config)
+			return runBroadcaster(cmd.Context(), configFile)
 		case MonitorArg:
-			return runMonitor(cmd.Context(), config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
+			return runMonitor(cmd.Context(), configFile, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 		}
 
 		return fmt.Errorf("unsupported module %s", lo.Must(flags.GetString(flag.KeyModule)))
 	},
 }
 
-func runCoreService(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
-	server := node.NewCoreService(ctx, config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
+// recordFirstStartTime set the first start time to the current timestamp in seconds if it is not set.
+func recordFirstStartTime() error {
+	//	set first start time
+	firstStartTime, err := info.GetFirstStartTime()
+	if err != nil {
+		return fmt.Errorf("get first start time: %w", err)
+	}
+
+	if firstStartTime == 0 {
+		zap.L().Info("first start time not set, updating to current time")
+		//	update first start time to current timestamp in seconds
+		err = info.UpdateFirstStartTime(time.Now().Unix())
+		if err != nil {
+			return fmt.Errorf("update first start time: %w", err)
+		}
+
+		zap.L().Info("first start time updated successfully")
+	}
+
+	zap.L().Debug("first start time already set", zap.Int64("timestamp", firstStartTime))
+
+	return nil
+}
+
+func runCoreService(ctx context.Context, configFile *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
+	zap.L().Info("initializing core service")
+
+	server := node.NewCoreService(ctx, configFile, databaseClient, redisClient, networkParamsCaller, settlementCaller)
 
 	checkCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	go func() {
-		if err := node.CheckParams(checkCtx, redisClient, networkParamsCaller, settlementCaller); err != nil {
-			fmt.Printf("Error checking parameters: %v\n", err)
-		}
-	}()
+	if !config.IsRSSComponentOnly(configFile) {
+		go func() {
+			if err := node.CheckParams(checkCtx, redisClient, networkParamsCaller, settlementCaller); err != nil {
+				zap.L().Error("error checking parameters", zap.Error(err))
+			}
+		}()
+	}
 
 	apiErrChan := make(chan error, 1)
 	go func() {
+		zap.L().Info("starting core service")
 		apiErrChan <- server.Run(ctx)
 	}()
 
@@ -209,13 +287,16 @@ func runCoreService(ctx context.Context, config *config.File, databaseClient dat
 
 	select {
 	case sig := <-stopChan:
-		fmt.Printf("Shutdown signal received: %v.\n", sig)
+		zap.L().Info("shutdown signal received", zap.String("signal", sig.String()))
 	case err := <-apiErrChan:
+		zap.L().Error("core service encountered an error", zap.Error(err))
 		cancel() // signal all goroutines to stop on error
+
 		return err
 	}
 
 	cancel() // ensure cancellation if exiting normally
+	zap.L().Info("core service shutdown complete")
 
 	return nil
 }
@@ -256,6 +337,8 @@ func runWorker(ctx context.Context, configFile *config.File, databaseClient data
 		return fmt.Errorf("invalid worker id: %w", err)
 	}
 
+	zap.L().Info("starting worker", zap.String("workerID", workerID))
+
 	module, err := findModuleByID(configFile, workerID)
 	if err != nil {
 		return fmt.Errorf("find module by id: %w", err)
@@ -267,28 +350,41 @@ func runWorker(ctx context.Context, configFile *config.File, databaseClient data
 		return fmt.Errorf("new indexer server: %w", err)
 	}
 
+	zap.L().Info("worker initialized successfully", zap.String("workerID", workerID))
+
 	return server.Run(ctx)
 }
 
 func runBroadcaster(ctx context.Context, config *config.File) error {
+	zap.L().Info("initializing broadcaster")
+
 	server, err := broadcaster.NewBroadcaster(ctx, config)
+
 	if err != nil {
 		return fmt.Errorf("new broadcaster: %w", err)
 	}
+
+	zap.L().Info("broadcaster initialized successfully")
 
 	return server.Run(ctx)
 }
 
 func runMonitor(ctx context.Context, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
+	zap.L().Info("initializing monitor")
+
 	server, err := monitor.NewMonitor(ctx, config, databaseClient, redisClient, networkParamsCaller, settlementCaller)
+
 	if err != nil {
 		return fmt.Errorf("new monitor: %w", err)
 	}
+
+	zap.L().Info("monitor initialized successfully")
 
 	return server.Run(ctx)
 }
 
 func setOpenTelemetry(config *config.File) error {
+	zap.L().Debug("setting up OpenTelemetry")
 	// Set OpenTelemetry global tracer and meter provider.
 	observabilityConfig := config.Observability.OpenTelemetry
 
@@ -316,11 +412,15 @@ func setOpenTelemetry(config *config.File) error {
 		}
 
 		go func() {
+			zap.L().Info("starting OpenTelemetry meter server")
+
 			if err := meterServer.Run(*observabilityConfig.Metrics); err != nil {
 				zap.L().Error("failed to run telemetry meter server", zap.Error(err))
 			}
 		}()
 	}
+
+	zap.L().Debug("openTelemetry setup completed")
 
 	return nil
 }
@@ -328,22 +428,28 @@ func setOpenTelemetry(config *config.File) error {
 func initializeLogger() {
 	if os.Getenv(config.Environment) == config.EnvironmentDevelopment {
 		zap.ReplaceGlobals(zap.Must(zap.NewDevelopment()))
+		zap.L().Info("initialized development logger")
 	} else {
 		zap.ReplaceGlobals(zap.Must(zap.NewProduction()))
+		zap.L().Info("initialized production logger")
 	}
 }
 
 func initializePyroscope() {
 	// Only use Pyroscope in development environment.
 	if os.Getenv(config.Environment) == config.EnvironmentDevelopment {
+		zap.L().Debug("checking for Pyroscope configuration")
 		// Start Pyroscope agent if the environment variable is set.
 		if serverAddress := os.Getenv(config.EnvironmentPyroscopeEndpoint); serverAddress != "" {
+			zap.L().Info("initializing Pyroscope", zap.String("serverAddress", serverAddress))
 			_, _ = pyroscope.Start(pyroscope.Config{
 				ApplicationName: constant.Name,
 				ServerAddress:   serverAddress,
 				Logger:          zap.L().Sugar(),
 				ProfileTypes:    append(pyroscope.DefaultProfileTypes, pyroscope.ProfileGoroutines),
 			})
+		} else {
+			zap.L().Debug("pyroscope endpoint not configured, skipping initialization")
 		}
 	}
 }
@@ -355,6 +461,7 @@ func init() {
 	command.PersistentFlags().String(flag.KeyConfig, "config.yaml", "config file name")
 	command.PersistentFlags().String(flag.KeyModule, WorkerArg, "module name")
 	command.PersistentFlags().String(flag.KeyWorkerID, "", "worker id")
+	zap.L().Debug("command flags initialized")
 }
 
 func main() {

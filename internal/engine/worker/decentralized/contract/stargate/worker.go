@@ -10,6 +10,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/layerzero"
@@ -84,8 +85,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 	// If the task does not meet the filter conditions, it will be discarded.
 	if !matched {
-		zap.L().Warn("unmatched task", zap.String("task.id", task.ID()))
-
 		return nil, nil
 	}
 
@@ -116,14 +115,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		case w.matchPoolSwapRemoteLog(ethereumTask, log):
 			actions, err = w.transformLPoolSwapRemoteLog(ctx, ethereumTask, log)
 		default:
-			zap.L().Warn("unsupported log", zap.String("task", task.ID()), zap.Uint("topic.index", log.Index))
-
 			continue
 		}
 
 		if err != nil {
-			zap.L().Warn("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
-
 			return nil, err
 		}
 
@@ -227,13 +222,13 @@ func (w *worker) transformLPoolSwapLog(ctx context.Context, task *source.Task, l
 		return nil, fmt.Errorf("build transaction bridge action: %w", err)
 	}
 
-	layerzeroFeeValue := decimal.NewFromBigInt(task.Transaction.Value, 0)
+	layerzeroFeeValue := decimal.NewFromBigInt(utils.GetBigInt(task.Transaction.Value), 0)
 	if stargate.IsSGETH(tokenAddress) {
 		layerzeroFeeValue = layerzeroFeeValue.
-			Sub(decimal.NewFromBigInt(event.AmountSD, 0)).
-			Sub(decimal.NewFromBigInt(event.EqFee, 0)).
-			Sub(decimal.NewFromBigInt(event.ProtocolFee, 0)).
-			Sub(decimal.NewFromBigInt(event.LpFee, 0))
+			Sub(decimal.NewFromBigInt(utils.GetBigInt(event.AmountSD), 0)).
+			Sub(decimal.NewFromBigInt(utils.GetBigInt(event.EqFee), 0)).
+			Sub(decimal.NewFromBigInt(utils.GetBigInt(event.ProtocolFee), 0)).
+			Sub(decimal.NewFromBigInt(utils.GetBigInt(event.LpFee), 0))
 	}
 
 	layerzeroUltraLightNodeAddress, exists := layerzero.UltraLightNodeAddress(task.Network)
@@ -247,9 +242,9 @@ func (w *worker) transformLPoolSwapLog(ctx context.Context, task *source.Task, l
 	}
 
 	stargateFee := decimal.Zero.
-		Add(decimal.NewFromBigInt(event.EqFee, 0)).
-		Add(decimal.NewFromBigInt(event.ProtocolFee, 0)).
-		Add(decimal.NewFromBigInt(event.LpFee, 0))
+		Add(decimal.NewFromBigInt(utils.GetBigInt(event.EqFee), 0)).
+		Add(decimal.NewFromBigInt(utils.GetBigInt(event.ProtocolFee), 0)).
+		Add(decimal.NewFromBigInt(utils.GetBigInt(event.LpFee), 0))
 
 	stargateFeeAction, err := w.buildTransactionTransferAction(ctx, task, task.Transaction.From, event.Raw.Address, lo.Ternary(stargate.IsSGETH(tokenAddress), nil, &tokenAddress), stargateFee.BigInt())
 	if err != nil {
@@ -323,7 +318,7 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	action := activityx.Action{
 		Type:     typex.TransactionBridge,
@@ -348,7 +343,7 @@ func (w *worker) buildTransactionTransferAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("lookup token metadata: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(value), 0))
 
 	action := activityx.Action{
 		Type:     typex.TransactionTransfer,

@@ -32,9 +32,17 @@ func (c *Component) GetPlatformActivities(ctx echo.Context, plat decentralized.P
 
 	addRecentRequest(ctx.Request().RequestURI)
 
+	zap.L().Debug("processing decentralized platform activities request",
+		zap.String("platform", request.Platform.String()),
+		zap.Int("limit", request.Limit),
+		zap.String("cursor", lo.FromPtr(request.Cursor)))
+
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
-		zap.L().Error("getCursor InternalError", zap.Error(err))
+		zap.L().Error("failed to get decentralized platform activities cursor",
+			zap.String("platform", request.Platform.String()),
+			zap.String("cursor", lo.FromPtr(request.Cursor)),
+			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
@@ -55,10 +63,16 @@ func (c *Component) GetPlatformActivities(ctx echo.Context, plat decentralized.P
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
 	if err != nil {
-		zap.L().Error("getActivities InternalError", zap.Error(err))
+		zap.L().Error("failed to get decentralized platform activities",
+			zap.String("platform", request.Platform.String()),
+			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
+
+	zap.L().Info("successfully retrieved decentralized platform activities",
+		zap.String("platform", request.Platform.String()),
+		zap.Int("count", len(activities)))
 
 	return ctx.JSON(http.StatusOK, ActivitiesResponse{
 		Data: c.TransformActivities(ctx.Request().Context(), activities),

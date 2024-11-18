@@ -90,7 +90,7 @@ func (c *client) WithTransaction(ctx context.Context, transactionFunction func(c
 	}
 
 	onRetryFunc := func(n uint, err error) {
-		zap.L().Error("execute transaction", zap.Uint("retry", n), zap.Error(err))
+		zap.L().Error("retrying failed transaction", zap.Uint("retry_attempt", n), zap.Error(err))
 	}
 
 	return retry.Do(
@@ -125,7 +125,10 @@ func (c *client) Commit() error {
 func (c *client) LoadCheckpoint(ctx context.Context, id string, network networkx.Network, worker string) (*engine.Checkpoint, error) {
 	var value table.Checkpoint
 
-	zap.L().Info("load checkpoint", zap.String("id", id), zap.String("network", network.String()), zap.String("worker", worker))
+	zap.L().Debug("attempting to load checkpoint from database",
+		zap.String("id", id),
+		zap.String("network", network.String()),
+		zap.String("worker", worker))
 
 	if err := c.database.WithContext(ctx).
 		Where("id = ? AND network = ? AND worker = ?", id, network, worker).
@@ -134,6 +137,11 @@ func (c *client) LoadCheckpoint(ctx context.Context, id string, network networkx
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
 		}
+
+		zap.L().Info("checkpoint not found, initializing default checkpoint",
+			zap.String("id", id),
+			zap.String("network", network.String()),
+			zap.String("worker", worker))
 
 		// Initialize a default checkpoint.
 		value = table.Checkpoint{
@@ -146,6 +154,9 @@ func (c *client) LoadCheckpoint(ctx context.Context, id string, network networkx
 		}
 	}
 
+	zap.L().Debug("successfully loaded checkpoint",
+		zap.Any("value", value))
+
 	return value.Export()
 }
 
@@ -154,7 +165,10 @@ func (c *client) LoadCheckpoints(ctx context.Context, id string, network network
 
 	var checkpoints []*table.Checkpoint
 
-	zap.L().Info("load checkpoints", zap.String("id", id), zap.String("network", network.String()), zap.String("worker", worker))
+	zap.L().Debug("attempting to load checkpoints from database",
+		zap.String("id", id),
+		zap.String("network", network.String()),
+		zap.String("worker", worker))
 
 	if id != "" {
 		databaseStatement = databaseStatement.Where("id = ?", id)
@@ -174,6 +188,15 @@ func (c *client) LoadCheckpoints(ctx context.Context, id string, network network
 		}
 	}
 
+	if len(checkpoints) == 0 {
+		zap.L().Info("no checkpoints found with given criteria",
+			zap.String("id", id),
+			zap.String("network", network.String()),
+			zap.String("worker", worker))
+
+		return nil, nil
+	}
+
 	result := make([]*engine.Checkpoint, 0, len(checkpoints))
 
 	for _, checkpoint := range checkpoints {
@@ -185,10 +208,16 @@ func (c *client) LoadCheckpoints(ctx context.Context, id string, network network
 		result = append(result, data)
 	}
 
+	zap.L().Debug("successfully loaded checkpoints",
+		zap.Any("checkpoints", result))
+
 	return result, nil
 }
 
 func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoint) error {
+	zap.L().Debug("saving checkpoint",
+		zap.Any("checkpoint", checkpoint))
+
 	spanStartOptions := []trace.SpanStartOption{
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(
@@ -219,7 +248,11 @@ func (c *client) SaveCheckpoint(ctx context.Context, checkpoint *engine.Checkpoi
 }
 
 // SaveActivities saves activities and indexes to the database.
-func (c *client) SaveActivities(ctx context.Context, activities []*activityx.Activity) error {
+func (c *client) SaveActivities(ctx context.Context, activities []*activityx.Activity, lowPriority bool) error {
+	zap.L().Debug("saving activities",
+		zap.Int("count", len(activities)),
+		zap.Bool("low_priority", lowPriority))
+
 	spanStartOptions := []trace.SpanStartOption{
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(
@@ -231,7 +264,11 @@ func (c *client) SaveActivities(ctx context.Context, activities []*activityx.Act
 	defer span.End()
 
 	if c.partition {
-		return c.saveActivitiesPartitioned(ctx, activities)
+		if err := c.saveActivitiesPartitioned(ctx, activities, lowPriority); err != nil {
+			return err
+		}
+
+		return nil
 	}
 
 	return fmt.Errorf("not implemented")

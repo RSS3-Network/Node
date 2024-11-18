@@ -3,7 +3,6 @@ package info
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/redis/rueidis"
@@ -12,6 +11,7 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
 	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
+	"github.com/rss3-network/node/provider/httpx"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -24,7 +24,7 @@ type Component struct {
 	databaseClient      database.Client
 	redisClient         rueidis.Client
 	networkParamsCaller *vsl.NetworkParamsCaller
-	httpClient          *http.Client
+	httpClient          httpx.Client
 }
 
 const Name = "info"
@@ -35,13 +35,18 @@ func (c *Component) Name() string {
 
 var _ component.Component = (*Component)(nil)
 
-func NewComponent(_ context.Context, _ *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller) *Component {
+func NewComponent(_ context.Context, apiServer *echo.Echo, config *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller) component.Component {
+	httpxClient, err := httpx.NewHTTPClient()
+	if err != nil {
+		return nil
+	}
+
 	c := &Component{
 		config:              config,
 		databaseClient:      databaseClient,
 		redisClient:         redisClient,
 		networkParamsCaller: networkParamsCaller,
-		httpClient:          http.DefaultClient,
+		httpClient:          httpxClient,
 	}
 
 	if err := c.InitMeter(); err != nil {

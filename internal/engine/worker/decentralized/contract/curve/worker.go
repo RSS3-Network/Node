@@ -12,6 +12,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/curve/pool"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/curve"
@@ -92,15 +93,13 @@ func (w *worker) Filter() engine.DataSourceFilter {
 func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Activity, error) {
 	matched, err := w.matchCurveTransactions(ctx, task)
 	if err != nil {
-		zap.L().Error("match task", zap.String("task.id", task.ID()), zap.Error(err))
+		zap.L().Error("failed to match curve transactions", zap.Error(err))
 
 		return nil, nil
 	}
 
 	// If the task does not meet the filter conditions, it will be discarded.
 	if !matched {
-		zap.L().Warn("unmatched task", zap.String("task.id", task.ID()))
-
 		return nil, nil
 	}
 
@@ -567,9 +566,9 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, blockNumber *
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
-	action := activityx.Action{
+	return &activityx.Action{
 		Type:     typex.ExchangeLiquidity,
 		Platform: w.Platform(),
 		From:     sender.String(),
@@ -580,9 +579,7 @@ func (w *worker) buildExchangeLiquidityAction(ctx context.Context, blockNumber *
 				*tokenMetadata,
 			},
 		},
-	}
-
-	return &action, nil
+	}, nil
 }
 
 // buildTransferAction builds transfer action.
@@ -592,7 +589,7 @@ func (w *worker) buildTransferAction(ctx context.Context, blockNumber *big.Int, 
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	actionType := typex.TransactionTransfer
 
@@ -604,15 +601,13 @@ func (w *worker) buildTransferAction(ctx context.Context, blockNumber *big.Int, 
 		actionType = typex.TransactionBurn
 	}
 
-	action := activityx.Action{
+	return &activityx.Action{
 		Type:     actionType,
 		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
-	}
-
-	return &action, nil
+	}, nil
 }
 
 // buildExchangeSwapAction builds exchange swap action.
@@ -633,16 +628,16 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, blockNumber *big.I
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenIn, err)
 	}
 
-	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountIn, 0).Abs())
+	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountIn), 0).Abs())
 
 	tokenOutMetadata, err := w.tokenClient.Lookup(ctx, chainID, tokenOutAddr, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenOut, err)
 	}
 
-	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
+	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountOut), 0).Abs())
 
-	action := activityx.Action{
+	return &activityx.Action{
 		Type:     typex.ExchangeSwap,
 		Platform: w.Platform(),
 		From:     from.String(),
@@ -651,9 +646,7 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, blockNumber *big.I
 			From: *tokenInMetadata,
 			To:   *tokenOutMetadata,
 		},
-	}
-
-	return &action, nil
+	}, nil
 }
 
 // buildEthereumTransactionStakingAction builds ethereum transaction staking action.
@@ -663,9 +656,9 @@ func (w *worker) buildEthereumTransactionStakingAction(ctx context.Context, task
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(value, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(value), 0))
 
-	action := activityx.Action{
+	return &activityx.Action{
 		Type:     typex.ExchangeStaking,
 		Platform: w.Platform(),
 		From:     from.String(),
@@ -675,9 +668,7 @@ func (w *worker) buildEthereumTransactionStakingAction(ctx context.Context, task
 			Token:  *tokenMetadata,
 			Period: period,
 		},
-	}
-
-	return &action, nil
+	}, nil
 }
 
 // NewWorker creates a new Curve worker.

@@ -2,7 +2,6 @@ package uniswap
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math/big"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc721"
@@ -128,7 +128,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		activity.Type = typex.ExchangeLiquidity
 		activity.Actions = w.transformLiquidityTransaction(ctx, ethereumTask, ethereumTask.Transaction)
 	default:
-		return nil, errors.New("unsupported transaction")
+		return nil, nil
 	}
 
 	return activity, nil
@@ -261,13 +261,11 @@ func (w *worker) transformSwapTransaction(ctx context.Context, task *source.Task
 		case weth.EventHashWithdrawal:
 			buffer, err = w.transformWETHWithdrawalLog(ctx, task, log)
 		default:
-			zap.L().Debug("unknown event", zap.String("worker", w.Name()), zap.String("task", task.ID()), zap.Stringer("event", log.Export().Topics[0]))
-
 			continue
 		}
 
 		if err != nil {
-			zap.L().Warn("handle ethereum swap transaction", zap.Error(err), zap.String("worker", w.Name()), zap.String("task", task.ID()))
+			zap.L().Error("handle ethereum swap transaction", zap.Error(err), zap.String("task", task.ID()))
 
 			continue
 		}
@@ -310,12 +308,12 @@ func (w *worker) transformLiquidityTransaction(ctx context.Context, task *source
 
 			buffer, err = w.transformNonfungiblePositionManagerTransferLog(ctx, task, log)
 		default:
-			zap.L().Debug("unknown event", zap.String("worker", w.Name()), zap.String("task", task.ID()), zap.Stringer("event", log.Export().Topics[0]))
 			continue
 		}
 
 		if err != nil {
-			zap.L().Warn("handle ethereum liquidity transaction", zap.Error(err), zap.String("worker", w.Name()), zap.String("task", task.ID()))
+			zap.L().Error("handle ethereum liquidity transaction", zap.Error(err), zap.String("task", task.ID()))
+
 			continue
 		}
 
@@ -411,11 +409,11 @@ func (w *worker) transformV1ExchangeAddLiquidityLog(ctx context.Context, task *s
 
 	tokens := []metadata.Token{
 		{ // Native token
-			Value: lo.ToPtr(decimal.NewFromBigInt(event.EthAmount, 0)),
+			Value: lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.EthAmount), 0)),
 		},
 		{ // ERC-20 token
 			Address: lo.ToPtr(tokenAddress.String()),
-			Value:   lo.ToPtr(decimal.NewFromBigInt(event.TokenAmount, 0)),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.TokenAmount), 0)),
 		},
 	}
 
@@ -454,12 +452,12 @@ func (w *worker) transformV1ExchangeRemoveLiquidityLog(ctx context.Context, task
 	tokens := []metadata.Token{
 		{
 			// Native token
-			Value: lo.ToPtr(decimal.NewFromBigInt(event.EthAmount, 0)),
+			Value: lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.EthAmount), 0)),
 		},
 		{
 			// ERC-20 token
 			Address: lo.ToPtr(tokenAddr.String()),
-			Value:   lo.ToPtr(decimal.NewFromBigInt(event.TokenAmount, 0)),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.TokenAmount), 0)),
 		},
 	}
 
@@ -573,11 +571,11 @@ func (w *worker) transformV2PairMintLog(ctx context.Context, task *source.Task, 
 	tokens := []metadata.Token{
 		{
 			Address: lo.ToPtr(tokenLeft.String()),
-			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount0, 0)),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount0), 0)),
 		},
 		{
 			Address: lo.ToPtr(tokenRight.String()),
-			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount1, 0)),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount1), 0)),
 		},
 	}
 
@@ -636,11 +634,11 @@ func (w *worker) transformV2PairBurnLog(ctx context.Context, task *source.Task, 
 	tokens := []metadata.Token{
 		{
 			Address: lo.ToPtr(tokenLeft.String()),
-			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount0, 0)),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount0), 0)),
 		},
 		{
 			Address: lo.ToPtr(tokenRight.String()),
-			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount1, 0)),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount1), 0)),
 		},
 	}
 
@@ -763,11 +761,11 @@ func (w *worker) transformNonfungiblePositionManagerIncreaseLiquidityLog(ctx con
 	tokens := []metadata.Token{
 		{
 			Address: lo.ToPtr(positions.Token0.String()),
-			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount0, 0)),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount0), 0)),
 		},
 		{
 			Address: lo.ToPtr(positions.Token1.String()),
-			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount1, 0)),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount1), 0)),
 		},
 	}
 
@@ -807,11 +805,11 @@ func (w *worker) transformNonfungiblePositionManagerDecreaseLiquidityLog(ctx con
 	tokens := []metadata.Token{
 		{
 			Address: lo.ToPtr(positions.Token0.String()),
-			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount0, 0)),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount0), 0)),
 		},
 		{
 			Address: lo.ToPtr(positions.Token1.String()),
-			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount1, 0)),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount1), 0)),
 		},
 	}
 
@@ -851,11 +849,11 @@ func (w *worker) transformNonfungiblePositionManagerCollectLog(ctx context.Conte
 	tokens := []metadata.Token{
 		{
 			Address: lo.ToPtr(positions.Token0.String()),
-			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount0, 0)),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount0), 0)),
 		},
 		{
 			Address: lo.ToPtr(positions.Token1.String()),
-			Value:   lo.ToPtr(decimal.NewFromBigInt(event.Amount1, 0)),
+			Value:   lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount1), 0)),
 		},
 	}
 
@@ -895,14 +893,14 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenIn, err)
 	}
 
-	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountIn, 0).Abs())
+	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountIn), 0).Abs())
 
 	tokenOutMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenOut, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenOut, err)
 	}
 
-	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
+	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountOut), 0).Abs())
 
 	action := activityx.Action{
 		Type:     typex.ExchangeSwap,
@@ -1001,7 +999,7 @@ func (w *worker) buildTransactionMintAction(ctx context.Context, task *source.Ta
 		return nil, fmt.Errorf("lookup token metadata %s %d: %w", tokenAddress, tokenID, err)
 	}
 
-	tokenMetadata.ID = lo.ToPtr(decimal.NewFromBigInt(tokenID, 0))
+	tokenMetadata.ID = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenID), 0))
 	tokenMetadata.Value = lo.ToPtr(decimal.NewFromInt(1))
 
 	action := activityx.Action{

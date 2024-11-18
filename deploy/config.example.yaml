@@ -11,7 +11,7 @@ discovery:
     # You MUST NOT share the signature with anyone.
     signature: 0x...signature
   server:
-    # `endpoint` is how how Global Indexers access your Node.
+    # `endpoint` is how Global Indexers access your Node.
     # You can use a domain or an IP address.
     endpoint: https://your.node.com
     # If your Node is registered on the VSL Testnet, use https://gi.rss3.dev.
@@ -24,10 +24,6 @@ discovery:
 database:
   # `coverage_period` is the number of months that the database will store the data, which cannot be less than three months.
   coverage_period: 3
-  # `driver` is the database driver used by the Node, currently only `postgres` is supported
-  driver: postgres
-  # `partition` is used to enable the partition feature of the database.
-  partition: true
   # `uri` is the connection string of the database.
   uri: postgres://postgres:password@localhost:5432/postgres
 
@@ -56,9 +52,9 @@ endpoints:
 component:
   # `rss` network type includes the worker indexing data in RSS format.
   rss:
-    id: rss-rsshub
-    network: rss
-    worker: rsshub
+    id: rsshub-core
+    network: rsshub
+    worker: core
     endpoint: https://your.rsshub.com/
     parameters:
       authentication:
@@ -97,4 +93,5 @@ component:
       worker: core
       endpoint: mastodon
       parameters:
-        kafka_topic: activitypub_events
+        relay_url_list: [ "https://relay.fedi.buzz/instance/mastodon.social"]
+        port: 8181

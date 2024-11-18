@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/polymarket"
@@ -22,7 +23,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -97,13 +97,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			actions, err = w.transformOrderFinalizedLog(ctx, polygonTask, log)
 
 		default:
-			zap.L().Warn("unsupported log", zap.String("task", polygonTask.ID()), zap.Uint("topic.index", log.Index))
 			continue
 		}
 
 		if err != nil {
-			zap.L().Warn("handle polymarket order transaction", zap.Error(err), zap.String("worker", w.Name()), zap.String("task", polygonTask.ID()))
-
 			return nil, err
 		}
 
@@ -139,8 +136,8 @@ func (w *worker) transformOrderFinalizedLog(ctx context.Context, task *source.Ta
 }
 
 func (w *worker) buildMarketTradeAction(ctx context.Context, _ *source.Task, chainID uint64, maker, taker common.Address, makerAssetID, takerAssetID *big.Int, _ [32]byte, makerAmountFilled, takerAmountFilled *big.Int) (*activityx.Action, *activityx.Action, error) {
-	makerAmountFilledDecimal := decimal.NewFromBigInt(makerAmountFilled, 0)
-	takerAmountFilledDecimal := decimal.NewFromBigInt(takerAmountFilled, 0)
+	makerAmountFilledDecimal := decimal.NewFromBigInt(utils.GetBigInt(makerAmountFilled), 0)
+	takerAmountFilledDecimal := decimal.NewFromBigInt(utils.GetBigInt(takerAmountFilled), 0)
 
 	var takerTokenAddress *common.Address
 	if takerAssetID.Cmp(big.NewInt(0)) == 0 {
@@ -205,7 +202,6 @@ func (w *worker) buildMarketTradeAction(ctx context.Context, _ *source.Task, cha
 func NewWorker(config *config.Module) (engine.Worker, error) {
 	instance := worker{
 		ctfExchange: lo.Must(polymarket.NewCTFExchangeFilterer(ethereum.AddressGenesis, nil)),
-		// negRiskCTF:  lo.Must(polymarket.NewNegRiskCTFExchangeFilterer(ethereum.AddressGenesis, nil)),
 	}
 
 	var err error

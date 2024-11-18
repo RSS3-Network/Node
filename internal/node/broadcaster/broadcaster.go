@@ -31,11 +31,17 @@ func (b *Broadcaster) Register(ctx context.Context) error {
 
 	err := b.sendRequest(ctx, "/nodes/register", nil, request, &response)
 
-	zap.L().Info("registered node", zap.Any("request", request), zap.Any("response", response))
-
 	if err != nil {
+		zap.L().Error("failed to register node",
+			zap.Error(err),
+			zap.Any("request", request))
+
 		return fmt.Errorf("send request: %w", err)
 	}
+
+	zap.L().Info("successfully registered node",
+		zap.Any("request", request),
+		zap.Any("response", response))
 
 	return nil
 }
@@ -52,13 +58,17 @@ func (b *Broadcaster) Heartbeat(ctx context.Context) error {
 
 	err := b.sendRequest(ctx, "/nodes/heartbeat", nil, request, &response)
 
-	zap.L().Info("sending heartbeat", zap.Any("request", request), zap.Any("response", response))
-
 	if err != nil {
-		zap.L().Error("failed to send heartbeat", zap.Error(err))
+		zap.L().Error("failed to send heartbeat",
+			zap.Error(err),
+			zap.Any("request", request))
 
 		return fmt.Errorf("send heartbeat: %w", err)
 	}
+
+	zap.L().Info("successfully sent heartbeat",
+		zap.Any("request", request),
+		zap.Any("response", response))
 
 	return nil
 }
@@ -76,6 +86,10 @@ func (b *Broadcaster) sendRequest(ctx context.Context, path string, values url.V
 	if err != nil {
 		return err
 	}
+
+	zap.L().Debug("sending request",
+		zap.String("url", internalURL.String()),
+		zap.Any("body", body))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, internalURL.String(), bytes.NewReader(requestBody))
 	if err != nil {
@@ -102,6 +116,10 @@ func (b *Broadcaster) sendRequest(ctx context.Context, path string, values url.V
 
 		return fmt.Errorf("unexpected status: %s, response: %s", resp.Status, string(marshal))
 	}
+
+	zap.L().Debug("request completed successfully",
+		zap.String("url", internalURL.String()),
+		zap.Any("response", result))
 
 	return nil
 }

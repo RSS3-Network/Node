@@ -8,6 +8,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/near"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/near"
 	workerx "github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
@@ -125,7 +126,7 @@ func (w *worker) handleNearTransferAction(ctx context.Context, from, to string, 
 
 // buildNearTransactionTransferAction returns the native transfer transaction action.
 func (w *worker) buildNearTransactionTransferAction(_ context.Context, from, to string, tokenValue *big.Int) (*activityx.Action, error) {
-	action := &activityx.Action{
+	return &activityx.Action{
 		Type: typex.TransactionTransfer,
 		From: from,
 		To:   to,
@@ -133,11 +134,9 @@ func (w *worker) buildNearTransactionTransferAction(_ context.Context, from, to 
 			Name:     "NEAR",
 			Symbol:   "NEAR",
 			Decimals: 24,
-			Value:    lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0)),
+			Value:    lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0)),
 		},
-	}
-
-	return action, nil
+	}, nil
 }
 
 // NewWorker returns a new Near worker.

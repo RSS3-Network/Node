@@ -28,9 +28,17 @@ func (c *Component) GetNetworkActivities(ctx echo.Context, net network.Network, 
 
 	addRecentRequest(ctx.Request().RequestURI)
 
+	zap.L().Debug("processing federated network activities request",
+		zap.String("network", request.Network.String()),
+		zap.Int("limit", request.Limit),
+		zap.String("cursor", lo.FromPtr(request.Cursor)))
+
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
-		zap.L().Error("getCursor InternalError", zap.Error(err))
+		zap.L().Error("failed to get federated network activities cursor",
+			zap.String("network", request.Network.String()),
+			zap.String("cursor", lo.FromPtr(request.Cursor)),
+			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
@@ -51,10 +59,16 @@ func (c *Component) GetNetworkActivities(ctx echo.Context, net network.Network, 
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
 	if err != nil {
-		zap.L().Error("getActivities InternalError", zap.Error(err))
+		zap.L().Error("failed to get federated network activities",
+			zap.String("network", request.Network.String()),
+			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
+
+	zap.L().Info("successfully retrieved federated network activities",
+		zap.String("network", request.Network.String()),
+		zap.Int("count", len(activities)))
 
 	return ctx.JSON(http.StatusOK, ActivitiesResponse{
 		Data: c.TransformActivities(ctx.Request().Context(), activities),

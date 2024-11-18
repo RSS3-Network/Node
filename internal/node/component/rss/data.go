@@ -10,6 +10,7 @@ import (
 
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 const (
@@ -25,11 +26,17 @@ func (h *Component) getActivities(ctx context.Context, path string, url *url.URL
 		return nil, fmt.Errorf("format request: %w", err)
 	}
 
+	zap.L().Debug("sending request to RSSHub",
+		zap.String("url", request.String()))
+
 	//nolint:bodyclose // False positive
 	response, err := h.getResponse(ctx, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get RSSHub response: %w", err)
 	}
+
+	zap.L().Debug("successfully received response from RSSHub",
+		zap.Int("status_code", response.StatusCode))
 
 	return h.formatResponse(ctx, response)
 }

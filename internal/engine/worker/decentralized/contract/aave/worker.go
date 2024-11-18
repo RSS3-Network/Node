@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/aave"
@@ -134,7 +135,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	// Build activity base from task.
 	activity, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build activity: %w", err)
+		return nil, fmt.Errorf("build activity: %w, task_id: %s", err, ethereumTask.ID())
 	}
 
 	for _, log := range ethereumTask.Receipt.Logs {
@@ -160,7 +161,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		}
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("handle pool log: %w", err)
 		}
 
 		activity.Type = typex.ExchangeLiquidity
@@ -171,35 +172,6 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	}
 
 	return activity, nil
-}
-
-// NewWorker creates a new worker.
-func NewWorker(config *config.Module) (engine.Worker, error) {
-	var (
-		err      error
-		instance = worker{
-			config: config,
-		}
-	)
-
-	// Initialize ethereum client.
-	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint.URL, config.Endpoint.BuildEthereumOptions()...); err != nil {
-		return nil, fmt.Errorf("initialize ethereum client: %w", err)
-	}
-
-	// Initialize token client.
-	instance.tokenClient = token.NewClient(instance.ethereumClient)
-
-	// Initialize filterers.
-	instance.v1LendingPoolFilterer = lo.Must(aave.NewV1LendingPoolFilterer(ethereum.AddressGenesis, nil))
-	instance.v2LendingPoolFilterer = lo.Must(aave.NewV2LendingPoolFilterer(ethereum.AddressGenesis, nil))
-	instance.v3PoolFilterer = lo.Must(aave.NewV3PoolFilterer(ethereum.AddressGenesis, nil))
-
-	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
-	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
-	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
-
-	return &instance, nil
 }
 
 func (w *worker) matchLiquidityV1Pool(_ *source.Task, log *ethereum.Log) bool {
@@ -516,7 +488,7 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task 
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenAddress, err)
 	}
 
-	targetToken.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	targetToken.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	action := activityx.Action{
 		Type:     typex.ExchangeLiquidity,
@@ -532,4 +504,33 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, task 
 	}
 
 	return &action, nil
+}
+
+// NewWorker creates a new worker.
+func NewWorker(config *config.Module) (engine.Worker, error) {
+	var (
+		err      error
+		instance = worker{
+			config: config,
+		}
+	)
+
+	// Initialize ethereum client.
+	if instance.ethereumClient, err = ethereum.Dial(context.Background(), config.Endpoint.URL, config.Endpoint.BuildEthereumOptions()...); err != nil {
+		return nil, fmt.Errorf("initialize ethereum client: %w", err)
+	}
+
+	// Initialize token client.
+	instance.tokenClient = token.NewClient(instance.ethereumClient)
+
+	// Initialize filterers.
+	instance.v1LendingPoolFilterer = lo.Must(aave.NewV1LendingPoolFilterer(ethereum.AddressGenesis, nil))
+	instance.v2LendingPoolFilterer = lo.Must(aave.NewV2LendingPoolFilterer(ethereum.AddressGenesis, nil))
+	instance.v3PoolFilterer = lo.Must(aave.NewV3PoolFilterer(ethereum.AddressGenesis, nil))
+
+	instance.erc20Filterer = lo.Must(erc20.NewERC20Filterer(ethereum.AddressGenesis, nil))
+	instance.erc721Filterer = lo.Must(erc721.NewERC721Filterer(ethereum.AddressGenesis, nil))
+	instance.erc1155Filterer = lo.Must(erc1155.NewERC1155Filterer(ethereum.AddressGenesis, nil))
+
+	return &instance, nil
 }

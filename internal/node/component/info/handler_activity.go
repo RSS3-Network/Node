@@ -25,10 +25,14 @@ func (c *Component) getActivityCountFromDB(ctx context.Context) (int64, *time.Ti
 		updateTime *time.Time
 	)
 
+	zap.L().Debug("loading checkpoints from database")
+
 	checkpoints, err := c.databaseClient.LoadCheckpoints(ctx, "", networkx.Unknown, "")
 	if err != nil {
 		return count, nil, fmt.Errorf("failed to find activity count: %w", err)
 	}
+
+	zap.L().Debug("processing checkpoints to calculate total activity count")
 
 	for _, checkpoint := range checkpoints {
 		count += checkpoint.IndexCount
@@ -44,16 +48,26 @@ func (c *Component) getActivityCountFromDB(ctx context.Context) (int64, *time.Ti
 // GetActivityCount returns the total number of activities indexed by this Node.
 func (c *Component) GetActivityCount(ctx echo.Context) error {
 	if c.databaseClient == nil {
+		zap.L().Debug("database client is not initialized, returning zero count")
+
 		return ctx.JSON(http.StatusOK, StatisticResponse{
 			Count: 0,
 		})
 	}
 
+	zap.L().Debug("getting activity count from database")
+
 	count, updateTime, err := c.getActivityCountFromDB(ctx.Request().Context())
 	if err != nil {
-		zap.L().Error("getActivityCountFromDB InternalError", zap.Error(err))
+		zap.L().Error("failed to get activity count from database",
+			zap.Error(err))
+
 		return response.InternalError(ctx)
 	}
+
+	zap.L().Debug("successfully retrieved activity count",
+		zap.Int64("count", count),
+		zap.Time("lastUpdate", *updateTime))
 
 	return ctx.JSON(http.StatusOK, StatisticResponse{
 		Count:      count,

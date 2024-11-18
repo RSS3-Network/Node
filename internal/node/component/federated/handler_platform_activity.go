@@ -28,9 +28,17 @@ func (c *Component) GetPlatformActivities(ctx echo.Context, plat federated.Platf
 
 	addRecentRequest(ctx.Request().RequestURI)
 
+	zap.L().Debug("processing federated platform activities request",
+		zap.String("platform", request.Platform.String()),
+		zap.Int("limit", request.Limit),
+		zap.String("cursor", lo.FromPtr(request.Cursor)))
+
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
-		zap.L().Error("getCursor InternalError", zap.Error(err))
+		zap.L().Error("failed to get federated platform activities cursor",
+			zap.String("platform", request.Platform.String()),
+			zap.String("cursor", lo.FromPtr(request.Cursor)),
+			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
@@ -51,10 +59,16 @@ func (c *Component) GetPlatformActivities(ctx echo.Context, plat federated.Platf
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
 	if err != nil {
-		zap.L().Error("getActivities InternalError", zap.Error(err))
+		zap.L().Error("failed to get federated platform activities",
+			zap.String("platform", request.Platform.String()),
+			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
+
+	zap.L().Info("successfully retrieved federated platform activities",
+		zap.String("platform", request.Platform.String()),
+		zap.Int("count", len(activities)))
 
 	return ctx.JSON(http.StatusOK, ActivitiesResponse{
 		Data: c.TransformActivities(ctx.Request().Context(), activities),

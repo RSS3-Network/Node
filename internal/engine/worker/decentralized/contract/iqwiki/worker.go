@@ -22,6 +22,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 // Worker is the worker for IQWiki.
@@ -110,6 +111,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 
 		action, err := w.parseAction(ctx, log, ethereumTask)
 		if err != nil {
+			zap.L().Error("failed to parse action", zap.Error(err))
+
 			continue
 		}
 
@@ -136,10 +139,10 @@ func (w *worker) parseAction(ctx context.Context, log *ethereum.Log, ethereumTas
 	}
 
 	ipfsID := wikiPosted.Ipfs
-
 	content, err := w.getEthereumIPFSContent(ctx, ipfsID)
+
 	if err != nil {
-		return nil, fmt.Errorf("get ipfs content: %w", err)
+		return nil, fmt.Errorf("get ipfs content: %w,uri: %s", err, ipfsID)
 	}
 
 	var wiki struct {
