@@ -64,7 +64,7 @@ require (
 	github.com/jaytaylor/html2text v0.0.0-20230321000545-74c2419ad056
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/redis/rueidis v1.0.49
-	github.com/redis/rueidis/rueidiscompat v1.0.45
+	github.com/redis/rueidis/rueidiscompat v1.0.49
 	github.com/rss3-network/protocol-go v0.5.14
 	github.com/spf13/afero v1.11.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
