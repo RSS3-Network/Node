@@ -1,0 +1,42 @@
+type: string
+enum:
+  - Unknown
+  - 1inch
+  - AAVE
+  - Aavegotchi
+  - Arbitrum
+  - Base
+  - BendDAO
+  - Cow
+  - Crossbell
+  - Curve
+  - ENS
+  - Farcaster
+  - Highlight
+  - IQWiki
+  - KiwiStand
+  - Lens
+  - Lido
+  - Linea
+  - LiNEAR
+  - LooksRare
+  - Matters
+  - Mirror
+  - NearSocial
+  - Nouns
+  - OpenSea
+  - Optimism
+  - Paragraph
+  - Paraswap
+  - Polymarket
+  - RSS3
+  - Rainbow
+  - SAVM
+  - Stargate
+  - Uniswap
+  - VSL
+  - Zerion
+x-go-type: decentralized.Platform
+x-go-type-skip-optional-pointer: true
+x-go-type-import:
+  path:  github.com/rss3-network/node/schema/worker/decentralized

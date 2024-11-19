@@ -6,4 +6,4 @@ generate:
   echo-server: true
   embedded-spec: true
 output-options:
-  exclude-operation-ids: [GetRSS]
+  exclude-operation-ids: []

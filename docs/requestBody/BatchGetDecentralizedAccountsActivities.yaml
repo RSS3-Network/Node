@@ -28,11 +28,7 @@ content:
           description: Retrieve activities from the specified network(s)
           x-go-type-skip-optional-pointer: true
         tag:
-          type: array
-          items:
-            $ref: "../schemas/Tag.yaml"
-          description: Retrieve activities for the specified tag(s)
-          x-go-type-skip-optional-pointer: true
+          $ref: "../schemas/Tags.yaml"
         type:
           type: array
           items:
@@ -42,6 +38,6 @@ content:
         platform:
           type: array
           items:
-            $ref: "../schemas/DecentralizedPlatform.yaml"
+            $ref: "../schemas/platform/Decentralized.yaml"
           description: Retrieve activities from the specified platform(s)
           x-go-type-skip-optional-pointer: true

@@ -43,7 +43,7 @@ properties:
   fee:
     $ref: "./Fee.yaml"
   from:
-    $ref: "./From.yaml"
+    $ref: "./Direction.yaml"
   id:
     description: The unique identifier for the activity.
     type: string

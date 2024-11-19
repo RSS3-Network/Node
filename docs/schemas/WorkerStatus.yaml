@@ -1,32 +1,11 @@
-description: The status of the worker.
-properties:
-  index_count:
-    description: The index count of worker.
-    type: integer
-  indexed_state:
-    description: The indexed state of worker.
-    type: integer
-  network:
-    description: The network which the worker belongs to.
-    type: string
-  platform:
-    description: The platform of worker.
-    type: string
-  remote_state:
-    description: The remote state of worker.
-    type: integer
-  status:
-    description: The indexing status of worker.
-    type: string
-  tags:
-    description: The tag of worker.
-    items:
-      type: string
-    type: array
-  worker:
-    description: The worker name.
-    type: string
-  worker_id:
-    description: The worker ID.
-    type: string
-type: object
+description: The worker status.
+type: string
+enum:
+  - Unknown
+  - Indexing
+  - Ready
+  - Unhealthy
+x-go-type: worker.Status
+x-go-type-skip-optional-pointer: true
+x-go-type-import:
+  path: github.com/rss3-network/node/schema/worker

@@ -6,7 +6,7 @@ get:
   security:
     - bearerAuth: []
   parameters:
-    - $ref: "../../parameters/path/federated_platform.yaml"
+    - $ref: "../../parameters/path/platform/federated.yaml"
     - $ref: "../../parameters/query/limit.yaml"
     - $ref: "../../parameters/query/action_limit.yaml"
     - $ref: "../../parameters/query/cursor.yaml"

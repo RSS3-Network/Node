@@ -1,0 +1,7 @@
+type: string
+enum:
+  - core
+x-go-type: federated.Worker
+x-go-type-skip-optional-pointer: true
+x-go-type-import:
+  path: github.com/rss3-network/node/schema/worker/federated

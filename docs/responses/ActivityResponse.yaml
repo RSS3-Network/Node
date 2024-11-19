@@ -1,5 +1,10 @@
 content:
   application/json:
     schema:
-      $ref: '../schemas/ActivityResponse.yaml'
+      properties:
+        data:
+          $ref: '../schemas/Activity.yaml'
+        meta:
+          $ref: '../schemas/MetaTotalPages.yaml'
+      type: object
 description: The request was successful.

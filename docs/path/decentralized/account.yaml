@@ -17,7 +17,7 @@ get:
     - $ref: "../../parameters/query/network.yaml"
     - $ref: "../../parameters/query/tag.yaml"
     - $ref: "../../parameters/query/type.yaml"
-    - $ref: "../../parameters/query/platform.yaml"
+    - $ref: "../../parameters/query/platform/decentralized.yaml"
   responses:
     '200':
       $ref: "../../responses/ActivitiesResponse.yaml"

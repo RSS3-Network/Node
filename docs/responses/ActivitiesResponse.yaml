@@ -1,5 +1,5 @@
 content:
   application/json:
     schema:
-      $ref: "../schemas/ActivitiesResponse.yaml"
+      $ref: "./ActivitiesResponseBody.yaml"
 description: The request was successful.

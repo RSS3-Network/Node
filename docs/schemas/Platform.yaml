@@ -1,7 +1,3 @@
-description: The platform on which activities occur.
-example: Uniswap
-type: string
-x-go-type: decentralized.Platform
-x-go-type-skip-optional-pointer: true
-x-go-type-import:
-  path: github.com/rss3-network/node/schema/worker/decentralized
+anyOf:
+  - $ref: "./platform/Decentralized.yaml"
+  - $ref: "./platform/Federated.yaml"

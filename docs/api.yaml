@@ -57,6 +57,3 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-  schemas:
-    ActivityResponse:
-      $ref: "./schemas/ActivityResponse.yaml"

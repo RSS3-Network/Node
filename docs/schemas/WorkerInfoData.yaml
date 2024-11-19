@@ -1,4 +1,0 @@
-properties:
-  data:
-    $ref: "./WorkerInfo.yaml"
-type: object

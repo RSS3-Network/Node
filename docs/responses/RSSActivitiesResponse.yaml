@@ -37,5 +37,5 @@ content:
         total_actions: 1
         type: feed
     schema:
-      $ref: "../schemas/ActivitiesResponse.yaml"
+      $ref: "./ActivitiesResponseBody.yaml"
 description: The request was successful.

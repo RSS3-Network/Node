@@ -16,7 +16,7 @@ get:
     - $ref: "../../parameters/query/direction.yaml"
     - $ref: "../../parameters/query/tag.yaml"
     - $ref: "../../parameters/query/type.yaml"
-    - $ref: "../../parameters/query/federated_platform.yaml"
+    - $ref: "../../parameters/query/platform/federated.yaml"
   responses:
     "200":
       $ref: "../../responses/ActivitiesResponse.yaml"

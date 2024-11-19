@@ -1,0 +1,42 @@
+type: string
+enum:
+  - aave
+  - aavegotchi
+  - arbitrum
+  - base
+  - benddao
+  - core
+  - cow
+  - crossbell
+  - curve
+  - ens
+  - highlight
+  - iqwiki
+  - kiwistand
+  - lens
+  - lido
+  - linea
+  - linear
+  - looksrare
+  - matters
+  - mirror
+  - momoka
+  - nearsocial
+  - nouns
+  - 1inch
+  - opensea
+  - optimism
+  - paragraph
+  - paraswap
+  - polymarket
+  - rainbow
+  - rss3
+  - savm
+  - stargate
+  - uniswap
+  - vsl
+  - zerion
+x-go-type: decentralized.Worker
+x-go-type-skip-optional-pointer: true
+x-go-type-import:
+  path:  github.com/rss3-network/node/schema/worker/decentralized

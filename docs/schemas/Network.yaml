@@ -1,6 +1,2 @@
-description: The network on which activities occur.
-example: ethereum
-type: string
-x-go-type: network.Network
-x-go-type-import:
-  path: github.com/rss3-network/protocol-go/schema/network
+allOf:
+  - $ref: "https://raw.githubusercontent.com/RSS3-Network/Protocol-Go/refs/heads/main/openapi/enum/Network.yaml"

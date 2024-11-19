@@ -43,40 +43,6 @@ type Core struct {
 	networkParamsCaller *vsl.NetworkParamsCaller
 }
 
-// rssPathItem is the path item for the RSS activity endpoint
-// manually create rss cause of wildcard routes are not part of the official open api specification
-// https://github.com/oapi-codegen/oapi-codegen/issues/718
-var rssPathItem = &openapi3.PathItem{
-	Get: &openapi3.Operation{
-		Summary:     "Get RSS Activity by Path",
-		Description: "Retrieve details from the specified RSS path.",
-		Extensions: map[string]any{
-			"tags": []string{"RSS"},
-			"security": []map[string][]string{
-				{"bearerAuth": []string{}},
-			},
-		},
-		Parameters: openapi3.Parameters{{
-			Value: &openapi3.Parameter{
-				Description: "Retrieve details for the specified RSS path",
-				Example:     "abc",
-				In:          "path",
-				Name:        "path",
-				Schema: &openapi3.SchemaRef{
-					Value: openapi3.NewStringSchema(),
-				},
-				Required: true,
-			},
-		}},
-		Responses: openapi3.NewResponses(
-			openapi3.WithStatus(http.StatusOK, &openapi3.ResponseRef{Ref: "#/components/responses/responses_ActivityResponse"}),
-			openapi3.WithStatus(http.StatusBadRequest, &openapi3.ResponseRef{Ref: "#/components/responses/responses_BadRequest"}),
-			openapi3.WithStatus(http.StatusNotFound, &openapi3.ResponseRef{Ref: "#/components/responses/responses_NotFound"}),
-			openapi3.WithStatus(http.StatusInternalServerError, &openapi3.ResponseRef{Ref: "#/components/responses/responses_InternalError"}),
-		),
-	},
-}
-
 func (s *Core) Run(_ context.Context) error {
 	address := net.JoinHostPort(DefaultHost, DefaultPort)
 
@@ -149,7 +115,6 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 	// Generate openapi.json
 	apiServer.GET("/openapi.json", func(c echo.Context) error {
 		swagger, err := docs.GetSwagger()
-		swagger.Paths.Set("/rss/{path}", rssPathItem)
 		swagger.Servers = openapi3.Servers{{
 			URL: config.Discovery.Server.Endpoint,
 		}}

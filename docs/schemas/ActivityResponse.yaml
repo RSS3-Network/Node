@@ -1,6 +1,0 @@
-properties:
-  data:
-    $ref: './Activity.yaml'
-  meta:
-    $ref: './MetaTotalPages.yaml'
-type: object

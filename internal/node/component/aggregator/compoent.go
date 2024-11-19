@@ -65,6 +65,15 @@ func (c Component) GetFederatedAccount(ctx echo.Context, account string, params 
 	return c.Federated.GetAccountActivities(ctx, account, params)
 }
 
+// RSS Interface
+
+// GetRSS ignore the second parameter
+// manually create rss cause of wildcard routes are not part of the official open api specification
+// https://github.com/oapi-codegen/oapi-codegen/issues/718
+func (c Component) GetRSS(ctx echo.Context, _ string) error {
+	return c.RSS.Handler(ctx)
+}
+
 // Info Interface
 
 func (c Component) GetOperatorsInfo(ctx echo.Context) error {

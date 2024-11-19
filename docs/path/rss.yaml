@@ -10,7 +10,7 @@ get:
     - $ref: "../parameters/path/rss.yaml"
   responses:
     "200":
-      $ref: "../responses/WorkerInfoResponse.yaml"
+      $ref: "../responses/RSSActivitiesResponse.yaml"
     "400":
       $ref: "../responses/BadRequest.yaml"
     "404":

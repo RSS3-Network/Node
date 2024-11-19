@@ -1,7 +1,7 @@
 description: Represents an individual action within an activity.
 properties:
   from:
-    $ref: './From.yaml'
+    $ref: './Direction.yaml'
   metadata:
     $ref: "./Metadata.yaml"
   platform:
@@ -10,6 +10,7 @@ properties:
     description: A list of URLs related to the action.
     items:
       type: string
+      format: uri
     type: array
   tag:
     $ref: "./Tag.yaml"
