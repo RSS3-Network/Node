@@ -7,12 +7,14 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/labstack/echo/v4"
+	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/constant"
 	"github.com/rss3-network/node/internal/node/component/decentralized"
 	"github.com/rss3-network/node/internal/node/component/federated"
@@ -62,8 +64,19 @@ type NodeInfo struct {
 	Operator common.Address `json:"operator"`
 	Version  Version        `json:"version"`
 	Uptime   int64          `json:"uptime"`
-	Coverage []string       `json:"coverage"`
+	Coverage WorkerCoverage `json:"coverage"`
 	Records  Record         `json:"records"`
+}
+
+type WorkerSupportStatus struct {
+	Supported   []string `json:"supported"`
+	Unsupported []string `json:"unsupported"`
+}
+
+type WorkerCoverage struct {
+	RSS           WorkerSupportStatus `json:"rss"`
+	Decentralized WorkerSupportStatus `json:"decentralized"`
+	Federated     WorkerSupportStatus `json:"federated"`
 }
 
 type Record struct {
@@ -139,7 +152,9 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 	// Get worker coverage info
 	workerCoverage := c.getNodeWorkerCoverage()
 	zap.L().Debug("retrieved worker coverage",
-		zap.Strings("coverage", workerCoverage))
+		zap.Int("rss_supported", len(workerCoverage.RSS.Supported)),
+		zap.Int("decentralized_supported", len(workerCoverage.Decentralized.Supported)),
+		zap.Int("federated_supported", len(workerCoverage.Federated.Supported)))
 
 	// get reward info
 	rewards, err := c.getNodeRewards(ctx.Request().Context(), evmAddress)
@@ -218,38 +233,75 @@ func (c *Component) buildVersion() Version {
 }
 
 // getNodeWorkerCoverage returns the worker coverage in network-worker format.
-func (c *Component) getNodeWorkerCoverage() []string {
-	workerCoverage := make([]string, 0, len(c.config.Component.Decentralized)+lo.Ternary(c.config.Component.RSS != nil, 1, 0)+len(c.config.Component.Federated))
+func (c *Component) getNodeWorkerCoverage() WorkerCoverage {
+	workerCoverage := WorkerCoverage{}
 
-	// append decentralized workers with network
-	for _, worker := range c.config.Component.Decentralized {
-		coverage := fmt.Sprintf("%s_%s", worker.Network, worker.Worker.Name())
-		workerCoverage = append(workerCoverage, coverage)
-		zap.L().Debug("added decentralized worker coverage",
-			zap.String("coverage", coverage))
+	addCoverage := func(network, workerName string, supported, unsupported *[]string) {
+		coverage := fmt.Sprintf("%s_%s", network, workerName)
+		target := unsupported
+		logMessage := "added unsupported worker coverage"
+
+		if workerName != "" {
+			target = supported
+			logMessage = "added worker coverage"
+		}
+
+		*target = append(*target, coverage)
+		zap.L().Debug(logMessage, zap.String("coverage", coverage))
 	}
 
-	// append RSS worker with network if exists
+	processWorkers := func(workers []*config.Module, supported, unsupported *[]string) {
+		for _, worker := range workers {
+			addCoverage(worker.Network.String(), worker.Worker.Name(), supported, unsupported)
+		}
+	}
+
+	processWorkers(c.config.Component.Decentralized, &workerCoverage.Decentralized.Supported, &workerCoverage.Decentralized.Unsupported)
+
+	if len(c.config.Component.Federated) > 0 {
+		processWorkers(c.config.Component.Federated, &workerCoverage.Federated.Supported, &workerCoverage.Federated.Unsupported)
+	} else {
+		addCoverage(network.Mastodon.String(), "core", &workerCoverage.Federated.Unsupported, &workerCoverage.Federated.Unsupported)
+	}
+
 	if c.config.Component.RSS != nil {
-		coverage := fmt.Sprintf("%s_%s", network.RSSHub, c.config.Component.RSS.Worker.Name())
-		workerCoverage = append(workerCoverage, coverage)
-		zap.L().Debug("added RSS worker coverage",
-			zap.String("coverage", coverage))
+		addCoverage(network.RSSHub.String(), c.config.Component.RSS.Worker.Name(), &workerCoverage.RSS.Supported, &workerCoverage.RSS.Unsupported)
+	} else {
+		addCoverage(network.RSSHub.String(), "core", &workerCoverage.RSS.Unsupported, &workerCoverage.RSS.Unsupported)
 	}
 
-	// append federated workers with network
-	for _, worker := range c.config.Component.Federated {
-		coverage := fmt.Sprintf("%s_%s", worker.Network, worker.Worker.Name())
-		workerCoverage = append(workerCoverage, coverage)
-		zap.L().Debug("added federated worker coverage",
-			zap.String("coverage", coverage))
+	for net, workers := range NetworkToWorkersMap {
+		if net == network.RSSHub || net == network.SatoshiVM || net == network.Mastodon {
+			continue
+		}
+
+		for _, worker := range workers {
+			coverage := fmt.Sprintf("%s_%s", net, worker.Name())
+			if !lo.Contains(workerCoverage.Decentralized.Supported, coverage) {
+				workerCoverage.Decentralized.Unsupported = append(workerCoverage.Decentralized.Unsupported, coverage)
+				zap.L().Debug("added decentralized unsupported worker coverage", zap.String("coverage", coverage))
+			}
+		}
 	}
 
-	uniqueCoverage := lo.Uniq(workerCoverage)
+	uniqueAndSort := func(supported, unsupported *[]string) {
+		*supported = lo.Uniq(*supported)
+
+		*unsupported = lo.Uniq(*unsupported)
+
+		sort.Strings(*supported)
+
+		sort.Strings(*unsupported)
+	}
+
+	uniqueAndSort(&workerCoverage.RSS.Supported, &workerCoverage.RSS.Unsupported)
+	uniqueAndSort(&workerCoverage.Decentralized.Supported, &workerCoverage.Decentralized.Unsupported)
+	uniqueAndSort(&workerCoverage.Federated.Supported, &workerCoverage.Federated.Unsupported)
+
 	zap.L().Debug("completed getting worker coverage",
-		zap.Int("total_coverage", len(uniqueCoverage)))
+		zap.Int("total_coverage", len(workerCoverage.RSS.Supported)+len(workerCoverage.Decentralized.Supported)+len(workerCoverage.Federated.Supported)))
 
-	return uniqueCoverage
+	return workerCoverage
 }
 
 // getNodeUptime returns the node uptime.
