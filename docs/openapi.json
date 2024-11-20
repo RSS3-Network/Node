@@ -1148,11 +1148,7 @@
                     },
                     "coverage": {
                         "description": "The supported worker list of the node.",
-                        "items":{
-                            "description": "The worker name.",
-                            "type": "string"
-                        },
-                        "type": "array"
+                        "$ref": "#/components/schemas/WorkerCoverage"
                     },
                     "records": {
                         "$ref": "#/components/schemas/Records"
@@ -1236,6 +1232,39 @@
                             }
                         ],
                         "slashed_tokens": "0"
+                    }
+                }
+            },
+            "WorkerCoverage": {
+                "description": "The worker coverage details.",
+                "type": "object",
+                "properties": {
+                    "rss": {
+                        "$ref": "#/components/schemas/WorkerSupportStatus"
+                    },
+                    "decentralized": {
+                        "$ref": "#/components/schemas/WorkerSupportStatus"
+                    },
+                    "federated": {
+                        "$ref": "#/components/schemas/WorkerSupportStatus"
+                    }
+                }
+            },
+            "WorkerSupportStatus": {
+                "description": "The worker support status.",
+                "type": "object",
+                "properties": {
+                    "supported": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "unsupported": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },
