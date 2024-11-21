@@ -69,8 +69,8 @@ type NodeInfo struct {
 }
 
 type WorkerSupportStatus struct {
-	Supported   []string `json:"supported"`
-	Unsupported []string `json:"unsupported"`
+	Supported   []string `json:"supported,omitempty"`
+	Unsupported []string `json:"unsupported,omitempty"`
 }
 
 type WorkerCoverage struct {
