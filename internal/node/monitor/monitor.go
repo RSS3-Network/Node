@@ -108,6 +108,17 @@ func (m *Monitor) processDecentralizedWorker(ctx context.Context, w *config.Modu
 
 // processFederatedWorker processes the federated worker status.
 func (m *Monitor) processFederatedWorker(ctx context.Context, w *config.Module) error {
+	// get checkpoint info from database
+	indexCount, _, err := m.getCheckpointState(ctx, w.ID, w.Network, w.Worker.Name())
+	if err != nil {
+		zap.L().Error("get checkpoint info", zap.Error(err))
+		return err
+	}
+
+	if err = m.UpdateWorkerProgress(ctx, w.ID, ConstructWorkerProgress(0, 0, 0, indexCount)); err != nil {
+		return fmt.Errorf("update worker progress: %w", err)
+	}
+
 	client, ok := m.clients[w.Network]
 	if !ok {
 		return fmt.Errorf("client not exist")
