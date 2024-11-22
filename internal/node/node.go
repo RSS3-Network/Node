@@ -3,10 +3,10 @@ package node
 import (
 	"context"
 	"fmt"
+	"github.com/getkin/kin-openapi/openapi3"
 	"net"
 	"net/http"
 
-	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -115,9 +115,9 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 	// Generate openapi.json
 	apiServer.GET("/openapi.json", func(c echo.Context) error {
 		swagger, err := docs.GetSwagger()
-		swagger.Servers = openapi3.Servers{{
+		swagger.Servers = append(swagger.Servers, &openapi3.Server{
 			URL: config.Discovery.Server.Endpoint,
-		}}
+		})
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())

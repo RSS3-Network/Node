@@ -3,7 +3,9 @@ info:
   title: Node API
   description: RSS3 Node API, data query services provided.
   version: 1.0.0
-servers: []
+servers:
+  - url: http://localhost:8080
+    description: Local development server
 tags:
   - name: RSS
     description: Retrieve the details of RSS activities.

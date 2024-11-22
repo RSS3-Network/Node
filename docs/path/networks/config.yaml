@@ -1,4 +1,5 @@
 get:
+  operationId: GetNetworksConfig
   summary: Get worker config options
   description: Retrieve worker config options and descriptions.
   security: []

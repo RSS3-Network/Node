@@ -76,15 +76,15 @@ func (c Component) GetRSS(ctx echo.Context, _ string) error {
 
 // Info Interface
 
-func (c Component) GetOperatorsInfo(ctx echo.Context) error {
+func (c Component) GetNodeInfo(ctx echo.Context) error {
 	return c.Info.GetNodeInfo(ctx)
 }
 
-func (c Component) GetOperatorsWorkersStatus(ctx echo.Context) error {
+func (c Component) GetWorkersStatus(ctx echo.Context) error {
 	return c.Info.GetWorkersStatus(ctx)
 }
 
-func (c Component) Get(ctx echo.Context) error {
+func (c Component) GetNodeOperatorInfo(ctx echo.Context) error {
 	return c.Info.GetNodeOperator(ctx)
 }
 

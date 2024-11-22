@@ -1,4 +1,5 @@
 get:
+  operationId: GetWorkersStatus
   summary: Get Node Worker Status
   description: Retrieve node worker status details.
   security: []

@@ -1,4 +1,5 @@
 get:
+  operationId: GetNodeOperatorInfo
   summary: Get Node Operator Info
   description: Retrieve node status details.
   security: []
