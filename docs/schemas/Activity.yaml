@@ -43,7 +43,7 @@ properties:
   fee:
     $ref: "./Fee.yaml"
   from:
-    $ref: "./ProtocolDirection.yaml"
+    $ref: "./Address.yaml"
   id:
     description: The unique identifier for the activity.
     type: string
@@ -65,7 +65,7 @@ properties:
   timestamp:
     $ref: "./Timestamp.yaml"
   to:
-    $ref: "./ProtocolDirection.yaml"
+    $ref: "./Address.yaml"
   total_actions:
     description: The total number of actions within the activity.
     type: integer

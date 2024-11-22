@@ -1,6 +1,5 @@
 type: array
 items:
-  type: string
-  pattern: ^0x[a-fA-F0-9]{40}$
+  $ref: "./Address.yaml"
 description: List of accounts to retrieve activities for
 x-go-type-skip-optional-pointer: true

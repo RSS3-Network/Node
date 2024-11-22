@@ -1,7 +1,7 @@
 description: Represents an individual action within an activity.
 properties:
   from:
-    $ref: './ProtocolDirection.yaml'
+    $ref: './Address.yaml'
   metadata:
     $ref: "./ProtocolMetadata.yaml"
   platform:
@@ -15,7 +15,7 @@ properties:
   tag:
     $ref: "./ProtocolTag.yaml"
   to:
-    $ref: "./ProtocolDirection.yaml"
+    $ref: "./Address.yaml"
   type:
     $ref: "./ProtocolType.yaml"
 type: object
