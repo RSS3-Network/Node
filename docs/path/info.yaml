@@ -1,6 +1,7 @@
 get:
   summary: Get Node Status
   description: Retrieve node status details.
+  security: []
   tags:
     - Info
   responses:

@@ -1,6 +1,7 @@
 get:
   summary: Get Node Worker Status
   description: Retrieve node worker status details.
+  security: []
   tags:
     - Info
   responses:

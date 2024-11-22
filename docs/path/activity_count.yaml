@@ -1,6 +1,7 @@
 get:
   summary: Get Node Activity Count
   description: Retrieve node worker status details.
+  security: []
   tags:
     - Info
   responses:
