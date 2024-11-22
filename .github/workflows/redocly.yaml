@@ -1,7 +1,6 @@
 name: Redocly openapi generate
 
 on:
-  push:
 #    paths:
 #      - "docs/api.yaml"
 #      - "docs/**"
@@ -46,3 +45,16 @@ jobs:
         with:
           path: openapi.yaml
           destination: rss3-openapi/${{ steps.hash.outputs.hash }}
+
+      # comment to
+      - name: comment url
+        uses: actions/github-script@v7
+        with:
+          github-token: '${{ github.token }}'
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '[Openapi review](https://petstore.swagger.io/?url=https://storage.googleapis.com/rss3-openapi/${{ steps.hash.outputs.hash }}/openapi.yaml)'
+            })
