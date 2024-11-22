@@ -17,7 +17,11 @@ jobs:
         uses: actions/setup-node@v4
 
       - id: auth
-        use: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/987979088361/locations/global/workloadIdentityPools/github/providers/github-action
+          service_account: gh-action@naturalselectionlabs.iam.gserviceaccount.com
+          create_credentials_file: true
 
       - name: Install Redocly CLI
         run: npm install -g @redocly/cli@latest
