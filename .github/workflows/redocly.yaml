@@ -1,0 +1,26 @@
+name: Redocly openapi generate
+
+on:
+  push:
+#    paths:
+#      - "docs/api.yaml"
+#      - "docs/**"
+  pull_request:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up node
+        uses: actions/setup-node@v4
+
+      - name: Install Redocly CLI
+        run: npm install -g @redocly/cli@latest
+
+      - name: Run linting
+        run: redocly lint docs/api.yaml --format=github-actions
+
+      - name: Run bundle
+        run: redocly bundle docs/api.yaml --output=openapi.yaml
