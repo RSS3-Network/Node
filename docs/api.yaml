@@ -3,6 +3,9 @@ info:
   title: Node API
   description: RSS3 Node API, data query services provided.
   version: 1.0.0
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 servers:
   - url: http://localhost:8080
     description: Local development server
