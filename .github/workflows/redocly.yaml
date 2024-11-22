@@ -1,6 +1,7 @@
 name: Redocly openapi generate
 
 on:
+  push:
 #    paths:
 #      - "docs/api.yaml"
 #      - "docs/**"
