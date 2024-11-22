@@ -16,6 +16,9 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@v4
 
+      - id: auth
+        use: google-github-actions/auth@v2
+
       - name: Install Redocly CLI
         run: npm install -g @redocly/cli@latest
 
@@ -24,3 +27,13 @@ jobs:
 
       - name: Run bundle
         run: redocly bundle docs/api.yaml --output=openapi.yaml
+
+      - name: Get bundle file hash
+        run: echo "::set-output name=hash::$(sha256sum openapi.yaml | cut -d ' ' -f 1)"
+
+      # upload to gcs
+      - name: upload-file
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          path: openapi.yaml
+          destination: rss3-openapi/${{ steps.generate.outputs.hash }}/openapi.yaml
