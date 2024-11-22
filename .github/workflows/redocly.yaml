@@ -53,7 +53,7 @@ jobs:
         with:
           github-token: '${{ github.token }}'
           script: |
-            github.issues.createComment({
+            github.rest.issues.createCommen({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
