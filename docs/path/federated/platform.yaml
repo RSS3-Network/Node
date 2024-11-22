@@ -6,17 +6,17 @@ get:
   security:
     - bearerAuth: []
   parameters:
-    - $ref: "../../parameters/path/platform/federated.yaml"
-    - $ref: "../../parameters/query/limit.yaml"
-    - $ref: "../../parameters/query/action_limit.yaml"
-    - $ref: "../../parameters/query/cursor.yaml"
-    - $ref: "../../parameters/query/since_timestamp.yaml"
-    - $ref: "../../parameters/query/until_timestamp.yaml"
-    - $ref: "../../parameters/query/success.yaml"
-    - $ref: "../../parameters/query/direction.yaml"
-    - $ref: "../../parameters/query/tag.yaml"
-    - $ref: "../../parameters/query/type.yaml"
-    - $ref: "../../parameters/query/network.yaml"
+    - $ref: "../../parameters/path_platform_federated.yaml"
+    - $ref: "../../parameters/query_limit.yaml"
+    - $ref: "../../parameters/query_action_limit.yaml"
+    - $ref: "../../parameters/query_cursor.yaml"
+    - $ref: "../../parameters/query_since_timestamp.yaml"
+    - $ref: "../../parameters/query_until_timestamp.yaml"
+    - $ref: "../../parameters/query_success.yaml"
+    - $ref: "../../parameters/query_direction.yaml"
+    - $ref: "../../parameters/query_tag.yaml"
+    - $ref: "../../parameters/query_type.yaml"
+    - $ref: "../../parameters/query_network.yaml"
   responses:
     "200":
       $ref: "../../responses/ActivitiesResponse.yaml"

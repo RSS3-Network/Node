@@ -39,11 +39,11 @@ properties:
   calldata:
     $ref: "./Calldata.yaml"
   direction:
-    $ref: "./Direction.yaml"
+    $ref: "./ProtocolDirection.yaml"
   fee:
     $ref: "./Fee.yaml"
   from:
-    $ref: "./Direction.yaml"
+    $ref: "./ProtocolDirection.yaml"
   id:
     description: The unique identifier for the activity.
     type: string
@@ -51,7 +51,7 @@ properties:
     description: The index of the activity in the list.
     type: integer
   network:
-    $ref: "./Network.yaml"
+    $ref: "./ProtocolNetwork.yaml"
   owner:
     description: The owner of the activity.
     type: string
@@ -61,14 +61,14 @@ properties:
     description: Indicates whether the activity was successful.
     type: boolean
   tag:
-    $ref: "./Tag.yaml"
+    $ref: "./ProtocolTag.yaml"
   timestamp:
     $ref: "./Timestamp.yaml"
   to:
-    $ref: "./To.yaml"
+    $ref: "./ProtocolDirection.yaml"
   total_actions:
     description: The total number of actions within the activity.
     type: integer
   type:
-    $ref: "./Type.yaml"
+    $ref: "./ProtocolType.yaml"
 type: object

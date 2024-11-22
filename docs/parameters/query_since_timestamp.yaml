@@ -3,4 +3,4 @@ in: query
 name: since_timestamp
 required: false
 schema:
-  $ref: "../../schemas/Timestamp.yaml"
+  $ref: "../schemas/Timestamp.yaml"

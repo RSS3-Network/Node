@@ -3,4 +3,4 @@ in: query
 name: cursor
 required: false
 schema:
-  $ref: "../../schemas/Cursor.yaml"
+  $ref: "../schemas/Cursor.yaml"

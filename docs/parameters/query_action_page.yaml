@@ -4,4 +4,4 @@ in: query
 name: action_page
 required: false
 schema:
-  $ref: "../../schemas/ActionPage.yaml"
+  $ref: "../schemas/ActionPage.yaml"

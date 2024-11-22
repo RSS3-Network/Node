@@ -3,4 +3,4 @@ in: query
 name: direction
 required: false
 schema:
-  $ref: "../../schemas/Direction.yaml"
+  $ref: "../schemas/ProtocolDirection.yaml"

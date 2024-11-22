@@ -3,4 +3,4 @@ in: query
 name: tag
 required: false
 schema:
-  $ref: "../../schemas/Tags.yaml"
+  $ref: "../schemas/Tags.yaml"

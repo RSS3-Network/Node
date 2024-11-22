@@ -8,7 +8,7 @@ allOf:
       worker:
         $ref: "./Worker.yaml"
       network:
-        $ref: "./Network.yaml"
+        $ref: "./ProtocolNetwork.yaml"
       tags:
         $ref: "./Tags.yaml"
       platform:

@@ -4,5 +4,5 @@ in: query
 name: limit
 required: false
 schema:
-  $ref: "../../schemas/Limit.yaml"
+  $ref: "../schemas/Limit.yaml"
 

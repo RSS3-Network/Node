@@ -3,7 +3,4 @@ in: query
 name: network
 required: false
 schema:
-  items:
-    $ref: "../../schemas/Network.yaml"
-  type: array
-  x-go-type-skip-optional-pointer: true
+  $ref: "../schemas/Networks.yaml"

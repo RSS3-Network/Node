@@ -1,9 +1,9 @@
 description: Represents an individual action within an activity.
 properties:
   from:
-    $ref: './Direction.yaml'
+    $ref: './ProtocolDirection.yaml'
   metadata:
-    $ref: "./Metadata.yaml"
+    $ref: "./ProtocolMetadata.yaml"
   platform:
     $ref: "./Platform.yaml"
   related_urls:
@@ -13,9 +13,9 @@ properties:
       format: uri
     type: array
   tag:
-    $ref: "./Tag.yaml"
+    $ref: "./ProtocolTag.yaml"
   to:
-    $ref: "./To.yaml"
+    $ref: "./ProtocolDirection.yaml"
   type:
-    $ref: "./Type.yaml"
+    $ref: "./ProtocolType.yaml"
 type: object

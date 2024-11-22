@@ -4,4 +4,4 @@ in: query
 name: action_limit
 required: false
 schema:
-  $ref: "../../schemas/ActionLimit.yaml"
+  $ref: "../schemas/ActionLimit.yaml"

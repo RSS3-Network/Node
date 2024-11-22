@@ -3,5 +3,5 @@ in: query
 name: success
 required: false
 schema:
-  $ref: "../../schemas/Success.yaml"
+  $ref: "../schemas/Success.yaml"
 x-go-name: Status

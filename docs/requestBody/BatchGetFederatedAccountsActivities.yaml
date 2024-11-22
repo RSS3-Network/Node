@@ -20,24 +20,16 @@ content:
         success:
           $ref: "../schemas/Success.yaml"
         direction:
-          $ref: "../schemas/Direction.yaml"
+          $ref: "../schemas/ProtocolDirection.yaml"
         network:
-          type: array
-          items:
-            $ref: "../schemas/Network.yaml"
-          description: Retrieve activities from the specified network(s)
-          x-go-type-skip-optional-pointer: true
+          $ref: "../schemas/Networks.yaml"
         tag:
           $ref: "../schemas/Tags.yaml"
         type:
-          type: array
-          items:
-            $ref: "../schemas/Type.yaml"
-          description: Retrieve activities for the specified type(s)
-          x-go-type-skip-optional-pointer: true
+          $ref: "../schemas/Types.yaml"
         platform:
           type: array
           items:
-            $ref: "../schemas/platform/Federated.yaml"
+            $ref: "../schemas/PlatformFederated.yaml"
           description: Retrieve activities from the specified platform(s)
           x-go-type-skip-optional-pointer: true

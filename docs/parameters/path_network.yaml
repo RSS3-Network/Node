@@ -4,4 +4,4 @@ in: path
 name: network
 required: true
 schema:
-  $ref: "../../schemas/Network.yaml"
+  $ref: "../schemas/ProtocolNetwork.yaml"

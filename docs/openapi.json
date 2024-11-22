@@ -36,13 +36,13 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/activity_id"
+            "$ref": "#/components/parameters/path_activity_id"
           },
           {
-            "$ref": "#/components/parameters/action_limit"
+            "$ref": "#/components/parameters/query_action_limit"
           },
           {
-            "$ref": "#/components/parameters/action_page"
+            "$ref": "#/components/parameters/query_action_page"
           }
         ],
         "responses": {
@@ -75,40 +75,40 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/account"
+            "$ref": "#/components/parameters/path_account"
           },
           {
-            "$ref": "#/components/parameters/limit"
+            "$ref": "#/components/parameters/query_limit"
           },
           {
-            "$ref": "#/components/parameters/action_limit"
+            "$ref": "#/components/parameters/query_action_limit"
           },
           {
-            "$ref": "#/components/parameters/cursor"
+            "$ref": "#/components/parameters/query_cursor"
           },
           {
-            "$ref": "#/components/parameters/since_timestamp"
+            "$ref": "#/components/parameters/query_since_timestamp"
           },
           {
-            "$ref": "#/components/parameters/until_timestamp"
+            "$ref": "#/components/parameters/query_until_timestamp"
           },
           {
-            "$ref": "#/components/parameters/success"
+            "$ref": "#/components/parameters/query_success"
           },
           {
-            "$ref": "#/components/parameters/direction"
+            "$ref": "#/components/parameters/query_direction"
           },
           {
-            "$ref": "#/components/parameters/network"
+            "$ref": "#/components/parameters/query_network"
           },
           {
-            "$ref": "#/components/parameters/tag"
+            "$ref": "#/components/parameters/query_tag"
           },
           {
-            "$ref": "#/components/parameters/type"
+            "$ref": "#/components/parameters/query_type"
           },
           {
-            "$ref": "#/components/parameters/decentralized"
+            "$ref": "#/components/parameters/query_platform_decentralized"
           }
         ],
         "responses": {
@@ -169,37 +169,37 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/network-2"
+            "$ref": "#/components/parameters/path_network"
           },
           {
-            "$ref": "#/components/parameters/limit"
+            "$ref": "#/components/parameters/query_limit"
           },
           {
-            "$ref": "#/components/parameters/action_limit"
+            "$ref": "#/components/parameters/query_action_limit"
           },
           {
-            "$ref": "#/components/parameters/cursor"
+            "$ref": "#/components/parameters/query_cursor"
           },
           {
-            "$ref": "#/components/parameters/since_timestamp"
+            "$ref": "#/components/parameters/query_since_timestamp"
           },
           {
-            "$ref": "#/components/parameters/until_timestamp"
+            "$ref": "#/components/parameters/query_until_timestamp"
           },
           {
-            "$ref": "#/components/parameters/success"
+            "$ref": "#/components/parameters/query_success"
           },
           {
-            "$ref": "#/components/parameters/direction"
+            "$ref": "#/components/parameters/query_direction"
           },
           {
-            "$ref": "#/components/parameters/tag"
+            "$ref": "#/components/parameters/query_tag"
           },
           {
-            "$ref": "#/components/parameters/type"
+            "$ref": "#/components/parameters/query_type"
           },
           {
-            "$ref": "#/components/parameters/decentralized"
+            "$ref": "#/components/parameters/query_platform_decentralized"
           }
         ],
         "responses": {
@@ -232,37 +232,37 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/decentralized-2"
+            "$ref": "#/components/parameters/path_platform_decentralized"
           },
           {
-            "$ref": "#/components/parameters/limit"
+            "$ref": "#/components/parameters/query_limit"
           },
           {
-            "$ref": "#/components/parameters/action_limit"
+            "$ref": "#/components/parameters/query_action_limit"
           },
           {
-            "$ref": "#/components/parameters/cursor"
+            "$ref": "#/components/parameters/query_cursor"
           },
           {
-            "$ref": "#/components/parameters/since_timestamp"
+            "$ref": "#/components/parameters/query_since_timestamp"
           },
           {
-            "$ref": "#/components/parameters/until_timestamp"
+            "$ref": "#/components/parameters/query_until_timestamp"
           },
           {
-            "$ref": "#/components/parameters/success"
+            "$ref": "#/components/parameters/query_success"
           },
           {
-            "$ref": "#/components/parameters/direction"
+            "$ref": "#/components/parameters/query_direction"
           },
           {
-            "$ref": "#/components/parameters/tag"
+            "$ref": "#/components/parameters/query_tag"
           },
           {
-            "$ref": "#/components/parameters/type"
+            "$ref": "#/components/parameters/query_type"
           },
           {
-            "$ref": "#/components/parameters/network"
+            "$ref": "#/components/parameters/query_network"
           }
         ],
         "responses": {
@@ -296,13 +296,13 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/activity_id"
+            "$ref": "#/components/parameters/path_activity_id"
           },
           {
-            "$ref": "#/components/parameters/action_limit"
+            "$ref": "#/components/parameters/query_action_limit"
           },
           {
-            "$ref": "#/components/parameters/action_page"
+            "$ref": "#/components/parameters/query_action_page"
           }
         ],
         "responses": {
@@ -335,40 +335,40 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/account"
+            "$ref": "#/components/parameters/path_account"
           },
           {
-            "$ref": "#/components/parameters/limit"
+            "$ref": "#/components/parameters/query_limit"
           },
           {
-            "$ref": "#/components/parameters/action_limit"
+            "$ref": "#/components/parameters/query_action_limit"
           },
           {
-            "$ref": "#/components/parameters/cursor"
+            "$ref": "#/components/parameters/query_cursor"
           },
           {
-            "$ref": "#/components/parameters/since_timestamp"
+            "$ref": "#/components/parameters/query_since_timestamp"
           },
           {
-            "$ref": "#/components/parameters/until_timestamp"
+            "$ref": "#/components/parameters/query_until_timestamp"
           },
           {
-            "$ref": "#/components/parameters/success"
+            "$ref": "#/components/parameters/query_success"
           },
           {
-            "$ref": "#/components/parameters/direction"
+            "$ref": "#/components/parameters/query_direction"
           },
           {
-            "$ref": "#/components/parameters/network"
+            "$ref": "#/components/parameters/query_network"
           },
           {
-            "$ref": "#/components/parameters/tag"
+            "$ref": "#/components/parameters/query_tag"
           },
           {
-            "$ref": "#/components/parameters/type"
+            "$ref": "#/components/parameters/query_type"
           },
           {
-            "$ref": "#/components/parameters/federated"
+            "$ref": "#/components/parameters/query_platform_federated"
           }
         ],
         "responses": {
@@ -429,37 +429,37 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/network-2"
+            "$ref": "#/components/parameters/path_network"
           },
           {
-            "$ref": "#/components/parameters/limit"
+            "$ref": "#/components/parameters/query_limit"
           },
           {
-            "$ref": "#/components/parameters/action_limit"
+            "$ref": "#/components/parameters/query_action_limit"
           },
           {
-            "$ref": "#/components/parameters/cursor"
+            "$ref": "#/components/parameters/query_cursor"
           },
           {
-            "$ref": "#/components/parameters/since_timestamp"
+            "$ref": "#/components/parameters/query_since_timestamp"
           },
           {
-            "$ref": "#/components/parameters/until_timestamp"
+            "$ref": "#/components/parameters/query_until_timestamp"
           },
           {
-            "$ref": "#/components/parameters/success"
+            "$ref": "#/components/parameters/query_success"
           },
           {
-            "$ref": "#/components/parameters/direction"
+            "$ref": "#/components/parameters/query_direction"
           },
           {
-            "$ref": "#/components/parameters/tag"
+            "$ref": "#/components/parameters/query_tag"
           },
           {
-            "$ref": "#/components/parameters/type"
+            "$ref": "#/components/parameters/query_type"
           },
           {
-            "$ref": "#/components/parameters/federated"
+            "$ref": "#/components/parameters/query_platform_federated"
           }
         ],
         "responses": {
@@ -492,37 +492,37 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/federated-2"
+            "$ref": "#/components/parameters/path_platform_federated"
           },
           {
-            "$ref": "#/components/parameters/limit"
+            "$ref": "#/components/parameters/query_limit"
           },
           {
-            "$ref": "#/components/parameters/action_limit"
+            "$ref": "#/components/parameters/query_action_limit"
           },
           {
-            "$ref": "#/components/parameters/cursor"
+            "$ref": "#/components/parameters/query_cursor"
           },
           {
-            "$ref": "#/components/parameters/since_timestamp"
+            "$ref": "#/components/parameters/query_since_timestamp"
           },
           {
-            "$ref": "#/components/parameters/until_timestamp"
+            "$ref": "#/components/parameters/query_until_timestamp"
           },
           {
-            "$ref": "#/components/parameters/success"
+            "$ref": "#/components/parameters/query_success"
           },
           {
-            "$ref": "#/components/parameters/direction"
+            "$ref": "#/components/parameters/query_direction"
           },
           {
-            "$ref": "#/components/parameters/tag"
+            "$ref": "#/components/parameters/query_tag"
           },
           {
-            "$ref": "#/components/parameters/type"
+            "$ref": "#/components/parameters/query_type"
           },
           {
-            "$ref": "#/components/parameters/network"
+            "$ref": "#/components/parameters/query_network"
           }
         ],
         "responses": {
@@ -556,12 +556,12 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/rss"
+            "$ref": "#/components/parameters/path_rss"
           }
         ],
         "responses": {
           "200": {
-            "$ref": "#/components/responses/WorkerInfoResponse"
+            "$ref": "#/components/responses/RSSActivitiesResponse"
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -711,7 +711,7 @@
       }
     },
     "parameters": {
-      "activity_id": {
+      "path_activity_id": {
         "description": "Retrieve details for the specified activity ID",
         "example": "0x840e42d573ebe1ff27a9e4914573b4e0518fcd685c7f9331d319abe854f780e3",
         "in": "path",
@@ -721,7 +721,7 @@
           "type": "string"
         }
       },
-      "action_limit": {
+      "query_action_limit": {
         "description": "Specify the number of actions within the activity to retrieve.",
         "example": "10",
         "in": "query",
@@ -731,7 +731,7 @@
           "$ref": "#/components/schemas/ActionLimit"
         }
       },
-      "action_page": {
+      "query_action_page": {
         "description": "Specify the pagination for actions",
         "example": 1,
         "in": "query",
@@ -741,7 +741,7 @@
           "$ref": "#/components/schemas/ActionPage"
         }
       },
-      "account": {
+      "path_account": {
         "description": "Retrieve activities from the specified account.",
         "in": "path",
         "name": "account",
@@ -751,7 +751,7 @@
           "example": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045"
         }
       },
-      "limit": {
+      "query_limit": {
         "description": "Specify the number of activities to retrieve.",
         "example": "20",
         "in": "query",
@@ -761,7 +761,7 @@
           "$ref": "#/components/schemas/Limit"
         }
       },
-      "cursor": {
+      "query_cursor": {
         "description": "Specify the cursor used for pagination.",
         "in": "query",
         "name": "cursor",
@@ -770,7 +770,7 @@
           "$ref": "#/components/schemas/Cursor"
         }
       },
-      "since_timestamp": {
+      "query_since_timestamp": {
         "description": "Retrieve activities starting from this timestamp.",
         "in": "query",
         "name": "since_timestamp",
@@ -779,7 +779,7 @@
           "$ref": "#/components/schemas/Timestamp"
         }
       },
-      "until_timestamp": {
+      "query_until_timestamp": {
         "description": "Retrieve activities up to this timestamp.",
         "in": "query",
         "name": "until_timestamp",
@@ -788,7 +788,7 @@
           "$ref": "#/components/schemas/Timestamp"
         }
       },
-      "success": {
+      "query_success": {
         "description": "Retrieve activities based on success status.",
         "in": "query",
         "name": "success",
@@ -798,111 +798,99 @@
         },
         "x-go-name": "Status"
       },
-      "direction": {
+      "query_direction": {
         "description": "Retrieve activities based on direction.",
         "in": "query",
         "name": "direction",
         "required": false,
         "schema": {
-          "$ref": "#/components/schemas/Direction-2"
+          "$ref": "#/components/schemas/ProtocolDirection"
         }
       },
-      "network": {
+      "query_network": {
         "description": "Retrieve activities from the specified network(s).",
         "in": "query",
         "name": "network",
         "required": false,
         "schema": {
-          "items": {
-            "$ref": "#/components/schemas/Network-2"
-          },
-          "type": "array",
-          "x-go-type-skip-optional-pointer": true
+          "$ref": "#/components/schemas/Networks"
         }
       },
-      "tag": {
+      "query_tag": {
         "description": "Retrieve activities for the specified tag(s).",
         "in": "query",
         "name": "tag",
         "required": false,
         "schema": {
-          "items": {
-            "$ref": "#/components/schemas/Tag-2"
-          },
-          "type": "array",
-          "x-go-type-skip-optional-pointer": true
+          "$ref": "#/components/schemas/Tags"
         }
       },
-      "type": {
+      "query_type": {
         "description": "Retrieve activities for the specified type(s).",
         "in": "query",
         "name": "type",
         "required": false,
         "schema": {
-          "items": {
-            "$ref": "#/components/schemas/Type-2"
-          },
-          "type": "array",
-          "x-go-type-skip-optional-pointer": true
+          "$ref": "#/components/schemas/Types"
         }
       },
-      "decentralized": {
+      "query_platform_decentralized": {
         "description": "Retrieve activities from the specified platform(s).",
         "in": "query",
         "name": "platform",
         "required": false,
         "schema": {
           "items": {
-            "$ref": "#/components/schemas/Decentralized"
+            "$ref": "#/components/schemas/PlatformDecentralized"
           },
           "type": "array",
           "x-go-type-skip-optional-pointer": true
         }
       },
-      "network-2": {
+      "path_network": {
         "description": "Retrieve activities from the specified network.",
         "example": "ethereum",
         "in": "path",
         "name": "network",
         "required": true,
         "schema": {
-          "$ref": "#/components/schemas/Network-2"
+          "$ref": "#/components/schemas/ProtocolNetwork"
         }
       },
-      "decentralized-2": {
+      "path_platform_decentralized": {
         "description": "Retrieve activities from the specified platform.",
         "example": "Uniswap",
         "in": "path",
         "name": "platform",
         "required": true,
         "schema": {
-          "$ref": "#/components/schemas/Decentralized"
+          "$ref": "#/components/schemas/PlatformDecentralized"
         }
       },
-      "federated": {
+      "query_platform_federated": {
         "description": "Retrieve activities from the specified platform(s).",
         "in": "query",
         "name": "platform",
         "required": false,
         "schema": {
           "items": {
-            "$ref": "#/components/schemas/Federated"
+            "$ref": "#/components/schemas/PlatformFederated"
           },
           "type": "array",
           "x-go-type-skip-optional-pointer": true
         }
       },
-      "federated-2": {
+      "path_platform_federated": {
         "description": "Retrieve activities from the specified platform.",
         "example": "Uniswap",
         "in": "path",
         "name": "platform",
         "required": true,
         "schema": {
-          "$ref": "#/components/schemas/Federated"
+          "$ref": "#/components/schemas/PlatformFederated"
         }
       },
-      "rss": {
+      "path_rss": {
         "description": "Retrieve details for the specified RSS path",
         "example": "abc",
         "in": "path",
@@ -942,7 +930,7 @@
           "path": "github.com/rss3-network/protocol-go/schema/activity"
         }
       },
-      "Direction-2": {
+      "ProtocolDirection": {
         "allOf": [
           {
             "$ref": "#/components/schemas/Direction"
@@ -1756,7 +1744,7 @@
           }
         ]
       },
-      "Metadata-2": {
+      "ProtocolMetadata": {
         "description": "Additional metadata related to the action.",
         "type": "object",
         "allOf": [
@@ -1772,7 +1760,7 @@
           }
         ]
       },
-      "Decentralized": {
+      "PlatformDecentralized": {
         "type": "string",
         "enum": [
           "Unknown",
@@ -1818,7 +1806,7 @@
           "path": "github.com/rss3-network/node/schema/worker/decentralized"
         }
       },
-      "Federated": {
+      "PlatformFederated": {
         "type": "string",
         "enum": [
           "Unknown",
@@ -1833,10 +1821,10 @@
       "Platform": {
         "anyOf": [
           {
-            "$ref": "#/components/schemas/Decentralized"
+            "$ref": "#/components/schemas/PlatformDecentralized"
           },
           {
-            "$ref": "#/components/schemas/Federated"
+            "$ref": "#/components/schemas/PlatformFederated"
           }
         ]
       },
@@ -1859,16 +1847,12 @@
           "path": "github.com/rss3-network/protocol-go/schema/tag"
         }
       },
-      "Tag-2": {
+      "ProtocolTag": {
         "allOf": [
           {
             "$ref": "#/components/schemas/Tag"
           }
         ]
-      },
-      "To": {
-        "description": "The address to which the action is directed.",
-        "type": "string"
       },
       "Exchange": {
         "type": "string",
@@ -1944,7 +1928,7 @@
       },
       "Type": {
         "type": "string",
-        "oneOf": [
+        "allOf": [
           {
             "$ref": "#/components/schemas/Exchange"
           },
@@ -1971,7 +1955,7 @@
           }
         ]
       },
-      "Type-2": {
+      "ProtocolType": {
         "allOf": [
           {
             "$ref": "#/components/schemas/Type"
@@ -1989,10 +1973,10 @@
         "description": "Represents an individual action within an activity.",
         "properties": {
           "from": {
-            "$ref": "#/components/schemas/Direction-2"
+            "$ref": "#/components/schemas/ProtocolDirection"
           },
           "metadata": {
-            "$ref": "#/components/schemas/Metadata-2"
+            "$ref": "#/components/schemas/ProtocolMetadata"
           },
           "platform": {
             "$ref": "#/components/schemas/Platform"
@@ -2006,13 +1990,13 @@
             "type": "array"
           },
           "tag": {
-            "$ref": "#/components/schemas/Tag-2"
+            "$ref": "#/components/schemas/ProtocolTag"
           },
           "to": {
-            "$ref": "#/components/schemas/To"
+            "$ref": "#/components/schemas/ProtocolDirection"
           },
           "type": {
-            "$ref": "#/components/schemas/Type-2"
+            "$ref": "#/components/schemas/ProtocolType"
           }
         },
         "type": "object"
@@ -2053,7 +2037,7 @@
         },
         "type": "object"
       },
-      "Network-2": {
+      "ProtocolNetwork": {
         "allOf": [
           {
             "$ref": "#/components/schemas/Network"
@@ -2118,13 +2102,13 @@
             "$ref": "#/components/schemas/Calldata"
           },
           "direction": {
-            "$ref": "#/components/schemas/Direction-2"
+            "$ref": "#/components/schemas/ProtocolDirection"
           },
           "fee": {
             "$ref": "#/components/schemas/Fee"
           },
           "from": {
-            "$ref": "#/components/schemas/Direction-2"
+            "$ref": "#/components/schemas/ProtocolDirection"
           },
           "id": {
             "description": "The unique identifier for the activity.",
@@ -2135,7 +2119,7 @@
             "type": "integer"
           },
           "network": {
-            "$ref": "#/components/schemas/Network-2"
+            "$ref": "#/components/schemas/ProtocolNetwork"
           },
           "owner": {
             "description": "The owner of the activity.",
@@ -2149,20 +2133,20 @@
             "type": "boolean"
           },
           "tag": {
-            "$ref": "#/components/schemas/Tag-2"
+            "$ref": "#/components/schemas/ProtocolTag"
           },
           "timestamp": {
             "$ref": "#/components/schemas/Timestamp"
           },
           "to": {
-            "$ref": "#/components/schemas/To"
+            "$ref": "#/components/schemas/ProtocolDirection"
           },
           "total_actions": {
             "description": "The total number of actions within the activity.",
             "type": "integer"
           },
           "type": {
-            "$ref": "#/components/schemas/Type-2"
+            "$ref": "#/components/schemas/ProtocolType"
           }
         },
         "type": "object"
@@ -2209,12 +2193,50 @@
         "description": "Retrieve activities based on success status",
         "x-go-name": "Status"
       },
+      "Networks": {
+        "items": {
+          "$ref": "#/components/schemas/ProtocolNetwork"
+        },
+        "type": "array",
+        "x-go-type-skip-optional-pointer": true
+      },
+      "Tags": {
+        "description": "Retrieve activities for the specified tag(s)",
+        "items": {
+          "$ref": "#/components/schemas/ProtocolTag"
+        },
+        "type": "array",
+        "x-go-type-skip-optional-pointer": true
+      },
+      "Types": {
+        "items": {
+          "$ref": "#/components/schemas/ProtocolType"
+        },
+        "type": "array",
+        "x-go-type-skip-optional-pointer": true
+      },
       "MetaCursor": {
         "description": "Metadata for paginated responses.",
         "properties": {
           "cursor": {
             "description": "The cursor for the next set of results.",
             "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ActivitiesResponseBody": {
+        "description": "The response structure for a list of activities.",
+        "properties": {
+          "data": {
+            "description": "The list of activities.",
+            "items": {
+              "$ref": "#/components/schemas/Activity"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaCursor"
           }
         },
         "type": "object"
@@ -2228,7 +2250,7 @@
         "description": "List of accounts to retrieve activities for",
         "x-go-type-skip-optional-pointer": true
       },
-      "Decentralized-2": {
+      "WorkerDecentralized": {
         "type": "string",
         "enum": [
           "aave",
@@ -2274,7 +2296,7 @@
           "path": "github.com/rss3-network/node/schema/worker/decentralized"
         }
       },
-      "Federated-2": {
+      "WorkerFederated": {
         "type": "string",
         "enum": [
           "core"
@@ -2288,19 +2310,12 @@
       "Worker": {
         "anyOf": [
           {
-            "$ref": "#/components/schemas/Decentralized-2"
+            "$ref": "#/components/schemas/WorkerDecentralized"
           },
           {
-            "$ref": "#/components/schemas/Federated-2"
+            "$ref": "#/components/schemas/WorkerFederated"
           }
         ]
-      },
-      "Tags": {
-        "description": "The tags of the worker.",
-        "items": {
-          "$ref": "#/components/schemas/Tag-2"
-        },
-        "type": "array"
       },
       "WorkerStatus": {
         "description": "The worker status.",
@@ -2348,7 +2363,7 @@
                 "$ref": "#/components/schemas/Worker"
               },
               "network": {
-                "$ref": "#/components/schemas/Network-2"
+                "$ref": "#/components/schemas/ProtocolNetwork"
               },
               "tags": {
                 "$ref": "#/components/schemas/Tags"
@@ -2906,20 +2921,57 @@
         "content": {
           "application/json": {
             "schema": {
-              "description": "The response structure for a list of activities.",
-              "properties": {
-                "data": {
-                  "description": "The list of activities.",
-                  "items": {
-                    "$ref": "#/components/schemas/Activity"
-                  },
-                  "type": "array"
-                },
-                "meta": {
-                  "$ref": "#/components/schemas/MetaCursor"
+              "$ref": "#/components/schemas/ActivitiesResponseBody"
+            }
+          }
+        },
+        "description": "The request was successful."
+      },
+      "RSSActivitiesResponse": {
+        "content": {
+          "application/json": {
+            "example": {
+              "data": [
+                {
+                  "actions": [
+                    {
+                      "from": "www.abc.net.au",
+                      "metadata": {
+                        "authors": [
+                          {
+                            "name": "Emma Wynne"
+                          }
+                        ],
+                        "description": "<div><h2>In short:</h2><p>Nicheliving customer Cindy Richardson says she is overwhelmed with costs, including rent, mortgage and rates due to the long delays completing her house.</p><p>She has applied to access her superannuation on hardship grounds but was rejected.</p><h2>What's next?</h2><p>WA Commerce Minister Sue Ellery is in talks with the company about resolving the long completion delays many customers are facing.</p></div>\n",
+                        "pub_date": "2024-07-02T04:13:38.000Z",
+                        "title": "Cindy was supposed to be living in a new home by now. Instead she's facing bankruptcy"
+                      },
+                      "platform": "www.abc.net.au",
+                      "related_urls": [
+                        "https://www.abc.net.au/news/2024-07-02/nicheliving-home-building-delays-causing-hardship/104047810"
+                      ],
+                      "tag": "rss",
+                      "to": "www.abc.net.au",
+                      "type": "feed"
+                    }
+                  ],
+                  "direction": "out",
+                  "from": "www.abc.net.au",
+                  "id": "https://www.abc.net.au/news/2024-07-02/nicheliving-home-building-delays-causing-hardship/104047810",
+                  "index": 0,
+                  "network": "rss",
+                  "owner": "www.abc.net.au",
+                  "success": false,
+                  "tag": "rss",
+                  "timestamp": 1719895289,
+                  "to": "www.abc.net.au",
+                  "total_actions": 1,
+                  "type": "feed"
                 }
-              },
-              "type": "object"
+              ]
+            },
+            "schema": {
+              "$ref": "#/components/schemas/ActivitiesResponseBody"
             }
           }
         },
@@ -2992,36 +3044,21 @@
                   "$ref": "#/components/schemas/Success"
                 },
                 "direction": {
-                  "$ref": "#/components/schemas/Direction-2"
+                  "$ref": "#/components/schemas/ProtocolDirection"
                 },
                 "network": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Network-2"
-                  },
-                  "description": "Retrieve activities from the specified network(s)",
-                  "x-go-type-skip-optional-pointer": true
+                  "$ref": "#/components/schemas/Networks"
                 },
                 "tag": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Tag-2"
-                  },
-                  "description": "Retrieve activities for the specified tag(s)",
-                  "x-go-type-skip-optional-pointer": true
+                  "$ref": "#/components/schemas/Tags"
                 },
                 "type": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Type-2"
-                  },
-                  "description": "Retrieve activities for the specified type(s)",
-                  "x-go-type-skip-optional-pointer": true
+                  "$ref": "#/components/schemas/Types"
                 },
                 "platform": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Decentralized"
+                    "$ref": "#/components/schemas/PlatformDecentralized"
                   },
                   "description": "Retrieve activities from the specified platform(s)",
                   "x-go-type-skip-optional-pointer": true
@@ -3061,36 +3098,21 @@
                   "$ref": "#/components/schemas/Success"
                 },
                 "direction": {
-                  "$ref": "#/components/schemas/Direction-2"
+                  "$ref": "#/components/schemas/ProtocolDirection"
                 },
                 "network": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Network-2"
-                  },
-                  "description": "Retrieve activities from the specified network(s)",
-                  "x-go-type-skip-optional-pointer": true
+                  "$ref": "#/components/schemas/Networks"
                 },
                 "tag": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Tag-2"
-                  },
-                  "description": "Retrieve activities for the specified tag(s)",
-                  "x-go-type-skip-optional-pointer": true
+                  "$ref": "#/components/schemas/Tags"
                 },
                 "type": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Type-2"
-                  },
-                  "description": "Retrieve activities for the specified type(s)",
-                  "x-go-type-skip-optional-pointer": true
+                  "$ref": "#/components/schemas/Types"
                 },
                 "platform": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Federated"
+                    "$ref": "#/components/schemas/PlatformFederated"
                   },
                   "description": "Retrieve activities from the specified platform(s)",
                   "x-go-type-skip-optional-pointer": true

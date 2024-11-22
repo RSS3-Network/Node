@@ -6,9 +6,9 @@ get:
   security:
     - bearerAuth: []
   parameters:
-    - $ref: "../../parameters/path/activity_id.yaml"
-    - $ref: "../../parameters/query/action_limit.yaml"
-    - $ref: "../../parameters/query/action_page.yaml"
+    - $ref: "../../parameters/path_activity_id.yaml"
+    - $ref: "../../parameters/query_action_limit.yaml"
+    - $ref: "../../parameters/query_action_page.yaml"
   responses:
     '200':
       $ref: "../../responses/ActivityResponse.yaml"

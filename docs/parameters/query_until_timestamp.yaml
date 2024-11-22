@@ -3,4 +3,4 @@ in: query
 name: until_timestamp
 required: false
 schema:
-  $ref: "../../schemas/Timestamp.yaml"
+  $ref: "../schemas/Timestamp.yaml"
