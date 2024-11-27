@@ -34,7 +34,8 @@ jobs:
         id: lint
         run: |
           redocly lint docs/api.yaml --format=github-actions
-          echo "result=$(redocly lint docs/api.yaml --format=markdown)" >> $GITHUB_OUTPUT
+          redocly lint docs/api.yaml --format=markdown > result.md
+          echo "result=$(cat result.md)" >> $GITHUB_OUTPUT
 
       - name: Run bundle
         run: redocly bundle docs/api.yaml --output=openapi.yaml
