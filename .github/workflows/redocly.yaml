@@ -34,7 +34,8 @@ jobs:
         id: lint
         run: |
           redocly lint docs/api.yaml --format=github-actions
-          echo "result=$(redocly lint docs/api.yaml --format=markdown | base64)" >> $GITHUB_OUTPUT
+          redocly lint docs/api.yaml --format=markdown | base64 > result.txt
+          echo "result=$(cat result.txt)" >> $GITHUB_OUTPUT
 
       - name: Run bundle
         run: redocly bundle docs/api.yaml --output=openapi.yaml
@@ -76,7 +77,7 @@ jobs:
             const body = `commit hash: ${context.sha}
             [openapi.yaml](https://petstore.swagger.io/?url=https://storage.googleapis.com/rss3-openapi/${{ steps.hash.outputs.hash }}/openapi.yaml)
             
-            ## Lint Result
+            # Lint Result
             ${result}
             `;
             
