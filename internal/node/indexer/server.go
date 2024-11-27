@@ -14,6 +14,7 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/internal/engine/protocol"
+	atprotoWorker "github.com/rss3-network/node/internal/engine/worker/atproto"
 	decentralizedWorker "github.com/rss3-network/node/internal/engine/worker/decentralized"
 	federatedWorker "github.com/rss3-network/node/internal/engine/worker/federated"
 	"github.com/rss3-network/node/internal/node/monitor"
@@ -133,29 +134,47 @@ func (s *Server) handleTasks(ctx context.Context, tasks *engine.Tasks) error {
 		return nil
 	}
 
-	resultPool := pool.NewWithResults[*activityx.Activity]().WithMaxGoroutines(lo.Ternary(tasks.Len() < 20*runtime.NumCPU(), tasks.Len(), 20*runtime.NumCPU()))
+	resultPool := pool.NewWithResults[*activityx.Activity]().
+		WithMaxGoroutines(lo.Ternary(tasks.Len() < 20*runtime.NumCPU(), tasks.Len(), 20*runtime.NumCPU())).
+		WithContext(ctx).WithFirstError().WithCancelOnError()
 
 	for _, task := range tasks.Tasks {
 		task := task
 
-		resultPool.Go(func() *activityx.Activity {
+		resultPool.Go(func(ctx context.Context) (*activityx.Activity, error) {
 			zap.L().Debug("start transform task", zap.String("task.id", task.ID()))
 
 			activity, err := s.worker.Transform(ctx, task)
 			if err != nil {
 				zap.L().Error("transform task", zap.String("task.id", task.ID()), zap.Error(err))
 
-				return nil
+				return nil, fmt.Errorf("transform task %s: %w", task.ID(), err)
 			}
 
-			return activity
+			// Filter out activities that failed to transform or contain no actions
+			if len(activity.Actions) == 0 {
+				zap.L().Debug("skip empty activity", zap.String("task.id", task.ID()))
+
+				return nil, nil
+			}
+
+			return activity, nil
 		})
 	}
 
+	results, err := resultPool.Wait()
+	if err != nil {
+		return fmt.Errorf("wait transform results: %w", err)
+	}
+
 	// Filter out activities that failed to transform or contain no actions
-	activities := lo.Filter(resultPool.Wait(), func(activity *activityx.Activity, _ int) bool {
-		return activity != nil && len(activity.Actions) > 0
-	})
+	activities := make([]*activityx.Activity, 0, len(results))
+
+	for _, result := range results {
+		if result != nil {
+			activities = append(activities, result)
+		}
+	}
 
 	// Deprecated: use meterTasksHistogram instead.
 	s.meterTasksCounter.Add(ctx, int64(tasks.Len()), meterTasksCounterAttributes)
@@ -295,6 +314,10 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 	case network.ActivityPubProtocol:
 		if instance.worker, err = federatedWorker.New(instance.config, databaseClient, instance.redisClient); err != nil {
 			return nil, fmt.Errorf("new federated worker: %w", err)
+		}
+	case network.ATProtocol:
+		if instance.worker, err = atprotoWorker.New(instance.config, databaseClient); err != nil {
+			return nil, fmt.Errorf("new atproto worker: %w", err)
 		}
 	default:
 		return nil, fmt.Errorf("unknown worker protocol: %s", config.Network.Protocol())

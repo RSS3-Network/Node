@@ -16,6 +16,7 @@ import (
 	"github.com/rss3-network/node/internal/stream"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/schema/worker"
+	"github.com/rss3-network/node/schema/worker/atproto"
 	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -91,6 +92,7 @@ type Server struct {
 type Component struct {
 	RSS           *Module   `mapstructure:"rss"`
 	Federated     []*Module `mapstructure:"federated" validate:"dive"`
+	Atproto       []*Module `mapstructure:"atproto" validate:"dive"`
 	Decentralized []*Module `mapstructure:"decentralized" validate:"dive"`
 }
 
@@ -274,6 +276,15 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 	if configFile.Component.RSS != nil {
 		if rssWorker := rss.GetValueByWorkerStr(configFile.Component.RSS.Worker.Name()); rssWorker != 0 {
 			configFile.Component.RSS.Worker = rssWorker
+		}
+	}
+
+	// Add extra logic to convert atproto worker string to correct worker type.
+	if configFile.Component.Atproto != nil {
+		for _, module := range configFile.Component.Atproto {
+			if atprotoWorker := atproto.GetValueByWorkerStr(module.Worker.Name()); atprotoWorker != 0 {
+				module.Worker = atprotoWorker
+			}
 		}
 	}
 

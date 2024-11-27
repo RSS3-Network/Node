@@ -98,3 +98,12 @@ component:
       endpoint: mastodon
       parameters:
         kafka_topic: activitypub_events
+  atproto:
+    # bluesky
+    - id: bluesky-core
+      network: bluesky
+      worker: core
+      endpoint:
+      parameters:
+        username:
+        password:

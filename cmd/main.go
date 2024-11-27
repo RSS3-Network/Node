@@ -279,7 +279,13 @@ func findModuleByID(configFile *config.File, workerID string) (*config.Module, e
 		return module, nil
 	}
 
+	// Search in RSS components
 	if module, found := findInComponent([]*config.Module{configFile.Component.RSS}); found {
+		return module, nil
+	}
+
+	// Search in atproto components
+	if module, found := findInComponent(configFile.Component.Atproto); found {
 		return module, nil
 	}
 
