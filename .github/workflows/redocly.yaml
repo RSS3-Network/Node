@@ -35,7 +35,7 @@ jobs:
         run: |
           redocly lint docs/api.yaml --format=github-actions
           redocly lint docs/api.yaml --format=markdown > result.md
-          result=$(base64 -w 0 $(cat result.md))
+          result="$(cat result.md | base64 -w 0)"
           echo "result=$result" >> $GITHUB_ENV
 
       - name: Run bundle
