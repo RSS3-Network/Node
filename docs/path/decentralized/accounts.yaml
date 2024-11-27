@@ -9,7 +9,7 @@ post:
     $ref: "../../requestBody/BatchGetDecentralizedAccountsActivities.yaml"
   responses:
     '200':
-      $ref: "../../responses/ActivitiesResponse.yaml"
+      $ref: "../../responses/DecentralizedActivitiesResponse.yaml"
     '400':
       $ref: "../../responses/BadRequest.yaml"
     '500':

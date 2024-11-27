@@ -11,7 +11,7 @@ get:
     - $ref: "../../parameters/query_action_page.yaml"
   responses:
     '200':
-      $ref: "../../responses/ActivityResponse.yaml"
+      $ref: "../../responses/DecentralizedActivityResponse.yaml"
     '400':
       $ref: "../../responses/BadRequest.yaml"
     '404':

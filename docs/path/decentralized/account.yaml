@@ -20,7 +20,7 @@ get:
     - $ref: "../../parameters/query_platform_decentralized.yaml"
   responses:
     '200':
-      $ref: "../../responses/ActivitiesResponse.yaml"
+      $ref: "../../responses/DecentralizedActivitiesResponse.yaml"
     '400':
       $ref: "../../responses/BadRequest.yaml"
     '404':

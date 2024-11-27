@@ -68,9 +68,13 @@ jobs:
         with:
           github-token: '${{ github.token }}'
           script: |
+            
+            const body = `commit hash: ${context.sha} \n [openapi review](https://petstore.swagger.io/?url=https://storage.googleapis.com/rss3-openapi/${{ steps.hash.outputs.hash }}/openapi.yaml)`;
+            const result = '${{ fromJson(steps.get-pr.outputs.result) }}';
+            
             github.rest.issues.createComment({
-              issue_number: '${{ fromJson(steps.get-pr.outputs.result).number }}',
+              issue_number: result.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '[Openapi review](https://petstore.swagger.io/?url=https://storage.googleapis.com/rss3-openapi/${{ steps.hash.outputs.hash }}/openapi.yaml)'
+              body,
             })

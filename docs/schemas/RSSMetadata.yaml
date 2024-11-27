@@ -1,0 +1,18 @@
+description: Additional metadata related to the action.
+type: object
+allOf:
+  - $ref: "https://raw.githubusercontent.com/RSS3-Network/Protocol-Go/refs/heads/main/openapi/metadata/RSS.yaml"
+example:
+  authors:
+    - name: Emma Wynne
+  description: '<div><h2>In short:</h2><p>Nicheliving customer Cindy Richardson
+              says she is overwhelmed with costs, including rent, mortgage and rates
+              due to the long delays completing her house.</p><p>She has applied to
+              access her superannuation on hardship grounds but was rejected.</p><h2>What''s
+              next?</h2><p>WA Commerce Minister Sue Ellery is in talks with the company
+              about resolving the long completion delays many customers are facing.</p></div>
+
+              '
+  pub_date: '2024-07-02T04:13:38.000Z'
+  title: Cindy was supposed to be living in a new home by now. Instead she's
+    facing bankruptcy

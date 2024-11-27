@@ -20,7 +20,7 @@ get:
     - $ref: "../../parameters/query_platform_federated.yaml"
   responses:
     "200":
-      $ref: "../../responses/ActivitiesResponse.yaml"
+      $ref: "../../responses/FederatedActivitiesResponse.yaml"
     "400":
       $ref: "../../responses/BadRequest.yaml"
     "404":

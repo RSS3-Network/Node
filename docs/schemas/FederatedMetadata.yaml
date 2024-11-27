@@ -1,0 +1,21 @@
+description: Additional metadata related to the action.
+type: object
+allOf:
+  - $ref: "./ProtocolMetadata.yaml"
+example:
+  handle: "@seachdamh@101010.pl"
+  body: "Some text"
+  publication_id: 113550154261051135
+  tags: ["@LukaszHorodecki@pol.social"]
+  author_url: https://101010.pl/users/seachdamh
+  timestamp: 1732637851
+  target:
+    handle: "@LukaszHorodecki@pol.social"
+    body: Some text
+    publication_id: 113549630375809974
+    tags:
+      - "#pc"
+      - "#obudowa"
+    author_url: https://pol.social/users/LukaszHorodecki
+    timestamp: 1732629858
+  target_url: https://pol.social/users/LukaszHorodecki/statuses/113549630375809974

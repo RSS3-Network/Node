@@ -4,4 +4,4 @@ in: path
 name: platform
 required: true
 schema:
-  $ref: "../schemas/PlatformFederated.yaml"
+  $ref: "../schemas/FederatedPlatform.yaml"

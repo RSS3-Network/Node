@@ -30,6 +30,6 @@ content:
         platform:
           type: array
           items:
-            $ref: "../schemas/PlatformFederated.yaml"
+            $ref: "../schemas/FederatedPlatform.yaml"
           description: Retrieve activities from the specified platform(s)
           x-go-type-skip-optional-pointer: true

@@ -1,0 +1,23 @@
+description: Represents an individual action within an activity.
+properties:
+  tag:
+    allOf:
+      - $ref: "./ProtocolTag.yaml"
+      - example: rss
+  type:
+    $ref: "https://raw.githubusercontent.com/RSS3-Network/Protocol-Go/refs/heads/main/openapi/type/RSSType.yaml"
+  platform:
+    $ref: "./RSSPlatform.yaml"
+  from:
+    $ref: "./RSSAccount.yaml"
+  to:
+    $ref: "./RSSAccount.yaml"
+  metadata:
+    $ref: "./RSSMetadata.yaml"
+  related_urls:
+    description: A list of URLs related to the action.
+    items:
+      type: string
+      format: uri
+    type: array
+type: object

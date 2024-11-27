@@ -1,0 +1,4 @@
+description: The owner of the activity.
+type: string
+example:
+  - "www.abc.net.au"

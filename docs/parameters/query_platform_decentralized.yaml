@@ -4,6 +4,6 @@ name: platform
 required: false
 schema:
   items:
-    $ref: "../schemas/PlatformDecentralized.yaml"
+    $ref: "../schemas/DecentralizedPlatform.yaml"
   type: array
   x-go-type-skip-optional-pointer: true

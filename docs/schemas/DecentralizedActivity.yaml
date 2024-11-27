@@ -1,0 +1,74 @@
+example:
+  actions:
+  - from: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+    metadata:
+      address: '0x7964B6A8aE5a71409e7E17a5b2669903A27997Ac'
+      decimals: 18
+      name: PlayDoge
+      standard: ERC-20
+      symbol: PLAY
+      value: '10000000000000000000000'
+    related_urls:
+    - https://etherscan.io/tx/0x840e42d573ebe1ff27a9e4914573b4e0518fcd685c7f9331d319abe854f780e3
+    tag: transaction
+    to: '0xefC5f77c5AD5DB85bc287E80d8c3B88c3f27662C'
+    type: transfer
+  calldata:
+    function_hash: '0x4022b75e'
+  direction: out
+  fee:
+    amount: '315699955320960'
+    decimal: 18
+  from: '0xBAB4d1f27bAA7762a4d822B80C647F715922492f'
+  id: '0x840e42d573ebe1ff27a9e4914573b4e0518fcd685c7f9331d319abe854f780e3'
+  index: 0
+  network: ethereum
+  owner: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+  success: true
+  tag: transaction
+  timestamp: 1718689727
+  to: '0x7964B6A8aE5a71409e7E17a5b2669903A27997Ac'
+  total_actions: 10
+  type: transfer
+properties:
+  actions:
+    description: The list of actions within the activity.
+    items:
+      $ref: "./Action.yaml"
+    type: array
+  calldata:
+    $ref: "./Calldata.yaml"
+  direction:
+    $ref: "./ProtocolDirection.yaml"
+  fee:
+    $ref: "./Fee.yaml"
+  from:
+    $ref: "./Address.yaml"
+  id:
+    description: The unique identifier for the activity.
+    type: string
+  index:
+    description: The index of the activity in the list.
+    type: integer
+  network:
+    $ref: "./ProtocolNetwork.yaml"
+  owner:
+    description: The owner of the activity.
+    type: string
+  platform:
+    $ref: "./Platform.yaml"
+  success:
+    description: Indicates whether the activity was successful.
+    type: boolean
+  tag:
+    $ref: "./ProtocolTag.yaml"
+  timestamp:
+    $ref: "./Timestamp.yaml"
+  to:
+    $ref: "./Address.yaml"
+  total_actions:
+    description: The total number of actions within the activity.
+    type: integer
+  type:
+    $ref: "./ProtocolType.yaml"
+type: object

@@ -6,7 +6,7 @@ import (
 )
 
 //go:generate go run --mod=mod github.com/dmarkham/enumer@v1.5.9 --values --type=Worker --linecomment --output worker_string.go --json --yaml --sql
-//go:generate go run --mod=mod github.com/rss3-network/enum-schema@v0.1.6 --type=Worker --linecomment --output ../../../docs/schemas/WorkerFederated.yaml -t ../../../docs/schemas/tmpl/Federated.yaml.tmpl
+//go:generate go run --mod=mod github.com/rss3-network/enum-schema@v0.1.6 --type=Worker --linecomment --output ../../../docs/schemas/FederatedWorker.yaml -t ../../../docs/schemas/tmpl/Federated.yaml.tmpl
 type Worker int
 
 const (

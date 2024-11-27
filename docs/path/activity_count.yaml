@@ -1,4 +1,5 @@
 get:
+  operationId: GetActivityCount
   summary: Get Node Activity Count
   description: Retrieve node worker status details.
   security: []

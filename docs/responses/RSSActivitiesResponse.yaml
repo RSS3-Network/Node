@@ -37,5 +37,15 @@ content:
         total_actions: 1
         type: feed
     schema:
-      $ref: "./ActivitiesResponseBody.yaml"
+      properties:
+        data:
+          description: The list of activities.
+          items:
+            $ref: "../schemas/RSSActivity.yaml"
+          type: array
+        meta:
+          $ref: "../schemas/MetaCursor.yaml"
+      type: object
+      required:
+        - data
 description: The request was successful.
