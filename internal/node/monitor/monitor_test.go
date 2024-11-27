@@ -3,6 +3,7 @@ package monitor_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/orlangure/gnomock"
 	"github.com/orlangure/gnomock/preset/redis"
@@ -13,7 +14,7 @@ import (
 	redisx "github.com/rss3-network/node/provider/redis"
 	"github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
-	"github.com/rss3-network/node/schema/worker/rss"
+	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/require"
 )
@@ -932,47 +933,60 @@ func TestMonitor(t *testing.T) {
 			wantError: require.NoError,
 		},
 
-		// RSS rsshub
+		// ActivityPub (Mastodon)
 		{
-			name:   "RSSHub Worker Ready Status -> Unhealthy Status",
-			source: network.RSSProtocol,
+			name:   "Mastodon Worker Ready Status -> Ready Status",
+			source: network.ActivityPubProtocol,
 			arguments: arguments{
 				config: &config.File{
 					Component: &config.Component{
-						RSS: &config.Module{
-							ID:         "rss-rsshub",
-							Network:    network.RSSHub,
-							Worker:     rss.Core,
-							EndpointID: "https://rsshub3.bruce.com",
+						Federated: []*config.Module{
+							{
+								ID:      "mastodon-core",
+								Network: network.Mastodon,
+								Worker:  federated.Core,
+								Parameters: &config.Parameters{
+									"relay_url_list": []string{
+										"https://relay.fedi.buzz/instance/mastodon.social",
+									},
+									"port": 8181,
+								},
+							},
 						},
 					},
 				},
 				currentState:  monitor.CheckpointState{},
-				latestState:   0,
-				initialStatus: worker.StatusReady,
-			},
-			want:      worker.StatusUnhealthy,
-			wantError: require.NoError,
-		},
-		{
-			name:   "Rsshub Worker Ready Status -> Ready Status",
-			source: network.RSSProtocol,
-			arguments: arguments{
-				config: &config.File{
-					Component: &config.Component{
-						RSS: &config.Module{
-							ID:         "rss-rsshub",
-							Network:    network.RSSHub,
-							Worker:     rss.Core,
-							EndpointID: "https://rsshub.app",
-						},
-					},
-				},
-				currentState:  monitor.CheckpointState{},
-				latestState:   0,
+				latestState:   uint64(time.Now().Unix()),
 				initialStatus: worker.StatusReady,
 			},
 			want:      worker.StatusReady,
+			wantError: require.NoError,
+		},
+		{
+			name:   "Mastodon Worker Ready Status -> Unhealthy Status",
+			source: network.ActivityPubProtocol,
+			arguments: arguments{
+				config: &config.File{
+					Component: &config.Component{
+						Federated: []*config.Module{
+							{
+								ID:      "mastodon-core",
+								Network: network.Mastodon,
+								Worker:  federated.Core,
+								Parameters: &config.Parameters{
+									"relay_url_list": []string{
+										"https://relay.wszz/instance/mast.ocial",
+									},
+								},
+							},
+						},
+					},
+				},
+				currentState:  monitor.CheckpointState{},
+				latestState:   uint64(time.Now().Unix()),
+				initialStatus: worker.StatusReady,
+			},
+			want:      worker.StatusUnhealthy,
 			wantError: require.NoError,
 		},
 	}
@@ -1024,7 +1038,7 @@ func TestMonitor(t *testing.T) {
 				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.Decentralized[0].ID)
 				require.Equal(t, testcase.want, status)
 			})
-		case network.RSSProtocol:
+		case network.ActivityPubProtocol:
 			t.Run(testcase.name, func(t *testing.T) {
 				ctx := context.Background()
 
@@ -1032,7 +1046,7 @@ func TestMonitor(t *testing.T) {
 				require.NoError(t, err)
 
 				// update worker status to initial status
-				err = instance.UpdateWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS.ID, testcase.arguments.initialStatus.String())
+				err = instance.UpdateWorkerStatusByID(ctx, testcase.arguments.config.Component.Federated[0].ID, testcase.arguments.initialStatus.String())
 				require.NoError(t, err)
 
 				// run monitor
@@ -1040,7 +1054,7 @@ func TestMonitor(t *testing.T) {
 				require.NoError(t, err)
 
 				// check final worker status
-				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.RSS.ID)
+				status := instance.GetWorkerStatusByID(ctx, testcase.arguments.config.Component.Federated[0].ID)
 				require.Equal(t, testcase.want, status)
 			})
 		default:

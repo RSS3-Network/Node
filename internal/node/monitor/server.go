@@ -33,6 +33,8 @@ type Monitor struct {
 
 func (m *Monitor) Run(ctx context.Context) error {
 	if m.databaseClient != nil && m.redisClient != nil {
+		zap.L().Info("starting monitor service")
+
 		// Start the monitor cron job.
 		monitorWorkerStatus, err := NewCronJob(m.redisClient, MonitorWorkerStatusJob, 10*time.Minute)
 		if err != nil {
@@ -40,13 +42,17 @@ func (m *Monitor) Run(ctx context.Context) error {
 		}
 
 		if err = monitorWorkerStatus.AddFunc(ctx, "@every 5m", func() {
+			zap.L().Debug("running monitor worker status check")
 			if err = parameter.CheckParamsTask(ctx, m.redisClient, m.networkParamsCaller); err != nil {
+				zap.L().Error("failed to check network parameters", zap.Error(err))
 				return
 			}
 
 			if err = m.MonitorWorkerStatus(ctx); err != nil {
+				zap.L().Error("failed to monitor worker status", zap.Error(err))
 				return
 			}
+			zap.L().Debug("completed monitor worker status check")
 		}); err != nil {
 			return fmt.Errorf("add heartbeat cron job: %w", err)
 		}
@@ -58,11 +64,12 @@ func (m *Monitor) Run(ctx context.Context) error {
 		}
 
 		if err = databaseMaintenance.AddFunc(ctx, "0 0 0 * * *", func() {
+			zap.L().Info("starting database maintenance")
 			if err = m.MaintainCoveragePeriod(ctx); err != nil {
 				zap.L().Error("maintain coverage period", zap.Error(err))
-
 				return
 			}
+			zap.L().Info("completed database maintenance")
 		}); err != nil {
 			return fmt.Errorf("add database maintenance cron job: %w", err)
 		}
@@ -74,6 +81,7 @@ func (m *Monitor) Run(ctx context.Context) error {
 
 		monitorWorkerStatus.Start()
 		databaseMaintenance.Start()
+		zap.L().Info("monitor service started successfully")
 	}
 
 	stopChan := make(chan os.Signal, 1)
@@ -86,19 +94,19 @@ func (m *Monitor) Run(ctx context.Context) error {
 
 // initNetworkClient initializes all network clients.
 func initNetworkClient(m *config.Module) (Client, error) {
+	zap.L().Debug("initializing network client", zap.String("network", m.Network.String()))
+
 	var client Client
 
 	var err error
 
 	switch m.Network.Protocol() {
 	case network.ActivityPubProtocol:
-		client, err = NewActivityPubClient(m.Endpoint, m.Parameters, m.Worker)
+		client, err = NewActivityPubClient(m.Network, m.Parameters)
 	case network.ArweaveProtocol:
 		client, err = NewArweaveClient()
 	case network.FarcasterProtocol:
 		client, err = NewFarcasterClient()
-	case network.RSSProtocol:
-		client, err = NewRssClient(m.EndpointID, m.Parameters)
 	case network.EthereumProtocol:
 		client, err = NewEthereumClient(m.Endpoint)
 	case network.NearProtocol:
@@ -111,25 +119,22 @@ func initNetworkClient(m *config.Module) (Client, error) {
 		return nil, err
 	}
 
+	zap.L().Debug("network client initialized successfully", zap.String("network", m.Network.String()))
+
 	return client, nil
 }
 
 // NewMonitor creates a new monitor instance.
 func NewMonitor(_ context.Context, configFile *config.File, databaseClient database.Client, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) (*Monitor, error) {
+	zap.L().Debug("creating new monitor instance")
+
 	totalModules := len(configFile.Component.Decentralized) + len(configFile.Component.Federated)
-	if configFile.Component.RSS != nil {
-		totalModules++
-	}
+	zap.L().Debug("initializing modules", zap.Int("total_modules", totalModules))
 
 	modules := make([]*config.Module, 0, totalModules)
 
 	modules = append(modules, configFile.Component.Decentralized...)
-
 	modules = append(modules, configFile.Component.Federated...)
-
-	if configFile.Component.RSS != nil {
-		modules = append(modules, configFile.Component.RSS)
-	}
 
 	clients := make(map[network.Network]Client)
 
@@ -152,6 +157,7 @@ func NewMonitor(_ context.Context, configFile *config.File, databaseClient datab
 		settlementCaller:    settlementCaller,
 	}
 
-	// register router
+	zap.L().Info("monitor instance created successfully")
+
 	return instance, nil
 }

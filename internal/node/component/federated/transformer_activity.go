@@ -29,7 +29,9 @@ func (c *Component) TransformActivity(ctx context.Context, activity *activityx.A
 		}
 
 		if err != nil {
-			zap.L().Error("failed to transform action", zap.Error(err), zap.String("id", activity.ID))
+			zap.L().Error("failed to transform federated activity action",
+				zap.Error(err),
+				zap.String("id", activity.ID))
 		}
 	})
 

@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
@@ -126,31 +127,24 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		// Match lido core contract events
 		switch {
 		case w.matchStakedETHSubmittedLog(ethereumTask, log):
-			// Add ETH liquidity
 			activity.Type = typex.ExchangeLiquidity
 			actions, err = w.transformStakedETHSubmittedLog(ctx, ethereumTask, log)
 		case w.matchStakedETHWithdrawalNFTWithdrawalRequestedLog(ethereumTask, log):
-			// Mint ETH withdrawal NFT
 			activity.Type = typex.ExchangeLiquidity
 			actions, err = w.transformStakedETHWithdrawalNFTWithdrawalRequestedLog(ctx, ethereumTask, log)
 		case w.matchStakedETHWithdrawalNFTWithdrawalClaimedLog(ethereumTask, log):
-			// Remove ETH liquidity
 			activity.Type = typex.CollectibleBurn
 			actions, err = w.transformStakedETHWithdrawalNFTWithdrawalClaimedLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICSubmitEventLog(ethereumTask, log):
-			// Add MATIC liquidity
 			activity.Type = typex.ExchangeLiquidity
 			actions, err = w.transformStakedMATICSubmitEventLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICRequestWithdrawEventLog(ethereumTask, log):
-			// Mint MATIC withdrawal NFT
 			activity.Type = typex.CollectibleMint
 			actions, err = w.transformStakedMATICRequestWithdrawEventLog(ctx, ethereumTask, log)
 		case w.matchStakedMATICClaimTokensEventLog(ethereumTask, log):
-			// Remove MATIC liquidity
 			activity.Type = typex.CollectibleBurn
 			actions, err = w.transformStakedMATICClaimTokensEventLog(ctx, ethereumTask, log)
 		case w.matchStakedETHTransferSharesLog(ethereumTask, log):
-			// Wrap or unwrap wstETH
 			activity.Type = typex.ExchangeSwap
 			actions, err = w.transformStakedETHTransferSharesLog(ctx, ethereumTask, log)
 		default:
@@ -459,7 +453,7 @@ func (w *worker) buildEthereumExchangeLiquidityAction(ctx context.Context, block
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	action := activityx.Action{
 		Type:     typex.ExchangeLiquidity,
@@ -483,7 +477,7 @@ func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, blo
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	actionType := typex.TransactionTransfer
 
@@ -495,15 +489,13 @@ func (w *worker) buildEthereumTransactionTransferAction(ctx context.Context, blo
 		actionType = typex.TransactionBurn
 	}
 
-	action := activityx.Action{
+	return &activityx.Action{
 		Type:     actionType,
 		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.TransactionTransfer(*tokenMetadata),
-	}
-
-	return &action, nil
+	}, nil
 }
 
 func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, blockNumber *big.Int, chainID uint64, sender, receiver, tokenAddress common.Address, tokenID, tokenValue *big.Int) (*activityx.Action, error) {
@@ -512,8 +504,7 @@ func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, blo
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
-
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 	actionType := typex.CollectibleTransfer
 
 	if sender == ethereum.AddressGenesis {
@@ -524,15 +515,13 @@ func (w *worker) buildEthereumCollectibleTransferAction(ctx context.Context, blo
 		actionType = typex.CollectibleBurn
 	}
 
-	action := activityx.Action{
+	return &activityx.Action{
 		Type:     actionType,
 		Platform: w.Platform(),
 		From:     sender.String(),
 		To:       receiver.String(),
 		Metadata: metadata.CollectibleTransfer(*tokenMetadata),
-	}
-
-	return &action, nil
+	}, nil
 }
 
 func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumber *big.Int, chainID uint64, from, to, tokenIn, tokenOut common.Address, amountIn, amountOut *big.Int) (*activityx.Action, error) {
@@ -541,14 +530,14 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenIn, err)
 	}
 
-	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountIn, 0).Abs())
+	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountIn), 0).Abs())
 
 	tokenOutMetadata, err := w.tokenClient.Lookup(ctx, chainID, &tokenOut, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenOut, err)
 	}
 
-	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
+	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountOut), 0).Abs())
 
 	action := activityx.Action{
 		Type:     typex.ExchangeSwap,

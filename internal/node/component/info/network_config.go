@@ -53,7 +53,8 @@ type Parameters struct {
 	APIKey                  *ConfigDetail   `json:"api_key,omitempty"`
 	Authentication          *Authentication `json:"authentication,omitempty"`
 	TimestampStart          *ConfigDetail   `json:"timestamp_start,omitempty"`
-	KafkaTopic              *ConfigDetail   `json:"kafka_topic,omitempty"`
+	RelayURLList            *ConfigDetail   `json:"relay_url_list,omitempty"`
+	Port                    *ConfigDetail   `json:"port,omitempty"`
 }
 
 type workerConfig struct {
@@ -67,20 +68,22 @@ type workerConfig struct {
 }
 
 const (
-	activityPubKafkaTopicDescription = "The Kafka topic to which the ActivityPub data will be published. By default, the data will be sent to this topic on the Kafka broker running on the Mastodon instance."
+	relayURLArrayTypeDescription = "List of relay URLs to follow and receive messages from"
 
-	mastodonInstanceDescription = "A Mastodon instance is required. Please follow <a href=\"https://github.com/RSS3-Network/Mastodon-Instance-Kit\" target=\"_blank\">the guide</a> to either deploy a new Mastodon instance or modify an existing Mastodon instance. After completing either option, enter your Mastodon endpoint (format: your_instance_ip:9092) here."
+	domainPortDescription = "The port number that the mastodon endpoint domain will listen on. This should be an available network port"
+
+	mastodonInstanceEndpointDescription = "Your Mastodon instance must be accessible via a public URL, which exposes your local instance on the port number you select. You can use services like ngrok (https://ngrok.com)."
 )
 
 var defaultNetworkParameters = map[network.Protocol]*Parameters{
 	network.ActivityPubProtocol: {
-		KafkaTopic: &ConfigDetail{
+		RelayURLList: &ConfigDetail{
 			IsRequired:  true,
-			Type:        StringType,
-			Value:       "activitypub_events",
-			Description: activityPubKafkaTopicDescription,
-			Title:       "Kafka Topic",
-			Key:         "parameters.kafka_topic",
+			Type:        URLArrayType,
+			Value:       []string{"https://relay.fedi.buzz/instance/mastodon.social"},
+			Description: relayURLArrayTypeDescription,
+			Title:       "Relay URL List",
+			Key:         "parameters.relay_url_list",
 		},
 	},
 	network.ArweaveProtocol: {
@@ -294,8 +297,8 @@ func getEndpointConfig(n network.Network) Endpoint {
 		endpointConfig.URL.Value = "https://arweave.net"
 	case network.ActivityPubProtocol:
 		endpointConfig.URL.Type = StringType
-		endpointConfig.URL.Description = mastodonInstanceDescription
-		endpointConfig.URL.Value = "127.0.0.1:9092"
+		endpointConfig.URL.Description = mastodonInstanceEndpointDescription
+		endpointConfig.URL.Value = "https://domain.ngrok.app"
 	default:
 		endpointConfig.URL.Value = "https://your-network-endpoint"
 	}
@@ -449,15 +452,21 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 var WorkerToConfigMap = map[network.Protocol]map[worker.Worker]workerConfig{
 	network.ActivityPubProtocol: {
 		federated.Core: customWorkerConfig(federated.Core, network.ActivityPubProtocol, &Parameters{
-			KafkaTopic: &ConfigDetail{
-				IsRequired:  true,
-				Type:        StringType,
-				Value:       "activitypub_events",
-				Description: activityPubKafkaTopicDescription,
-				Title:       "Kafka Topic",
-				Key:         "parameters.kafka_topic",
+			RelayURLList: &ConfigDetail{
+				IsRequired:  false,
+				Type:        URLArrayType,
+				Description: relayURLArrayTypeDescription,
+				Title:       "Relay URL List",
+				Key:         "parameters.relay_url_list",
 			},
-		}, mastodonInstanceDescription),
+			Port: &ConfigDetail{
+				IsRequired:  false,
+				Type:        UintType,
+				Description: domainPortDescription,
+				Title:       "Port Number",
+				Key:         "parameters.port",
+			},
+		}, mastodonInstanceEndpointDescription),
 	},
 	network.ArweaveProtocol: {
 		decentralized.Mirror:    customWorkerConfigWithoutEndpoint(decentralized.Mirror, network.ArweaveProtocol, nil, true),

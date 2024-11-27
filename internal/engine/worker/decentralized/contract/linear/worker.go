@@ -10,6 +10,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/near"
+	"github.com/rss3-network/node/internal/utils"
 	workerx "github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
@@ -166,7 +167,7 @@ func (w *worker) buildTransferAction(event *Event) (*activityx.Action, error) {
 		return nil, fmt.Errorf("invalid amount: %s", data.Amount)
 	}
 
-	return &activityx.Action{
+	action := &activityx.Action{
 		Type: typex.TransactionTransfer,
 		From: data.OldOwnerID,
 		To:   data.NewOwnerID,
@@ -174,11 +175,13 @@ func (w *worker) buildTransferAction(event *Event) (*activityx.Action, error) {
 			Name:     "LNR",
 			Symbol:   "LNR",
 			Decimals: 18,
-			Value:    lo.ToPtr(decimal.NewFromBigInt(amount, 0)),
+			Value:    lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amount), 0)),
 			Standard: getTokenStandard(event.Standard),
 			Address:  lo.ToPtr(event.TokenAddress),
 		},
-	}, nil
+	}
+
+	return action, nil
 }
 
 func (w *worker) buildSwapAction(signerID string, event1, event2 *Event) (*activityx.Action, error) {
@@ -199,7 +202,7 @@ func (w *worker) buildSwapAction(signerID string, event1, event2 *Event) (*activ
 		}
 
 		token := metadata.Token{
-			Value:    lo.ToPtr(decimal.NewFromBigInt(amount, 0)),
+			Value:    lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amount), 0)),
 			Standard: getTokenStandard(event.Standard),
 			Address:  lo.ToPtr(event.TokenAddress),
 		}
@@ -212,7 +215,7 @@ func (w *worker) buildSwapAction(signerID string, event1, event2 *Event) (*activ
 		}
 	}
 
-	return &activityx.Action{
+	action := &activityx.Action{
 		Type:     typex.ExchangeSwap,
 		Platform: w.Platform(),
 		From:     signerID,
@@ -221,7 +224,9 @@ func (w *worker) buildSwapAction(signerID string, event1, event2 *Event) (*activ
 			From: fromToken,
 			To:   toToken,
 		},
-	}, nil
+	}
+
+	return action, nil
 }
 
 func getTokenStandard(standard string) metadata.Standard {

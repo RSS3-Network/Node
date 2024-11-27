@@ -22,6 +22,7 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
+	"go.uber.org/zap"
 )
 
 // make sure worker implements engine.Worker
@@ -119,6 +120,7 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 		switch string(tagName) {
 		case "Content-Digest":
 			contentDigest = string(tagValue)
+
 		case "Original-Content-Digest":
 			originContentDigest = string(tagValue)
 
@@ -207,6 +209,8 @@ func (w *worker) transformMirrorAction(ctx context.Context, task *source.Task) (
 		return nil, fmt.Errorf("save dataset mirror post: %w", err)
 	}
 
+	zap.L().Info("saved dataset mirror post", zap.String("transaction_id", task.Transaction.ID))
+
 	actions := []*activityx.Action{
 		action,
 	}
@@ -222,8 +226,7 @@ func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, m
 
 	// if the origin digest is empty, the action type should be revise.
 	if emptyOriginDigest {
-		filterType =
-			typex.SocialRevise
+		filterType = typex.SocialRevise
 	}
 
 	// If the origin digest is not empty, check if the origin digest is the first mirror post.
@@ -234,8 +237,7 @@ func (w *worker) buildMirrorAction(ctx context.Context, txID, from, to string, m
 		}
 
 		if post != nil && txID != post.TransactionID {
-			filterType =
-				typex.SocialRevise
+			filterType = typex.SocialRevise
 		}
 	}
 

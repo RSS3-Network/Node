@@ -16,7 +16,7 @@ func NewClient(option config.Redis) (rueidis.Client, error) {
 		InitAddress:  []string{option.Endpoint},
 		Username:     option.Username,
 		Password:     option.Password,
-		DisableCache: option.DisableCache,
+		DisableCache: true,
 	}
 
 	// Enable TLS if it is configured

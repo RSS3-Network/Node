@@ -98,52 +98,69 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 
 	content, err := docs.Generate(endpoint)
 	if err != nil {
-		zap.L().Error("docs generation error", zap.Error(err))
+		zap.L().Error("Failed to generate OpenAPI documentation",
+			zap.Error(err))
 	}
 
 	apiServer.GET("/openapi.json", func(c echo.Context) error {
 		return c.Blob(http.StatusOK, "application/json", content)
 	})
 
+	zap.L().Info("Core service initialization completed")
+
 	return &node
 }
 
 // CheckParams checks the network parameters and settlement tasks
 func CheckParams(ctx context.Context, redisClient rueidis.Client, networkParamsCaller *vsl.NetworkParamsCaller, settlementCaller *vsl.SettlementCaller) error {
+	zap.L().Debug("starting network parameters check service")
+
 	checkParamsCron := cron.New()
 
 	_, err := checkParamsCron.AddFunc("@every 5m", func() {
+		zap.L().Debug("running scheduled network parameters check")
+
 		localEpoch, err := parameter.GetCurrentEpoch(ctx, redisClient)
 		if err != nil {
-			zap.L().Error("get current epoch", zap.Error(err))
+			zap.L().Error("Failed to get current epoch from local storage",
+				zap.Error(err))
 			return
 		}
 
 		remoteEpoch, err := parameter.GetCurrentEpochFromVSL(settlementCaller)
 		if err != nil {
-			zap.L().Error("get current epoch", zap.Error(err))
+			zap.L().Error("Failed to get current epoch from VSL",
+				zap.Error(err))
 			return
 		}
 
 		if remoteEpoch > localEpoch {
+			zap.L().Info("Updating local epoch to match remote",
+				zap.Int64("local_epoch", localEpoch),
+				zap.Int64("remote_epoch", remoteEpoch))
+
 			err = parameter.UpdateCurrentEpoch(ctx, redisClient, remoteEpoch)
 			if err != nil {
-				zap.L().Error("update current epoch", zap.Error(err))
+				zap.L().Error("Failed to update current epoch",
+					zap.Error(err))
 				return
 			}
 		}
 
 		if err := parameter.CheckParamsTask(ctx, redisClient, networkParamsCaller); err != nil {
-			zap.L().Error("check params tasks", zap.Error(err))
+			zap.L().Error("Failed to check network parameters",
+				zap.Error(err))
 		}
 	})
 	if err != nil {
 		return fmt.Errorf("add check param cron job: %w", err)
 	}
 
+	zap.L().Info("Starting network parameters check cron job")
 	checkParamsCron.Start()
 
 	<-ctx.Done()
+	zap.L().Info("Stopping network parameters check cron job")
 	checkParamsCron.Stop()
 
 	return ctx.Err()

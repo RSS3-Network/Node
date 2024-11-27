@@ -196,9 +196,7 @@ func TestClient(t *testing.T) {
 
 			// Dial the database.
 			client, err := dialer.Dial(context.Background(), &config.Database{
-				Driver:    testcase.driver,
-				URI:       dataSourceName,
-				Partition: testcase.partition,
+				URI: dataSourceName,
 			})
 
 			require.NoError(t, err)

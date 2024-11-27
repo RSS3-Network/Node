@@ -15,6 +15,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/crossbell"
@@ -140,6 +141,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			actions []*activityx.Action
 			err     error
 		)
+
 		// Match crossbell core contract events
 		switch {
 		case w.matchProfileCreated(ethereumTask, log):
@@ -483,7 +485,7 @@ func (w *worker) transformTipsCharacterForNote(ctx context.Context, task *source
 		return nil, fmt.Errorf("lookup token metadata %s: %w", event.Token, err)
 	}
 
-	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(event.Amount, 0))
+	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(event.Amount), 0))
 
 	post.Reward = rewardTokenMetadata
 
@@ -650,7 +652,7 @@ func (w *worker) buildPostMetadata(ctx context.Context, blockNumber, characterID
 
 	content, err := w.getIPFSContent(ctx, contentURI)
 	if err != nil {
-		return nil, common.Hash{}, "", err
+		return nil, common.Hash{}, "", fmt.Errorf("get ipfs content: %w, uri: %s", err, contentURI)
 	}
 
 	var note NoteContent
@@ -734,7 +736,7 @@ func (w *worker) buildProfileMetadata(
 	if lo.IsNotEmpty(uri) {
 		content, err := w.getIPFSContent(ctx, uri)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("get ipfs content: %w, uri: %s", err, uri)
 		}
 
 		mimeType := http.DetectContentType(content)
@@ -893,7 +895,7 @@ func (w *worker) buildCharacterProfileMetadata(
 	if !lo.IsEmpty(uri) {
 		content, err := w.getIPFSContent(ctx, uri)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("get ipfs content: %w, uri: %s", err, uri)
 		}
 
 		var characterURI CharacterURIContent

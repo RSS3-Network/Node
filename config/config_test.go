@@ -37,23 +37,18 @@ endpoints:
       http_headers:
         user-agent: rss3-node
     mastodon:
-      url: https://0.0.0.0:9092/
+      url: https://newdomain.ngrok.app
       http_headers:
         user-agent: rss3-node
 database:
-  driver: postgres
-  partition: true
   uri: postgres://postgres@localhost:5432/postgres
 stream:
   enable: false
-  driver: kafka
-  topic: rss3.node.activities
   uri: localhost:9092
 redis:
   endpoint: localhost:6379
   username:
   password:
-  disable_cache: true
 observability:
   opentelemetry:
     metrics:
@@ -79,7 +74,8 @@ component:
       worker: core
       endpoint: mastodon
       parameters:
-        kafka_topic: activitypub_events
+        relay_url_list: ["https://relay.fedi.buzz/instance/mastodon.social"]
+
   decentralized:
     - network: ethereum
       worker: core
@@ -104,7 +100,7 @@ component:
       }
     },
      "mastodon": {
-      "url": "https://0.0.0.0:9092/",
+      "url": "https://newdomain.ngrok.app",
       "http_headers": {
         "user-agent": "rss3-node"
       }
@@ -123,21 +119,16 @@ component:
   },
   "database": {
 	"coverage_period": 3,
-    "driver": "postgres",
-    "partition": true,
     "uri": "postgres://postgres@localhost:5432/postgres"
   },
   "stream": {
     "enable": false,
-    "driver": "kafka",
-    "topic": "rss3.node.activities",
     "uri": "localhost:9092"
   },
   "redis": {
     "endpoint": "localhost:6379",
     "username": "",
-    "password": "",
-    "disable_cache": true
+    "password": ""
   },
   "observability": {
     "opentelemetry": {
@@ -172,7 +163,9 @@ component:
       "worker": "core",
       "endpoint": "mastodon",
       "parameters": {
-        "kafka_topic": "activitypub_events"
+		  "relay_url_list": [
+			"https://relay.fedi.buzz/instance/mastodon.social"
+		  ]
       }
     }
   ],
@@ -211,7 +204,7 @@ url = "https://rpc.ankr.com/eth"
 	user-agent = "rss3-node"
 
 [endpoints.mastodon]
-url = "https://0.0.0.0:9092/"
+url = "https://newdomain.ngrok.app"
 
 	[endpoints.mastodon.http_headers]
 	user-agent = "rss3-node"
@@ -223,21 +216,16 @@ access_token = "test"
 
 [database]
 coverage_period = 3
-driver = "postgres"
-partition = true
 uri = "postgres://postgres@localhost:5432/postgres"
 
 [stream]
 enable = false
-driver = "kafka"
-topic = "rss3.node.activities"
 uri = "localhost:9092"
 
 [redis]
 endpoint = "localhost:6379"
 username = ""
 password = ""
-disable_cache = true
 
 [observability.opentelemetry.metrics]
 enable = true
@@ -265,7 +253,7 @@ worker = "core"
 endpoint = "mastodon"
 
 [component.federated.parameters]
-kafka_topic = "activitypub_events"
+relay_url_list = ["https://relay.fedi.buzz/instance/mastodon.social"]
 
 [[component.decentralized]]
 network = "ethereum"
@@ -298,7 +286,7 @@ var configFileExpected = &File{
 			},
 		},
 		"mastodon": {
-			URL: "https://0.0.0.0:9092/",
+			URL: "https://newdomain.ngrok.app",
 			HTTPHeaders: map[string]string{
 				"user-agent": "rss3-node",
 			},
@@ -338,13 +326,14 @@ var configFileExpected = &File{
 				Worker:     federated.Core,
 				EndpointID: "mastodon",
 				Endpoint: Endpoint{
-					URL: "https://0.0.0.0:9092/",
+					URL: "https://newdomain.ngrok.app",
 					HTTPHeaders: map[string]string{
 						"user-agent": "rss3-node",
 					},
 				},
 				Parameters: &Parameters{
-					"kafka_topic": "activitypub_events",
+					"relay_url_list": []interface{}{"https://relay.fedi.buzz/instance/mastodon.social"},
+					// "port":           8181, //ToDo: add port here and other places
 				},
 			},
 		},
@@ -380,21 +369,16 @@ var configFileExpected = &File{
 	},
 	Database: &Database{
 		CoveragePeriod: 3,
-		Driver:         "postgres",
-		Partition:      lo.ToPtr(true),
 		URI:            "postgres://postgres@localhost:5432/postgres",
 	},
 	Stream: &Stream{
 		Enable: lo.ToPtr(false),
-		Driver: "kafka",
-		Topic:  "rss3.node.activities",
 		URI:    "localhost:9092",
 	},
 	Redis: &Redis{
-		Endpoint:     "localhost:6379",
-		Username:     "",
-		Password:     "",
-		DisableCache: true,
+		Endpoint: "localhost:6379",
+		Username: "",
+		Password: "",
 	},
 	Observability: &Telemetry{
 		OpenTelemetry: &OpenTelemetryConfig{

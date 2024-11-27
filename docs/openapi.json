@@ -577,7 +577,7 @@
                 }
             }
         },
-        "/workers_status": {
+        "/operators/workers_status": {
             "get": {
                 "summary": "Get Node Worker Status",
                 "description": "Retrieve node worker status details.",
@@ -597,7 +597,7 @@
                 }
             }
         },
-        "/info": {
+        "/operators/info": {
             "get": {
                 "summary": "Get Node Status",
                 "description": "Retrieve node status details.",
@@ -1148,11 +1148,7 @@
                     },
                     "coverage": {
                         "description": "The supported worker list of the node.",
-                        "items":{
-                            "description": "The worker name.",
-                            "type": "string"
-                        },
-                        "type": "array"
+                        "$ref": "#/components/schemas/WorkerCoverage"
                     },
                     "records": {
                         "$ref": "#/components/schemas/Records"
@@ -1236,6 +1232,39 @@
                             }
                         ],
                         "slashed_tokens": "0"
+                    }
+                }
+            },
+            "WorkerCoverage": {
+                "description": "The worker coverage details.",
+                "type": "object",
+                "properties": {
+                    "rss": {
+                        "$ref": "#/components/schemas/WorkerSupportStatus"
+                    },
+                    "decentralized": {
+                        "$ref": "#/components/schemas/WorkerSupportStatus"
+                    },
+                    "federated": {
+                        "$ref": "#/components/schemas/WorkerSupportStatus"
+                    }
+                }
+            },
+            "WorkerSupportStatus": {
+                "description": "The worker support status.",
+                "type": "object",
+                "properties": {
+                    "supported": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "unsupported": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },
@@ -1411,9 +1440,6 @@
                             "id": {
                                 "type": "string"
                             },
-                            "endpoint_configs": {
-                                "$ref": "#/components/schemas/Endpoint"
-                            },
                             "worker_configs": {
                                 "$ref": "#/components/schemas/WorkerConfig"
                             }
@@ -1518,7 +1544,10 @@
                     "authentication": {
                         "$ref": "#/components/schemas/Authentication"
                     },
-                    "kafka_topic": {
+                    "relay_url_list": {
+                        "$ref": "#/components/schemas/ConfigDetail"
+                    },
+                    "port": {
                         "$ref": "#/components/schemas/ConfigDetail"
                     }
                 }

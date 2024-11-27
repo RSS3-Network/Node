@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/linea"
@@ -118,13 +119,15 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		case w.matchEthereumL1USDCBridgeReceivedFromOtherLayerLog(*ethereumTask, log):
 			actions, err = w.handleEthereumL1USDCBridgeReceivedFromOtherLayerLog(ctx, *ethereumTask, *log, activity)
 		default:
-			zap.L().Debug("unsupported log", zap.String("task", task.ID()), zap.Uint("topic_index", log.Index))
-
 			continue
 		}
 
 		if err != nil {
-			zap.L().Warn("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
+			zap.L().Error("failed to handle ethereum log",
+				zap.Error(err),
+				zap.String("task", task.ID()),
+				zap.String("log_address", log.Address.String()))
+
 			continue
 		}
 
@@ -135,6 +138,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	activity.Tag = tag.Transaction
 
 	if len(activity.Actions) == 0 {
+		zap.L().Info("no actions generated for task", zap.String("task_id", task.ID()))
+
 		return nil, nil
 	}
 
@@ -344,7 +349,7 @@ func (w *worker) buildEthereumTransactionBridgeAction(ctx context.Context, chain
 		return nil, fmt.Errorf("lookup token: %w", err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	action := activityx.Action{
 		Type:     typex.TransactionBridge,

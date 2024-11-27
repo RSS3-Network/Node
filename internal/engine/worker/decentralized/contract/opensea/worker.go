@@ -10,6 +10,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc1155"
@@ -320,8 +321,8 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 		return nil, fmt.Errorf("lookup collectible token metadata: %w", err)
 	}
 
-	collectibleTokenMetadata.ID = lo.ToPtr(decimal.NewFromBigInt(nftID, 0))
-	collectibleTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(nftValue, 0))
+	collectibleTokenMetadata.ID = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(nftID), 0))
+	collectibleTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(nftValue), 0))
 
 	// Get offer token metadata.
 	costTokenMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, offerToken, nil, task.Header.Number)
@@ -329,11 +330,7 @@ func (w *worker) buildEthereumCollectibleTradeAction(ctx context.Context, task *
 		return nil, fmt.Errorf("lookup collectible token metadata: %w", err)
 	}
 
-	if offerValue == nil {
-		offerValue = big.NewInt(0)
-	}
-
-	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(offerValue, 0))
+	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(offerValue), 0))
 
 	action := activityx.Action{
 		Type:     typex.CollectibleTrade,

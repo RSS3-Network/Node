@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/optimism"
 	"github.com/rss3-network/node/provider/ethereum/token"
@@ -114,13 +115,11 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		case w.matchL2StandardBridgeDepositFinalizedLog(ethereumTask, log):
 			actions, err = w.transformL2StandardBridgeDepositFinalizedLog(ctx, ethereumTask, log)
 		default:
-			zap.L().Warn("unsupported log", zap.String("task", task.ID()), zap.Uint("topic.index", log.Index))
-
 			continue
 		}
 
 		if err != nil {
-			zap.L().Warn("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
+			zap.L().Error("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
 
 			return nil, err
 		}
@@ -275,7 +274,7 @@ func (w *worker) buildTransactionBridgeAction(ctx context.Context, chainID uint6
 		return nil, fmt.Errorf("lookup token %s: %w", tokenAddress, err)
 	}
 
-	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(tokenValue, 0))
+	tokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(tokenValue), 0))
 
 	action := activityx.Action{
 		Type:     typex.TransactionBridge,

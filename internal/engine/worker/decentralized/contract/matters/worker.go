@@ -13,6 +13,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/matters"
@@ -116,7 +117,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		}
 
 		if err != nil {
-			zap.L().Warn("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
+			zap.L().Error("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
 
 			return nil, err
 		}
@@ -152,6 +153,7 @@ func (w *worker) handleEthereumCurationTransaction(ctx context.Context, task sou
 
 	return []*activityx.Action{action}, nil
 }
+
 func (w *worker) fetchArticle(ctx context.Context, uri string) (*readability.Article, error) {
 	_, path, err := ipfs.ParseURL(uri)
 
@@ -222,9 +224,9 @@ func (w *worker) removeUnusedHTMLTags(node *html.Node) {
 		}
 	}
 }
+
 func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Task, trigger, recipient, token common.Address, amount *big.Int, uri string) (*activityx.Action, error) {
 	article, err := w.fetchArticle(ctx, uri)
-
 	if err != nil || article == nil {
 		return nil, fmt.Errorf("fetch article: %w", err)
 	}
@@ -234,7 +236,7 @@ func (w *worker) buildEthereumCurationAction(ctx context.Context, task source.Ta
 		return nil, fmt.Errorf("lookup token metadata %s: %w", "", err)
 	}
 
-	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amount, 0))
+	rewardTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amount), 0))
 
 	return &activityx.Action{
 		Type:     typex.SocialReward,

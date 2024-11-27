@@ -81,7 +81,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	case farcaster.MessageTypeReactionAdd.String():
 		w.handleFarcasterRecastReaction(ctx, farcasterTask.Message, activity)
 	default:
-		zap.L().Debug("unsupported type", zap.String("type", farcasterTask.Message.Data.Type))
+		zap.L().Debug("unsupported farcaster message type", zap.String("type", farcasterTask.Message.Data.Type))
 	}
 
 	if len(activity.Actions) == 0 {
@@ -103,18 +103,13 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 	// this represents a reply post.
 	if message.Data.CastAddBody.ParentCastID != nil {
 		activity.Type = typex.SocialComment
-
 		targetFid := int64(message.Data.CastAddBody.ParentCastID.Fid)
-
 		targetMessage := message.Data.CastAddBody.ParentCast
-
 		post.Target = w.buildPost(ctx, targetFid, targetMessage.Hash, targetMessage.Data.CastAddBody, farcaster.CovertFarcasterTimeToTimestamp(int64(targetMessage.Data.Timestamp)))
 		// this represents a reply to self.
 		if fid == targetFid {
 			post.Target.Handle = post.Handle
-
 			activity.To = activity.From
-
 			w.buildPostActions(ctx, message.Data.Profile.EthAddresses, activity, post, activity.Type)
 
 			return
@@ -142,32 +137,23 @@ func (w *worker) handleFarcasterAddCast(ctx context.Context, message farcaster.M
 
 	activity.Type = typex.SocialPost
 	activity.To = activity.From
-
 	w.buildPostActions(ctx, message.Data.Profile.EthAddresses, activity, post, activity.Type)
 }
 
 // handleFarcasterRecastReaction handles farcaster recast reaction message.
 func (w *worker) handleFarcasterRecastReaction(ctx context.Context, message farcaster.Message, activity *activityx.Activity) {
 	fid := int64(message.Data.Fid)
-
 	post := w.buildPost(ctx, int64(message.Data.Fid), message.Hash, nil, farcaster.CovertFarcasterTimeToTimestamp(int64(message.Data.Timestamp)))
-
 	post.Handle = message.Data.Profile.Username
 	activity.From = message.Data.Profile.CustodyAddress
-
 	activity.Type = typex.SocialShare
-
 	targetFid := int64(message.Data.ReactionBody.TargetCastID.Fid)
-
 	targetMessage := message.Data.ReactionBody.TargetCast
-
 	post.Target = w.buildPost(ctx, targetFid, targetMessage.Hash, targetMessage.Data.CastAddBody, farcaster.CovertFarcasterTimeToTimestamp(int64(targetMessage.Data.Timestamp)))
 
 	if fid == targetFid {
 		post.Target.Handle = post.Handle
-
 		activity.To = activity.From
-
 		w.buildPostActions(ctx, message.Data.Profile.EthAddresses, activity, post, activity.Type)
 
 		return
@@ -200,6 +186,7 @@ func (w *worker) buildPostActions(_ context.Context, ethAddresses []string, acti
 			To:       from,
 			Metadata: *post,
 		}
+
 		activity.Actions = append(activity.Actions, &action)
 	}
 }

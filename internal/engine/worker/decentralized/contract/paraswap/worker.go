@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
 	"github.com/rss3-network/node/provider/ethereum/contract/paraswap"
@@ -22,7 +23,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 )
 
 var _ engine.Worker = (*worker)(nil)
@@ -109,19 +109,15 @@ func (w *worker) transformSwapTransaction(ctx context.Context, ethereumTask *sou
 		case w.matchSwappedDirectLog(ethereumTask, log):
 			buffer, err = w.transformSwappedDirectLog(ctx, ethereumTask, log)
 		default:
-			zap.L().Debug("unknown event", zap.String("worker", w.Name()), zap.String("task", ethereumTask.ID()), zap.Stringer("event", log.Topics[0]))
 			continue
 		}
 
 		if err != nil {
-			zap.L().Warn("handle paraswap swap transaction", zap.Error(err), zap.String("worker", w.Name()), zap.String("task", ethereumTask.ID()))
 			continue
 		}
 
 		actions = append(actions, buffer...)
 	}
-
-	zap.L().Info("Processing task", zap.Any("task", ethereumTask))
 
 	return actions
 }
@@ -192,14 +188,14 @@ func (w *worker) buildExchangeSwapAction(ctx context.Context, task *source.Task,
 		return nil, fmt.Errorf("lookup token in metadata: %w", err)
 	}
 
-	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountIn, 0))
+	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountIn), 0))
 
 	tokenOutMetadata, err := w.tokenClient.Lookup(ctx, task.ChainID, tokenOutAddress, nil, task.Header.Number)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token out metadata: %w", err)
 	}
 
-	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0))
+	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountOut), 0))
 
 	action := activityx.Action{
 		Type:     typex.ExchangeSwap,

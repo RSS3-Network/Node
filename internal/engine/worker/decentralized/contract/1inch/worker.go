@@ -9,9 +9,10 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract"
-	"github.com/rss3-network/node/provider/ethereum/contract/1inch"
+	oneinch "github.com/rss3-network/node/provider/ethereum/contract/1inch"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc20"
 	"github.com/rss3-network/node/provider/ethereum/contract/weth"
 	"github.com/rss3-network/node/provider/ethereum/token"
@@ -100,7 +101,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	// Build the activity.
 	activity, err := task.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build activity: %w", err)
+		return nil, fmt.Errorf("build activity: %w, task_id: %s", err, task.ID())
 	}
 
 	switch *oneinchTask.Transaction.To {
@@ -112,12 +113,10 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		oneinch.AddressAggregationRouterV5:
 		err = w.handleEthereumExchangeSwapTransaction(ctx, oneinchTask, activity)
 	default:
-		return nil, fmt.Errorf("unknown transaction %s", task.ID())
+		return nil, nil
 	}
 
 	if err != nil {
-		zap.L().Warn("handle ethereum log", zap.Error(err), zap.String("task", task.ID()))
-
 		return nil, err
 	}
 
@@ -169,11 +168,11 @@ func (w *worker) handleEthereumImplicitAggregationRouterTransaction(ctx context.
 	case oneinch.AddressAggregationRouterV5:
 		sender, receipt, err = w.parseEthereumAggregationRouterV5TransactionInput(ctx, *task)
 	default:
-		return nil, fmt.Errorf("unsupported contract: %s", *task.Transaction.To)
+		return nil, fmt.Errorf("unsupported contract: %s, task_id: %s", *task.Transaction.To, task.ID())
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("parse transaction input: %w", err)
+		return nil, fmt.Errorf("parse transaction input: %w, task_id: %s", err, task.ID())
 	}
 
 	valueMap := make(map[common.Address]*big.Int)
@@ -806,7 +805,9 @@ func (w *worker) handleEthereumExplicitAggregationRouterTransaction(ctx context.
 		}
 
 		if err != nil {
-			zap.L().Warn("handle ethereum swap transaction", zap.Error(err), zap.String("worker", w.Name()), zap.String("task", task.ID()), zap.Error(err))
+			zap.L().Error("failed to handle ethereum swap transaction",
+				zap.Error(err))
+
 			continue
 		}
 
@@ -870,14 +871,14 @@ func (w *worker) buildEthereumExchangeSwapAction(ctx context.Context, blockNumbe
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenIn, err)
 	}
 
-	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountIn, 0).Abs())
+	tokenInMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountIn), 0).Abs())
 
 	tokenOutMetadata, err := w.tokenClient.Lookup(ctx, chain, tokenOutAddress, nil, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("lookup token metadata %s: %w", tokenOut, err)
 	}
 
-	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(amountOut, 0).Abs())
+	tokenOutMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(amountOut), 0).Abs())
 
 	action := activityx.Action{
 		Type:     typex.ExchangeSwap,

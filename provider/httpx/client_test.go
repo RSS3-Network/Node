@@ -136,9 +136,9 @@ func TestHTTPClient_Post(t *testing.T) {
 		arguments arguments
 	}{
 		{
-			name: "Post to Example",
+			name: "Post to Postman Echo",
 			arguments: arguments{
-				url:  "https://httpbin.org/post",
+				url:  "https://postman-echo.com/post",
 				body: `{"key":"value"}`,
 			},
 		},

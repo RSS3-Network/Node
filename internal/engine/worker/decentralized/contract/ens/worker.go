@@ -15,6 +15,7 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/ethereum"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/provider/ethereum/contract/ens"
 	"github.com/rss3-network/node/provider/ethereum/contract/erc1155"
@@ -119,9 +120,9 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	}
 
 	// Build default ens _activities from task.
-	_activities, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
+	activities, err := ethereumTask.BuildActivity(activityx.WithActivityPlatform(w.Platform()))
 	if err != nil {
-		return nil, fmt.Errorf("build _activities: %w", err)
+		return nil, fmt.Errorf("build activities: %w", err)
 	}
 
 	exist := lo.ContainsBy(ethereumTask.Receipt.Logs, func(log *ethereum.Log) bool {
@@ -140,7 +141,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		}
 
 		if exist {
-			_activities.Type = typex.CollectibleTrade
+			activities.Type = typex.CollectibleTrade
 
 			switch {
 			case w.matchEnsNameRegisteredV1(ctx, *log):
@@ -151,7 +152,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 				continue
 			}
 		} else {
-			_activities.Type = typex.SocialProfile
+			activities.Type = typex.SocialProfile
 
 			switch {
 			case w.matchEnsNameRenewed(ctx, *log):
@@ -180,18 +181,18 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 		}
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("transform ENS task: %w", err)
 		}
 
 		// Change _activities type to the first action type.
 		for _, action := range actions {
-			_activities.Type = action.Type
+			activities.Type = action.Type
 		}
 
-		_activities.Actions = append(_activities.Actions, actions...)
+		activities.Actions = append(activities.Actions, actions...)
 	}
 
-	return _activities, nil
+	return activities, nil
 }
 
 // matchEnsNameRegisteredV1 matches events that ENS name register through V1 contract
@@ -492,7 +493,7 @@ func (w *worker) buildEthereumENSRegisterAction(ctx context.Context, task *sourc
 		return nil, fmt.Errorf("lookup token metadata %s: %w", "", err)
 	}
 
-	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(cost, 0))
+	costTokenMetadata.Value = lo.ToPtr(decimal.NewFromBigInt(utils.GetBigInt(cost), 0))
 
 	// Save namehash into database for further query requirements
 	fullName := fmt.Sprintf("%s.%s", name, "eth")

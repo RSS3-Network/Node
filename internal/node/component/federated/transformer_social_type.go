@@ -10,7 +10,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
-	"go.uber.org/zap"
 )
 
 // TransformSocialType adds author url and note url to social actions based on type, network and platform
@@ -27,7 +26,6 @@ func (c *Component) TransformSocialType(ctx context.Context, network network.Net
 func (c *Component) TransformSocialPost(ctx context.Context, network network.Network, platform string, action activity.Action) (activity.Action, error) {
 	post, ok := action.Metadata.(*metadata.SocialPost)
 	if !ok {
-		zap.L().Error("invalid post metadata type", zap.Any("metadata", action.Metadata))
 		return activity.Action{}, fmt.Errorf("invalid post metadata type: %T", action.Metadata)
 	}
 

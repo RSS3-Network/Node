@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rss3-network/node/internal/engine"
+	"github.com/rss3-network/node/internal/utils"
 	"github.com/rss3-network/node/provider/ethereum"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -83,7 +84,7 @@ func (t Task) BuildActivity(options ...activityx.Option) (*activityx.Activity, e
 		To:      to.String(),
 		Type:    typex.Unknown,
 		Fee: &activityx.Fee{
-			Amount:  decimal.NewFromBigInt(feeAmount, 0),
+			Amount:  decimal.NewFromBigInt(utils.GetBigInt(feeAmount), 0),
 			Decimal: defaultFeeDecimal,
 		},
 		Calldata: &activityx.Calldata{
@@ -126,11 +127,11 @@ func (t Task) buildFeeDefault() (*big.Int, error) {
 		)
 
 		if t.Receipt.EffectiveGasPrice != nil {
-			gasPrice = decimal.NewFromBigInt(t.Receipt.EffectiveGasPrice, 0)
+			gasPrice = decimal.NewFromBigInt(utils.GetBigInt(t.Receipt.EffectiveGasPrice), 0)
 		} else {
 			var (
-				baseFee   = decimal.NewFromBigInt(t.Header.BaseFee, 0)
-				gasTipCap = decimal.NewFromBigInt(t.Transaction.GasTipCap, 0)
+				baseFee   = decimal.NewFromBigInt(utils.GetBigInt(t.Header.BaseFee), 0)
+				gasTipCap = decimal.NewFromBigInt(utils.GetBigInt(t.Transaction.GasTipCap), 0)
 			)
 
 			gasPrice = baseFee.Add(gasTipCap)

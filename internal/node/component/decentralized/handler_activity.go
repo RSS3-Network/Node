@@ -43,6 +43,9 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 
 	addRecentRequest(ctx.Request().RequestURI)
 
+	zap.L().Debug("processing get decentralized activity request",
+		zap.Any("request", request))
+
 	query := model.ActivityQuery{
 		ID:          lo.ToPtr(request.ID),
 		ActionLimit: request.ActionLimit,
@@ -51,21 +54,33 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 
 	activity, page, err := c.getActivity(ctx.Request().Context(), query)
 	if err != nil {
-		zap.L().Error("GetActivity InternalError", zap.Error(err))
+		zap.L().Error("failed to get decentralized activity",
+			zap.String("id", request.ID),
+			zap.Error(err))
+
 		return response.InternalError(ctx)
 	}
 
 	// query etherface for the transaction
 	if c.etherfaceClient != nil && activity != nil && activity.Type == typex.Unknown && activity.Calldata != nil {
+		zap.L().Debug("querying etherface for function hash",
+			zap.String("function_hash", activity.Calldata.FunctionHash))
+
 		activity.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx.Request().Context(), activity.Calldata.FunctionHash)
 	}
 
 	// transform the activity such as adding related urls
 	result, err := c.TransformActivity(ctx.Request().Context(), activity)
 	if err != nil {
-		zap.L().Error("TransformActivity InternalError", zap.Error(err))
+		zap.L().Error("failed to transform decentralized activity",
+			zap.String("id", request.ID),
+			zap.Error(err))
+
 		return response.InternalError(ctx)
 	}
+
+	zap.L().Info("successfully retrieved decentralized activity",
+		zap.String("id", request.ID))
 
 	return ctx.JSON(http.StatusOK, ActivityResponse{
 		Data: result,
@@ -104,9 +119,15 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 
 	addRecentRequest(ctx.Request().RequestURI)
 
+	zap.L().Debug("processing get decentralized account activities request",
+		zap.Any("request", request))
+
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
-		zap.L().Error("getCursor InternalError", zap.Error(err))
+		zap.L().Error("failed to get decentralized account activities cursor",
+			zap.String("cursor", lo.FromPtr(request.Cursor)),
+			zap.Error(err))
+
 		return response.InternalError(ctx)
 	}
 
@@ -127,9 +148,16 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
 	if err != nil {
-		zap.L().Error("getActivities InternalError", zap.Error(err))
+		zap.L().Error("failed to get decentralized account activities",
+			zap.String("account", request.Account),
+			zap.Error(err))
+
 		return response.InternalError(ctx)
 	}
+
+	zap.L().Info("successfully retrieved decentralized account activities",
+		zap.String("account", request.Account),
+		zap.Int("count", len(activities)))
 
 	return ctx.JSON(http.StatusOK, ActivitiesResponse{
 		Data: c.TransformActivities(ctx.Request().Context(), activities),
@@ -172,9 +200,15 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 
 	addRecentRequest(ctx.Request().RequestURI)
 
+	zap.L().Debug("processing batch get decentralized accounts activities request",
+		zap.Any("request", request))
+
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
-		zap.L().Error("getCursor InternalError", zap.Error(err))
+		zap.L().Error("failed to get decentralized accounts activities cursor",
+			zap.String("cursor", lo.FromPtr(request.Cursor)),
+			zap.Error(err))
+
 		return response.InternalError(ctx)
 	}
 
@@ -195,9 +229,16 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
 	if err != nil {
-		zap.L().Error("getActivities InternalError", zap.Error(err))
+		zap.L().Error("failed to get activities",
+			zap.Int("accounts_count", len(request.Accounts)),
+			zap.Error(err))
+
 		return response.InternalError(ctx)
 	}
+
+	zap.L().Info("successfully retrieved decentralized accounts activities",
+		zap.Int("accounts_count", len(request.Accounts)),
+		zap.Int("count", len(activities)))
 
 	return ctx.JSON(http.StatusOK, ActivitiesResponse{
 		Data: c.TransformActivities(ctx.Request().Context(), activities),
@@ -216,13 +257,18 @@ func (c *Component) TransformActivities(ctx context.Context, activities []*activ
 	lop.ForEach(activities, func(_ *activityx.Activity, index int) {
 		result, err := c.TransformActivity(ctx, activities[index])
 		if err != nil {
-			zap.L().Error("failed to load activity", zap.Error(err))
+			zap.L().Error("failed to transform decentralized activity",
+				zap.String("id", activities[index].ID),
+				zap.Error(err))
 
 			return
 		}
 
 		// query etherface to get the parsed function name
 		if c.etherfaceClient != nil && result.Type == typex.Unknown && result.Calldata != nil {
+			zap.L().Debug("querying etherface for function hash",
+				zap.String("function_hash", result.Calldata.FunctionHash))
+
 			result.Calldata.ParsedFunction, _ = c.etherfaceClient.Lookup(ctx, result.Calldata.FunctionHash)
 		}
 
@@ -249,7 +295,6 @@ func (c *Component) parseTypes(types []string, tags []tag.Tag) ([]schema.Type, e
 			value, err = schema.ParseTypeFromString(tagx, typex)
 			if err == nil {
 				schemaTypes = append(schemaTypes, value)
-
 				break
 			}
 		}

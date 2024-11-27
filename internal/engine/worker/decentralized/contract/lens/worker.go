@@ -138,6 +138,7 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			actions []*activityx.Action
 			err     error
 		)
+
 		// Match lens core contract events
 		switch {
 		case w.matchEthereumV1PostCreated(ethereumTask, log):
@@ -918,7 +919,7 @@ func (w *worker) buildEthereumV2TransactionPostMetadata(ctx context.Context, blo
 		})
 	}
 
-	return &metadata.SocialPost{
+	post := &metadata.SocialPost{
 		Handle:        handle,
 		Body:          body,
 		Title:         publication.Title,
@@ -928,7 +929,9 @@ func (w *worker) buildEthereumV2TransactionPostMetadata(ctx context.Context, blo
 		ContentURI:    contentURI,
 		Tags:          lo.If(len(publication.Lens.Tags) > 0, publication.Lens.Tags).Else(nil),
 		Timestamp:     lo.If(isTarget, uint64(0)).Else(timestamp),
-	}, publication.Lens.AppID, nil
+	}
+
+	return post, publication.Lens.AppID, nil
 }
 
 // NewWorker creates a new Lens worker.

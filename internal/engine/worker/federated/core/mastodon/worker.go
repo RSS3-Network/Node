@@ -92,7 +92,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	case mastodon.MessageTypeAnnounce.String():
 		err = w.handleActivityPubAnnounce(ctx, activityPubTask.Message, activity)
 	default:
-		zap.L().Warn("unsupported type", zap.String("type", activityPubTask.Message.Type))
+		zap.L().Debug("unsupported type", zap.String("type", activityPubTask.Message.Type))
+
 		return nil, nil
 	}
 
@@ -441,7 +442,7 @@ func (w *worker) buildPostMedia(post *metadata.SocialPost, attachments interface
 			post.Media = append(post.Media, media)
 		}
 	default:
-		zap.L().Debug("Unexpected attachments type", zap.String("type", fmt.Sprintf("%T", attachments)))
+		zap.L().Debug("unexpected attachments type", zap.String("type", fmt.Sprintf("%T", attachments)))
 	}
 }
 
@@ -480,7 +481,7 @@ func (w *worker) buildPostTags(post *metadata.SocialPost, tags interface{}) {
 			processTag(t.Type, t.Name)
 		}
 	default:
-		zap.L().Debug("Unexpected tags type", zap.String("type", fmt.Sprintf("%T", tags)))
+		zap.L().Debug("unexpected tags type", zap.String("type", fmt.Sprintf("%T", tags)))
 	}
 }
 
