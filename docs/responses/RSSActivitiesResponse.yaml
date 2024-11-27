@@ -28,7 +28,7 @@ content:
         from: www.abc.net.au
         id: https://www.abc.net.au/news/2024-07-02/nicheliving-home-building-delays-causing-hardship/104047810
         index: 0
-        network: rss
+        network: rsshub
         owner: www.abc.net.au
         success: false
         tag: rss

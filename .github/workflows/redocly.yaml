@@ -31,14 +31,17 @@ jobs:
         run: npm install -g @redocly/cli@latest
 
       - name: Run linting
-        run: redocly lint docs/api.yaml --format=github-actions
+        id: lint
+        run: |
+          redocly lint docs/api.yaml --format=github-actions > lint-result.json
+          echo "result=$(cat lint-result.json)" >> $GITHUB_OUTPUT
 
       - name: Run bundle
         run: redocly bundle docs/api.yaml --output=openapi.yaml
 
       - id: hash
         name: Get bundle file hash
-        run: echo "::set-output name=hash::$(sha256sum openapi.yaml | cut -d ' ' -f 1)"
+        run: echo "hash=$(sha256sum openapi.yaml | cut -d ' ' -f 1)" >> $GITHUB_OUTPUT
 
       # upload to gcs
       - name: upload-file
@@ -46,6 +49,7 @@ jobs:
         with:
           path: openapi.yaml
           destination: rss3-openapi/${{ steps.hash.outputs.hash }}
+          process_gcloudignore: 'false'
 
       # get current pr
       - name: Get PR
@@ -69,7 +73,12 @@ jobs:
           github-token: '${{ github.token }}'
           script: |
             
-            const body = `commit hash: ${context.sha} \n [openapi review](https://petstore.swagger.io/?url=https://storage.googleapis.com/rss3-openapi/${{ steps.hash.outputs.hash }}/openapi.yaml)`;
+            const body = `commit hash: ${context.sha}
+            [openapi.yaml](https://petstore.swagger.io/?url=https://storage.googleapis.com/rss3-openapi/${{ steps.hash.outputs.hash }}/openapi.yaml)
+            
+            ## Lint Result
+            ${{ steps.lint.outputs.result }}
+            `;
             
             github.rest.issues.createComment({
               issue_number: '${{ fromJson(steps.get-pr.outputs.result).number }}',
