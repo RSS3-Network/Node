@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (c *Component) GetNetworkActivities(ctx echo.Context, net network.Network, request docs.GetFederatedNetworkNetworkParams) (err error) {
+func (c *Component) GetNetworkActivities(ctx echo.Context, net network.Network, request docs.GetFederatedNetworkParams) (err error) {
 	if err := defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}

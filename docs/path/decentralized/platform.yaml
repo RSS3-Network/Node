@@ -1,4 +1,5 @@
 get:
+  operationId: GetDecentralizedPlatform
   summary: Get Platform Activities
   description: Retrieve a list of activities from the specified decentralized platform. This endpoint allows you to filter activities by various parameters such as limit, timestamp, success status, and more.
   tags:

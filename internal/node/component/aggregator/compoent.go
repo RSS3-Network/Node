@@ -27,11 +27,11 @@ func (c Component) PostDecentralizedAccounts(ctx echo.Context) error {
 	return c.Decentralized.BatchGetAccountsActivities(ctx)
 }
 
-func (c Component) GetDecentralizedNetworkNetwork(ctx echo.Context, network network.Network, params docs.GetDecentralizedNetworkNetworkParams) error {
+func (c Component) GetDecentralizedNetwork(ctx echo.Context, network network.Network, params docs.GetDecentralizedNetworkParams) error {
 	return c.Decentralized.GetNetworkActivities(ctx, network, params)
 }
 
-func (c Component) GetDecentralizedPlatformPlatform(ctx echo.Context, platform decentralizedx.Platform, params docs.GetDecentralizedPlatformPlatformParams) error {
+func (c Component) GetDecentralizedPlatform(ctx echo.Context, platform decentralizedx.Platform, params docs.GetDecentralizedPlatformParams) error {
 	return c.Decentralized.GetPlatformActivities(ctx, platform, params)
 }
 
@@ -49,11 +49,11 @@ func (c Component) PostFederatedAccounts(ctx echo.Context) error {
 	return c.Federated.BatchGetAccountsActivities(ctx)
 }
 
-func (c Component) GetFederatedNetworkNetwork(ctx echo.Context, network network.Network, params docs.GetFederatedNetworkNetworkParams) error {
+func (c Component) GetFederatedNetwork(ctx echo.Context, network network.Network, params docs.GetFederatedNetworkParams) error {
 	return c.Federated.GetNetworkActivities(ctx, network, params)
 }
 
-func (c Component) GetFederatedPlatformPlatform(ctx echo.Context, platform federatedx.Platform, params docs.GetFederatedPlatformPlatformParams) error {
+func (c Component) GetFederatedPlatform(ctx echo.Context, platform federatedx.Platform, params docs.GetFederatedPlatformParams) error {
 	return c.Federated.GetPlatformActivities(ctx, platform, params)
 }
 

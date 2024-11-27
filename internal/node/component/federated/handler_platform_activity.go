@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (c *Component) GetPlatformActivities(ctx echo.Context, plat federated.Platform, request docs.GetFederatedPlatformPlatformParams) (err error) {
+func (c *Component) GetPlatformActivities(ctx echo.Context, plat federated.Platform, request docs.GetFederatedPlatformParams) (err error) {
 	if err := defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}

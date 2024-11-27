@@ -1,7 +1,7 @@
 description: Additional metadata related to the action.
 type: object
 allOf:
-  - $ref: "https://raw.githubusercontent.com/RSS3-Network/Protocol-Go/refs/heads/main/api.yaml#/components/schemas/Metadata"
+  - $ref: "https://raw.githubusercontent.com/RSS3-Network/Protocol-Go/refs/heads/main/openapi/Metadata.yaml"
   - x-go-type: metadata.Metadata
     x-go-type-skip-optional-pointer: true
     x-go-type-import:

@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (c *Component) GetPlatformActivities(ctx echo.Context, plat decentralized.Platform, request docs.GetDecentralizedPlatformPlatformParams) (err error) {
+func (c *Component) GetPlatformActivities(ctx echo.Context, plat decentralized.Platform, request docs.GetDecentralizedPlatformParams) (err error) {
 	if err := defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
