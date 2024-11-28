@@ -1,4 +1,3 @@
 description: The owner of the activity.
 type: string
-example: "@seachdamh@101010.pl"
-
+pattern: 0x[0-9a-fA-F]{40}

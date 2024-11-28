@@ -6,7 +6,8 @@ content:
       type: object
       properties:
         accounts:
-          $ref: "../schemas/Accounts.yaml"
+          items:
+            $ref: "../schemas/FederatedAccount.yaml"
         limit:
           $ref: "../schemas/Limit.yaml"
         action_limit:
