@@ -6,8 +6,10 @@ content:
       type: object
       properties:
         accounts:
+          type: array
           items:
             $ref: "../schemas/FederatedAccount.yaml"
+          x-go-type-skip-optional-pointer: true
         limit:
           $ref: "../schemas/Limit.yaml"
         action_limit:
