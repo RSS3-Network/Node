@@ -95,10 +95,10 @@ example:
                 is_required: false
                 type: uint
                 value: 1
-            minimum_resource:
-              cpu_core: 0.5
-              memory_in_gb: 0.5
-              disk_space_in_gb: 4
+              minimum_resource:
+                cpu_core: 0.5
+                memory_in_gb: 0.5
+                disk_space_in_gb: 4
     federated:
       - id: mastodon
         endpoint_configs:
@@ -149,10 +149,10 @@ example:
                 is_required: false
                 type: uint
                 value: null
-            minimum_resource:
-              cpu_core: 0.5
-              memory_in_gb: 0.5
-              disk_space_in_gb: 12
+              minimum_resource:
+                cpu_core: 0.5
+                memory_in_gb: 0.5
+                disk_space_in_gb: 12
 type: object
 properties:
   data:
