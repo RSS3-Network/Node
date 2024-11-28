@@ -1,11 +1,11 @@
 description: Represents an individual action within an activity.
 properties:
   from:
-    $ref: './Address.yaml'
+    $ref: './DecentralizedAccount.yaml'
   metadata:
     $ref: "./ProtocolMetadata.yaml"
   platform:
-    $ref: "./Platform.yaml"
+    $ref: "./DecentralizedPlatform.yaml"
   related_urls:
     description: A list of URLs related to the action.
     items:
@@ -15,7 +15,7 @@ properties:
   tag:
     $ref: "./ProtocolTag.yaml"
   to:
-    $ref: "./Address.yaml"
+    $ref: "./DecentralizedAccount.yaml"
   type:
     $ref: "./ProtocolType.yaml"
 type: object

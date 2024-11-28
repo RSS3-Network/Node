@@ -34,7 +34,7 @@ properties:
   actions:
     description: The list of actions within the activity.
     items:
-      $ref: "./Action.yaml"
+      $ref: "./DecentralizedAction.yaml"
     type: array
   calldata:
     $ref: "./Calldata.yaml"
@@ -43,7 +43,7 @@ properties:
   fee:
     $ref: "./Fee.yaml"
   from:
-    $ref: "./Address.yaml"
+    $ref: "./DecentralizedAccount.yaml"
   id:
     description: The unique identifier for the activity.
     type: string
@@ -56,7 +56,7 @@ properties:
     description: The owner of the activity.
     type: string
   platform:
-    $ref: "./Platform.yaml"
+    $ref: "./DecentralizedPlatform.yaml"
   success:
     description: Indicates whether the activity was successful.
     type: boolean
@@ -65,7 +65,7 @@ properties:
   timestamp:
     $ref: "./Timestamp.yaml"
   to:
-    $ref: "./Address.yaml"
+    $ref: "./DecentralizedAccount.yaml"
   total_actions:
     description: The total number of actions within the activity.
     type: integer
