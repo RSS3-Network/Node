@@ -35,6 +35,18 @@ generate code would create a `ServerInterface` in `generated.go` file. This inte
 
 Use `internal/node/component/aggregator/compoent.go` to implement the API server.
 
+## Oapi-codegen extensions
+
+Refer to [OpenAPI extensions](https://github.com/oapi-codegen/oapi-codegen?tab=readme-ov-file#openapi-extensions)
+
+Here are some usage.
+
+- `x-go-type` to define custom type.
+- `x-go-type-import` to import custom type, usually used with `x-go-type` to define custom type.
+- `x-go-type-skip-optional-pointer` remove pointer of fileds in structs.
+- `x-go-name` override the generated name of a field or a type.
+- `x-go-type-name` override the generated name of a type
+
 ## Handle http endpoint
 
 Without store `openapi.json` file, `generate.go` will generate `GetSwagger` function to get the swagger object.
