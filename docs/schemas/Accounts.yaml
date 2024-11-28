@@ -1,5 +1,0 @@
-type: array
-items:
-  $ref: "./Address.yaml"
-description: List of accounts to retrieve activities for
-x-go-type-skip-optional-pointer: true

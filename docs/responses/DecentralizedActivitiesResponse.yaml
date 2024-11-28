@@ -1,5 +1,16 @@
 content:
   application/json:
     schema:
-      $ref: "./ActivitiesResponseBody.yaml"
+      description: The response structure for a list of activities.
+      properties:
+        data:
+          description: The list of activities.
+          items:
+            $ref: "../schemas/DecentralizedActivity.yaml"
+          type: array
+        meta:
+          $ref: "../schemas/MetaCursor.yaml"
+      type: object
+      required:
+        - data
 description: The request was successful.

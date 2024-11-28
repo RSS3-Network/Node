@@ -3,7 +3,7 @@ content:
     schema:
       properties:
         data:
-          $ref: '../schemas/Activity.yaml'
+          $ref: '../schemas/DecentralizedActivity.yaml'
         meta:
           $ref: '../schemas/MetaTotalPages.yaml'
       type: object
