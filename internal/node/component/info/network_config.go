@@ -453,14 +453,14 @@ var WorkerToConfigMap = map[network.Protocol]map[worker.Worker]workerConfig{
 	network.ActivityPubProtocol: {
 		federated.Core: customWorkerConfig(federated.Core, network.ActivityPubProtocol, &Parameters{
 			RelayURLList: &ConfigDetail{
-				IsRequired:  true,
+				IsRequired:  false,
 				Type:        URLArrayType,
 				Description: relayURLArrayTypeDescription,
 				Title:       "Relay URL List",
 				Key:         "parameters.relay_url_list",
 			},
 			Port: &ConfigDetail{
-				IsRequired:  true,
+				IsRequired:  false,
 				Type:        UintType,
 				Description: domainPortDescription,
 				Title:       "Port Number",
