@@ -1,0 +1,14 @@
+get:
+  operationId: GetNetworksConfig
+  summary: Get worker config options
+  description: Retrieve worker config options and descriptions.
+  security: []
+  tags:
+    - Info
+  responses:
+    "200":
+      $ref: "../../responses/NetworkConfigResponse.yaml"
+    "400":
+      $ref: "../../responses/BadRequest.yaml"
+    "500":
+      $ref: "../../responses/InternalError.yaml"

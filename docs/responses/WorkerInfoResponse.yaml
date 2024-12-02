@@ -1,0 +1,8 @@
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        data:
+          $ref: "../schemas/ComponentInfo.yaml"
+description: The request was successful.

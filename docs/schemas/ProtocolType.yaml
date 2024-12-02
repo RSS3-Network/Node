@@ -1,0 +1,6 @@
+allOf:
+  - $ref: "https://raw.githubusercontent.com/RSS3-Network/Protocol-Go/refs/heads/main/openapi/Type.yaml"
+  - x-go-type: schema.Type
+    x-go-type-skip-optional-pointer: true
+    x-go-type-import:
+      path: github.com/rss3-network/protocol-go/schema

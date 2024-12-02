@@ -1,0 +1,6 @@
+description: Metadata for paginated responses.
+properties:
+  cursor:
+    description: The cursor for the next set of results.
+    type: string
+type: object

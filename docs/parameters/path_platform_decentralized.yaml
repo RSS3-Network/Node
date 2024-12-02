@@ -1,0 +1,6 @@
+description: Retrieve activities from the specified platform.
+in: path
+name: platform
+required: true
+schema:
+  $ref: "../schemas/DecentralizedPlatform.yaml"

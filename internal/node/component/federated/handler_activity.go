@@ -2,31 +2,21 @@ package federated
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/creasty/defaults"
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
+	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/node/schema/worker/federated"
-	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
-	"github.com/rss3-network/protocol-go/schema/network"
-	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/samber/lo"
 	lop "github.com/samber/lo/parallel"
 	"go.uber.org/zap"
 )
 
-func (c *Component) GetActivity(ctx echo.Context) error {
-	var request ActivityRequest
-
-	if err := ctx.Bind(&request); err != nil {
-		return response.BadRequestError(ctx, err)
-	}
-
+func (c *Component) GetActivity(ctx echo.Context, id string, request docs.GetFederatedTxIDParams) error {
 	if err := defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
@@ -35,9 +25,9 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 		return response.ValidationFailedError(ctx, err)
 	}
 
-	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, request.ID)
+	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, id)
 
-	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, request.ID)
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, id)
 
 	addRecentRequest(ctx.Request().RequestURI)
 
@@ -45,7 +35,7 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 		zap.Any("request", request))
 
 	query := model.ActivityQuery{
-		ID:          lo.ToPtr(request.ID),
+		ID:          lo.ToPtr(id),
 		ActionLimit: request.ActionLimit,
 		ActionPage:  request.ActionPage,
 	}
@@ -53,7 +43,7 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 	activity, page, err := c.getActivity(ctx.Request().Context(), query)
 	if err != nil {
 		zap.L().Error("failed to get federated activity",
-			zap.String("id", request.ID),
+			zap.String("id", id),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
@@ -63,14 +53,14 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 	result, err := c.TransformActivity(ctx.Request().Context(), activity)
 	if err != nil {
 		zap.L().Error("failed to transform federated activity",
-			zap.String("id", request.ID),
+			zap.String("id", id),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
 
 	zap.L().Info("successfully retrieved federated activity",
-		zap.String("id", request.ID))
+		zap.String("id", id))
 
 	return ctx.JSON(http.StatusOK, ActivityResponse{
 		Data: result,
@@ -80,17 +70,7 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 	})
 }
 
-func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
-	var request AccountActivitiesRequest
-
-	if err = ctx.Bind(&request); err != nil {
-		return response.BadRequestError(ctx, err)
-	}
-
-	if request.Type, err = c.parseTypes(ctx.QueryParams()["type"], request.Tag); err != nil {
-		return response.BadRequestError(ctx, err)
-	}
-
+func (c *Component) GetAccountActivities(ctx echo.Context, account string, request docs.GetFederatedAccountParams) (err error) {
 	if err = defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
@@ -99,9 +79,9 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 		return response.ValidationFailedError(ctx, err)
 	}
 
-	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, request.Account)
+	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, account)
 
-	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, request.Account)
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, account)
 
 	addRecentRequest(ctx.Request().RequestURI)
 
@@ -111,7 +91,7 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
 		zap.L().Error("failed to get federated account activities cursor",
-			zap.String("account", request.Account),
+			zap.String("account", account),
 			zap.String("cursor", lo.FromPtr(request.Cursor)),
 			zap.Error(err))
 
@@ -122,7 +102,7 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
-		Owner:          lo.ToPtr(request.Account),
+		Owner:          lo.ToPtr(account),
 		Limit:          request.Limit,
 		ActionLimit:    request.ActionLimit,
 		Status:         request.Status,
@@ -136,14 +116,14 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
 	if err != nil {
 		zap.L().Error("failed to get federated account activities",
-			zap.String("account", request.Account),
+			zap.String("account", account),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
 
 	zap.L().Info("successfully retrieved federated account activities",
-		zap.String("account", request.Account),
+		zap.String("account", account),
 		zap.Int("count", len(activities)))
 
 	return ctx.JSON(http.StatusOK, ActivitiesResponse{
@@ -156,14 +136,9 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 
 // BatchGetAccountsActivities returns the activities of multiple accounts in a single request
 func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
-	var request AccountsActivitiesRequest
+	var request docs.PostFederatedAccountsJSONBody
 
 	if err = ctx.Bind(&request); err != nil {
-		return response.BadRequestError(ctx, err)
-	}
-
-	types, err := c.parseTypes(request.Type, request.Tag)
-	if err != nil {
 		return response.BadRequestError(ctx, err)
 	}
 
@@ -208,7 +183,7 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		Direction:   request.Direction,
 		Network:     lo.Uniq(request.Network),
 		Tags:        lo.Uniq(request.Tag),
-		Types:       lo.Uniq(types),
+		Types:       lo.Uniq(request.Type),
 		Platforms:   lo.Uniq(request.Platform),
 	}
 
@@ -253,72 +228,6 @@ func (c *Component) TransformActivities(ctx context.Context, activities []*activ
 	})
 
 	return results
-}
-
-func (c *Component) parseTypes(types []string, tags []tag.Tag) ([]schema.Type, error) {
-	if len(tags) == 0 {
-		return nil, nil
-	}
-
-	schemaTypes := make([]schema.Type, 0)
-
-	for _, typex := range types {
-		var (
-			value schema.Type
-			err   error
-		)
-
-		for _, tagx := range tags {
-			value, err = schema.ParseTypeFromString(tagx, typex)
-			if err == nil {
-				schemaTypes = append(schemaTypes, value)
-
-				break
-			}
-		}
-
-		if err != nil {
-			return nil, fmt.Errorf("invalid type: %s", typex)
-		}
-	}
-
-	return schemaTypes, nil
-}
-
-type ActivityRequest struct {
-	ID          string `param:"id"`
-	ActionLimit int    `query:"action_limit"  validate:"min=1,max=20" default:"10"`
-	ActionPage  int    `query:"action_page" validate:"min=1" default:"1"`
-}
-
-type AccountActivitiesRequest struct {
-	Account        string               `param:"account" validate:"required"`
-	Limit          int                  `query:"limit" validate:"min=1,max=100" default:"100"`
-	ActionLimit    int                  `query:"action_limit" validate:"min=1,max=20" default:"10"`
-	Cursor         *string              `query:"cursor"`
-	SinceTimestamp *uint64              `query:"since_timestamp"`
-	UntilTimestamp *uint64              `query:"until_timestamp"`
-	Status         *bool                `query:"success"`
-	Direction      *activityx.Direction `query:"direction"`
-	Network        []network.Network    `query:"network"`
-	Tag            []tag.Tag            `query:"tag"`
-	Type           []schema.Type        `query:"-"`
-	Platform       []federated.Platform `query:"platform"`
-}
-
-type AccountsActivitiesRequest struct {
-	Accounts       []string             `json:"accounts" validate:"required"`
-	Limit          int                  `json:"limit" validate:"min=1,max=100" default:"100"`
-	ActionLimit    int                  `json:"action_limit" validate:"min=1,max=20" default:"10"`
-	Cursor         *string              `json:"cursor"`
-	SinceTimestamp *uint64              `json:"since_timestamp"`
-	UntilTimestamp *uint64              `json:"until_timestamp"`
-	Status         *bool                `json:"success"`
-	Direction      *activityx.Direction `json:"direction"`
-	Network        []network.Network    `json:"network"`
-	Tag            []tag.Tag            `json:"tag"`
-	Type           []string             `json:"type"`
-	Platform       []federated.Platform `json:"platform"`
 }
 
 type ActivityResponse struct {

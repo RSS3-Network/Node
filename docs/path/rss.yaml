@@ -1,0 +1,19 @@
+get:
+  operationId: GetRSS
+  summary: Get RSS Activity by Path
+  description: Retrieve details from the specified RSS path.
+  tags:
+    - RSS
+  security:
+    - bearerAuth: []
+  parameters:
+    - $ref: "../parameters/path_rss.yaml"
+  responses:
+    "200":
+      $ref: "../responses/RSSActivitiesResponse.yaml"
+    "400":
+      $ref: "../responses/BadRequest.yaml"
+    "404":
+      $ref: "../responses/NotFound.yaml"
+    "500":
+      $ref: "../responses/InternalError.yaml"

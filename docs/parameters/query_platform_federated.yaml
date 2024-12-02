@@ -1,0 +1,9 @@
+description: Retrieve activities from the specified platform(s).
+in: query
+name: platform
+required: false
+schema:
+  items:
+    $ref: "../schemas/FederatedPlatform.yaml"
+  type: array
+  x-go-type-skip-optional-pointer: true

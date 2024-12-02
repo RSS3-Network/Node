@@ -1,0 +1,9 @@
+description: The endpoint options and config details of the worker.
+properties:
+  http2_disabled:
+    $ref: "./ConfigDetail.yaml"
+  http_headers:
+    $ref: "./ConfigDetail.yaml"
+  url:
+    $ref: "./ConfigDetail.yaml"
+type: object

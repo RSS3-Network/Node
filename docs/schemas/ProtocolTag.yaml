@@ -1,0 +1,2 @@
+allOf:
+  - $ref: "https://raw.githubusercontent.com/RSS3-Network/Protocol-Go/refs/heads/main/openapi/enum/Tag.yaml"

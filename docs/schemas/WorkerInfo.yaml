@@ -1,0 +1,18 @@
+description: The status of the worker.
+type: object
+allOf:
+  - properties:
+      worker_id:
+        description: The worker ID.
+        type: string
+      worker:
+        $ref: "./Worker.yaml"
+      network:
+        $ref: "./ProtocolNetwork.yaml"
+      tags:
+        $ref: "./Tags.yaml"
+      platform:
+        $ref: "./Platform.yaml"
+      status:
+        $ref: "./WorkerStatus.yaml"
+  - $ref: "./WorkerProgress.yaml"

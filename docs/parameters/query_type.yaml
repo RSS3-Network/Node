@@ -1,0 +1,6 @@
+description: Retrieve activities for the specified type(s).
+in: query
+name: type
+required: false
+schema:
+  $ref: "../schemas/Types.yaml"

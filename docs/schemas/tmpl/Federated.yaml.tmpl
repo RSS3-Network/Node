@@ -1,0 +1,11 @@
+type: string
+{{- with .Values }}
+enum:
+{{- range . }}
+  - {{ .name }}
+{{- end }}
+{{- end }}
+x-go-type: federated.{{ .Name }}
+x-go-type-skip-optional-pointer: true
+x-go-type-import:
+  path: github.com/rss3-network/node/schema/worker/federated

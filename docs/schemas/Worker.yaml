@@ -1,0 +1,3 @@
+anyOf:
+  - $ref: "./DecentralizedWorker.yaml"
+  - $ref: "./FederatedWorker.yaml"

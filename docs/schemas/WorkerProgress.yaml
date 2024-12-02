@@ -1,0 +1,11 @@
+type: object
+properties:
+  index_count:
+    description: The index count of worker.
+    type: integer
+  indexed_state:
+    description: The indexed state of worker.
+    type: integer
+  remote_state:
+    description: The remote state of worker.
+    type: integer

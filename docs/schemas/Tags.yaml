@@ -1,0 +1,5 @@
+description: Retrieve activities for the specified tag(s)
+items:
+  $ref: "./ProtocolTag.yaml"
+type: array
+x-go-type-skip-optional-pointer: true

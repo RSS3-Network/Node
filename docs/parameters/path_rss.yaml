@@ -1,0 +1,7 @@
+description: Retrieve details for the specified RSS path
+example: abc
+in: path
+name: path
+required: true
+schema:
+  type: string

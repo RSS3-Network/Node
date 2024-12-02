@@ -2,7 +2,6 @@ package decentralized
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
+	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
@@ -22,13 +22,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (c *Component) GetActivity(ctx echo.Context) error {
-	var request ActivityRequest
-
-	if err := ctx.Bind(&request); err != nil {
-		return response.BadRequestError(ctx, err)
-	}
-
+func (c *Component) GetActivity(ctx echo.Context, id string, request docs.GetDecentralizedTxIDParams) error {
 	if err := defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
@@ -37,9 +31,9 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 		return response.ValidationFailedError(ctx, err)
 	}
 
-	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, request.ID)
+	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, id)
 
-	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, request.ID)
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, id)
 
 	addRecentRequest(ctx.Request().RequestURI)
 
@@ -47,7 +41,7 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 		zap.Any("request", request))
 
 	query := model.ActivityQuery{
-		ID:          lo.ToPtr(request.ID),
+		ID:          lo.ToPtr(id),
 		ActionLimit: request.ActionLimit,
 		ActionPage:  request.ActionPage,
 	}
@@ -55,7 +49,7 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 	activity, page, err := c.getActivity(ctx.Request().Context(), query)
 	if err != nil {
 		zap.L().Error("failed to get decentralized activity",
-			zap.String("id", request.ID),
+			zap.String("id", id),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
@@ -73,14 +67,14 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 	result, err := c.TransformActivity(ctx.Request().Context(), activity)
 	if err != nil {
 		zap.L().Error("failed to transform decentralized activity",
-			zap.String("id", request.ID),
+			zap.String("id", id),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
 
 	zap.L().Info("successfully retrieved decentralized activity",
-		zap.String("id", request.ID))
+		zap.String("id", id))
 
 	return ctx.JSON(http.StatusOK, ActivityResponse{
 		Data: result,
@@ -90,21 +84,7 @@ func (c *Component) GetActivity(ctx echo.Context) error {
 	})
 }
 
-func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
-	var request AccountActivitiesRequest
-
-	if err = ctx.Bind(&request); err != nil {
-		return response.BadRequestError(ctx, err)
-	}
-
-	if common.IsHexAddress(request.Account) {
-		request.Account = common.HexToAddress(request.Account).String()
-	}
-
-	if request.Type, err = c.parseTypes(ctx.QueryParams()["type"], request.Tag); err != nil {
-		return response.BadRequestError(ctx, err)
-	}
-
+func (c *Component) GetAccountActivities(ctx echo.Context, account string, request docs.GetDecentralizedAccountParams) (err error) {
 	if err = defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
@@ -113,9 +93,9 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 		return response.ValidationFailedError(ctx, err)
 	}
 
-	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, common.HexToAddress(request.Account).String())
+	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, common.HexToAddress(account).String())
 
-	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, common.HexToAddress(request.Account).String())
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, common.HexToAddress(account).String())
 
 	addRecentRequest(ctx.Request().RequestURI)
 
@@ -135,7 +115,7 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
-		Owner:          lo.ToPtr(request.Account),
+		Owner:          lo.ToPtr(common.HexToAddress(account).String()),
 		Limit:          request.Limit,
 		ActionLimit:    request.ActionLimit,
 		Status:         request.Status,
@@ -149,14 +129,14 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
 	if err != nil {
 		zap.L().Error("failed to get decentralized account activities",
-			zap.String("account", request.Account),
+			zap.String("account", account),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
 
 	zap.L().Info("successfully retrieved decentralized account activities",
-		zap.String("account", request.Account),
+		zap.String("account", account),
 		zap.Int("count", len(activities)))
 
 	return ctx.JSON(http.StatusOK, ActivitiesResponse{
@@ -169,7 +149,7 @@ func (c *Component) GetAccountActivities(ctx echo.Context) (err error) {
 
 // BatchGetAccountsActivities returns the activities of multiple accounts in a single request
 func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
-	var request AccountsActivitiesRequest
+	var request docs.PostDecentralizedAccountsJSONRequestBody
 
 	if err = ctx.Bind(&request); err != nil {
 		return response.BadRequestError(ctx, err)
@@ -179,11 +159,6 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		if common.IsHexAddress(request.Accounts[i]) {
 			request.Accounts[i] = common.HexToAddress(request.Accounts[i]).String()
 		}
-	}
-
-	types, err := c.parseTypes(request.Type, request.Tag)
-	if err != nil {
-		return response.BadRequestError(ctx, err)
 	}
 
 	if err = defaults.Set(&request); err != nil {
@@ -223,7 +198,7 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		Direction:      request.Direction,
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
-		Types:          lo.Uniq(types),
+		Types:          lo.Uniq(request.Type),
 		Platforms:      lo.Uniq(request.Platform),
 	}
 
@@ -276,35 +251,6 @@ func (c *Component) TransformActivities(ctx context.Context, activities []*activ
 	})
 
 	return results
-}
-
-func (c *Component) parseTypes(types []string, tags []tag.Tag) ([]schema.Type, error) {
-	if len(tags) == 0 {
-		return nil, nil
-	}
-
-	schemaTypes := make([]schema.Type, 0)
-
-	for _, typex := range types {
-		var (
-			value schema.Type
-			err   error
-		)
-
-		for _, tagx := range tags {
-			value, err = schema.ParseTypeFromString(tagx, typex)
-			if err == nil {
-				schemaTypes = append(schemaTypes, value)
-				break
-			}
-		}
-
-		if err != nil {
-			return nil, fmt.Errorf("invalid type: %s", typex)
-		}
-	}
-
-	return schemaTypes, nil
 }
 
 type ActivityRequest struct {

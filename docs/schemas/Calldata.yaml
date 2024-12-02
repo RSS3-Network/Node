@@ -1,0 +1,12 @@
+description: Represents the call data associated with an activity.
+properties:
+  function_hash:
+    description: The hash of the function called.
+    type: string
+  parsed_function:
+    description: The parsed function name.
+    type: string
+  raw:
+    description: The raw calldata.
+    type: string
+type: object

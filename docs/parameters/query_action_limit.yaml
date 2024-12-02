@@ -1,0 +1,7 @@
+description: Specify the number of actions within the activity to retrieve.
+example: '10'
+in: query
+name: action_limit
+required: false
+schema:
+  $ref: "../schemas/ActionLimit.yaml"

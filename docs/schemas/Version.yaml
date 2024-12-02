@@ -1,0 +1,9 @@
+description: The git version info of node.
+properties:
+  commit:
+    description: The git commit of node.
+    type: string
+  tag:
+    description: The git tag of node.
+    type: string
+type: object

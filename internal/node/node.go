@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -16,6 +17,7 @@ import (
 	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
+	"github.com/rss3-network/node/internal/node/component/aggregator"
 	"github.com/rss3-network/node/internal/node/component/decentralized"
 	"github.com/rss3-network/node/internal/node/component/federated"
 	"github.com/rss3-network/node/internal/node/component/info"
@@ -72,38 +74,56 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 		middlewarex.HeadToGetMiddleware,
 	)
 
+	aggComp := aggregator.Component{}
+
 	infoComponent := info.NewComponent(ctx, apiServer, config, databaseClient, redisClient, networkParamsCaller)
-	node.components = append(node.components, &infoComponent)
+	{
+		var comp component.Component = infoComponent
+		node.components = append(node.components, &comp)
+		aggComp.Info = infoComponent
+	}
 
 	if config.Component.RSS != nil {
 		rssComponent := rss.NewComponent(ctx, apiServer, config)
-		node.components = append(node.components, &rssComponent)
+		{
+			var comp component.Component = rssComponent
+			node.components = append(node.components, &comp)
+			aggComp.RSS = rssComponent
+		}
 	}
 
 	if len(config.Component.Decentralized) > 0 {
 		decentralizedComponent := decentralized.NewComponent(ctx, apiServer, config, databaseClient, redisClient)
-		node.components = append(node.components, &decentralizedComponent)
+		{
+			var comp component.Component = decentralizedComponent
+			node.components = append(node.components, &comp)
+			aggComp.Decentralized = decentralizedComponent
+		}
 	}
 
 	if len(config.Component.Federated) > 0 {
 		federatedComponent := federated.NewComponent(ctx, apiServer, config, databaseClient, redisClient)
-		node.components = append(node.components, &federatedComponent)
+		{
+			var comp component.Component = federatedComponent
+			node.components = append(node.components, &comp)
+			aggComp.Federated = federatedComponent
+		}
 	}
+
+	docs.RegisterHandlers(apiServer, aggComp)
 
 	// Generate openapi.json
-	var endpoint string
-	if config.Discovery != nil && config.Discovery.Server != nil {
-		endpoint = config.Discovery.Server.Endpoint
-	}
-
-	content, err := docs.Generate(endpoint)
-	if err != nil {
-		zap.L().Error("Failed to generate OpenAPI documentation",
-			zap.Error(err))
-	}
-
 	apiServer.GET("/openapi.json", func(c echo.Context) error {
-		return c.Blob(http.StatusOK, "application/json", content)
+		swagger, err := docs.GetSwagger()
+		swagger.Servers = append(swagger.Servers, &openapi3.Server{
+			URL: config.Discovery.Server.Endpoint,
+		})
+
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, swagger)
 	})
 
 	zap.L().Info("Core service initialization completed")
