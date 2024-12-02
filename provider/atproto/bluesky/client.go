@@ -33,14 +33,15 @@ const (
 )
 
 type Client struct {
-	username      string
-	password      string
-	filter        []string
-	mutex         sync.RWMutex
-	defaultClient *XrpcClient
-	cacheClient   map[string]*XrpcClient
-	encoder       *form.Encoder
-	httpClient    *http.Client
+	username       string
+	password       string
+	filter         []string
+	timestampStart int64
+	mutex          sync.RWMutex
+	defaultClient  *XrpcClient
+	cacheClient    map[string]*XrpcClient
+	encoder        *form.Encoder
+	httpClient     *http.Client
 }
 
 type XrpcClient struct {
@@ -191,7 +192,9 @@ func (c *Client) ParseCARList(ctx context.Context, did syntax.DID, handle string
 			return nil
 		}
 
-		recList = append(recList, message)
+		if message.CreatedAt.Unix() >= c.timestampStart {
+			recList = append(recList, message)
+		}
 
 		return nil
 	})
@@ -225,7 +228,11 @@ func (c *Client) GetRepoRecord(ctx context.Context, repo string, path string) (*
 		return nil, nil
 	}
 
-	return message, nil
+	if message.CreatedAt.Unix() >= c.timestampStart {
+		return message, nil
+	}
+
+	return nil, nil
 }
 
 func (c *Client) GetRecord(ctx context.Context, repo string, path string) (*at.Message, cbg.CBORMarshaler, error) {
@@ -543,14 +550,15 @@ func (c *Client) LookupDIDEdnpoint(ctx context.Context, did syntax.DID) string {
 	return BskyEndpoint
 }
 
-func NewClient(_ context.Context, filter []string, username string, password string) (*Client, error) {
+func NewClient(_ context.Context, filter []string, username string, password string, timestamp int64) (*Client, error) {
 	client := &Client{
-		username:    username,
-		password:    password,
-		filter:      filter,
-		cacheClient: make(map[string]*XrpcClient),
-		encoder:     form.NewEncoder(),
-		httpClient:  http.DefaultClient,
+		username:       username,
+		password:       password,
+		filter:         filter,
+		timestampStart: timestamp,
+		cacheClient:    make(map[string]*XrpcClient),
+		encoder:        form.NewEncoder(),
+		httpClient:     http.DefaultClient,
 	}
 
 	defaultXrpcClient, err := client.createAndAuthenticateClient(context.Background(), BskyEndpoint)

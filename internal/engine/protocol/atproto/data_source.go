@@ -175,7 +175,7 @@ func (s *dataSource) buildTasks(_ context.Context, messages []*at.Message) *engi
 
 // initialize creates a new Bluesky client and assigns it to the data source.
 func (s *dataSource) initialize() error {
-	client, err := bluesky.NewClient(context.Background(), s.filter.Type, s.option.Username, s.option.Password)
+	client, err := bluesky.NewClient(context.Background(), s.filter.Type, s.option.Username, s.option.Password, s.option.TimestampStart)
 	if err != nil {
 		zap.L().Error("create bluesky client failed", zap.Error(err))
 
