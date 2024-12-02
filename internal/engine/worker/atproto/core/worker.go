@@ -93,13 +93,13 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 			w.transformComment(ctx, atprotoTask.Message, activity)
 		}
 	case feed.RepostTypeValue:
-		if atprotoTask.Message.RefMessage == nil {
-			return nil, nil
+		if atprotoTask.Message.RefMessage != nil {
+			w.transformRepost(ctx, atprotoTask.Message, activity)
 		}
-
-		w.transformRepost(ctx, atprotoTask.Message, activity)
 	case feed.LikeTypeValue:
-		w.transformLike(ctx, atprotoTask.Message, activity)
+		if atprotoTask.Message.RefMessage != nil {
+			w.transformLike(ctx, atprotoTask.Message, activity)
+		}
 	case ActorProfile:
 		w.transformProfile(ctx, atprotoTask.Message, activity)
 	default:
@@ -186,7 +186,7 @@ func (w *worker) buildPostMetadata(message at.Message) *metadata.SocialPost {
 	return &metadata.SocialPost{
 		Handle:        message.Handle,
 		Body:          message.Feed.Text,
-		Media:         w.buildPostMedia(message.Feed.Embed),
+		Media:         w.buildPostMedia(message.Feed),
 		ProfileID:     message.Did.String(),
 		PublicationID: message.Rkey,
 		ContentURI:    message.URI,
@@ -234,11 +234,12 @@ func (w *worker) buildPostAction(from string, to string, typex schema.Type, post
 }
 
 // buildPostMedia will build post media from embeds.
-func (w *worker) buildPostMedia(embed *bsky.FeedPost_Embed) []metadata.Media {
-	if embed == nil {
+func (w *worker) buildPostMedia(post *bsky.FeedPost) []metadata.Media {
+	if post == nil || post.Embed == nil {
 		return nil
 	}
 
+	embed := post.Embed
 	media := make([]metadata.Media, 0)
 
 	if embed.EmbedImages != nil && embed.EmbedImages.Images != nil {

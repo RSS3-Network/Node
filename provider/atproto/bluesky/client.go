@@ -29,7 +29,7 @@ const (
 	BskyEndpoint     = "https://bsky.social"
 	BskySubscribeURI = "wss://bsky.network/xrpc/com.atproto.sync.subscribeRepos"
 
-	SyncListReposLimit = 50
+	SyncListReposLimit = 10
 )
 
 type Client struct {
@@ -162,6 +162,8 @@ func (c *Client) ParseCARList(ctx context.Context, did syntax.DID, handle string
 
 	// Iterate over all records
 	err = r.ForEach(ctx, "", func(path string, _ cid.Cid) error {
+		zap.L().Debug("processing record", zap.String("path", path))
+
 		// Parse path to get collection and rkey
 		collection, rkey := c.ParsePath(path)
 
@@ -186,13 +188,14 @@ func (c *Client) ParseCARList(ctx context.Context, did syntax.DID, handle string
 		}
 
 		// Parse record and update message
-		if err = c.ParseRecord(ctx, rec, message); err != nil {
+		isInvalid, err := c.ParseRecord(ctx, rec, message)
+		if err != nil {
 			zap.L().Error("parse record failed", zap.Error(err))
 
 			return nil
 		}
 
-		if message.CreatedAt.Unix() >= c.timestampStart {
+		if isInvalid {
 			recList = append(recList, message)
 		}
 
@@ -221,14 +224,14 @@ func (c *Client) GetRepoRecord(ctx context.Context, repo string, path string) (*
 		return nil, fmt.Errorf("get record: %w", err)
 	}
 
-	err = c.ParseRecord(ctx, rec, message)
+	isInvalid, err := c.ParseRecord(ctx, rec, message)
 	if err != nil {
 		zap.L().Error("parse record failed", zap.Error(err))
 
 		return nil, nil
 	}
 
-	if message.CreatedAt.Unix() >= c.timestampStart {
+	if isInvalid {
 		return message, nil
 	}
 
@@ -324,59 +327,80 @@ func (c *Client) GetHandle(ctx context.Context, did syntax.DID) (string, error) 
 // - rec: CBOR marshaled record to parse
 // - message: Message struct to be updated with record data
 // Returns error if record parsing fails.
-func (c *Client) ParseRecord(ctx context.Context, rec cbg.CBORMarshaler, message *at.Message) error {
-	var (
-		err       error
-		createdAt string
-	)
+func (c *Client) ParseRecord(ctx context.Context, rec cbg.CBORMarshaler, message *at.Message) (bool, error) {
+	var err error
 
 	switch rec := rec.(type) {
 	case *bsky.FeedPost:
-		message.Feed = rec
-		createdAt = rec.CreatedAt
+		createdAt, isInvalid := c.ParseCreatedAt(ctx, rec.CreatedAt)
+		if !isInvalid {
+			return false, nil
+		}
 
 		if rec.Reply != nil && rec.Reply.Parent != nil {
 			message.RefMessage, err = c.ParseRepoStrongRef(ctx, rec.Reply.Parent)
 			if err != nil {
 				zap.L().Error("parse repo strong ref failed", zap.Error(err))
 
-				return fmt.Errorf("parse repo strong ref: %w", err)
+				return false, fmt.Errorf("parse repo strong ref: %w", err)
 			}
 		}
+
+		message.Feed = rec
+		message.CreatedAt = createdAt
 	case *bsky.ActorProfile:
-		message.Profile = rec
-
 		if rec.CreatedAt != nil {
-			createdAt = *rec.CreatedAt
+			createdAt, isInvalid := c.ParseCreatedAt(ctx, lo.FromPtr(rec.CreatedAt))
+			if !isInvalid {
+				return false, nil
+			}
+
+			message.CreatedAt = createdAt
 		}
+
+		message.Profile = rec
 	case *bsky.FeedRepost:
+		createdAt, isInvalid := c.ParseCreatedAt(ctx, rec.CreatedAt)
+		if !isInvalid {
+			return false, nil
+		}
+
 		message.RefMessage, err = c.ParseRepoStrongRef(ctx, rec.Subject)
 		if err != nil {
 			zap.L().Error("parse repo strong ref failed", zap.Error(err))
 
-			return fmt.Errorf("parse repo strong ref: %w", err)
+			return false, fmt.Errorf("parse repo strong ref: %w", err)
 		}
 
-		createdAt = rec.CreatedAt
+		message.CreatedAt = createdAt
 	case *bsky.FeedLike:
+		createdAt, isInvalid := c.ParseCreatedAt(ctx, rec.CreatedAt)
+		if !isInvalid {
+			return false, nil
+		}
+
 		message.RefMessage, err = c.ParseRepoStrongRef(ctx, rec.Subject)
 		if err != nil {
 			zap.L().Error("parse repo strong ref failed", zap.Error(err))
 
-			return fmt.Errorf("parse repo strong ref: %w", err)
+			return false, fmt.Errorf("parse repo strong ref: %w", err)
 		}
 
-		createdAt = rec.CreatedAt
+		message.CreatedAt = createdAt
 	}
 
+	return true, nil
+}
+
+func (c *Client) ParseCreatedAt(_ context.Context, createdAt string) (time.Time, bool) {
 	timestamp, err := dateparse.ParseAny(createdAt)
 	if err != nil {
-		return fmt.Errorf("parse timestamp: %w", err)
+		zap.L().Warn("parse timestamp failed", zap.Error(err))
+
+		return time.Time{}, false
 	}
 
-	message.CreatedAt = timestamp
-
-	return nil
+	return timestamp, timestamp.Unix() >= c.timestampStart
 }
 
 func (c *Client) ParseRepoStrongRef(ctx context.Context, ref *atproto.RepoStrongRef) (*at.Message, error) {

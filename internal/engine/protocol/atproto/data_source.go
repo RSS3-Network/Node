@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/events"
 	"github.com/bluesky-social/indigo/events/schedulers/sequential"
@@ -48,7 +50,7 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 
 	// Get latest events
 	go func() {
-		if err := s.pollSubscribeRepos(ctx, tasksChan); err != nil {
+		if err := s.retrySource(ctx, tasksChan, s.pollSubscribeRepos); err != nil {
 			zap.L().Error("poll subscribe repos failed", zap.Error(err))
 
 			errorChan <- fmt.Errorf("poll subscribe repos failed: %w", err)
@@ -57,7 +59,7 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 
 	// Get historical repos
 	go func() {
-		if err := s.pollListRepos(ctx, tasksChan); err != nil {
+		if err := s.retrySource(ctx, tasksChan, s.pollListRepos); err != nil {
 			zap.L().Error("poll list repos failed", zap.Error(err))
 
 			errorChan <- fmt.Errorf("poll list repos failed: %w", err)
@@ -69,8 +71,8 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 func (s *dataSource) pollSubscribeRepos(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	uri := bluesky.BskySubscribeURI
 
-	if s.state.SubscribeCursor != "" {
-		uri = fmt.Sprintf("%s?cursor=%s", uri, s.state.SubscribeCursor)
+	if lo.IsEmpty(s.state.SubscribeCursor) {
+		uri = fmt.Sprintf("%s?cursor=%d", uri, s.state.SubscribeCursor)
 	}
 
 	conn, _, err := websocket.DefaultDialer.Dial(uri, nil)
@@ -110,6 +112,9 @@ func (s *dataSource) pollSubscribeRepos(ctx context.Context, tasksChan chan<- *e
 
 			if len(messages) > 0 {
 				tasksChan <- s.buildTasks(ctx, messages)
+
+				s.state.SubscribeCursor = evt.Seq
+				s.state.SubscribeTimestamp = messages[len(messages)-1].CreatedAt.Unix()
 			}
 
 			return nil
@@ -145,9 +150,9 @@ func (s *dataSource) pollListRepos(ctx context.Context, tasksChan chan<- *engine
 
 		if len(repos) > 0 {
 			tasksChan <- s.buildTasks(ctx, repos)
-		}
 
-		s.state.ListReposCursor = lo.FromPtr(next)
+			s.state.ListReposCursor = lo.FromPtr(next)
+		}
 	}
 }
 
@@ -171,6 +176,20 @@ func (s *dataSource) buildTasks(_ context.Context, messages []*at.Message) *engi
 	zap.L().Debug("build event tasks", zap.Any("tasks", tasks))
 
 	return &tasks
+}
+
+func (s *dataSource) retrySource(ctx context.Context, tasksChan chan<- *engine.Tasks, sourceFunc func(ctx context.Context, tasksChan chan<- *engine.Tasks) error) error {
+	return retry.Do(
+		func() error {
+			return sourceFunc(ctx, tasksChan)
+		},
+		retry.Attempts(0),
+		retry.Delay(5*time.Second),
+		retry.DelayType(retry.BackOffDelay),
+		retry.OnRetry(func(n uint, err error) {
+			zap.L().Warn("retry bluesky source", zap.Uint("retry", n), zap.Error(err))
+		}),
+	)
 }
 
 // initialize creates a new Bluesky client and assigns it to the data source.
