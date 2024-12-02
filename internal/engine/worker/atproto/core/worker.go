@@ -183,16 +183,24 @@ func (w *worker) transformProfile(_ context.Context, message at.Message, activit
 
 // buildPostMetadata constructs metadata for a post message.
 func (w *worker) buildPostMetadata(message at.Message) *metadata.SocialPost {
-	return &metadata.SocialPost{
+	post := &metadata.SocialPost{
 		Handle:        message.Handle,
-		Body:          message.Feed.Text,
-		Media:         w.buildPostMedia(message.Feed),
 		ProfileID:     message.Did.String(),
 		PublicationID: message.Rkey,
 		ContentURI:    message.URI,
-		Tags:          message.Feed.Tags,
 		Timestamp:     uint64(message.CreatedAt.Unix()),
 	}
+
+	if message.Feed != nil {
+		post.Body = message.Feed.Text
+		post.Tags = message.Feed.Tags
+
+		if message.Feed.Embed != nil {
+			post.Media = w.buildPostMedia(message.Feed.Embed)
+		}
+	}
+
+	return post
 }
 
 // buildProfileMetadata constructs metadata for a profile message.
@@ -234,12 +242,7 @@ func (w *worker) buildPostAction(from string, to string, typex schema.Type, post
 }
 
 // buildPostMedia will build post media from embeds.
-func (w *worker) buildPostMedia(post *bsky.FeedPost) []metadata.Media {
-	if post == nil || post.Embed == nil {
-		return nil
-	}
-
-	embed := post.Embed
+func (w *worker) buildPostMedia(embed *bsky.FeedPost_Embed) []metadata.Media {
 	media := make([]metadata.Media, 0)
 
 	if embed.EmbedImages != nil && embed.EmbedImages.Images != nil {
