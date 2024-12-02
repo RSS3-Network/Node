@@ -349,15 +349,16 @@ func (c *Client) ParseRecord(ctx context.Context, rec cbg.CBORMarshaler, message
 		message.Feed = rec
 		message.CreatedAt = createdAt
 	case *bsky.ActorProfile:
-		if rec.CreatedAt != nil {
-			createdAt, isInvalid := c.ParseCreatedAt(ctx, lo.FromPtr(rec.CreatedAt))
-			if !isInvalid {
-				return false, nil
-			}
-
-			message.CreatedAt = createdAt
+		if rec.CreatedAt == nil {
+			return false, nil
 		}
 
+		createdAt, isInvalid := c.ParseCreatedAt(ctx, lo.FromPtr(rec.CreatedAt))
+		if !isInvalid {
+			return false, nil
+		}
+
+		message.CreatedAt = createdAt
 		message.Profile = rec
 	case *bsky.FeedRepost:
 		createdAt, isInvalid := c.ParseCreatedAt(ctx, rec.CreatedAt)

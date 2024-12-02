@@ -72,7 +72,7 @@ require (
 	github.com/redis/rueidis v1.0.50
 	github.com/redis/rueidis/rueidiscompat v1.0.50
 	github.com/reiver/go-bsky v0.0.0-20240906205655-8c7fadb4f3bb
-	github.com/rss3-network/protocol-go v0.5.14
+	github.com/rss3-network/protocol-go v0.5.16
 	github.com/spf13/afero v1.11.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	github.com/vincent-petithory/dataurl v1.0.0
