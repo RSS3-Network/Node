@@ -1,0 +1,17 @@
+post:
+  operationId: PostDecentralizedAccounts
+  summary: Batch Get Accounts Activities
+  description: Retrieve a batch of activities associated with multiple specified accounts in the decentralized system. You can use various query parameters to filter and paginate the results, including limits on the number of activities and actions, timestamps, success status, direction, and more.
+  tags:
+    - Decentralized
+  security:
+    - bearerAuth: []
+  requestBody:
+    $ref: "../../requestBody/BatchGetDecentralizedAccountsActivities.yaml"
+  responses:
+    '200':
+      $ref: "../../responses/DecentralizedActivitiesResponse.yaml"
+    '400':
+      $ref: "../../responses/BadRequest.yaml"
+    '500':
+      $ref: "../../responses/InternalError.yaml"

@@ -3,6 +3,7 @@ package decentralized
 import "github.com/labstack/echo/v4"
 
 //go:generate go run --mod=mod github.com/dmarkham/enumer@v1.5.9 --values --type=Platform --linecomment --output platform_string.go --json --yaml --sql
+//go:generate go run --mod=mod github.com/rss3-network/enum-schema@v0.1.6 --type=Platform --linecomment --output ../../../docs/schemas/DecentralizedPlatform.yaml -t ../../../docs/schemas/tmpl/Decentralized.yaml.tmpl
 type Platform uint64
 
 const (

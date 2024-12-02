@@ -1,0 +1,12 @@
+description: Retrieve activities from the specified account.
+in: path
+name: account
+required: true
+schema:
+  $ref: "../schemas/FederatedAccount.yaml"
+examples:
+  seachdamh:
+    value: "@seachdamh@101010.pl"
+
+  LukaszHorodecki:
+    value: "@LukaszHorodecki@pol.social"

@@ -1,0 +1,21 @@
+description: Represents an individual action within an activity.
+properties:
+  from:
+    $ref: './DecentralizedAccount.yaml'
+  metadata:
+    $ref: "./ProtocolMetadata.yaml"
+  platform:
+    $ref: "./DecentralizedPlatform.yaml"
+  related_urls:
+    description: A list of URLs related to the action.
+    items:
+      type: string
+      format: uri
+    type: array
+  tag:
+    $ref: "./ProtocolTag.yaml"
+  to:
+    $ref: "./DecentralizedAccount.yaml"
+  type:
+    $ref: "./ProtocolType.yaml"
+type: object

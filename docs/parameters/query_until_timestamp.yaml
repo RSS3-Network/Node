@@ -1,0 +1,6 @@
+description: Retrieve activities up to this timestamp.
+in: query
+name: until_timestamp
+required: false
+schema:
+  $ref: "../schemas/Timestamp.yaml"

@@ -1,0 +1,4 @@
+description: The owner of the activity.
+type: string
+example: "@seachdamh@101010.pl"
+

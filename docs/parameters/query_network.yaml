@@ -1,0 +1,6 @@
+description: Retrieve activities from the specified network(s).
+in: query
+name: network
+required: false
+schema:
+  $ref: "../schemas/Networks.yaml"

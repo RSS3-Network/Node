@@ -1,0 +1,7 @@
+description: Retrieve activities based on success status.
+in: query
+name: success
+required: false
+schema:
+  $ref: "../schemas/Success.yaml"
+x-go-name: Status

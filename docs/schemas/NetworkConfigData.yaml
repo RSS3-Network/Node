@@ -1,0 +1,159 @@
+example:
+  data:
+    rss:
+      id: rsshub
+      endpoint_configs:
+        url:
+          description: 'Your RSSHub instance URL'
+          is_required: true
+          type: string
+          value: null
+        http_headers:
+          description: 'HTTP headers to be sent with requests to this endpoint.'
+          is_required: false
+          type: map[string]string
+          value: null
+        http2_disabled:
+          description: 'Some endpoints may not support HTTP2, set this to true to disable HTTP2.'
+          is_required: false
+          type: bool
+          value: null
+      worker_configs:
+        - id:
+            description: 'Worker''s id, must be unique, for example ''[network]-[worker]'''
+            is_required: true
+            type: string
+            value: rsshub-core
+          network:
+            description: 'The network where the worker operates on'
+            is_required: true
+            type: string
+            value: rsshub
+          worker:
+            description: 'Name of the worker'
+            is_required: true
+            type: string
+            value: core
+          endpoint:
+            description: 'Your RSSHub instance URL'
+            is_required: true
+            type: string
+            value: null
+          parameters:
+            authentication:
+              access_key:
+                description: 'Access key to access your RSSHub'
+                is_required: false
+                type: string
+                value: null
+          minimum_resource:
+            cpu_core: 0.25
+            memory_in_gb: 0.25
+            disk_space_in_gb: 0
+    decentralized:
+      - id: arweave
+        endpoint_configs:
+          url:
+            description: 'The URL of the endpoint.'
+            is_required: true
+            type: string
+            value: https://arweave.net
+          http_headers:
+            description: 'HTTP headers to be sent with requests to this endpoint.'
+            is_required: false
+            type: map[string]string
+            value: null
+          http2_disabled:
+            description: 'Some endpoints may not support HTTP2, set this to true to disable HTTP2.'
+            is_required: false
+            type: bool
+            value: null
+        worker_configs:
+          - id:
+              description: 'Worker''s id, must be unique, for example ''[network]-[worker]'''
+              is_required: true
+              type: string
+              value: arweave-mirror
+            network:
+              description: 'The network where the worker operates on'
+              is_required: true
+              type: string
+              value: arweave
+            worker:
+              description: 'Name of the worker'
+              is_required: true
+              type: string
+              value: mirror
+            ipfs_gateways:
+              description: 'A list of IPFS gateways to fetch data from, multiple gateways may improve the availability of IPFS data'
+              is_required: true
+              type: array
+              value: null
+            parameters:
+              concurrent_block_requests:
+                description: 'The number of concurrent RPC requests to the Arweave gateway. Default: 1'
+                is_required: false
+                type: uint
+                value: 1
+              minimum_resource:
+                cpu_core: 0.5
+                memory_in_gb: 0.5
+                disk_space_in_gb: 4
+    federated:
+      - id: mastodon
+        endpoint_configs:
+          url:
+            description: 'Your Mastodon instance must be accessible via a public URL, which exposes your local instance on the port number you select. You can use services like ngrok (https://ngrok.com).'
+            is_required: true
+            type: string
+            value: https://domain.ngrok.app
+          http_headers:
+            description: 'HTTP headers to be sent with requests to this endpoint.'
+            is_required: false
+            type: map[string]string
+            value: null
+          http2_disabled:
+            description: 'Some endpoints may not support HTTP2, set this to true to disable HTTP2.'
+            is_required: false
+            type: bool
+            value: null
+        worker_configs:
+          - id:
+              description: 'Worker''s id, must be unique, for example ''[network]-[worker]'''
+              is_required: true
+              type: string
+              value: mastodon-core
+            network:
+              description: 'The network where the worker operates on'
+              is_required: true
+              type: string
+              value: mastodon
+            worker:
+              description: 'Name of the worker'
+              is_required: true
+              type: string
+              value: core
+            endpoint:
+              description: 'Your Mastodon instance must be accessible via a public URL, which exposes your local instance on the port number you select. You can use services like ngrok (https://ngrok.com).'
+              is_required: true
+              type: string
+              value: mastodon
+            parameters:
+              relay_url_list:
+                description: 'List of relay URLs to follow and receive messages from'
+                is_required: false
+                type: array
+                value: null
+              port:
+                description: 'The port number that the mastodon endpoint domain will listen on. This should be an available network port'
+                is_required: false
+                type: uint
+                value: null
+              minimum_resource:
+                cpu_core: 0.5
+                memory_in_gb: 0.5
+                disk_space_in_gb: 12
+type: object
+properties:
+  data:
+    $ref: "./NetworkConfig.yaml"

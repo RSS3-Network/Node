@@ -1,0 +1,6 @@
+description: Retrieve activities for the specified tag(s).
+in: query
+name: tag
+required: false
+schema:
+  $ref: "../schemas/Tags.yaml"

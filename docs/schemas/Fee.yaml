@@ -1,0 +1,12 @@
+description: Represents fee information for an activity.
+properties:
+  address:
+    description: The address to which the fee is paid.
+    type: string
+  amount:
+    description: The amount of the fee.
+    type: string
+  decimal:
+    description: The decimal precision of the fee amount.
+    type: integer
+type: object

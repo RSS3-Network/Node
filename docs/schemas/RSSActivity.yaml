@@ -1,0 +1,60 @@
+properties:
+  id:
+    description: The unique identifier for the activity.
+    type: string
+    format: uri
+  owner:
+    $ref: "./RSSAccount.yaml"
+  network:
+    allOf:
+      - $ref: "./ProtocolNetwork.yaml"
+      - example: rsshub
+  index:
+    description: The index of the activity in the list.
+    type: integer
+  from:
+    $ref: "./RSSAccount.yaml"
+  to:
+    $ref: "./RSSAccount.yaml"
+  tag:
+    allOf:
+      - $ref: "./ProtocolTag.yaml"
+      - example: rss
+  type:
+    $ref: "https://raw.githubusercontent.com/RSS3-Network/Protocol-Go/refs/heads/main/openapi/type/RSSType.yaml"
+  platform:
+    $ref: "./RSSPlatform.yaml"
+  total_actions:
+    description: The total number of actions within the activity.
+    type: integer
+  actions:
+    description: The list of actions within the activity.
+    items:
+      $ref: "./RSSAction.yaml"
+    type: array
+  calldata:
+    $ref: "./Calldata.yaml"
+  fee:
+    $ref: "./Fee.yaml"
+  direction:
+    $ref: "./ProtocolDirection.yaml"
+  success:
+    $ref: "./Success.yaml"
+  timestamp:
+    $ref: "./Timestamp.yaml"
+
+
+
+type: object
+required:
+  - id
+  - network
+  - index
+  - from
+  - to
+  - tag
+  - type
+  - total_actions
+  - actions
+  - success
+  - timestamp

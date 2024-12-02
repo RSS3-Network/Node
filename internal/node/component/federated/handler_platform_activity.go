@@ -6,27 +6,14 @@ import (
 	"github.com/creasty/defaults"
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
+	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/schema/worker/federated"
-	"github.com/rss3-network/protocol-go/schema"
-	activityx "github.com/rss3-network/protocol-go/schema/activity"
-	"github.com/rss3-network/protocol-go/schema/network"
-	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
-func (c *Component) GetPlatformActivities(ctx echo.Context) (err error) {
-	var request PlatformActivitiesRequest
-
-	if err := ctx.Bind(&request); err != nil {
-		return response.BadRequestError(ctx, err)
-	}
-
-	if request.Type, err = c.parseTypes(ctx.QueryParams()["type"], request.Tag); err != nil {
-		return response.BadRequestError(ctx, err)
-	}
-
+func (c *Component) GetPlatformActivities(ctx echo.Context, plat federated.Platform, request docs.GetFederatedPlatformParams) (err error) {
 	if err := defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
@@ -35,21 +22,21 @@ func (c *Component) GetPlatformActivities(ctx echo.Context) (err error) {
 		return response.ValidationFailedError(ctx, err)
 	}
 
-	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, request.Platform.String())
+	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, plat.String())
 
-	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, request.Platform.String())
+	go c.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, plat.String())
 
 	addRecentRequest(ctx.Request().RequestURI)
 
 	zap.L().Debug("processing federated platform activities request",
-		zap.String("platform", request.Platform.String()),
+		zap.String("platform", plat.String()),
 		zap.Int("limit", request.Limit),
 		zap.String("cursor", lo.FromPtr(request.Cursor)))
 
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
 		zap.L().Error("failed to get federated platform activities cursor",
-			zap.String("platform", request.Platform.String()),
+			zap.String("platform", plat.String()),
 			zap.String("cursor", lo.FromPtr(request.Cursor)),
 			zap.Error(err))
 
@@ -67,20 +54,20 @@ func (c *Component) GetPlatformActivities(ctx echo.Context) (err error) {
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(request.Type),
-		Platforms:      []federated.Platform{request.Platform},
+		Platforms:      []federated.Platform{plat},
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
 	if err != nil {
 		zap.L().Error("failed to get federated platform activities",
-			zap.String("platform", request.Platform.String()),
+			zap.String("platform", plat.String()),
 			zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
 
 	zap.L().Info("successfully retrieved federated platform activities",
-		zap.String("platform", request.Platform.String()),
+		zap.String("platform", plat.String()),
 		zap.Int("count", len(activities)))
 
 	return ctx.JSON(http.StatusOK, ActivitiesResponse{
@@ -89,19 +76,4 @@ func (c *Component) GetPlatformActivities(ctx echo.Context) (err error) {
 			Cursor: last,
 		}),
 	})
-}
-
-type PlatformActivitiesRequest struct {
-	Platform federated.Platform `param:"platform" validate:"required"`
-
-	Limit          int                  `query:"limit" validate:"min=1,max=100" default:"100"`
-	ActionLimit    int                  `query:"action_limit" validate:"min=1,max=20" default:"10"`
-	Cursor         *string              `query:"cursor"`
-	SinceTimestamp *uint64              `query:"since_timestamp"`
-	UntilTimestamp *uint64              `query:"until_timestamp"`
-	Status         *bool                `query:"success"`
-	Direction      *activityx.Direction `query:"direction"`
-	Tag            []tag.Tag            `query:"tag"`
-	Type           []schema.Type        `query:"-"`
-	Network        []network.Network    `query:"network"`
 }

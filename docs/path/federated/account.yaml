@@ -1,0 +1,30 @@
+get:
+  operationId: GetFederatedAccount
+  summary: Get Account Activities
+  description: This endpoint retrieves the activities associated with a specified account in the federated system. You can use various query parameters to filter and paginate the results, including limits on the number of activities and actions, timestamps, success status, direction, and more.
+  tags:
+    - Federated
+  security:
+    - bearerAuth: []
+  parameters:
+    - $ref: "../../parameters/path_account_federated.yaml"
+    - $ref: "../../parameters/query_limit.yaml"
+    - $ref: "../../parameters/query_action_limit.yaml"
+    - $ref: "../../parameters/query_cursor.yaml"
+    - $ref: "../../parameters/query_since_timestamp.yaml"
+    - $ref: "../../parameters/query_until_timestamp.yaml"
+    - $ref: "../../parameters/query_success.yaml"
+    - $ref: "../../parameters/query_direction.yaml"
+    - $ref: "../../parameters/query_network.yaml"
+    - $ref: "../../parameters/query_tag.yaml"
+    - $ref: "../../parameters/query_type.yaml"
+    - $ref: "../../parameters/query_platform_federated.yaml"
+  responses:
+    "200":
+      $ref: "../../responses/FederatedActivitiesResponse.yaml"
+    "400":
+      $ref: "../../responses/BadRequest.yaml"
+    "404":
+      $ref: "../../responses/NotFound.yaml"
+    "500":
+      $ref: "../../responses/InternalError.yaml"

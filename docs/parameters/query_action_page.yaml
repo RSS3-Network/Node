@@ -1,0 +1,7 @@
+description: Specify the pagination for actions
+example: 1
+in: query
+name: action_page
+required: false
+schema:
+  $ref: "../schemas/ActionPage.yaml"

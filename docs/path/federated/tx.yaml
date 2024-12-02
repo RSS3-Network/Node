@@ -1,0 +1,21 @@
+get:
+  operationId: GetFederatedTxID
+  summary: Get Activity by ID
+  description: Retrieve details for the specified activity ID.
+  tags:
+    - Federated
+  security:
+    - bearerAuth: []
+  parameters:
+    - $ref: "../../parameters/path_activity_id.yaml"
+    - $ref: "../../parameters/query_action_limit.yaml"
+    - $ref: "../../parameters/query_action_page.yaml"
+  responses:
+    "200":
+      $ref: "../../responses/FederatedActivityResponse.yaml"
+    "400":
+      $ref: "../../responses/BadRequest.yaml"
+    "404":
+      $ref: "../../responses/NotFound.yaml"
+    "500":
+      $ref: "../../responses/InternalError.yaml"

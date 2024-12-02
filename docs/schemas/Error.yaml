@@ -1,0 +1,9 @@
+description: An error response.
+properties:
+  code:
+    description: The error code.
+    type: integer
+  message:
+    description: The error message.
+    type: string
+type: object

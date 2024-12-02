@@ -1,0 +1,14 @@
+get:
+  operationId: GetNodeInfo
+  summary: Get Node Status
+  description: Retrieve node status details.
+  security: []
+  tags:
+    - Info
+  responses:
+    "200":
+      $ref: "../responses/NodeInfoResponse.yaml"
+    "400":
+      $ref: "../responses/BadRequest.yaml"
+    "500":
+      $ref: "../responses/InternalError.yaml"

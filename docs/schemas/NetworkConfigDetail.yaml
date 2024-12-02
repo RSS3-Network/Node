@@ -1,0 +1,10 @@
+properties:
+  endpoint_configs:
+    $ref: "./EndpointConfig.yaml"
+  id:
+    type: string
+  worker_configs:
+    items:
+      $ref: "./WorkerConfig.yaml"
+    type: array
+type: object

@@ -1,0 +1,51 @@
+content:
+  application/json:
+    example:
+      data:
+      - actions:
+        - from: www.abc.net.au
+          metadata:
+            authors:
+            - name: Emma Wynne
+            description: '<div><h2>In short:</h2><p>Nicheliving customer Cindy Richardson
+              says she is overwhelmed with costs, including rent, mortgage and rates
+              due to the long delays completing her house.</p><p>She has applied to
+              access her superannuation on hardship grounds but was rejected.</p><h2>What''s
+              next?</h2><p>WA Commerce Minister Sue Ellery is in talks with the company
+              about resolving the long completion delays many customers are facing.</p></div>
+
+              '
+            pub_date: '2024-07-02T04:13:38.000Z'
+            title: Cindy was supposed to be living in a new home by now. Instead she's
+              facing bankruptcy
+          platform: RSSHub
+          related_urls:
+          - https://www.abc.net.au/news/2024-07-02/nicheliving-home-building-delays-causing-hardship/104047810
+          tag: rss
+          to: www.abc.net.au
+          type: feed
+        direction: out
+        from: www.abc.net.au
+        id: https://www.abc.net.au/news/2024-07-02/nicheliving-home-building-delays-causing-hardship/104047810
+        index: 0
+        network: rsshub
+        owner: www.abc.net.au
+        success: false
+        tag: rss
+        timestamp: 1719895289
+        to: www.abc.net.au
+        total_actions: 1
+        type: feed
+    schema:
+      properties:
+        data:
+          description: The list of activities.
+          items:
+            $ref: "../schemas/RSSActivity.yaml"
+          type: array
+        meta:
+          $ref: "../schemas/MetaCursor.yaml"
+      type: object
+      required:
+        - data
+description: The request was successful.

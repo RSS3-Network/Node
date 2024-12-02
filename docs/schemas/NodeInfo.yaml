@@ -1,0 +1,78 @@
+example:
+  coverage:
+    rss:
+      supported:
+        - rsshub_core
+    decentralized:
+      supported:
+        - arbitrum_aave
+        - arbitrum_arbitrum
+        - arbitrum_core
+      unsupported:
+        - linea_rainbow
+        - x-layer_zerion
+    federated:
+      supported:
+        - mastodon_core
+  operator: '0x5fdfd813ad20a90ba0972dd300ac9071c296b851'
+  records:
+    last_heartbeat: 1732785667
+    recent_requests:
+      - /decentralized/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045?action_limit=5&direction=out&limit=35
+      - /decentralized/accounts
+      - /decentralized/0xE68badDE25D8389ae4b96962AC526D113f3BaC9D?limit=20&network=ethereum&tag=transaction
+      - /decentralized/0x49103b906Df62AB770348DC13b81766973B66c11?limit=20
+    recent_rewards:
+      - epoch: 347
+        operation_rewards: '208000000000000000000'
+        request_counts: '65'
+        staking_rewards: '0'
+      - epoch: 346
+        operation_rewards: '345000000000000000000'
+        request_counts: '104'
+        staking_rewards: '0'
+    slashed_tokens: '0'
+  uptime: 152764
+  version:
+    commit: '7147cec'
+    tag: v1.2.0
+properties:
+  coverage:
+    type: object
+    properties:
+      rss:
+        type: object
+        properties:
+          supported:
+            type: array
+            items:
+              type: string
+      decentralized:
+        type: object
+        properties:
+          supported:
+            type: array
+            items:
+              type: string
+          unsupported:
+            type: array
+            items:
+              type: string
+      federated:
+        type: object
+        properties:
+          supported:
+            type: array
+            items:
+              type: string
+  operator:
+    description: The operator evm address of the node.
+    type: string
+  records:
+    $ref: "./Records.yaml"
+  uptime:
+    description: The total uptime of the node in seconds.
+    type: integer
+  version:
+    $ref: "./Version.yaml"
+type: object

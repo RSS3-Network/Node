@@ -1,0 +1,4 @@
+default: 1
+minimum: 1
+type: integer
+x-go-type-skip-optional-pointer: true

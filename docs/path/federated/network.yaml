@@ -1,0 +1,29 @@
+get:
+  operationId: GetFederatedNetwork
+  summary: Get Network Activities
+  description: Retrieve a list of activities from the specified federated network. This endpoint allows you to filter activities by various parameters such as limit, timestamp, success status, and more.
+  tags:
+    - Federated
+  security:
+    - bearerAuth: []
+  parameters:
+    - $ref: "../../parameters/path_network.yaml"
+    - $ref: "../../parameters/query_limit.yaml"
+    - $ref: "../../parameters/query_action_limit.yaml"
+    - $ref: "../../parameters/query_cursor.yaml"
+    - $ref: "../../parameters/query_since_timestamp.yaml"
+    - $ref: "../../parameters/query_until_timestamp.yaml"
+    - $ref: "../../parameters/query_success.yaml"
+    - $ref: "../../parameters/query_direction.yaml"
+    - $ref: "../../parameters/query_tag.yaml"
+    - $ref: "../../parameters/query_type.yaml"
+    - $ref: "../../parameters/query_platform_federated.yaml"
+  responses:
+    "200":
+      $ref: "../../responses/FederatedActivitiesResponse.yaml"
+    "400":
+      $ref: "../../responses/BadRequest.yaml"
+    "404":
+      $ref: "../../responses/NotFound.yaml"
+    "500":
+      $ref: "../../responses/InternalError.yaml"

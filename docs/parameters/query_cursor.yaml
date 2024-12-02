@@ -1,0 +1,6 @@
+description: Specify the cursor used for pagination.
+in: query
+name: cursor
+required: false
+schema:
+  $ref: "../schemas/Cursor.yaml"
