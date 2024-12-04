@@ -4,6 +4,10 @@ go 1.22
 
 toolchain go1.22.1
 
+replace (
+	github.com/chenzhuoyu/iasm  => github.com/cloudwego/iasm v0.2.0
+)
+
 require (
 	github.com/JohannesKaufmann/html-to-markdown v1.6.0
 	github.com/Khan/genqlient v0.7.0
