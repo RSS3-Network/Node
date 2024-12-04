@@ -112,7 +112,7 @@ func (c *Client) SyncGetRepo(ctx context.Context, repoData *atproto.SyncListRepo
 	}
 
 	// Get authenticated client for the endpoint
-	client, err := c.GetXrpcClient(ctx, c.LookupDIDEdnpoint(ctx, did))
+	client, err := c.GetXrpcClient(ctx, c.LookupDIDEndpoint(ctx, did))
 	if err != nil {
 		zap.L().Error("create xrpc client failed", zap.Error(err))
 
@@ -257,7 +257,7 @@ func (c *Client) GetRecord(ctx context.Context, repo string, path string) (*at.M
 	}
 
 	// Get authenticated client
-	client, err := c.GetXrpcClient(ctx, c.LookupDIDEdnpoint(ctx, did))
+	client, err := c.GetXrpcClient(ctx, c.LookupDIDEndpoint(ctx, did))
 	if err != nil {
 		zap.L().Error("create xrpc client failed", zap.Error(err))
 
@@ -303,7 +303,7 @@ func (c *Client) GetRecord(ctx context.Context, repo string, path string) (*at.M
 // - did: User's decentralized identifier
 // Returns the user's handle or an error.
 func (c *Client) GetHandle(ctx context.Context, did syntax.DID) (string, error) {
-	client, err := c.GetXrpcClient(ctx, c.LookupDIDEdnpoint(ctx, did))
+	client, err := c.GetXrpcClient(ctx, c.LookupDIDEndpoint(ctx, did))
 	if err != nil {
 		return "", fmt.Errorf("get xrpc client: %w", err)
 	}
@@ -549,7 +549,7 @@ func (c *Client) createAndAuthenticateClient(ctx context.Context, endpoint strin
 	}, nil
 }
 
-func (c *Client) LookupDIDEdnpoint(ctx context.Context, did syntax.DID) string {
+func (c *Client) LookupDIDEndpoint(ctx context.Context, did syntax.DID) string {
 	// Creates a new BaseDirectory with default settings.
 	baseDirectory := &identity.BaseDirectory{
 		PLCURL: identity.DefaultPLCURL,
