@@ -56,6 +56,7 @@ func (w *worker) Types() []schema.Type {
 		typex.SocialComment,
 		typex.SocialPost,
 		typex.SocialShare,
+		typex.SocialLike,
 		typex.SocialProfile,
 	}
 }
