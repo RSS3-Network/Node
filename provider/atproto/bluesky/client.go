@@ -17,7 +17,6 @@ import (
 	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/bluesky-social/indigo/repo"
 	"github.com/bluesky-social/indigo/xrpc"
-	"github.com/go-playground/form/v4"
 	"github.com/ipfs/go-cid"
 	at "github.com/rss3-network/node/provider/atproto"
 	"github.com/samber/lo"
@@ -32,8 +31,6 @@ const (
 	SyncListReposLimit = 10
 )
 
-var HTTPClient = http.DefaultClient
-
 type Client struct {
 	username       string
 	password       string
@@ -42,7 +39,6 @@ type Client struct {
 	mutex          sync.RWMutex
 	defaultClient  *XrpcClient
 	cacheClient    map[string]*XrpcClient
-	encoder        *form.Encoder
 	httpClient     *http.Client
 }
 
@@ -519,7 +515,7 @@ func (c *Client) GetXrpcClient(ctx context.Context, endpoint string) (*XrpcClien
 func (c *Client) createAndAuthenticateClient(ctx context.Context, endpoint string) (*XrpcClient, error) {
 	client := &xrpc.Client{
 		Host:   endpoint,
-		Client: HTTPClient,
+		Client: c.httpClient,
 	}
 
 	// Create context with 5 second timeout
@@ -584,7 +580,6 @@ func NewClient(_ context.Context, filter []string, username string, password str
 		filter:         filter,
 		timestampStart: timestamp,
 		cacheClient:    make(map[string]*XrpcClient),
-		encoder:        form.NewEncoder(),
 		httpClient:     http.DefaultClient,
 	}
 
