@@ -4,6 +4,8 @@ go 1.22
 
 toolchain go1.22.1
 
+replace github.com/chenzhuoyu/iasm => github.com/cloudwego/iasm v0.2.0
+
 require (
 	github.com/JohannesKaufmann/html-to-markdown v1.6.0
 	github.com/Khan/genqlient v0.7.0
@@ -66,8 +68,8 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/oapi-codegen/runtime v1.1.1
-	github.com/redis/rueidis v1.0.50
-	github.com/redis/rueidis/rueidiscompat v1.0.50
+	github.com/redis/rueidis v1.0.51
+	github.com/redis/rueidis/rueidiscompat v1.0.51
 	github.com/rss3-network/protocol-go v0.5.14
 	github.com/spf13/afero v1.11.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
