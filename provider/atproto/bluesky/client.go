@@ -32,6 +32,8 @@ const (
 	SyncListReposLimit = 10
 )
 
+var HTTPClient = http.DefaultClient
+
 type Client struct {
 	username       string
 	password       string
@@ -517,7 +519,7 @@ func (c *Client) GetXrpcClient(ctx context.Context, endpoint string) (*XrpcClien
 func (c *Client) createAndAuthenticateClient(ctx context.Context, endpoint string) (*XrpcClient, error) {
 	client := &xrpc.Client{
 		Host:   endpoint,
-		Client: http.DefaultClient,
+		Client: HTTPClient,
 	}
 
 	// Create context with 5 second timeout
