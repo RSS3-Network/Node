@@ -22,6 +22,7 @@ import (
 	"github.com/samber/lo"
 	cbg "github.com/whyrusleeping/cbor-gen"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -71,20 +72,30 @@ func (c *Client) SyncListRepos(ctx context.Context, cursor string, limit int64) 
 
 	data := make([]*at.Message, 0)
 
+	errorGroup, _ := errgroup.WithContext(ctx)
+
 	// Process each repository to extract its records
 	for _, rep := range results.Repos {
-		feed, err := c.SyncGetRepo(ctx, rep)
-		if err != nil {
-			zap.L().Error("sync get repo failed", zap.Error(err))
+		rep := rep
 
-			return nil, nil, fmt.Errorf("sync get repo failed: %w", err)
-		}
+		errorGroup.Go(func() error {
+			feed, err := c.SyncGetRepo(ctx, rep)
+			if err != nil {
+				zap.L().Error("sync get repo failed", zap.Error(err))
 
-		if len(feed) == 0 {
-			continue
-		}
+				return fmt.Errorf("sync get repo failed: %w", err)
+			}
 
-		data = append(data, feed...)
+			if len(feed) > 0 {
+				data = append(data, feed...)
+			}
+
+			return nil
+		})
+	}
+
+	if err := errorGroup.Wait(); err != nil {
+		return nil, nil, fmt.Errorf("sync get repo failed: %w", err)
 	}
 
 	return data, results.Cursor, nil
@@ -186,14 +197,14 @@ func (c *Client) ParseCARList(ctx context.Context, did syntax.DID, handle string
 		}
 
 		// Parse record and update message
-		isInvalid, err := c.ParseRecord(ctx, rec, message)
+		isValid, err := c.ParseRecord(ctx, rec, message)
 		if err != nil {
 			zap.L().Error("parse record failed", zap.Error(err))
 
 			return nil
 		}
 
-		if isInvalid {
+		if isValid {
 			recList = append(recList, message)
 		}
 
@@ -222,14 +233,14 @@ func (c *Client) GetRepoRecord(ctx context.Context, repo string, path string) (*
 		return nil, fmt.Errorf("get record: %w", err)
 	}
 
-	isInvalid, err := c.ParseRecord(ctx, rec, message)
+	isValid, err := c.ParseRecord(ctx, rec, message)
 	if err != nil {
 		zap.L().Error("parse record failed", zap.Error(err))
 
 		return nil, nil
 	}
 
-	if isInvalid {
+	if isValid {
 		return message, nil
 	}
 
@@ -304,20 +315,22 @@ func (c *Client) GetHandle(ctx context.Context, did syntax.DID) (string, error) 
 		return "", fmt.Errorf("get xrpc client: %w", err)
 	}
 
-	resp, err := bsky.ActorGetProfile(ctx, client.Client, did.String())
+	resp, _ := bsky.ActorGetProfile(ctx, client.Client, did.String())
+	if resp != nil {
+		return resp.Handle, nil
+	}
+
+	defaultClient, err := c.GetXrpcClient(ctx, BskyEndpoint)
 	if err != nil {
-		if strings.Contains(err.Error(), "XRPC ERROR 400") {
-			return "", nil
-		}
-
-		return "", fmt.Errorf("profile get: %w", err)
+		return "", fmt.Errorf("get xrpc client: %w", err)
 	}
 
-	if resp == nil {
-		return "", nil
+	resp, _ = bsky.ActorGetProfile(ctx, defaultClient.Client, did.String())
+	if resp != nil {
+		return resp.Handle, nil
 	}
 
-	return resp.Handle, nil
+	return "", nil
 }
 
 // ParseRecord processes different types of records and updates the message.
@@ -330,8 +343,8 @@ func (c *Client) ParseRecord(ctx context.Context, rec cbg.CBORMarshaler, message
 
 	switch rec := rec.(type) {
 	case *bsky.FeedPost:
-		createdAt, isInvalid := c.ParseCreatedAt(ctx, rec.CreatedAt)
-		if !isInvalid {
+		createdAt, isValid := c.ParseCreatedAt(ctx, rec.CreatedAt)
+		if !isValid {
 			return false, nil
 		}
 
@@ -351,16 +364,16 @@ func (c *Client) ParseRecord(ctx context.Context, rec cbg.CBORMarshaler, message
 			return false, nil
 		}
 
-		createdAt, isInvalid := c.ParseCreatedAt(ctx, lo.FromPtr(rec.CreatedAt))
-		if !isInvalid {
+		createdAt, isValid := c.ParseCreatedAt(ctx, lo.FromPtr(rec.CreatedAt))
+		if !isValid {
 			return false, nil
 		}
 
 		message.CreatedAt = createdAt
 		message.Profile = rec
 	case *bsky.FeedRepost:
-		createdAt, isInvalid := c.ParseCreatedAt(ctx, rec.CreatedAt)
-		if !isInvalid {
+		createdAt, isValid := c.ParseCreatedAt(ctx, rec.CreatedAt)
+		if !isValid {
 			return false, nil
 		}
 
@@ -373,8 +386,8 @@ func (c *Client) ParseRecord(ctx context.Context, rec cbg.CBORMarshaler, message
 
 		message.CreatedAt = createdAt
 	case *bsky.FeedLike:
-		createdAt, isInvalid := c.ParseCreatedAt(ctx, rec.CreatedAt)
-		if !isInvalid {
+		createdAt, isValid := c.ParseCreatedAt(ctx, rec.CreatedAt)
+		if !isValid {
 			return false, nil
 		}
 
