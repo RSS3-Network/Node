@@ -123,7 +123,7 @@ func (s *dataSource) pollSubscribeRepos(ctx context.Context, tasksChan chan<- *e
 
 	sched := sequential.NewScheduler("myfirehose", rsc.EventHandler)
 
-	if err = events.HandleRepoStream(context.Background(), conn, sched); err != nil {
+	if err = events.HandleRepoStream(context.Background(), conn, sched, nil); err != nil {
 		zap.L().Error("handle repo stream failed", zap.Error(err))
 
 		return fmt.Errorf("handle repo stream failed: %w", err)
