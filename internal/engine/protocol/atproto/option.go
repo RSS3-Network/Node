@@ -15,7 +15,7 @@ type Option struct {
 	Username string `json:"username" mapstructure:"username"`
 	Password string `json:"password" mapstructure:"password"`
 
-	TimestampStart int64 `json:"timestamp_start" mapstructure:"timestamp_start"`
+	TimestampStart time.Time `json:"timestamp_start" mapstructure:"timestamp_start"`
 }
 
 func NewOption(parameters *config.Parameters) (*Option, error) {
@@ -34,12 +34,12 @@ func NewOption(parameters *config.Parameters) (*Option, error) {
 	if lo.IsEmpty(option.TimestampStart) {
 		if parameter.CurrentNetworkStartBlock[network.Bluesky] == nil {
 			// Default to 90 days ago
-			option.TimestampStart = time.Now().Add(-time.Hour * 24 * 90).Unix()
+			option.TimestampStart = time.Now().Add(-time.Hour * 24 * 90)
 
 			return &option, nil
 		}
 
-		option.TimestampStart = parameter.CurrentNetworkStartBlock[network.Bluesky].Timestamp
+		option.TimestampStart = time.Unix(parameter.CurrentNetworkStartBlock[network.Bluesky].Timestamp, 0)
 	}
 
 	return &option, nil

@@ -36,7 +36,7 @@ type Client struct {
 	username       string
 	password       string
 	filter         []string
-	timestampStart int64
+	timestampStart time.Time
 	mutex          sync.RWMutex
 	defaultClient  *XrpcClient
 	cacheClient    map[string]*XrpcClient
@@ -70,7 +70,10 @@ func (c *Client) SyncListRepos(ctx context.Context, cursor string, limit int64) 
 		return nil, nil, fmt.Errorf("sync list repos failed: %w", err)
 	}
 
-	data := make([]*at.Message, 0)
+	var (
+		mu   sync.Mutex
+		data = make([]*at.Message, 0)
+	)
 
 	errorGroup, _ := errgroup.WithContext(ctx)
 
@@ -87,7 +90,9 @@ func (c *Client) SyncListRepos(ctx context.Context, cursor string, limit int64) 
 			}
 
 			if len(feed) > 0 {
+				mu.Lock()
 				data = append(data, feed...)
+				mu.Unlock()
 			}
 
 			return nil
@@ -127,7 +132,7 @@ func (c *Client) SyncGetRepo(ctx context.Context, repoData *atproto.SyncListRepo
 	}
 
 	// Get user handle from profile
-	handle, err := c.GetHandle(ctx, did)
+	handle, err := c.GetHandle(ctx, client, did)
 	if err != nil {
 		zap.L().Error("get profile failed", zap.Error(err))
 
@@ -169,52 +174,56 @@ func (c *Client) ParseCARList(ctx context.Context, did syntax.DID, handle string
 
 	recList := make([]*at.Message, 0)
 
+	errorGroup, _ := errgroup.WithContext(ctx)
+
 	// Iterate over all records
-	err = r.ForEach(ctx, "", func(path string, _ cid.Cid) error {
-		zap.L().Debug("processing record", zap.String("path", path))
+	_ = r.ForEach(ctx, "", func(path string, _ cid.Cid) error {
+		errorGroup.Go(func() error {
+			zap.L().Debug("processing record", zap.String("path", path))
 
-		// Parse path to get collection and rkey
-		collection, rkey := c.ParsePath(path)
+			// Parse path to get collection and rkey
+			collection, rkey := c.ParsePath(path)
 
-		if !lo.Contains(c.filter, collection) {
+			if !lo.Contains(c.filter, collection) {
+				return nil
+			}
+
+			// Get record from repo
+			_, rec, err := r.GetRecord(ctx, path)
+			if err != nil {
+				zap.L().Error("get record failed", zap.Error(err))
+
+				return fmt.Errorf("get record: %w", err)
+			}
+
+			message := &at.Message{
+				URI:        c.BuildURI(did, collection, rkey),
+				Did:        did,
+				Handle:     handle,
+				Collection: collection,
+				Rkey:       rkey,
+			}
+
+			// Parse record and update message
+			isValid, err := c.ParseRecord(ctx, rec, message)
+			if err != nil {
+				zap.L().Error("parse record failed", zap.Error(err))
+
+				return nil
+			}
+
+			if isValid {
+				recList = append(recList, message)
+			}
+
 			return nil
-		}
-
-		// Get record from repo
-		_, rec, err := r.GetRecord(ctx, path)
-		if err != nil {
-			zap.L().Error("get record failed", zap.Error(err))
-
-			return fmt.Errorf("get record: %w", err)
-		}
-
-		message := &at.Message{
-			URI:        c.BuildURI(did, collection, rkey),
-			Did:        did,
-			Handle:     handle,
-			Collection: collection,
-			Rkey:       rkey,
-		}
-
-		// Parse record and update message
-		isValid, err := c.ParseRecord(ctx, rec, message)
-		if err != nil {
-			zap.L().Error("parse record failed", zap.Error(err))
-
-			return nil
-		}
-
-		if isValid {
-			recList = append(recList, message)
-		}
+		})
 
 		return nil
 	})
 
-	if err != nil {
-		zap.L().Error("iterate over all records failed", zap.Error(err))
-
-		return nil, err
+	if err := errorGroup.Wait(); err != nil {
+		return nil, fmt.Errorf("process record failed: %w", err)
 	}
 
 	return recList, nil
@@ -272,7 +281,7 @@ func (c *Client) GetRecord(ctx context.Context, repo string, path string) (*at.M
 	}
 
 	// Fetch the handle associated with the DID
-	handle, err := c.GetHandle(ctx, did)
+	handle, err := c.GetHandle(ctx, client, did)
 	if err != nil {
 		zap.L().Error("get profile failed", zap.Error(err))
 
@@ -289,13 +298,24 @@ func (c *Client) GetRecord(ctx context.Context, repo string, path string) (*at.M
 
 	// Retrieve the record
 	resp, err := atproto.RepoGetRecord(ctx, client.Client, "", collection, repo, rkey)
-	if err != nil {
-		// Handle CID too short error gracefully
-		if strings.Contains(err.Error(), cid.ErrCidTooShort.Error()) || strings.Contains(err.Error(), "XRPC ERROR 400") {
-			return message, nil, nil
+	if err != nil || resp == nil {
+		// fallback to default client
+		defaultClient, err := c.GetXrpcClient(ctx, BskyEndpoint)
+		if err != nil {
+			zap.L().Error("get xrpc client failed", zap.Error(err))
+
+			return nil, nil, fmt.Errorf("get xrpc client: %w", err)
 		}
 
-		return nil, nil, fmt.Errorf("repo get record: %w", err)
+		resp, err = atproto.RepoGetRecord(ctx, defaultClient.Client, "", collection, repo, rkey)
+		if err != nil {
+			// Handle CID too short error gracefully
+			if strings.Contains(err.Error(), cid.ErrCidTooShort.Error()) || strings.Contains(err.Error(), "XRPC ERROR 400") {
+				return message, nil, nil
+			}
+
+			return nil, nil, fmt.Errorf("repo get record: %w", err)
+		}
 	}
 
 	if resp != nil && resp.Value != nil {
@@ -309,12 +329,7 @@ func (c *Client) GetRecord(ctx context.Context, repo string, path string) (*at.M
 // Parameters:
 // - did: User's decentralized identifier
 // Returns the user's handle or an error.
-func (c *Client) GetHandle(ctx context.Context, did syntax.DID) (string, error) {
-	client, err := c.GetXrpcClient(ctx, c.LookupDIDEndpoint(ctx, did))
-	if err != nil {
-		return "", fmt.Errorf("get xrpc client: %w", err)
-	}
-
+func (c *Client) GetHandle(ctx context.Context, client *XrpcClient, did syntax.DID) (string, error) {
 	resp, _ := bsky.ActorGetProfile(ctx, client.Client, did.String())
 	if resp != nil {
 		return resp.Handle, nil
@@ -399,6 +414,8 @@ func (c *Client) ParseRecord(ctx context.Context, rec cbg.CBORMarshaler, message
 		}
 
 		message.CreatedAt = createdAt
+	default:
+		return false, nil
 	}
 
 	return true, nil
@@ -412,7 +429,7 @@ func (c *Client) ParseCreatedAt(_ context.Context, createdAt string) (time.Time,
 		return time.Time{}, false
 	}
 
-	return timestamp, timestamp.Unix() >= c.timestampStart
+	return timestamp, timestamp.After(c.timestampStart)
 }
 
 func (c *Client) ParseRepoStrongRef(ctx context.Context, ref *atproto.RepoStrongRef) (*at.Message, error) {
@@ -436,6 +453,7 @@ func (c *Client) ParseRepoStrongRef(ctx context.Context, ref *atproto.RepoStrong
 	switch rec := rec.(type) {
 	case *bsky.FeedPost:
 		target.Feed = rec
+		target.CreatedAt, _ = c.ParseCreatedAt(ctx, rec.CreatedAt)
 	default:
 		return nil, fmt.Errorf("unsupported record type: %T", rec)
 	}
@@ -586,7 +604,7 @@ func (c *Client) LookupDIDEndpoint(ctx context.Context, did syntax.DID) string {
 	return BskyEndpoint
 }
 
-func NewClient(_ context.Context, filter []string, username string, password string, timestamp int64) (*Client, error) {
+func NewClient(_ context.Context, filter []string, username string, password string, timestamp time.Time) (*Client, error) {
 	client := &Client{
 		username:       username,
 		password:       password,
