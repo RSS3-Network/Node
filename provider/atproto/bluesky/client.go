@@ -174,10 +174,10 @@ func (c *Client) ParseCARList(ctx context.Context, did syntax.DID, handle string
 
 	recList := make([]*at.Message, 0)
 
-	errorGroup, _ := errgroup.WithContext(ctx)
+	errorGroup, errorCtx := errgroup.WithContext(ctx)
 
 	// Iterate over all records
-	_ = r.ForEach(ctx, "", func(path string, _ cid.Cid) error {
+	_ = r.ForEach(errorCtx, "", func(path string, _ cid.Cid) error {
 		errorGroup.Go(func() error {
 			zap.L().Debug("processing record", zap.String("path", path))
 
@@ -209,7 +209,7 @@ func (c *Client) ParseCARList(ctx context.Context, did syntax.DID, handle string
 			if err != nil {
 				zap.L().Error("parse record failed", zap.Error(err))
 
-				return nil
+				return err
 			}
 
 			if isValid {
