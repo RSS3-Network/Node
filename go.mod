@@ -70,7 +70,6 @@ require (
 	github.com/jaytaylor/html2text v0.0.0-20230321000545-74c2419ad056
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
-	github.com/oapi-codegen/runtime v1.1.1
 	github.com/redis/rueidis v1.0.51
 	github.com/redis/rueidis/rueidiscompat v1.0.51
 	github.com/reiver/go-bsky v0.0.0-20240906205655-8c7fadb4f3bb
@@ -91,7 +90,6 @@ require (
 	github.com/PuerkitoBio/goquery v1.9.2 // indirect
 	github.com/RussellLuo/slidingwindow v0.0.0-20200528002341-535bb99d338b // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
-	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.10.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect

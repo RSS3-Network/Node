@@ -284,7 +284,6 @@ func (w *worker) buildPostMedia(embed *bsky.FeedPost_Embed) []metadata.Media {
 
 // saveProfiles saves the profiles to the database.
 func (w *worker) saveProfiles(ctx context.Context, task *source.Task) {
-	// Save profiles to the database.
 	profiles := []*model.BlueskyProfile{{
 		DID:    task.Message.Did.String(),
 		Handle: task.Message.Handle,

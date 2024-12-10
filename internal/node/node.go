@@ -18,7 +18,6 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
 	"github.com/rss3-network/node/internal/node/component/aggregator"
-	"github.com/rss3-network/node/internal/node/component/atproto"
 	"github.com/rss3-network/node/internal/node/component/decentralized"
 	"github.com/rss3-network/node/internal/node/component/federated"
 	"github.com/rss3-network/node/internal/node/component/info"
@@ -108,18 +107,6 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 			var comp component.Component = federatedComponent
 			node.components = append(node.components, &comp)
 			aggComp.Federated = federatedComponent
-		}
-	}
-
-	if len(config.Component.Atproto) > 0 {
-		atprotoComponent, err := atproto.NewComponent(ctx, apiServer, config, databaseClient, redisClient)
-		if err != nil {
-			zap.L().Fatal("Failed to create atproto component", zap.Error(err))
-		} else {
-			var comp component.Component = atprotoComponent
-
-			node.components = append(node.components, &comp)
-			aggComp.Atproto = atprotoComponent
 		}
 	}
 

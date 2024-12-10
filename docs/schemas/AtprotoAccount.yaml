@@ -1,3 +1,0 @@
-description: The owner of the atproto activity.
-type: string
-pattern: ^(did:plc:[0-9a-zA-Z]+)$

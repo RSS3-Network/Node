@@ -3,7 +3,6 @@ package aggregator
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/docs"
-	"github.com/rss3-network/node/internal/node/component/atproto"
 	"github.com/rss3-network/node/internal/node/component/decentralized"
 	"github.com/rss3-network/node/internal/node/component/federated"
 	"github.com/rss3-network/node/internal/node/component/info"
@@ -17,7 +16,6 @@ type Component struct {
 	Info          *info.Component
 	Decentralized *decentralized.Component
 	Federated     *federated.Component
-	Atproto       *atproto.Component
 	RSS           *rss.Component
 }
 
@@ -65,12 +63,6 @@ func (c Component) GetFederatedTxID(ctx echo.Context, id string, params docs.Get
 
 func (c Component) GetFederatedAccount(ctx echo.Context, account string, params docs.GetFederatedAccountParams) error {
 	return c.Federated.GetAccountActivities(ctx, account, params)
-}
-
-// Atproto Interface
-
-func (c Component) GetAtprotoAccount(ctx echo.Context, account string, params docs.GetAtprotoAccountParams) error {
-	return c.Atproto.GetAccountActivities(ctx, account, params)
 }
 
 // RSS Interface
