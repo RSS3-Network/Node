@@ -8,6 +8,7 @@ import (
 	"github.com/rss3-network/node/common/http/response"
 	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database/model"
+	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
@@ -54,7 +55,9 @@ func (c *Component) GetNetworkActivities(ctx echo.Context, net network.Network, 
 		Network:        []network.Network{net},
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(request.Type),
-		Platforms:      lo.Uniq(request.Platform),
+		Platforms: lo.Uniq(lo.Map(request.Platform, func(platform decentralized.Platform, _ int) string {
+			return platform.String()
+		})),
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)

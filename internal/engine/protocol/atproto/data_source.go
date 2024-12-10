@@ -194,7 +194,7 @@ func (s *dataSource) retrySource(ctx context.Context, tasksChan chan<- *engine.T
 
 // initialize creates a new Bluesky client and assigns it to the data source.
 func (s *dataSource) initialize() error {
-	client, err := bluesky.NewClient(context.Background(), s.filter.Type, s.option.Username, s.option.Password, s.option.TimestampStart)
+	client, err := bluesky.NewClient(context.Background(), s.option.Username, s.option.Password, bluesky.WithFilter(s.filter.Type), bluesky.WithTimestampStart(s.option.TimestampStart))
 	if err != nil {
 		zap.L().Error("create bluesky client failed", zap.Error(err))
 

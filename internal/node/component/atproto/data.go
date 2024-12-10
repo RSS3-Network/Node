@@ -1,4 +1,4 @@
-package federated
+package atproto
 
 import (
 	"context"
@@ -68,9 +68,4 @@ func (c *Component) transformCursor(_ context.Context, activity *activityx.Activ
 	}
 
 	return fmt.Sprintf("%s:%s", activity.ID, activity.Network)
-}
-
-// getUpdatedHandles retrieves the updated Mastodon handles from the database.
-func (c *Component) getUpdatedHandles(ctx context.Context, query model.QueryMastodonHandles) ([]*model.MastodonHandle, error) {
-	return c.databaseClient.GetUpdatedMastodonHandles(ctx, query)
 }

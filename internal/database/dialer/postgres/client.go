@@ -331,14 +331,6 @@ func (c *client) FindActivities(ctx context.Context, query model.ActivitiesQuery
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (c *client) FindFederatedActivities(ctx context.Context, query model.FederatedActivitiesQuery) ([]*activityx.Activity, error) {
-	if c.partition {
-		return c.findFederatedActivitiesPartitioned(ctx, query)
-	}
-
-	return nil, fmt.Errorf("not implemented")
-}
-
 // DeleteExpiredActivities deletes expired activities.
 func (c *client) DeleteExpiredActivities(ctx context.Context, network networkx.Network, timestamp time.Time) error {
 	if c.partition {

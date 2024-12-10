@@ -604,14 +604,30 @@ func (c *Client) LookupDIDEndpoint(ctx context.Context, did syntax.DID) string {
 	return BskyEndpoint
 }
 
-func NewClient(_ context.Context, filter []string, username string, password string, timestamp time.Time) (*Client, error) {
+type Option func(client *Client) error
+
+func WithFilter(filter []string) Option {
+	return func(client *Client) error {
+		client.filter = filter
+
+		return nil
+	}
+}
+
+func WithTimestampStart(timestamp time.Time) Option {
+	return func(client *Client) error {
+		client.timestampStart = timestamp
+
+		return nil
+	}
+}
+
+func NewClient(_ context.Context, username string, password string, options ...Option) (*Client, error) {
 	client := &Client{
-		username:       username,
-		password:       password,
-		filter:         filter,
-		timestampStart: timestamp,
-		cacheClient:    make(map[string]*XrpcClient),
-		httpClient:     http.DefaultClient,
+		username:    username,
+		password:    password,
+		cacheClient: make(map[string]*XrpcClient),
+		httpClient:  http.DefaultClient,
 	}
 
 	defaultXrpcClient, err := client.createAndAuthenticateClient(context.Background(), BskyEndpoint)
@@ -620,6 +636,12 @@ func NewClient(_ context.Context, filter []string, username string, password str
 	}
 
 	client.defaultClient = defaultXrpcClient
+
+	for _, option := range options {
+		if err := option(client); err != nil {
+			return nil, fmt.Errorf("apply option: %w", err)
+		}
+	}
 
 	return client, nil
 }
