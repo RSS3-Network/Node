@@ -5,3 +5,7 @@ name: action_page
 required: false
 schema:
   $ref: "../schemas/ActionPage.yaml"
+x-oapi-codegen-extra-tags:
+  validate: "min=1"
+  default: "1"
+  query: action_page

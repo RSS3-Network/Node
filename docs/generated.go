@@ -15,13 +15,12 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
-	"github.com/oapi-codegen/runtime"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
-	tag "github.com/rss3-network/protocol-go/schema/tag"
+	"github.com/rss3-network/protocol-go/schema/tag"
 )
 
 const (
@@ -33,14 +32,14 @@ type PostDecentralizedAccountsJSONBody struct {
 	Accounts []string `json:"accounts,omitempty"`
 
 	// ActionLimit Specify the number of actions within the activity to retrieve
-	ActionLimit int `json:"action_limit,omitempty"`
+	ActionLimit *int `default:"10" json:"action_limit,omitempty" validate:"min=1,max=20"`
 
 	// Cursor Specify the cursor used for pagination
 	Cursor    *string              `json:"cursor,omitempty"`
 	Direction *activityx.Direction `json:"direction,omitempty"`
 
 	// Limit Specify the number of activities to retrieve
-	Limit   int               `json:"limit,omitempty"`
+	Limit   *int              `default:"100" json:"limit,omitempty" validate:"min=1,max=100"`
 	Network []network.Network `json:"network,omitempty"`
 
 	// Platform Retrieve activities from the specified platform(s)
@@ -53,8 +52,8 @@ type PostDecentralizedAccountsJSONBody struct {
 	Status *bool `json:"success,omitempty"`
 
 	// Tag Retrieve activities for the specified tag(s)
-	Tag  []tag.Tag     `json:"tag,omitempty"`
-	Type []schema.Type `json:"type,omitempty"`
+	Tag  []tag.Tag `json:"tag,omitempty"`
+	Type []string  `json:"type,omitempty"`
 
 	// UntilTimestamp The timestamp of when the activity occurred.
 	UntilTimestamp *uint64 `json:"until_timestamp,omitempty"`
@@ -63,112 +62,112 @@ type PostDecentralizedAccountsJSONBody struct {
 // GetDecentralizedNetworkParams defines parameters for GetDecentralizedNetwork.
 type GetDecentralizedNetworkParams struct {
 	// Limit Specify the number of activities to retrieve.
-	Limit int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *int `default:"100" form:"limit,omitempty" json:"limit,omitempty" query:"limit" validate:"min=1,max=100"`
 
 	// ActionLimit Specify the number of actions within the activity to retrieve.
-	ActionLimit int `form:"action_limit,omitempty" json:"action_limit,omitempty"`
+	ActionLimit *int `default:"10" form:"action_limit,omitempty" json:"action_limit,omitempty" query:"action_limit" validate:"min=1,max=20"`
 
 	// Cursor Specify the cursor used for pagination.
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty" query:"cursor"`
 
 	// SinceTimestamp Retrieve activities starting from this timestamp.
-	SinceTimestamp *uint64 `form:"since_timestamp,omitempty" json:"since_timestamp,omitempty"`
+	SinceTimestamp *uint64 `form:"since_timestamp,omitempty" json:"since_timestamp,omitempty" query:"since_timestamp"`
 
 	// UntilTimestamp Retrieve activities up to this timestamp.
-	UntilTimestamp *uint64 `form:"until_timestamp,omitempty" json:"until_timestamp,omitempty"`
+	UntilTimestamp *uint64 `form:"until_timestamp,omitempty" json:"until_timestamp,omitempty" query:"until_timestamp"`
 
 	// Status Retrieve activities based on success status.
-	Status *bool `form:"success,omitempty" json:"success,omitempty"`
+	Status *bool `form:"success,omitempty" json:"success,omitempty" query:"success"`
 
 	// Direction Retrieve activities based on direction.
-	Direction *activityx.Direction `form:"direction,omitempty" json:"direction,omitempty"`
+	Direction *activityx.Direction `form:"direction,omitempty" json:"direction,omitempty" query:"direction"`
 
 	// Tag Retrieve activities for the specified tag(s).
-	Tag []tag.Tag `form:"tag,omitempty" json:"tag,omitempty"`
+	Tag []tag.Tag `form:"tag,omitempty" json:"tag,omitempty" query:"tag"`
 
 	// Type Retrieve activities for the specified type(s).
-	Type []schema.Type `form:"type,omitempty" json:"type,omitempty"`
+	Type []schema.Type `form:"type,omitempty" json:"type,omitempty" query:"-"`
 
 	// Platform Retrieve activities from the specified platform(s).
-	Platform []decentralized.Platform `form:"platform,omitempty" json:"platform,omitempty"`
+	Platform []decentralized.Platform `form:"platform,omitempty" json:"platform,omitempty" query:"platform"`
 }
 
 // GetDecentralizedPlatformParams defines parameters for GetDecentralizedPlatform.
 type GetDecentralizedPlatformParams struct {
 	// Limit Specify the number of activities to retrieve.
-	Limit int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *int `default:"100" form:"limit,omitempty" json:"limit,omitempty" query:"limit" validate:"min=1,max=100"`
 
 	// ActionLimit Specify the number of actions within the activity to retrieve.
-	ActionLimit int `form:"action_limit,omitempty" json:"action_limit,omitempty"`
+	ActionLimit *int `default:"10" form:"action_limit,omitempty" json:"action_limit,omitempty" query:"action_limit" validate:"min=1,max=20"`
 
 	// Cursor Specify the cursor used for pagination.
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty" query:"cursor"`
 
 	// SinceTimestamp Retrieve activities starting from this timestamp.
-	SinceTimestamp *uint64 `form:"since_timestamp,omitempty" json:"since_timestamp,omitempty"`
+	SinceTimestamp *uint64 `form:"since_timestamp,omitempty" json:"since_timestamp,omitempty" query:"since_timestamp"`
 
 	// UntilTimestamp Retrieve activities up to this timestamp.
-	UntilTimestamp *uint64 `form:"until_timestamp,omitempty" json:"until_timestamp,omitempty"`
+	UntilTimestamp *uint64 `form:"until_timestamp,omitempty" json:"until_timestamp,omitempty" query:"until_timestamp"`
 
 	// Status Retrieve activities based on success status.
-	Status *bool `form:"success,omitempty" json:"success,omitempty"`
+	Status *bool `form:"success,omitempty" json:"success,omitempty" query:"success"`
 
 	// Direction Retrieve activities based on direction.
-	Direction *activityx.Direction `form:"direction,omitempty" json:"direction,omitempty"`
+	Direction *activityx.Direction `form:"direction,omitempty" json:"direction,omitempty" query:"direction"`
 
 	// Tag Retrieve activities for the specified tag(s).
-	Tag []tag.Tag `form:"tag,omitempty" json:"tag,omitempty"`
+	Tag []tag.Tag `form:"tag,omitempty" json:"tag,omitempty" query:"tag"`
 
 	// Type Retrieve activities for the specified type(s).
-	Type []schema.Type `form:"type,omitempty" json:"type,omitempty"`
+	Type []schema.Type `form:"type,omitempty" json:"type,omitempty" query:"-"`
 
 	// Network Retrieve activities from the specified network(s).
-	Network []network.Network `form:"network,omitempty" json:"network,omitempty"`
+	Network []network.Network `form:"network,omitempty" json:"network,omitempty" query:"network"`
 }
 
 // GetDecentralizedTxIDParams defines parameters for GetDecentralizedTxID.
 type GetDecentralizedTxIDParams struct {
 	// ActionLimit Specify the number of actions within the activity to retrieve.
-	ActionLimit int `form:"action_limit,omitempty" json:"action_limit,omitempty"`
+	ActionLimit *int `default:"10" form:"action_limit,omitempty" json:"action_limit,omitempty" query:"action_limit" validate:"min=1,max=20"`
 
 	// ActionPage Specify the pagination for actions
-	ActionPage int `form:"action_page,omitempty" json:"action_page,omitempty"`
+	ActionPage *int `default:"1" form:"action_page,omitempty" json:"action_page,omitempty" query:"action_page" validate:"min=1"`
 }
 
 // GetDecentralizedAccountParams defines parameters for GetDecentralizedAccount.
 type GetDecentralizedAccountParams struct {
 	// Limit Specify the number of activities to retrieve.
-	Limit int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *int `default:"100" form:"limit,omitempty" json:"limit,omitempty" query:"limit" validate:"min=1,max=100"`
 
 	// ActionLimit Specify the number of actions within the activity to retrieve.
-	ActionLimit int `form:"action_limit,omitempty" json:"action_limit,omitempty"`
+	ActionLimit *int `default:"10" form:"action_limit,omitempty" json:"action_limit,omitempty" query:"action_limit" validate:"min=1,max=20"`
 
 	// Cursor Specify the cursor used for pagination.
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty" query:"cursor"`
 
 	// SinceTimestamp Retrieve activities starting from this timestamp.
-	SinceTimestamp *uint64 `form:"since_timestamp,omitempty" json:"since_timestamp,omitempty"`
+	SinceTimestamp *uint64 `form:"since_timestamp,omitempty" json:"since_timestamp,omitempty" query:"since_timestamp"`
 
 	// UntilTimestamp Retrieve activities up to this timestamp.
-	UntilTimestamp *uint64 `form:"until_timestamp,omitempty" json:"until_timestamp,omitempty"`
+	UntilTimestamp *uint64 `form:"until_timestamp,omitempty" json:"until_timestamp,omitempty" query:"until_timestamp"`
 
 	// Status Retrieve activities based on success status.
-	Status *bool `form:"success,omitempty" json:"success,omitempty"`
+	Status *bool `form:"success,omitempty" json:"success,omitempty" query:"success"`
 
 	// Direction Retrieve activities based on direction.
-	Direction *activityx.Direction `form:"direction,omitempty" json:"direction,omitempty"`
+	Direction *activityx.Direction `form:"direction,omitempty" json:"direction,omitempty" query:"direction"`
 
 	// Network Retrieve activities from the specified network(s).
-	Network []network.Network `form:"network,omitempty" json:"network,omitempty"`
+	Network []network.Network `form:"network,omitempty" json:"network,omitempty" query:"network"`
 
 	// Tag Retrieve activities for the specified tag(s).
-	Tag []tag.Tag `form:"tag,omitempty" json:"tag,omitempty"`
+	Tag []tag.Tag `form:"tag,omitempty" json:"tag,omitempty" query:"tag"`
 
 	// Type Retrieve activities for the specified type(s).
-	Type []schema.Type `form:"type,omitempty" json:"type,omitempty"`
+	Type []schema.Type `form:"type,omitempty" json:"type,omitempty" query:"-"`
 
 	// Platform Retrieve activities from the specified platform(s).
-	Platform []decentralized.Platform `form:"platform,omitempty" json:"platform,omitempty"`
+	Platform []decentralized.Platform `form:"platform,omitempty" json:"platform,omitempty" query:"platform"`
 }
 
 // PostFederatedAccountsJSONBody defines parameters for PostFederatedAccounts.
@@ -176,14 +175,14 @@ type PostFederatedAccountsJSONBody struct {
 	Accounts []string `json:"accounts,omitempty"`
 
 	// ActionLimit Specify the number of actions within the activity to retrieve
-	ActionLimit int `json:"action_limit,omitempty"`
+	ActionLimit *int `default:"10" json:"action_limit,omitempty" validate:"min=1,max=20"`
 
 	// Cursor Specify the cursor used for pagination
 	Cursor    *string              `json:"cursor,omitempty"`
 	Direction *activityx.Direction `json:"direction,omitempty"`
 
 	// Limit Specify the number of activities to retrieve
-	Limit   int               `json:"limit,omitempty"`
+	Limit   *int              `default:"100" json:"limit,omitempty" validate:"min=1,max=100"`
 	Network []network.Network `json:"network,omitempty"`
 
 	// Platform Retrieve activities from the specified platform(s)
@@ -196,8 +195,8 @@ type PostFederatedAccountsJSONBody struct {
 	Status *bool `json:"success,omitempty"`
 
 	// Tag Retrieve activities for the specified tag(s)
-	Tag  []tag.Tag     `json:"tag,omitempty"`
-	Type []schema.Type `json:"type,omitempty"`
+	Tag  []tag.Tag `json:"tag,omitempty"`
+	Type []string  `json:"type,omitempty"`
 
 	// UntilTimestamp The timestamp of when the activity occurred.
 	UntilTimestamp *uint64 `json:"until_timestamp,omitempty"`
@@ -206,112 +205,112 @@ type PostFederatedAccountsJSONBody struct {
 // GetFederatedNetworkParams defines parameters for GetFederatedNetwork.
 type GetFederatedNetworkParams struct {
 	// Limit Specify the number of activities to retrieve.
-	Limit int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *int `default:"100" form:"limit,omitempty" json:"limit,omitempty" query:"limit" validate:"min=1,max=100"`
 
 	// ActionLimit Specify the number of actions within the activity to retrieve.
-	ActionLimit int `form:"action_limit,omitempty" json:"action_limit,omitempty"`
+	ActionLimit *int `default:"10" form:"action_limit,omitempty" json:"action_limit,omitempty" query:"action_limit" validate:"min=1,max=20"`
 
 	// Cursor Specify the cursor used for pagination.
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty" query:"cursor"`
 
 	// SinceTimestamp Retrieve activities starting from this timestamp.
-	SinceTimestamp *uint64 `form:"since_timestamp,omitempty" json:"since_timestamp,omitempty"`
+	SinceTimestamp *uint64 `form:"since_timestamp,omitempty" json:"since_timestamp,omitempty" query:"since_timestamp"`
 
 	// UntilTimestamp Retrieve activities up to this timestamp.
-	UntilTimestamp *uint64 `form:"until_timestamp,omitempty" json:"until_timestamp,omitempty"`
+	UntilTimestamp *uint64 `form:"until_timestamp,omitempty" json:"until_timestamp,omitempty" query:"until_timestamp"`
 
 	// Status Retrieve activities based on success status.
-	Status *bool `form:"success,omitempty" json:"success,omitempty"`
+	Status *bool `form:"success,omitempty" json:"success,omitempty" query:"success"`
 
 	// Direction Retrieve activities based on direction.
-	Direction *activityx.Direction `form:"direction,omitempty" json:"direction,omitempty"`
+	Direction *activityx.Direction `form:"direction,omitempty" json:"direction,omitempty" query:"direction"`
 
 	// Tag Retrieve activities for the specified tag(s).
-	Tag []tag.Tag `form:"tag,omitempty" json:"tag,omitempty"`
+	Tag []tag.Tag `form:"tag,omitempty" json:"tag,omitempty" query:"tag"`
 
 	// Type Retrieve activities for the specified type(s).
-	Type []schema.Type `form:"type,omitempty" json:"type,omitempty"`
+	Type []schema.Type `form:"type,omitempty" json:"type,omitempty" query:"-"`
 
 	// Platform Retrieve activities from the specified platform(s).
-	Platform []federated.Platform `form:"platform,omitempty" json:"platform,omitempty"`
+	Platform []federated.Platform `form:"platform,omitempty" json:"platform,omitempty" query:"platform"`
 }
 
 // GetFederatedPlatformParams defines parameters for GetFederatedPlatform.
 type GetFederatedPlatformParams struct {
 	// Limit Specify the number of activities to retrieve.
-	Limit int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *int `default:"100" form:"limit,omitempty" json:"limit,omitempty" query:"limit" validate:"min=1,max=100"`
 
 	// ActionLimit Specify the number of actions within the activity to retrieve.
-	ActionLimit int `form:"action_limit,omitempty" json:"action_limit,omitempty"`
+	ActionLimit *int `default:"10" form:"action_limit,omitempty" json:"action_limit,omitempty" query:"action_limit" validate:"min=1,max=20"`
 
 	// Cursor Specify the cursor used for pagination.
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty" query:"cursor"`
 
 	// SinceTimestamp Retrieve activities starting from this timestamp.
-	SinceTimestamp *uint64 `form:"since_timestamp,omitempty" json:"since_timestamp,omitempty"`
+	SinceTimestamp *uint64 `form:"since_timestamp,omitempty" json:"since_timestamp,omitempty" query:"since_timestamp"`
 
 	// UntilTimestamp Retrieve activities up to this timestamp.
-	UntilTimestamp *uint64 `form:"until_timestamp,omitempty" json:"until_timestamp,omitempty"`
+	UntilTimestamp *uint64 `form:"until_timestamp,omitempty" json:"until_timestamp,omitempty" query:"until_timestamp"`
 
 	// Status Retrieve activities based on success status.
-	Status *bool `form:"success,omitempty" json:"success,omitempty"`
+	Status *bool `form:"success,omitempty" json:"success,omitempty" query:"success"`
 
 	// Direction Retrieve activities based on direction.
-	Direction *activityx.Direction `form:"direction,omitempty" json:"direction,omitempty"`
+	Direction *activityx.Direction `form:"direction,omitempty" json:"direction,omitempty" query:"direction"`
 
 	// Tag Retrieve activities for the specified tag(s).
-	Tag []tag.Tag `form:"tag,omitempty" json:"tag,omitempty"`
+	Tag []tag.Tag `form:"tag,omitempty" json:"tag,omitempty" query:"tag"`
 
 	// Type Retrieve activities for the specified type(s).
-	Type []schema.Type `form:"type,omitempty" json:"type,omitempty"`
+	Type []schema.Type `form:"type,omitempty" json:"type,omitempty" query:"-"`
 
 	// Network Retrieve activities from the specified network(s).
-	Network []network.Network `form:"network,omitempty" json:"network,omitempty"`
+	Network []network.Network `form:"network,omitempty" json:"network,omitempty" query:"network"`
 }
 
 // GetFederatedTxIDParams defines parameters for GetFederatedTxID.
 type GetFederatedTxIDParams struct {
 	// ActionLimit Specify the number of actions within the activity to retrieve.
-	ActionLimit int `form:"action_limit,omitempty" json:"action_limit,omitempty"`
+	ActionLimit *int `default:"10" form:"action_limit,omitempty" json:"action_limit,omitempty" query:"action_limit" validate:"min=1,max=20"`
 
 	// ActionPage Specify the pagination for actions
-	ActionPage int `form:"action_page,omitempty" json:"action_page,omitempty"`
+	ActionPage *int `default:"1" form:"action_page,omitempty" json:"action_page,omitempty" query:"action_page" validate:"min=1"`
 }
 
 // GetFederatedAccountParams defines parameters for GetFederatedAccount.
 type GetFederatedAccountParams struct {
 	// Limit Specify the number of activities to retrieve.
-	Limit int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *int `default:"100" form:"limit,omitempty" json:"limit,omitempty" query:"limit" validate:"min=1,max=100"`
 
 	// ActionLimit Specify the number of actions within the activity to retrieve.
-	ActionLimit int `form:"action_limit,omitempty" json:"action_limit,omitempty"`
+	ActionLimit *int `default:"10" form:"action_limit,omitempty" json:"action_limit,omitempty" query:"action_limit" validate:"min=1,max=20"`
 
 	// Cursor Specify the cursor used for pagination.
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty" query:"cursor"`
 
 	// SinceTimestamp Retrieve activities starting from this timestamp.
-	SinceTimestamp *uint64 `form:"since_timestamp,omitempty" json:"since_timestamp,omitempty"`
+	SinceTimestamp *uint64 `form:"since_timestamp,omitempty" json:"since_timestamp,omitempty" query:"since_timestamp"`
 
 	// UntilTimestamp Retrieve activities up to this timestamp.
-	UntilTimestamp *uint64 `form:"until_timestamp,omitempty" json:"until_timestamp,omitempty"`
+	UntilTimestamp *uint64 `form:"until_timestamp,omitempty" json:"until_timestamp,omitempty" query:"until_timestamp"`
 
 	// Status Retrieve activities based on success status.
-	Status *bool `form:"success,omitempty" json:"success,omitempty"`
+	Status *bool `form:"success,omitempty" json:"success,omitempty" query:"success"`
 
 	// Direction Retrieve activities based on direction.
-	Direction *activityx.Direction `form:"direction,omitempty" json:"direction,omitempty"`
+	Direction *activityx.Direction `form:"direction,omitempty" json:"direction,omitempty" query:"direction"`
 
 	// Network Retrieve activities from the specified network(s).
-	Network []network.Network `form:"network,omitempty" json:"network,omitempty"`
+	Network []network.Network `form:"network,omitempty" json:"network,omitempty" query:"network"`
 
 	// Tag Retrieve activities for the specified tag(s).
-	Tag []tag.Tag `form:"tag,omitempty" json:"tag,omitempty"`
+	Tag []tag.Tag `form:"tag,omitempty" json:"tag,omitempty" query:"tag"`
 
 	// Type Retrieve activities for the specified type(s).
-	Type []schema.Type `form:"type,omitempty" json:"type,omitempty"`
+	Type []schema.Type `form:"type,omitempty" json:"type,omitempty" query:"-"`
 
 	// Platform Retrieve activities from the specified platform(s).
-	Platform []federated.Platform `form:"platform,omitempty" json:"platform,omitempty"`
+	Platform []federated.Platform `form:"platform,omitempty" json:"platform,omitempty" query:"platform"`
 }
 
 // PostDecentralizedAccountsJSONRequestBody defines body for PostDecentralizedAccounts for application/json ContentType.
@@ -412,7 +411,8 @@ func (w *ServerInterfaceWrapper) GetDecentralizedNetwork(ctx echo.Context) error
 	// ------------- Path parameter "network" -------------
 	var network network.Network
 
-	err = runtime.BindStyledParameterWithOptions("simple", "network", ctx.Param("network"), &network, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	//err = runtime.BindStyledParameterWithOptions("simple", "network", ctx.Param("network"), &network, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = BindPath(ctx, "network", &network)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter network: %s", err))
 	}
@@ -421,74 +421,11 @@ func (w *ServerInterfaceWrapper) GetDecentralizedNetwork(ctx echo.Context) error
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetDecentralizedNetworkParams
-	// ------------- Optional query parameter "limit" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	binder := new(echo.DefaultBinder)
+	err = binder.BindQueryParams(ctx, &params)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "action_limit" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "action_limit", ctx.QueryParams(), &params.ActionLimit)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter action_limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "cursor" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
-	}
-
-	// ------------- Optional query parameter "since_timestamp" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "since_timestamp", ctx.QueryParams(), &params.SinceTimestamp)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter since_timestamp: %s", err))
-	}
-
-	// ------------- Optional query parameter "until_timestamp" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "until_timestamp", ctx.QueryParams(), &params.UntilTimestamp)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter until_timestamp: %s", err))
-	}
-
-	// ------------- Optional query parameter "success" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "success", ctx.QueryParams(), &params.Status)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter success: %s", err))
-	}
-
-	// ------------- Optional query parameter "direction" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "direction", ctx.QueryParams(), &params.Direction)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter direction: %s", err))
-	}
-
-	// ------------- Optional query parameter "tag" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "tag", ctx.QueryParams(), &params.Tag)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter tag: %s", err))
-	}
-
-	// ------------- Optional query parameter "type" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "type", ctx.QueryParams(), &params.Type)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter type: %s", err))
-	}
-
-	// ------------- Optional query parameter "platform" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "platform", ctx.QueryParams(), &params.Platform)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter platform: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Error unmarshaling query parameters: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
@@ -502,7 +439,8 @@ func (w *ServerInterfaceWrapper) GetDecentralizedPlatform(ctx echo.Context) erro
 	// ------------- Path parameter "platform" -------------
 	var platform decentralized.Platform
 
-	err = runtime.BindStyledParameterWithOptions("simple", "platform", ctx.Param("platform"), &platform, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	//err = runtime.BindStyledParameterWithOptions("simple", "platform", ctx.Param("platform"), &platform, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = BindPath(ctx, "platform", &platform)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter platform: %s", err))
 	}
@@ -511,74 +449,11 @@ func (w *ServerInterfaceWrapper) GetDecentralizedPlatform(ctx echo.Context) erro
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetDecentralizedPlatformParams
-	// ------------- Optional query parameter "limit" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	binder := new(echo.DefaultBinder)
+	err = binder.BindQueryParams(ctx, &params)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "action_limit" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "action_limit", ctx.QueryParams(), &params.ActionLimit)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter action_limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "cursor" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
-	}
-
-	// ------------- Optional query parameter "since_timestamp" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "since_timestamp", ctx.QueryParams(), &params.SinceTimestamp)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter since_timestamp: %s", err))
-	}
-
-	// ------------- Optional query parameter "until_timestamp" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "until_timestamp", ctx.QueryParams(), &params.UntilTimestamp)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter until_timestamp: %s", err))
-	}
-
-	// ------------- Optional query parameter "success" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "success", ctx.QueryParams(), &params.Status)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter success: %s", err))
-	}
-
-	// ------------- Optional query parameter "direction" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "direction", ctx.QueryParams(), &params.Direction)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter direction: %s", err))
-	}
-
-	// ------------- Optional query parameter "tag" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "tag", ctx.QueryParams(), &params.Tag)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter tag: %s", err))
-	}
-
-	// ------------- Optional query parameter "type" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "type", ctx.QueryParams(), &params.Type)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter type: %s", err))
-	}
-
-	// ------------- Optional query parameter "network" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "network", ctx.QueryParams(), &params.Network)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter network: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Error unmarshaling query parameters: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
@@ -592,7 +467,8 @@ func (w *ServerInterfaceWrapper) GetDecentralizedTxID(ctx echo.Context) error {
 	// ------------- Path parameter "id" -------------
 	var id string
 
-	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	//err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = BindPath(ctx, "id", &id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
 	}
@@ -601,18 +477,11 @@ func (w *ServerInterfaceWrapper) GetDecentralizedTxID(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetDecentralizedTxIDParams
-	// ------------- Optional query parameter "action_limit" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "action_limit", ctx.QueryParams(), &params.ActionLimit)
+	binder := new(echo.DefaultBinder)
+	err = binder.BindQueryParams(ctx, &params)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter action_limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "action_page" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "action_page", ctx.QueryParams(), &params.ActionPage)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter action_page: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Error unmarshaling query parameters: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
@@ -626,7 +495,8 @@ func (w *ServerInterfaceWrapper) GetDecentralizedAccount(ctx echo.Context) error
 	// ------------- Path parameter "account" -------------
 	var account string
 
-	err = runtime.BindStyledParameterWithOptions("simple", "account", ctx.Param("account"), &account, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	//err = runtime.BindStyledParameterWithOptions("simple", "account", ctx.Param("account"), &account, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = BindPath(ctx, "account", &account)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter account: %s", err))
 	}
@@ -635,81 +505,11 @@ func (w *ServerInterfaceWrapper) GetDecentralizedAccount(ctx echo.Context) error
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetDecentralizedAccountParams
-	// ------------- Optional query parameter "limit" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	binder := new(echo.DefaultBinder)
+	err = binder.BindQueryParams(ctx, &params)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "action_limit" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "action_limit", ctx.QueryParams(), &params.ActionLimit)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter action_limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "cursor" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
-	}
-
-	// ------------- Optional query parameter "since_timestamp" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "since_timestamp", ctx.QueryParams(), &params.SinceTimestamp)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter since_timestamp: %s", err))
-	}
-
-	// ------------- Optional query parameter "until_timestamp" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "until_timestamp", ctx.QueryParams(), &params.UntilTimestamp)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter until_timestamp: %s", err))
-	}
-
-	// ------------- Optional query parameter "success" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "success", ctx.QueryParams(), &params.Status)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter success: %s", err))
-	}
-
-	// ------------- Optional query parameter "direction" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "direction", ctx.QueryParams(), &params.Direction)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter direction: %s", err))
-	}
-
-	// ------------- Optional query parameter "network" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "network", ctx.QueryParams(), &params.Network)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter network: %s", err))
-	}
-
-	// ------------- Optional query parameter "tag" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "tag", ctx.QueryParams(), &params.Tag)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter tag: %s", err))
-	}
-
-	// ------------- Optional query parameter "type" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "type", ctx.QueryParams(), &params.Type)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter type: %s", err))
-	}
-
-	// ------------- Optional query parameter "platform" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "platform", ctx.QueryParams(), &params.Platform)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter platform: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Error unmarshaling query parameters: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
@@ -734,7 +534,8 @@ func (w *ServerInterfaceWrapper) GetFederatedNetwork(ctx echo.Context) error {
 	// ------------- Path parameter "network" -------------
 	var network network.Network
 
-	err = runtime.BindStyledParameterWithOptions("simple", "network", ctx.Param("network"), &network, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	//err = runtime.BindStyledParameterWithOptions("simple", "network", ctx.Param("network"), &network, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = BindPath(ctx, "network", &network)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter network: %s", err))
 	}
@@ -743,74 +544,11 @@ func (w *ServerInterfaceWrapper) GetFederatedNetwork(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetFederatedNetworkParams
-	// ------------- Optional query parameter "limit" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	binder := new(echo.DefaultBinder)
+	err = binder.BindQueryParams(ctx, &params)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "action_limit" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "action_limit", ctx.QueryParams(), &params.ActionLimit)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter action_limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "cursor" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
-	}
-
-	// ------------- Optional query parameter "since_timestamp" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "since_timestamp", ctx.QueryParams(), &params.SinceTimestamp)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter since_timestamp: %s", err))
-	}
-
-	// ------------- Optional query parameter "until_timestamp" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "until_timestamp", ctx.QueryParams(), &params.UntilTimestamp)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter until_timestamp: %s", err))
-	}
-
-	// ------------- Optional query parameter "success" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "success", ctx.QueryParams(), &params.Status)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter success: %s", err))
-	}
-
-	// ------------- Optional query parameter "direction" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "direction", ctx.QueryParams(), &params.Direction)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter direction: %s", err))
-	}
-
-	// ------------- Optional query parameter "tag" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "tag", ctx.QueryParams(), &params.Tag)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter tag: %s", err))
-	}
-
-	// ------------- Optional query parameter "type" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "type", ctx.QueryParams(), &params.Type)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter type: %s", err))
-	}
-
-	// ------------- Optional query parameter "platform" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "platform", ctx.QueryParams(), &params.Platform)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter platform: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Error unmarshaling query parameters: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
@@ -824,7 +562,8 @@ func (w *ServerInterfaceWrapper) GetFederatedPlatform(ctx echo.Context) error {
 	// ------------- Path parameter "platform" -------------
 	var platform federated.Platform
 
-	err = runtime.BindStyledParameterWithOptions("simple", "platform", ctx.Param("platform"), &platform, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	//err = runtime.BindStyledParameterWithOptions("simple", "platform", ctx.Param("platform"), &platform, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = BindPath(ctx, "platform", &platform)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter platform: %s", err))
 	}
@@ -833,74 +572,11 @@ func (w *ServerInterfaceWrapper) GetFederatedPlatform(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetFederatedPlatformParams
-	// ------------- Optional query parameter "limit" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	binder := new(echo.DefaultBinder)
+	err = binder.BindQueryParams(ctx, &params)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "action_limit" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "action_limit", ctx.QueryParams(), &params.ActionLimit)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter action_limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "cursor" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
-	}
-
-	// ------------- Optional query parameter "since_timestamp" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "since_timestamp", ctx.QueryParams(), &params.SinceTimestamp)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter since_timestamp: %s", err))
-	}
-
-	// ------------- Optional query parameter "until_timestamp" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "until_timestamp", ctx.QueryParams(), &params.UntilTimestamp)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter until_timestamp: %s", err))
-	}
-
-	// ------------- Optional query parameter "success" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "success", ctx.QueryParams(), &params.Status)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter success: %s", err))
-	}
-
-	// ------------- Optional query parameter "direction" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "direction", ctx.QueryParams(), &params.Direction)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter direction: %s", err))
-	}
-
-	// ------------- Optional query parameter "tag" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "tag", ctx.QueryParams(), &params.Tag)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter tag: %s", err))
-	}
-
-	// ------------- Optional query parameter "type" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "type", ctx.QueryParams(), &params.Type)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter type: %s", err))
-	}
-
-	// ------------- Optional query parameter "network" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "network", ctx.QueryParams(), &params.Network)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter network: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Error unmarshaling query parameters: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
@@ -914,7 +590,8 @@ func (w *ServerInterfaceWrapper) GetFederatedTxID(ctx echo.Context) error {
 	// ------------- Path parameter "id" -------------
 	var id string
 
-	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	//err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = BindPath(ctx, "id", &id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
 	}
@@ -923,18 +600,11 @@ func (w *ServerInterfaceWrapper) GetFederatedTxID(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetFederatedTxIDParams
-	// ------------- Optional query parameter "action_limit" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "action_limit", ctx.QueryParams(), &params.ActionLimit)
+	binder := new(echo.DefaultBinder)
+	err = binder.BindQueryParams(ctx, &params)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter action_limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "action_page" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "action_page", ctx.QueryParams(), &params.ActionPage)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter action_page: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Error unmarshaling query parameters: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
@@ -948,7 +618,8 @@ func (w *ServerInterfaceWrapper) GetFederatedAccount(ctx echo.Context) error {
 	// ------------- Path parameter "account" -------------
 	var account string
 
-	err = runtime.BindStyledParameterWithOptions("simple", "account", ctx.Param("account"), &account, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	//err = runtime.BindStyledParameterWithOptions("simple", "account", ctx.Param("account"), &account, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = BindPath(ctx, "account", &account)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter account: %s", err))
 	}
@@ -957,81 +628,11 @@ func (w *ServerInterfaceWrapper) GetFederatedAccount(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetFederatedAccountParams
-	// ------------- Optional query parameter "limit" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	binder := new(echo.DefaultBinder)
+	err = binder.BindQueryParams(ctx, &params)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "action_limit" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "action_limit", ctx.QueryParams(), &params.ActionLimit)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter action_limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "cursor" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
-	}
-
-	// ------------- Optional query parameter "since_timestamp" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "since_timestamp", ctx.QueryParams(), &params.SinceTimestamp)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter since_timestamp: %s", err))
-	}
-
-	// ------------- Optional query parameter "until_timestamp" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "until_timestamp", ctx.QueryParams(), &params.UntilTimestamp)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter until_timestamp: %s", err))
-	}
-
-	// ------------- Optional query parameter "success" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "success", ctx.QueryParams(), &params.Status)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter success: %s", err))
-	}
-
-	// ------------- Optional query parameter "direction" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "direction", ctx.QueryParams(), &params.Direction)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter direction: %s", err))
-	}
-
-	// ------------- Optional query parameter "network" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "network", ctx.QueryParams(), &params.Network)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter network: %s", err))
-	}
-
-	// ------------- Optional query parameter "tag" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "tag", ctx.QueryParams(), &params.Tag)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter tag: %s", err))
-	}
-
-	// ------------- Optional query parameter "type" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "type", ctx.QueryParams(), &params.Type)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter type: %s", err))
-	}
-
-	// ------------- Optional query parameter "platform" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "platform", ctx.QueryParams(), &params.Platform)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter platform: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Error unmarshaling query parameters: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
@@ -1072,7 +673,8 @@ func (w *ServerInterfaceWrapper) GetRSS(ctx echo.Context) error {
 	// ------------- Path parameter "path" -------------
 	var path string
 
-	err = runtime.BindStyledParameterWithOptions("simple", "path", ctx.Param("path"), &path, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	//err = runtime.BindStyledParameterWithOptions("simple", "path", ctx.Param("path"), &path, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = BindPath(ctx, "path", &path)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter path: %s", err))
 	}
@@ -1134,172 +736,175 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

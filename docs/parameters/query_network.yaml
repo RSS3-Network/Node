@@ -4,3 +4,5 @@ name: network
 required: false
 schema:
   $ref: "../schemas/Networks.yaml"
+x-oapi-codegen-extra-tags:
+  query: network
