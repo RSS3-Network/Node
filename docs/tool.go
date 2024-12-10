@@ -3,7 +3,6 @@ package docs
 //go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen --config=cfg.yaml api.yaml
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 
@@ -22,5 +21,6 @@ func BindPath(ctx echo.Context, paramName string, dest any) error {
 	} else if bu, ok := dest.(echo.BindUnmarshaler); ok {
 		return echo.PathParamsBinder(ctx).BindUnmarshaler(paramName, bu).BindError()
 	}
-	return errors.New(fmt.Sprintf("unsupported type %T", t.Kind()))
+
+	return fmt.Errorf("unsupported type %T", t.Kind())
 }

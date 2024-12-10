@@ -83,11 +83,6 @@ func (c *Component) GetAccountActivities(ctx echo.Context, account string, reque
 	if err = ctx.Validate(&request); err != nil {
 		return response.ValidationFailedError(ctx, err)
 	}
-	//
-	//direction, err := activityx.DirectionString(*request.Direction)
-	//if err != nil {
-	//	return response.BadRequestError(ctx, err)
-	//}
 
 	go c.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, account)
 
