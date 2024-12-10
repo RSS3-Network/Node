@@ -29,7 +29,12 @@ content:
         tag:
           $ref: "../schemas/Tags.yaml"
         type:
-          $ref: "../schemas/Types.yaml"
+          items:
+            allOf:
+              - $ref: "../schemas/ProtocolType.yaml"
+              - x-go-type: string
+          type: array
+          x-go-type-skip-optional-pointer: true
         platform:
           type: array
           items:

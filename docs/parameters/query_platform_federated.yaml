@@ -7,3 +7,5 @@ schema:
     $ref: "../schemas/FederatedPlatform.yaml"
   type: array
   x-go-type-skip-optional-pointer: true
+x-oapi-codegen-extra-tags:
+  query: platform

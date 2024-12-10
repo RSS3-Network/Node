@@ -1,4 +1,6 @@
 default: 1
 minimum: 1
 type: integer
-x-go-type-skip-optional-pointer: true
+x-oapi-codegen-extra-tags:
+  validate: "min=1"
+  default: "1"

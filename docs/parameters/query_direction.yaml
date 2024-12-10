@@ -4,3 +4,5 @@ name: direction
 required: false
 schema:
   $ref: "../schemas/ProtocolDirection.yaml"
+x-oapi-codegen-extra-tags:
+  query: direction

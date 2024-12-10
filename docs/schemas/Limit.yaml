@@ -4,4 +4,6 @@ example: 20
 default: 100
 minimum: 1
 maximum: 100
-x-go-type-skip-optional-pointer: true
+x-oapi-codegen-extra-tags:
+  validate: "min=1,max=100"
+  default: "100"
