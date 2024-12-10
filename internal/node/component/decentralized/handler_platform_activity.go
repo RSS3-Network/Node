@@ -58,7 +58,7 @@ func (c *Component) GetPlatformActivities(ctx echo.Context, plat decentralized.P
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(request.Type),
-		Platforms:      []decentralized.Platform{plat},
+		Platforms:      []string{plat.String()},
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)

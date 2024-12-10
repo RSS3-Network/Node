@@ -43,7 +43,7 @@ func (c *Component) GetPlatformActivities(ctx echo.Context, plat federated.Platf
 		return response.InternalError(ctx)
 	}
 
-	databaseRequest := model.FederatedActivitiesQuery{
+	databaseRequest := model.ActivitiesQuery{
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
@@ -54,7 +54,7 @@ func (c *Component) GetPlatformActivities(ctx echo.Context, plat federated.Platf
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(request.Type),
-		Platforms:      []federated.Platform{plat},
+		Platforms:      []string{plat.String()},
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)

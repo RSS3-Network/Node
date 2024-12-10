@@ -1,0 +1,9 @@
+description: Retrieve activities from the specified account.
+in: path
+name: account
+required: true
+schema:
+  $ref: "../schemas/AtprotoAccount.yaml"
+examples:
+  did:
+    value: "did:plc:wpyn57cwhtrq2oln7w5mylsb"

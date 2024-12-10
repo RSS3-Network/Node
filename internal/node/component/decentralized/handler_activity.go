@@ -123,7 +123,9 @@ func (c *Component) GetAccountActivities(ctx echo.Context, account string, reque
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(request.Type),
-		Platforms:      lo.Uniq(request.Platform),
+		Platforms: lo.Uniq(lo.Map(request.Platform, func(platform decentralized.Platform, _ int) string {
+			return platform.String()
+		})),
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
@@ -199,7 +201,9 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(request.Type),
-		Platforms:      lo.Uniq(request.Platform),
+		Platforms: lo.Uniq(lo.Map(request.Platform, func(platform decentralized.Platform, _ int) string {
+			return platform.String()
+		})),
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)

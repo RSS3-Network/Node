@@ -7,7 +7,7 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 servers:
-  - url: http://localhost:8080
+  - url: http://localhost
     description: Local development server
 tags:
   - name: RSS
@@ -16,6 +16,8 @@ tags:
     description: Retrieve the details of decentralized activities.
   - name: Federated
     description: Retrieve the details of federated activities.
+  - name: Atproto
+    description: Retrieve the details of atproto activities.
 paths:
   /decentralized/tx/{id}:
     $ref: "./path/decentralized/tx.yaml"
@@ -38,6 +40,9 @@ paths:
     $ref: "./path/federated/network.yaml"
   /federated/platform/{platform}:
     $ref: "./path/federated/platform.yaml"
+
+  /atproto/{account}:
+    $ref: "./path/atproto/account.yaml"
 
   # Rss route
   /rss/{path}:
