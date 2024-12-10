@@ -5,3 +5,5 @@ required: false
 schema:
   $ref: "../schemas/Success.yaml"
 x-go-name: Status
+x-oapi-codegen-extra-tags:
+  query: success

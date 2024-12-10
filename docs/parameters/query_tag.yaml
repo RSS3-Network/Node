@@ -4,3 +4,5 @@ name: tag
 required: false
 schema:
   $ref: "../schemas/Tags.yaml"
+x-oapi-codegen-extra-tags:
+  query: tag

@@ -4,3 +4,5 @@ name: until_timestamp
 required: false
 schema:
   $ref: "../schemas/Timestamp.yaml"
+x-oapi-codegen-extra-tags:
+  query: until_timestamp

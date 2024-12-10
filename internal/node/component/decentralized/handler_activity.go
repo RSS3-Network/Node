@@ -11,11 +11,8 @@ import (
 	"github.com/rss3-network/node/common/http/response"
 	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/node/schema/worker/decentralized"
-	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/node/internal/utils"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
-	"github.com/rss3-network/protocol-go/schema/network"
-	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
 	lop "github.com/samber/lo/parallel"
@@ -42,8 +39,8 @@ func (c *Component) GetActivity(ctx echo.Context, id string, request docs.GetDec
 
 	query := model.ActivityQuery{
 		ID:          lo.ToPtr(id),
-		ActionLimit: request.ActionLimit,
-		ActionPage:  request.ActionPage,
+		ActionLimit: lo.FromPtr(request.ActionLimit),
+		ActionPage:  lo.FromPtr(request.ActionPage),
 	}
 
 	activity, page, err := c.getActivity(ctx.Request().Context(), query)
@@ -85,6 +82,10 @@ func (c *Component) GetActivity(ctx echo.Context, id string, request docs.GetDec
 }
 
 func (c *Component) GetAccountActivities(ctx echo.Context, account string, request docs.GetDecentralizedAccountParams) (err error) {
+	if request.Type, err = utils.ParseTypes(ctx.QueryParams()["type"], request.Tag); err != nil {
+		return response.BadRequestError(ctx, err)
+	}
+
 	if err = defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
@@ -116,16 +117,14 @@ func (c *Component) GetAccountActivities(ctx echo.Context, account string, reque
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
 		Owner:          lo.ToPtr(common.HexToAddress(account).String()),
-		Limit:          request.Limit,
-		ActionLimit:    request.ActionLimit,
+		Limit:          lo.FromPtr(request.Limit),
+		ActionLimit:    lo.FromPtr(request.ActionLimit),
 		Status:         request.Status,
 		Direction:      request.Direction,
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(request.Type),
-		Platforms: lo.Uniq(lo.Map(request.Platform, func(platform decentralized.Platform, _ int) string {
-			return platform.String()
-		})),
+		Platforms:      lo.Uniq(request.Platform),
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
@@ -163,6 +162,11 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		}
 	}
 
+	types, err := utils.ParseTypes(request.Type, request.Tag)
+	if err != nil {
+		return response.BadRequestError(ctx, err)
+	}
+
 	if err = defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
@@ -194,16 +198,14 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
 		Owners:         lo.Uniq(request.Accounts),
-		Limit:          request.Limit,
-		ActionLimit:    request.ActionLimit,
+		Limit:          lo.FromPtr(request.Limit),
+		ActionLimit:    lo.FromPtr(request.ActionLimit),
 		Status:         request.Status,
 		Direction:      request.Direction,
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
-		Types:          lo.Uniq(request.Type),
-		Platforms: lo.Uniq(lo.Map(request.Platform, func(platform decentralized.Platform, _ int) string {
-			return platform.String()
-		})),
+		Types:          lo.Uniq(types),
+		Platforms:      lo.Uniq(request.Platform),
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
@@ -255,42 +257,6 @@ func (c *Component) TransformActivities(ctx context.Context, activities []*activ
 	})
 
 	return results
-}
-
-type ActivityRequest struct {
-	ID          string `param:"id"`
-	ActionLimit int    `query:"action_limit"  validate:"min=1,max=20" default:"10"`
-	ActionPage  int    `query:"action_page" validate:"min=1" default:"1"`
-}
-
-type AccountActivitiesRequest struct {
-	Account        string                   `param:"account" validate:"required"`
-	Limit          int                      `query:"limit" validate:"min=1,max=100" default:"100"`
-	ActionLimit    int                      `query:"action_limit" validate:"min=1,max=20" default:"10"`
-	Cursor         *string                  `query:"cursor"`
-	SinceTimestamp *uint64                  `query:"since_timestamp"`
-	UntilTimestamp *uint64                  `query:"until_timestamp"`
-	Status         *bool                    `query:"success"`
-	Direction      *activityx.Direction     `query:"direction"`
-	Network        []network.Network        `query:"network"`
-	Tag            []tag.Tag                `query:"tag"`
-	Type           []schema.Type            `query:"-"`
-	Platform       []decentralized.Platform `query:"platform"`
-}
-
-type AccountsActivitiesRequest struct {
-	Accounts       []string                 `json:"accounts" validate:"required"`
-	Limit          int                      `json:"limit" validate:"min=1,max=100" default:"100"`
-	ActionLimit    int                      `json:"action_limit" validate:"min=1,max=20" default:"10"`
-	Cursor         *string                  `json:"cursor"`
-	SinceTimestamp *uint64                  `json:"since_timestamp"`
-	UntilTimestamp *uint64                  `json:"until_timestamp"`
-	Status         *bool                    `json:"success"`
-	Direction      *activityx.Direction     `json:"direction"`
-	Network        []network.Network        `json:"network"`
-	Tag            []tag.Tag                `json:"tag"`
-	Type           []string                 `json:"type"`
-	Platform       []decentralized.Platform `json:"platform"`
 }
 
 type ActivityResponse struct {

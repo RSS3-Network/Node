@@ -10,7 +10,7 @@ import (
 	"github.com/rss3-network/node/common/http/response"
 	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/node/schema/worker/federated"
+	"github.com/rss3-network/node/internal/utils"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/samber/lo"
 	lop "github.com/samber/lo/parallel"
@@ -37,8 +37,8 @@ func (c *Component) GetActivity(ctx echo.Context, id string, request docs.GetFed
 
 	query := model.ActivityQuery{
 		ID:          lo.ToPtr(id),
-		ActionLimit: request.ActionLimit,
-		ActionPage:  request.ActionPage,
+		ActionLimit: lo.FromPtr(request.ActionLimit),
+		ActionPage:  lo.FromPtr(request.ActionPage),
 	}
 
 	activity, page, err := c.getActivity(ctx.Request().Context(), query)
@@ -72,6 +72,10 @@ func (c *Component) GetActivity(ctx echo.Context, id string, request docs.GetFed
 }
 
 func (c *Component) GetAccountActivities(ctx echo.Context, account string, request docs.GetFederatedAccountParams) (err error) {
+	if request.Type, err = utils.ParseTypes(ctx.QueryParams()["type"], request.Tag); err != nil {
+		return response.BadRequestError(ctx, err)
+	}
+
 	if err = defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
@@ -99,21 +103,19 @@ func (c *Component) GetAccountActivities(ctx echo.Context, account string, reque
 		return response.InternalError(ctx)
 	}
 
-	databaseRequest := model.ActivitiesQuery{
+	databaseRequest := model.FederatedActivitiesQuery{
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
 		Owner:          lo.ToPtr(account),
-		Limit:          request.Limit,
-		ActionLimit:    request.ActionLimit,
+		Limit:          lo.FromPtr(request.Limit),
+		ActionLimit:    lo.FromPtr(request.ActionLimit),
 		Status:         request.Status,
 		Direction:      request.Direction,
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(request.Type),
-		Platforms: lo.Uniq(lo.Map(request.Platform, func(platform federated.Platform, _ int) string {
-			return platform.String()
-		})),
+		Platforms:      lo.Uniq(request.Platform),
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
@@ -145,6 +147,11 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		return response.BadRequestError(ctx, err)
 	}
 
+	types, err := utils.ParseTypes(request.Type, request.Tag)
+	if err != nil {
+		return response.BadRequestError(ctx, err)
+	}
+
 	if err = defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
 	}
@@ -161,7 +168,7 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 
 	zap.L().Debug("processing federated batch accounts activities request",
 		zap.Any("accounts_count", request.Accounts),
-		zap.Int("limit", request.Limit))
+		zap.Int("limit", lo.FromPtr(request.Limit)))
 
 	cursor, err := c.getCursor(ctx.Request().Context(), request.Cursor)
 	if err != nil {
@@ -173,23 +180,21 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		return response.InternalError(ctx)
 	}
 
-	databaseRequest := model.ActivitiesQuery{
+	databaseRequest := model.FederatedActivitiesQuery{
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
 		Owners: lo.Uniq(lo.Map(request.Accounts, func(account string, _ int) string {
 			return account
 		})),
-		Limit:       request.Limit,
-		ActionLimit: request.ActionLimit,
+		Limit:       lo.FromPtr(request.Limit),
+		ActionLimit: lo.FromPtr(request.ActionLimit),
 		Status:      request.Status,
 		Direction:   request.Direction,
 		Network:     lo.Uniq(request.Network),
 		Tags:        lo.Uniq(request.Tag),
-		Types:       lo.Uniq(request.Type),
-		Platforms: lo.Uniq(lo.Map(request.Platform, func(platform federated.Platform, _ int) string {
-			return platform.String()
-		})),
+		Types:       lo.Uniq(types),
+		Platforms:   lo.Uniq(request.Platform),
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)

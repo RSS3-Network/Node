@@ -6,4 +6,5 @@ generate:
   echo-server: true
   embedded-spec: true
 output-options:
-  exclude-operation-ids: []
+  user-templates:
+    echo/echo-wrappers.tmpl: echo/echo-wrappers.tmpl

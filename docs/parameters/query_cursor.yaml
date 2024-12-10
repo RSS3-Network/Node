@@ -4,3 +4,5 @@ name: cursor
 required: false
 schema:
   $ref: "../schemas/Cursor.yaml"
+x-oapi-codegen-extra-tags:
+  query: cursor
