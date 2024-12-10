@@ -22,6 +22,7 @@ type Client interface {
 	DatasetFarcasterProfile
 	DatasetENSNamehash
 	DatasetMastodonHandle
+	DatasetBlueskyProfile
 
 	LoadCheckpoint(ctx context.Context, id string, network network.Network, worker string) (*engine.Checkpoint, error)
 	LoadCheckpoints(ctx context.Context, id string, network network.Network, worker string) ([]*engine.Checkpoint, error)
@@ -62,6 +63,11 @@ type DatasetENSNamehash interface {
 type DatasetMastodonHandle interface {
 	SaveRecentMastodonHandles(ctx context.Context, handles []*model.MastodonHandle) error
 	GetUpdatedMastodonHandles(ctx context.Context, query model.QueryMastodonHandles) ([]*model.MastodonHandle, error)
+}
+
+type DatasetBlueskyProfile interface {
+	LoadDatasetBlueskyProfiles(ctx context.Context, query model.QueryBlueskyProfiles) ([]*model.BlueskyProfile, error)
+	SaveDatasetBlueskyProfiles(ctx context.Context, profiles []*model.BlueskyProfile) error
 }
 
 var _ goose.Logger = (*SugaredLogger)(nil)

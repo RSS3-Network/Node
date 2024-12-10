@@ -7,6 +7,7 @@ import (
 	"github.com/bluesky-social/indigo/api/bsky"
 	"github.com/reiver/go-bsky/app/bsky/feed"
 	"github.com/rss3-network/node/internal/database"
+	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/atproto"
 	at "github.com/rss3-network/node/provider/atproto"
@@ -112,6 +113,8 @@ func (w *worker) Transform(ctx context.Context, task engine.Task) (*activityx.Ac
 	if len(activity.Actions) == 0 {
 		return nil, nil
 	}
+
+	w.saveProfiles(ctx, atprotoTask)
 
 	return activity, nil
 }
@@ -277,6 +280,26 @@ func (w *worker) buildPostMedia(embed *bsky.FeedPost_Embed) []metadata.Media {
 	}
 
 	return media
+}
+
+// saveProfiles saves the profiles to the database.
+func (w *worker) saveProfiles(ctx context.Context, task *source.Task) {
+	// Save profiles to the database.
+	profiles := []*model.BlueskyProfile{{
+		DID:    task.Message.Did.String(),
+		Handle: task.Message.Handle,
+	}}
+
+	if task.Message.RefMessage != nil {
+		profiles = append(profiles, &model.BlueskyProfile{
+			DID:    task.Message.RefMessage.Did.String(),
+			Handle: task.Message.RefMessage.Handle,
+		})
+	}
+
+	if err := w.databaseClient.SaveDatasetBlueskyProfiles(ctx, profiles); err != nil {
+		zap.L().Error("save profiles", zap.Error(err))
+	}
 }
 
 func NewWorker(databaseClient database.Client) (engine.Worker, error) {

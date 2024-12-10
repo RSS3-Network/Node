@@ -1,10 +1,5 @@
 package model
 
-type ProfileTransformer interface {
-	Import(profile *Profile) error
-	Export() (*Profile, error)
-}
-
 type Profile struct {
 	Fid            int64    `json:"fid"`             // Farcaster ID
 	Username       string   `json:"username"`        // Farcaster username

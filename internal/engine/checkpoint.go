@@ -7,11 +7,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 
-type CheckpointTransformer interface {
-	Import(checkpoint *Checkpoint) error
-	Export() (*Checkpoint, error)
-}
-
 type Checkpoint struct {
 	ID         string          `json:"id"`
 	Network    network.Network `json:"network"`

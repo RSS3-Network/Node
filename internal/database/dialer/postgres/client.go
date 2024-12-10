@@ -479,6 +479,75 @@ func (c *client) GetUpdatedMastodonHandles(ctx context.Context, query model.Quer
 	return result, nil
 }
 
+func (c *client) SaveDatasetBlueskyProfiles(ctx context.Context, profiles []*model.BlueskyProfile) error {
+	// build the mastodon update handle table
+	values := make([]table.DatasetBlueskyProfile, 0, len(profiles))
+
+	// Iterate through the handles and import them into the values slice
+	for _, profile := range profiles {
+		var value table.DatasetBlueskyProfile
+		if err := value.Import(profile); err != nil {
+			return err
+		}
+
+		values = append(values, value)
+	}
+
+	onConflictClause := clause.OnConflict{
+		Columns:   []clause.Column{{Name: "did"}},
+		UpdateAll: true,
+	}
+
+	return c.database.WithContext(ctx).Clauses(onConflictClause).CreateInBatches(&values, math.MaxUint8).Error
+}
+
+func (c *client) LoadDatasetBlueskyProfiles(ctx context.Context, query model.QueryBlueskyProfiles) ([]*model.BlueskyProfile, error) {
+	databaseStatement := c.database.WithContext(ctx).Table(table.DatasetBlueskyProfile{}.TableName())
+
+	if query.Cursor != nil {
+		var cursor *table.DatasetBlueskyProfile
+
+		if err := c.database.WithContext(ctx).First(&cursor, "did = ?", query.Cursor).Error; err != nil {
+			return nil, fmt.Errorf("get handle cursor: %w", err)
+		}
+
+		databaseStatement = databaseStatement.Where("updated_at < ? OR (updated_at = ? AND created_at < ?)", cursor.UpdatedAt, cursor.UpdatedAt, cursor.CreatedAt)
+	}
+
+	if query.Since != nil {
+		databaseStatement = databaseStatement.Where("updated_at > ?", time.UnixMilli(int64(*query.Since)))
+	}
+
+	if query.Limit != nil {
+		databaseStatement = databaseStatement.Limit(*query.Limit)
+	}
+
+	databaseStatement = databaseStatement.Order("updated_at DESC, created_at DESC")
+
+	var profiles []*table.DatasetBlueskyProfile
+
+	if err := databaseStatement.Find(&profiles).Error; err != nil {
+		return nil, err
+	}
+
+	result := make([]*model.BlueskyProfile, 0, len(profiles))
+
+	for _, profile := range profiles {
+		var (
+			value *model.BlueskyProfile
+			err   error
+		)
+
+		if value, err = profile.Export(); err != nil {
+			return nil, err
+		}
+
+		result = append(result, value)
+	}
+
+	return result, nil
+}
+
 // Dial dials a database.
 func Dial(ctx context.Context, dataSourceName string, partition bool) (database.Client, error) {
 	var err error

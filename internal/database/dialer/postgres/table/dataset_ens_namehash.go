@@ -5,8 +5,6 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 )
 
-var _ model.ENSNamehashTransformer = (*DatasetENSNamehash)(nil)
-
 type DatasetENSNamehash struct {
 	Hash common.Hash `gorm:"column:hash;primary_key"`
 	Name string      `gorm:"column:name;index:idx_ensnamehash_name"`
