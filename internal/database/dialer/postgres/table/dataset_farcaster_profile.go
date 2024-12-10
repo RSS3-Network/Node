@@ -5,8 +5,6 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 )
 
-var _ model.ProfileTransformer = (*DatasetFarcasterProfile)(nil)
-
 type DatasetFarcasterProfile struct {
 	Fid            int64          `gorm:"column:fid"`
 	Username       string         `gorm:"column:username"`

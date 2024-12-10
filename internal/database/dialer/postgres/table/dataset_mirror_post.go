@@ -4,8 +4,6 @@ import (
 	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/mirror/model"
 )
 
-var _ model.DatasetMirrorPostTransformer = (*DatasetMirrorPost)(nil)
-
 // DatasetMirrorPost represents a mirror post for revise logic check.
 type DatasetMirrorPost struct {
 	ID                  string `gorm:"column:id;primary_key"`

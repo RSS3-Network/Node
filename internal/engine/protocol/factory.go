@@ -9,6 +9,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/internal/engine/protocol/activitypub"
 	"github.com/rss3-network/node/internal/engine/protocol/arweave"
+	"github.com/rss3-network/node/internal/engine/protocol/atproto"
 	"github.com/rss3-network/node/internal/engine/protocol/ethereum"
 	"github.com/rss3-network/node/internal/engine/protocol/farcaster"
 	"github.com/rss3-network/node/internal/engine/protocol/near"
@@ -28,6 +29,8 @@ func New(config *config.Module, sourceFilter engine.DataSourceFilter, checkpoint
 		return activitypub.NewSource(config, checkpoint, databaseClient)
 	case network.NearProtocol:
 		return near.NewSource(config, sourceFilter, checkpoint, redisClient)
+	case network.ATProtocol:
+		return atproto.NewSource(config, sourceFilter, checkpoint, databaseClient)
 	default:
 		return nil, fmt.Errorf("unsupported network protocol %s", config.Network)
 	}

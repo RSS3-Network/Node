@@ -6,8 +6,6 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 )
 
-var _ model.MastodonHandleTransformer = (*DatasetMastodonUpdateHandle)(nil)
-
 type DatasetMastodonUpdateHandle struct {
 	Handle    string    `gorm:"column:handle;primaryKey"`
 	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime"`

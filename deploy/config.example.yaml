@@ -95,3 +95,12 @@ component:
       parameters:
         relay_url_list: [ "https://relay.fedi.buzz/instance/mastodon.social"]
         port: 8181
+  atproto:
+    # bluesky
+    - id: bluesky-core
+      network: bluesky
+      worker: core
+      endpoint:
+      parameters:
+        username:
+        password:

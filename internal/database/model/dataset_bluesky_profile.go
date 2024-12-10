@@ -2,19 +2,14 @@ package model
 
 import "time"
 
-type MastodonHandle struct {
+type BlueskyProfile struct {
+	DID       string    `json:"did"`
 	Handle    string    `json:"handle"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type PaginatedMastodonHandles struct {
-	Handles    []string
-	TotalCount int64
-	NextCursor string
-}
-
-type QueryMastodonHandles struct {
+type QueryBlueskyProfiles struct {
 	Since  *uint64
 	Limit  *int
 	Cursor *string

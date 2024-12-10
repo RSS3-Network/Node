@@ -8,8 +8,6 @@ import (
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 
-var _ engine.CheckpointTransformer = (*Checkpoint)(nil)
-
 type Checkpoint struct {
 	ID         string          `gorm:"column:id"`
 	Network    network.Network `gorm:"column:network"`

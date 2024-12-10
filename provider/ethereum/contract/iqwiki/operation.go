@@ -228,12 +228,12 @@ query ActivityByWikiIdAndBlock ($block: Int!, $wikiId: String) {
 `
 
 func ActivityByWikiIdAndBlock(
-	ctx context.Context,
-	client graphql.Client,
+	ctx_ context.Context,
+	client_ graphql.Client,
 	block int,
 	wikiId string,
 ) (*ActivityByWikiIdAndBlockResponse, error) {
-	req := &graphql.Request{
+	req_ := &graphql.Request{
 		OpName: "ActivityByWikiIdAndBlock",
 		Query:  ActivityByWikiIdAndBlock_Operation,
 		Variables: &__ActivityByWikiIdAndBlockInput{
@@ -241,16 +241,16 @@ func ActivityByWikiIdAndBlock(
 			WikiId: wikiId,
 		},
 	}
-	var err error
+	var err_ error
 
-	var data ActivityByWikiIdAndBlockResponse
-	resp := &graphql.Response{Data: &data}
+	var data_ ActivityByWikiIdAndBlockResponse
+	resp_ := &graphql.Response{Data: &data_}
 
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
 	)
 
-	return &data, err
+	return &data_, err_
 }

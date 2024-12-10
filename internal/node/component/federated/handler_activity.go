@@ -11,6 +11,7 @@ import (
 	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/utils"
+	"github.com/rss3-network/node/schema/worker/federated"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/samber/lo"
 	lop "github.com/samber/lo/parallel"
@@ -103,7 +104,7 @@ func (c *Component) GetAccountActivities(ctx echo.Context, account string, reque
 		return response.InternalError(ctx)
 	}
 
-	databaseRequest := model.FederatedActivitiesQuery{
+	databaseRequest := model.ActivitiesQuery{
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
@@ -115,7 +116,9 @@ func (c *Component) GetAccountActivities(ctx echo.Context, account string, reque
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(request.Type),
-		Platforms:      lo.Uniq(request.Platform),
+		Platforms: lo.Uniq(lo.Map(request.Platform, func(platform federated.Platform, _ int) string {
+			return platform.String()
+		})),
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
@@ -180,7 +183,7 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		return response.InternalError(ctx)
 	}
 
-	databaseRequest := model.FederatedActivitiesQuery{
+	databaseRequest := model.ActivitiesQuery{
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
@@ -194,7 +197,9 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		Network:     lo.Uniq(request.Network),
 		Tags:        lo.Uniq(request.Tag),
 		Types:       lo.Uniq(types),
-		Platforms:   lo.Uniq(request.Platform),
+		Platforms: lo.Uniq(lo.Map(request.Platform, func(platform federated.Platform, _ int) string {
+			return platform.String()
+		})),
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
