@@ -85,7 +85,7 @@ component:
       parameters:
         # `concurrent_block_requests` is used to specify the number of concurrent block requests.
         concurrent_block_requests: 2
-  # `federated` network type includes workers indexing data from federated networks such as ActivityPub.
+  # `federated` network type includes workers indexing data from federated networks such as ActivityPub, Atprotocol.
   federated:
     # mastodon
     - id: mastodon-core
@@ -95,7 +95,6 @@ component:
       parameters:
         relay_url_list: [ "https://relay.fedi.buzz/instance/mastodon.social"]
         port: 8181
-  atproto:
     # bluesky
     - id: bluesky-core
       network: bluesky
