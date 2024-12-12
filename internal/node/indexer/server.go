@@ -14,7 +14,6 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/engine"
 	"github.com/rss3-network/node/internal/engine/protocol"
-	atprotoWorker "github.com/rss3-network/node/internal/engine/worker/atproto"
 	decentralizedWorker "github.com/rss3-network/node/internal/engine/worker/decentralized"
 	federatedWorker "github.com/rss3-network/node/internal/engine/worker/federated"
 	"github.com/rss3-network/node/internal/node/monitor"
@@ -343,18 +342,12 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 
 		zap.L().Debug("created decentralized worker",
 			zap.String("protocol", string(config.Network.Protocol())))
-	case network.ActivityPubProtocol:
+	case network.ActivityPubProtocol, network.ATProtocol:
 		if instance.worker, err = federatedWorker.New(instance.config, databaseClient, instance.redisClient); err != nil {
 			return nil, fmt.Errorf("new federated worker: %w", err)
 		}
 
 		zap.L().Debug("created federated worker")
-	case network.ATProtocol:
-		if instance.worker, err = atprotoWorker.New(instance.config, databaseClient); err != nil {
-			return nil, fmt.Errorf("new atproto worker: %w", err)
-		}
-
-		zap.L().Debug("create atproto worker")
 	default:
 		return nil, fmt.Errorf("unknown worker protocol: %s", config.Network.Protocol())
 	}

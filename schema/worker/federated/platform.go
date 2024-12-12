@@ -9,6 +9,7 @@ type Platform uint64
 const (
 	PlatformUnknown  Platform = iota // Unknown
 	PlatformMastodon                 // Mastodon
+	PlatformBluesky                  // Bluesky
 )
 
 var _ echo.BindUnmarshaler = (*Platform)(nil)
@@ -26,5 +27,6 @@ func (p *Platform) UnmarshalParam(param string) error {
 
 // ToPlatformMap is a map of worker to platform
 var ToPlatformMap = map[Worker]Platform{
-	Core: PlatformMastodon,
+	Mastodon: PlatformMastodon,
+	Bluesky:  PlatformBluesky,
 }

@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-const _WorkerName = "core"
+const _WorkerName = "mastodonbluesky"
 
-var _WorkerIndex = [...]uint8{0, 4}
+var _WorkerIndex = [...]uint8{0, 8, 15}
 
-const _WorkerLowerName = "core"
+const _WorkerLowerName = "mastodonbluesky"
 
 func (i Worker) String() string {
 	i -= 1
@@ -31,18 +31,22 @@ func (Worker) Values() []string {
 // Re-run the stringer command to generate them again.
 func _WorkerNoOp() {
 	var x [1]struct{}
-	_ = x[Core-(1)]
+	_ = x[Mastodon-(1)]
+	_ = x[Bluesky-(2)]
 }
 
-var _WorkerValues = []Worker{Core}
+var _WorkerValues = []Worker{Mastodon, Bluesky}
 
 var _WorkerNameToValueMap = map[string]Worker{
-	_WorkerName[0:4]:      Core,
-	_WorkerLowerName[0:4]: Core,
+	_WorkerName[0:8]:       Mastodon,
+	_WorkerLowerName[0:8]:  Mastodon,
+	_WorkerName[8:15]:      Bluesky,
+	_WorkerLowerName[8:15]: Bluesky,
 }
 
 var _WorkerNames = []string{
-	_WorkerName[0:4],
+	_WorkerName[0:8],
+	_WorkerName[8:15],
 }
 
 // WorkerString retrieves an enum value from the enum constants string name.

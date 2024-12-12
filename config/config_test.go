@@ -323,7 +323,7 @@ var configFileExpected = &File{
 		Federated: []*Module{
 			{
 				Network:    network.Mastodon,
-				Worker:     federated.Core,
+				Worker:     federated.Mastodon,
 				EndpointID: "mastodon",
 				Endpoint: Endpoint{
 					URL: "https://newdomain.ngrok.app",

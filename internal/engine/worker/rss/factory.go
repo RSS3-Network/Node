@@ -7,7 +7,7 @@ import (
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/engine"
-	"github.com/rss3-network/node/internal/engine/worker/federated/core/mastodon"
+	"github.com/rss3-network/node/internal/engine/worker/federated/mastodon"
 	"github.com/rss3-network/node/schema/worker/rss"
 )
 

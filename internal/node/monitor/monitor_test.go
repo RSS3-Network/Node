@@ -944,7 +944,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "mastodon-core",
 								Network: network.Mastodon,
-								Worker:  federated.Core,
+								Worker:  federated.Mastodon,
 								Parameters: &config.Parameters{
 									"relay_url_list": []string{
 										"https://relay.fedi.buzz/instance/mastodon.social",
@@ -972,7 +972,7 @@ func TestMonitor(t *testing.T) {
 							{
 								ID:      "mastodon-core",
 								Network: network.Mastodon,
-								Worker:  federated.Core,
+								Worker:  federated.Mastodon,
 								Parameters: &config.Parameters{
 									"relay_url_list": []string{
 										"https://relay.wszz/instance/mast.ocial",

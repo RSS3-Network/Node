@@ -1,6 +1,7 @@
 type: string
 enum:
-  - core
+  - mastodon
+  - bluesky
 x-go-type: federated.Worker
 x-go-type-skip-optional-pointer: true
 x-go-type-import:

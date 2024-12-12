@@ -2,6 +2,7 @@ type: string
 enum:
   - Unknown
   - Mastodon
+  - Bluesky
 x-go-type: federated.Platform
 x-go-type-skip-optional-pointer: true
 x-go-type-import:

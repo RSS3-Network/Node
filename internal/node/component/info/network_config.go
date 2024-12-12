@@ -399,7 +399,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Zerion,
 	},
 	network.Mastodon: {
-		federated.Core,
+		federated.Mastodon,
 	},
 	network.Near: {
 		decentralized.Core,
@@ -451,7 +451,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 // WorkerToConfigMap is a map of worker to config.
 var WorkerToConfigMap = map[network.Protocol]map[worker.Worker]workerConfig{
 	network.ActivityPubProtocol: {
-		federated.Core: customWorkerConfig(federated.Core, network.ActivityPubProtocol, &Parameters{
+		federated.Mastodon: customWorkerConfig(federated.Mastodon, network.ActivityPubProtocol, &Parameters{
 			RelayURLList: &ConfigDetail{
 				IsRequired:  false,
 				Type:        URLArrayType,

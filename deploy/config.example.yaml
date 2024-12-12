@@ -90,7 +90,7 @@ component:
     # mastodon
     - id: mastodon-core
       network: mastodon
-      worker: core
+      worker: mastodon
       endpoint: mastodon
       parameters:
         relay_url_list: [ "https://relay.fedi.buzz/instance/mastodon.social"]
@@ -99,7 +99,7 @@ component:
     # bluesky
     - id: bluesky-core
       network: bluesky
-      worker: core
+      worker: bluesky
       endpoint:
       parameters:
         username:
