@@ -11,7 +11,7 @@ import (
 	"github.com/rss3-network/node/internal/engine"
 	source "github.com/rss3-network/node/internal/engine/protocol/atproto"
 	at "github.com/rss3-network/node/provider/atproto"
-	"github.com/rss3-network/node/schema/worker/atproto"
+	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
@@ -33,11 +33,11 @@ type worker struct {
 }
 
 func (w *worker) Name() string {
-	return atproto.Core.String()
+	return federated.Bluesky.String()
 }
 
 func (w *worker) Platform() string {
-	return atproto.PlatformBluesky.String()
+	return federated.PlatformBluesky.String()
 }
 
 func (w *worker) Network() []network.Network {
@@ -238,7 +238,7 @@ func (w *worker) buildPostAction(from string, to string, typex schema.Type, post
 	return &activityx.Action{
 		Tag:      typex.Tag(),
 		Type:     typex,
-		Platform: atproto.PlatformBluesky.String(),
+		Platform: federated.PlatformBluesky.String(),
 		From:     from,
 		To:       to,
 		Metadata: post,

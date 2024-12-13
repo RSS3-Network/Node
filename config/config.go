@@ -14,7 +14,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/rss3-network/node/provider/ethereum"
 	"github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/node/schema/worker/atproto"
 	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
@@ -284,15 +283,6 @@ func _Setup(configName, configType string, v *viper.Viper) (*File, error) {
 		if rssWorker := rss.GetValueByWorkerStr(configFile.Component.RSS.Worker.Name()); rssWorker != 0 {
 			configFile.Component.RSS.Worker = rssWorker
 			zap.L().Debug("converted RSS worker", zap.String("name", configFile.Component.RSS.Worker.Name()))
-		}
-	}
-
-	// Add extra logic to convert atproto worker string to correct worker type.
-	if configFile.Component.Atproto != nil {
-		for _, module := range configFile.Component.Atproto {
-			if atprotoWorker := atproto.GetValueByWorkerStr(module.Worker.Name()); atprotoWorker != 0 {
-				module.Worker = atprotoWorker
-			}
 		}
 	}
 

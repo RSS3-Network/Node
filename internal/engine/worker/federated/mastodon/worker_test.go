@@ -56,6 +56,7 @@ func setup(t *testing.T) {
 			// If starting fails, wait a bit and try again
 			time.Sleep(time.Second * 2)
 		}
+
 		require.NoError(t, err, "Failed to start Redis container after multiple attempts")
 
 		t.Cleanup(func() {

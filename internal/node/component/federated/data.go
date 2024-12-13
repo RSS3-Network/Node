@@ -70,7 +70,12 @@ func (c *Component) transformCursor(_ context.Context, activity *activityx.Activ
 	return fmt.Sprintf("%s:%s", activity.ID, activity.Network)
 }
 
-// getUpdatedHandles retrieves the updated Mastodon handles from the database.
-func (c *Component) getUpdatedHandles(ctx context.Context, query model.QueryMastodonHandles) ([]*model.MastodonHandle, error) {
+// loadMastodonHandles retrieves the updated Mastodon handles from the database.
+func (c *Component) loadMastodonHandles(ctx context.Context, query model.QueryMastodonHandles) ([]*model.MastodonHandle, error) {
 	return c.databaseClient.GetUpdatedMastodonHandles(ctx, query)
+}
+
+// loadBlueskyProfiles retrieves the Bluesky profiles from the database.
+func (c *Component) loadBlueskyProfiles(ctx context.Context, query model.QueryBlueskyProfiles) ([]*model.BlueskyProfile, error) {
+	return c.databaseClient.LoadDatasetBlueskyProfiles(ctx, query)
 }
