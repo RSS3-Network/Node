@@ -2,6 +2,7 @@ package federated
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/creasty/defaults"
@@ -37,8 +38,13 @@ func (c *Component) GetHandles(ctx echo.Context) error {
 		cursor  string
 	)
 
-	if request.Platform == federated.PlatformMastodon {
+	switch request.Platform {
+	case federated.PlatformMastodon:
 		handles, err = c.getMastodonHandles(ctx.Request().Context(), request)
+	case federated.PlatformBluesky:
+		handles, err = c.getBlueskyHandles(ctx.Request().Context(), request)
+	default:
+		return response.BadRequestError(ctx, fmt.Errorf("unsupported platform"))
 	}
 
 	if err != nil {

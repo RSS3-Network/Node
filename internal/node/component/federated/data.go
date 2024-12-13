@@ -120,7 +120,7 @@ func (c *Component) transformHandler(ctx context.Context, owners []string) []str
 
 	if len(blueskyProfiles) > 0 {
 		for _, profile := range blueskyProfiles {
-			results = append(results, profile.Handle)
+			results = append(results, profile.DID)
 		}
 	}
 
