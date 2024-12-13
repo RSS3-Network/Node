@@ -522,6 +522,10 @@ func (c *client) LoadDatasetBlueskyProfiles(ctx context.Context, query model.Que
 		databaseStatement = databaseStatement.Limit(*query.Limit)
 	}
 
+	if query.Handles != nil {
+		databaseStatement = databaseStatement.Where("handle IN ?", query.Handles)
+	}
+
 	databaseStatement = databaseStatement.Order("updated_at DESC, created_at DESC")
 
 	var profiles []*table.DatasetBlueskyProfile

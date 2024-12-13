@@ -3,6 +3,7 @@ package federated
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"strings"
 
 	"github.com/rss3-network/node/internal/database/model"
@@ -12,10 +13,38 @@ import (
 )
 
 func (c *Component) getActivity(ctx context.Context, request model.ActivityQuery) (*activityx.Activity, *int, error) {
+	if request.Owner != nil {
+		owner := c.transformHandler(ctx, []string{lo.FromPtr(request.Owner)})
+
+		if len(owner) == 0 {
+			return nil, nil, nil
+		}
+
+		request.Owner = lo.ToPtr(owner[0])
+	}
+
 	return c.databaseClient.FindActivity(ctx, request)
 }
 
 func (c *Component) getActivities(ctx context.Context, request model.ActivitiesQuery) ([]*activityx.Activity, string, error) {
+	if request.Owner != nil {
+		owner := c.transformHandler(ctx, []string{lo.FromPtr(request.Owner)})
+
+		if len(owner) == 0 {
+			return nil, "", nil
+		}
+
+		request.Owner = lo.ToPtr(owner[0])
+	}
+
+	if len(request.Owners) > 0 {
+		request.Owners = c.transformHandler(ctx, request.Owners)
+
+		if len(request.Owners) == 0 {
+			return nil, "", nil
+		}
+	}
+
 	activities, err := c.databaseClient.FindActivities(ctx, request)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to find activities: %w", err)
@@ -68,6 +97,34 @@ func (c *Component) transformCursor(_ context.Context, activity *activityx.Activ
 	}
 
 	return fmt.Sprintf("%s:%s", activity.ID, activity.Network)
+}
+
+func (c *Component) transformHandler(ctx context.Context, owners []string) []string {
+	var (
+		blueskyHandlers = make([]string, 0, len(owners))
+		results         = make([]string, 0, len(owners))
+	)
+
+	for _, owner := range owners {
+		if strings.Contains(owner, ".bsky.social") {
+			blueskyHandlers = append(blueskyHandlers, owner)
+		} else {
+			results = append(results, owner)
+		}
+	}
+
+	blueskyProfiles, err := c.loadBlueskyProfiles(ctx, model.QueryBlueskyProfiles{Handles: blueskyHandlers})
+	if err != nil {
+		zap.L().Error("failed to load bluesky profiles", zap.Error(err))
+	}
+
+	if len(blueskyProfiles) > 0 {
+		for _, profile := range blueskyProfiles {
+			results = append(results, profile.Handle)
+		}
+	}
+
+	return results
 }
 
 // loadMastodonHandles retrieves the updated Mastodon handles from the database.

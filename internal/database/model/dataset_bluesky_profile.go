@@ -10,7 +10,8 @@ type BlueskyProfile struct {
 }
 
 type QueryBlueskyProfiles struct {
-	Since  *uint64
-	Limit  *int
-	Cursor *string
+	Since   *uint64
+	Limit   *int
+	Cursor  *string
+	Handles []string
 }
