@@ -132,7 +132,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Network: network.Ethereum,
 				Index:   4,
 				From:    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-				To:      uniswap.AddressUniversalRouter.String(),
+				To:      uniswap.AddressUniversalRouter02.String(),
 				Type:    typex.ExchangeSwap,
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x3593564c",
@@ -346,7 +346,7 @@ func TestWorker_Ethereum(t *testing.T) {
 				Network: network.Ethereum,
 				Index:   113,
 				From:    "0xB5A7c3f565f0DFDb4EE63d0ca4b4d59fa69c391C",
-				To:      uniswap.AddressUniversalRouter.String(),
+				To:      uniswap.AddressUniversalRouter02.String(),
 				Type:    typex.ExchangeSwap,
 				Calldata: &activityx.Calldata{
 					FunctionHash: "0x24856bc3",
@@ -361,7 +361,7 @@ func TestWorker_Ethereum(t *testing.T) {
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.PlatformUniswap.String(),
 						From:     "0xB5A7c3f565f0DFDb4EE63d0ca4b4d59fa69c391C",
-						To:       uniswap.AddressUniversalRouter.String(),
+						To:       uniswap.AddressUniversalRouter02.String(),
 						Metadata: metadata.ExchangeSwap{
 							From: metadata.Token{
 								Address:  lo.ToPtr("0x5f98805A4E8be255a32880FDeC7F6728C6568bA0"),
@@ -384,8 +384,8 @@ func TestWorker_Ethereum(t *testing.T) {
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.PlatformUniswap.String(),
-						From:     uniswap.AddressUniversalRouter.String(),
-						To:       uniswap.AddressUniversalRouter.String(),
+						From:     uniswap.AddressUniversalRouter02.String(),
+						To:       uniswap.AddressUniversalRouter02.String(),
 						Metadata: metadata.ExchangeSwap{
 							From: metadata.Token{
 								Address:  lo.ToPtr("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
@@ -408,7 +408,7 @@ func TestWorker_Ethereum(t *testing.T) {
 					{
 						Type:     typex.ExchangeSwap,
 						Platform: workerx.PlatformUniswap.String(),
-						From:     uniswap.AddressUniversalRouter.String(),
+						From:     uniswap.AddressUniversalRouter02.String(),
 						To:       "0xB5A7c3f565f0DFDb4EE63d0ca4b4d59fa69c391C",
 						Metadata: metadata.ExchangeSwap{
 							From: metadata.Token{
