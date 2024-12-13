@@ -44,18 +44,19 @@ paths:
     $ref: "./path/rss.yaml"
 
   # Operator route
+  /operators:
+    $ref: "./path/home.yaml"
+  /operators/activity_count:
+    $ref: "./path/activity_count.yaml"
   /operators/workers_status:
     $ref: "./path/workers_status.yaml"
   /operators/info:
     $ref: "./path/info.yaml"
 
   # Info routes without auth
-  /:
-    $ref: "./path/home.yaml"
   /networks/config:
     $ref: "./path/networks/config.yaml"
-  /activity_count:
-    $ref: "./path/activity_count.yaml"
+
 
 components:
   securitySchemes:
