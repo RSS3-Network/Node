@@ -21,6 +21,7 @@ import (
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/NonfungiblePositionManager.abi --pkg uniswap --type NonfungiblePositionManager --out contract_nonfungible_position_manager.go
 
 // https://docs.uniswap.org/
+// https://github.com/Uniswap/universal-router/blob/main/deploy-addresses/mainnet.json
 var (
 	AddressV1Factory                       = common.HexToAddress("0xc0a47dFe034B400B47bDaD5FecDa2621de6c4d95")
 	AddressV2Migrator                      = common.HexToAddress("0x16D4F26C15f3658ec65B1126ff27DD3dF2a2996b")
@@ -40,7 +41,8 @@ var (
 	AddressV3FactoryLinea                  = common.HexToAddress("0x31FAfd4889FA1269F7a13A66eE0fB458f27D72A9")
 	AddressV3FactoryCelo                   = common.HexToAddress("0xAfE208a311B21f13EF87E33A90049fC17A7acDEc")
 	AddressV3FactoryBinanceSmartChain      = common.HexToAddress("0xdB1d10011AD0Ff90774D0C6Bb92e5C5c8b4461F7")
-	AddressUniversalRouter                 = common.HexToAddress("0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B")
+	AddressUniversalRouter01               = common.HexToAddress("0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD")
+	AddressUniversalRouter02               = common.HexToAddress("0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B")
 	AddressNonfungiblePositionManager      = common.HexToAddress("0xC36442b4a4522E871399CD717aBDD847Ab11FE88")
 	AddressNonfungiblePositionManagerLinea = common.HexToAddress("0x4615C383F85D0a2BbED973d83ccecf5CB7121463")
 	AddressV2SwapRouterSAVM                = common.HexToAddress("0xC7c934E224e8567df50058A907904b451bD1c57D")
