@@ -6,9 +6,7 @@ import (
 )
 
 func New(_ *config.Module) (engine.Worker, error) {
-
 	// Not implemented
 	// If the rsshub worker exists, it will be started by default, and there will not be a separate worker instance
-
 	return nil, nil
 }
