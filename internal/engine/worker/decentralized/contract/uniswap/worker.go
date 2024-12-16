@@ -147,7 +147,8 @@ func (w *worker) matchSwapTransaction(task *source.Task, transaction *ethereum.T
 		uniswap.AddressV3SwapRouter02Celo,
 		uniswap.AddressV3SwapRouter02BinanceSmartChain,
 		uniswap.AddressV3SwapRouter02Linea,
-		uniswap.AddressUniversalRouter:
+		uniswap.AddressUniversalRouter01,
+		uniswap.AddressUniversalRouter02:
 		return true
 	case // Uniswap V2
 		uniswap.AddressV2SwapRouter01,
