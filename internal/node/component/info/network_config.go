@@ -467,6 +467,7 @@ var WorkerToConfigMap = map[network.Protocol]map[worker.Worker]workerConfig{
 				Key:         "parameters.port",
 			},
 		}, mastodonInstanceEndpointDescription),
+		federated.Bluesky: customWorkerConfigWithoutEndpoint(federated.Bluesky, network.ActivityPubProtocol, nil, false),
 	},
 	network.ArweaveProtocol: {
 		decentralized.Mirror:    customWorkerConfigWithoutEndpoint(decentralized.Mirror, network.ArweaveProtocol, nil, true),

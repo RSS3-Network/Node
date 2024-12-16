@@ -33,7 +33,7 @@ func (c *Component) GetHandles(ctx echo.Context) error {
 	}
 
 	var (
-		handles = make([]string, 0)
+		handles []string
 		err     error
 		cursor  string
 	)

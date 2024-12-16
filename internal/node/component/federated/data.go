@@ -3,13 +3,13 @@ package federated
 import (
 	"context"
 	"fmt"
-	"go.uber.org/zap"
 	"strings"
 
 	"github.com/rss3-network/node/internal/database/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 func (c *Component) getActivity(ctx context.Context, request model.ActivityQuery) (*activityx.Activity, *int, error) {

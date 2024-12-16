@@ -507,7 +507,7 @@ func (c *client) LoadDatasetBlueskyProfiles(ctx context.Context, query model.Que
 	if query.Cursor != nil {
 		var cursor *table.DatasetBlueskyProfile
 
-		if err := c.database.WithContext(ctx).First(&cursor, "did = ?", query.Cursor).Error; err != nil {
+		if err := c.database.WithContext(ctx).First(&cursor, "handle = ?", query.Cursor).Error; err != nil {
 			return nil, fmt.Errorf("get handle cursor: %w", err)
 		}
 

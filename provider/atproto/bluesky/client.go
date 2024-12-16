@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/avast/retry-go/v4"
 	"net"
 	"net/http"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
+	"github.com/avast/retry-go/v4"
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/api/bsky"
 	"github.com/bluesky-social/indigo/atproto/identity"
@@ -630,10 +630,10 @@ func (c *Client) LookupDIDEndpoint(ctx context.Context, did syntax.DID) string {
 	return BskyEndpoint
 }
 
-func (c *Client) retrySource(ctx context.Context, Func func(ctx context.Context) error) error {
+func (c *Client) retrySource(ctx context.Context, f func(ctx context.Context) error) error {
 	return retry.Do(
 		func() error {
-			return Func(ctx)
+			return f(ctx)
 		},
 		retry.Attempts(0),
 		retry.Delay(5*time.Second),

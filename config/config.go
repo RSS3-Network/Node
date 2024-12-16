@@ -90,7 +90,6 @@ type Server struct {
 type Component struct {
 	RSS           *Module   `mapstructure:"rss"`
 	Federated     []*Module `mapstructure:"federated" validate:"dive"`
-	Atproto       []*Module `mapstructure:"atproto" validate:"dive"`
 	Decentralized []*Module `mapstructure:"decentralized" validate:"dive"`
 }
 

@@ -329,11 +329,6 @@ func findModuleByID(configFile *config.File, workerID string) (*config.Module, e
 		return module, nil
 	}
 
-	// Search in atproto components
-	if module, found := findInComponent(configFile.Component.Atproto); found {
-		return module, nil
-	}
-
 	return nil, fmt.Errorf("undefined module %s", workerID)
 }
 
