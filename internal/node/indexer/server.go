@@ -342,7 +342,7 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 
 		zap.L().Debug("created decentralized worker",
 			zap.String("protocol", string(config.Network.Protocol())))
-	case network.ActivityPubProtocol:
+	case network.ActivityPubProtocol, network.ATProtocol:
 		if instance.worker, err = federatedWorker.New(instance.config, databaseClient, instance.redisClient); err != nil {
 			return nil, fmt.Errorf("new federated worker: %w", err)
 		}

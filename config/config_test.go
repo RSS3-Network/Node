@@ -70,11 +70,17 @@ component:
           access_key: abc
           access_code: def
   federated:
-      network: mastodon
-      worker: core
+    - network: mastodon
+      worker: mastodon
       endpoint: mastodon
       parameters:
         relay_url_list: ["https://relay.fedi.buzz/instance/mastodon.social"]
+    - network: bluesky
+      worker: bluesky
+      endpoint: bluesky
+      parameters:
+        username: user
+        password: pass
 
   decentralized:
     - network: ethereum
@@ -118,7 +124,7 @@ component:
     }
   },
   "database": {
-	"coverage_period": 3,
+    "coverage_period": 3,
     "uri": "postgres://postgres@localhost:5432/postgres"
   },
   "stream": {
@@ -160,12 +166,21 @@ component:
   "federated": [
     {
       "network": "mastodon",
-      "worker": "core",
+      "worker": "mastodon",
       "endpoint": "mastodon",
       "parameters": {
-		  "relay_url_list": [
-			"https://relay.fedi.buzz/instance/mastodon.social"
-		  ]
+          "relay_url_list": [
+            "https://relay.fedi.buzz/instance/mastodon.social"
+          ]
+      }
+    },
+    {
+      "network": "bluesky",
+      "worker": "bluesky",
+      "endpoint": "bluesky",
+      "parameters": {
+        "username": "user",
+        "password": "pass"
       }
     }
   ],
@@ -249,11 +264,20 @@ access_code = "def"
 
 [[component.federated]]
 network = "mastodon"
-worker = "core"
+worker = "mastodon"
 endpoint = "mastodon"
 
 [component.federated.parameters]
 relay_url_list = ["https://relay.fedi.buzz/instance/mastodon.social"]
+
+[[component.federated]]
+network = "bluesky"
+worker = "bluesky"
+endpoint = "bluesky"
+
+[component.federated.parameters]
+username = "user"
+password = "pass"
 
 [[component.decentralized]]
 network = "ethereum"
@@ -323,7 +347,7 @@ var configFileExpected = &File{
 		Federated: []*Module{
 			{
 				Network:    network.Mastodon,
-				Worker:     federated.Core,
+				Worker:     federated.Mastodon,
 				EndpointID: "mastodon",
 				Endpoint: Endpoint{
 					URL: "https://newdomain.ngrok.app",
@@ -334,6 +358,18 @@ var configFileExpected = &File{
 				Parameters: &Parameters{
 					"relay_url_list": []interface{}{"https://relay.fedi.buzz/instance/mastodon.social"},
 					// "port":           8181, //ToDo: add port here and other places
+				},
+			},
+			{
+				Network:    network.Bluesky,
+				Worker:     federated.Bluesky,
+				EndpointID: "bluesky",
+				Endpoint: Endpoint{
+					URL: "bluesky",
+				},
+				Parameters: &Parameters{
+					"username": "user",
+					"password": "pass",
 				},
 			},
 		},

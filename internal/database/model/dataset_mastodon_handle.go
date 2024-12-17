@@ -2,11 +2,6 @@ package model
 
 import "time"
 
-type MastodonHandleTransformer interface {
-	Import(handle *MastodonHandle) error
-	Export() (*MastodonHandle, error)
-}
-
 type MastodonHandle struct {
 	Handle    string    `json:"handle"`
 	CreatedAt time.Time `json:"created_at"`

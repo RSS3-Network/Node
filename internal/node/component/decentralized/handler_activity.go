@@ -12,6 +12,7 @@ import (
 	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/node/internal/utils"
+	"github.com/rss3-network/node/schema/worker/decentralized"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/typex"
 	"github.com/samber/lo"
@@ -124,7 +125,9 @@ func (c *Component) GetAccountActivities(ctx echo.Context, account string, reque
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(request.Type),
-		Platforms:      lo.Uniq(request.Platform),
+		Platforms: lo.Uniq(lo.Map(request.Platform, func(platform decentralized.Platform, _ int) string {
+			return platform.String()
+		})),
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
@@ -205,7 +208,9 @@ func (c *Component) BatchGetAccountsActivities(ctx echo.Context) (err error) {
 		Network:        lo.Uniq(request.Network),
 		Tags:           lo.Uniq(request.Tag),
 		Types:          lo.Uniq(types),
-		Platforms:      lo.Uniq(request.Platform),
+		Platforms: lo.Uniq(lo.Map(request.Platform, func(platform decentralized.Platform, _ int) string {
+			return platform.String()
+		})),
 	}
 
 	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)

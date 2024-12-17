@@ -331,14 +331,6 @@ func (c *client) FindActivities(ctx context.Context, query model.ActivitiesQuery
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (c *client) FindFederatedActivities(ctx context.Context, query model.FederatedActivitiesQuery) ([]*activityx.Activity, error) {
-	if c.partition {
-		return c.findFederatedActivitiesPartitioned(ctx, query)
-	}
-
-	return nil, fmt.Errorf("not implemented")
-}
-
 // DeleteExpiredActivities deletes expired activities.
 func (c *client) DeleteExpiredActivities(ctx context.Context, network networkx.Network, timestamp time.Time) error {
 	if c.partition {
@@ -478,6 +470,79 @@ func (c *client) GetUpdatedMastodonHandles(ctx context.Context, query model.Quer
 		)
 
 		if value, err = handle.Export(); err != nil {
+			return nil, err
+		}
+
+		result = append(result, value)
+	}
+
+	return result, nil
+}
+
+func (c *client) SaveDatasetBlueskyProfiles(ctx context.Context, profiles []*model.BlueskyProfile) error {
+	// build the mastodon update handle table
+	values := make([]table.DatasetBlueskyProfile, 0, len(profiles))
+
+	// Iterate through the handles and import them into the values slice
+	for _, profile := range profiles {
+		var value table.DatasetBlueskyProfile
+		if err := value.Import(profile); err != nil {
+			return err
+		}
+
+		values = append(values, value)
+	}
+
+	onConflictClause := clause.OnConflict{
+		Columns:   []clause.Column{{Name: "did"}},
+		UpdateAll: true,
+	}
+
+	return c.database.WithContext(ctx).Clauses(onConflictClause).CreateInBatches(&values, math.MaxUint8).Error
+}
+
+func (c *client) LoadDatasetBlueskyProfiles(ctx context.Context, query model.QueryBlueskyProfiles) ([]*model.BlueskyProfile, error) {
+	databaseStatement := c.database.WithContext(ctx).Table(table.DatasetBlueskyProfile{}.TableName())
+
+	if query.Cursor != nil {
+		var cursor *table.DatasetBlueskyProfile
+
+		if err := c.database.WithContext(ctx).First(&cursor, "handle = ?", query.Cursor).Error; err != nil {
+			return nil, fmt.Errorf("get handle cursor: %w", err)
+		}
+
+		databaseStatement = databaseStatement.Where("updated_at < ? OR (updated_at = ? AND created_at < ?)", cursor.UpdatedAt, cursor.UpdatedAt, cursor.CreatedAt)
+	}
+
+	if query.Since != nil {
+		databaseStatement = databaseStatement.Where("updated_at > ?", time.UnixMilli(int64(*query.Since)))
+	}
+
+	if query.Limit != nil {
+		databaseStatement = databaseStatement.Limit(*query.Limit)
+	}
+
+	if query.Handles != nil {
+		databaseStatement = databaseStatement.Where("handle IN ?", query.Handles)
+	}
+
+	databaseStatement = databaseStatement.Order("updated_at DESC, created_at DESC")
+
+	var profiles []*table.DatasetBlueskyProfile
+
+	if err := databaseStatement.Find(&profiles).Error; err != nil {
+		return nil, err
+	}
+
+	result := make([]*model.BlueskyProfile, 0, len(profiles))
+
+	for _, profile := range profiles {
+		var (
+			value *model.BlueskyProfile
+			err   error
+		)
+
+		if value, err = profile.Export(); err != nil {
 			return nil, err
 		}
 
