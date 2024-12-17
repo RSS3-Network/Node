@@ -137,14 +137,9 @@ func (c *Client) SyncGetRepo(ctx context.Context, repoData *atproto.SyncListRepo
 		return nil, fmt.Errorf("create xrpc client: %w", err)
 	}
 
-	var handle string
-
 	// Get user handle from profile
-	if err := c.retrySource(ctx, func(ctx context.Context) error {
-		handle, err = c.GetHandle(ctx, client, did)
-
-		return err
-	}); err != nil {
+	handle, err := c.GetHandle(ctx, client, did)
+	if err != nil {
 		zap.L().Error("get profile failed", zap.Error(err))
 
 		return nil, fmt.Errorf("get profile: %w", err)
@@ -356,22 +351,50 @@ func (c *Client) GetRecord(ctx context.Context, repo string, path string) (*at.M
 // - did: User's decentralized identifier
 // Returns the user's handle or an error.
 func (c *Client) GetHandle(ctx context.Context, client *XrpcClient, did syntax.DID) (string, error) {
-	resp, _ := bsky.ActorGetProfile(ctx, client.Client, did.String())
-	if resp != nil {
-		return resp.Handle, nil
+	var handle string
+
+	if err := c.retrySource(ctx, func(ctx context.Context) error {
+		resp, err := bsky.ActorGetProfile(ctx, client.Client, did.String())
+		if resp != nil {
+			handle = resp.Handle
+
+			return nil
+		}
+
+		if err != nil {
+			zap.L().Debug("get profile failed", zap.String("client", client.Host), zap.Error(err))
+
+			defaultClient, err := c.GetXrpcClient(ctx, BskyEndpoint)
+			if err != nil {
+				return fmt.Errorf("get xrpc client: %w", err)
+			}
+
+			resp, err = bsky.ActorGetProfile(ctx, defaultClient.Client, did.String())
+			if resp != nil {
+				handle = resp.Handle
+
+				return nil
+			}
+
+			if err != nil {
+				if strings.Contains(err.Error(), "XRPC ERROR 400") {
+					return nil
+				}
+
+				zap.L().Error("get profile failed", zap.String("client", defaultClient.Host), zap.Error(err))
+
+				return fmt.Errorf("get profile: %w", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		zap.L().Error("get profile failed", zap.Error(err))
+
+		return "", fmt.Errorf("get profile: %w", err)
 	}
 
-	defaultClient, err := c.GetXrpcClient(ctx, BskyEndpoint)
-	if err != nil {
-		return "", fmt.Errorf("get xrpc client: %w", err)
-	}
-
-	resp, _ = bsky.ActorGetProfile(ctx, defaultClient.Client, did.String())
-	if resp != nil {
-		return resp.Handle, nil
-	}
-
-	return "", fmt.Errorf("handle not found for DID: %s", did)
+	return handle, nil
 }
 
 // ParseRecord processes different types of records and updates the message.
@@ -639,7 +662,7 @@ func (c *Client) retrySource(ctx context.Context, f func(ctx context.Context) er
 		retry.Delay(5*time.Second),
 		retry.DelayType(retry.BackOffDelay),
 		retry.OnRetry(func(n uint, err error) {
-			zap.L().Warn("retry bluesky source", zap.Uint("retry", n), zap.Error(err))
+			zap.L().Warn("retry bluesky client", zap.Uint("retry", n), zap.Error(err))
 		}),
 	)
 }
