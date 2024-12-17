@@ -7,7 +7,7 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 servers:
-  - url: http://localhost
+  - url: http://localhost:80
     description: Local development server
 tags:
   - name: RSS
