@@ -1,0 +1,40 @@
+description: Request body for batch retrieving activities for specified metadata, tag and type is required
+required: true
+content:
+  application/json:
+    schema:
+      type: object
+      required:
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: "../schemas/DecentralizedAccount.yaml"
+          x-go-type-skip-optional-pointer: true
+        limit:
+          $ref: "../schemas/Limit.yaml"
+        action_limit:
+          $ref: "../schemas/ActionLimit.yaml"
+        cursor:
+          $ref: "../schemas/Cursor.yaml"
+        since_timestamp:
+          $ref: "../schemas/Timestamp.yaml"
+        until_timestamp:
+          $ref: "../schemas/Timestamp.yaml"
+        success:
+          $ref: "../schemas/Success.yaml"
+        direction:
+          $ref: "../schemas/ProtocolDirection.yaml"
+        network:
+          $ref: "../schemas/ProtocolNetwork.yaml"
+        tag:
+          $ref: "../schemas/ProtocolTag.yaml"
+        type:
+          $ref: "../schemas/ProtocolType.yaml"
+        platform:
+          $ref: "../schemas/DecentralizedPlatform.yaml"
+        metadata:
+          type: object
+          allOf:
+            - $ref: "../schemas/ProtocolMetadata.yaml"
+          x-go-type-skip-optional-pointer: true

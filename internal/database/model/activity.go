@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 )
@@ -32,4 +33,5 @@ type ActivitiesQuery struct {
 	RelatedActions *bool
 	Limit          int
 	ActionLimit    int
+	Metadata       metadata.Metadata
 }

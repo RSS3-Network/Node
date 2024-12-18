@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/rss3-network/protocol-go/schema/metadata"
+
 	"github.com/rss3-network/node/internal/database/dialer/postgres/table"
 	"github.com/rss3-network/node/internal/database/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
@@ -787,7 +789,7 @@ func (c *client) buildFindIndexStatement(ctx context.Context, partitionedName st
 
 // buildFindIndexesStatement builds the query indexes statement.
 func (c *client) buildFindIndexesStatement(ctx context.Context, partition string, query model.ActivitiesQuery) *gorm.DB {
-	databaseStatement := c.database.WithContext(ctx).Table(partition)
+	databaseStatement := c.database.WithContext(ctx).Table(partition).Debug()
 
 	if query.Distinct != nil && lo.FromPtr(query.Distinct) {
 		databaseStatement = databaseStatement.Select("DISTINCT (id) id, timestamp, index, network")
@@ -841,7 +843,33 @@ func (c *client) buildFindIndexesStatement(ctx context.Context, partition string
 		databaseStatement = databaseStatement.Where("timestamp < ? OR (timestamp = ? AND index < ?)", time.Unix(int64(query.Cursor.Timestamp), 0), time.Unix(int64(query.Cursor.Timestamp), 0), query.Cursor.Index)
 	}
 
+	if query.Metadata != nil {
+		databaseStatement = c.buildFindMetadataStatement(ctx, databaseStatement, query.Metadata)
+	}
+
 	return databaseStatement.Order("timestamp DESC, index DESC").Limit(query.Limit)
+}
+
+// buildFindMetadataStatement builds the query metadata statement.
+func (c *client) buildFindMetadataStatement(_ context.Context, databaseStatement *gorm.DB, meta metadata.Metadata) *gorm.DB {
+	statement := databaseStatement.Session(&gorm.Session{})
+
+	statement = statement.Joins("CROSS JOIN LATERAL jsonb_array_elements(actions::jsonb) AS action_element")
+
+	switch data := meta.(type) {
+	case *metadata.ExchangeSwap:
+		if data.From.Address != nil {
+			statement = statement.Where("action_element -> 'metadata' -> 'from' ->> 'address' = ?", data.From.Address)
+		}
+
+		if data.To.Address != nil {
+			statement = statement.Where("action_element -> 'metadata' -> 'to' ->> 'address' = ?", data.To.Address)
+		}
+	default:
+		return databaseStatement
+	}
+
+	return statement
 }
 
 // buildActivitiesTableNames builds the activities table names.
