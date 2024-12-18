@@ -3,8 +3,6 @@ package decentralized
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/rss3-network/protocol-go/schema/metadata"
-	"github.com/rss3-network/protocol-go/schema/tag"
 	"net/http"
 	"strconv"
 
@@ -15,6 +13,8 @@ import (
 	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/metadata"
+	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
