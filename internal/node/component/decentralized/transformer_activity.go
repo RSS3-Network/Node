@@ -32,7 +32,7 @@ func (c *Component) TransformActivity(ctx context.Context, activity *activityx.A
 		case tag.Social:
 			*activity.Actions[index], err = c.TransformSocialType(ctx, activity.Network, activity.Platform, *actionPtr)
 		default:
-			zap.L().Debug("unknown action tag, keeping original action",
+			zap.L().Debug("keeping original action",
 				zap.String("id", activity.ID),
 				zap.String("tag", action.Tag.String()))
 

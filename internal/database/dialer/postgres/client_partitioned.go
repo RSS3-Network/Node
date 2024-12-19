@@ -151,8 +151,8 @@ func (c *client) findActivitiesPartitionTables(_ context.Context, network *netwo
 	return partitionedNames
 }
 
-// loadIndexesPartitionTables loads indexes partition tables.
-func (c *client) loadIndexesPartitionTables(ctx context.Context) {
+// loadPartitionTables loads partition tables.
+func (c *client) loadPartitionTables(ctx context.Context) {
 	result := make([]string, 0)
 
 	if err := c.database.WithContext(ctx).Table("pg_tables").Where("tablename LIKE ?", fmt.Sprintf("%s_%%", (*table.Index).TableName(nil))).Pluck("tablename", &result).Error; err != nil {
@@ -162,11 +162,6 @@ func (c *client) loadIndexesPartitionTables(ctx context.Context) {
 	for _, tableName := range result {
 		indexesTables.Store(tableName, struct{}{})
 	}
-}
-
-// loadActivitiesPartitionTables loads activities partition tables.
-func (c *client) loadActivitiesPartitionTables(ctx context.Context) {
-	result := make([]string, 0)
 
 	if err := c.database.WithContext(ctx).Table("pg_tables").Where("tablename LIKE ?", fmt.Sprintf("%s_%%", (*table.Activity).TableName(nil))).Pluck("tablename", &result).Error; err != nil {
 		zap.L().Error("failed to load activities partition tables", zap.Error(err))
@@ -1017,7 +1012,7 @@ func (c *client) buildFindIndexesStatement(ctx context.Context, partition string
 
 // buildFindActivitiesStatement builds the query activities statement.
 func (c *client) buildFindActivitiesStatement(ctx context.Context, partitionedName string, query model.ActivitiesMetadataQuery) *gorm.DB {
-	databaseStatement := c.database.WithContext(ctx).Table(partitionedName)
+	databaseStatement := c.database.WithContext(ctx).Table(partitionedName).Debug()
 
 	if query.Platform != nil {
 		databaseStatement = databaseStatement.Where("platform = ?", query.Platform)

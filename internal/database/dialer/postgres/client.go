@@ -582,7 +582,7 @@ func Dial(ctx context.Context, dataSourceName string, partition bool) (database.
 	}
 
 	if instance.partition {
-		instance.loadIndexesPartitionTables(ctx)
+		instance.loadPartitionTables(ctx)
 	}
 
 	return &instance, nil
