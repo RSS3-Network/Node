@@ -1,10 +1,9 @@
-description: Request body for batch retrieving activities for specified metadata, tag and type is required
+description: Request body for batch retrieving activities for specified metadata, network and tag and type is required
 required: true
 content:
   application/json:
     schema:
       type: object
-      required:
       properties:
         accounts:
           type: array
@@ -23,18 +22,29 @@ content:
           $ref: "../schemas/Timestamp.yaml"
         success:
           $ref: "../schemas/Success.yaml"
-        direction:
-          $ref: "../schemas/ProtocolDirection.yaml"
         network:
-          $ref: "../schemas/ProtocolNetwork.yaml"
+          type: object
+          allOf:
+           - $ref: "../schemas/ProtocolNetwork.yaml"
+          x-oapi-codegen-extra-tags:
+            validate: "required"
         tag:
-          $ref: "../schemas/ProtocolTag.yaml"
+          type: object
+          allOf:
+           - $ref: "../schemas/ProtocolTag.yaml"
+          x-oapi-codegen-extra-tags:
+            validate: "required"
         type:
-          $ref: "../schemas/ProtocolType.yaml"
+          type: string
+          allOf:
+            - $ref: "../schemas/ProtocolType.yaml"
+          x-oapi-codegen-extra-tags:
+            validate: "required"
         platform:
           $ref: "../schemas/DecentralizedPlatform.yaml"
         metadata:
           type: object
           allOf:
             - $ref: "../schemas/ProtocolMetadata.yaml"
-          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            validate: "required"

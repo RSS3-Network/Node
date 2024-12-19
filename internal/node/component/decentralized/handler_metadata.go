@@ -14,7 +14,6 @@ import (
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/metadata"
-	"github.com/rss3-network/protocol-go/schema/tag"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
@@ -31,19 +30,23 @@ func (c *Component) BatchGetMetadataActivities(ctx echo.Context) (err error) {
 		return response.BadRequestError(ctx, err)
 	}
 
-	if len(request.RawType) == 0 || request.Tag == tag.Unknown {
+	if len(request.RawType) == 0 || request.Tag == nil {
 		return response.BadRequestError(ctx, fmt.Errorf("empty tag or type"))
 	}
 
-	request.Type, err = schema.ParseTypeFromString(request.Tag, request.RawType)
+	typex, err := schema.ParseTypeFromString(lo.FromPtr(request.Tag), request.RawType)
 	if err != nil {
 		return response.BadRequestError(ctx, fmt.Errorf("invalid type: %s", request.RawType))
 	}
 
-	request.Metadata, err = metadata.Unmarshal(request.Type, request.RawMetadata)
+	request.Type = lo.ToPtr(typex)
+
+	meta, err := metadata.Unmarshal(typex, request.RawMetadata)
 	if err != nil {
 		return response.BadRequestError(ctx, fmt.Errorf("failed to unmarshal metadata: %w", err))
 	}
+
+	request.Metadata = lo.ToPtr(meta)
 
 	for i := range request.Accounts {
 		if common.IsHexAddress(request.Accounts[i]) {
@@ -77,22 +80,20 @@ func (c *Component) BatchGetMetadataActivities(ctx echo.Context) (err error) {
 		return response.BadRequestError(ctx, fmt.Errorf("invalid cursor: %w", err))
 	}
 
-	databaseRequest := model.ActivitiesQuery{
+	databaseRequest := model.ActivitiesMetadataQuery{
 		Cursor:         cursor,
 		StartTimestamp: request.SinceTimestamp,
 		EndTimestamp:   request.UntilTimestamp,
-		Owners:         lo.Uniq(request.Accounts),
 		Limit:          lo.FromPtr(request.Limit),
 		ActionLimit:    lo.FromPtr(request.ActionLimit),
+		Accounts:       request.Accounts,
+		Platform:       request.Platform,
 		Status:         request.Status,
-		Direction:      request.Direction,
-		Tags:           []tag.Tag{request.Tag},
-		Types:          []schema.Type{request.Type},
-		Platform:       request.Platform.String(),
+		Network:        request.Network,
 		Metadata:       request.Metadata,
 	}
 
-	activities, last, err := c.getActivities(ctx.Request().Context(), databaseRequest)
+	activities, last, err := c.getActivitiesMetadata(ctx.Request().Context(), databaseRequest)
 	if err != nil {
 		zap.L().Error("failed to get activities",
 			zap.Error(err))

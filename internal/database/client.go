@@ -31,6 +31,7 @@ type Client interface {
 	SaveActivities(ctx context.Context, activities []*activityx.Activity, lowPriority bool) error
 	FindActivity(ctx context.Context, query model.ActivityQuery) (*activityx.Activity, *int, error)
 	FindActivities(ctx context.Context, query model.ActivitiesQuery) ([]*activityx.Activity, error)
+	FindActivitiesMetadata(ctx context.Context, query model.ActivitiesMetadataQuery) ([]*activityx.Activity, error)
 	DeleteExpiredActivities(ctx context.Context, network network.Network, timestamp time.Time) error
 }
 

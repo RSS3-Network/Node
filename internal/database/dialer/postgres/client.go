@@ -331,6 +331,15 @@ func (c *client) FindActivities(ctx context.Context, query model.ActivitiesQuery
 	return nil, fmt.Errorf("not implemented")
 }
 
+// FindActivitiesMetadata finds Activities by metadata.
+func (c *client) FindActivitiesMetadata(ctx context.Context, query model.ActivitiesMetadataQuery) ([]*activityx.Activity, error) {
+	if c.partition {
+		return c.findActivitiesMetadataPartitioned(ctx, query)
+	}
+
+	return nil, fmt.Errorf("not implemented")
+}
+
 // DeleteExpiredActivities deletes expired activities.
 func (c *client) DeleteExpiredActivities(ctx context.Context, network networkx.Network, timestamp time.Time) error {
 	if c.partition {
