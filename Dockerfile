@@ -1,4 +1,4 @@
-FROM ghcr.io/rss3-network/go-image/go-builder:main-4782eed AS base
+FROM ghcr.io/rss3-network/go-image/go-builder:main-230cb74 AS base
 
 WORKDIR /root/node
 
@@ -19,7 +19,7 @@ ENV CGO_ENABLED=0
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     make build
 
-FROM ghcr.io/rss3-network/go-image/go-runtime:main-4782eed AS runner
+FROM ghcr.io/rss3-network/go-image/go-builder:main-230cb74 AS runner
 
 WORKDIR /root/node
 
