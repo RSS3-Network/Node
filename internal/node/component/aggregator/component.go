@@ -27,6 +27,10 @@ func (c Component) PostDecentralizedAccounts(ctx echo.Context) error {
 	return c.Decentralized.BatchGetAccountsActivities(ctx)
 }
 
+func (c Component) PostDecentralizedMetadata(ctx echo.Context) error {
+	return c.Decentralized.BatchGetMetadataActivities(ctx)
+}
+
 func (c Component) GetDecentralizedNetwork(ctx echo.Context, network network.Network, params docs.GetDecentralizedNetworkParams) error {
 	return c.Decentralized.GetNetworkActivities(ctx, network, params)
 }
