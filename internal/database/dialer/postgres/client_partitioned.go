@@ -109,20 +109,30 @@ func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index
 }
 
 // findActivitiesPartitionTables finds activities partition tables.
-func (c *client) findActivitiesPartitionTables(_ context.Context, network *network.Network, timestamp time.Time) []string {
-	if network == nil {
+func (c *client) findActivitiesPartitionTables(_ context.Context, query model.ActivitiesMetadataQuery) []string {
+	if query.Network == nil {
 		return nil
 	}
 
+	timestamp := time.Now()
+
+	if query.EndTimestamp != nil && *query.EndTimestamp > 0 && *query.EndTimestamp < uint64(time.Now().Unix()) {
+		timestamp = time.Unix(int64(lo.FromPtr(query.EndTimestamp)), 0)
+	}
+
+	if query.Cursor != nil && query.Cursor.Timestamp < uint64(timestamp.Unix()) {
+		timestamp = time.Unix(int64(query.Cursor.Timestamp), 0)
+	}
+
 	zap.L().Debug("finding activities partition tables",
-		zap.String("network", network.String()),
+		zap.String("network", query.Network.String()),
 		zap.Time("timestamp", timestamp))
 
 	partitionedNames := make([]string, 0)
 
 	for i := 0; i <= 4; i++ {
 		activityTable := table.Activity{
-			Network:   lo.FromPtr(network),
+			Network:   lo.FromPtr(query.Network),
 			Timestamp: timestamp,
 		}
 
@@ -320,17 +330,7 @@ func (c *client) findActivityPartitioned(ctx context.Context, query model.Activi
 
 // findActivitiesMetadataPartitioned finds activities metadata.
 func (c *client) findActivitiesMetadataPartitioned(ctx context.Context, query model.ActivitiesMetadataQuery) ([]*activityx.Activity, error) {
-	timestamp := time.Now()
-
-	if query.EndTimestamp != nil && *query.EndTimestamp > 0 && *query.EndTimestamp < uint64(time.Now().Unix()) {
-		timestamp = time.Unix(int64(lo.FromPtr(query.EndTimestamp)), 0)
-	}
-
-	if query.Cursor != nil && query.Cursor.Timestamp < uint64(timestamp.Unix()) {
-		timestamp = time.Unix(int64(query.Cursor.Timestamp), 0)
-	}
-
-	partitionedNames := c.findActivitiesPartitionTables(ctx, query.Network, timestamp)
+	partitionedNames := c.findActivitiesPartitionTables(ctx, query)
 
 	if len(partitionedNames) == 0 {
 		return nil, nil
