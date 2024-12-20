@@ -1,6 +1,6 @@
 module github.com/rss3-network/node
 
-go 1.22.4
+go 1.22.7
 
 replace (
 	github.com/chenzhuoyu/iasm => github.com/cloudwego/iasm v0.2.0
@@ -109,6 +109,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/deckarep/golang-set/v2 v2.3.1 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
+	github.com/dmarkham/enumer v1.5.10 // indirect
 	github.com/docker/cli v26.1.1+incompatible // indirect
 	github.com/docker/docker v26.1.3+incompatible // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
@@ -116,6 +117,7 @@ require (
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
 	github.com/ethereum/c-kzg-4844 v0.4.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
+	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/getsentry/sentry-go v0.27.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
