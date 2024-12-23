@@ -29,6 +29,20 @@ func (c *Component) getActivities(ctx context.Context, request model.ActivitiesQ
 	return nil, "", nil
 }
 
+func (c *Component) getActivitiesMetadata(ctx context.Context, request model.ActivitiesMetadataQuery) ([]*activityx.Activity, string, error) {
+	activities, err := c.databaseClient.FindActivitiesMetadata(ctx, request)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to find activities: %w", err)
+	}
+
+	last, exist := lo.Last(activities)
+	if exist {
+		return activities, c.transformCursor(ctx, last), nil
+	}
+
+	return nil, "", nil
+}
+
 func (c *Component) getCursor(ctx context.Context, cursor *string) (*activityx.Activity, error) {
 	if cursor == nil {
 		return nil, nil

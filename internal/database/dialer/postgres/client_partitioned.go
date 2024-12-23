@@ -12,6 +12,7 @@ import (
 	"github.com/rss3-network/node/internal/database/dialer/postgres/table"
 	"github.com/rss3-network/node/internal/database/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
@@ -22,6 +23,8 @@ import (
 )
 
 var indexesTables sync.Map
+
+var activitiesTables sync.Map
 
 // createPartitionTable creates a partition table.
 func (c *client) createPartitionTable(ctx context.Context, name, template string) error {
@@ -37,6 +40,10 @@ func (c *client) createPartitionTable(ctx context.Context, name, template string
 
 	if template == (*table.Index).TableName(nil) {
 		indexesTables.Store(name, struct{}{})
+	}
+
+	if template == (*table.Activity).TableName(nil) {
+		activitiesTables.Store(name, struct{}{})
 	}
 
 	zap.L().Debug("successfully created partition table",
@@ -101,8 +108,61 @@ func (c *client) findIndexesPartitionTables(_ context.Context, index table.Index
 	return partitionedNames
 }
 
-// loadIndexesPartitionTables loads indexes partition tables.
-func (c *client) loadIndexesPartitionTables(ctx context.Context) {
+// findActivitiesPartitionTables finds activities partition tables.
+func (c *client) findActivitiesPartitionTables(_ context.Context, query model.ActivitiesMetadataQuery) []string {
+	if query.Network == nil {
+		return nil
+	}
+
+	timestamp := time.Now()
+
+	if query.EndTimestamp != nil && *query.EndTimestamp > 0 && *query.EndTimestamp < uint64(time.Now().Unix()) {
+		timestamp = time.Unix(int64(lo.FromPtr(query.EndTimestamp)), 0)
+	}
+
+	if query.Cursor != nil && query.Cursor.Timestamp < uint64(timestamp.Unix()) {
+		timestamp = time.Unix(int64(query.Cursor.Timestamp), 0)
+	}
+
+	zap.L().Debug("finding activities partition tables",
+		zap.String("network", query.Network.String()),
+		zap.Time("timestamp", timestamp))
+
+	partitionedNames := make([]string, 0)
+
+	for i := 0; i <= 4; i++ {
+		activityTable := table.Activity{
+			Network:   lo.FromPtr(query.Network),
+			Timestamp: timestamp,
+		}
+
+		if timestamp.Unix() < time.Now().AddDate(-1, 0, 0).Unix() {
+			zap.L().Debug("timestamp is older than 1 year, stopping search",
+				zap.Time("timestamp", timestamp))
+			break
+		}
+
+		if _, exists := activitiesTables.Load(activityTable.PartitionName(nil)); exists {
+			partitionedNames = append(partitionedNames, activityTable.PartitionName(nil))
+		}
+
+		year := timestamp.Year()
+		month := timestamp.Month()
+
+		timestamp = time.Date(lo.Ternary(month < 3, year-1, year), lo.Ternary(month < 3, month+9, month-3), timestamp.Day(), 23, 59, 59, 1e9-1, time.Local)
+
+		zap.L().Debug("updated timestamp for next iteration",
+			zap.Time("new_timestamp", timestamp))
+	}
+
+	zap.L().Debug("completed finding activities partition tables",
+		zap.Any("found_tables", partitionedNames))
+
+	return partitionedNames
+}
+
+// loadPartitionTables loads partition tables.
+func (c *client) loadPartitionTables(ctx context.Context) {
 	result := make([]string, 0)
 
 	if err := c.database.WithContext(ctx).Table("pg_tables").Where("tablename LIKE ?", fmt.Sprintf("%s_%%", (*table.Index).TableName(nil))).Pluck("tablename", &result).Error; err != nil {
@@ -111,6 +171,14 @@ func (c *client) loadIndexesPartitionTables(ctx context.Context) {
 
 	for _, tableName := range result {
 		indexesTables.Store(tableName, struct{}{})
+	}
+
+	if err := c.database.WithContext(ctx).Table("pg_tables").Where("tablename LIKE ?", fmt.Sprintf("%s_%%", (*table.Activity).TableName(nil))).Pluck("tablename", &result).Error; err != nil {
+		zap.L().Error("failed to load activities partition tables", zap.Error(err))
+	}
+
+	for _, tableName := range result {
+		activitiesTables.Store(tableName, struct{}{})
 	}
 }
 
@@ -258,6 +326,104 @@ func (c *client) findActivityPartitioned(ctx context.Context, query model.Activi
 		zap.Int("action_count", len(activity.Actions)))
 
 	return result, lo.ToPtr(int(page)), nil
+}
+
+// findActivitiesMetadataPartitioned finds activities metadata.
+func (c *client) findActivitiesMetadataPartitioned(ctx context.Context, query model.ActivitiesMetadataQuery) ([]*activityx.Activity, error) {
+	partitionedNames := c.findActivitiesPartitionTables(ctx, query)
+
+	if len(partitionedNames) == 0 {
+		return nil, nil
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	errorGroup, errorContext := errgroup.WithContext(ctx)
+	activities := make([]table.Activities, len(partitionedNames))
+	resultChan := make(chan int, len(partitionedNames))
+	errorChan := make(chan error)
+	stopChan := make(chan struct{})
+
+	var mutex sync.RWMutex
+
+	for partitionedIndex, partitionedName := range partitionedNames {
+		partitionedIndex, partitionedName := partitionedIndex, partitionedName
+
+		errorGroup.Go(func() error {
+			var result table.Activities
+
+			databaseStatement := c.buildFindActivitiesStatement(errorContext, partitionedName, query)
+
+			if err := databaseStatement.Find(&result).Error; err != nil {
+				return fmt.Errorf("failed to find activities metadata: %w", err)
+			}
+
+			mutex.Lock()
+			activities[partitionedIndex] = result
+			mutex.Unlock()
+
+			select {
+			case <-stopChan:
+				return nil
+			case resultChan <- partitionedIndex:
+				return nil
+			}
+		})
+	}
+
+	go func() {
+		defer close(errorChan)
+
+		errorChan <- errorGroup.Wait()
+	}()
+
+	defer func() {
+		cancel()
+	}()
+
+	for {
+		select {
+		case err := <-errorChan:
+			if err != nil {
+				return nil, fmt.Errorf("failed to wait result: %w", err)
+			}
+		case <-resultChan:
+			result := make(table.Activities, 0, query.Limit)
+			flag := true
+
+			mutex.RLock()
+
+			for _, data := range activities {
+				data := data
+
+				if data == nil {
+					flag = false
+					break
+				}
+
+				result = append(result, data...)
+
+				if len(result) >= query.Limit {
+					zap.L().Debug("found indexes up to limit",
+						zap.Int("count", query.Limit))
+					close(stopChan)
+					mutex.RUnlock()
+
+					data := result[:query.Limit]
+
+					return data.Export()
+				}
+			}
+
+			mutex.RUnlock()
+
+			if flag {
+				zap.L().Debug("successfully found all indexes",
+					zap.Int("count", len(result)))
+
+				return result.Export()
+			}
+		}
+	}
 }
 
 // findActivitiesPartitioned finds activities.
@@ -842,6 +1008,67 @@ func (c *client) buildFindIndexesStatement(ctx context.Context, partition string
 	}
 
 	return databaseStatement.Order("timestamp DESC, index DESC").Limit(query.Limit)
+}
+
+// buildFindActivitiesStatement builds the query activities statement.
+func (c *client) buildFindActivitiesStatement(ctx context.Context, partitionedName string, query model.ActivitiesMetadataQuery) *gorm.DB {
+	databaseStatement := c.database.WithContext(ctx).Table(partitionedName).Debug()
+
+	if query.Platform != nil {
+		databaseStatement = databaseStatement.Where("platform = ?", query.Platform)
+	}
+
+	if query.Tag != nil {
+		databaseStatement = databaseStatement.Where("tag = ?", query.Tag)
+	}
+
+	if query.Type != nil {
+		databaseStatement = databaseStatement.Where("type = ?", query.Type)
+	}
+
+	if query.StartTimestamp != nil && *query.StartTimestamp > 0 {
+		databaseStatement = databaseStatement.Where("timestamp >= ?", time.Unix(int64(*query.StartTimestamp), 0))
+	}
+
+	if query.EndTimestamp != nil && *query.EndTimestamp > 0 {
+		databaseStatement = databaseStatement.Where("timestamp <= ?", time.Unix(int64(*query.EndTimestamp), 0))
+	}
+
+	if query.Accounts != nil {
+		databaseStatement = databaseStatement.Where("from IN (?) OR to IN (?)", query.Accounts, query.Accounts)
+	}
+
+	if query.Cursor != nil && query.Cursor.Timestamp > 0 {
+		databaseStatement = databaseStatement.Where("timestamp < ? OR (timestamp = ? AND index < ?)", time.Unix(int64(query.Cursor.Timestamp), 0), time.Unix(int64(query.Cursor.Timestamp), 0), query.Cursor.Index)
+	}
+
+	if query.Metadata != nil {
+		databaseStatement = c.buildFindActivitiesMetadataStatement(ctx, databaseStatement, lo.FromPtr(query.Metadata))
+	}
+
+	return databaseStatement.Order("timestamp DESC, index DESC").Limit(query.Limit)
+}
+
+// buildFindActivitiesMetadataStatement builds the query metadata statement.
+func (c *client) buildFindActivitiesMetadataStatement(_ context.Context, databaseStatement *gorm.DB, meta metadata.Metadata) *gorm.DB {
+	statement := databaseStatement.Session(&gorm.Session{})
+
+	statement = statement.Joins("CROSS JOIN LATERAL jsonb_array_elements(actions::jsonb) AS action_element")
+
+	switch data := meta.(type) {
+	case *metadata.ExchangeSwap:
+		if data.From.Address != nil {
+			statement = statement.Where("action_element -> 'metadata' -> 'from' ->> 'address' = ?", data.From.Address)
+		}
+
+		if data.To.Address != nil {
+			statement = statement.Where("action_element -> 'metadata' -> 'to' ->> 'address' = ?", data.To.Address)
+		}
+	default:
+		return databaseStatement
+	}
+
+	return statement
 }
 
 // buildActivitiesTableNames builds the activities table names.

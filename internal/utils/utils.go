@@ -1,10 +1,12 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 
 	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/tag"
 )
 
@@ -46,4 +48,18 @@ func ParseTypes(types []string, tags []tag.Tag) ([]schema.Type, error) {
 	}
 
 	return schemaTypes, nil
+}
+
+// ParseMetadata parses the metadata and returns the schema metadata
+func ParseMetadata(metadataJSON json.RawMessage, typex schema.Type) (metadata.Metadata, error) {
+	if len(metadataJSON) == 0 {
+		return nil, nil
+	}
+
+	value, err := metadata.Unmarshal(typex, metadataJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	return value, nil
 }

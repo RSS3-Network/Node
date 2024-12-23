@@ -27,6 +27,8 @@ paths:
     $ref: "./path/decentralized/network.yaml"
   /decentralized/platform/{platform}:
     $ref: "./path/decentralized/platform.yaml"
+  /decentralized/metadata:
+    $ref: "./path/decentralized/metadata.yaml"
 
   /federated/tx/{id}:
     $ref: "./path/federated/tx.yaml"
