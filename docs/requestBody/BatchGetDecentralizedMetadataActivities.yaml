@@ -42,9 +42,8 @@ content:
             validate: "required"
         platform:
           $ref: "../schemas/DecentralizedPlatform.yaml"
-        metadata:
-          type: object
-          allOf:
-            - $ref: "../schemas/ProtocolMetadata.yaml"
+        metadata_query_where:
+          type: string
+          description: "SQL WHERE clause for metadata filtering (e.g. actions::jsonb @> '[{\"metadata\": {\"from\": {\"address\": \"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2\"}, \"to\": {\"address\": \"0xB3912b20b3aBc78C15e85E13EC0bF334fbB924f7\"}}}]')"
           x-oapi-codegen-extra-tags:
             validate: "required"

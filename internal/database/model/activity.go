@@ -4,7 +4,6 @@ import (
 	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
-	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"
 )
@@ -37,16 +36,16 @@ type ActivitiesQuery struct {
 }
 
 type ActivitiesMetadataQuery struct {
-	Network        *network.Network
-	Platform       *decentralized.Platform
-	Tag            *tag.Tag
-	Type           *schema.Type
-	Accounts       []string
-	Cursor         *activityx.Activity
-	Status         *bool
-	StartTimestamp *uint64
-	EndTimestamp   *uint64
-	Limit          int
-	ActionLimit    int
-	Metadata       *metadata.Metadata
+	Network          *network.Network
+	Platform         *decentralized.Platform
+	Tag              *tag.Tag
+	Type             *schema.Type
+	Accounts         []string
+	Cursor           *activityx.Activity
+	Status           *bool
+	StartTimestamp   *uint64
+	EndTimestamp     *uint64
+	Limit            int
+	ActionLimit      int
+	MetadataQuerySQL *string
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/rss3-network/node/internal/database/dialer/postgres/table"
 	"github.com/rss3-network/node/internal/database/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
-	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
@@ -1042,33 +1041,11 @@ func (c *client) buildFindActivitiesStatement(ctx context.Context, partitionedNa
 		databaseStatement = databaseStatement.Where("timestamp < ? OR (timestamp = ? AND index < ?)", time.Unix(int64(query.Cursor.Timestamp), 0), time.Unix(int64(query.Cursor.Timestamp), 0), query.Cursor.Index)
 	}
 
-	if query.Metadata != nil {
-		databaseStatement = c.buildFindActivitiesMetadataStatement(ctx, databaseStatement, lo.FromPtr(query.Metadata))
+	if query.MetadataQuerySQL != nil {
+		databaseStatement = databaseStatement.Where(lo.FromPtr(query.MetadataQuerySQL))
 	}
 
 	return databaseStatement.Order("timestamp DESC, index DESC").Limit(query.Limit)
-}
-
-// buildFindActivitiesMetadataStatement builds the query metadata statement.
-func (c *client) buildFindActivitiesMetadataStatement(_ context.Context, databaseStatement *gorm.DB, meta metadata.Metadata) *gorm.DB {
-	statement := databaseStatement.Session(&gorm.Session{})
-
-	statement = statement.Joins("CROSS JOIN LATERAL jsonb_array_elements(actions::jsonb) AS action_element")
-
-	switch data := meta.(type) {
-	case *metadata.ExchangeSwap:
-		if data.From.Address != nil {
-			statement = statement.Where("action_element -> 'metadata' -> 'from' ->> 'address' = ?", data.From.Address)
-		}
-
-		if data.To.Address != nil {
-			statement = statement.Where("action_element -> 'metadata' -> 'to' ->> 'address' = ?", data.To.Address)
-		}
-	default:
-		return databaseStatement
-	}
-
-	return statement
 }
 
 // buildActivitiesTableNames builds the activities table names.

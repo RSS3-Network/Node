@@ -1,7 +1,6 @@
 package decentralized
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -13,7 +12,6 @@ import (
 	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/protocol-go/schema"
-	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
@@ -22,8 +20,7 @@ import (
 func (c *Component) BatchGetMetadataActivities(ctx echo.Context) (err error) {
 	request := struct {
 		docs.PostDecentralizedMetadataJSONBody
-		RawType     string          `json:"type"`
-		RawMetadata json.RawMessage `json:"metadata"`
+		RawType string `json:"type"`
 	}{}
 
 	if err = ctx.Bind(&request); err != nil {
@@ -40,13 +37,6 @@ func (c *Component) BatchGetMetadataActivities(ctx echo.Context) (err error) {
 	}
 
 	request.Type = lo.ToPtr(typex)
-
-	meta, err := metadata.Unmarshal(typex, request.RawMetadata)
-	if err != nil {
-		return response.BadRequestError(ctx, fmt.Errorf("failed to unmarshal metadata: %w", err))
-	}
-
-	request.Metadata = lo.ToPtr(meta)
 
 	for i := range request.Accounts {
 		if common.IsHexAddress(request.Accounts[i]) {
@@ -81,16 +71,16 @@ func (c *Component) BatchGetMetadataActivities(ctx echo.Context) (err error) {
 	}
 
 	databaseRequest := model.ActivitiesMetadataQuery{
-		Cursor:         cursor,
-		StartTimestamp: request.SinceTimestamp,
-		EndTimestamp:   request.UntilTimestamp,
-		Limit:          lo.FromPtr(request.Limit),
-		ActionLimit:    lo.FromPtr(request.ActionLimit),
-		Accounts:       request.Accounts,
-		Platform:       request.Platform,
-		Status:         request.Status,
-		Network:        request.Network,
-		Metadata:       request.Metadata,
+		Cursor:           cursor,
+		StartTimestamp:   request.SinceTimestamp,
+		EndTimestamp:     request.UntilTimestamp,
+		Limit:            lo.FromPtr(request.Limit),
+		ActionLimit:      lo.FromPtr(request.ActionLimit),
+		Accounts:         request.Accounts,
+		Platform:         request.Platform,
+		Status:           request.Status,
+		Network:          request.Network,
+		MetadataQuerySQL: request.MetadataQueryWhere,
 	}
 
 	activities, last, err := c.getActivitiesMetadata(ctx.Request().Context(), databaseRequest)
