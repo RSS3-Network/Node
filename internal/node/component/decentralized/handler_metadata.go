@@ -1,6 +1,7 @@
 package decentralized
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"github.com/rss3-network/node/docs"
 	"github.com/rss3-network/node/internal/database/model"
 	"github.com/rss3-network/protocol-go/schema"
+	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
@@ -20,7 +22,8 @@ import (
 func (c *Component) BatchGetMetadataActivities(ctx echo.Context) (err error) {
 	request := struct {
 		docs.PostDecentralizedMetadataJSONBody
-		RawType string `json:"type"`
+		RawType     string          `json:"type"`
+		RawMetadata json.RawMessage `json:"metadata"`
 	}{}
 
 	if err = ctx.Bind(&request); err != nil {
@@ -43,6 +46,18 @@ func (c *Component) BatchGetMetadataActivities(ctx echo.Context) (err error) {
 			request.Accounts[i] = common.HexToAddress(request.Accounts[i]).String()
 		}
 	}
+
+	// Parse the metadata
+	if request.RawMetadata == nil || len(request.RawMetadata) == 0 || string(request.RawMetadata) == "{}" {
+		return response.BadRequestError(ctx, fmt.Errorf("empty metadata"))
+	}
+
+	meta, err := metadata.Unmarshal(typex, request.RawMetadata)
+	if err != nil {
+		return response.BadRequestError(ctx, fmt.Errorf("failed to unmarshal metadata: %w", err))
+	}
+
+	request.Metadata = lo.ToPtr(meta)
 
 	if err = defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)
@@ -71,16 +86,16 @@ func (c *Component) BatchGetMetadataActivities(ctx echo.Context) (err error) {
 	}
 
 	databaseRequest := model.ActivitiesMetadataQuery{
-		Cursor:           cursor,
-		StartTimestamp:   request.SinceTimestamp,
-		EndTimestamp:     request.UntilTimestamp,
-		Limit:            lo.FromPtr(request.Limit),
-		ActionLimit:      lo.FromPtr(request.ActionLimit),
-		Accounts:         request.Accounts,
-		Platform:         request.Platform,
-		Status:           request.Status,
-		Network:          request.Network,
-		MetadataQuerySQL: request.MetadataQueryWhere,
+		Cursor:         cursor,
+		StartTimestamp: request.SinceTimestamp,
+		EndTimestamp:   request.UntilTimestamp,
+		Limit:          lo.FromPtr(request.Limit),
+		ActionLimit:    lo.FromPtr(request.ActionLimit),
+		Accounts:       request.Accounts,
+		Platform:       request.Platform,
+		Status:         request.Status,
+		Network:        request.Network,
+		Metadata:       request.Metadata,
 	}
 
 	activities, last, err := c.getActivitiesMetadata(ctx.Request().Context(), databaseRequest)

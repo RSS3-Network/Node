@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -1041,8 +1042,17 @@ func (c *client) buildFindActivitiesStatement(ctx context.Context, partitionedNa
 		databaseStatement = databaseStatement.Where("timestamp < ? OR (timestamp = ? AND index < ?)", time.Unix(int64(query.Cursor.Timestamp), 0), time.Unix(int64(query.Cursor.Timestamp), 0), query.Cursor.Index)
 	}
 
-	if query.MetadataQuerySQL != nil {
-		databaseStatement = databaseStatement.Where(lo.FromPtr(query.MetadataQuerySQL))
+	if query.Metadata != nil {
+		metadataSQL, err := json.Marshal([]map[string]interface{}{
+			{
+				"metadata": query.Metadata,
+			},
+		})
+		if err != nil {
+			zap.L().Error("failed to marshal metadata", zap.Error(err), zap.Any("metadata", query.Metadata))
+		} else {
+			databaseStatement = databaseStatement.Where("actions::jsonb @> ?", string(metadataSQL))
+		}
 	}
 
 	return databaseStatement.Order("timestamp DESC, index DESC").Limit(query.Limit)
