@@ -111,6 +111,8 @@ func initNetworkClient(m *config.Module) (Client, error) {
 		client, err = NewEthereumClient(m.Endpoint)
 	case network.NearProtocol:
 		client, err = NewNearClient(m.Endpoint)
+	case network.ATProtocol:
+		client, err = NewAtprotoClient()
 	default:
 		return nil, fmt.Errorf("unsupported network protocol: %s", m.Network)
 	}

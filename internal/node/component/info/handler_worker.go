@@ -144,7 +144,7 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 			response.Data.Decentralized = append(response.Data.Decentralized, workerInfo)
 			zap.L().Debug("added decentralized worker info",
 				zap.String("network", workerInfo.Network.String()))
-		case network.ActivityPubProtocol:
+		case network.ActivityPubProtocol, network.ATProtocol:
 			response.Data.Federated = append(response.Data.Federated, workerInfo)
 			zap.L().Debug("added federated worker info",
 				zap.String("network", workerInfo.Network.String()))
@@ -200,7 +200,7 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 	}
 
 	switch module.Network.Protocol() {
-	case network.ActivityPubProtocol:
+	case network.ActivityPubProtocol, network.ATProtocol:
 		if federatedWorker, ok := module.Worker.(federated.Worker); ok {
 			workerInfo.Platform = federated.ToPlatformMap[federatedWorker].String()
 			workerInfo.Tags = federated.ToTagsMap[federatedWorker]
