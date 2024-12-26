@@ -71,8 +71,10 @@ func (s *dataSource) Start(ctx context.Context, tasksChan chan<- *engine.Tasks, 
 func (s *dataSource) pollSubscribeRepos(ctx context.Context, tasksChan chan<- *engine.Tasks) error {
 	uri := bluesky.BskySubscribeURI
 
-	if lo.IsEmpty(s.state.SubscribeCursor) {
+	if lo.IsNotEmpty(s.state.SubscribeCursor) {
 		uri = fmt.Sprintf("%s?cursor=%d", uri, s.state.SubscribeCursor)
+	} else {
+		uri = fmt.Sprintf("%s?cursor=1", uri)
 	}
 
 	conn, _, err := websocket.DefaultDialer.Dial(uri, nil)

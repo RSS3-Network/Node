@@ -26,15 +26,6 @@ type Client interface {
 	LatestState(ctx context.Context) (uint64, uint64, error)
 }
 
-// activitypubClient is a client implementation for ActivityPub.
-type activitypubClient struct {
-	httpClient httpx.Client
-	relayURLs  []string
-}
-
-// set a default client
-var _ Client = (*activitypubClient)(nil)
-
 // ethereumClient is a client implementation for ethereum.
 type ethereumClient struct {
 	ethereumClient ethereum.Client
@@ -166,43 +157,6 @@ func (c *farcasterClient) LatestState(_ context.Context) (uint64, uint64, error)
 	return uint64(time.Now().UnixMilli()), 0, nil
 }
 
-// getTargetBlockFromParam returns the target block number/height from the parameters.
-func getTargetBlockFromParam(param *config.Parameters) uint64 {
-	if param == nil {
-		return 0
-	}
-
-	targetBlock, exists := (*param)["block_target"]
-	if !exists || targetBlock == nil {
-		return 0
-	}
-
-	targetBlockUint, err := convertToUint64(targetBlock)
-	if err != nil {
-		return 0
-	}
-
-	return targetBlockUint
-}
-
-// convertToUint64 a helper func which converts the value to uint64.
-func convertToUint64(value interface{}) (uint64, error) {
-	switch v := value.(type) {
-	case string:
-		return strconv.ParseUint(v, 10, 64)
-	case int:
-		return uint64(v), nil
-	case int64:
-		return uint64(v), nil
-	case uint:
-		return uint64(v), nil
-	case uint64:
-		return v, nil
-	default:
-		return 0, fmt.Errorf("unsupported type: %T", v)
-	}
-}
-
 // NewFarcasterClient returns a new farcaster client.
 func NewFarcasterClient() (Client, error) {
 	return &farcasterClient{}, nil
@@ -215,6 +169,15 @@ func (c *activitypubClient) CurrentState(_ CheckpointState) (uint64, uint64) {
 func (c *activitypubClient) TargetState(_ *config.Parameters) (uint64, uint64) {
 	return 0, 0
 }
+
+// activitypubClient is a client implementation for ActivityPub.
+type activitypubClient struct {
+	httpClient httpx.Client
+	relayURLs  []string
+}
+
+// set a default client
+var _ Client = (*activitypubClient)(nil)
 
 // LatestState checks the health of the ActivityPub connection.
 // Returns current timestamp if healthy, error otherwise.
@@ -270,4 +233,62 @@ func NewActivityPubClient(network network.Network, param *config.Parameters) (Cl
 		httpClient: httpClient,
 		relayURLs:  relayURLList,
 	}, nil
+}
+
+// atprotoClient is a client implementation for atproto.
+type atprotoClient struct{}
+
+// make sure client implements Client
+var _ Client = (*atprotoClient)(nil)
+
+func (c *atprotoClient) CurrentState(state CheckpointState) (uint64, uint64) {
+	return uint64(state.AtprotoState.SubscribeTimestamp), 0
+}
+
+func (c *atprotoClient) TargetState(_ *config.Parameters) (uint64, uint64) {
+	return uint64(time.Now().Unix()), 0
+}
+
+func (c *atprotoClient) LatestState(_ context.Context) (uint64, uint64, error) {
+	return uint64(time.Now().Unix()), 0, nil
+}
+
+// NewAtprotoClient returns a new atproto client.
+func NewAtprotoClient() (Client, error) { return &atprotoClient{}, nil }
+
+// getTargetBlockFromParam returns the target block number/height from the parameters.
+func getTargetBlockFromParam(param *config.Parameters) uint64 {
+	if param == nil {
+		return 0
+	}
+
+	targetBlock, exists := (*param)["block_target"]
+	if !exists || targetBlock == nil {
+		return 0
+	}
+
+	targetBlockUint, err := convertToUint64(targetBlock)
+	if err != nil {
+		return 0
+	}
+
+	return targetBlockUint
+}
+
+// convertToUint64 a helper func which converts the value to uint64.
+func convertToUint64(value interface{}) (uint64, error) {
+	switch v := value.(type) {
+	case string:
+		return strconv.ParseUint(v, 10, 64)
+	case int:
+		return uint64(v), nil
+	case int64:
+		return uint64(v), nil
+	case uint:
+		return uint64(v), nil
+	case uint64:
+		return v, nil
+	default:
+		return 0, fmt.Errorf("unsupported type: %T", v)
+	}
 }

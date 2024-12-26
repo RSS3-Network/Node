@@ -5,22 +5,29 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/rss3-network/node/config"
 	"github.com/rss3-network/node/config/parameter"
+	"github.com/rss3-network/node/internal/engine/protocol/atproto"
+	"github.com/rss3-network/node/internal/engine/protocol/farcaster"
 	workerx "github.com/rss3-network/node/schema/worker"
 	"github.com/rss3-network/node/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"go.uber.org/zap"
 )
 
+type AtprotoState atproto.State
+
+type FarcastState farcaster.State
+
 type CheckpointState struct {
-	BlockHeight      uint64 `json:"block_height"`
-	BlockTimestamp   uint64 `json:"block_timestamp"`
-	BlockNumber      uint64 `json:"block_number"`
-	EventID          uint64 `json:"event_id"`
-	CastsBackfill    bool   `json:"casts_backfill"`
-	ReactionBackfill bool   `json:"reaction_backfill"`
+	BlockHeight    uint64 `json:"block_height"`
+	BlockTimestamp uint64 `json:"block_timestamp"`
+	BlockNumber    uint64 `json:"block_number"`
+
+	AtprotoState
+	FarcastState
 }
 
 type WorkerProgress struct {
@@ -109,14 +116,10 @@ func (m *Monitor) processDecentralizedWorker(ctx context.Context, w *config.Modu
 // processFederatedWorker processes the federated worker status.
 func (m *Monitor) processFederatedWorker(ctx context.Context, w *config.Module) error {
 	// get checkpoint info from database
-	indexCount, _, err := m.getCheckpointState(ctx, w.ID, w.Network, w.Worker.Name())
+	indexCount, workerState, err := m.getCheckpointState(ctx, w.ID, w.Network, w.Worker.Name())
 	if err != nil {
 		zap.L().Error("get checkpoint info", zap.Error(err))
 		return err
-	}
-
-	if err = m.UpdateWorkerProgress(ctx, w.ID, ConstructWorkerProgress(0, 0, 0, indexCount)); err != nil {
-		return fmt.Errorf("update worker progress: %w", err)
 	}
 
 	client, ok := m.clients[w.Network]
@@ -124,10 +127,31 @@ func (m *Monitor) processFederatedWorker(ctx context.Context, w *config.Module) 
 		return fmt.Errorf("client not exist")
 	}
 
-	// Check health with timeout context
 	targetStatus := workerx.StatusReady
-	if _, _, err := client.LatestState(ctx); err != nil {
-		targetStatus = workerx.StatusUnhealthy
+
+	switch w.Network {
+	case network.Mastodon:
+		if err = m.UpdateWorkerProgress(ctx, w.ID, ConstructWorkerProgress(0, 0, 0, indexCount)); err != nil {
+			return fmt.Errorf("update worker progress: %w", err)
+		}
+
+		if _, _, err = client.LatestState(ctx); err != nil {
+			targetStatus = workerx.StatusUnhealthy
+		}
+	case network.Bluesky:
+		if err = m.UpdateWorkerProgress(ctx, w.ID, ConstructWorkerProgress(uint64(workerState.SubscribeTimestamp), 0, uint64(time.Now().Unix()), indexCount)); err != nil {
+			return fmt.Errorf("update worker progress: %w", err)
+		}
+
+		if workerState.SubscribeTimestamp == 0 {
+			targetStatus = workerx.StatusUnhealthy
+		}
+
+		if time.Unix(workerState.SubscribeTimestamp, 0).Add(time.Hour * 1).Before(time.Now()) {
+			targetStatus = workerx.StatusIndexing
+		}
+	default:
+		return fmt.Errorf("unsupported network")
 	}
 
 	return m.UpdateWorkerStatusByID(ctx, w.ID, targetStatus.String())

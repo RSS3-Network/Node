@@ -761,9 +761,11 @@ func TestMonitor(t *testing.T) {
 					},
 				},
 				currentState: monitor.CheckpointState{
-					EventID:          432183841886217,
-					CastsBackfill:    true,
-					ReactionBackfill: true,
+					FarcastState: monitor.FarcastState{
+						EventID:           432183841886217,
+						CastsBackfill:     true,
+						ReactionsBackfill: true,
+					},
 				},
 				latestState:   1714972833273 + parameter.CurrentNetworkTolerance[network.Farcaster] + 1,
 				initialStatus: worker.StatusReady,
@@ -787,9 +789,11 @@ func TestMonitor(t *testing.T) {
 					},
 				},
 				currentState: monitor.CheckpointState{
-					EventID:          432183841886217,
-					CastsBackfill:    true,
-					ReactionBackfill: true,
+					FarcastState: monitor.FarcastState{
+						EventID:           432183841886217,
+						CastsBackfill:     true,
+						ReactionsBackfill: true,
+					},
 				},
 				latestState:   1714972833273 + parameter.CurrentNetworkTolerance[network.Farcaster] - 1,
 				initialStatus: worker.StatusReady,
@@ -813,9 +817,11 @@ func TestMonitor(t *testing.T) {
 					},
 				},
 				currentState: monitor.CheckpointState{
-					EventID:          432183841886217,
-					CastsBackfill:    true,
-					ReactionBackfill: true,
+					FarcastState: monitor.FarcastState{
+						EventID:           432183841886217,
+						CastsBackfill:     true,
+						ReactionsBackfill: true,
+					},
 				},
 				lastState:     1714972833273,
 				latestState:   1714972833273 + parameter.CurrentNetworkTolerance[network.Farcaster] - 1,
@@ -840,9 +846,11 @@ func TestMonitor(t *testing.T) {
 					},
 				},
 				currentState: monitor.CheckpointState{
-					EventID:          432183841886217,
-					CastsBackfill:    true,
-					ReactionBackfill: true,
+					FarcastState: monitor.FarcastState{
+						EventID:           432183841886217,
+						CastsBackfill:     true,
+						ReactionsBackfill: true,
+					},
 				},
 				lastState:     1714972833273 - 1,
 				latestState:   1714972833273 + parameter.CurrentNetworkTolerance[network.Farcaster] + 1,
@@ -867,9 +875,11 @@ func TestMonitor(t *testing.T) {
 					},
 				},
 				currentState: monitor.CheckpointState{
-					EventID:          432183841886217,
-					CastsBackfill:    true,
-					ReactionBackfill: true,
+					FarcastState: monitor.FarcastState{
+						EventID:           432183841886217,
+						CastsBackfill:     true,
+						ReactionsBackfill: true,
+					},
 				},
 				lastState:     1714972833273 - 1,
 				latestState:   1714972833273 + parameter.CurrentNetworkTolerance[network.Farcaster] + 1,
@@ -894,9 +904,11 @@ func TestMonitor(t *testing.T) {
 					},
 				},
 				currentState: monitor.CheckpointState{
-					EventID:          432183841886217,
-					CastsBackfill:    true,
-					ReactionBackfill: true,
+					FarcastState: monitor.FarcastState{
+						EventID:           432183841886217,
+						CastsBackfill:     true,
+						ReactionsBackfill: true,
+					},
 				},
 				lastState:     1714972833273 - 1,
 				latestState:   1714972833273 + parameter.CurrentNetworkTolerance[network.Farcaster] - 1,
@@ -921,9 +933,11 @@ func TestMonitor(t *testing.T) {
 					},
 				},
 				currentState: monitor.CheckpointState{
-					EventID:          432183841886217,
-					CastsBackfill:    true,
-					ReactionBackfill: true,
+					FarcastState: monitor.FarcastState{
+						EventID:           432183841886217,
+						CastsBackfill:     true,
+						ReactionsBackfill: true,
+					},
 				},
 				lastState:     0,
 				latestState:   1714972833273 + parameter.CurrentNetworkTolerance[network.Farcaster] + 1,
