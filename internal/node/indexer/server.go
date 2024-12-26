@@ -365,6 +365,11 @@ func NewServer(ctx context.Context, config *config.Module, databaseClient databa
 		if err != nil {
 			return nil, fmt.Errorf("error occurred in creating new activitypub monitorClient: %w", err)
 		}
+	case network.ATProtocol:
+		instance.monitorClient, err = monitor.NewAtprotoClient()
+		if err != nil {
+			return nil, fmt.Errorf("new atproto monitorClient: %w", err)
+		}
 	case network.ArweaveProtocol:
 		instance.monitorClient, err = monitor.NewArweaveClient()
 		if err != nil {
