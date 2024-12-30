@@ -41,18 +41,23 @@ func (c *Component) BatchGetMetadataActivities(ctx echo.Context) (err error) {
 
 	request.Type = lo.ToPtr(typex)
 
+	for i := range request.Accounts {
+		if common.IsHexAddress(request.Accounts[i]) {
+			request.Accounts[i] = common.HexToAddress(request.Accounts[i]).String()
+		}
+	}
+
+	// Parse the metadata
+	if request.RawMetadata == nil || len(request.RawMetadata) == 0 || string(request.RawMetadata) == "{}" {
+		return response.BadRequestError(ctx, fmt.Errorf("empty metadata"))
+	}
+
 	meta, err := metadata.Unmarshal(typex, request.RawMetadata)
 	if err != nil {
 		return response.BadRequestError(ctx, fmt.Errorf("failed to unmarshal metadata: %w", err))
 	}
 
 	request.Metadata = lo.ToPtr(meta)
-
-	for i := range request.Accounts {
-		if common.IsHexAddress(request.Accounts[i]) {
-			request.Accounts[i] = common.HexToAddress(request.Accounts[i]).String()
-		}
-	}
 
 	if err = defaults.Set(&request); err != nil {
 		return response.BadRequestError(ctx, err)

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -12,7 +13,6 @@ import (
 	"github.com/rss3-network/node/internal/database/dialer/postgres/table"
 	"github.com/rss3-network/node/internal/database/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
-	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"
@@ -1043,32 +1043,19 @@ func (c *client) buildFindActivitiesStatement(ctx context.Context, partitionedNa
 	}
 
 	if query.Metadata != nil {
-		databaseStatement = c.buildFindActivitiesMetadataStatement(ctx, databaseStatement, lo.FromPtr(query.Metadata))
+		metadataSQL, err := json.Marshal([]map[string]interface{}{
+			{
+				"metadata": query.Metadata,
+			},
+		})
+		if err != nil {
+			zap.L().Error("failed to marshal metadata", zap.Error(err), zap.Any("metadata", query.Metadata))
+		} else {
+			databaseStatement = databaseStatement.Where("actions::jsonb @> ?", string(metadataSQL))
+		}
 	}
 
 	return databaseStatement.Order("timestamp DESC, index DESC").Limit(query.Limit)
-}
-
-// buildFindActivitiesMetadataStatement builds the query metadata statement.
-func (c *client) buildFindActivitiesMetadataStatement(_ context.Context, databaseStatement *gorm.DB, meta metadata.Metadata) *gorm.DB {
-	statement := databaseStatement.Session(&gorm.Session{})
-
-	statement = statement.Joins("CROSS JOIN LATERAL jsonb_array_elements(actions::jsonb) AS action_element")
-
-	switch data := meta.(type) {
-	case *metadata.ExchangeSwap:
-		if data.From.Address != nil {
-			statement = statement.Where("action_element -> 'metadata' -> 'from' ->> 'address' = ?", data.From.Address)
-		}
-
-		if data.To.Address != nil {
-			statement = statement.Where("action_element -> 'metadata' -> 'to' ->> 'address' = ?", data.To.Address)
-		}
-	default:
-		return databaseStatement
-	}
-
-	return statement
 }
 
 // buildActivitiesTableNames builds the activities table names.
