@@ -326,6 +326,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Highlight,
 		decentralized.Rainbow,
 		decentralized.Stargate,
+		decentralized.Uniswap,
 		decentralized.Zerion,
 	},
 	network.Arweave: {
@@ -339,6 +340,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Curve,
 		decentralized.Rainbow,
 		decentralized.Stargate,
+		decentralized.Uniswap,
 		decentralized.Zerion,
 	},
 	network.Base: {
@@ -347,12 +349,14 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Core,
 		decentralized.Rainbow,
 		decentralized.Stargate,
+		decentralized.Uniswap,
 		decentralized.Zerion,
 	},
 	network.BinanceSmartChain: {
 		decentralized.Core,
 		decentralized.Rainbow,
 		decentralized.Stargate,
+		decentralized.Uniswap,
 		decentralized.Zerion,
 	},
 	network.Crossbell: {
@@ -416,6 +420,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Optimism,
 		decentralized.Rainbow,
 		decentralized.Stargate,
+		decentralized.Uniswap,
 		decentralized.Zerion,
 	},
 	network.Polygon: {
@@ -429,6 +434,7 @@ var NetworkToWorkersMap = map[network.Network][]worker.Worker{
 		decentralized.Polymarket,
 		decentralized.Rainbow,
 		decentralized.Stargate,
+		decentralized.Uniswap,
 		decentralized.Zerion,
 	},
 	network.RSSHub: {
