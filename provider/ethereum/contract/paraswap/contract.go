@@ -10,8 +10,13 @@ import (
 
 // https://developers.paraswap.network/smart-contracts
 var (
-	AddressV5ParaSwap     = common.HexToAddress("0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57")
-	AddressV5ParaSwapBase = common.HexToAddress("0x59C7C832e96D2568bea6db468C1aAdcbbDa08A52")
+	AddressV5ParaSwap                  = common.HexToAddress("0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57")
+	AddressV5ParaSwapArbitrum          = common.HexToAddress("0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57")
+	AddressV5ParaSwapAvalanche         = common.HexToAddress("0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57")
+	AddressV5ParaSwapBase              = common.HexToAddress("0x59C7C832e96D2568bea6db468C1aAdcbbDa08A52")
+	AddressV5ParaSwapBinanceSmartChain = common.HexToAddress("0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57")
+	AddressV5ParaSwapOptimism          = common.HexToAddress("0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57")
+	AddressV5ParaSwapPolygon           = common.HexToAddress("0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57")
 
 	AddressETH = common.HexToAddress("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")
 
