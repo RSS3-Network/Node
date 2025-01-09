@@ -46,6 +46,9 @@ func (w *worker) Platform() string {
 func (w *worker) Network() []network.Network {
 	return []network.Network{
 		network.Ethereum,
+		network.Arbitrum,
+		network.Base,
+		network.Gnosis,
 	}
 }
 

@@ -61,9 +61,12 @@ func (w *worker) Network() []network.Network {
 		network.Ethereum,
 		network.Arbitrum,
 		network.Avalanche,
+		network.Base,
+		network.BinanceSmartChain,
 		network.Gnosis,
 		network.Optimism,
 		network.Polygon,
+		network.XLayer,
 	}
 }
 

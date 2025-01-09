@@ -17,13 +17,15 @@ import (
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi ./abi/V3Pool.abi --pkg aave --type V3Pool --out contract_v3_pool.go
 
 var (
-	AddressV1LendingPool          = common.HexToAddress("0x398eC7346DcD622eDc5ae82352F02bE94C62d119")
-	AddressV2LendingPoolMainnet   = common.HexToAddress("0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9")
-	AddressV2LendingPoolPolygon   = common.HexToAddress("0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf")
-	AddressV2LendingPoolAvalanche = common.HexToAddress("0x4F01AeD16D97E3aB5ab2B501154DC9bb0F1A5A2C")
-	AddressV3PoolMainnet          = common.HexToAddress("0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2")
-	AddressV3PoolBase             = common.HexToAddress("0xA238Dd80C259a72e81d7e4664a9801593F98d1c5")
-	AddressV3PoolOthers           = common.HexToAddress("0x794a61358D6845594F94dc1DB02A252b5b4814aD")
+	AddressV1LendingPool           = common.HexToAddress("0x398eC7346DcD622eDc5ae82352F02bE94C62d119")
+	AddressV2LendingPoolMainnet    = common.HexToAddress("0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9")
+	AddressV2LendingPoolPolygon    = common.HexToAddress("0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf")
+	AddressV2LendingPoolAvalanche  = common.HexToAddress("0x4F01AeD16D97E3aB5ab2B501154DC9bb0F1A5A2C")
+	AddressV3PoolMainnet           = common.HexToAddress("0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2")
+	AddressV3PoolBase              = common.HexToAddress("0xA238Dd80C259a72e81d7e4664a9801593F98d1c5")
+	AddressV3PoolGnosis            = common.HexToAddress("0xb50201558B00496A145fE76f7424749556E326D8")
+	AddressV3PoolBinanceSmartChain = common.HexToAddress("0x6807dc923806fE8Fd134338EABCA509979a7e0cB")
+	AddressV3PoolOthers            = common.HexToAddress("0x794a61358D6845594F94dc1DB02A252b5b4814aD")
 
 	EventHashV1LendingPoolDeposit  = contract.EventHash("Deposit(address,address,uint256,uint16,uint256)")
 	EventHashV1LendingPoolBorrow   = contract.EventHash("Borrow(address,address,uint256,uint256,uint256,uint256,uint256,uint16,uint256)")

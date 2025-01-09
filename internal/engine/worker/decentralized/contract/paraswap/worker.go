@@ -44,6 +44,12 @@ func (w *worker) Platform() string {
 func (w *worker) Network() []network.Network {
 	return []network.Network{
 		network.Ethereum,
+		network.Optimism,
+		network.BinanceSmartChain,
+		network.Avalanche,
+		network.Arbitrum,
+		network.Polygon,
+		network.Base,
 	}
 }
 
@@ -64,6 +70,11 @@ func (w *worker) Filter() engine.DataSourceFilter {
 		LogAddresses: []common.Address{
 			paraswap.AddressV5ParaSwap,
 			paraswap.AddressV5ParaSwapBase,
+			paraswap.AddressV5ParaSwapBinanceSmartChain,
+			paraswap.AddressV5ParaSwapOptimism,
+			paraswap.AddressV5ParaSwapPolygon,
+			paraswap.AddressV5ParaSwapArbitrum,
+			paraswap.AddressV5ParaSwapAvalanche,
 		},
 		LogTopics: []common.Hash{
 			paraswap.EventHashV3Swapped,

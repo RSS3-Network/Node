@@ -61,6 +61,8 @@ func (w *worker) Network() []network.Network {
 		network.Base,
 		network.Optimism,
 		network.Arbitrum,
+		network.Gnosis,
+		network.BinanceSmartChain,
 	}
 }
 
@@ -92,6 +94,10 @@ func (w *worker) Filter() engine.DataSourceFilter {
 		aaveV3PoolAddress = aave.AddressV3PoolOthers
 	case network.Base:
 		aaveV3PoolAddress = aave.AddressV3PoolBase
+	case network.Gnosis:
+		aaveV3PoolAddress = aave.AddressV3PoolGnosis
+	case network.BinanceSmartChain:
+		aaveV3PoolAddress = aave.AddressV3PoolBinanceSmartChain
 	case network.Optimism, network.Arbitrum:
 		aaveV3PoolAddress = aave.AddressV3PoolOthers
 	default:
