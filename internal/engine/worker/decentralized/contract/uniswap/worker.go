@@ -142,12 +142,21 @@ func (w *worker) matchSwapTransaction(task *source.Task, transaction *ethereum.T
 	switch *transaction.To {
 	case // Uniswap V3
 		uniswap.AddressV3SwapRouter,
-		uniswap.AddressV3SwapRouterCelo,
 		uniswap.AddressV3SwapRouter02,
-		uniswap.AddressV3SwapRouter02Celo,
+		uniswap.AddressV3SwapRouter02Arbitrum,
+		uniswap.AddressV3SwapRouter02Optimism,
+		uniswap.AddressV3SwapRouter02Polygon,
+		uniswap.AddressV3SwapRouter02Base,
 		uniswap.AddressV3SwapRouter02BinanceSmartChain,
+		uniswap.AddressV3SwapRouter02Avalanche,
 		uniswap.AddressV3SwapRouter02Linea,
 		uniswap.AddressUniversalRouter01,
+		uniswap.AddressUniversalRouter01Arbitrum,
+		uniswap.AddressUniversalRouter01Optimism,
+		uniswap.AddressUniversalRouter01Polygon,
+		uniswap.AddressUniversalRouter01Base,
+		uniswap.AddressUniversalRouter01BinanceSmartChain,
+		uniswap.AddressUniversalRouter01Avalanche,
 		uniswap.AddressUniversalRouter02:
 		return true
 	case // Uniswap V2
@@ -183,9 +192,20 @@ func (w *worker) matchLiquidityTransaction(task *source.Task, transaction *ether
 
 	switch *task.Transaction.To {
 	case // Uniswap V3
-		uniswap.AddressNonfungiblePositionManager,
 		uniswap.AddressV3Migrator,
+		uniswap.AddressV3MigratorArbitrum,
+		uniswap.AddressV3MigratorPolygon,
+		uniswap.AddressV3MigratorBase,
+		uniswap.AddressV3MigratorBinanceSmartChain,
+		uniswap.AddressV3MigratorAvalanche,
 		uniswap.AddressV3MigratorLinea,
+		uniswap.AddressNonfungiblePositionManager,
+		uniswap.AddressNonfungiblePositionManagerArbitrum,
+		uniswap.AddressNonfungiblePositionManagerPolygon,
+		uniswap.AddressNonfungiblePositionManagerOptimism,
+		uniswap.AddressNonfungiblePositionManagerBase,
+		uniswap.AddressNonfungiblePositionManagerBinanceSmartChain,
+		uniswap.AddressNonfungiblePositionManagerAvalanche,
 		uniswap.AddressNonfungiblePositionManagerLinea:
 		return true
 	case // Uniswap V2
@@ -1018,6 +1038,18 @@ func (w *worker) getV3NonfungiblePositionManagerAddress(n network.Network) (comm
 	switch n {
 	case network.Ethereum:
 		return uniswap.AddressNonfungiblePositionManager, nil
+	case network.Arbitrum:
+		return uniswap.AddressNonfungiblePositionManagerArbitrum, nil
+	case network.Optimism:
+		return uniswap.AddressNonfungiblePositionManagerOptimism, nil
+	case network.Polygon:
+		return uniswap.AddressNonfungiblePositionManagerPolygon, nil
+	case network.Base:
+		return uniswap.AddressNonfungiblePositionManagerBase, nil
+	case network.BinanceSmartChain:
+		return uniswap.AddressNonfungiblePositionManagerBinanceSmartChain, nil
+	case network.Avalanche:
+		return uniswap.AddressNonfungiblePositionManagerAvalanche, nil
 	case network.Linea:
 		return uniswap.AddressNonfungiblePositionManagerLinea, nil
 	default:
@@ -1029,6 +1061,18 @@ func (w *worker) getV3FactoryAddress(n network.Network) (common.Address, error) 
 	switch n {
 	case network.Ethereum:
 		return uniswap.AddressV3Factory, nil
+	case network.Arbitrum:
+		return uniswap.AddressV3FactoryArbitrum, nil
+	case network.Optimism:
+		return uniswap.AddressV3FactoryOptimism, nil
+	case network.Polygon:
+		return uniswap.AddressV3FactoryPolygon, nil
+	case network.Base:
+		return uniswap.AddressV3FactoryBase, nil
+	case network.BinanceSmartChain:
+		return uniswap.AddressV3FactoryBinanceSmartChain, nil
+	case network.Avalanche:
+		return uniswap.AddressV3FactoryAvalanche, nil
 	case network.Linea:
 		return uniswap.AddressV3FactoryLinea, nil
 	default:
