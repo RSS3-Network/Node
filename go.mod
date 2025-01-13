@@ -79,7 +79,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	github.com/vincent-petithory/dataurl v1.0.0
 	github.com/whyrusleeping/cbor-gen v0.2.1-0.20241030202151-b7a6831be65e
-	golang.org/x/net v0.33.0
+	golang.org/x/net v0.34.0
 )
 
 require (
