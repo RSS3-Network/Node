@@ -71,7 +71,7 @@ require (
 	github.com/jaytaylor/html2text v0.0.0-20230321000545-74c2419ad056
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
-	github.com/redis/rueidis v1.0.52
+	github.com/redis/rueidis v1.0.53
 	github.com/redis/rueidis/rueidiscompat v1.0.52
 	github.com/reiver/go-bsky v0.0.0-20240906205655-8c7fadb4f3bb
 	github.com/rss3-network/protocol-go v0.5.16
