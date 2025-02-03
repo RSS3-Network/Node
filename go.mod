@@ -9,7 +9,7 @@ replace (
 
 require (
 	github.com/JohannesKaufmann/html-to-markdown v1.6.0
-	github.com/Khan/genqlient v0.7.0
+	github.com/Khan/genqlient v0.8.0
 	github.com/avast/retry-go/v4 v4.6.0
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/creasty/defaults v1.8.0
@@ -243,7 +243,7 @@ require (
 	github.com/twmb/franz-go/pkg/kmsg v1.9.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	github.com/vektah/gqlparser/v2 v2.5.11 // indirect
+	github.com/vektah/gqlparser/v2 v2.5.19 // indirect
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
 	github.com/whyrusleeping/cbor v0.0.0-20171005072247-63513f603b11 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
