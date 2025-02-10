@@ -71,8 +71,8 @@ require (
 	github.com/jaytaylor/html2text v0.0.0-20230321000545-74c2419ad056
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
-	github.com/redis/rueidis v1.0.53
-	github.com/redis/rueidis/rueidiscompat v1.0.53
+	github.com/redis/rueidis v1.0.54
+	github.com/redis/rueidis/rueidiscompat v1.0.54
 	github.com/reiver/go-bsky v0.0.0-20240906205655-8c7fadb4f3bb
 	github.com/rss3-network/protocol-go v0.5.16
 	github.com/spf13/afero v1.12.0
@@ -260,11 +260,11 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/mod v0.20.0 // indirect
+	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
-	golang.org/x/tools v0.24.0 // indirect
+	golang.org/x/tools v0.29.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250115164207-1a7da9e5054f // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
