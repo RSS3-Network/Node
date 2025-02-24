@@ -60,7 +60,7 @@ require (
 	github.com/adrianbrad/psqldocker v1.2.1
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/bluesky-social/indigo v0.0.0-20241212185500-749cc07bf4eb
-	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
 	github.com/emirpasic/gods v1.18.1
 	github.com/getkin/kin-openapi v0.129.0
 	github.com/go-fed/httpsig v1.1.0
