@@ -91,6 +91,7 @@ type Component struct {
 	RSS           *Module   `mapstructure:"rss"`
 	Federated     []*Module `mapstructure:"federated" validate:"dive"`
 	Decentralized []*Module `mapstructure:"decentralized" validate:"dive"`
+	AI            *Module   `mapstructure:"ai"`
 }
 
 type Module struct {
