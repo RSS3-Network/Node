@@ -96,7 +96,7 @@ type Component struct {
 
 type Module struct {
 	ID           string          `mapstructure:"id"`
-	Network      network.Network `mapstructure:"network" validate:"required"`
+	Network      network.Network `mapstructure:"network"`
 	EndpointID   string          `mapstructure:"endpoint"`
 	IPFSGateways []string        `mapstructure:"ipfs_gateways"`
 	Worker       worker.Worker   `mapstructure:"worker"`
