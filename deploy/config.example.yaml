@@ -59,10 +59,12 @@ component:
     parameters:
       authentication:
         access_key:
+  # `ai` type includes the worker indexing data in AI format.
   ai:
-    id: agentdata-core
+    id: ai-core
     worker: core
     endpoint: https://your.agentdata.com/
+
   # `decentralized` network type includes workers indexing data from decentralized networks such as blockchain networks, Arweave, etc.
   decentralized:
     # Each configuration here initializes a worker.

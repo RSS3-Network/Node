@@ -16,6 +16,8 @@ tags:
     description: Retrieve the details of decentralized activities.
   - name: Federated
     description: Retrieve the details of federated activities.
+  - name: AI
+    description: Retrieve the details of AI data.
 paths:
   /decentralized/tx/{id}:
     $ref: "./path/decentralized/tx.yaml"
@@ -44,6 +46,10 @@ paths:
   # Rss route
   /rss/{path}:
     $ref: "./path/rss.yaml"
+
+  # AI route
+  /agentdata/{path}:
+      $ref: "./path/ai.yaml"
 
   # Operator route
   /operators:

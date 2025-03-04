@@ -1,4 +1,4 @@
-package agentdata
+package ai
 
 import (
 	"context"

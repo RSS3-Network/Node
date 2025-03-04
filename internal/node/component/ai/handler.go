@@ -1,10 +1,13 @@
-package agentdata
+package ai
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
+	"path"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rss3-network/node/common/http/response"
@@ -16,20 +19,14 @@ type Response struct {
 }
 
 func (h *Component) Handler(ctx echo.Context) error {
-	path := ctx.Param("*")
 	zap.L().Debug("handling AgentData request",
-		zap.String("path", path),
 		zap.String("request_uri", ctx.Request().RequestURI))
-
-	go h.CollectTrace(ctx.Request().Context(), ctx.Request().RequestURI, path)
-
-	go h.CollectMetric(ctx.Request().Context(), ctx.Request().RequestURI, path)
 
 	addRecentRequest(ctx.Request().RequestURI)
 
-	reqURL, err := h.formatRequestURL(path, ctx.Request().URL)
+	reqURL, err := h.formatRequestURL(ctx.Request().Context(), ctx.Request().URL)
 	if err != nil {
-		zap.L().Error("failed to format request", zap.Error(err), zap.String("path", path))
+		zap.L().Error("failed to format request", zap.Error(err), zap.String("uri", reqURL.String()))
 
 		return response.BadRequestError(ctx, err)
 	}
@@ -41,13 +38,13 @@ func (h *Component) Handler(ctx echo.Context) error {
 
 	resp, err := h.httpClient.Do(request)
 	if err != nil {
-		zap.L().Error("failed to get response from agentdata", zap.Error(err), zap.String("path", path))
+		zap.L().Error("failed to get response from ai", zap.Error(err), zap.String("uri", reqURL.String()))
 
 		return response.InternalError(ctx)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		zap.L().Error("failed to get response from agentdata", zap.Int("status_code", resp.StatusCode), zap.String("path", path))
+		zap.L().Error("failed to get response from ai", zap.Int("status_code", resp.StatusCode), zap.String("uri", reqURL.String()))
 
 		return response.InternalError(ctx)
 	}
@@ -59,7 +56,7 @@ func (h *Component) Handler(ctx echo.Context) error {
 	var result any
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		zap.L().Error("failed to decode response from agentdata", zap.Error(err))
+		zap.L().Error("failed to decode response from ai", zap.Error(err))
 
 		return response.InternalError(ctx)
 	}
@@ -67,17 +64,16 @@ func (h *Component) Handler(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, result)
 }
 
-// formatRequestURL prepares the URL for the agentdata request with necessary parameters.
-func (h *Component) formatRequestURL(path string, in *url.URL) (*url.URL, error) {
-	out, err := url.Parse(h.config.Component.AI.Endpoint.URL)
+// formatRequestURL prepares the URL for the ai request with necessary parameters.
+func (h *Component) formatRequestURL(_ context.Context, in *url.URL) (*url.URL, error) {
+	base, err := url.Parse(h.config.Component.AI.Endpoint.URL)
 	if err != nil {
-		return nil, fmt.Errorf("parse agentdata endpoint: %w", err)
+		return nil, fmt.Errorf("parse ai endpoint: %w", err)
 	}
 
-	parameters := in.Query()
+	trimmedPath := strings.TrimPrefix(in.Path, fmt.Sprintf("/%s/", Name))
+	base.Path = path.Join(base.Path, trimmedPath)
+	base.RawQuery = in.Query().Encode()
 
-	out.RawQuery = parameters.Encode()
-	out.Path = path
-
-	return out, nil
+	return base, nil
 }

@@ -65,6 +65,10 @@ func (f *File) LoadModulesEndpoint() error {
 		assignEndpoint([]*Module{f.Component.RSS})
 	}
 
+	if f.Component.AI != nil {
+		assignEndpoint([]*Module{f.Component.AI})
+	}
+
 	assignEndpoint(f.Component.Decentralized)
 	assignEndpoint(f.Component.Federated)
 

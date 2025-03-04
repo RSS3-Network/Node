@@ -1,0 +1,7 @@
+description: Retrieve details for the specified AgentData path
+example: api/v1/ai_intel
+in: path
+name: path
+required: true
+schema:
+  type: string
