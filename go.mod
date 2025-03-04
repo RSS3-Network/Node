@@ -10,7 +10,7 @@ replace (
 require (
 	github.com/JohannesKaufmann/html-to-markdown v1.6.0
 	github.com/Khan/genqlient v0.8.0
-	github.com/avast/retry-go/v4 v4.6.0
+	github.com/avast/retry-go/v4 v4.6.1
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/creasty/defaults v1.8.0
 	github.com/ethereum/go-ethereum v1.13.15
