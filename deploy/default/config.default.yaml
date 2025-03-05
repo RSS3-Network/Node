@@ -50,3 +50,6 @@ component:
       network: vsl
       endpoint: vsl
       worker: core
+  ai:
+    id: agentdata-core
+    endpoint: https://your.agentdata.com/

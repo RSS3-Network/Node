@@ -60,6 +60,10 @@ component:
     parameters:
       authentication:
         access_key:
+  ai:
+    id: agentdata-core
+    worker: core
+    endpoint: https://your.agentdata.com/
   decentralized:
     # ethereum
     - id: ethereum-core

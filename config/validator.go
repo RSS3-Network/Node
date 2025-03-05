@@ -15,9 +15,10 @@ func HasOneWorker(config *File) error {
 	return nil
 }
 
-// IsRSSComponentOnly Check if the configuration contains an RSS component only
-func IsRSSComponentOnly(config *File) bool {
-	return len(config.Component.Decentralized) == 0 && config.Component.RSS != nil && len(config.Component.Federated) == 0
+// IsComponentOnly Check if the configuration contains an RSS or AI component only
+func IsComponentOnly(config *File) bool {
+	return len(config.Component.Decentralized) == 0 && len(config.Component.Federated) == 0 &&
+		(config.Component.RSS != nil || config.Component.AI != nil)
 }
 
 // CalculateWorkerCount returns the number of workers deployed

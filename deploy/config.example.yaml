@@ -29,7 +29,7 @@ database:
 
 # A redis is required for monitor service and will significantly improve the indexing performance of some workers.
 redis:
-  endpoint: localhost:6379
+  endpoint: 127.0.0.1:6379
   username:
   password:
 
@@ -61,7 +61,7 @@ component:
         access_key:
   # `ai` type includes the worker indexing data in AI format.
   ai:
-    id: ai-core
+    id: agentdata-core
     worker: core
     endpoint: https://your.agentdata.com/
 
