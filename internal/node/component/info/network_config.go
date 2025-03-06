@@ -55,11 +55,17 @@ type Parameters struct {
 	TimestampStart          *ConfigDetail   `json:"timestamp_start,omitempty"`
 	RelayURLList            *ConfigDetail   `json:"relay_url_list,omitempty"`
 	Port                    *ConfigDetail   `json:"port,omitempty"`
+	AgentdataDBURL          *ConfigDetail   `json:"agentdata_db_url,omitempty"`
+	OpenAIAPIKey            *ConfigDetail   `json:"openai_api_key,omitempty"`
+	OllamaHost              *ConfigDetail   `json:"ollama_host,omitempty"`
+	KaitoAPIToken           *ConfigDetail   `json:"kaito_api_token,omitempty"`
+	PythonPath              *ConfigDetail   `json:"python_path,omitempty"`
+	TwitterConfig           *AITwitter      `json:"twitter,omitempty"`
 }
 
 type workerConfig struct {
 	ID              ConfigDetail    `json:"id"`
-	Network         ConfigDetail    `json:"network"`
+	Network         ConfigDetail    `json:"network,omitempty"`
 	Worker          ConfigDetail    `json:"worker"`
 	EndpointID      *ConfigDetail   `json:"endpoint,omitempty"`
 	IPFSGateways    *ConfigDetail   `json:"ipfs_gateways,omitempty"`
@@ -563,4 +569,150 @@ var WorkerToConfigMap = map[network.Protocol]map[worker.Worker]workerConfig{
 			},
 		}, "Your RSSHub instance URL"),
 	},
+}
+
+// AITwitter defines Twitter-specific parameters for AI workers
+type AITwitter struct {
+	BearerToken       *ConfigDetail `json:"bearer_token,omitempty"`
+	APIKey            *ConfigDetail `json:"api_key,omitempty"`
+	APISecret         *ConfigDetail `json:"api_secret,omitempty"`
+	AccessToken       *ConfigDetail `json:"access_token,omitempty"`
+	AccessTokenSecret *ConfigDetail `json:"access_token_secret,omitempty"`
+}
+
+// AIWorkerConfig defines the default worker configuration for AI workers
+var AIWorkerConfig = workerConfig{
+	ID: ConfigDetail{
+		IsRequired:  true,
+		Type:        StringType,
+		Value:       "agentdata-core",
+		Description: "Worker's id, must be unique, for example '[network]-[worker]'",
+		Title:       "ID",
+		Key:         "id",
+	},
+	Worker: ConfigDetail{
+		IsRequired:  true,
+		Type:        StringType,
+		Value:       "core",
+		Description: "Name of the worker",
+		Title:       "Worker",
+		Key:         "worker",
+	},
+	EndpointID: &ConfigDetail{
+		IsRequired:  false,
+		Type:        URLType,
+		Description: "Your AgentData service URL",
+		Title:       "Endpoint",
+		Key:         "endpoint",
+	},
+	Parameters: &Parameters{},
+	MinimumResource: MinimumResource{
+		CPUCore:       0.25,
+		MemoryInGb:    0.25,
+		DiskSpaceInGb: 0,
+		Title:         "Minimum Resource",
+		Key:           "minimum_resource",
+	},
+}
+
+// genAIConfigDetail generates the AI configuration details
+func genAIConfigDetail() []NetworkConfigDetail {
+	// Create an AI network detail with a fixed ID "agentdata"
+	networkDetail := NetworkConfigDetail{
+		ID:           "agentdata",
+		WorkerConfig: []workerConfig{},
+	}
+
+	// Create the worker config by making a deep copy of the base config
+	workerConfig := deepCopyWorkerConfig(AIWorkerConfig)
+
+	workerConfig.Parameters = &Parameters{
+		AgentdataDBURL: &ConfigDetail{
+			IsRequired:  false,
+			Type:        StringType,
+			Value:       nil,
+			Description: "AgentData database URL",
+			Title:       "AgentData DB URL",
+			Key:         "agentdata_db_url",
+		},
+		OpenAIAPIKey: &ConfigDetail{
+			IsRequired:  false,
+			Type:        StringType,
+			Value:       nil,
+			Description: "OpenAI API Key for LLM integration",
+			Title:       "OpenAI API Key",
+			Key:         "openai_api_key",
+		},
+		OllamaHost: &ConfigDetail{
+			IsRequired:  false,
+			Type:        StringType,
+			Value:       nil,
+			Description: "Ollama host URL for local model hosting",
+			Title:       "Ollama Host",
+			Key:         "ollama_host",
+		},
+		KaitoAPIToken: &ConfigDetail{
+			IsRequired:  false,
+			Type:        StringType,
+			Value:       nil,
+			Description: "Kaito API Token for Kaito integration",
+			Title:       "Kaito API Token",
+			Key:         "kaito_api_token",
+		},
+		PythonPath: &ConfigDetail{
+			IsRequired:  false,
+			Type:        StringType,
+			Value:       nil,
+			Description: "Python path for AI scripts",
+			Title:       "Python Path",
+			Key:         "python_path",
+		},
+		TwitterConfig: &AITwitter{
+			BearerToken: &ConfigDetail{
+				IsRequired:  false,
+				Type:        StringType,
+				Value:       nil,
+				Description: "Twitter Bearer Token for API access",
+				Title:       "Twitter Bearer Token",
+				Key:         "twitter.bearer_token",
+			},
+			APIKey: &ConfigDetail{
+				IsRequired:  false,
+				Type:        StringType,
+				Value:       nil,
+				Description: "Twitter API Key",
+				Title:       "Twitter API Key",
+				Key:         "twitter.api_key",
+			},
+			APISecret: &ConfigDetail{
+				IsRequired:  false,
+				Type:        StringType,
+				Value:       nil,
+				Description: "Twitter API Secret",
+				Title:       "Twitter API Secret",
+				Key:         "twitter.api_secret",
+			},
+			AccessToken: &ConfigDetail{
+				IsRequired:  false,
+				Type:        StringType,
+				Value:       nil,
+				Description: "Twitter Access Token",
+				Title:       "Twitter Access Token",
+				Key:         "twitter.access_token",
+			},
+			AccessTokenSecret: &ConfigDetail{
+				IsRequired:  false,
+				Type:        StringType,
+				Value:       nil,
+				Description: "Twitter Access Token Secret",
+				Title:       "Twitter Access Token Secret",
+				Key:         "twitter.access_token_secret",
+			},
+		},
+	}
+
+	// Add the worker config to the network detail
+	networkDetail.WorkerConfig = append(networkDetail.WorkerConfig, workerConfig)
+
+	return []NetworkConfigDetail{networkDetail}
 }
