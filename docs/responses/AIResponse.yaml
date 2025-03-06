@@ -1,2 +1,6 @@
 content:
   application/json:
+    schema:
+      type: object
+      description: Response with AI-generated content of any structure
+description: JSON response containing AI-generated content
