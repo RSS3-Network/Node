@@ -59,7 +59,6 @@ type Parameters struct {
 	OpenAIAPIKey            *ConfigDetail   `json:"openai_api_key,omitempty"`
 	OllamaHost              *ConfigDetail   `json:"ollama_host,omitempty"`
 	KaitoAPIToken           *ConfigDetail   `json:"kaito_api_token,omitempty"`
-	PythonPath              *ConfigDetail   `json:"python_path,omitempty"`
 	TwitterConfig           *AITwitter      `json:"twitter,omitempty"`
 }
 
@@ -658,14 +657,6 @@ func genAIConfigDetail() []NetworkConfigDetail {
 			Description: "Kaito API Token for Kaito integration",
 			Title:       "Kaito API Token",
 			Key:         "kaito_api_token",
-		},
-		PythonPath: &ConfigDetail{
-			IsRequired:  false,
-			Type:        StringType,
-			Value:       nil,
-			Description: "Python path for AI scripts",
-			Title:       "Python Path",
-			Key:         "python_path",
 		},
 		TwitterConfig: &AITwitter{
 			BearerToken: &ConfigDetail{

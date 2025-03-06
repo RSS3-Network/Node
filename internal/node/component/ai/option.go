@@ -10,7 +10,6 @@ type Option struct {
 	OllamaHost     string        `json:"ollama_host" mapstructure:"ollama_host"`
 	Twitter        OptionTwitter `json:"twitter" mapstructure:"twitter"`
 	KaitoAPIToken  string        `json:"kaito_api_token" mapstructure:"kaito_api_token"`
-	PythonPath     string        `json:"python_path" mapstructure:"python_path"`
 }
 
 type OptionTwitter struct {

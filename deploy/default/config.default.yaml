@@ -59,7 +59,6 @@ component:
       openai_api_key:
       ollama_host:
       kaito_api_token:
-      python_path:
       twitter:
         bearer_token:
         api_key:
