@@ -20,6 +20,7 @@ type NetworkConfig struct {
 	RSS           NetworkConfigDetailForRSS `json:"rss,omitempty"`
 	Decentralized []NetworkConfigDetail     `json:"decentralized,omitempty"`
 	Federated     []NetworkConfigDetail     `json:"federated,omitempty"`
+	AI            []NetworkConfigDetail     `json:"ai,omitempty"`
 }
 
 type NetworkConfigDetail struct {
@@ -44,6 +45,7 @@ func (c *Component) GetNetworkConfig(ctx echo.Context) error {
 		RSS:           getNetworkConfigDetailForRSS(network.RSSProtocol),
 		Decentralized: getNetworkConfigDetail(network.ArweaveProtocol, network.EthereumProtocol, network.FarcasterProtocol, network.NearProtocol),
 		Federated:     getNetworkConfigDetail(network.ActivityPubProtocol),
+		AI:            genAIConfigDetail(),
 	}
 
 	zap.L().Debug("successfully retrieved network configuration")

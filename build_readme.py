@@ -20,8 +20,8 @@ data = response.json()['data']
 networks = []
 workers = set()
 
-for category in ['decentralized', 'federated', 'rss']:
-    if category == 'rss':
+for category in ['decentralized', 'federated', 'rss', 'ai']:
+    if category == 'rss' or category == 'ai':
         networks.append(data[category]['id'])
         workers.add(data[category]['worker_configs']['worker']['value'])
     else:
@@ -51,8 +51,8 @@ for worker in workers:
     for network in networks:
         # Check if the worker exists for this network
         worker_exists = False
-        for category in ['decentralized', 'federated', 'rss']:
-            if category == 'rss':
+        for category in ['decentralized', 'federated', 'rss', 'ai']:
+            if category == 'rss' or category == 'ai':
                 if network == data[category]['id'] and data[category]['worker_configs']['worker']['value'] == worker:
                     worker_exists = True
                     break

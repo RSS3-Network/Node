@@ -18,6 +18,7 @@ import (
 	"github.com/rss3-network/node/internal/database"
 	"github.com/rss3-network/node/internal/node/component"
 	"github.com/rss3-network/node/internal/node/component/aggregator"
+	"github.com/rss3-network/node/internal/node/component/ai"
 	"github.com/rss3-network/node/internal/node/component/decentralized"
 	"github.com/rss3-network/node/internal/node/component/federated"
 	"github.com/rss3-network/node/internal/node/component/info"
@@ -89,6 +90,15 @@ func NewCoreService(ctx context.Context, config *config.File, databaseClient dat
 			var comp component.Component = rssComponent
 			node.components = append(node.components, &comp)
 			aggComp.RSS = rssComponent
+		}
+	}
+
+	if config.Component.AI != nil {
+		aiComponent := ai.NewComponent(ctx, apiServer, config)
+		{
+			var comp component.Component = aiComponent
+			node.components = append(node.components, &comp)
+			aggComp.AI = aiComponent
 		}
 	}
 

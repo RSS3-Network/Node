@@ -60,6 +60,21 @@ component:
     parameters:
       authentication:
         access_key:
+  ai:
+    id: agentdata-core
+    worker: core
+    endpoint: https://your.agentdata.com/
+    parameters:
+      agentdata_db_url:
+      openai_api_key:
+      ollama_host:
+      kaito_api_token:
+      twitter:
+        bearer_token:
+        api_key:
+        api_secret:
+        access_token:
+        access_token_secret:
   decentralized:
     # ethereum
     - id: ethereum-core

@@ -28,8 +28,9 @@ type WorkerResponse struct {
 
 type ComponentInfo struct {
 	Decentralized []*WorkerInfo `json:"decentralized,omitempty"`
-	RSS           *WorkerInfo   `json:"rss,omitempty"`
 	Federated     []*WorkerInfo `json:"federated,omitempty"`
+	RSS           *WorkerInfo   `json:"rss,omitempty"`
+	AI            *WorkerInfo   `json:"ai,omitempty"`
 }
 
 type WorkerInfo struct {
@@ -52,7 +53,7 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 	workerInfoChan := make(chan *WorkerInfo, workerCount)
 
 	// Fetch the status of all workers concurrently
-	c.fetchAllWorkerInfo(ctx, workerInfoChan)
+	c.fetchAllWorkerInfo(ctx.Request().Context(), workerInfoChan)
 
 	response := c.buildWorkerResponse(workerInfoChan)
 
@@ -62,7 +63,7 @@ func (c *Component) GetWorkersStatus(ctx echo.Context) error {
 }
 
 // fetchAllWorkerInfo fetches the status of all workers concurrently.
-func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *WorkerInfo) {
+func (c *Component) fetchAllWorkerInfo(ctx context.Context, workerInfoChan chan<- *WorkerInfo) {
 	var wg sync.WaitGroup
 
 	zap.L().Debug("starting concurrent worker info fetch")
@@ -73,40 +74,20 @@ func (c *Component) fetchAllWorkerInfo(ctx echo.Context, workerInfoChan chan<- *
 		go func(module *config.Module) {
 			defer wg.Done()
 
-			workerInfoChan <- fetchFunc(ctx.Request().Context(), module)
+			workerInfoChan <- fetchFunc(ctx, module)
 		}(w)
 	}
 
-	modules := make([]*config.Module, 0, config.CalculateWorkerCount(c.config))
-
-	if len(c.config.Component.Decentralized) > 0 {
-		modules = append(modules, c.config.Component.Decentralized...)
-		zap.L().Debug("added decentralized modules",
-			zap.Int("count", len(c.config.Component.Decentralized)))
-	}
-
-	if len(c.config.Component.Federated) > 0 {
-		modules = append(modules, c.config.Component.Federated...)
-		zap.L().Debug("added federated modules",
-			zap.Int("count", len(c.config.Component.Federated)))
+	for _, m := range append(c.config.Component.Federated, c.config.Component.Decentralized...) {
+		fetchWorkerInfo(m, c.fetchWorkerInfo)
 	}
 
 	if c.config.Component.RSS != nil {
-		modules = append(modules, c.config.Component.RSS)
-
-		zap.L().Debug("added RSS module")
+		fetchWorkerInfo(c.config.Component.RSS, c.fetchRSSWorkerInfo)
 	}
 
-	for _, m := range modules {
-		if m.Network.Protocol() == network.RSSProtocol {
-			if rssWorker := rss.GetValueByWorkerStr(m.Worker.Name()); rssWorker != 0 {
-				m.Worker = rssWorker
-				zap.L().Debug("updated RSS worker",
-					zap.String("worker", m.Worker.Name()))
-			}
-		}
-
-		fetchWorkerInfo(m, c.fetchWorkerInfo)
+	if c.config.Component.AI != nil {
+		fetchWorkerInfo(c.config.Component.AI, c.fetchAIWorkerInfo)
 	}
 
 	go func() {
@@ -149,8 +130,9 @@ func (c *Component) buildWorkerResponse(workerInfoChan <-chan *WorkerInfo) *Work
 			zap.L().Debug("added federated worker info",
 				zap.String("network", workerInfo.Network.String()))
 		default:
-			zap.L().Warn("unknown protocol for worker",
-				zap.String("worker_id", workerInfo.WorkerID))
+			if c.config.Component.AI != nil {
+				response.Data.AI = workerInfo
+			}
 		}
 	}
 
@@ -179,13 +161,8 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 		workerProgress monitor.WorkerProgress
 	)
 
-	if module.Network.Protocol() == network.RSSProtocol {
-		// check RSS worker health status
-		status, _ = c.checkRSSWorkerHealth(ctx, module)
-	} else {
-		// fetch decentralized or federated worker status and progress from a specific worker by id.
-		status, workerProgress = c.getWorkerStatusAndProgressByID(ctx, module.ID)
-	}
+	// fetch decentralized or federated worker status and progress from a specific worker by id.
+	status, workerProgress = c.getWorkerStatusAndProgressByID(ctx, module.ID)
 
 	workerInfo := &WorkerInfo{
 		WorkerID: module.ID,
@@ -223,28 +200,33 @@ func (c *Component) fetchWorkerInfo(ctx context.Context, module *config.Module) 
 				}
 			}
 		}
-	case network.RSSProtocol:
-		if rssWorker, ok := module.Worker.(rss.Worker); ok {
-			workerInfo.Platform = rss.ToPlatformMap[rssWorker].String()
-			workerInfo.Tags = rss.ToTagsMap[rssWorker]
-		}
 	}
 
 	return workerInfo
 }
 
-// checkRSSWorkerHealth checks the health of the RSS worker by `healthz` api.
-func (c *Component) checkRSSWorkerHealth(ctx context.Context, module *config.Module) (worker.Status, error) {
+// fetchRSSWorkerInfo fetch the rss worker info
+func (c *Component) fetchRSSWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
+	workerInfo := &WorkerInfo{
+		WorkerID: c.config.Component.RSS.ID,
+		Network:  c.config.Component.RSS.Network,
+		Worker:   c.config.Component.RSS.Worker,
+		Status:   worker.StatusUnhealthy,
+	}
+
+	if rssWorker, ok := c.config.Component.RSS.Worker.(rss.Worker); ok {
+		workerInfo.Platform = rss.ToPlatformMap[rssWorker].String()
+		workerInfo.Tags = rss.ToTagsMap[rssWorker]
+	}
+
 	zap.L().Debug("checking RSS worker health",
 		zap.String("endpoint", module.EndpointID))
 
 	baseURL, err := url.Parse(module.EndpointID)
 	if err != nil {
-		zap.L().Error("invalid RSS endpoint",
-			zap.String("endpoint", module.EndpointID),
-			zap.Error(err))
+		zap.L().Error("invalid RSS endpoint", zap.String("endpoint", module.EndpointID), zap.Error(err))
 
-		return worker.StatusUnhealthy, err
+		return workerInfo
 	}
 
 	baseURL.Path = path.Join(baseURL.Path, "healthz")
@@ -255,7 +237,7 @@ func (c *Component) checkRSSWorkerHealth(ctx context.Context, module *config.Mod
 		zap.L().Error("failed to parse config parameters",
 			zap.Error(err))
 
-		return worker.StatusUnhealthy, err
+		return workerInfo
 	}
 
 	if option.Authentication.AccessKey != "" {
@@ -273,13 +255,66 @@ func (c *Component) checkRSSWorkerHealth(ctx context.Context, module *config.Mod
 			zap.String("endpoint", baseURL.String()),
 			zap.Error(err))
 
-		return worker.StatusUnhealthy, err
+		return workerInfo
 	}
-	defer body.Close()
+
+	defer func() {
+		_ = body.Close()
+	}()
 
 	zap.L().Debug("successfully checked RSS worker health")
 
-	return worker.StatusReady, nil
+	workerInfo.Status = worker.StatusReady
+
+	return workerInfo
+}
+
+// fetchAIWorkerInfo fetch the ai worker info
+func (c *Component) fetchAIWorkerInfo(ctx context.Context, module *config.Module) *WorkerInfo {
+	workerInfo := &WorkerInfo{
+		WorkerID: c.config.Component.AI.ID,
+		Worker:   c.config.Component.AI.Worker,
+		Status:   worker.StatusUnhealthy,
+	}
+
+	baseURL, err := url.Parse(module.EndpointID)
+	if err != nil {
+		zap.L().Error("invalid AgentData endpoint", zap.String("endpoint", module.EndpointID), zap.Error(err))
+
+		return workerInfo
+	}
+
+	baseURL.Path = path.Join(baseURL.Path, "api/v1/health")
+
+	body, err := c.httpClient.Fetch(ctx, baseURL.String())
+	if err != nil {
+		zap.L().Error("failed to fetch AI health", zap.String("endpoint", baseURL.String()), zap.Error(err))
+
+		return workerInfo
+	}
+
+	defer func() {
+		_ = body.Close()
+	}()
+
+	var healthResponse struct {
+		Status    string `json:"status"`
+		Timestamp string `json:"timestamp"`
+		Database  bool   `json:"database"`
+	}
+
+	decoder := json.NewDecoder(body)
+	if err := decoder.Decode(&healthResponse); err != nil {
+		zap.L().Error("failed to decode AI health response", zap.String("endpoint", baseURL.String()), zap.Error(err))
+
+		return workerInfo
+	}
+
+	if healthResponse.Status == "ok" && healthResponse.Database {
+		workerInfo.Status = worker.StatusReady
+	}
+
+	return workerInfo
 }
 
 // getWorkerStatusAndProgressByID gets both worker status and progress from Redis cache by worker ID.
