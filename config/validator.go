@@ -15,8 +15,8 @@ func HasOneWorker(config *File) error {
 	return nil
 }
 
-// IsComponentOnly Check if the configuration contains an RSS or AI component only
-func IsComponentOnly(config *File) bool {
+// IsRSSOrAIComponentOnly Check if the configuration contains an RSS or AI component only
+func IsRSSOrAIComponentOnly(config *File) bool {
 	return len(config.Component.Decentralized) == 0 && len(config.Component.Federated) == 0 &&
 		(config.Component.RSS != nil || config.Component.AI != nil)
 }

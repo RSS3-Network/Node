@@ -114,7 +114,7 @@ var command = cobra.Command{
 		var settlementCaller *vsl.SettlementCaller
 
 		// Broadcaster and RSS Only Node does not need Redis, DB and Network Params Client
-		if module != BroadcasterArg && !config.IsComponentOnly(configFile) {
+		if module != BroadcasterArg && !config.IsRSSOrAIComponentOnly(configFile) {
 			// Init a Redis client.
 			if configFile.Redis == nil {
 				return fmt.Errorf("redis configFile is missing")
@@ -267,7 +267,7 @@ func runCoreService(ctx context.Context, configFile *config.File, databaseClient
 	checkCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	if !config.IsComponentOnly(configFile) {
+	if !config.IsRSSOrAIComponentOnly(configFile) {
 		go func() {
 			if err := node.CheckParams(checkCtx, redisClient, networkParamsCaller, settlementCaller); err != nil {
 				zap.L().Error("error checking parameters", zap.Error(err))
