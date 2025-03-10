@@ -29,7 +29,7 @@ database:
 
 # A redis is required for monitor service and will significantly improve the indexing performance of some workers.
 redis:
-  endpoint: localhost:6379
+  endpoint: 127.0.0.1:6379
   username:
   password:
 
@@ -59,6 +59,22 @@ component:
     parameters:
       authentication:
         access_key:
+  # `ai` type includes the worker indexing data in AI format.
+  ai:
+    id: agentdata-core
+    worker: core
+    endpoint: https://your.agentdata.com/
+    parameters:
+      agentdata_db_url:
+      openai_api_key:
+      ollama_host:
+      kaito_api_token:
+      twitter:
+        bearer_token:
+        api_key:
+        api_secret:
+        access_token:
+        access_token_secret:
   # `decentralized` network type includes workers indexing data from decentralized networks such as blockchain networks, Arweave, etc.
   decentralized:
     # Each configuration here initializes a worker.

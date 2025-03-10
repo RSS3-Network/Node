@@ -65,6 +65,10 @@ func (f *File) LoadModulesEndpoint() error {
 		assignEndpoint([]*Module{f.Component.RSS})
 	}
 
+	if f.Component.AI != nil {
+		assignEndpoint([]*Module{f.Component.AI})
+	}
+
 	assignEndpoint(f.Component.Decentralized)
 	assignEndpoint(f.Component.Federated)
 
@@ -91,11 +95,12 @@ type Component struct {
 	RSS           *Module   `mapstructure:"rss"`
 	Federated     []*Module `mapstructure:"federated" validate:"dive"`
 	Decentralized []*Module `mapstructure:"decentralized" validate:"dive"`
+	AI            *Module   `mapstructure:"ai"`
 }
 
 type Module struct {
 	ID           string          `mapstructure:"id"`
-	Network      network.Network `mapstructure:"network" validate:"required"`
+	Network      network.Network `mapstructure:"network"`
 	EndpointID   string          `mapstructure:"endpoint"`
 	IPFSGateways []string        `mapstructure:"ipfs_gateways"`
 	Worker       worker.Worker   `mapstructure:"worker"`

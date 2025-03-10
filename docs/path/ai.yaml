@@ -1,0 +1,19 @@
+get:
+  operationId: GetAgentData
+  summary: Get Agent Data by Path
+  description: Retrieve details from the specified path.
+  tags:
+    - AI
+  security:
+    - bearerAuth: []
+  parameters:
+    - $ref: "../parameters/path_ai.yaml"
+  responses:
+    "200":
+      $ref: "../responses/AIResponse.yaml"
+    "400":
+      $ref: "../responses/BadRequest.yaml"
+    "404":
+      $ref: "../responses/NotFound.yaml"
+    "500":
+      $ref: "../responses/InternalError.yaml"
