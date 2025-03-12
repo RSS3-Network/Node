@@ -11,6 +11,7 @@ import (
 	"github.com/rss3-network/node/schema/worker/federated"
 	"github.com/rss3-network/node/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
+	"go.uber.org/zap"
 )
 
 type ConfigDetailValueType string
@@ -614,15 +615,12 @@ var AIWorkerConfig = workerConfig{
 	},
 }
 
-// genAIConfigDetail generates the AI configuration details
-func genAIConfigDetail() []NetworkConfigDetail {
-	// Create an AI network detail with a fixed ID "agentdata"
-	networkDetail := NetworkConfigDetail{
-		ID:           "agentdata",
-		WorkerConfig: []workerConfig{},
+// getNetworkConfigDetailForAI generates the AI configuration details
+func getNetworkConfigDetailForAI() NetworkConfigDetailForSingleWorker {
+	networkDetail := NetworkConfigDetailForSingleWorker{
+		ID: "agentdata",
 	}
 
-	// Create the worker config by making a deep copy of the base config
 	workerConfig := deepCopyWorkerConfig(AIWorkerConfig)
 
 	workerConfig.Parameters = &Parameters{
@@ -702,8 +700,10 @@ func genAIConfigDetail() []NetworkConfigDetail {
 		},
 	}
 
-	// Add the worker config to the network detail
-	networkDetail.WorkerConfig = append(networkDetail.WorkerConfig, workerConfig)
+	networkDetail.WorkerConfig = workerConfig
 
-	return []NetworkConfigDetail{networkDetail}
+	zap.L().Debug("successfully retrieved AI network configuration details",
+		zap.String("networkID", "agentdata"))
+
+	return networkDetail
 }
