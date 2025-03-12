@@ -77,6 +77,7 @@ type WorkerCoverage struct {
 	RSS           WorkerSupportStatus `json:"rss"`
 	Decentralized WorkerSupportStatus `json:"decentralized"`
 	Federated     WorkerSupportStatus `json:"federated"`
+	AI            WorkerSupportStatus `json:"ai"`
 }
 
 type Record struct {
@@ -154,7 +155,8 @@ func (c *Component) GetNodeInfo(ctx echo.Context) error {
 	zap.L().Debug("retrieved worker coverage",
 		zap.Int("rss_supported", len(workerCoverage.RSS.Supported)),
 		zap.Int("decentralized_supported", len(workerCoverage.Decentralized.Supported)),
-		zap.Int("federated_supported", len(workerCoverage.Federated.Supported)))
+		zap.Int("federated_supported", len(workerCoverage.Federated.Supported)),
+		zap.Int("ai_supported", len(workerCoverage.AI.Supported)))
 
 	// get reward info
 	rewards, err := c.getNodeRewards(ctx.Request().Context(), evmAddress)
@@ -268,6 +270,12 @@ func (c *Component) getNodeWorkerCoverage() WorkerCoverage {
 		addCoverage(network.RSSHub.String(), c.config.Component.RSS.Worker.Name(), &workerCoverage.RSS.Supported, &workerCoverage.RSS.Unsupported)
 	} else {
 		addCoverage(network.RSSHub.String(), "core", &workerCoverage.RSS.Unsupported, &workerCoverage.RSS.Unsupported)
+	}
+
+	if c.config.Component.AI != nil {
+		addCoverage("agentdata", c.config.Component.AI.Worker.Name(), &workerCoverage.AI.Supported, &workerCoverage.AI.Unsupported)
+	} else {
+		addCoverage("agentdata", "core", &workerCoverage.AI.Unsupported, &workerCoverage.AI.Unsupported)
 	}
 
 	for net, workers := range NetworkToWorkersMap {
