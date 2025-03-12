@@ -17,10 +17,10 @@ type NetworkConfigResponse struct {
 }
 
 type NetworkConfig struct {
-	RSS           NetworkConfigDetailForRSS `json:"rss,omitempty"`
-	Decentralized []NetworkConfigDetail     `json:"decentralized,omitempty"`
-	Federated     []NetworkConfigDetail     `json:"federated,omitempty"`
-	AI            []NetworkConfigDetail     `json:"ai,omitempty"`
+	RSS           NetworkConfigDetailForSingleWorker `json:"rss,omitempty"`
+	Decentralized []NetworkConfigDetail              `json:"decentralized,omitempty"`
+	Federated     []NetworkConfigDetail              `json:"federated,omitempty"`
+	AI            NetworkConfigDetailForSingleWorker `json:"ai,omitempty"`
 }
 
 type NetworkConfigDetail struct {
@@ -29,7 +29,7 @@ type NetworkConfigDetail struct {
 	WorkerConfig   []workerConfig `json:"worker_configs,omitempty"`
 }
 
-type NetworkConfigDetailForRSS struct {
+type NetworkConfigDetailForSingleWorker struct {
 	ID             string       `json:"id,omitempty"`
 	EndpointConfig *Endpoint    `json:"endpoint_configs,omitempty"`
 	WorkerConfig   workerConfig `json:"worker_configs,omitempty"`
@@ -45,7 +45,7 @@ func (c *Component) GetNetworkConfig(ctx echo.Context) error {
 		RSS:           getNetworkConfigDetailForRSS(network.RSSProtocol),
 		Decentralized: getNetworkConfigDetail(network.ArweaveProtocol, network.EthereumProtocol, network.FarcasterProtocol, network.NearProtocol),
 		Federated:     getNetworkConfigDetail(network.ActivityPubProtocol),
-		AI:            genAIConfigDetail(),
+		AI:            getNetworkConfigDetailForAI(),
 	}
 
 	zap.L().Debug("successfully retrieved network configuration")
@@ -55,10 +55,10 @@ func (c *Component) GetNetworkConfig(ctx echo.Context) error {
 	})
 }
 
-func getNetworkConfigDetailForRSS(protocol network.Protocol) NetworkConfigDetailForRSS {
+func getNetworkConfigDetailForRSS(protocol network.Protocol) NetworkConfigDetailForSingleWorker {
 	n := protocol.Networks()[0]
 
-	networkDetail := NetworkConfigDetailForRSS{
+	networkDetail := NetworkConfigDetailForSingleWorker{
 		ID: n.String(),
 	}
 
