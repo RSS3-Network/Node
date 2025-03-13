@@ -79,6 +79,12 @@ func (h *Component) formatRequestURL(_ context.Context, in *url.URL) (*url.URL, 
 
 	query := url.Values{}
 
+	for k, values := range in.Query() {
+		for _, v := range values {
+			query.Add(k, v)
+		}
+	}
+
 	for k, values := range parsedPath.Query() {
 		for _, v := range values {
 			query.Add(k, v)
