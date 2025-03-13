@@ -45,11 +45,6 @@ component:
     parameters:
       authentication:
         access_key:
-  decentralized:
-    - id: vsl-core
-      network: vsl
-      endpoint: vsl
-      worker: core
   ai:
     id: agentdata-core
     worker: core
