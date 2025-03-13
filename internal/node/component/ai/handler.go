@@ -72,8 +72,20 @@ func (h *Component) formatRequestURL(_ context.Context, in *url.URL) (*url.URL, 
 	}
 
 	trimmedPath := strings.TrimPrefix(in.Path, fmt.Sprintf("/%s/", Name))
-	base.Path = path.Join(base.Path, trimmedPath)
-	base.RawQuery = in.Query().Encode()
+
+	parsedPath, _ := url.Parse(trimmedPath)
+
+	base.Path = path.Join(base.Path, parsedPath.Path)
+
+	query := url.Values{}
+
+	for k, values := range parsedPath.Query() {
+		for _, v := range values {
+			query.Add(k, v)
+		}
+	}
+
+	base.RawQuery = query.Encode()
 
 	return base, nil
 }
