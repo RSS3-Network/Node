@@ -23,8 +23,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/rss3-network/node/provider/activitypub"
-	"github.com/rss3-network/node/provider/httpx"
+	"github.com/rss3-network/node/v2/provider/activitypub"
+	"github.com/rss3-network/node/v2/provider/httpx"
 	"go.uber.org/zap"
 )
 

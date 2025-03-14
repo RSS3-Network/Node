@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/rss3-network/node/provider/httpx"
+	"github.com/rss3-network/node/v2/provider/httpx"
 	"github.com/samber/lo"
 )
 

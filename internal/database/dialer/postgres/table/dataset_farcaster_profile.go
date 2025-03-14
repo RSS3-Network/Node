@@ -2,7 +2,7 @@ package table
 
 import (
 	"github.com/lib/pq"
-	"github.com/rss3-network/node/internal/database/model"
+	"github.com/rss3-network/node/v2/internal/database/model"
 )
 
 type DatasetFarcasterProfile struct {

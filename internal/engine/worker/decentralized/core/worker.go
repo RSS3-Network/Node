@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/redis/rueidis"
-	"github.com/rss3-network/node/config"
-	"github.com/rss3-network/node/internal/engine"
-	"github.com/rss3-network/node/internal/engine/worker/decentralized/core/arweave"
-	"github.com/rss3-network/node/internal/engine/worker/decentralized/core/ethereum"
-	"github.com/rss3-network/node/internal/engine/worker/decentralized/core/farcaster"
-	"github.com/rss3-network/node/internal/engine/worker/decentralized/core/near"
+	"github.com/rss3-network/node/v2/config"
+	"github.com/rss3-network/node/v2/internal/engine"
+	"github.com/rss3-network/node/v2/internal/engine/worker/decentralized/core/arweave"
+	"github.com/rss3-network/node/v2/internal/engine/worker/decentralized/core/ethereum"
+	"github.com/rss3-network/node/v2/internal/engine/worker/decentralized/core/farcaster"
+	"github.com/rss3-network/node/v2/internal/engine/worker/decentralized/core/near"
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/rss3-network/node/internal/engine"
+	"github.com/rss3-network/node/v2/internal/engine"
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 

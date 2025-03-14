@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/node/provider/ethereum"
-	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/node/provider/ethereum/proxy"
+	"github.com/rss3-network/node/v2/provider/ethereum"
+	"github.com/rss3-network/node/v2/provider/ethereum/endpoint"
+	"github.com/rss3-network/node/v2/provider/ethereum/proxy"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/require"
 )

@@ -1,7 +1,7 @@
 package table
 
 import (
-	"github.com/rss3-network/node/internal/engine/worker/decentralized/contract/mirror/model"
+	"github.com/rss3-network/node/v2/internal/engine/worker/decentralized/contract/mirror/model"
 )
 
 // DatasetMirrorPost represents a mirror post for revise logic check.

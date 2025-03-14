@@ -1,4 +1,4 @@
-module github.com/rss3-network/node
+module github.com/rss3-network/node/v2
 
 go 1.22.7
 
@@ -94,7 +94,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.10.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
-	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2 // indirect
 	github.com/carlmjohnson/versioninfo v0.22.5 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
@@ -109,6 +108,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/deckarep/golang-set/v2 v2.3.1 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
+	github.com/dmarkham/enumer v1.5.11 // indirect
 	github.com/docker/cli v26.1.1+incompatible // indirect
 	github.com/docker/docker v26.1.3+incompatible // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
@@ -116,6 +116,7 @@ require (
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
 	github.com/ethereum/c-kzg-4844 v0.4.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
+	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/getsentry/sentry-go v0.27.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
@@ -198,7 +199,6 @@ require (
 	github.com/multiformats/go-multibase v0.2.0 // indirect
 	github.com/multiformats/go-multihash v0.2.3 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/oasdiff/yaml v0.0.0-20241210131133-6b86fb107d80 // indirect
 	github.com/oasdiff/yaml3 v0.0.0-20241210130736-a94c01f36349 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect

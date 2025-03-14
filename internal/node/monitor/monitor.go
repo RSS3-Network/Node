@@ -7,12 +7,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rss3-network/node/config"
-	"github.com/rss3-network/node/config/parameter"
-	"github.com/rss3-network/node/internal/engine/protocol/atproto"
-	"github.com/rss3-network/node/internal/engine/protocol/farcaster"
-	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/v2/config"
+	"github.com/rss3-network/node/v2/config/parameter"
+	"github.com/rss3-network/node/v2/internal/engine/protocol/atproto"
+	"github.com/rss3-network/node/v2/internal/engine/protocol/farcaster"
+	workerx "github.com/rss3-network/node/v2/schema/worker"
+	"github.com/rss3-network/node/v2/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"go.uber.org/zap"
 )

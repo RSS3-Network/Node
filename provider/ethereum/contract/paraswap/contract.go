@@ -2,7 +2,7 @@ package paraswap
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/node/provider/ethereum/contract"
+	"github.com/rss3-network/node/v2/provider/ethereum/contract"
 )
 
 // Paraswap V5 https://etherscan.io/address/0xdef171fe48cf0115b1d80b88dc8eab59176fee57

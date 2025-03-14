@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/node/provider/ethereum"
-	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/node/provider/ethereum/token"
+	"github.com/rss3-network/node/v2/provider/ethereum"
+	"github.com/rss3-network/node/v2/provider/ethereum/endpoint"
+	"github.com/rss3-network/node/v2/provider/ethereum/token"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"

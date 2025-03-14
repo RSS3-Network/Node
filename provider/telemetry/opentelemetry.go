@@ -3,10 +3,10 @@ package telemetry
 import (
 	"fmt"
 
-	"github.com/rss3-network/node/config"
-	"github.com/rss3-network/node/internal/constant"
-	meterx "github.com/rss3-network/node/internal/telemetry/meter"
-	tracerx "github.com/rss3-network/node/internal/telemetry/tracer"
+	"github.com/rss3-network/node/v2/config"
+	"github.com/rss3-network/node/v2/internal/constant"
+	meterx "github.com/rss3-network/node/v2/internal/telemetry/meter"
+	tracerx "github.com/rss3-network/node/v2/internal/telemetry/tracer"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	meter "go.opentelemetry.io/otel/sdk/metric"

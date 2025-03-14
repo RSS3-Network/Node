@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/Khan/genqlient/graphql"
-	"github.com/rss3-network/node/provider/arweave/bundle/irys"
-	"github.com/rss3-network/node/provider/arweave/contract/momoka"
+	"github.com/rss3-network/node/v2/provider/arweave/bundle/irys"
+	"github.com/rss3-network/node/v2/provider/arweave/contract/momoka"
 	"github.com/stretchr/testify/require"
 )
 

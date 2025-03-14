@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/node/config"
-	"github.com/rss3-network/node/internal/constant"
+	"github.com/rss3-network/node/v2/config"
+	"github.com/rss3-network/node/v2/internal/constant"
 	"go.uber.org/zap"
 )
 

@@ -10,9 +10,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/redis/rueidis"
-	"github.com/rss3-network/node/provider/ethereum"
-	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
-	"github.com/rss3-network/node/provider/ethereum/endpoint"
+	"github.com/rss3-network/node/v2/provider/ethereum"
+	"github.com/rss3-network/node/v2/provider/ethereum/contract/vsl"
+	"github.com/rss3-network/node/v2/provider/ethereum/endpoint"
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rss3-network/node/provider/ethereum/contract/iqwiki"
+	"github.com/rss3-network/node/v2/provider/ethereum/contract/iqwiki"
 	"github.com/stretchr/testify/require"
 )
 

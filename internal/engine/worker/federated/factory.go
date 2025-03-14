@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/redis/rueidis"
-	"github.com/rss3-network/node/config"
-	"github.com/rss3-network/node/internal/database"
-	"github.com/rss3-network/node/internal/engine"
-	"github.com/rss3-network/node/internal/engine/worker/federated/bluesky"
-	"github.com/rss3-network/node/internal/engine/worker/federated/mastodon"
-	"github.com/rss3-network/node/schema/worker/federated"
+	"github.com/rss3-network/node/v2/config"
+	"github.com/rss3-network/node/v2/internal/database"
+	"github.com/rss3-network/node/v2/internal/engine"
+	"github.com/rss3-network/node/v2/internal/engine/worker/federated/bluesky"
+	"github.com/rss3-network/node/v2/internal/engine/worker/federated/mastodon"
+	"github.com/rss3-network/node/v2/schema/worker/federated"
 )
 
 func New(config *config.Module, databaseClient database.Client, redisClient rueidis.Client) (engine.Worker, error) {

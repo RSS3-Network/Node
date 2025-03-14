@@ -2,7 +2,7 @@ package rss3
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/node/provider/ethereum/contract"
+	"github.com/rss3-network/node/v2/provider/ethereum/contract"
 )
 
 // Staking https://etherscan.io/address/0x5301cbbedc048abac7e213184132cf982d593563

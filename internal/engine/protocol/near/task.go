@@ -5,9 +5,9 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/rss3-network/node/internal/engine"
-	"github.com/rss3-network/node/internal/utils"
-	"github.com/rss3-network/node/provider/near"
+	"github.com/rss3-network/node/v2/internal/engine"
+	"github.com/rss3-network/node/v2/internal/utils"
+	"github.com/rss3-network/node/v2/provider/near"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/v2/schema/worker/decentralized"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"

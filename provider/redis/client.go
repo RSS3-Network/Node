@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/redis/rueidis"
-	"github.com/rss3-network/node/config"
+	"github.com/rss3-network/node/v2/config"
 )
 
 // NewClient creates a new Redis client.

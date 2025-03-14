@@ -5,8 +5,8 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/rss3-network/node/config"
-	"github.com/rss3-network/node/config/parameter"
+	"github.com/rss3-network/node/v2/config"
+	"github.com/rss3-network/node/v2/config/parameter"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 )

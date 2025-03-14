@@ -5,8 +5,8 @@ import (
 	"sort"
 
 	"github.com/labstack/echo/v4"
-	"github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/node/schema/worker/rss"
+	"github.com/rss3-network/node/v2/schema/worker"
+	"github.com/rss3-network/node/v2/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"go.uber.org/zap"

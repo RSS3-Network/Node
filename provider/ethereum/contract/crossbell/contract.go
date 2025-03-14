@@ -2,7 +2,7 @@ package crossbell
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/node/provider/ethereum/contract"
+	"github.com/rss3-network/node/v2/provider/ethereum/contract"
 )
 
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen@v1.13.5 --abi ./profile/Profile.abi --pkg profile --type Profile --out ./profile/profile.go

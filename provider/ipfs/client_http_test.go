@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rss3-network/node/provider/ipfs"
+	"github.com/rss3-network/node/v2/provider/ipfs"
 	"github.com/stretchr/testify/require"
 )
 

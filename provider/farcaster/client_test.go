@@ -3,7 +3,7 @@ package farcaster_test
 import (
 	"testing"
 
-	"github.com/rss3-network/node/provider/farcaster"
+	"github.com/rss3-network/node/v2/provider/farcaster"
 	"github.com/stretchr/testify/require"
 )
 

@@ -3,8 +3,8 @@ package arweave
 import (
 	"fmt"
 
-	"github.com/rss3-network/node/internal/engine"
-	"github.com/rss3-network/node/provider/arweave"
+	"github.com/rss3-network/node/v2/internal/engine"
+	"github.com/rss3-network/node/v2/provider/arweave"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"

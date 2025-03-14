@@ -179,6 +179,11 @@ const (
 	StatusUpdated Status = "UPDATED"
 )
 
+var AllStatus = []Status{
+	StatusCreated,
+	StatusUpdated,
+}
+
 // __ActivityByWikiIdAndBlockInput is used internally by genqlient
 type __ActivityByWikiIdAndBlockInput struct {
 	Block  int    `json:"block"`
@@ -191,7 +196,7 @@ func (v *__ActivityByWikiIdAndBlockInput) GetBlock() int { return v.Block }
 // GetWikiId returns __ActivityByWikiIdAndBlockInput.WikiId, and is useful for accessing the field via an interface.
 func (v *__ActivityByWikiIdAndBlockInput) GetWikiId() string { return v.WikiId }
 
-// The query or mutation executed by ActivityByWikiIdAndBlock.
+// The query executed by ActivityByWikiIdAndBlock.
 const ActivityByWikiIdAndBlock_Operation = `
 query ActivityByWikiIdAndBlock ($block: Int!, $wikiId: String) {
 	activityByWikiIdAndBlock(block: $block, wikiId: $wikiId) {
@@ -232,7 +237,7 @@ func ActivityByWikiIdAndBlock(
 	client_ graphql.Client,
 	block int,
 	wikiId string,
-) (*ActivityByWikiIdAndBlockResponse, error) {
+) (data_ *ActivityByWikiIdAndBlockResponse, err_ error) {
 	req_ := &graphql.Request{
 		OpName: "ActivityByWikiIdAndBlock",
 		Query:  ActivityByWikiIdAndBlock_Operation,
@@ -241,10 +246,9 @@ func ActivityByWikiIdAndBlock(
 			WikiId: wikiId,
 		},
 	}
-	var err_ error
 
-	var data_ ActivityByWikiIdAndBlockResponse
-	resp_ := &graphql.Response{Data: &data_}
+	data_ = &ActivityByWikiIdAndBlockResponse{}
+	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(
 		ctx_,
@@ -252,5 +256,5 @@ func ActivityByWikiIdAndBlock(
 		resp_,
 	)
 
-	return &data_, err_
+	return data_, err_
 }

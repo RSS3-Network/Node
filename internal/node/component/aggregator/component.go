@@ -2,14 +2,14 @@ package aggregator
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/rss3-network/node/docs"
-	"github.com/rss3-network/node/internal/node/component/ai"
-	"github.com/rss3-network/node/internal/node/component/decentralized"
-	"github.com/rss3-network/node/internal/node/component/federated"
-	"github.com/rss3-network/node/internal/node/component/info"
-	"github.com/rss3-network/node/internal/node/component/rss"
-	decentralizedx "github.com/rss3-network/node/schema/worker/decentralized"
-	federatedx "github.com/rss3-network/node/schema/worker/federated"
+	"github.com/rss3-network/node/v2/docs"
+	"github.com/rss3-network/node/v2/internal/node/component/ai"
+	"github.com/rss3-network/node/v2/internal/node/component/decentralized"
+	"github.com/rss3-network/node/v2/internal/node/component/federated"
+	"github.com/rss3-network/node/v2/internal/node/component/info"
+	"github.com/rss3-network/node/v2/internal/node/component/rss"
+	decentralizedx "github.com/rss3-network/node/v2/schema/worker/decentralized"
+	federatedx "github.com/rss3-network/node/v2/schema/worker/federated"
 	"github.com/rss3-network/protocol-go/schema/network"
 )
 

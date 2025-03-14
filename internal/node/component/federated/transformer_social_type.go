@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rss3-network/node/schema/worker/federated"
+	"github.com/rss3-network/node/v2/schema/worker/federated"
 	"github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/rss3-network/protocol-go/schema/network"
