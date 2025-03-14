@@ -19,7 +19,7 @@ import (
 	"github.com/bluesky-social/indigo/repo"
 	"github.com/bluesky-social/indigo/xrpc"
 	"github.com/ipfs/go-cid"
-	at "github.com/rss3-network/node/provider/atproto"
+	at "github.com/rss3-network/node/v2/provider/atproto"
 	"github.com/samber/lo"
 	cbg "github.com/whyrusleeping/cbor-gen"
 	"go.uber.org/zap"

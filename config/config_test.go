@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/node/schema/worker/decentralized"
-	"github.com/rss3-network/node/schema/worker/federated"
-	"github.com/rss3-network/node/schema/worker/rss"
+	"github.com/rss3-network/node/v2/schema/worker/decentralized"
+	"github.com/rss3-network/node/v2/schema/worker/federated"
+	"github.com/rss3-network/node/v2/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"

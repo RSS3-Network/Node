@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/rss3-network/node/common/http/response"
+	"github.com/rss3-network/node/v2/common/http/response"
 	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"go.uber.org/zap"

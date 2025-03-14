@@ -2,7 +2,7 @@ package table
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/node/internal/database/model"
+	"github.com/rss3-network/node/v2/internal/database/model"
 )
 
 type DatasetENSNamehash struct {

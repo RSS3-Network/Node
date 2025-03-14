@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/redis/rueidis"
-	"github.com/rss3-network/node/config"
-	"github.com/rss3-network/node/config/parameter"
-	"github.com/rss3-network/node/internal/database"
-	"github.com/rss3-network/node/provider/ethereum/contract/vsl"
+	"github.com/rss3-network/node/v2/config"
+	"github.com/rss3-network/node/v2/config/parameter"
+	"github.com/rss3-network/node/v2/internal/database"
+	"github.com/rss3-network/node/v2/provider/ethereum/contract/vsl"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"go.uber.org/zap"
 )

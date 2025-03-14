@@ -8,8 +8,8 @@ import (
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	ethereumx "github.com/rss3-network/node/provider/ethereum"
-	"github.com/rss3-network/node/provider/ethereum/endpoint"
+	ethereumx "github.com/rss3-network/node/v2/provider/ethereum"
+	"github.com/rss3-network/node/v2/provider/ethereum/endpoint"
 	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/stretchr/testify/require"
 )

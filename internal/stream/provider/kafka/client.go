@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rss3-network/node/internal/stream"
+	"github.com/rss3-network/node/v2/internal/stream"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/twmb/franz-go/pkg/kadm"
 	"github.com/twmb/franz-go/pkg/kgo"

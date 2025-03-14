@@ -6,7 +6,7 @@ COMMIT=$(shell git rev-parse --short HEAD)
 build: generate
 	mkdir -p ./build
 	go build \
-		-ldflags "-X github.com/rss3-network/node/internal/constant.Version=$(VERSION) -X github.com/rss3-network/node/internal/constant.Commit=$(COMMIT)" \
+		-ldflags "-X github.com/rss3-network/node/v2/internal/constant.Version=$(VERSION) -X github.com/rss3-network/node/v2/internal/constant.Commit=$(COMMIT)" \
 		-o ./build/node ./cmd
 DOCKER_COMPOSE_FILE=./.devcontainer/docker-compose.yaml
 

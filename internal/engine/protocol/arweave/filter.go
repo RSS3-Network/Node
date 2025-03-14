@@ -1,7 +1,7 @@
 package arweave
 
 import (
-	"github.com/rss3-network/node/internal/engine"
+	"github.com/rss3-network/node/v2/internal/engine"
 )
 
 var _ engine.DataSourceFilter = (*Filter)(nil)

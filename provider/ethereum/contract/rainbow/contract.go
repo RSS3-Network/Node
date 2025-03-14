@@ -4,7 +4,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/node/provider/ethereum/contract"
+	"github.com/rss3-network/node/v2/provider/ethereum/contract"
 )
 
 // Router https://etherscan.io/address/0x00000000009726632680fb29d3f7a9734e3010e2

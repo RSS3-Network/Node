@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/rss3-network/node/config"
-	"github.com/rss3-network/node/config/parameter"
-	workerx "github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/v2/config"
+	"github.com/rss3-network/node/v2/config/parameter"
+	workerx "github.com/rss3-network/node/v2/schema/worker"
+	"github.com/rss3-network/node/v2/schema/worker/decentralized"
 	"go.uber.org/zap"
 )
 

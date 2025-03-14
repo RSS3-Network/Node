@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/rss3-network/node/config/parameter"
+	"github.com/rss3-network/node/v2/config/parameter"
 	"go.uber.org/zap"
 )
 

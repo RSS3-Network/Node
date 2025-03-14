@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/rss3-network/node/provider/ethereum/etherface"
+	"github.com/rss3-network/node/v2/provider/ethereum/etherface"
 	"github.com/stretchr/testify/require"
 )
 

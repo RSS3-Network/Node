@@ -1,6 +1,6 @@
 package erc721
 
-import "github.com/rss3-network/node/provider/ethereum/contract"
+import "github.com/rss3-network/node/v2/provider/ethereum/contract"
 
 // https://eips.ethereum.org/EIPS/eip-721
 //go:generate go run --mod=mod github.com/ethereum/go-ethereum/cmd/abigen@v1.13.5 --abi ./abi/ERC721.abi --pkg erc721 --type ERC721 --out contract_erc721.go

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rss3-network/node/internal/database/model"
+	"github.com/rss3-network/node/v2/internal/database/model"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	networkx "github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"

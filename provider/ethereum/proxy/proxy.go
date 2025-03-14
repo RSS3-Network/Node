@@ -7,8 +7,8 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/node/common/sync"
-	"github.com/rss3-network/node/provider/ethereum"
+	"github.com/rss3-network/node/v2/common/sync"
+	"github.com/rss3-network/node/v2/provider/ethereum"
 )
 
 var (

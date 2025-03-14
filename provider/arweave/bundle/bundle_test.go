@@ -7,8 +7,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/rss3-network/node/provider/arweave"
-	"github.com/rss3-network/node/provider/arweave/bundle"
+	"github.com/rss3-network/node/v2/provider/arweave"
+	"github.com/rss3-network/node/v2/provider/arweave/bundle"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"

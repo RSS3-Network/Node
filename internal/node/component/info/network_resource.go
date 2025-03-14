@@ -1,9 +1,9 @@
 package info
 
 import (
-	"github.com/rss3-network/node/config/parameter"
-	"github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/node/schema/worker/decentralized"
+	"github.com/rss3-network/node/v2/config/parameter"
+	"github.com/rss3-network/node/v2/schema/worker"
+	"github.com/rss3-network/node/v2/schema/worker/decentralized"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 )

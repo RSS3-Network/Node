@@ -1,6 +1,6 @@
 package farcaster
 
-import "github.com/rss3-network/node/internal/database/model"
+import "github.com/rss3-network/node/v2/internal/database/model"
 
 type farcasterQuery struct {
 	Fid          *int64 `form:"fid,omitempty"`

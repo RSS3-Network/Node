@@ -1,8 +1,8 @@
 package worker
 
 import (
-	"github.com/rss3-network/node/config"
-	"github.com/rss3-network/node/internal/engine"
+	"github.com/rss3-network/node/v2/config"
+	"github.com/rss3-network/node/v2/internal/engine"
 )
 
 func New(_ *config.Module) (engine.Worker, error) {

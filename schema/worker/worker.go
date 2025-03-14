@@ -4,9 +4,9 @@ import (
 	"reflect"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/rss3-network/node/schema/worker/decentralized"
-	"github.com/rss3-network/node/schema/worker/federated"
-	"github.com/rss3-network/node/schema/worker/rss"
+	"github.com/rss3-network/node/v2/schema/worker/decentralized"
+	"github.com/rss3-network/node/v2/schema/worker/federated"
+	"github.com/rss3-network/node/v2/schema/worker/rss"
 )
 
 type Worker interface {

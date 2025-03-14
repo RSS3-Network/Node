@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/rss3-network/node/internal/engine"
-	"github.com/rss3-network/node/provider/activitypub"
+	"github.com/rss3-network/node/v2/internal/engine"
+	"github.com/rss3-network/node/v2/provider/activitypub"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/typex"

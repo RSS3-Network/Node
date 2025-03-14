@@ -2,7 +2,7 @@ package nouns
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/rss3-network/node/provider/ethereum/contract"
+	"github.com/rss3-network/node/v2/provider/ethereum/contract"
 )
 
 // NounsAuctionHouseProxy https://etherscan.io/address/0x830BD73E4184ceF73443C15111a1DF14e495C706

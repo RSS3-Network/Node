@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/rss3-network/node/provider/ethereum"
+	"github.com/rss3-network/node/v2/provider/ethereum"
 	activityx "github.com/rss3-network/protocol-go/schema/activity"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/rss3-network/protocol-go/schema/tag"

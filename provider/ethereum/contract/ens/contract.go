@@ -6,7 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/rss3-network/node/provider/ethereum/contract"
+	"github.com/rss3-network/node/v2/provider/ethereum/contract"
 )
 
 //go:generate go run -mod=mod github.com/ethereum/go-ethereum/cmd/abigen --abi abi/BaseRegistrarImplementation.abi --pkg ens --type BaseRegistrarImplementation --out contract_base_registrar_implementation.go

@@ -8,7 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/redis/rueidis"
-	"github.com/rss3-network/node/provider/httpx"
+	"github.com/rss3-network/node/v2/provider/httpx"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"github.com/samber/lo"
 	"github.com/sourcegraph/conc/pool"

@@ -9,9 +9,9 @@ import (
 	"github.com/creasty/defaults"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/labstack/echo/v4"
-	"github.com/rss3-network/node/common/http/response"
-	"github.com/rss3-network/node/docs"
-	"github.com/rss3-network/node/internal/database/model"
+	"github.com/rss3-network/node/v2/common/http/response"
+	"github.com/rss3-network/node/v2/docs"
+	"github.com/rss3-network/node/v2/internal/database/model"
 	"github.com/rss3-network/protocol-go/schema"
 	"github.com/rss3-network/protocol-go/schema/metadata"
 	"github.com/samber/lo"
@@ -92,7 +92,7 @@ func (c *Component) BatchGetMetadataActivities(ctx echo.Context) (err error) {
 		Limit:          lo.FromPtr(request.Limit),
 		ActionLimit:    lo.FromPtr(request.ActionLimit),
 		Accounts:       request.Accounts,
-		Platform:       request.Platform,
+		Platform:       lo.ToPtr(request.Platform),
 		Status:         request.Status,
 		Network:        request.Network,
 		Metadata:       request.Metadata,

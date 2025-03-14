@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/rss3-network/node/internal/node/middlewarex"
+	"github.com/rss3-network/node/v2/internal/node/middlewarex"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -3,7 +3,7 @@ package table
 import (
 	"time"
 
-	"github.com/rss3-network/node/internal/database/model"
+	"github.com/rss3-network/node/v2/internal/database/model"
 )
 
 type DatasetBlueskyProfile struct {

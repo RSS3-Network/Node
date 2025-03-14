@@ -5,11 +5,11 @@ package info
 // Each worker has a default configuration, which can be customized based on various factors.
 
 import (
-	"github.com/rss3-network/node/provider/ethereum/endpoint"
-	"github.com/rss3-network/node/schema/worker"
-	"github.com/rss3-network/node/schema/worker/decentralized"
-	"github.com/rss3-network/node/schema/worker/federated"
-	"github.com/rss3-network/node/schema/worker/rss"
+	"github.com/rss3-network/node/v2/provider/ethereum/endpoint"
+	"github.com/rss3-network/node/v2/schema/worker"
+	"github.com/rss3-network/node/v2/schema/worker/decentralized"
+	"github.com/rss3-network/node/v2/schema/worker/federated"
+	"github.com/rss3-network/node/v2/schema/worker/rss"
 	"github.com/rss3-network/protocol-go/schema/network"
 	"go.uber.org/zap"
 )

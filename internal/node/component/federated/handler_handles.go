@@ -7,9 +7,9 @@ import (
 
 	"github.com/creasty/defaults"
 	"github.com/labstack/echo/v4"
-	"github.com/rss3-network/node/common/http/response"
-	"github.com/rss3-network/node/internal/database/model"
-	"github.com/rss3-network/node/schema/worker/federated"
+	"github.com/rss3-network/node/v2/common/http/response"
+	"github.com/rss3-network/node/v2/internal/database/model"
+	"github.com/rss3-network/node/v2/schema/worker/federated"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
