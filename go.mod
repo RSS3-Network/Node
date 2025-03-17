@@ -1,6 +1,7 @@
 module github.com/rss3-network/node/v2
 
 go 1.22.7
+toolchain go1.24.1
 
 replace (
 	github.com/chenzhuoyu/iasm => github.com/cloudwego/iasm v0.2.0
@@ -46,7 +47,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.34.0
 	go.opentelemetry.io/otel/metric v1.35.0
 	go.opentelemetry.io/otel/sdk v1.35.0
-	go.opentelemetry.io/otel/sdk/metric v1.34.0
+	go.opentelemetry.io/otel/sdk/metric v1.35.0
 	go.opentelemetry.io/otel/trace v1.35.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/sync v0.11.0
