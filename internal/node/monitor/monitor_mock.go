@@ -55,7 +55,7 @@ func (m *Monitor) MonitorMockWorkerStatus(ctx context.Context, currentState Chec
 	return nil
 }
 
-// processWorker processes the decentralized worker status.
+// processMockWorker processes the decentralized worker status.
 func (m *Monitor) processMockWorker(ctx context.Context, w *config.Module, currentState CheckpointState, targetWorkerState, latestWorkerState uint64) error {
 	// get current indexing block height, number or event id and the latest block height, number, timestamp of network
 	currentWorkerState, _, _, err := m.getWorkerIndexingStateByClients(ctx, w.Network, w.Worker.Name(), currentState, w.Parameters)
@@ -83,7 +83,7 @@ func (m *Monitor) processMockWorker(ctx context.Context, w *config.Module, curre
 	return nil
 }
 
-// processFederatedWorker processes the federated worker status.
+// processMockFederatedWorker processes the federated worker status.
 func (m *Monitor) processMockFederatedWorker(ctx context.Context, w *config.Module) error {
 	client, ok := m.clients[w.Network]
 	if !ok {
