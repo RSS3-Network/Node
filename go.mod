@@ -1,6 +1,7 @@
 module github.com/rss3-network/node/v2
 
 go 1.22.7
+toolchain go1.24.1
 
 replace (
 	github.com/chenzhuoyu/iasm => github.com/cloudwego/iasm v0.2.0
@@ -35,7 +36,7 @@ require (
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
-	github.com/tdewolff/minify/v2 v2.21.3
+	github.com/tdewolff/minify/v2 v2.22.2
 	github.com/tidwall/gjson v1.18.0
 	github.com/twmb/franz-go v1.18.1
 	github.com/twmb/franz-go/pkg/kadm v1.15.0
@@ -234,7 +235,7 @@ require (
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/supranational/blst v0.3.11 // indirect
-	github.com/tdewolff/parse/v2 v2.7.19 // indirect
+	github.com/tdewolff/parse/v2 v2.7.21 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
@@ -259,7 +260,7 @@ require (
 	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
 	golang.org/x/tools v0.30.0 // indirect
