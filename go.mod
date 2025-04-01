@@ -1,6 +1,7 @@
 module github.com/rss3-network/node/v2
 
 go 1.22.7
+toolchain go1.24.1
 
 replace (
 	github.com/chenzhuoyu/iasm => github.com/cloudwego/iasm v0.2.0
@@ -78,7 +79,7 @@ require (
 	github.com/spf13/afero v1.12.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	github.com/vincent-petithory/dataurl v1.0.0
-	github.com/whyrusleeping/cbor-gen v0.3.0
+	github.com/whyrusleeping/cbor-gen v0.3.1
 	golang.org/x/net v0.35.0
 )
 
