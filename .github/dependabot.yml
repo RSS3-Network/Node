@@ -5,6 +5,7 @@ updates:
     schedule:
       interval: weekly
     target-branch: main
+    security_updates_only: true
     ignore:
       - dependency-name: "github.com/ethereum/go-ethereum"
       - dependency-name: "github.com/rss3-network/protocol-go"
@@ -13,8 +14,10 @@ updates:
     schedule:
       interval: weekly
     target-branch: main
+    security_updates_only: true
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: weekly
     target-branch: main
+    security_updates_only: true
