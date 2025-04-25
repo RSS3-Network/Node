@@ -5,6 +5,7 @@ updates:
     schedule:
       interval: weekly
     target-branch: main
+    open-pull-requests-limit: 0
     ignore:
       - dependency-name: "github.com/ethereum/go-ethereum"
       - dependency-name: "github.com/rss3-network/protocol-go"
@@ -13,8 +14,10 @@ updates:
     schedule:
       interval: weekly
     target-branch: main
+    open-pull-requests-limit: 0
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: weekly
     target-branch: main
+    open-pull-requests-limit: 0
